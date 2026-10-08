@@ -1,0 +1,28 @@
+{
+  "$schema": "https://unpkg.com/wrangler@4.86.0/config-schema.json",
+  "name": "anastasia-admin-demo",
+  "account_id": "3a147fa6382bb87477201b385bb945ea",
+  "main": "./worker.js",
+  "compatibility_date": "2026-10-08",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "404-page"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "anastasia-admin-demo-db",
+      "database_id": "5865138c-ce6a-4ca3-a239-aa94d18f1bcb",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "anastasia-admin-demo-media"
+    }
+  ]
+}

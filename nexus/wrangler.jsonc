@@ -1,0 +1,110 @@
+{
+  // PRVNÍ Worker config v NEXUSu (Fáze A voucheru, 2026-09-06).
+  // JSONC místo TOML záměrně: Cloudflare doporučuje wrangler.jsonc pro nové
+  // projekty a část novějších funkcí je dostupná jen pro JSON config.
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  "name": "nexus-api",
+  "main": "workers/api/index.ts",
+  "compatibility_date": "2026-09-06",
+
+  // Structured logging / observabilita je master rule ("chyby čitelné bez dolování").
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+
+  // ---------------------------------------------------------------------
+  // TOP-LEVEL = DEV/STAGING cíl. `wrangler dev` a `wrangler deploy` BEZ
+  // --env míří sem, nikdy na produkční kredity.
+  //
+  // POZOR: `d1_databases` se do `env.*` NEDĚDÍ (stejně jako vars,
+  // kv_namespaces, durable_objects, r2_buckets, services, queues).
+  // Musí být v každém prostředí zopakováno CELÉ -- když se na to zapomene,
+  // produkční Worker nemá binding vůbec, nezdědí dev databázi.
+  // ---------------------------------------------------------------------
+  "d1_databases": [
+    {
+      "binding": "DB",
+      // Docs doporučují adresovat migrace přes database_name, ne binding:
+      // binding se může přejmenovat, jméno databáze ne. Chrání to před
+      // aplikací migrace na špatný cíl.
+      "database_name": "nexus-voucher-dev",
+      "database_id": "9eeca676-5fb8-4d1d-8adf-452ce66836a7",
+      "preview_database_id": "9eeca676-5fb8-4d1d-8adf-452ce66836a7",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // ---------------------------------------------------------------------
+  // Durable Object -- replay protection (§6.2) + rate limit (§4).
+  // Třída `SecurityCoordinator` je v workers/api/SecurityCoordinator.ts
+  // a MUSÍ být re-exportovaná z `main` (workers/api/index.ts), jinak ji
+  // workerd při deployi nenajde.
+  //
+  // Binding se jmenuje VOUCHER_SECURITY (ne SECURITY_DO jako v PoC) --
+  // `Env.VOUCHER_SECURITY` v workers/api/types.ts a `resolveNonceStore`
+  // v routes/voucher.ts čtou přesně tenhle název.
+  //
+  // POZOR: `durable_objects` se do `env.*` NEDĚDÍ (stejně jako
+  // `d1_databases` výše) -- zopakováno v env.production.
+  // ---------------------------------------------------------------------
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "VOUCHER_SECURITY",
+        "class_name": "SecurityCoordinator"
+      }
+    ]
+  },
+
+  // `migrations` je naopak GLOBÁLNÍ (tag se v env.* neopakuje) -- je to
+  // historie schématu DO tříd, ne binding.
+  // `new_sqlite_classes` místo `new_classes`: SQLite-backed DO je dnes
+  // doporučený storage backend, umí `storage.list()` s prefixem a alarmy
+  // levněji. Migrace je JEDNOSMĚRNÁ -- z KV-backed na SQLite se nepřechází,
+  // proto se to volí hned u první verze.
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["SecurityCoordinator"]
+    }
+  ],
+
+  "env": {
+    "production": {
+      "name": "nexus-api-production",
+      "observability": { "enabled": true },
+      // Fyzicky oddělená databáze, ne jen jiný preview_database_id.
+      // U kreditních dat nechceme, aby `wrangler deploy` bez --env mohl
+      // sáhnout na produkční zůstatky.
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "nexus-voucher",
+          "database_id": "9089a9fc-abef-46cb-b01b-71e25c27dd52",
+          "migrations_dir": "migrations"
+        }
+      ],
+      // ZOPAKOVÁNO ZÁMĚRNĚ -- `durable_objects` se z top-level NEDĚDÍ.
+      // Bez tohohle bloku by produkční Worker binding vůbec neměl
+      // a `/redeem` by na `resolveNonceStore` padal na 503 MISSING_BINDING
+      // (fail-closed, ale platidlo by nefungovalo).
+      //
+      // Vlastní DO namespace produkce vzniká automaticky tím, že jde
+      // o jiný Worker (`nexus-api-production`) -- stav se s dev
+      // prostředím NESDÍLÍ, stejně jako u D1.
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "VOUCHER_SECURITY",
+            "class_name": "SecurityCoordinator"
+          }
+        ]
+      }
+    }
+  }
+
+  // HMAC_SECRET se NIKDY nepíše sem ani do vars -- jen
+  // `wrangler secret put HMAC_SECRET` (příp. Secrets Store).
+}

@@ -1,0 +1,201 @@
+// Campaign / PromoGroup / CampaignPlacement / Creative -- Fáze 6.1
+// lifecycle + invariants (Josovo zadání 2026-09-05: "Další kroky Fáze 6" +
+// "Fáze 6.1 = lifecycle + základní invariants"). Čistě NEW BUILD.
+//
+// ROZHODNUTO (Jose):
+//   - PromoGroup -> Product: nezávislá entita, explicitní vazba na
+//     produkty, produkt může být ve VÍCE PromoGroup (M:N). Vlastní promo
+//     pravidla per PromoGroup. Konflikt více promo skupin na stejném
+//     produktu se NEŘEŠÍ implicitně -- `priority` je POVINNÉ pole
+//     (vyšší číslo = vyšší priorita, konkrétní tie-break algoritmus mimo
+//     scope kostry, jen že priorita MUSÍ existovat).
+//   - Campaign může obsahovat VÍCE PromoGroup (1:N, ne 1:1) -- proto
+//     `promoGroupIds` (pole), NE `promoGroupId` (singulár).
+//   - Campaign lifecycle: DRAFT -> ACTIVE -> PAUSED -> ENDED.
+//     DRAFT lze upravovat. ACTIVE je publikovaná/vyhodnocovaná. PAUSED je
+//     dočasně vypnutá BEZ ztráty konfigurace (PAUSED -> ACTIVE povolen).
+//     ENDED je terminální a NIKDY se nemaže (historie).
+//   - Creative -> Campaign, jednoduchý kontrakt (id/campaignId/name/type/
+//     content/status), žádný complex content model zatím.
+//   - CampaignPlacement zůstává rozšiřitelný string (NE fixní enum) --
+//     Jose: "Placement bych zatím nefixoval na konkrétní kanály."
+//
+// SCOPE (Jose Fáze 6.1): lifecycle + invarianty. NEIMPLEMENTOVAT: konkrétní
+// promo výpočty, marketingové distribuční kanály, žádnou další business
+// logiku nad tento kontrakt.
+
+import type { CanonicalEntity, EntityId, ISODateTime } from './base.js';
+import type { StateAxisDefinition } from '../../state-machine/StateMachine.js';
+
+/**
+ * PromoGroupDiscount -- ROZHODNUTO (Jose 2026-09-05, Fáze 6.5): PromoGroup
+ * nese slevovou hodnotu (typ + %/Kč), aplikovanou na `currentPrice` (cena
+ * PO celém Pricing chainu -- sale/loyalty/discount limits), NIKDY na
+ * `basePrice`. Viz `domains/campaign/PromoGroupDiscountRule.ts` pro
+ * výpočetní logiku a přesné umístění v cenovém modelu.
+ */
+export type PromoGroupDiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT';
+
+export interface PromoGroupDiscount {
+    readonly type: PromoGroupDiscountType;
+    /** PERCENTAGE: 0 <= value < 1 (např. 0.1 = 10%). FIXED_AMOUNT: absolutní částka v měně produktu. Validace v PromoGroupDiscountRule. */
+    readonly value: number;
+}
+
+/**
+ * PromoGroup -- seskupení produktů pro účely kampaně. `priority` je
+ * POVINNÉ (ne optional) -- Jose: "konflikt více promo skupin se neřeší
+ * implicitně, musí existovat explicitní priorita." Produkt může patřit
+ * do více PromoGroup současně (M:N), proto se priorita řeší per-group,
+ * ne jako vlastnost Product.
+ *
+ * `discount` -- ROZHODNUTO (Jose, Fáze 6.5): "skutečná promo pravidla" =
+ * procentuální/pevná sleva. Optional -- Non-Interference s Fáze 6.0-6.4
+ * kostrou/testy, které PromoGroup bez slevy vytvářely jen pro conflict
+ * resolution testy (priorita/tie-break), ne pro cenový výpočet.
+ */
+export interface PromoGroup extends CanonicalEntity {
+    name: string;
+    /** FK na Product.id -- explicitní členství, NENÍ odvozeno z PriceList/ceníku. */
+    productIds: EntityId[];
+    /** Vyšší číslo = vyšší priorita při konfliktu více PromoGroup na stejném produktu. Tie-break algoritmus mimo scope kostry. */
+    priority: number;
+    /** Slevová hodnota této skupiny -- viz PromoGroupDiscount výše. Optional (Non-Interference s existující kostrou). */
+    discount?: PromoGroupDiscount;
+}
+
+/**
+ * Campaign lifecycle -- ROZHODNUTO (Jose): DRAFT -> ACTIVE -> PAUSED ->
+ * ENDED. DRAFT je jediný stav, kde lze kampaň upravovat (Rule/validace
+ * mimo scope kostry, jen stavový kontrakt zde). PAUSED <-> ACTIVE
+ * obousměrně povolen (dočasné vypnutí beze ztráty konfigurace). ENDED je
+ * terminální -- žádný přechod ven, záznam se NIKDY nemaže (historie).
+ */
+export type CampaignLifecycleState = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'ENDED';
+
+export const CAMPAIGN_LIFECYCLE_DEFINITION: StateAxisDefinition<CampaignLifecycleState> = {
+    axisName: 'campaignLifecycle',
+    initialState: 'DRAFT',
+    terminalStates: ['ENDED'],
+    transitions: {
+        DRAFT: ['ACTIVE', 'ENDED'],
+        ACTIVE: ['PAUSED', 'ENDED'],
+        PAUSED: ['ACTIVE', 'ENDED'],
+        ENDED: [],
+    },
+};
+
+/**
+ * Campaign -- ROZHODNUTO: může obsahovat VÍCE PromoGroup (`promoGroupIds`
+ * pole, ne singulár `promoGroupId`).
+ */
+export interface Campaign extends CanonicalEntity {
+    name: string;
+    status: CampaignLifecycleState;
+    startsAt?: ISODateTime;
+    endsAt?: ISODateTime;
+    /** FK na PromoGroup.id[] -- Campaign obsahuje VÍCE PromoGroup (1:N). */
+    promoGroupIds: EntityId[];
+}
+
+/**
+ * CampaignPlacement -- Jose: "Placement bych zatím nefixoval na konkrétní
+ * kanály... rozšiřitelný enum/kontrakt." Ponecháno jako string (ne union),
+ * aby přidání nového kanálu (produktová stránka/homepage/banner) nebylo
+ * breaking change typu.
+ *
+ * ROZHODNUTO (Jose 2026-09-06, Fáze 6.5 Creative resolve logika): tato
+ * entita zůstává NEVYUŽITÁ/redundantní -- vazba Creative<->placement se
+ * neřeší přes samostatný `CampaignPlacement` záznam (campaignId FK), ale
+ * přímo na `Creative.placementTypes` (viz níže). Ponecháno v kódu jen
+ * pro zpětnou kompatibilitu typu, žádný Rule/flow ho nečte.
+ */
+export interface CampaignPlacement extends CanonicalEntity {
+    readonly campaignId: EntityId;
+    /** Rozšiřitelný string, NE fixní enum -- viz komentář výše. */
+    placementType: string;
+}
+
+/**
+ * Creative -- ROZHODNUTO (Jose): jednoduchý kontrakt, žádný strukturovaný
+ * content model zatím. `content` je volný text/URL (Jose neuvedl
+ * structured title/body/CTA jako požadavek).
+ */
+export type CreativeLifecycleState = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export const CREATIVE_LIFECYCLE_DEFINITION: StateAxisDefinition<CreativeLifecycleState> = {
+    axisName: 'creativeLifecycle',
+    initialState: 'DRAFT',
+    terminalStates: ['ARCHIVED'],
+    transitions: {
+        DRAFT: ['PUBLISHED', 'ARCHIVED'],
+        PUBLISHED: ['ARCHIVED'],
+        ARCHIVED: [],
+    },
+};
+
+/**
+ * ROZHODNUTO (Jose 2026-09-06, Fáze 6.5): první povolené placement hodnoty.
+ * Zůstává string (ne union) -- Jose: "nedával bych pravidlo jeden
+ * placement = jeden Creative", rozšiřitelnost o další kanály musí zůstat
+ * beze změny typu. Tyto čtyři jsou jen DOPORUČENÉ počáteční hodnoty, NE
+ * vynucený enum.
+ */
+export const INITIAL_PLACEMENT_TYPES = ['homepage', 'category', 'product', 'checkout'] as const;
+
+export interface Creative extends CanonicalEntity {
+    readonly campaignId: EntityId;
+    name: string;
+    /** TBD: konkrétní typ hodnot (image/text/video?) -- nerozhodnuto, string zatím. */
+    type: string;
+    content: string;
+    status: CreativeLifecycleState;
+    /**
+     * ROZHODNUTO (Jose 2026-09-06): Creative SÁM SEBE váže na placement(y)
+     * -- NE přes CampaignPlacement.creativeId. "Jeden Creative může mít
+     * více placementů" -- pole, ne singulár. Prázdné pole = Creative se
+     * NIKDE nevykresluje (explicitní opt-in, ne implicitní "všude").
+     */
+    placementTypes: string[];
+    /**
+     * ROZHODNUTO (Jose 2026-09-06): "v jednom placementu může existovat
+     * více Creative, jejich pořadí řeší priority" -- vlastní pole na
+     * Creative, NEZÁVISLÉ na PromoGroup.priority (jiný koncept, jiný
+     * účel -- PromoGroup priority řeší cenový konflikt, tohle řeší
+     * vykreslovací pořadí). Vyšší číslo = vyšší priorita, stejná
+     * konvence jako PromoGroup.priority.
+     */
+    priority: number;
+}
+
+/**
+ * ROZHODNUTO (Jose 2026-09-05, Fáze 6.1): Campaign lifecycle
+ * (DRAFT/ACTIVE/PAUSED/ENDED), Campaign 1:N PromoGroup, PromoGroup
+ * povinná priority, Creative jednoduchý kontrakt s vlastním lifecycle,
+ * Placement rozšiřitelný string.
+ *
+ * ROZHODNUTO (Jose 2026-09-06, Fáze 6.5 Creative resolve): Creative je
+ * OBSAHOVÁ vrstva, NIKDY cenová (nikdy nemění cenu -- ta zůstává výhradně
+ * v Pricing/PromoGroup/QuantityTier/X+X vrstvě). Scope: Creative se smí
+ * vykreslit jen pro produkt, který patří do PromoGroup jeho Campaign
+ * (Campaign -> PromoGroup -> Products -> Creative vazba). Placement:
+ * `homepage`/`category`/`product`/`checkout` jako první doporučené
+ * hodnoty (viz `INITIAL_PLACEMENT_TYPES`), NE vynucený enum. Creative
+ * nese `placementTypes: string[]` (1:N, ne 1:1) a vlastní `priority`
+ * (nezávislé na PromoGroup.priority). `CampaignPlacement` entita zůstává
+ * nevyužitá -- viz komentář u jejího typu. Resolve logika (ne nový
+ * lifecycle) implementována v `domains/campaign/CreativeResolutionRule.ts`.
+ *
+ * Zbývající OPEN QUESTIONS (business rule detail, EXPLICITNĚ MIMO SCOPE):
+ *
+ * 1. PromoGroup priority tie-break algoritmus -- ROZHODNUTO Fází 6.3
+ *    (createdAt -> id), viz PromoGroupPriorityRule.ts.
+ * 2. Creative `type`/`content` konkrétní hodnoty a validace -- nerozhodnuto.
+ * 3. Kdo campaign/creative vytváří/schvaluje (workflow) a napojení na
+ *    Decision/Execution vrstvu -- EXPLICITNĚ MIMO SCOPE (žádné schvalovací
+ *    workflow bez dalšího zadání, analogicky k B2B approval workflow zákazu).
+ * 4. Creative priority tie-break při shodné hodnotě (dva Creative se
+ *    stejnou priority ve stejném placementu) -- Jose nezadal konkrétní
+ *    tie-break pro Creative (na rozdíl od PromoGroup createdAt/id) --
+ *    NEIMPLEMENTOVÁNO, viz CreativeResolutionRule.ts komentář.
+ */
