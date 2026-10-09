@@ -353,19 +353,37 @@ export function parseInserts(sql: string, tables: string[]): Record<string, SqlR
       c.i += 6
       c.skipWs()
       if (c.peek() !== "(") throw new Error("Chybí '(' po VALUES")
-      c.i++
-      const row: SqlRow = {}
-      for (let k = 0; k < cols.length; k++) {
-        row[cols[k]] = readValue(c)
+      // SQL Server obvykle exportuje jeden INSERT na řádek, ale některé exportéry
+      // skládají více tuple do jednoho VALUES. Všechny zpracujeme před hledáním
+      // dalšího INSERT, jinak by se další řádky stejné tabulky potichu ztratily.
+      for (;;) {
+        if (c.peek() !== "(") throw new Error("Chybí '(' u řádku VALUES")
+        c.i++
+        const row: SqlRow = {}
+        for (let k = 0; k < cols.length; k++) {
+          row[cols[k]] = readValue(c)
+          c.skipWs()
+          if (k < cols.length - 1) {
+            if (c.peek() !== ",") throw new Error(`Očekávána ',' za sloupcem ${cols[k]}`)
+            c.i++
+          }
+        }
         c.skipWs()
-        if (k < cols.length - 1) {
-          if (c.peek() !== ",") throw new Error(`Očekávána ',' za sloupcem ${cols[k]}`)
-          c.i++
+        if (c.peek() !== ")") throw new Error("Očekávána ')' na konci VALUES")
+        c.i++
+        out[table].push(row)
+        c.skipWs()
+        if (c.peek() !== ",") break
+        const comma = c.i
+        c.i++
+        c.skipWs()
+        if (c.peek() !== "(") {
+          // Čárka za statementem není validní SQL INSERT tuple; ponecháme ji
+          // parseru dalšího statementu, který vrátí konkrétní chybu syntaxe.
+          c.i = comma
+          break
         }
       }
-      if (c.peek() !== ")") throw new Error("Očekávána ')' na konci VALUES")
-      c.i++
-      out[table].push(row)
       header.lastIndex = c.i
     } catch (err) {
       const line = sql.slice(0, m.index).split("\n").length
