@@ -44,3 +44,9 @@ Souhrn: 30 produktů, 25 zveřejněných, 5 skrytých. Sazby DPH v datech: 23 % 
 4. **Služby** (L004, L005, KONZ.01, NR.01, L003): konzultace 69 €, supervize 69 €, astrologický profil 59 €, protokol 59 €. Nákup vede k rezervaci termínu (K9).
 5. **Digitální:** Nič nemusíš (EP.001, 38 €), AI ANASTASIA RESET 40+ (EP.002, 168 €).
 6. **Duplicitní názvy:** „Tvoja pleťová voda“ (KO.002) a „osviežujúca“ (KO.004) jsou dva samostatné produkty, ponechat oba.
+
+## Porovnání s živým webem (9. 10. 2026, veřejné stránky `/eshop/produkt/{handle}`)
+- **14 produktů se na živém webu zobrazuje s cenou, a všech 14 cen přesně odpovídá dumpu** (K05, DO.002, DO.003, KO.001–KO.004, NR.01, L004, L005, KONZ.01, EP.001, EP.002, VVV.001).
+- **VVV.001 Výuka vedomého vnímania (2 600 €)** je na živém webu dostupná přímou adresou, přestože je v DB označená jako skrytá.
+- **16 produktů se na živém webu nezobrazuje** (stránka vrací prázdnou šablonu „Produkt“): L001, L002, V001, V003–V007, KO.005, DO.001, MA.001, ON.001 a skryté V002, ON.002, MA.002, L003. Z toho 11 je v DB označeno jako zveřejněné. Příčinu neznám (od exportu 5. 10. mohly být staženy, nebo se zobrazují jinou adresou). **Neověřeno; k rozhodnutí Lucie/Luckyho, které produkty mají být na novém webu.**
+- Nebyl nalezen žádný produkt na webu, který by v dumpu chyběl.
