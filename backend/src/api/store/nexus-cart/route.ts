@@ -2,6 +2,7 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, QueryContext } from "@medusajs/framework/utils"
 import { updateLineItemInCartWorkflow } from "@medusajs/medusa/core-flows"
 import { refreshPaymentCollectionForCartWorkflow } from "@medusajs/medusa/core-flows"
+import { resolveCustomerTier } from "./customer-tier"
 
 type PriceResponse = {
   ok: true
@@ -16,7 +17,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const { data } = await query.graph({
     entity: "cart",
     fields: [
-      "id", "currency_code", "region_id", "customer.metadata", "customer.groups.name",
+      "id", "currency_code", "region_id", "customer.metadata", "customer.groups.name", "customer.groups.metadata",
       "items.id", "items.quantity", "items.variant_id", "items.unit_price",
     ],
     filters: { id: cartId },
@@ -42,8 +43,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   }) : { data: [] }
   const variants = new Map((variantsResult.data || []).map((variant: any) => [variant.id, variant]))
 
-  const groups = (cart.customer?.groups || []).map((group: any) => String(group.name || "").toUpperCase())
-  const customerTier = groups.find((name: string) => /^ZR\d+$/.test(name))
+  const customerTier = resolveCustomerTier(cart.customer?.groups)
   const pricedItems: Array<{ id: string; sku: string; quantity: number; unit_price: number; is_discountable: boolean; metadata: Record<string, unknown> }> = []
   let pricesChanged = false
   for (const item of cart.items || []) {
