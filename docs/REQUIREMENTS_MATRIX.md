@@ -56,7 +56,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | A-04 checkout/persistence | PARTIAL | K2/K4 | Medusa persistuje; e2e neověřeno |
 | A-05 Stripe webhook | NOT_IMPLEMENTED (ověření) | K7 | používá Medusa Stripe provider; podpis/idempotence/částka neověřeny; nedělat vlastní webhook |
 | A-06 produkt Nič nemusíš (EP.001, 38 €, 6 stop) | NOT_IMPLEMENTED | C1 seed + K3 | produkt a stopy nezaloženy; ověřit dostupnost a práva k souborům |
-| A-07 chráněná média | PARTIAL | K3 | jen rozhraní |
+| A-07 chráněná média | PARTIAL | K3 | backend hotový a testovaný (9 unit testů): `POST /store/media-access` kontroluje nárok a vydá krátkodobý (max 15 min) HMAC odkaz s vodoznakem a auditem. CHYBÍ: doručovací Worker nad privátním R2 (ověření tokenu, Range, HLS, limit souběžných přehrávání), nahrání médií, vodoznak v přehrávači, test neoprávněného přístupu e2e. Požadavky: soukromý bucket bez veřejné adresy, žádný přímý .mp4, HLS, vodoznak, limit přehrávání; DRM jen volitelně po ocenění. Video RESET 40+ (207 MB) je na starém webu veřejně dostupné; v novém systému jen v soukromém bucketu |
 | A-08 rezervace | NOT_IMPLEMENTED, **V ROZSAHU (rozhodnutí Luckyho 9. 10. 2026: rezervace přímo v systému, žádná ruční domluva)** | K9 `booking` | konzultace L005 (69 €, 60 min): objednávka → termín → potvrzení; smlouva čl. 9 a příloha č. 1 to řadí do Fáze 2 (AI chat), základ rezervací se staví jako jádro |
 | A-09 administrace | NOT_IMPLEMENTED | C5 | |
 | A-10 SafeOrder | IMPLEMENTED_UNVERIFIED | K2 | fail-closed v checkoutu (5 unit testů); Worker route bez auth, logika inline, nepoužívá `RiskEngineRule` |

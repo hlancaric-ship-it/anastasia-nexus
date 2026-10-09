@@ -11,4 +11,9 @@ export const entitlementStoreMiddlewares: MiddlewareRoute[] = [
     method: ["GET"],
     middlewares: [authenticate("customer", ["session", "bearer"])],
   },
+  {
+    matcher: "/store/media-access",
+    method: ["POST"],
+    middlewares: [authenticate("customer", ["session", "bearer"])],
+  },
 ]
