@@ -150,6 +150,7 @@ export interface DurableObjectNamespace {
  * (`assertRequiredBindings` v index.ts). Typ je dokumentace, ne obrana.
  */
 export interface Env {
+    readonly ENVIRONMENT?: string;
     /** D1 binding dle wrangler.jsonc (`d1_databases[].binding = "DB"`). */
     readonly DB: D1Database;
     /**
@@ -157,6 +158,14 @@ export interface Env {
      * jen `wrangler secret put HMAC_SECRET` (příp. Secrets Store).
      */
     readonly HMAC_SECRET: string;
+    /** Dedicated server-to-server credential for the Medusa pricing adapter. */
+    readonly MEDUSA_PRICING_API_KEY?: string;
+    /** Tenant bound to the Medusa credential; never selected by a storefront request. */
+    readonly MEDUSA_PRICING_TENANT_ID?: string;
+    /** Full tenant pricing policy JSON; never fall back to another tenant's defaults. */
+    readonly MEDUSA_PRICING_POLICY_JSON?: string;
+    /** Dedicated Medusa Cloud webhook signing secret; do not reuse HMAC_SECRET. */
+    readonly MEDUSA_WEBHOOK_SECRET?: string;
     /**
      * Durable Object pro nonce replay protection (§6.2). Binding dnes
      * v wrangler.jsonc NENÍ -- doplní ho krok, který DO třídu napíše.
