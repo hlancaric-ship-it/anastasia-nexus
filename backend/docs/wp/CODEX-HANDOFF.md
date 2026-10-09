@@ -66,7 +66,7 @@ Platí direktiva od Luckyho (9. 10. 2026): stavy `NOT_IMPLEMENTED/PARTIAL/BLOCKE
 | A-05 Stripe + webhook | Claude | K7 `payments-verify` (podpis, idempotence, částka/měna, stavy) |
 | A-06 produkt Nič nemusíš (EP.001, 38 €, 6 stop) | Codex data, Claude propojení | C1 (seed produktu+stop), K3 (entitlement) |
 | A-07 chráněná média | Claude | K3 (podepsané krátkodobé URL, R2) |
-| A-08 rezervace | FUTURE/ověřit smlouvu | K5 zapíše stav, neimplementuje |
+| A-08 rezervace | Claude (rozhodnutí Luckyho: v rozsahu, žádná ruční domluva) | K9 `booking` (jádro); admin UI kalendáře později C9 |
 | A-09 administrace | Codex po backendu | C5 `admin-ui` (až K4 zelená) |
 | A-10 SafeOrder | Claude | K2 |
 | A-11 Pricing + tenant izolace | Claude | K1 |
