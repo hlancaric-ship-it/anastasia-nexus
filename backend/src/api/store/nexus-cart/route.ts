@@ -1,5 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, QueryContext } from "@medusajs/framework/utils"
 import { updateLineItemInCartWorkflow } from "@medusajs/medusa/core-flows"
 import { refreshPaymentCollectionForCartWorkflow } from "@medusajs/medusa/core-flows"
 
@@ -33,13 +33,18 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
     entity: "product_variant",
     fields: ["id", "sku", "calculated_price.calculated_amount", "calculated_price.original_amount", "calculated_price.currency_code", "product.title", "product.metadata"],
     filters: { id: variantIds },
-    context: { region_id: cart.region_id, currency_code: cart.currency_code },
+    context: {
+      calculated_price: QueryContext({
+        region_id: cart.region_id,
+        currency_code: cart.currency_code,
+      }),
+    },
   }) : { data: [] }
   const variants = new Map((variantsResult.data || []).map((variant: any) => [variant.id, variant]))
 
   const groups = (cart.customer?.groups || []).map((group: any) => String(group.name || "").toUpperCase())
   const customerTier = groups.find((name: string) => /^ZR\d+$/.test(name))
-  const pricedItems: Array<{ id: string; quantity: number; unit_price: number; is_discountable: boolean; metadata: Record<string, unknown> }> = []
+  const pricedItems: Array<{ id: string; sku: string; quantity: number; unit_price: number; is_discountable: boolean; metadata: Record<string, unknown> }> = []
   let pricesChanged = false
   for (const item of cart.items || []) {
     const variant = variants.get(item.variant_id) as any
@@ -80,6 +85,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
     }
     pricedItems.push({
       id: item.id,
+      sku: variant.sku,
       quantity,
       unit_price: price.calculated.finalPrice,
       is_discountable: false,

@@ -1,6 +1,7 @@
 # Medusa and NEXUS pricing boundary
 
-`POST /store/nexus-cart` accepts only `{ "cart_id": "..." }`. It reads the cart,
+`POST /store/nexus-cart` uses only `{ "cart_id": "..." }` and ignores any
+client-supplied price, discount, or tenant fields. It reads the cart,
 currency, customer groups, variant prices, SKU, and product metadata from Medusa,
 then sends those trusted inputs to the NEXUS Worker. The Worker requires the
 server credential `MEDUSA_PRICING_API_KEY` and binds that credential to
@@ -85,8 +86,9 @@ changed during this task.
 - Medusa price calculation and the pricing API require a populated region and
   catalog. A blank `DATABASE_URL` or absent PostgreSQL service prevents local
   checkout verification.
-- No payment provider is configured, so Medusa's complete-cart workflow has not
-  been shown to create an order here. Payment sessions, provider signature
+- The local `pp_system_default` test provider can authorize a session without a
+  real charge, and a local Medusa order was verified with it. No real payment
+  gateway or credentials are configured. Provider webhook signature
   verification, captured-payment idempotency, and post-payment digital delivery
   are not implemented or verified by this integration.
 - SafeOrder, digital-product entitlements, and membership provisioning are not
@@ -98,10 +100,22 @@ changed during this task.
   only log order/customer events; payment side effects still need a durable
   processing/outbox state machine before they can safely be attached.
 
-For a first local order, start isolated PostgreSQL, create a local database, set
-the required environment values from `.env.template`, run `npx medusa db:migrate`
-and `npx medusa exec ./src/migration-scripts/initial-data-seed.ts`, then start
-the NEXUS Worker and Medusa backend. Create a cart through Medusa Store API,
-add a seeded product variant, call `/store/nexus-cart`, and finish with
-`/store/nexus-checkout`. These operational steps have not been verified in this
-environment because PostgreSQL is not available.
+## Local API E2E
+
+With isolated local PostgreSQL, the NEXUS Worker, and the compiled Medusa
+server running on `127.0.0.1:9000`, run:
+
+```sh
+MEDUSA_BASE_URL=http://127.0.0.1:9000 \
+MEDUSA_TEST_PUBLISHABLE_KEY=pk_... \
+npm run test:e2e:local
+```
+
+The script reads an EUR variant from the seeded catalog, creates a cart,
+attempts a client price/tenant override, calls NEXUS twice, adds available
+shipping, creates a standard Medusa payment collection and
+`pp_system_default` test session, then completes checkout. It asserts that the
+order's persisted line prices and total match NEXUS and Medusa's cart. The test
+provider does not make a real charge. This was run successfully against a
+temporary PostgreSQL instance on this machine; it does not import production
+catalog or customer data.

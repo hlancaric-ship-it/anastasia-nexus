@@ -38,7 +38,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       paymentStatus: isPaid ? "PAID" : "PENDING",
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "CHECKOUT_FAILED"
+    const workflowMessage = typeof error === "object" && error !== null && "message" in error && typeof error.message === "string"
+      ? error.message
+      : "CHECKOUT_FAILED"
+    const message = error instanceof Error ? error.message : workflowMessage
+    const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
+    logger.error("NEXUS checkout failed", new Error(message))
     if (message === "NEXUS_PRICE_MISMATCH") {
       return res.status(409).json({ ok: false, error: message, message: "Cena košíku se změnila během checkoutu. Přepočítejte košík a znovu vytvořte platební relaci." })
     }

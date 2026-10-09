@@ -27,12 +27,12 @@ completeCartWorkflow.hooks.validate(async ({ input }, { container }) => {
     const query: any = (container as any).resolve(ContainerRegistrationKeys.QUERY)
     const { data } = await query.graph({
         entity: "cart",
-        fields: ["id", "currency_code", "raw_total", "payment_collection.raw_amount", "payment_collection.currency_code", "payment_collection.payment_sessions.amount", "payment_collection.payment_sessions.currency_code"],
+        fields: ["id", "currency_code", "total", "payment_collection.amount", "payment_collection.currency_code", "payment_collection.payment_sessions.amount", "payment_collection.payment_sessions.currency_code"],
         filters: { id: input.id },
     })
     const cart = data?.[0]
-    const total = amountValue(cart?.raw_total)
-    const collectionAmount = amountValue(cart?.payment_collection?.raw_amount)
+    const total = amountValue(cart?.total)
+    const collectionAmount = amountValue(cart?.payment_collection?.amount)
     const sessions = cart?.payment_collection?.payment_sessions || []
     if (!cart || cart.currency_code !== cart.payment_collection?.currency_code || !Number.isFinite(total) || !Number.isFinite(collectionAmount) || Math.abs(total - collectionAmount) > 0.000001 || sessions.some((session: any) => !Number.isFinite(amountValue(session.amount)) || session.currency_code !== cart.currency_code || Math.abs(amountValue(session.amount) - total) > 0.000001)) {
         throw new Error("MEDUSA_PAYMENT_AMOUNT_MISMATCH")
