@@ -111,6 +111,7 @@ const modules: Array<Record<string, unknown>> = [
     options: { providers: [notificationProvider] },
   },
   { resolve: "./src/modules/entitlement" },
+  { resolve: "./src/modules/booking" },
 ]
 
 if (stripeApiKey) {
