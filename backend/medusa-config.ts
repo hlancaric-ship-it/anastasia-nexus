@@ -110,6 +110,7 @@ const modules: Array<Record<string, unknown>> = [
     resolve: "@medusajs/medusa/notification",
     options: { providers: [notificationProvider] },
   },
+  { resolve: "./src/modules/entitlement" },
 ]
 
 if (stripeApiKey) {
