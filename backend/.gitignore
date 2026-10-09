@@ -24,3 +24,5 @@ build
 !.yarn/versions
 
 .medusa
+# osobní/klientská data ze starého e-shopu (nikdy necommitovat)
+/data-private/
