@@ -11,9 +11,37 @@
  * Test 3 pass was activating the price list (`status: "active"`), not this
  * hook. See MEDUSA-SPIKE-RESULTS.md section 4/6 for the full trace.
  */
-import { addToCartWorkflow } from "@medusajs/medusa/core-flows"
+import { addToCartWorkflow, completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { StepResponse } from "@medusajs/framework/workflows-sdk"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { repriceCart } from "../api/store/nexus-cart/route"
 
 addToCartWorkflow.hooks.setPricingContext(async () => {
     return new StepResponse({})
 })
+
+// Read-only guard against cart changes between the adapter reprice and Medusa's
+// locked completion snapshot. Never mutate the cart from completeCartWorkflow's
+// validate hook: Medusa documents that the order is built from its earlier snapshot.
+completeCartWorkflow.hooks.validate(async ({ input }, { container }) => {
+    const query: any = (container as any).resolve(ContainerRegistrationKeys.QUERY)
+    const { data } = await query.graph({
+        entity: "cart",
+        fields: ["id", "currency_code", "raw_total", "payment_collection.raw_amount", "payment_collection.currency_code", "payment_collection.payment_sessions.amount", "payment_collection.payment_sessions.currency_code"],
+        filters: { id: input.id },
+    })
+    const cart = data?.[0]
+    const total = amountValue(cart?.raw_total)
+    const collectionAmount = amountValue(cart?.payment_collection?.raw_amount)
+    const sessions = cart?.payment_collection?.payment_sessions || []
+    if (!cart || cart.currency_code !== cart.payment_collection?.currency_code || !Number.isFinite(total) || !Number.isFinite(collectionAmount) || Math.abs(total - collectionAmount) > 0.000001 || sessions.some((session: any) => !Number.isFinite(amountValue(session.amount)) || session.currency_code !== cart.currency_code || Math.abs(amountValue(session.amount) - total) > 0.000001)) {
+        throw new Error("MEDUSA_PAYMENT_AMOUNT_MISMATCH")
+    }
+    const result = await repriceCart(input.id, container as any, false)
+    if (result.pricesChanged) throw new Error("NEXUS_PRICE_MISMATCH")
+})
+
+function amountValue(value: any): number {
+    const numeric = typeof value === "object" && value !== null ? value.numeric ?? value.value : value
+    return Number(numeric)
+}
