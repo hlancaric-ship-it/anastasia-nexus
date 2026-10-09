@@ -79,15 +79,21 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 ## 7. Otevřená rozhodnutí
 DPH 23/19/5 % s účetní; e-mail provider; dobírka a osobní odběr (SafeOrder pozná jen text `cod`/`dobierk`); co je Voucher; zda posunout A-07/A-14 do Fáze 1; oprava autentizace SafeOrder Worker route (zásah do `nexus/`); rozpor repozitáře (`L-Code-Dynamics-Dev/nexus` vs. `hlancaric-ship-it/anastasia-nexus`).
 
-## 8. Brána po Fázi 1: red team (rozhodnutí Luckyho 9. 10. 2026)
+## 8. Brána po Fázi 1: red team (rozhodnutí Luckyho 9.–10. 2026)
 
-Po dokončení Fáze 1, kdykoliv a bez ohlášení, proběhne útočný test modelem s otevřenými váhami trénovaným na útoky. Cíl: dostat se do systému libovolným způsobem.
+Po dokončení Fáze 1, kdykoliv a bez ohlášení, proběhne útočný test. Útočníci: model s otevřenými váhami trénovaný na útoky + druhý agent ("Mythos"), oba na odměnové (RL) instrukční bázi, se sadou cca 100 záměrných úkolů. Cíl zadaný útočníkům: dostat se do systému jakýmkoliv způsobem a následně z něj ven.
 
-**Závazná pravidla rozsahu:**
-1. **Cíl útoku je výhradně staging** — bit-for-bit kopie produkčního systému (stejná architektura, stejný kód, stejná konfigurace krom tajných klíčů), se syntetickými daty a Stripe v test módu. Produkce, starý web `anastasiaoz.eu`, Cloudflare/Stripe účty samotné a cokoli mimo náš staging nejsou cíl.
-2. **Žádné oznámení, žádná domluvená hodina.** Model přichází kdykoliv po dokončení Fáze 1, nikdo z týmu neví kdy. Žádná výjimka ze strany testovaného systému (žádné "heads up", žádné pozastavení obrany na dobu testu).
-3. **Metody neomezené.** Smí zkoušet cokoliv na staging cíli — SQL injection, obcházení autentizace, manipulaci cen a kupónů, replay útoky, manipulaci webhooku, cizí data změnou ID, obcházení chráněných médií, tenant izolaci, SafeOrder, upload, zatěžové/DoS útoky v rámci našich vlastních zdrojů.
-4. **Před testem: záloha stagingu.** Po testu (bez ohledu na výsledek, včetně úplného pádu): obnova ze zálohy. Tím se zároveň ověří A-17 (zálohování a obnova).
-5. **Výstup:** nálezy s klasifikací závažnosti a reprodukcí v `docs/SECURITY_REVIEW.md`. Veřejné spuštění je podmíněno uzavřením kritických a vysokých nálezů a retestem.
+**Topologie (tvrdý, blokující předpoklad — bez něj test NESMÍ začít):**
+- Útočníci běží na **izolované místní síti, zcela AIR-GAPPED** — bez jakéhokoliv reálného připojení k internetu, bez reálného DNS, bez sdílených prostředků s produkcí nebo jiným projektem L-Code Dynamics. Potvrzeno Luckym 9. 10. 2026 ("ne propojena").
+- Cíl útoku (staging) je bit-for-bit kopie produkčního ekosystému (Medusa, NEXUS Worker/D1/KV/Durable Objects, síťová topologie, Cloudflare konfigurace) se syntetickými daty a Stripe v test módu, uvnitř téže izolované sítě.
+- Oba útočící agenti **spolu navzájem nekomunikují** napřímo; smí se ale vzájemně "obětovat" (využít jeden druhého jako prostředek/krok), pokud to vede k postupu dovnitř systému nebo ven z izolované sítě.
+- "Ven" = ven z izolované sítě (což fakticky nikam nevede, protože síť nemá reálnou bránu ven) — NIKDY reálný únik do produkce nebo na internet. Air-gap musí být ověřen nezávisle na tom, kdo staging stavěl, PŘED spuštěním testu.
+- Produkce, starý web `anastasiaoz.eu`, reálné účty Cloudflare/Stripe nejsou a nesmí být cílem ani dosažitelné odkudkoliv z izolované sítě.
 
-Staging se musí postavit jako věrná kopie dřív, než tento test může proběhnout — je to předpoklad, ne až poslední krok Fáze 1.
+**Zbylá pravidla rozsahu:**
+1. Metody neomezené v rámci izolované sítě — SQL injection, obcházení autentizace, manipulace cen a kupónů, replay útoky, manipulace webhooku, cizí data změnou ID, obcházení chráněných médií, tenant izolace, SafeOrder, upload, zatěžové/DoS útoky, síťové útoky na úrovni paketů, lateral movement mezi komponentami.
+2. Před testem: záloha stagingu. Po testu (bez ohledu na výsledek, včetně úplného pádu): obnova ze zálohy — ověří zároveň A-17.
+3. Měřítko úspěchu definované předem: dosažená hloubka (čtení dat → zápis → cizí identita → admin → pivot na další komponentu → únik z izolované sítě), čas/úsilí, a zda to zachytil monitoring.
+4. Výstup: nálezy s klasifikací závažnosti a reprodukcí v `docs/SECURITY_REVIEW.md`. Veřejné spuštění je podmíněno uzavřením kritických a vysokých nálezů a retestem.
+
+**Předpoklad ke splnění dřív, než toto může proběhnout:** staging jako věrná kopie produkce (včetně síťové topologie) + nezávisle ověřený air-gap izolované sítě. Toto je otevřený úkol pro Luckyho / specialistu na síťovou izolaci; Claude ho sám nenavrhuje ani neověřuje (nemá náhled do Cloudflare topologie ani prostředky fyzicky izolovat síť).
