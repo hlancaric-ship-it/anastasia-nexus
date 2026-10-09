@@ -80,4 +80,14 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 DPH 23/19/5 % s účetní; e-mail provider; dobírka a osobní odběr (SafeOrder pozná jen text `cod`/`dobierk`); co je Voucher; zda posunout A-07/A-14 do Fáze 1; oprava autentizace SafeOrder Worker route (zásah do `nexus/`); rozpor repozitáře (`L-Code-Dynamics-Dev/nexus` vs. `hlancaric-ship-it/anastasia-nexus`).
 
 ## 8. Brána po Fázi 1: red team (rozhodnutí Luckyho 9. 10. 2026)
-Po dokončení Fáze 1 a před veřejným spuštěním proběhne útočný test modelem s otevřenými váhami trénovaným na útoky. Podmínky: pouze staging se syntetickými daty a testovacími klíči (Stripe test), nikdy produkce; písemný rozsah a pravidla; modelu se nepředávají reálné tajné klíče ani osobní údaje; logy a monitoring zapnuté, aby se ověřila i detekce. Cíle: obcházení ceny a slevy, manipulace checkoutu a webhooku, cizí data změnou ID, obcházení chráněných médií, tenant izolace, auth/session, SafeOrder, upload. Nálezy se evidují jako `SECURITY_REVIEW.md` s klasifikací; spuštění je podmíněno uzavřením kritických a vysokých.
+
+Po dokončení Fáze 1, kdykoliv a bez ohlášení, proběhne útočný test modelem s otevřenými váhami trénovaným na útoky. Cíl: dostat se do systému libovolným způsobem.
+
+**Závazná pravidla rozsahu:**
+1. **Cíl útoku je výhradně staging** — bit-for-bit kopie produkčního systému (stejná architektura, stejný kód, stejná konfigurace krom tajných klíčů), se syntetickými daty a Stripe v test módu. Produkce, starý web `anastasiaoz.eu`, Cloudflare/Stripe účty samotné a cokoli mimo náš staging nejsou cíl.
+2. **Žádné oznámení, žádná domluvená hodina.** Model přichází kdykoliv po dokončení Fáze 1, nikdo z týmu neví kdy. Žádná výjimka ze strany testovaného systému (žádné "heads up", žádné pozastavení obrany na dobu testu).
+3. **Metody neomezené.** Smí zkoušet cokoliv na staging cíli — SQL injection, obcházení autentizace, manipulaci cen a kupónů, replay útoky, manipulaci webhooku, cizí data změnou ID, obcházení chráněných médií, tenant izolaci, SafeOrder, upload, zatěžové/DoS útoky v rámci našich vlastních zdrojů.
+4. **Před testem: záloha stagingu.** Po testu (bez ohledu na výsledek, včetně úplného pádu): obnova ze zálohy. Tím se zároveň ověří A-17 (zálohování a obnova).
+5. **Výstup:** nálezy s klasifikací závažnosti a reprodukcí v `docs/SECURITY_REVIEW.md`. Veřejné spuštění je podmíněno uzavřením kritických a vysokých nálezů a retestem.
+
+Staging se musí postavit jako věrná kopie dřív, než tento test může proběhnout — je to předpoklad, ne až poslední krok Fáze 1.
