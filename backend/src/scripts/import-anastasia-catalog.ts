@@ -568,20 +568,38 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
   }
   const existingVariantsBySku = new Map<string, { id: string; product_id: string }>()
   for (const v of await findAll("product_variant", ["id", "sku", "product_id"], { sku: catalog.products.map((p) => p.sku) })) {
-    if (v.sku) existingVariantsBySku.set(v.sku, { id: v.id, product_id: v.product_id })
+    if (v.sku) {
+      if (existingVariantsBySku.has(v.sku)) {
+        throw new Error(`SKU ${v.sku} už existuje u více variant v Meduse – import zastaven`)
+      }
+      existingVariantsBySku.set(v.sku, { id: v.id, product_id: v.product_id })
+    }
   }
 
   const inventoryTargets: Array<{ sku: string; variantId: string; quantity: number; allowWrite: boolean }> = []
   for (const p of catalog.products) {
     await guard(prodStats, `produkt ${p.sku} (${p.handle})`, async () => {
-      const [existing] = await findAll(
+      const [byHandle] = await findAll(
         "product",
         ["id", "handle", "metadata", "variants.id", "variants.sku"],
         { handle: p.handle }
       )
       const skuOwner = existingVariantsBySku.get(p.sku)
-      if (!existing && skuOwner) {
+      if (byHandle && skuOwner && skuOwner.product_id !== byHandle.id) {
         throw new Error(`SKU ${p.sku} už existuje u jiného produktu (${skuOwner.product_id}) – řeš ručně`)
+      }
+      let existing = byHandle
+      // SKU je druhý stabilní identifikátor importu. Pokud se v administraci
+      // změnil handle, najdeme tentýž produkt podle SKU a jeho legacy ID; jinak
+      // raději zastavíme než založit duplicitní produkt nebo upravit cizí záznam.
+      if (!existing && skuOwner) {
+        const [skuProduct] = await findAll(
+          "product",
+          ["id", "handle", "metadata", "variants.id", "variants.sku"],
+          { id: skuOwner.product_id }
+        )
+        if (skuProduct?.metadata?.legacy_id === p.legacy_id) existing = skuProduct
+        else throw new Error(`SKU ${p.sku} je obsazené produktem s jiným legacy ID (${skuOwner.product_id})`)
       }
       if (!p.price) logger.warn(`${tag} ${p.sku}: bez ceny, zakládá se jako draft`)
 
