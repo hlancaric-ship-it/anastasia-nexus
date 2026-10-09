@@ -18,7 +18,7 @@ import {
  * Bootstrap e-shopu ANASTASIA (LUCRAT s.r.o., SK).
  *
  * Spuštění (idempotentní, lze opakovat):
- *   npx medusa exec ./src/migration-scripts/anastasia-bootstrap.ts
+ *   npx medusa exec ./src/scripts/anastasia-bootstrap.ts
  *
  * Vytvoří: store (EUR), sales channel, publishable API klíč, region Slovensko (EUR, ceny
  * včetně DPH), daňové sazby SK, sklad, shipping profily + možnosti (zásilka, digitální
@@ -355,7 +355,7 @@ export default async function anastasiaBootstrap({ container }: { container: Med
     }
     return {
       physical: await ensureSet(PHYSICAL_FULFILLMENT_SET_NAME, REGION_NAME),
-      digital: await ensureSet(DIGITAL_FULFILLMENT_SET_NAME, REGION_NAME),
+      digital: await ensureSet(DIGITAL_FULFILLMENT_SET_NAME, `Digitálne - ${REGION_NAME}`),
     }
   })
 

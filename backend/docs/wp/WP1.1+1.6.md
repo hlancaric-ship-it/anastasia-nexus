@@ -2,8 +2,8 @@
 
 ## Soubory balíku
 - `medusa-config.ts` - Stripe, file, notification, Redis moduly (původní produkční kontroly zachovány)
-- `src/migration-scripts/anastasia-bootstrap.ts` - bootstrap e-shopu (idempotentní)
-- `src/migration-scripts/__tests__/anastasia-bootstrap.unit.spec.ts` - unit testy čisté konfigurace
+- `src/scripts/anastasia-bootstrap.ts` - bootstrap e-shopu (idempotentní)
+- `src/scripts/__tests__/anastasia-bootstrap.unit.spec.ts` - unit testy čisté konfigurace
 - `.env.template` - šablona bez hodnot
 - `docs/DEPLOY.md` - nasazení
 
@@ -14,7 +14,7 @@
 - **Redis** (event bus, cache, workflow engine, locking) jen při `REDIS_URL`; jinak in-memory. V produkci bez Redisu varování.
 
 ## Bootstrap
-Spuštění: `npx medusa exec ./src/migration-scripts/anastasia-bootstrap.ts`. Vytvoří store (EUR), sales channel "ANASTASIA e-shop", publishable klíč, region Slovensko (EUR, `is_tax_inclusive: true`), daňový region SK s DPH 23 % (výchozí), 19 %, 5 %, sklad, profily (fyzický + digitální), fulfillment sety, možnosti dopravy (Kuriér 6 EUR, Digitální bez dopravy 0 EUR) a skupiny Bronze, Silver, Gold, VIP.
+Spuštění: `npx medusa exec ./src/scripts/anastasia-bootstrap.ts`. Vytvoří store (EUR), sales channel "ANASTASIA e-shop", publishable klíč, region Slovensko (EUR, `is_tax_inclusive: true`), daňový region SK s DPH 23 % (výchozí), 19 %, 5 %, sklad, profily (fyzický + digitální), fulfillment sety, možnosti dopravy (Kuriér 6 EUR, Digitální bez dopravy 0 EUR) a skupiny Bronze, Silver, Gold, VIP.
 
 DPH: ze starého DB.sql (`ecProductPrice`): 27 cen 23 %, 2 ceny 20 %, 1 cena 19 %; ceny jsou koncové včetně DPH (`price_1_WithVat`); doprava kurýr 6 EUR s DPH, dobírka 2 EUR (dobírka nezřízena). Sazby 23/19/5 platí v SR od 2025 a je třeba je potvrdit s účetní.
 

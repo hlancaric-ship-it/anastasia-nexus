@@ -66,7 +66,7 @@ a doplnit klíče do env. Bez toho zákaznice nedostanou potvrzovací e-mail.
 2. `npm ci`
 3. `npm run build` (vytvoří `.medusa/server`).
 4. V `.medusa/server` nastavit env a spustit migrace: `npx medusa db:migrate` (v adresáři buildu: `cd .medusa/server && npm ci && npx medusa db:migrate`).
-5. Jednorázově bootstrap e-shopu (idempotentní): `npx medusa exec ./src/migration-scripts/anastasia-bootstrap.ts`
+5. Jednorázově bootstrap e-shopu (idempotentní): `npx medusa exec ./src/scripts/anastasia-bootstrap.ts`
    (spouští se z kořene projektu, kde je zdrojový kód a `medusa-config.ts`). Vypíše publishable API klíč pro storefront.
 6. Vytvořit admin uživatele: `npx medusa user -e <email> -p <heslo>` (heslo hned změnit, nikam neukládat).
 7. Start: `npm run start` (`medusa start`) za reverzní proxy s HTTPS. Healthcheck: `GET /health`.
