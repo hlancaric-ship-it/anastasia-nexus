@@ -3,6 +3,20 @@ const JSON_HEADERS = {
   "cache-control": "no-store"
 };
 
+function checkAuthorization(request, env) {
+  const secretKey = env.ADMIN_API_KEY;
+  if (!secretKey) {
+    if (env.ENVIRONMENT === "production") {
+      return false; // Fail closed in production if ADMIN_API_KEY binding is omitted
+    }
+    return true; // Allow unauthenticated writes only in demo/dev environment
+  }
+  const keyHeader = request.headers.get("X-Admin-Key");
+  const authHeader = request.headers.get("Authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+  return keyHeader === secretKey || bearerToken === secretKey;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -15,6 +29,9 @@ export default {
       }
 
       if (request.method === "PUT") {
+        if (!checkAuthorization(request, env)) {
+          return Response.json({ error: "Unauthorized write access" }, { status: 401, headers: JSON_HEADERS });
+        }
         const length = Number(request.headers.get("content-length") || 0);
         if (length > 1_000_000) {
           return Response.json({ error: "State is too large" }, { status: 413, headers: JSON_HEADERS });
@@ -41,6 +58,9 @@ export default {
     }
 
     if (url.pathname === "/api/media" && request.method === "POST") {
+      if (!checkAuthorization(request, env)) {
+        return Response.json({ error: "Unauthorized write access" }, { status: 401, headers: JSON_HEADERS });
+      }
       const mime = request.headers.get("content-type") || "";
       const extensions = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
       const extension = extensions[mime.toLowerCase()];
@@ -68,6 +88,9 @@ export default {
         return Response.json({ error: "Invalid media key" }, { status: 400, headers: JSON_HEADERS });
       }
       if (request.method === "DELETE") {
+        if (!checkAuthorization(request, env)) {
+          return Response.json({ error: "Unauthorized delete access" }, { status: 401, headers: JSON_HEADERS });
+        }
         await env.MEDIA.delete(key);
         return Response.json({ deleted: true }, { headers: JSON_HEADERS });
       }

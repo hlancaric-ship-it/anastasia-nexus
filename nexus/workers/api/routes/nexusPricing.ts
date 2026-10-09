@@ -20,9 +20,23 @@ export async function handleNexusPricing(request: Request, _env: Env): Promise<R
         throw new ApiError('VALIDATION_ERROR', 400, 'basePrice musí byť kladné číslo.');
     }
 
-    const tenantId = typeof input.tenantId === 'string' && input.tenantId.trim().length > 0
+    const rawTenant = typeof input.tenantId === 'string' && input.tenantId.trim().length > 0
         ? input.tenantId.trim()
         : 'anastasia';
+
+    // Validate tenant ID format (prevent path traversal / malicious tenant injection)
+    if (!/^[a-z0-9_-]{2,32}$/i.test(rawTenant)) {
+        throw new ApiError('VALIDATION_ERROR', 400, 'Neplatný formát tenantId.');
+    }
+
+    const tenantId = rawTenant.toLowerCase();
+    const allowedTenants = typeof (_env as unknown as Record<string, string>)['ALLOWED_TENANTS'] === 'string'
+        ? (_env as unknown as Record<string, string>)['ALLOWED_TENANTS'].split(',').map(s => s.trim().toLowerCase())
+        : ['anastasia', 'lcode-nexus', 'okfish'];
+
+    if (!allowedTenants.includes(tenantId)) {
+        throw new ApiError('VALIDATION_ERROR', 403, `Tenant '${tenantId}' nemá prístup k Pricing Engine.`);
+    }
 
     const tenant: TenantContext = { tenantId, platform: 'medusa' };
     const provider = new StaticPricingConfigurationProvider();
