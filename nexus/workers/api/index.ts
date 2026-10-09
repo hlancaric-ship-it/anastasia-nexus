@@ -23,6 +23,7 @@ import { ApiError, jsonError, log, preflightResponse, withCors } from './http.js
 import { handleShoptetWebhook } from './routes/shoptetWebhook.js';
 import { handleMedusaWebhook } from './routes/medusaWebhook.js';
 import { handleNexusPricing } from './routes/nexusPricing.js';
+import { handleMediaDelivery, MEDIA_PATH_PREFIX } from './routes/mediaDelivery.js';
 import { handleNexusSafeOrder } from './routes/nexusSafeOrder.js';
 import { handleKlubSubscribe } from './routes/klubSubscribe.js';
 import { handleAIQuery } from './routes/aiGateway.js';
@@ -112,6 +113,10 @@ export default {
 
 async function route(request: Request, env: Env, url: URL, ctx: ExecutionContextLike): Promise<Response> {
     const path = url.pathname.replace(/\/+$/, '');
+
+    if (url.pathname.startsWith(MEDIA_PATH_PREFIX)) {
+        return handleMediaDelivery(request, env);
+    }
 
     switch (path) {
         case '/api/nexus/pricing':

@@ -149,6 +149,19 @@ export interface DurableObjectNamespace {
  * realitě nic neví, takže se stejně validují za běhu
  * (`assertRequiredBindings` v index.ts). Typ je dokumentace, ne obrana.
  */
+/** Minimální tvar R2 API (jen to, co používá doručování médií). */
+export interface R2ObjectBodyLike {
+    readonly body: ReadableStream | null;
+    readonly size: number;
+    readonly httpEtag?: string;
+    readonly range?: { offset?: number; length?: number };
+    text(): Promise<string>;
+}
+export interface R2BucketLike {
+    get(key: string, options?: { range?: { offset?: number; length?: number } }): Promise<R2ObjectBodyLike | null>;
+    head(key: string): Promise<{ size: number; httpEtag?: string } | null>;
+}
+
 export interface Env {
     readonly ENVIRONMENT?: string;
     /** D1 binding dle wrangler.jsonc (`d1_databases[].binding = "DB"`). */
@@ -173,6 +186,10 @@ export interface Env {
      * redemption vrátí 503, nepokračuje bez replay ochrany.
      */
     readonly VOUCHER_SECURITY?: DurableObjectNamespace;
+    /** Soukromý R2 bucket s placenými médii (A-07). Bez bucketu doručování vrací 503. */
+    readonly MEDIA_BUCKET?: R2BucketLike;
+    /** Sdílené tajemství s Medusa backendem (min. 32 znaků), `wrangler secret put MEDIA_TOKEN_SECRET`. */
+    readonly MEDIA_TOKEN_SECRET?: string;
     /** Volitelný allowlist originů pro CORS, čárkou oddělený. */
     readonly ALLOWED_ORIGINS?: string;
     /** Sdílené tajemství order webhooku (Shoptet -> NEXUS). */
