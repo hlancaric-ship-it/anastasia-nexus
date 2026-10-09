@@ -96,4 +96,13 @@ Po dokončení Fáze 1, kdykoliv a bez ohlášení, proběhne útočný test. Ú
 3. Měřítko úspěchu definované předem: dosažená hloubka (čtení dat → zápis → cizí identita → admin → pivot na další komponentu → únik z izolované sítě), čas/úsilí, a zda to zachytil monitoring.
 4. Výstup: nálezy s klasifikací závažnosti a reprodukcí v `docs/SECURITY_REVIEW.md`. Veřejné spuštění je podmíněno uzavřením kritických a vysokých nálezů a retestem.
 
-**Předpoklad ke splnění dřív, než toto může proběhnout:** staging jako věrná kopie produkce (včetně síťové topologie) + nezávisle ověřený air-gap izolované sítě. Toto je otevřený úkol pro Luckyho / specialistu na síťovou izolaci; Claude ho sám nenavrhuje ani neověřuje (nemá náhled do Cloudflare topologie ani prostředky fyzicky izolovat síť).
+**Dvě souběžné/navazující linie útoku na stejný staging ekosystém:**
+- **Interní (air-gapped):** popsaní RL agenti uvnitř izolované sítě — simulují již prolomený perimetr, testují postup dál a pokus o únik z izolace.
+- **Externí (druhý tým):** útočí zvenku na staging přes jeho vlastní veřejné rozhraní (vlastní doména/Cloudflare zóna stagingu, reálně po internetu jako skutečný útočník) — simuluje vstup zvenku. Cíl zůstává izolovaný od produkce stejně jako u interních agentů: žádné sdílené tajné klíče, žádná sdílená doména s `anastasiaoz.eu`, žádné sdílené Cloudflare/Stripe přístupy. **K potvrzení s Luckym.**
+
+**Integrita přípravy (kritické, aby test sám nebyl cestou k úniku):**
+- Staging se staví výhradně z ověřeného, recenzovaného kódu a konfigurace (stejné commity/review jako produkce), nikdy z ad-hoc kopie, kam by šlo něco vložit bez povšimnutí.
+- Po sestavení air-gapované sítě do ní nikdo (včetně nás) nic nedosazuje mimo zdokumentovaný, kontrolovaný proces.
+- Před spuštěním testu nezávislá kontrola ověří nejen air-gap samotný, ale i to, že v izolované síti není nic navíc oproti tomu, co tam bylo vědomě umístěno (žádná zadní vrátka, skrytý síťový most, zapomenutý přístup, covert channel) — ať už vzniklá omylem při přípravě, nebo cíleně propašovaná útočícími agenty.
+
+**Předpoklad ke splnění dřív, než toto může proběhnout:** staging jako věrná kopie produkce (včetně síťové topologie) + nezávisle ověřený air-gap izolované sítě + ověřená integrita přípravy. Toto je otevřený úkol pro Luckyho / specialistu na síťovou izolaci; Claude ho sám nenavrhuje ani neověřuje (nemá náhled do Cloudflare topologie ani prostředky fyzicky izolovat síť).
