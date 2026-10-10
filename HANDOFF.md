@@ -2,7 +2,7 @@
 
 **Aktualizováno:** 10. 10. 2026
 **Auditovaný implementační základ:** `/Users/lucky/anastasia-nexus`, `wave1-base` @ `b01d3ed` (dirty Claude worktree zachován).
-**Ověřovací větev:** `/Users/lucky/anastasia-nexus-codex-auth`, `codex/auth-magic-link`, commitována po dokončení testů.
+**Ověřovací větev:** `/Users/lucky/anastasia-nexus-codex-auth`, `codex/auth-magic-link` @ `d0dfe59`.
 **Roadmapa:** [`ROADMAP_ANASTASIA_NEXUS.md`](ROADMAP_ANASTASIA_NEXUS.md).
 
 ## Poslední dokončený úkol
@@ -42,9 +42,9 @@ Plný `medusa build`, HTTP auth/browser, skutečné odeslání e-mailu, Stripe, 
 - C2 report aktualizuje reconciled skutečný dump dle `docs/REQUIREMENTS_MATRIX.md`, ale tento běh data znovu nečetl.
 - Remote rozpor: lokální origin je `hlancaric-ship-it/anastasia-nexus`; `L-Code-Dynamics-Dev/nexus` je jiné repo/historie. Lokálně není `apps/kar`. Nepushovat na nevyjasněný remote.
 
-## Další konkrétní krok
+## Další práce a C7 restore-drill
 
-Po auth opravném balíku je nejbližší nezávislý, neprodukční úkol C7 `restore-drill`: doplnit bezpečný lokální backup/restore runbook a syntetický ověřovací postup bez přístupu k produkční DB nebo tajným souborům. C5 admin UI čeká na aktualizované K5/K4 gate; C8 e2e čeká na stabilní K4 checkout. Po dokončení C7 aktualizovat tuto handoff kartu a roadmapu.
+C7 je částečně implementován v samostatném worktree `/Users/lucky/anastasia-nexus-codex-restore-drill` (`codex/restore-drill` @ `34431e1`): přibyly `backend/src/scripts/{db-recovery.cjs,backup-local.mjs,restore-local.mjs}`, 4 unit testy a `backend/docs/wp/PRODUCTION_RUNBOOK.md`. Full unit suite tam prošla **142/142**, `npx tsc --noEmit` i `git diff --check` prošly. Backup dry-run a produkční guard byly ručně ověřeny. Skutečný backup/restore se záměrně nespustil, protože dostupná lokální DB může obsahovat skutečná C2 data a není potvrzená prázdná syntetická DB. Další krok: vytvořit/potvrdit izolovaný syntetický restore cíl v rámci povolených pravidel a provést drill. C5 čeká na K4/K5 gate; C8 čeká na stabilní checkout.
 
 ## Blokátory / rozhodnutí uživatele
 

@@ -65,8 +65,8 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | A-13 QR kampaně | PARTIAL | C3 | |
 | A-14 SK/EN/RU | NOT_IMPLEMENTED | C6 | Fáze 2 |
 | A-15 inventář a migrace | PARTIAL | C2, C4 | |
-| A-16 migrace DB a obnova | PARTIAL | K4, C7 | migrace ověřena na lokální DB (čistá instalace); postup obnovy nezkoušen |
-| A-17 monitoring/zálohy | BLOCKED | C7 | chybí přístupy a hosting; obnova neověřena |
+| A-16 migrace DB a obnova | PARTIAL | K4, C7 | C7 guarded lokální skripty a dry-run testované; skutečný restore drill dosud neproveden (commit `34431e1` na samostatné větvi) |
+| A-17 monitoring/zálohy | PARTIAL / BLOCKED pro produkci | C7 | local-only backup/restore nástroje a runbook existují, ale šifrování/off-site, monitoring, hosting a skutečná obnova chybí; viz commit `34431e1` na samostatné větvi |
 | A-18 Zlatá brána | FUTURE_SCOPE | | |
 
 ## 5a. Sloučení vlny 1 (9. 10. 2026)
