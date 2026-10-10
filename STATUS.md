@@ -2,6 +2,8 @@
 
 **Dátum aktualizácie:** 9. 10. 2026
 
+> **Historický souhrn:** tento dokument zachycuje stav před integrací wave1/K4 a není aktuální roadmapou. Pro ověřený stav, zdroje, blockers a další pořadí práce viz [ROADMAP_ANASTASIA_NEXUS.md](ROADMAP_ANASTASIA_NEXUS.md) a aktuální [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
+
 ---
 
 ## 1. Hlavná Architektúra & Target System (Centralizovaný Hub)

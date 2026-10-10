@@ -1,6 +1,6 @@
 # REQUIREMENTS_MATRIX: ANASTASIA × NEXUS
 
-Stav k 9. 10. 2026, větev `wave1-base` (commit `1a2ddae`). Jediný zdroj pravdy o tom, co je hotové. Stavy: `NOT_IMPLEMENTED`, `PARTIAL`, `BLOCKED`, `IMPLEMENTED_UNVERIFIED`, `VERIFIED`, `ACCEPTED`, `FUTURE_SCOPE`. `VERIFIED` = spuštěné testy nebo reprodukovatelný důkaz; samotný build nebo existence kódu nestačí.
+Stav revize 10. 10. 2026, implementační základ `wave1-base` (commit `b01d3ed`) + auth oprava v necommitnuté větvi `codex/auth-magic-link`. Jediný zdroj pravdy o požadavcích; stavové důkazy viz [ROADMAP_ANASTASIA_NEXUS.md](../ROADMAP_ANASTASIA_NEXUS.md). Stavy: `NOT_IMPLEMENTED`, `PARTIAL`, `BLOCKED`, `IMPLEMENTED_UNVERIFIED`, `VERIFIED`, `ACCEPTED`, `FUTURE_SCOPE`. `VERIFIED` = spuštěné testy nebo reprodukovatelný důkaz; samotný build nebo existence kódu nestačí.
 
 Zdroje: Smlouva `SMLOUVA-ANASTASIA-FINAL.html` (čl. 2, příloha č. 1), direktiva A-01..A-18 (Lucky, 9. 10. 2026).
 
@@ -15,7 +15,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | S1-02 | Katalog: produkty, ceny, kategorie, značky, dostupnost, kupóny | C1 `catalog-import` | VERIFIED | sloučeno do wave1-base; 30 produktů importováno a ověřeno proti reálné DB a živému webu (viz PRODUKTY-SOUCASNY-STAV.md) |
 | S1-03 | Košík, objednávky, Stripe (karta, Apple/Google Pay) | K2, K7 | PARTIAL | cart/checkout přes Medusa + NEXUS ověřeno jen unit testy; Stripe provider nezapojen lokálně (chybí klíč) |
 | S1-04 | RESET 40+ zachován, zpřístupnění po zaplacení | K3 `entitlement` | IMPLEMENTED_UNVERIFIED | 11 unit testů, migrace proběhla na lokální DB; end-to-end s platbou neověřen |
-| S1-05 | SSO a přenos zákaznic, objednávek, přístupů | K6 `auth`, C2 | PARTIAL | C2 spuštěn 9. 10. 2026 na reálném dumpu (souhlas Lucky): 28 řádků zákaznic → 17 migrováno (ostatní bez dokončené objednávky/přístupu), 12 adres, 10 objednávek/31 položek (372 €), 18 entitlementů. `target_after` = `source`, `reconciled: true`; druhý běh beze změny (idempotentní). Hesla NEpřenesena, jen draft tokenů v `data-private/` (gitignored), `send: false` — nic neodesláno. K6 (přihlášení/SSO) nezačato — bez něj zákaznice účet nevyužije |
+| S1-05 | SSO a přenos zákaznic, objednávek, přístupů | K6 `auth`, C2 | PARTIAL | C2 reconciled report v poslední revizi uvádí 28 zdrojových řádků → 17 migrovaných zákaznic, 12 adres, 10 objednávek/31 položek (372 €), 18 entitlementů; druhý běh beze změny. Hesla nepřenesena, drafty e-mailů `send:false`. K6 provider byl rozpracován v lokálním dirty worktree; C2 magic-link vazba má testovanou opravu na necommitnuté větvi `codex/auth-magic-link` (18 unit + 1 PostgreSQL syntetický integrační test). Provider registrace, e-mail, HTTP/session tok a propojení s importovanou zákaznicí zatím nejsou sloučeny ani akceptovány. |
 | S1-06 | Generátor QR v administraci (kupón → URL s automatickou slevou + QR) | C3 `qr-redirects` | IMPLEMENTED_UNVERIFIED | sloučeno do wave1-base, middleware zapojen, tsc+testy zelené; aktivace slevy přes NEXUS/K1 ještě chybí |
 | S1-07 | 301 přesměrování všech starých URL a vytištěných QR | C3 | PARTIAL | mapa 44 URL hotová, edge nasazení (Cloudflare Redirect Rules) neprovedeno |
 | S1-08 | Administrace na míru, správa produktů/cen/kategorií/kupónů/objednávek/zákaznic | C5 `admin-ui` + Medusa Admin | NOT_IMPLEMENTED | až po K4/K5; Medusa Admin build prošel |
@@ -50,7 +50,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 
 | ID | Stav | Vlastník | Poznámka / důkaz |
 |---|---|---|---|
-| A-01 SSO/passwordless | NOT_IMPLEMENTED | K6 | Medusa customer auth; vlastní protokol nepsat |
+| A-01 SSO/passwordless | PARTIAL | K6 | Custom magic-link provider byl v době převzetí necommitnutý. Oprava C2 vazby/`has_account` je na `codex/auth-magic-link`: 18 unit testů, PostgreSQL TEMP-table integrační test a `tsc` prošly. Registrace provideru, skutečný mailer, Medusa HTTP/session, replay/expiry a přístup k historii čekají na review/merge a další testy. Více-tenant auth model chybí. |
 | A-02 profil a knihovna | IMPLEMENTED_UNVERIFIED | K3 | `GET /store/entitlements` vyžaduje customer auth; test izolace změnou ID chybí |
 | A-03 katalog/ceny EUR | IMPLEMENTED_UNVERIFIED | C1, K1 | cena se přepočítá serverově v nexus-cart |
 | A-04 checkout/persistence | PARTIAL | K2/K4 | Medusa persistuje; e2e neověřeno |
