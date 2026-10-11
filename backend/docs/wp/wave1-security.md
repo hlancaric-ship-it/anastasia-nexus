@@ -149,3 +149,19 @@ payloadů. Spouští se skutečné `npm run test:workers`, Nexus regression a ob
 typové kontroly. Tato konfigurace má zatím stav IMPLEMENTED_UNVERIFIED;
 výsledek bude evidován až podle skutečného CI běhu. Není to staging/Fable
 akceptace. Lokální VM/backend/DB/testy se dál nespouštějí.
+
+### Skutečný výsledek prvního CI běhu
+
+Publikována pouze nová větev `codex/wave1-security`, bez force, HEAD
+`ad09d156ba6dd02a6d96bd59eae39f3d2fb2ba77`. GitHub potvrdil pracovní
+`c9d0e14` i navazující deníkový commit v historii.
+[Run 38124610864](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38124610864)
+selhal před přidělením runneru: runner_id=0, steps=[], žádné artifacts.
+Anotace jobu 114426271806 přesně uvádí:
+`The job was not started because your account is locked due to a billing issue.`
+
+[Důkaz](evidence/safeorder-ci-startup.json) zachovává skutečné IDs/SHA a důvod.
+Výsledek je **0 spuštěných testů**, nikoli selhání bezpečnostního testu.
+Automatické opakování před změnou tohoto stavu nepomůže. Vlastník musí
+odblokovat Actions na GitHub účtu nebo dodat jiný schválený izolovaný vzdálený
+Linux/CI. Billing nebyl měněn, produkce nedotčena. Fáze 1 zůstává BLOCKED.

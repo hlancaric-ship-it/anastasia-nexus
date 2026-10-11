@@ -1,0 +1,28 @@
+{
+  "recordedAtUTC": "2026-10-11 08:24:38 UTC",
+  "repository": "hlancaric-ship-it/anastasia-nexus",
+  "branch": "codex/wave1-security",
+  "sourceSHA": "ad09d156ba6dd02a6d96bd59eae39f3d2fb2ba77",
+  "workCommitSHA": "c9d0e144fdcf5c594735dc0b19288ba3eceb5cad",
+  "journalCommitSHA": "ad09d156ba6dd02a6d96bd59eae39f3d2fb2ba77",
+  "runID": 38124610864,
+  "jobID": 114426271806,
+  "runURL": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38124610864",
+  "status": "completed",
+  "conclusion": "failure",
+  "runnerID": 0,
+  "stepsExecuted": 0,
+  "testsExecuted": 0,
+  "artifacts": [],
+  "annotation": {
+    "path": ".github",
+    "annotation_level": "failure",
+    "message": "The job was not started because your account is locked due to a billing issue."
+  },
+  "evidenceSources": [
+    "GET /repos/hlancaric-ship-it/anastasia-nexus/actions/runs/38124610864/jobs",
+    "GET /repos/hlancaric-ship-it/anastasia-nexus/check-runs/114426271806/annotations"
+  ],
+  "acceptance": "BLOCKED",
+  "nextAction": "Owner unlocks GitHub Actions billing or supplies another approved isolated remote Linux/CI; rerun the failed workflow job and inspect actual test output."
+}

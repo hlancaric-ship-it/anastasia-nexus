@@ -149,3 +149,13 @@ Výše uvedený Medusa persistence blocker je lokálně vyřešen; workerd block
 | A-10 chybové statusy | nexus-checkout přesné kódy po serializaci workflow | route-errors.unit.spec.ts + skutečný HTTP test 503/409/403 | journal + syntetický důkaz | VERIFIED |
 
 Fáze 1 jako celek zůstává BLOCKED; fáze 2 nebyla zahájena.
+
+### P0 remote runtime attempt — 2026-10-11
+
+Vlastník schválil publikaci pracovní větve a GitHub Actions. Workflow
+`.github/workflows/wave1-p0.yml` připravuje Ubuntu/Node a testovací Docker
+kontejner bez sítě a produkčních secrets. Rozšířené workerd testy jsou připravené.
+Skutečný run 38124610864 byl odmítnut před startem runneru kvůli billing locku
+účtu. Počet spuštěných kroků i testů: 0. Důkaz:
+`backend/docs/wp/evidence/safeorder-ci-startup.json`. T1-7 a celá P0 brána
+zůstávají BLOCKED; lokální runtime se podle pokynu vlastníka dál nespouští.
