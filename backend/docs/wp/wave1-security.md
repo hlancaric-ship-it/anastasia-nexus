@@ -125,3 +125,27 @@ oprávnění. Vyžaduje kompatibilní izolovaný Linux/CI nebo spuštění pouze
 `cd nexus && npm run test:workers`; do té doby brána BLOCKED a Auth nezahájeno.
 Opakování/souběh checkoutu patří do navazující K1–K4 akceptace; tento běh je
 neprokazuje. Nový test není workerd, staging ani produkční readiness.
+
+## Vzdálené P0 ověření — konfigurace 2026-10-11
+
+Vlastník zakázal další lokální runtime/testy a následně výslovně schválil
+publikování pracovní větve do veřejného kanonického GitHub repozitáře a testy
+v GitHub Actions. Git slouží pouze k publikaci a evidenci; runtime je vzdálený.
+Před publikací ověřeno: pracovní strom čistý, žádné sledované `.env` ani
+`data-private` v publikované historii, známé vzory soukromých klíčů/live tokenů
+nenalezeny. V cílovém repozitáři nejsou existující deployment workflows.
+
+`.github/workflows/wave1-p0.yml` spouští na GitHub-hosted Ubuntu 24.04 pouze
+větev `codex/wave1-security`. Checkout nemá persistované credentials, token má
+jen contents:read, job nepoužívá secrets ani produkční prostředí. Actions jsou
+připnuté na SHA ověřené proti jejich oficiálním v4 refs. Dependency příprava
+použije zamčený npm lock a Node 24.14.0. Samotné testy běží v disposable Node
+kontejneru s `--network none`, bez capabilities a se zákazem nových privilegií;
+test nemůže volat produkční API ani DB. Zapisovat smí pouze checkout a tmpfs.
+Zachovává skutečný source SHA, image digest, log a JSON reporty jako CI artifact.
+
+Workerd test rozšířen o špatný klíč, chybějící service config a sedm neplatných
+payloadů. Spouští se skutečné `npm run test:workers`, Nexus regression a obě
+typové kontroly. Tato konfigurace má zatím stav IMPLEMENTED_UNVERIFIED;
+výsledek bude evidován až podle skutečného CI běhu. Není to staging/Fable
+akceptace. Lokální VM/backend/DB/testy se dál nespouštějí.

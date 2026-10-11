@@ -12,6 +12,22 @@ const request = (body: unknown = input, key?: string) => new Request('https://ne
 const ctx = { waitUntil: (_promise: Promise<unknown>) => {} };
 
 describe('SafeOrder workerd security gate', () => {
+    it('fails closed for a wrong service key and missing identity configuration', async () => {
+        expect((await worker.fetch(request(input, 'wrong-synthetic-key'), bindings, ctx)).status).toBe(401);
+        expect((await worker.fetch(request(input, 'synthetic-key'), { ...bindings, MEDUSA_PRICING_API_KEY: undefined }, ctx)).status).toBe(503);
+        expect((await worker.fetch(request(input, 'synthetic-key'), { ...bindings, MEDUSA_PRICING_TENANT_ID: undefined }, ctx)).status).toBe(503);
+    });
+    it.each([
+        { ...input, orderSum: -1 },
+        { ...input, orderSum: '50' },
+        { ...input, orderSum: null },
+        { ...input, currency: 'usd' },
+        { ...input, paymentMethod: 'unknown' },
+        { ...input, unit_price: 0.01 },
+        { ...input, customerEmail: '' },
+    ])('rejects invalid or client-controlled fields %#', async (body) => {
+        expect((await worker.fetch(request(body, 'synthetic-key'), bindings, ctx)).status).toBe(400);
+    });
     it('rejects unauthorized, cross-tenant and client policy changes in actual runtime', async () => {
         expect((await worker.fetch(request(), bindings, ctx)).status).toBe(401);
         expect((await worker.fetch(request({ ...input, tenantId: 'other' }, 'synthetic-key'), bindings, ctx)).status).toBe(403);
