@@ -416,3 +416,57 @@ BLOCKED pending actual CI verification.
 ### Next Action
 Exact next executable task: publish working branch without force, inspect new Actions run; diagnose/fix failures, rerun relevant checks; append actual evidence and acceptance before Auth review.
 Owner decisions: GitHub Actions publication/testing already authorized; billing reportedly paid. No new permission needed for this retry. Local runtime prohibition persists.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11 08:41:42 UTC
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: 1dd7b3c75f0805252ea49ce7b2466f465ee08239
+Journal Commit SHA: unique subject `docs(wave1): journal payment retry evidence 1dd7b3c`; resolve with git log (no self-hash cycle).
+Previous Journal Commit SHA: 02e97655121eab2bb4d06b09d50ae707589515c5
+Phase: 1 — P0 SafeOrder
+Task ID: S1-09 / T1-7
+
+### Changes
+- Preserved both real remote attempts after owner-reported GitHub billing payment.
+- Updated transport/admin/persistence tracing with IMPLEMENTED_UNVERIFIED/BLOCKED, without assigning old PASS results to new code.
+- Documented owner billing report versus actual runner allocation and official possible payment-processing delay.
+
+### Files Changed
+- backend/docs/wp/evidence/safeorder-ci-after-payment.json
+- backend/docs/wp/wave1-security.md
+- docs/REQUIREMENTS_MATRIX.md
+
+### Verification
+Commands:
+- Publish codex/wave1-security without force; GitHub run/jobs/steps/artifacts GET.
+- GitHub check-run annotations for jobs114428587451 and114429013822.
+- Rerun failed jobs for run38125396491: connector denied403 (Actions write unavailable); existing authorized owner CLI accepted remote API POST.
+- `git diff --check`
+Results:
+- Published code/source SHA02e97655121eab2bb4d06b09d50ae707589515c5.
+- Attempt1 verify114428587451 failure before steps; medusa114428594924 skipped.
+- Attempt2 verify114429013822 runner_id=0, steps=[], failure; medusa114429020948 skipped.
+- Both verify annotations: "The job was not started because your account is locked due to a billing issue."
+- Actual tests/steps executed: 0; artifacts=[]; no local application/DB/VM/test launched.
+- Static diff/doc review PASS. Newly changed pricing/runtime/test matrix still unverified.
+Evidence:
+- https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38125396491
+- backend/docs/wp/evidence/safeorder-ci-after-payment.json
+- https://docs.github.com/en/billing/how-tos/troubleshooting/locked-account (payments may take up to24h; no account-specific timing claim).
+
+### Security
+Risks:
+- New pricing guard and expanded tests have not passed unit/type/runtime checks; gate must remain closed.
+- No billing/subscription/spending changes, charges, production access, deployment or default-branch integration performed.
+Open Blockers:
+- P0: GitHub scheduler still reports account billing lock even after owner-reported payment.
+- P1: subsequent Auth/payment/voucher/restore/acceptance gates remain unopened/unverified.
+
+### Acceptance
+BLOCKED — external runner not allocated; not a security test failure or PASS.
+
+### Next Action
+Exact next executable task: when the account state changes, rerun failed jobs of38125396491, inspect actual workerd/regression and dependent backend/persistence results, fix failures and retain output before Auth.
+Owner input required: confirm actual unlocked status for hlancaric-ship-it (async question pending) or allow payment processing to complete; alternative isolated remote Linux/CI may be provided. Do not request another payment or change billing automatically. Current publication/testing authorization persists; local runtime remains prohibited.
