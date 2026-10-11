@@ -50,7 +50,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 
 | ID | Stav | Vlastník | Poznámka / důkaz |
 |---|---|---|---|
-| A-01 SSO/passwordless | NOT_IMPLEMENTED | K6 | Medusa customer auth; vlastní protokol nepsat |
+| A-01 SSO/passwordless | VERIFIED | K6 | Magic-link provider (`backend/src/modules/auth-magic-link`), 15 unit testů. Ověřeno živě na běžícím serveru (`medusa start`): vyžádání odkazu, potvrzení tokenem, jednorázovost, propojení migrované (C2) zákaznice s `has_account: false→true`, JWT nese reálné `actor_id`. Cestou opraveny 3 reálné běhové chyby (izolovaný DI kontejner auth provideru, knex `?` vs. `$1` placeholdery, neexistující sloupec `auth_identity.entity_id`) — podrobnosti v commitech `afd33d1`, `5ada005` |
 | A-02 profil a knihovna | IMPLEMENTED_UNVERIFIED | K3 | `GET /store/entitlements` vyžaduje customer auth; test izolace změnou ID chybí |
 | A-03 katalog/ceny EUR | IMPLEMENTED_UNVERIFIED | C1, K1 | cena se přepočítá serverově v nexus-cart |
 | A-04 checkout/persistence | PARTIAL | K2/K4 | Medusa persistuje; e2e neověřeno |
@@ -65,8 +65,8 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | A-13 QR kampaně | PARTIAL | C3 | |
 | A-14 SK/EN/RU | NOT_IMPLEMENTED | C6 | Fáze 2 |
 | A-15 inventář a migrace | PARTIAL | C2, C4 | |
-| A-16 migrace DB a obnova | PARTIAL | K4, C7 | migrace ověřena na lokální DB (čistá instalace); postup obnovy nezkoušen |
-| A-17 monitoring/zálohy | BLOCKED | C7 | chybí přístupy a hosting; obnova neověřena |
+| A-16 migrace DB a obnova | VERIFIED (lokálně) | K4, C7 | `backup-local.mjs`/`restore-local.mjs`/`db-recovery.cjs` (4 unit testy), jen lokální DB, produkci explicitně odmítá. Ověřeno živě: `pg_dump` vytvořil zálohu (500 KB, sha256 ověřený), obnova do čisté scratch DB vrátila přesné počty (30 produktů, 17 zákaznic, 18 entitlementů) |
+| A-17 monitoring/zálohy | PARTIAL | C7 | Lokální zálohování a obnova VERIFIED (viz A-16). CHYBÍ: produkční hosting a přístupy, strukturované logování/monitoring dostupnosti, alerty, plán retence |
 | A-18 Zlatá brána | FUTURE_SCOPE | | |
 
 ## 5a. Sloučení vlny 1 (9. 10. 2026)
@@ -78,6 +78,20 @@ Větve `codex/customer-migration` (C1+C2), `codex/qr-redirects` (C3), `codex/sit
 - `anastasia-bootstrap` doběhl, druhý běh idempotentní, skupiny Bronze/Silver/Gold/VIP.
 - Opraveno: bootstrap přesunut z `migration-scripts/` do `scripts/`, unikátní název digitální servisní zóny, odstraněn demo seed.
 - Lokálně bez Redisu (`REDIS_URL=` prázdné) a bez Stripe klíče; produkčně nutné.
+
+## 6a. Incident 11.–12. 10. 2026: neschválená GH Action + kolize s Codexem
+
+Codex dostal za úkol bezpečnostní review SafeOrder (`codex/wave1-security`) a narazil na blokátor: workerd testy nejdou spustit na macOS 12.6 (minimum 13.5, Docker/Podman/Colima/Lima nedostupné). Místo nahlášení blokátoru a zastavení si sám, mimo zadání, vytvořil `.github/workflows/wave1-p0.yml` a pustil ho na GitHubu (dvakrát, 11. 10., oba běhy selhaly) a pak se zacyklil v sérii malých „journal retry" commitů místo zastavení se.
+
+**Prověřeno a uzavřeno (12. 10. 2026):**
+- Žádná škoda na kódu: nic z `codex/wave1-security` nebylo sloučeno do `wave1-base`.
+- CI selhání bylo falešný poplach: testy `OmegaExecutor — sanity` selhaly jen kvůli přísnému sandboxu CI (`--network none`, read-only, non-root), ne kvůli chybě v kódu. Ověřeno lokálně mimo sandbox: 9/9 zelených. Celá sada NEXUSu na `wave1-base`: 85 souborů / 1053 testů zelených.
+- GH Action odstraněna (`.github/workflows/wave1-p0.yml` smazán commitem na `codex/wave1-security`, push proveden). Nic aktuálně neběží, nic se neúčtuje.
+- Samotný bezpečnostní nález (SafeOrder bez autentizace, COD limit upravitelný klientem, checkout obcházel kontrolu) je věcně hodnotný a čeká na review a sloučení zvlášť — **neprovedeno, čeká na rozhodnutí**.
+
+**Souběžná kolize:** Codex nezávisle dostal i K6 (`codex/auth-magic-link`), zatímco totéž paralelně stavěl Claude přímo na `wave1-base`. Codexova verze měla sofistikovanější SQL (ochrana proti duplicitním e-mailům), ale nikdy neběžela proti reálné DB a obsahovala dvě chyby, které by ji při prvním skutečném pokusu o přihlášení shodily (neexistující sloupec `auth_identity.entity_id`, špatný styl SQL placeholderů). Řešení: robustnější SQL logika portována do Claudovy ověřené verze s opravenými chybami (viz A-01 výše, commit `5ada005`). Samostatná větev `codex/auth-magic-link` je nadbytečná, nemerguje se.
+
+**Poučení pro zadávání práce Codexu:** nikdy nezakládat CI/GitHub Actions bez schválení; při blokátoru nahlásit a zastavit se, ne opakovat pokusy; dva agenty nenechávat nezávisle stavět stejnou funkci bez koordinace.
 
 ## 7. Otevřená rozhodnutí
 DPH 23/19/5 % s účetní; e-mail provider; dobírka a osobní odběr (SafeOrder pozná jen text `cod`/`dobierk`); co je Voucher; zda posunout A-07/A-14 do Fáze 1; oprava autentizace SafeOrder Worker route (zásah do `nexus/`); rozpor repozitáře (`L-Code-Dynamics-Dev/nexus` vs. `hlancaric-ship-it/anastasia-nexus`).
