@@ -310,3 +310,54 @@ BLOCKED — awaiting actual remote workerd run.
 ### Next Action
 Exact next executable task: publish only `codex/wave1-security` without force, verify GitHub commit SHAs, inspect Wave 1 P0 workflow run and retain actual test results; fix any failures before opening Auth.
 Owner decisions: publication and remote CI approved by `jo`; local runtime/test execution remains prohibited. No production deployment approved.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11 08:25:18 UTC
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: 90c89744fecd055e1aeb07f8f459a6cb6ee1a895
+Journal Commit SHA: unique reference `docs(wave1): journal CI blocker 90c8974`; resolve with `git log -1 --format=%H --fixed-strings --grep=...`.
+Previous Journal Commit SHA: ad09d156ba6dd02a6d96bd59eae39f3d2fb2ba77
+Phase: 1 — P0 SafeOrder
+Task ID: T1-7
+
+### Changes
+- Published only working branch with owner's approval, no force or changes to default branch.
+- Verified c9d0e144fdcf5c594735dc0b19288ba3eceb5cad and ad09d156ba6dd02a6d96bd59eae39f3d2fb2ba77 exist remotely with the correct parent relationship.
+- Retained actual CI scheduling failure and updated security/tracing documentation.
+
+### Files Changed
+- backend/docs/wp/evidence/safeorder-ci-startup.json
+- backend/docs/wp/wave1-security.md
+- docs/REQUIREMENTS_MATRIX.md
+
+### Verification
+Commands:
+- `git push origin HEAD:refs/heads/codex/wave1-security` (publication only; local runtime/tests prohibited).
+- GitHub GET branch/commits/run/jobs/artifacts and check-run annotation; `git diff --check`.
+Results:
+- Branch publication PASS; initial remote HEAD ad09d156ba6dd02a6d96bd59eae39f3d2fb2ba77 confirmed.
+- CI run 38124610864 / job 114426271806: failure before runner allocation, runner_id=0, steps=[], artifacts=[].
+- Annotation: "The job was not started because your account is locked due to a billing issue."
+- Actual remote tests executed: 0. Do not claim PASS or a failing security assertion.
+- Prior actual tests unchanged: backend 157/157 PASS, real Medusa/Postgres 12/12 PASS, TypeScript PASS, Nexus 1086/1086 PASS from earlier run.
+- Local diff review PASS; no new local backend/DB/VM/test execution.
+Evidence:
+- https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38124610864
+- backend/docs/wp/evidence/safeorder-ci-startup.json
+
+### Security
+Risks:
+- Actual workerd behavior and expanded tests remain unverified; P0 gate stays closed.
+- Billing is account administration; no payment/billing changes made. No deployment, default-branch integration, or production API/DB access.
+Open Blockers:
+- P0: GitHub account Actions billing lock prevents remote runner start. Local runtime prohibited by owner.
+- P1: later auth/payment/voucher/restore/staging acceptance remains unverified behind P0 gate.
+
+### Acceptance
+BLOCKED
+
+### Next Action
+Exact next executable task: after owner unlocks Actions, rerun failed job 114426271806 (run 38124610864), inspect actual workerd/regression JSON/logs and retain evidence; fix real test failures before Auth. Alternatively use another owner-approved isolated remote Linux/CI.
+Owner decisions required: unlock existing GitHub account Actions billing or provide alternative remote runtime. Async question pending; silence is not approval. Existing publication/CI approval remains valid; local runtime prohibition remains in effect.
