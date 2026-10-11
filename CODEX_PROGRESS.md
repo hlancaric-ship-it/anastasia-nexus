@@ -69,3 +69,70 @@ PASS (local Git baseline only)
 
 ### Next Action
 Exact next executable task: read backend/src/workflows/hooks.ts and completion tests; implement SafeOrder service authentication and tenant validation.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11T07:27:24.544445+00:00
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: ba19a5d1926cbe443431f1fad053235efec5be7c
+Journal Commit SHA: resolve `git log -1 --format=%H --grep='^docs(wave1): journal security ba19a5d$'` (actual self-reference; see protocol)
+Previous Journal Commit SHA: 895edea69f68d2842d776f3e02d7fc54a3070447
+Phase: 1 — P0 SAFEORDER SECURITY
+Task ID: P0-SAFEORDER / K2
+
+### Changes
+- Implemented service authentication before SafeOrder input parsing; required tenant, EUR, bounded numeric amount and known payment method; rejected policy/price overrides.
+- Protected administrative voucher issuance with matching service identity and tenant before storage access.
+- Moved SafeOrder to the Medusa completion validation hook for standard and custom completion paths; verified locked lines/quantities, total and all processable payment sessions.
+- Bound backend acceptance to response tenant/currency/amount, valid score/factors and low-score ALLOW; TLS/loopback transport only, no credential redirect.
+- Added negative unit, real loopback HTTP and prepared workerd tests; updated contracts, traceability and security evidence. Fixed existing media and webhook test fixture type defects.
+
+### Files Changed
+- backend/NEXUS-INTEGRATION.md
+- backend/docs/wp/wave1-security.md
+- backend/src/api/store/nexus-checkout/__tests__/safeorder.unit.spec.ts
+- backend/src/api/store/nexus-checkout/route.ts
+- backend/src/api/store/nexus-checkout/safeorder.ts
+- backend/src/workflows/__tests__/safeorder-completion.unit.spec.ts
+- backend/src/workflows/hooks.ts
+- docs/REQUIREMENTS_MATRIX.md
+- nexus/tests/integration/MedusaNexusE2E.test.ts
+- nexus/tests/integration/SafeOrderHttp.test.ts
+- nexus/tests/unit/MediaDelivery.test.ts
+- nexus/tests/unit/nexusSafeOrderRoute.test.ts
+- nexus/tests/workers/medusaWebhook.test.ts
+- nexus/tests/workers/safeOrder.test.ts
+- nexus/workers/api/medusaServiceAuth.ts
+- nexus/workers/api/routes/issuance.ts
+- nexus/workers/api/routes/nexusSafeOrder.ts
+
+### Verification
+Commands and final results:
+- `cd nexus && npm test`: exit 0, 86/86 files, **1086/1086 tests PASS**, including 4 actual loopback backend-to-Worker HTTP scenarios.
+- `cd backend && npm run test:unit`: exit 0, 16/16 suites, **152/152 tests PASS**.
+- `cd backend && ./node_modules/.bin/tsc --noEmit`: exit 0, PASS.
+- `cd nexus && npm run build`: exit 0, PASS.
+- `cd nexus && ./node_modules/.bin/tsc -p tests/workers/tsconfig.json --noEmit`: exit 0, PASS after fixing required synthetic binding in existing webhook fixture.
+- `cd nexus && npm run test:workers`: exit 1, **BLOCKED**, three pool startup errors, **0 tests executed**. Actual message: Unsupported macOS version 12.6.0; minimum requirement macOS 13.5.0+. No Docker/Podman/Colima/Lima executable available.
+- `git diff --cached --check`: PASS before work commit.
+Results: implementation and local negative/regression/HTTP checks verified. Cloudflare runtime, Medusa persistence/DB rollback, staging and production behavior NOT VERIFIED.
+Evidence: `backend/docs/wp/wave1-security.md`, `backend/NEXUS-INTEGRATION.md`, `docs/REQUIREMENTS_MATRIX.md`, committed executable tests, tool outputs from this run.
+Earlier failed checks: test callback initialization/type issues, stale unauthenticated fixtures, misplaced import during edit and existing optional-map fixture typing; diagnosed and corrected. Final relevant full suites and type checks above passed. Runtime startup blocker remains.
+
+### Security
+Risks: fixed credentials imply trusted backend service, not independent proof of payment or catalog ownership. Issuance still requires later payment/voucher acceptance. Existing commercial policy and real payment integrations are not approved/verified here. No durable SafeOrder decision audit record yet. Standard completion fail-closed behavior must be confirmed in a running Medusa instance.
+Open Blockers:
+- P0: approved compatible isolated runtime + real Medusa order persistence acceptance unavailable. Owner asked asynchronously for environment and access; no response received at this record.
+- P1 / subsequent gates: real test mail delivery, auth/session/customer ownership, sandbox payment/webhook/entitlement, voucher concurrency + SEC-03 persistence, restore/staging/Fable acceptance not verified. Later phases not started through P0 gate.
+No production/real DB calls, deployments, restore, branch merges or push performed. Original uncommitted changes preserved.
+
+### Acceptance
+BLOCKED — phase 1 acceptance requires actual workerd and persisted-order negative tests; local test success is insufficient. Phase 0 remains VERIFIED. Wave 1 NOT COMPLETE, NOT PRODUCTION READY.
+
+### Next Action
+Exact next executable task: on owner-provided compatible isolated Linux/CI/macOS >=13.5 checkout this branch and run `cd nexus && npm run test:workers`; then run both Medusa completion endpoints against synthetic isolated Postgres + Worker, assert unauthorized/malformed/REVIEW/BLOCK/unavailable decisions produce no valid persisted order, and prove ALLOW totals match locked server prices. Record evidence before K6.
+Owner input required: identify the approved synthetic runtime host/CI and provide access. Approved environment must not share production keys, customer data or database. Restore environment approval and pricing/mail/payment decisions remain required at their later gates.
+
+## Current run status
+Phase 0 VERIFIED; phase 1 implementation/local verification complete but acceptance BLOCKED. Auth, checkout acceptance, payments, vouchers, restore, staging and frontend/admin are gated. Last work commit above; journal linked by its unique Git subject. No recursive journal commits.
