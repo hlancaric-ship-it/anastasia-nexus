@@ -96,9 +96,11 @@ Codex dostal za úkol bezpečnostní review SafeOrder (`codex/wave1-security`) a
 ## 7. Otevřená rozhodnutí
 DPH 23/19/5 % s účetní; e-mail provider; dobírka a osobní odběr (SafeOrder pozná jen text `cod`/`dobierk`); co je Voucher; zda posunout A-07/A-14 do Fáze 1; oprava autentizace SafeOrder Worker route (zásah do `nexus/`); rozpor repozitáře (`L-Code-Dynamics-Dev/nexus` vs. `hlancaric-ship-it/anastasia-nexus`).
 
-## 8. Brána po Fázi 1: red team (rozhodnutí Luckyho 9.–10. 2026)
+## 8. Brána po Fázi 2: red team (rozhodnutí Luckyho 9.–10. 2026, termín upřesněn 12. 10. 2026)
 
-Po dokončení Fáze 1, kdykoliv a bez ohlášení, proběhne útočný test. Útočníci: model s otevřenými váhami trénovaný na útoky + druhý agent ("Mythos"), oba na odměnové (RL) instrukční bázi, se sadou cca 100 záměrných úkolů. Cíl zadaný útočníkům: dostat se do systému jakýmkoliv způsobem a následně z něj ven.
+**Upřesnění 12. 10. 2026 (Jose):** red team se nekoná po Fázi 1, ale až po dokončení **Fáze 2** (i18n, AI asistent, ambasadorský program, ComGate/Zlatá brána, anastasia.academy + aianastasia.com na společném jádru — viz čl. 2 smlouvy a `PROGRESS_LOG.md` bod 7). Důvod: příprava air-gapovaného stagingu (Opus 5.5 + nezávislé ověření Fable, viz níže) je natolik náročná, že by se nestihla pořádně připravit hned po Fázi 1 — test má navíc smysl zkoušet proti kompletnímu systému, ne proti jádru čekajícímu na další rozsáhlé funkční přírůstky. Fáze 1 se spouští veřejně na základě vlastního gate (bod 12 níže, kap. 12 direktivy) nezávisle na red teamu — veřejné spuštění Fáze 1 na red teamu NEČEKÁ.
+
+Kdykoliv po dokončení Fáze 2, bez ohlášení, proběhne útočný test. Útočníci: model s otevřenými váhami trénovaný na útoky + druhý agent ("Mythos"), oba na odměnové (RL) instrukční bázi, se sadou cca 100 záměrných úkolů. Cíl zadaný útočníkům: dostat se do systému jakýmkoliv způsobem a následně z něj ven.
 
 **Topologie (tvrdý, blokující předpoklad — bez něj test NESMÍ začít):**
 - Útočníci běží na **izolované místní síti, zcela AIR-GAPPED** — bez jakéhokoliv reálného připojení k internetu, bez reálného DNS, bez sdílených prostředků s produkcí nebo jiným projektem L-Code Dynamics. Potvrzeno Luckym 9. 10. 2026 ("ne propojena").

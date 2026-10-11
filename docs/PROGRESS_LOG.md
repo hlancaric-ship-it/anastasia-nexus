@@ -12,7 +12,7 @@ Pravidlo tohoto logu: procenta a stavy vycházejí jen z toho, co bylo **spušt�
 
 Uvnitř Fáze 1 jsme ve stavu: **jádro hotové a ověřené na lokální DB, integrace mezi částmi a produkční infrastruktura chybí.**
 
-Red team (bod 8 v matici) je samostatná **brána po Fázi 1**, běží na ní nezávisle Opus 5.5 (síťová izolace) a Fable (nezávislé ověření); nespadá do procenta Fáze 1 níže.
+Red team (bod 8 v matici) je samostatná **brána AŽ po Fázi 2** (upřesněno 12. 10. 2026 — příprava air-gapovaného stagingu by se po Fázi 1 nestihla pořádně), běží na ní nezávisle Opus 5.5 (síťová izolace) a Fable (nezávislé ověření); veřejné spuštění Fáze 1 na něm nečeká a nespadá do procenta Fáze 1 níže.
 
 ---
 
@@ -77,7 +77,7 @@ Administrace (C5), i18n (C6), e2e scénáře (C8), ambasadorský program, AI asi
 - **Vyřešeno 12. 10.:** neschválená GH Action od Codexu (`codex/wave1-security`) odstraněna, falešný poplach u „rozbité Omegy" vyvrácen (9/9 a 1053/1053 testů zelených mimo přehnaně izolovaný sandbox). Bezpečnostní nález (SafeOrder bez auth) čeká na review a sloučení.
 - **Vyřešeno 12. 10.:** kolize dvou nezávislých implementací K6 (Claude + Codex). Lepší SQL logika portována, obě nalezené chyby opravené, ověřeno živě.
 - Otevřené: DPH sazby s účetní (živý web má i 20 % sazbu z roku 2022), e-mail provider, dobírka/osobní odběr v SafeOrder, produkt Voucher, repo rozpor (`L-Code-Dynamics-Dev/nexus` vs. skutečný `hlancaric-ship-it/anastasia-nexus`).
-- Red team: čeká na air-gapovaný staging od Opuse 5.5 a nezávislé ověření od Fable (viz matice bod 8). Mimo dosah tohoto backendového plánu.
+- Red team: posunut na bránu AŽ po Fázi 2 (upřesněno 12. 10. 2026), čeká na air-gapovaný staging od Opuse 5.5 a nezávislé ověření od Fable (viz matice bod 8). Mimo dosah tohoto backendového plánu a nepodmiňuje veřejné spuštění Fáze 1.
 
 ---
 
@@ -111,16 +111,16 @@ Administrace (C5), i18n (C6), e2e scénáře (C8), ambasadorský program, AI asi
 15. Strukturované logování, monitoring dostupnosti, alerty.
 16. Produkční zálohování (stejný mechanismus jako lokálně ověřený, nasazený na produkční DB) + ověřený recovery postup v produkčním prostředí.
 
-### Krok 7 — Red team (brána po Fázi 1, souběžně připravovaná)
-17. Air-gapovaný staging (Opus 5.5) + nezávislé ověření izolace (Fable) musí být hotové dřív, než test může proběhnout — viz matice bod 8.
-18. Po testu: oprava kritických a vysokých nálezů, retest.
+### Krok 7 — Veřejné spuštění Fáze 1 (NEČEKÁ na red team)
+17. Report `READY/BLOCKED/NOT READY` podle kap. 12 direktivy.
+18. Písemné schválení klientky (Lucia Rogožanová) — nikdy automatické spuštění.
 
-### Krok 8 — Veřejné spuštění Fáze 1
-19. Report `READY/BLOCKED/NOT READY` podle kap. 12 direktivy.
-20. Písemné schválení klientky (Lucia Rogožanová) — nikdy automatické spuštění.
-
-### Fáze 2 (mimo tento plán, po spuštění Fáze 1)
+### Fáze 2 (po spuštění Fáze 1)
 anastasia.academy + aianastasia.com na společném jádru, i18n SK/EN/RU, AI asistent, ambasadorský program, ComGate, Zlatá brána (samostatná objednávka).
+
+### Krok 8 — Red team (brána AŽ po Fázi 2, upřesněno 12. 10. 2026)
+19. Air-gapovaný staging (Opus 5.5) + nezávislé ověření izolace (Fable) musí být hotové dřív, než test může proběhnout — viz matice bod 8. Příprava je natolik náročná, že by se nestihla pořádně hned po Fázi 1, proto test čeká až na dokončenou Fázi 2.
+20. Po testu: oprava kritických a vysokých nálezů, retest.
 
 ---
 
