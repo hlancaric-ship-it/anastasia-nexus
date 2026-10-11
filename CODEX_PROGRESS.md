@@ -518,3 +518,51 @@ BLOCKED — zero executed tests; P0 gate remains closed.
 ### Next Action
 Exact next executable task: rerun failed jobs of38125396491 after actual GitHub scheduler unlock; inspect and fix real workerd/backend/persistence results before Auth.
 Owner authority/input: account owner or GitHub support must resolve the scheduler billing lock if the account interface already shows unlocked. Existing publication/remote testing authorization persists.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11 10:26:46 UTC
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: 162e1268db5425aac585126f73901f93e9d4fd2e
+Journal Commit SHA: unique subject `docs(wave1): journal resumed retry 162e126`; resolve with git log (no self-hash cycle).
+Previous Journal Commit SHA: 6064468df8e0280bd6485fe96cab5adc22feb436
+Phase: 1 — P0 SafeOrder
+Task ID: S1-09 / T1-7
+
+### Changes
+- Resumed Wave1 after intervening separately requested payroll deployment and Claude Code account setup.
+- Rechecked clean worktree and retried remote P0 verification with existing authorization.
+- Retained actual fourth attempt scheduler failure; no unexecuted tests marked PASS.
+
+### Files Changed
+- backend/docs/wp/evidence/safeorder-ci-resume-retry.json
+
+### Verification
+Commands:
+- git status --short --branch; git log -2; git diff --check.
+- GitHub API POST actions/runs/38125396491/rerun-failed-jobs.
+- GET run, attempt4/jobs and check-runs/114447940462/annotations.
+Results:
+- Worktree clean before evidence changes; whitespace check PASS.
+- Attempt4 verify114447940462 failure, runner_id=0, steps=[], tests executed0.
+- GitHub annotation: "The job was not started because your account is locked due to a billing issue."
+- Dependent medusa114447948647 skipped; latest code remains IMPLEMENTED_UNVERIFIED.
+Evidence:
+- backend/docs/wp/evidence/safeorder-ci-resume-retry.json
+- https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38125396491/attempts/4
+
+### Security
+Risks:
+- Latest pricing/workerd/persistence changes still lack successful runtime verification.
+- No local Wave1 application/test/DB/VM runtime, production access or default branch integration.
+Open Blockers:
+- P0: GitHub account scheduler billing lock remains despite owner-reported unlock.
+- P1: subsequent Auth/payment/voucher/restore/staging acceptance gates remain unopened/unverified.
+
+### Acceptance
+BLOCKED — external scheduler failed before tests; P0 gate stays closed.
+
+### Next Action
+Exact next executable task: resolve GitHub scheduler billing lock for hlancaric-ship-it, rerun failed jobs of38125396491, inspect/fix actual results and retain evidence before Auth review.
+Owner authority/input: account owner or GitHub support must resolve scheduler lock. Publication/remote test authorization persists; local Wave1 runtime prohibition persists.
