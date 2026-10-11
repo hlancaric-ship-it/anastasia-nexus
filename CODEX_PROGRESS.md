@@ -262,3 +262,51 @@ BLOCKED — actual Medusa persistence VERIFIED; actual workerd runtime remains u
 ### Next Action
 Exact next executable task: On a compatible isolated Linux host, install locked Nexus dependencies and execute `cd nexus && npm run test:workers`, retaining real output. Alternatively owner starts only task VM `Wave1 Synthetic Runtime` UUID 69A32E31-68C7-4223-9FA8-673FCA72E0E8; verify guest agent/dependencies, restrict outbound networking, then run the same command. Do not open Auth before the P0 gate passes.
 Required owner input: provide compatible isolated Linux/CI access or start the prepared task-owned VM; no production credentials or deployments required.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11 08:22:40 UTC
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: c9d0e144fdcf5c594735dc0b19288ba3eceb5cad
+Journal Commit SHA: resolve unique subject `docs(wave1): journal isolated CI c9d0e14` with `git log -1 --format=%H --fixed-strings --grep=...` (self-reference avoids self-hash cycle).
+Previous Journal Commit SHA: 5111a927d7052ba009cfa9b22d6309a22bb8d742
+Phase: 1 — P0 SafeOrder
+Task ID: T1-7 / S1-09
+
+### Changes
+- Owner explicitly approved public working-branch publication and isolated GitHub Actions after prohibiting further local runtime/test execution.
+- Added pinned Ubuntu/Node CI; actual test container has no network, credentials, capabilities, or production bindings.
+- Expanded actual workerd negatives for wrong key, missing identity configuration, invalid amounts/currency/provider/client prices/email.
+
+### Files Changed
+- .github/workflows/wave1-p0.yml
+- nexus/tests/workers/safeOrder.test.ts
+- backend/docs/wp/wave1-security.md
+
+### Verification
+Commands:
+- Git status/tree/history and sensitive path/live-key pattern review; remote GitHub tree/workflow and exact action v4 ref inspection.
+- `git diff --check`
+Results:
+- Static review PASS. No existing target workflows, tracked secret environment/private data paths, or recognized live-key/private-key patterns found in reviewed source.
+- New runtime tests NOT YET EXECUTED; no local test, backend, database or VM launched for this work.
+- Prior backend 157/157, real Medusa persistence 12/12, TypeScript PASS remain the last executed results.
+Evidence:
+- Workflow file; official actions/{checkout,setup-node,upload-artifact} v4 refs inspected through GitHub connector.
+- Real CI evidence pending source-SHA log, workerd JSON, Nexus JSON and runtime digest artifact.
+
+### Security
+Risks:
+- npm dependency preparation requires registry network on disposable runner; actual tests execute with Docker network none.
+- CI configuration is IMPLEMENTED_UNVERIFIED until a real run finishes; no staging/production readiness claim.
+Open Blockers:
+- P0: actual workerd verification pending publication/run. Auth gate remains closed.
+- P1: subsequent auth/payment/voucher/restore/acceptance gates unverified.
+
+### Acceptance
+BLOCKED — awaiting actual remote workerd run.
+
+### Next Action
+Exact next executable task: publish only `codex/wave1-security` without force, verify GitHub commit SHAs, inspect Wave 1 P0 workflow run and retain actual test results; fix any failures before opening Auth.
+Owner decisions: publication and remote CI approved by `jo`; local runtime/test execution remains prohibited. No production deployment approved.
