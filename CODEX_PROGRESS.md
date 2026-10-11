@@ -361,3 +361,58 @@ BLOCKED
 ### Next Action
 Exact next executable task: after owner unlocks Actions, rerun failed job 114426271806 (run 38124610864), inspect actual workerd/regression JSON/logs and retain evidence; fix real test failures before Auth. Alternatively use another owner-approved isolated remote Linux/CI.
 Owner decisions required: unlock existing GitHub account Actions billing or provide alternative remote runtime. Async question pending; silence is not approval. Existing publication/CI approval remains valid; local runtime prohibition remains in effect.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11 08:35:54 UTC
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: d9087f6d7dbbc60080af555764855075c03e453e
+Journal Commit SHA: unique subject reference `docs(wave1): journal pricing security d9087f6`; resolve via git log.
+Previous Journal Commit SHA: 9d5f00477208e831267e04f52c046a0f1dd4ebe1
+Phase: 1 — P0 SafeOrder
+Task ID: A-10 / A-11 / S1-09 / T1-7
+
+### Changes
+- Pricing adapter now protects service credentials with TLS/loopback restriction, no URL credentials, no redirects and 5s deadline; sanitized malformed-response errors and stricter response binding.
+- Added 14 pricing transport unit cases; actual workerd SafeOrder cases expanded to 15 including admin D1 count/CORS/logs.
+- Prepared 38 Medusa persistence scenario records including malformed/redirect/tenant/price change responses, rejected replay and concurrent BLOCK.
+- Added remote Medusa/PostgreSQL16 container job after workerd/Nexus success, with no external network, no privileges/secrets, fresh private cluster and explicit non-DB-data artifact export.
+- Owner reports GitHub billing paid and requests Actions; new run will verify scheduler recovery.
+
+### Files Changed
+- .github/workflows/wave1-p0.yml
+- backend/src/api/store/nexus-cart/route.ts
+- backend/src/api/store/nexus-cart/__tests__/pricing-transport.unit.spec.ts
+- backend/integration-tests/http/safeorder-persistence.spec.ts
+- backend/scripts/verify-safeorder-local.py
+- backend/scripts/safeorder-ci.Dockerfile
+- nexus/tests/workers/safeOrder.test.ts
+- backend/docs/wp/wave1-security.md
+
+### Verification
+Commands:
+- Read actual source via published GitHub branch, review transport contracts and isolated runner/user/DB paths.
+- `git diff --check`
+Results:
+- Static review/diff PASS. New unit/type/runtime checks NOT EXECUTED yet; await real CI after publication.
+- Previous actual baseline results remain backend157/157, Medusa12/12, TypeScript PASS; these do not verify the newly expanded tests.
+- Owner billing payment is a report, not evidence that a runner started. Previous run38124610864 had 0 executed steps/tests.
+Evidence:
+- Changed source/workflow and backend/docs/wp/wave1-security.md.
+- New CI run evidence pending; preserve source SHA, JSON outputs and logs, never claim old results for new tests.
+
+### Security
+Risks:
+- Current code and CI additions IMPLEMENTED_UNVERIFIED until focused/full remote checks pass.
+- No production API/DB/secrets/deployment access. No local application/test/DB/VM runtime; Git only for publication/journaling.
+Open Blockers:
+- P0: actual workerd and expanded Medusa/persistence/transport checks pending runner allocation and successful run.
+- P1: later gates not opened through P0.
+
+### Acceptance
+BLOCKED pending actual CI verification.
+
+### Next Action
+Exact next executable task: publish working branch without force, inspect new Actions run; diagnose/fix failures, rerun relevant checks; append actual evidence and acceptance before Auth review.
+Owner decisions: GitHub Actions publication/testing already authorized; billing reportedly paid. No new permission needed for this retry. Local runtime prohibition persists.
