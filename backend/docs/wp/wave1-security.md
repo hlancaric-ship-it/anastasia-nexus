@@ -165,3 +165,32 @@ Výsledek je **0 spuštěných testů**, nikoli selhání bezpečnostního testu
 Automatické opakování před změnou tohoto stavu nepomůže. Vlastník musí
 odblokovat Actions na GitHub účtu nebo dodat jiný schválený izolovaný vzdálený
 Linux/CI. Billing nebyl měněn, produkce nedotčena. Fáze 1 zůstává BLOCKED.
+
+## Pokračování P0 — transport a širší vzdálená verifikace
+
+Review skutečného pricing adaptéru prokázalo rozdíl proti SafeOrder: chyběl TLS
+guard, zákaz redirectu a deadline. Pricing nyní odmítá URL credentials a HTTP
+mimo loopback před odesláním service klíče, používá redirect:error a timeout 5s.
+Malformed JSON převádí na pevný error code bez vrácení části response body;
+vyžaduje přesné ok:true, matching tenant a string pole appliedRules. Výpočet
+cen ani obchodní pravidla se nemění. Připraveno 14 focused unit testů.
+
+Actual workerd suite nyní plánuje 15 SafeOrder testů včetně REVIEW/BLOCK,
+autentizace před parsováním, admin authorization s nezměněným skutečným D1,
+production CORS/test provider a kontroly logů bez syntetických klíčů/e-mailu.
+Medusa HTTP matrix rozšířena z ověřených 12 na 38 plánovaných scenario records:
+vadné pricing odpovědi, odmítnutí redirect targetu, replay zamítnutí a souběžný
+BLOCK. Pricing-change test neoznačuje následnou legitimní payment reinitializaci
+za replay útok; celý checkout zůstává pozdější samostatnou branou.
+
+CI přidává závislý medusa-persistence job po úspěšném workerd/Nexus jobu:
+Node24 + PostgreSQL16 image, syntetický neprivilegovaný OS uživatel odpovídající
+runner UID, network:none a soukromý tmpfs cluster. Build context je jen adresář
+scripts, nikoli celý checkout/node_modules. Launcher exportuje pouze explicitní
+JSON/test/Worker logy do ci-evidence; žádný PG datový adresář do artifactu nejde.
+Backend unit, TypeScript a persistence se vykonávají vzdáleně. Nové scénáře jsou
+zatím IMPLEMENTED_UNVERIFIED; staré 12/12 nejsou důkazem nových 38.
+
+Vlastník oznámil uhrazení GitHub billing a požádal o Actions. Publikace aktuální
+revize spustí nový běh; odstranění billing locku prokáže až skutečně přidělený
+runner a test output. Lokální runtime zůstává zakázán.

@@ -83,23 +83,47 @@ medusaIntegrationTestRunner({
       }
       const evidence: any[] = []
       for (const endpoint of ["standard", "custom"] as const) {
-        for (const scenario of ["unauthorized", "unavailable", "malformed", "REVIEW", "BLOCK"] as const) {
-          await control(["REVIEW", "BLOCK"].includes(scenario) ? "normal" : scenario)
+        for (const scenario of ["unauthorized", "unavailable", "malformed", "REVIEW", "BLOCK", "pricing-redirect", "pricing-malformed", "pricing-tenant", "pricing-change"] as const) {
+          await control("normal")
           const before = await countOrders()
           const id = await newCart(scenario === "BLOCK" ? 400 : 50, ["REVIEW", "BLOCK"].includes(scenario))
+          await control(["REVIEW", "BLOCK"].includes(scenario) ? "normal" : scenario)
           const path = endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout"
           const response = await api.post(path, endpoint === "standard" ? {} : { cart_id: id, orderSum: 0.01, paymentMethod: "stripe", customerEmail: "client-override@example.test" }, options)
           expect(response.status).toBeGreaterThanOrEqual(400)
           if (endpoint === "custom") {
-            expect(response.status).toBe(scenario === "REVIEW" ? 409 : scenario === "BLOCK" ? 403 : 503)
-            expect(response.data.error).toBe(scenario === "REVIEW" ? "SAFEORDER_REVIEW_REQUIRED" : scenario === "BLOCK" ? "SAFEORDER_BLOCKED" : "SAFEORDER_UNAVAILABLE")
+            const expected = scenario === "REVIEW" ? [409, "SAFEORDER_REVIEW_REQUIRED"] : scenario === "BLOCK" ? [403, "SAFEORDER_BLOCKED"] : scenario === "pricing-redirect" ? [503, "NEXUS_PRICING_UNAVAILABLE"] : ["pricing-malformed", "pricing-tenant"].includes(scenario) ? [400, "INVALID_NEXUS_PRICE_RESPONSE"] : scenario === "pricing-change" ? [409, "PRICE_CHANGED_PAYMENT_REINITIALIZATION_REQUIRED"] : [503, "SAFEORDER_UNAVAILABLE"]
+            expect(response.status).toBe(expected[0])
+            expect(response.data.error).toBe(expected[1])
           }
+          expect(JSON.stringify(response.data)).not.toContain("synthetic-private@example.test")
           expect(response.data.order).toBeUndefined()
           expect(await countOrders()).toBe(before)
           const { rows } = await dbConnection.raw('SELECT completed_at FROM cart WHERE id = ?', [id])
           expect(rows[0].completed_at).toBeNull()
           evidence.push({ endpoint, scenario, status: response.status, orderDelta: 0, cartCompleted: false })
+          // A rejected request must stay rejected on replay. A legitimate pricing
+          // change asks the client to reinitialize payment; do not replay that
+          // response as a security failure (covered in the later checkout gate).
+          if (scenario !== "pricing-change") {
+            const replay = await api.post(path, endpoint === "standard" ? {} : { cart_id: id }, options)
+            expect(replay.status).toBeGreaterThanOrEqual(400)
+            expect(await countOrders()).toBe(before)
+            evidence.push({ endpoint, scenario: `${scenario}-REPLAY`, status: replay.status, orderDelta: 0 })
+          }
+          if (scenario === "pricing-redirect") {
+            expect(await (await fetch(`${workerBase}/synthetic-stats`)).json()).toEqual({ redirectRequests: 0 })
+          }
         }
+        await control("normal")
+        const concurrentId = await newCart(400, true)
+        const concurrentBefore = await countOrders()
+        const concurrentPath = endpoint === "standard" ? `/store/carts/${concurrentId}/complete` : "/store/nexus-checkout"
+        const concurrent = await Promise.all([0, 1].map(() => api.post(concurrentPath, endpoint === "standard" ? {} : { cart_id: concurrentId }, options)))
+        expect(concurrent.every((result) => result.status >= 400)).toBe(true)
+        expect(await countOrders()).toBe(concurrentBefore)
+        expect((await dbConnection.raw('SELECT completed_at FROM cart WHERE id = ?', [concurrentId])).rows[0].completed_at).toBeNull()
+        evidence.push({ endpoint, scenario: "CONCURRENT_BLOCK", statuses: concurrent.map((result) => result.status), orderDelta: 0, cartCompleted: false })
         await control("normal")
         const id = await newCart(50)
         const before = await countOrders()

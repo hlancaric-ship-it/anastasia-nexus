@@ -11,6 +11,11 @@ import time
 
 repo = Path(__file__).resolve().parents[2]
 backend = repo / 'backend'
+evidence_out = os.environ.get('WAVE1_EVIDENCE_OUT')
+if evidence_out:
+    evidence_out = Path(evidence_out).resolve()
+    if not evidence_out.is_relative_to(repo / 'ci-evidence'):
+        raise SystemExit('Evidence output must stay inside the checkout ci-evidence directory')
 # No inherited DB, cloud, mail, Stripe or NEXUS credentials.
 env = {k: os.environ[k] for k in ('PATH', 'TMPDIR', 'LANG', 'HOME', 'USER', 'LOGNAME') if k in os.environ}
 env.update({'NODE_ENV': 'test', 'MEDUSA_TELEMETRY_DISABLED': 'true', 'NO_COLOR': '1'})
@@ -43,6 +48,7 @@ try:
 import { writeFileSync } from 'node:fs';
 import worker from './worker.mjs';
 let mode = 'normal';
+let redirectRequests = 0;
 const bindings = { ENVIRONMENT: 'test', HMAC_SECRET: 'synthetic-hmac', MEDUSA_PRICING_API_KEY: 'synthetic-service-key', MEDUSA_PRICING_TENANT_ID: 'anastasia', MEDUSA_PRICING_POLICY_JSON: JSON.stringify({loyaltyTiers:{},brandLimits:{},categoryLimits:{},brandSaleDiscounts:{}}), DB: {prepare(){throw new Error('Unexpected voucher DB access')}} };
 const server = createServer(async (incoming, outgoing) => {
  try {
@@ -51,13 +57,28 @@ const server = createServer(async (incoming, outgoing) => {
   if(incoming.url === '/synthetic-control' && incoming.method === 'POST') {
    mode=JSON.parse(body).mode; outgoing.writeHead(200, {'content-type':'application/json'}); outgoing.end('{}'); return;
   }
+  if(incoming.url === '/synthetic-stats') {
+   outgoing.writeHead(200, {'content-type':'application/json'}); outgoing.end(JSON.stringify({redirectRequests})); return;
+  }
+  if(incoming.url === '/synthetic-pricing-redirect-target') {
+   redirectRequests++; outgoing.writeHead(200, {'content-type':'application/json'}); outgoing.end(JSON.stringify({ok:true,tenantId:'anastasia',calculated:{finalPrice:0,appliedRules:[],rejected:[]}})); return;
+  }
   const headers=new Headers(); for(const [key,value] of Object.entries(incoming.headers)) if(value !== undefined) headers.set(key, Array.isArray(value)?value.join(','):value);
   const request=new Request(`http://127.0.0.1${incoming.url}`, {method: incoming.method,headers,body: incoming.method==='GET'?undefined:body});
   const safeorder=incoming.url.startsWith('/api/nexus/safeorder');
+  const pricing=incoming.url.startsWith('/api/nexus/pricing');
   let response;
   if(safeorder && mode==='unavailable') response=new Response('{}',{status:503});
   else if(safeorder && mode==='malformed') response=new Response('{',{status:200});
+  else if(pricing && mode==='pricing-redirect') response=new Response(null,{status:307,headers:{location:'/synthetic-pricing-redirect-target'}});
+  else if(pricing && mode==='pricing-malformed') response=new Response('synthetic-private@example.test',{status:200});
   else response=await worker.fetch(request, safeorder && mode==='unauthorized'?{...bindings,MEDUSA_PRICING_API_KEY:'different-synthetic-key'}:bindings,{waitUntil(){}});
+  if(pricing && ['pricing-tenant','pricing-change'].includes(mode)) {
+   const payload=await response.json();
+   if(mode==='pricing-tenant') payload.tenantId='other';
+   else payload.calculated.finalPrice=1;
+   response=new Response(JSON.stringify(payload),{status:200,headers:{'content-type':'application/json'}});
+  }
   outgoing.writeHead(response.status,Object.fromEntries(response.headers));outgoing.end(await response.text());
  } catch {outgoing.writeHead(500);outgoing.end('{}');}
 });
@@ -86,4 +107,9 @@ finally:
         except subprocess.TimeoutExpired: worker.kill(); worker.wait()
     if pg_started:
         subprocess.run(['pg_ctl', '-D', str(pg_data), '-m', 'fast', '-w', 'stop'], env=env, check=True)
+    if evidence_out:
+        evidence_out.mkdir(parents=True, exist_ok=True)
+        for name in ('medusa-persistence-evidence.json', 'medusa-test.log', 'worker.log'):
+            if (root / name).exists():
+                shutil.copyfile(root / name, evidence_out / name)
     print(f'Preserved synthetic evidence directory: {root}', flush=True)

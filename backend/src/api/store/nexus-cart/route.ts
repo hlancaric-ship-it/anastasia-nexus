@@ -28,6 +28,11 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const pricingUrl = process.env.NEXUS_PRICING_URL
   const apiKey = process.env.NEXUS_PRICING_API_KEY
   if (!tenantId || !pricingUrl || !apiKey) throw new Error("NEXUS_PRICING_NOT_CONFIGURED")
+  let endpoint: URL
+  try { endpoint = new URL(pricingUrl) } catch { throw new Error("NEXUS_PRICING_NOT_CONFIGURED") }
+  if (endpoint.username || endpoint.password || (endpoint.protocol !== "https:" && !(endpoint.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(endpoint.hostname)))) {
+    throw new Error("NEXUS_PRICING_NOT_CONFIGURED")
+  }
   if (cart.currency_code !== "eur") throw new Error("UNSUPPORTED_CURRENCY")
   const variantIds = (cart.items || []).map((item: any) => item.variant_id).filter(Boolean)
   const variantsResult = variantIds.length ? await query.graph({
@@ -62,6 +67,8 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
     try {
       response = await fetch(pricingUrl, {
         method: "POST",
+        redirect: "error",
+        signal: AbortSignal.timeout(5000),
         headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
         tenantId,
@@ -79,8 +86,9 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
       throw new Error("NEXUS_PRICING_UNAVAILABLE")
     }
     if (!response.ok) throw new Error(`NEXUS_PRICING_FAILED_${response.status}`)
-    const price = await response.json() as PriceResponse
-    if (!price.ok || price.tenantId !== tenantId || !Number.isFinite(price.calculated?.finalPrice) || price.calculated.finalPrice < 0) {
+    let price: PriceResponse
+    try { price = await response.json() as PriceResponse } catch { throw new Error("INVALID_NEXUS_PRICE_RESPONSE") }
+    if (!price || price.ok !== true || price.tenantId !== tenantId || !Number.isFinite(price.calculated?.finalPrice) || price.calculated.finalPrice < 0 || !Array.isArray(price.calculated.appliedRules) || price.calculated.appliedRules.some((rule) => typeof rule !== "string")) {
       throw new Error("INVALID_NEXUS_PRICE_RESPONSE")
     }
     pricedItems.push({

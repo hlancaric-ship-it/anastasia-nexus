@@ -7,6 +7,11 @@ on:
       - .github/workflows/wave1-p0.yml
       - nexus/**
       - backend/src/api/store/nexus-checkout/safeorder.ts
+      - backend/src/api/store/nexus-cart/**
+      - backend/src/workflows/**
+      - backend/integration-tests/http/safeorder-persistence.spec.ts
+      - backend/scripts/verify-safeorder-local.py
+      - backend/scripts/safeorder-ci.Dockerfile
   workflow_dispatch:
 
 permissions:
@@ -63,6 +68,61 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: wave1-p0-${{ github.sha }}
+          path: ci-evidence/
+          if-no-files-found: error
+          retention-days: 14
+
+  medusa-persistence:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact revision without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install pinned Node for dependency preparation
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.14.0
+      - name: Prepare locked backend and synthetic PostgreSQL runtime
+        env:
+          MEDUSA_TELEMETRY_DISABLED: 'true'
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          npm ci --prefix nexus --no-audit --no-fund
+          npm ci --prefix backend --no-audit --no-fund
+          docker build -f backend/scripts/safeorder-ci.Dockerfile --build-arg WAVE1_UID="$(id -u)" --build-arg WAVE1_GID="$(id -g)" -t wave1-medusa-synthetic backend/scripts
+          mkdir -p ci-evidence
+          git rev-parse HEAD > ci-evidence/source-sha.txt
+          docker image inspect wave1-medusa-synthetic --format '{{.Id}}' > ci-evidence/runtime-image.txt
+      - name: Execute backend and real persistence with no external network
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges --shm-size 256m \
+            --read-only --tmpfs /tmp:rw,nosuid,size=2g \
+            --user "$(id -u):$(id -g)" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/workspace" \
+            --workdir /workspace \
+            --env HOME=/tmp --env USER=wave1-ci --env LOGNAME=wave1-ci \
+            --env CI=true --env MEDUSA_TELEMETRY_DISABLED=true \
+            --env WAVE1_EVIDENCE_OUT=/workspace/ci-evidence/medusa \
+            wave1-medusa-synthetic bash -c '
+              set -euo pipefail
+              node --version
+              postgres --version
+              cd backend
+              npm run test:unit -- --json --outputFile=/workspace/ci-evidence/backend-unit.json
+              ./node_modules/.bin/tsc --noEmit
+              cd ..
+              python3 backend/scripts/verify-safeorder-local.py
+            ' 2>&1 | tee ci-evidence/backend-runtime.log
+      - name: Retain synthetic persistence evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: wave1-p0-medusa-${{ github.sha }}
           path: ci-evidence/
           if-no-files-found: error
           retention-days: 14
