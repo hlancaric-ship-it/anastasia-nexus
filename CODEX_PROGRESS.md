@@ -38,3 +38,34 @@ Each work commit gets a separate journal commit containing its actual SHA and ch
 
 ## Next action
 Audit completion hook and security regression coverage, then bind SafeOrder to existing server credential + configured tenant, reject malformed requests, and verify fail-closed completion before proceeding.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11T07:18:03.743933+00:00
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: 7af0713a49a862eafd6c490dd4ddbf142ca01277
+Journal Commit SHA: resolve `git log -1 --format=%H --grep='^docs(wave1): journal baseline 7af0713$'` (self-reference, see protocol above)
+Phase: 0
+Task ID: GIT-BASELINE
+
+### Changes
+- Recorded canonical repository and verified local baseline; preserved existing changes in both original checkouts.
+
+### Files Changed
+- CODEX_PROGRESS.md
+
+### Verification
+Commands: Git status/remotes/branches/log/rev-parse/merge-base; `git diff --check`; `git show --stat HEAD`.
+Results: required objects exist in canonical repository; both merge-bases equal b01d3ed; initial documentation commit succeeded.
+Evidence: local Git history and baseline record above. Application tests: not run.
+
+### Security
+Risks: unauthenticated SafeOrder and completion-path bypass require verification/fix.
+Open Blockers: phase 1 acceptance pending.
+
+### Acceptance
+PASS (local Git baseline only)
+
+### Next Action
+Exact next executable task: read backend/src/workflows/hooks.ts and completion tests; implement SafeOrder service authentication and tenant validation.
