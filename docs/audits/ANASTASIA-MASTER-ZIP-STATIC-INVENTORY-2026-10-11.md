@@ -1,0 +1,543 @@
+# ANASTASIA × NEXUS – inventura všech souborů dodaného master ZIPu
+
+**Zdroj:** `anastasia-nexus-master.zip` nahraný uživatelem. **Rozsah:** všech 491 členů archivu (adresáře vyloučeny), přečtení bajtů, dekódování textu, identifikace exportů/importů, regexových rizikových značek a základní kontroly lokálních vazeb. Tato automatizovaná statická inventura **není** manuálním řádkovým auditem veškeré business logiky, spuštěním testů ani bezpečnostním penetračním testem. ZIP je samostatný snapshot `master`, nikoli současná Wave 1 pracovní větev.
+
+## Souhrn
+- Cloudflare worker: **14 souborů**
+- Medusa backend/config: **25 souborů**
+- admin demo: **10 souborů**
+- canonical core: **41 souborů**
+- connector: **68 souborů**
+- database migration: **4 souborů**
+- documentation: **47 souborů**
+- domain rules: **70 souborů**
+- legacy Omega connector: **23 souborů**
+- repo metadata: **21 souborů**
+- test/fixture: **168 souborů**
+- Binární nebo nedešifrovatelné textové soubory: **1**. Lokální importní vazby: **696**, nerozřešených statickou heuristikou: **0** (včetně záměrně neúplných legacy).
+
+## Konkrétní nálezy (přítomnost/absence v tomto ZIP)
+- **CRITICAL — `backend/src/api/store/nexus-cart/`:** Pricing integrace v archivním backendu chybí. Důkaz: Žádná route /store/nexus-cart.
+- **CRITICAL — `backend/src/api/store/nexus-checkout/`:** NEXUS checkout v archivním backendu chybí. Důkaz: Žádná route /store/nexus-checkout.
+- **HIGH — `backend/src/modules/entitlement/`:** Modul oprávnění není součástí tohoto ZIP. Důkaz: Žádný entitlement modul.
+- **HIGH — `backend/src/modules/booking/`:** Rezervační modul není součástí tohoto ZIP. Důkaz: Žádný booking modul.
+- **HIGH — `repo metadata`:** ZIP master neobsahuje aktuální řídicí dokumenty Wave 1. Důkaz: AGENTS.md / CODEX_PROGRESS.md / requirements matrix nejsou přítomné.
+- **CRITICAL — `nexus/workers/api/routes/medusaWebhook.ts`:** Není vidět ověření podpisu Medusa webhooku. Důkaz: Handler volá request.json() a následně logování.
+- **HIGH — `nexus/workers/api/routes/medusaWebhook.ts`:** Není vidět perzistentní deduplikace událostí. Důkaz: V handleru není D1 receipt INSERT.
+- **HIGH — `nexus/workers/api/routes/medusaWebhook.ts`:** Webhook order.placed pouze loguje; nedokládá změnu stavu. Důkaz: ctx.waitUntil obsahuje log bez doménové operace.
+- **HIGH — `nexus/workers/api/SecurityCoordinator.ts`:** SEC-03: rate-limit časová okna v RAM. Důkaz: rateWindows = new Map; bez potvrzené durable persist.
+- **MEDIUM — `nexus/core/canonical/entities/Invoice.ts`:** Kanonická faktura je svázaná s Omega identifikátorem. Důkaz: omegaDocumentId v Invoice.
+- **MEDIUM — `nexus/domains/invoice/InvoiceLifecycleRule.ts`:** Vystavení Invoice vyžaduje vendor-specific reference. Důkaz: ISSUED validace omegaDocumentId.
+- **MEDIUM — `backend/medusa-config.ts`:** Chybí explicitní runtime guard pro produkční secrets v tomto snapshotu. Důkaz: process.env.JWT_SECRET bez lokální validace.
+
+## Čtení kódu a rozdíly oproti Wave 1
+- `backend/src/workflows/hooks.ts`: pouze no-op `setPricingContext` hook, není zde SafeOrder `completeCartWorkflow.hooks.validate`.
+- `backend/medusa-config.ts`: minimální `defineConfig` se základní PostgreSQL a secrets env, žádná lokální Stripe provider registrace.
+- `backend/src/api/store/custom/route.ts`: GET odpovídá HTTP 200, nenese objednávkový workflow.
+- `nexus/workers/api/routes/medusaWebhook.ts`: zpracování `order.placed`/`customer.created` je log-only, bez ověřování podpisu a receipt v tomto starém snapshotu.
+- `nexus/core/canonical/outcomes/*` a `nexus/connectors/d1/D1ExecutionIntentStore.ts`: execution/reconciliation a perzistentní store jsou fyzicky přítomné, ale existence tříd sama nezaručuje provozní napojení na Medusu.
+- `nexus/connectors/omega/legacy/`: legacy implementace zůstává v archivu; její sanity testy používají mock Node procesy, nikoli reálný účetní systém.
+
+## Co dělat dál
+1. Pro pokračování **nepoužívat tento starší master snapshot jako pracovní základ**. Směrodatná rozpracovaná větev je `codex/wave1-security`, v níž jsou novější auth/SafeOrder/pricing fixy a CI workflow.
+2. Dokončit zelený běh CI Wave 1 včetně odstranění problémů spuštění legacy mocků v `tmp` a následného Medusa persistence jobu.
+3. Po ověření opravit stavovou dokumentaci; pak navázat dalšími bránami dle REQUIREMENTS_MATRIX (auth, platby, migrace, zákaznické E2E), bez retroaktivního přepisování hotového NEXUS jádra.
+
+## Registr soubor po souboru
+Každý řádek znamená, že soubor byl skutečně **otevřen a přečten automatickým analyzátorem**; popis je klasifikace + nalezené symboly, ne manuálně potvrzená funkčnost.
+- `.gitignore` — repo metadata; 7 ř.; 57 B; yes.
+- `README.md` — repo metadata; 57 ř.; 2526 B; yes.
+- `STATUS.md` — repo metadata; 57 ř.; 3638 B; yes.
+- `admin-demo/BRIEF.md` — admin demo; 34 ř.; 3872 B; yes.
+- `admin-demo/NABIDKA-ANASTASIA-PRO-KLIENTKU-8-10-2026.pdf` — admin demo; 0 ř.; 79562 B; binary.
+- `admin-demo/STATUS.md` — admin demo; 57 ř.; 3638 B; yes.
+- `admin-demo/index.html` — admin demo; 1613 ř.; 241056 B; yes; signály ke kontrole: 20.
+- `admin-demo/migrations/0001_create_demo_state.sql` — admin demo; 5 ř.; 150 B; yes.
+- `admin-demo/public/index.html` — admin demo; 1613 ř.; 241056 B; yes; signály ke kontrole: 20.
+- `admin-demo/public/styles.css` — admin demo; 2576 ř.; 61169 B; yes; signály ke kontrole: 4.
+- `admin-demo/styles.css` — admin demo; 2576 ř.; 61169 B; yes; signály ke kontrole: 4.
+- `admin-demo/worker.js` — admin demo; 175 ř.; 7310 B; yes.
+- `admin-demo/wrangler.jsonc` — admin demo; 28 ř.; 711 B; yes.
+- `backend/.env.template` — Medusa backend/config; 8 ř.; 339 B; yes.
+- `backend/.gitignore` — Medusa backend/config; 26 ř.; 227 B; yes.
+- `backend/README.md` — Medusa backend/config; 62 ř.; 2970 B; yes.
+- `backend/eslint.config.ts` — Medusa backend/config; 4 ř.; 152 B; yes.
+- `backend/instrumentation.ts` — Medusa backend/config; 24 ř.; 781 B; yes, exporty: register.
+- `backend/integration-tests/setup.js` — Medusa backend/config; 3 ř.; 99 B; yes.
+- `backend/jest.config.js` — Medusa backend/config; 27 ř.; 842 B; yes.
+- `backend/medusa-config.ts` — Medusa backend/config; 16 ř.; 461 B; yes.
+- `backend/package.json` — Medusa backend/config; 60 ř.; 1833 B; yes.
+- `backend/src/admin/README.md` — Medusa backend/config; 33 ř.; 986 B; yes, exporty: config.
+- `backend/src/admin/i18n/README.md` — Medusa backend/config; 58 ř.; 1691 B; yes, exporty: config.
+- `backend/src/admin/i18n/index.ts` — Medusa backend/config; 1 ř.; 17 B; yes.
+- `backend/src/admin/tsconfig.json` — Medusa backend/config; 27 ř.; 609 B; yes.
+- `backend/src/admin/vite-env.d.ts` — Medusa backend/config; 1 ř.; 37 B; yes.
+- `backend/src/api/README.md` — Medusa backend/config; 135 ř.; 3760 B; yes, exporty: GET; GET; POST; PUT; GET; GET.
+- `backend/src/api/admin/custom/route.ts` — Medusa backend/config; 8 ř.; 175 B; yes, exporty: GET.
+- `backend/src/api/store/custom/route.ts` — Medusa backend/config; 8 ř.; 175 B; yes, exporty: GET.
+- `backend/src/jobs/README.md` — Medusa backend/config; 38 ř.; 1386 B; yes, exporty: myCustomJob; config.
+- `backend/src/links/README.md` — Medusa backend/config; 26 ř.; 764 B; yes.
+- `backend/src/migration-scripts/initial-data-seed.ts` — Medusa backend/config; 839 ř.; 21539 B; yes, exporty: initial_data_seed.
+- `backend/src/modules/README.md` — Medusa backend/config; 117 ř.; 2820 B; yes, exporty: BLOG_MODULE; GET.
+- `backend/src/subscribers/README.md` — Medusa backend/config; 61 ř.; 1739 B; yes, exporty: productCreateHandler; config; productCreateHandler; config.
+- `backend/src/workflows/README.md` — Medusa backend/config; 81 ř.; 1644 B; yes, exporty: GET.
+- `backend/src/workflows/hooks.ts` — Medusa backend/config; 19 ř.; 964 B; yes.
+- `backend/tsconfig.json` — Medusa backend/config; 36 ř.; 768 B; yes.
+- `docs/ANASTASIA-technicka-priloha-Dufek.md` — documentation; 157 ř.; 17351 B; yes; signály ke kontrole: 1.
+- `docs/BRIEF-ciloveho-systemu-a-roadmapa.md` — documentation; 82 ř.; 7156 B; yes.
+- `docs/CALLSKRIPT-8-10-FINAL.md` — documentation; 83 ř.; 8668 B; yes.
+- `docs/CELKOVY-POHLED-kulaty-stul.md` — documentation; 72 ř.; 8106 B; yes.
+- `docs/CELKOVY-POHLED-tri-weby.md` — documentation; 156 ř.; 10536 B; yes.
+- `docs/INTERNI-callskript.md` — documentation; 75 ř.; 6641 B; yes.
+- `docs/KULATY-STUL-celkovy.md` — documentation; 94 ř.; 9163 B; yes.
+- `docs/MASTER-AUDIT-ANASTASIA.md` — documentation; 101 ř.; 6531 B; yes.
+- `docs/MASTER-BLUEPRINT-architektura-migrace.md` — documentation; 182 ř.; 16218 B; yes.
+- `docs/POKRYTI-vs-MEZERY.md` — documentation; 30 ř.; 4076 B; yes.
+- `docs/PRO-KLIENTKU-email-call.md` — documentation; 26 ř.; 1590 B; yes.
+- `docs/PRO-KLIENTKU-prehled-a-hodnoceni.md` — documentation; 97 ř.; 8544 B; yes.
+- `docs/PRO-KLIENTKU-rozhodnuti.md` — documentation; 101 ř.; 8722 B; yes.
+- `docs/PRO-KLIENTKU-tym-navrhy.md` — documentation; 64 ř.; 4293 B; yes.
+- `docs/PRO-KLIENTKU-vize-moderni-system.md` — documentation; 77 ř.; 5582 B; yes.
+- `docs/ROZPAD-faze1-narocnost.md` — documentation; 58 ř.; 3972 B; yes.
+- `docs/ZAVAZNA-PONUKA-ANASTASIA.md` — documentation; 176 ř.; 10726 B; yes.
+- `docs/segment-DATA-eshop.md` — documentation; 62 ř.; 4825 B; yes.
+- `docs/segment-DNS-analyza.md` — documentation; 54 ř.; 4470 B; yes.
+- `docs/segment-INFRA-domeny-SEO.md` — documentation; 279 ř.; 22094 B; yes; signály ke kontrole: 1.
+- `docs/segment-JARVIS-zabezpeceni.md` — documentation; 30 ř.; 2879 B; yes.
+- `docs/segment-STRUKTURA-architektura.md` — documentation; 104 ř.; 8169 B; yes.
+- `docs/segment-VYKON-eshop.md` — documentation; 65 ř.; 5273 B; yes.
+- `docs/segment-WEB-aianastasia.md` — documentation; 63 ř.; 7548 B; yes; signály ke kontrole: 1.
+- `docs/segment-WEB-anastasia-academy.md` — documentation; 64 ř.; 5805 B; yes.
+- `nexus/.github/workflows/test.yml` — repo metadata; 50 ř.; 1574 B; yes; signály ke kontrole: 1.
+- `nexus/.gitignore` — repo metadata; 4 ř.; 36 B; yes.
+- `nexus/CLAUDE.md` — repo metadata; 31 ř.; 683 B; yes.
+- `nexus/PROGRESS_LOG.md` — repo metadata; 566 ř.; 28873 B; yes; signály ke kontrole: 1.
+- `nexus/README.md` — repo metadata; 180 ř.; 10177 B; yes; signály ke kontrole: 3.
+- `nexus/connectors/Connector.ts` — connector; 45 ř.; 2067 B; yes, exporty: ConnectorType; ConnectorCapabilities; Connector; WritableConnector.
+- `nexus/connectors/availability-intelligence/legacy/availability/AvailabilityEngine.ts` — connector; 93 ř.; 3942 B; yes, exporty: AvailabilityEngine.
+- `nexus/connectors/availability-intelligence/legacy/availability/types.ts` — connector; 52 ř.; 1553 B; yes, exporty: AvailabilityStatus; AvailabilityScore; VariantAvailability; ProductAvailabilityInput; AvailabilityResult.
+- `nexus/connectors/availability-intelligence/legacy/procurement/ProcurementEngine.ts` — connector; 46 ř.; 2914 B; yes, exporty: ProcurementEngine.
+- `nexus/connectors/availability-intelligence/legacy/procurement/SupplierMappingService.ts` — connector; 289 ř.; 9636 B; yes, exporty: SupplierConfig; ProductVariantMapping; CatalogProductView; ProcurementSettings; ManualInterventionRecord; SupplierMappingServ.
+- `nexus/connectors/availability-intelligence/legacy/procurement/SupplierSelectionEngine.ts` — connector; 122 ř.; 5447 B; yes, exporty: SelectionResult; SupplierSelectionEngine.
+- `nexus/connectors/availability-intelligence/legacy/procurement/Workflow.ts` — connector; 235 ř.; 14989 B; yes, exporty: ProcurementWorkflow.
+- `nexus/connectors/availability-intelligence/legacy/procurement/ports.ts` — connector; 47 ř.; 1887 B; yes, exporty: CommercePlatformPort; SupplierCatalogPort; PurchaseOrderPort; SupplierDispatchPort; FulfillmentReadinessPort; IdempotencyPort.
+- `nexus/connectors/availability-intelligence/legacy/procurement/types.ts` — connector; 138 ř.; 3310 B; yes, exporty: PaymentInfo; ParcelPackage; PackingPhoto; PackingKpiStats; PickupSchedule; CustomerOrderLine; StoreStockAdjustmentPayload; Su.
+- `nexus/connectors/availability-intelligence/legacy/ranking/SortingPipeline.ts` — connector; 32 ř.; 1164 B; yes, exporty: SortingPipeline.
+- `nexus/connectors/availability-intelligence/legacy/sales-units/ConversionEngine.ts` — connector; 38 ř.; 1656 B; yes, exporty: ConversionEngine.
+- `nexus/connectors/availability-intelligence/legacy/sales-units/OrderQuantityValidator.ts` — connector; 52 ř.; 1953 B; yes, exporty: OrderQuantityValidator.
+- `nexus/connectors/availability-intelligence/legacy/sales-units/PackagingDepositEngine.ts` — connector; 28 ř.; 1127 B; yes, exporty: PackagingDepositEngine.
+- `nexus/connectors/availability-intelligence/legacy/sales-units/SalesUnitEngine.ts` — connector; 83 ř.; 3307 B; yes, exporty: SalesUnitAvailabilityInput; SalesUnitEngine.
+- `nexus/connectors/availability-intelligence/legacy/sales-units/types.ts` — connector; 70 ř.; 2414 B; yes, exporty: BaseUnit; SalesUnit; SalesUnitPricing; ConversionResult; OrderQuantityValidationResult; PackagingDepositRule; DepositCharge; .
+- `nexus/connectors/d1/D1CreditVoucherStore.ts` — connector; 1063 ř.; 45731 B; yes, exporty: D1MetaLike; D1ResultLike; D1PreparedStatementLike; D1DatabaseLike; VoucherStorageError; D1CreditVoucherStore.
+- `nexus/connectors/d1/D1ExecutionIntentStore.ts` — connector; 399 ř.; 16980 B; yes, exporty: D1DatabaseLike; VoucherIntentStorageError; D1ExecutionIntentStore.
+- `nexus/connectors/d1/moneyMapper.ts` — connector; 147 ř.; 7109 B; yes, exporty: MoneyConversionError; moneyToMinor; minorToMoney.
+- `nexus/connectors/medusa/MedusaConnector.ts` — connector; 64 ř.; 2079 B; yes, exporty: MedusaProductVariantDTO; CanonicalMedusaPrice; MedusaConnector.
+- `nexus/connectors/omega/legacy/OmegaAdapter.ts` — legacy Omega connector; 61 ř.; 2037 B; yes, exporty: OmegaAdapter.
+- `nexus/connectors/omega/legacy/OmegaMapper.ts` — legacy Omega connector; 82 ř.; 2830 B; yes, exporty: OmegaMapper; signály ke kontrole: 1.
+- `nexus/connectors/omega/legacy/OmegaOutputValidationGate.ts` — legacy Omega connector; 94 ř.; 3904 B; yes, exporty: OmegaOutputGatePayload; OmegaOutputValidationGate.
+- `nexus/connectors/omega/legacy/OmegaPayload.ts` — legacy Omega connector; 5 ř.; 145 B; yes, exporty: OmegaImportPayload.
+- `nexus/connectors/omega/legacy/TargetAdapter.ts` — legacy Omega connector; 25 ř.; 754 B; yes, exporty: TargetPayload; TargetAdapterResult; ITargetAdapter.
+- `nexus/connectors/omega/legacy/agent/AgentEvidence.ts` — legacy Omega connector; 30 ř.; 998 B; yes, exporty: ExecutorResult; AgentEvidence.
+- `nexus/connectors/omega/legacy/agent/OmegaExecutor.ts` — legacy Omega connector; 193 ř.; 8247 B; yes, exporty: ExecutorResult; OmegaExecutorOptions; OmegaExecutor; signály ke kontrole: 2.
+- `nexus/connectors/omega/legacy/core/CanonicalAccountingDocument.ts` — legacy Omega connector; 43 ř.; 900 B; yes, exporty: AccountingParty; AccountingLineItem; CanonicalAccountingDocument.
+- `nexus/connectors/omega/legacy/decisions/DecisionEngine.ts` — legacy Omega connector; 72 ř.; 2180 B; yes, exporty: Decision; DecisionEngine.
+- `nexus/connectors/omega/legacy/domain/CanonicalModel.ts` — legacy Omega connector; 83 ř.; 1471 B; yes, exporty: TenantId; ShopId; DocumentId; Money; Tax; Address; Customer; OrderItem; Shipping; Payment; Discount; CanonicalOrder.
+- `nexus/connectors/omega/legacy/gate5/OmegaImportLogParser.ts` — legacy Omega connector; 35 ř.; 928 B; yes, exporty: ParsedOmegaLog; OmegaImportLogParser.
+- `nexus/connectors/omega/legacy/gate5/OmegaPostImportValidationGate.ts` — legacy Omega connector; 87 ř.; 3177 B; yes, exporty: Gate5Payload; Gate5Result; OmegaPostImportValidationGate.
+- `nexus/connectors/omega/legacy/policies/PolicyLayer.ts` — legacy Omega connector; 26 ř.; 833 B; yes, exporty: PolicyAction; PolicyLayer.
+- `nexus/connectors/omega/legacy/rules/RuleTypes.ts` — legacy Omega connector; 25 ř.; 623 B; yes, exporty: RuleStatus; DecisionStatus; RuleResult; RuleContext; Rule.
+- `nexus/connectors/omega/legacy/rules/implementations/IdentityRules.ts` — legacy Omega connector; 36 ř.; 1423 B; yes, exporty: SourceDocumentIdExistsRule; CustomerIdentityValidRule.
+- `nexus/connectors/omega/legacy/rules/implementations/TaxRules.ts` — legacy Omega connector; 33 ř.; 1012 B; yes, exporty: VatDeterminationRule.
+- `nexus/connectors/omega/legacy/validation/validators/AddressValidator.ts` — legacy Omega connector; 31 ř.; 1251 B; yes, exporty: validateAddress.
+- `nexus/connectors/omega/legacy/validation/validators/CustomerValidator.ts` — legacy Omega connector; 47 ř.; 1654 B; yes, exporty: validateCustomer.
+- `nexus/connectors/omega/legacy/validation/validators/MoneyValidator.ts` — legacy Omega connector; 36 ř.; 1340 B; yes, exporty: validateMoney.
+- `nexus/connectors/omega/legacy/validation/validators/OrderItemValidator.ts` — legacy Omega connector; 52 ř.; 2321 B; yes, exporty: validateOrderItem.
+- `nexus/connectors/omega/legacy/validation/validators/OrderValidator.ts` — legacy Omega connector; 80 ř.; 3553 B; yes, exporty: validateOrder.
+- `nexus/connectors/omega/legacy/validation/validators/ServicesValidators.ts` — legacy Omega connector; 49 ř.; 2229 B; yes, exporty: validateShipping; validatePayment; validateDiscount.
+- `nexus/connectors/omega/legacy/validation/validators/TaxValidator.ts` — legacy Omega connector; 21 ř.; 763 B; yes, exporty: validateTax.
+- `nexus/connectors/pricing-engine/FsPricingConfigurationProvider.ts` — connector; 66 ř.; 2838 B; yes, exporty: FsPricingConfigurationProvider.
+- `nexus/connectors/pricing-engine/createLegacyPricingCalculator.ts` — connector; 49 ř.; 2320 B; yes, exporty: createLegacyPricingCalculator.
+- `nexus/connectors/pricing-engine/legacy/config/policies/policy-v1.json` — connector; 58 ř.; 1358 B; yes.
+- `nexus/connectors/pricing-engine/legacy/core/EngineBuilder.ts` — connector; 91 ř.; 3442 B; yes, exporty: EngineBuilder.
+- `nexus/connectors/pricing-engine/legacy/core/PricingContext.ts` — connector; 34 ř.; 1208 B; yes, exporty: PricingContext.
+- `nexus/connectors/pricing-engine/legacy/core/PricingEngine.ts` — connector; 36 ř.; 1189 B; yes, exporty: PricingEngine.
+- `nexus/connectors/pricing-engine/legacy/core/ValidationEngine.ts` — connector; 20 ř.; 803 B; yes, exporty: ValidationEngine.
+- `nexus/connectors/pricing-engine/legacy/core/interfaces.ts` — connector; 80 ř.; 1972 B; yes, exporty: CustomerTier; PricingInput; RuleType; SetPriceCommand; WarningCommand; RejectCommand; PricingCommand; ReadonlyPricingContext;.
+- `nexus/connectors/pricing-engine/legacy/coupon/CouponPolicy.ts` — connector; 57 ř.; 2962 B; yes, exporty: CouponPolicy.
+- `nexus/connectors/pricing-engine/legacy/coupon/types.ts` — connector; 26 ř.; 1187 B; yes, exporty: CouponPolicyInput; CouponPolicyResult.
+- `nexus/connectors/pricing-engine/legacy/csv/reader.ts` — connector; 53 ř.; 1998 B; yes, exporty: readProductsCsv.
+- `nexus/connectors/pricing-engine/legacy/csv/writer.ts` — connector; 31 ř.; 1022 B; yes, exporty: writeProductsCsv.
+- `nexus/connectors/pricing-engine/legacy/policies/BasePricePolicy.ts` — connector; 14 ř.; 423 B; yes, exporty: BasePricePolicy.
+- `nexus/connectors/pricing-engine/legacy/policies/DiscountLimitPolicy.ts` — connector; 59 ř.; 2457 B; yes, exporty: DiscountLimitPolicy.
+- `nexus/connectors/pricing-engine/legacy/policies/HighestDiscountPolicy.ts` — connector; 34 ř.; 1391 B; yes, exporty: HighestDiscountPolicy.
+- `nexus/connectors/pricing-engine/legacy/policies/RoundingPolicy.ts` — connector; 17 ř.; 552 B; yes, exporty: RoundingPolicy.
+- `nexus/connectors/pricing-engine/legacy/promo/free-units.ts` — connector; 150 ř.; 5257 B; yes, exporty: XPlusXRatio; FreeUnitsRule; FreeUnitsResult; validateFreeUnitsRules; resolveFreeUnits; resolveXPlusXForVariant; effectivePric.
+- `nexus/connectors/pricing-engine/legacy/voucher/VoucherCouponPolicy.ts` — connector; 98 ř.; 3979 B; yes, exporty: CodeType; CodeDefinition; CartItemInput; CouponEvaluationResult; VoucherCouponPolicy.
+- `nexus/connectors/safeorder/legacy/audit/ledger.ts` — connector; 37 ř.; 1241 B; yes, exporty: CreateAuditInput; buildAuditRecord.
+- `nexus/connectors/safeorder/legacy/backtest/metrics.ts` — connector; 125 ř.; 3620 B; yes, exporty: EvaluationRecord; MetricSet; calculateMetricSet; calculateRocAuc; calculateBrierScore; signály ke kontrole: 1.
+- `nexus/connectors/safeorder/legacy/calibration/calibration-engine.ts` — connector; 111 ř.; 4133 B; yes, exporty: CalibrationModel; LogisticCalibrationV1; PiecewiseCalibrationV1; REGISTERED_CALIBRATION_MODELS; calibrateRiskProbability; Con.
+- `nexus/connectors/safeorder/legacy/core/types.ts` — connector; 365 ř.; 11366 B; yes, exporty: Platform; TenantLifecycleStatus; TenantStatus; TenantMode; RiskDecisionType; ExecutableActionType; UserRole; PlanTier; PlanSt.
+- `nexus/connectors/safeorder/legacy/crypto/blind-token.ts` — connector; 94 ř.; 2781 B; yes, exporty: BlindTokenDomain; generateBlindToken; verifyBlindToken.
+- `nexus/connectors/safeorder/legacy/economics/decision-economics.ts` — connector; 162 ř.; 6251 B; yes, exporty: ComparativeActionEconomics; DecisionEconomicsEvaluation; evaluateDecisionEconomics; computeMerchantRoi.
+- `nexus/connectors/safeorder/legacy/i18n/localization.ts` — connector; 70 ř.; 3924 B; yes, exporty: LocalizedExplanation; localizeReasonCodes; formatCurrencyAmount.
+- `nexus/connectors/safeorder/legacy/learning/outcome-engine.ts` — connector; 109 ř.; 3479 B; yes, exporty: OutcomeRecord; LearningWeights; computeAdaptiveWeights.
+- `nexus/connectors/safeorder/legacy/normalization/identity.ts` — connector; 95 ř.; 2723 B; yes, exporty: canonicalizePhone; canonicalizeEmail; canonicalizeStreet; canonicalizeZip; canonicalizeIdentity.
+- `nexus/connectors/safeorder/legacy/policy-engine/adaptive-optimizer.ts` — connector; 76 ř.; 3023 B; yes, exporty: PolicyOptimizationInput; PolicyRecommendation; optimizePolicyThresholds.
+- `nexus/connectors/safeorder/legacy/policy-engine/policies.ts` — connector; 94 ř.; 3474 B; yes, exporty: PolicyEvaluationInput; evaluatePolicy.
+- `nexus/connectors/safeorder/legacy/privacy/retention.ts` — connector; 41 ř.; 1285 B; yes, exporty: RetentionPolicy; RETENTION_POLICIES; computeExpiryTimestamp.
+- `nexus/connectors/safeorder/legacy/risk-engine/engine.ts` — connector; 121 ř.; 4054 B; yes, exporty: RiskEvaluationInput; RiskEvaluationResult; evaluateRisk.
+- `nexus/connectors/safeorder/legacy/risk-graph/graph.ts` — connector; 109 ř.; 3145 B; yes, exporty: GraphNodeType; GraphEdgeType; GraphNode; GraphEdge; ContextualOrderParams; ContextualRiskResult; evaluateContextualRisk.
+- `nexus/connectors/safeorder/legacy/validation/stages/1-input-validator.ts` — connector; 44 ř.; 1499 B; yes, exporty: validateInputStage.
+- `nexus/connectors/safeorder/legacy/validation/stages/2-identity-validator.ts` — connector; 81 ř.; 2695 B; yes, exporty: ValidatedIdentityData; validateIdentityStage.
+- `nexus/connectors/safeorder/legacy/validation/stages/3-signal-validator.ts` — connector; 73 ř.; 2236 B; yes, exporty: ValidatedSignalSet; validateSignalsStage.
+- `nexus/connectors/safeorder/legacy/validation/stages/4-risk-policy-validator.ts` — connector; 117 ř.; 4174 B; yes, exporty: ValidatedRiskPolicyData; validateRiskPolicyStage.
+- `nexus/connectors/safeorder/legacy/validation/stages/5-decision-action-validator.ts` — connector; 83 ř.; 2894 B; yes, exporty: ValidatedActionData; validateDecisionActionStage.
+- `nexus/connectors/safeorder/legacy/validation/stages/types.ts` — connector; 27 ř.; 623 B; yes, exporty: ValidationStage; StageValidationResult; PipelineAuditTrace.
+- `nexus/connectors/shoptet/ReadOnlyGuard.ts` — connector; 135 ř.; 5132 B; yes, exporty: ShoptetWriteBlockedError; ShoptetRequestPlan; ShoptetAccessMode; READ_ONLY; assertRequestAllowed; describeRequest; signály ke kontrole: 6.
+- `nexus/connectors/shoptet/ShoptetApiClient.ts` — connector; 333 ř.; 12619 B; yes, exporty: ShoptetApiError; ShoptetPrice; ShoptetOrderItem; DISCOUNT_ITEM_TYPES; ShoptetOrder; ShoptetApiClient; sumOrderDiscountsMinor;.
+- `nexus/connectors/shoptet/ShoptetPriceConnector.ts` — connector; 264 ř.; 11320 B; yes, exporty: ShoptetPriceRow; CanonicalProductPrice; TierToPricelistMap; SHOPTET_PRICE_SEMANTICS; ShoptetPriceConnector; parsePriceToMinor.
+- `nexus/connectors/shoptet/legacy/cart/golias.js` — connector; 108 ř.; 3764 B; yes.
+- `nexus/connectors/shoptet/legacy/csv/CsvInputValidationGate.ts` — connector; 132 ř.; 4345 B; yes, exporty: CsvInputPayload; ValidatedCsvRow; CsvInputValidationResult; CsvInputValidationGate.
+- `nexus/connectors/shoptet/legacy/csv/CsvParserGate2.ts` — connector; 74 ř.; 2700 B; yes, exporty: ParserGate2Payload; ParserValidationResult; CsvParserGate2.
+- `nexus/connectors/shoptet/legacy/csv/ShoptetExportSchema.ts` — connector; 138 ř.; 4022 B; yes, exporty: ShoptetDataType; ShoptetColumnDefinition; ShoptetExportSchema; ParseString; ParseDecimal; ParseBoolean; ParseDate; ShoptetOrd; signály ke kontrole: 1.
+- `nexus/connectors/shoptet/legacy/csv/ShoptetRowParser.ts` — connector; 76 ř.; 2452 B; yes, exporty: ParsedField; ShoptetParsedRow; parseRow.
+- `nexus/connectors/shoptet/legacy/validation/ValidationPipeline.ts` — connector; 24 ř.; 721 B; yes, exporty: ValidationGate; IValidationGate.
+- `nexus/connectors/shoptet/legacy/validation/types.ts` — connector; 42 ř.; 1214 B; yes, exporty: Severity; ValidationIssue; ValidationResult; createResult; addError; addWarning; mergeResults.
+- `nexus/connectors/supplier-csv/legacy/NoApiCsvAdapter.ts` — connector; 72 ř.; 3188 B; yes, exporty: NoApiCsvAdapter.
+- `nexus/core/audit/AuditRecord.ts` — canonical core; 159 ř.; 7337 B; yes, exporty: AuditStateTransition; AuditHashSet; AuditRecord; AuditLog; createAuditLog; appendAuditRecord; withStateTransition; transition.
+- `nexus/core/canonical/CANONICAL-MODEL-CONTRACT.md` — canonical core; 119 ř.; 8652 B; yes.
+- `nexus/core/canonical/DRAFT-v1-types.ts.bak` — canonical core; 284 ř.; 6863 B; yes, exporty: TenantId; EntityId; ISODateTime; CanonicalEntity; Tenant; Store; Money; Product; ProductGroup; Variant; Category; Brand.
+- `nexus/core/canonical/entities/Billing.ts` — canonical core; 104 ř.; 5201 B; yes, exporty: SubscriptionLifecycleState; SUBSCRIPTION_LIFECYCLE_DEFINITION; Subscription; BillingEvent.
+- `nexus/core/canonical/entities/Campaign.ts` — canonical core; 201 ř.; 9660 B; yes, exporty: PromoGroupDiscountType; PromoGroupDiscount; PromoGroup; CampaignLifecycleState; CAMPAIGN_LIFECYCLE_DEFINITION; Campaign; Camp.
+- `nexus/core/canonical/entities/CreditVoucher.ts` — canonical core; 313 ř.; 17460 B; yes, exporty: CreditVoucherLifecycleState; CREDIT_VOUCHER_LIFECYCLE_DEFINITION; CreditVoucherTransactionType; CreditVoucher; CreditVoucherT.
+- `nexus/core/canonical/entities/Customer.ts` — canonical core; 120 ř.; 5990 B; yes, exporty: BusinessProfile; Customer.
+- `nexus/core/canonical/entities/Invoice.ts` — canonical core; 73 ř.; 3625 B; yes, exporty: InvoiceLifecycleState; INVOICE_LIFECYCLE_DEFINITION; Invoice.
+- `nexus/core/canonical/entities/Order.ts` — canonical core; 71 ř.; 2865 B; yes, exporty: ExternalOrderStatus; Order; OrderItem; MapExternalToCanonicalStatus.
+- `nexus/core/canonical/entities/Price.ts` — canonical core; 110 ř.; 4677 B; yes, exporty: PriceList; PricingComputationInput; PersistedPriceRecord; QuantityTierSourceConfig; QuantityTierGroup; QuantityTierBreakpoint; signály ke kontrole: 1.
+- `nexus/core/canonical/entities/Product.ts` — canonical core; 62 ř.; 2612 B; yes, exporty: Product; Variant.
+- `nexus/core/canonical/entities/PurchaseOrder.ts` — canonical core; 82 ř.; 3264 B; yes, exporty: PurchaseOrderLifecycle; PurchaseOrderCancellationState; SupplierEcho; PurchaseOrder; PurchaseOrderItem; assertReceivingInvari; signály ke kontrole: 1.
+- `nexus/core/canonical/entities/Stock.ts` — canonical core; 85 ř.; 3523 B; yes, exporty: StockPosition; DerivedAvailability; AvailabilityClassification; ClassifyAvailability.
+- `nexus/core/canonical/entities/Warehouse.ts` — canonical core; 61 ř.; 2896 B; yes, exporty: WarehouseLifecycleState; WAREHOUSE_LIFECYCLE_DEFINITION; Warehouse.
+- `nexus/core/canonical/entities/base.ts` — canonical core; 46 ř.; 1739 B; yes, exporty: TenantId; EntityId; ISODateTime; Money; CanonicalIdentity; ExternalIdentity; TenantScoped; AuditableTimestamps; CanonicalEnti.
+- `nexus/core/canonical/identities/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/canonical/invariants/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/canonical/lifecycle/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/canonical/lifecycle/Execution.ts` — canonical core; 46 ř.; 1851 B; yes, exporty: ExecutionStatus; RetryPolicy; Execution; isConfirmedSuccess.
+- `nexus/core/canonical/outcomes/ExecutionIntent.ts` — canonical core; 295 ř.; 12841 B; yes, exporty: ExecutionIntentState; EXECUTION_INTENT_TRANSITIONS; EXECUTION_INTENT_TERMINAL_STATES; ExecutionConfirmationQuality; Execution.
+- `nexus/core/canonical/outcomes/ExecutionIntentStore.ts` — canonical core; 278 ř.; 11518 B; yes, exporty: PlanIntentInput; PlanIntentResult; ClaimIntentOutcome; RecordOutcomeInput; ExecutionIntentStore; InMemoryExecutionIntentStore.
+- `nexus/core/canonical/outcomes/IntentExecutor.ts` — canonical core; 279 ř.; 11332 B; yes, exporty: RawWriteResult; ConnectorSemantics; interpretWriteResult; nextIntentState; isRetrySafe; IntentExecutionOutcome; executeIntent.
+- `nexus/core/canonical/outcomes/IntentReconciliation.ts` — canonical core; 258 ř.; 10288 B; yes, exporty: IntentReconciliationVerdict; IntentReconciliationResult; StateComparator; ActualStateReader; reconcileIntent; ReconciliationR.
+- `nexus/core/canonical/projections/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/canonical/reconciliation/Reconciliation.ts` — canonical core; 45 ř.; 1694 B; yes, exporty: ReconciliationOutcome; ReconciliationItemResult; BatchStatus; ReconciliationBatchResult; aggregateBatchStatus.
+- `nexus/core/canonical/relationships/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/canonical/rules/Decision.ts` — canonical core; 24 ř.; 1049 B; yes, exporty: Decision.
+- `nexus/core/canonical/rules/Rule.ts` — canonical core; 33 ř.; 1225 B; yes, exporty: RuleContext; Rule.
+- `nexus/core/canonical/source-of-truth/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/canonical/states/StateModel.ts` — canonical core; 44 ř.; 1467 B; yes, exporty: ExternalState; StatusMapping; CanonicalState; ExpectedExecutionState; ActualExternalState.
+- `nexus/core/canonical/validation/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/canonical/versioning/.gitkeep` — canonical core; 0 ř.; 0 B; yes.
+- `nexus/core/error-isolation/ErrorIsolation.ts` — canonical core; 133 ř.; 6916 B; yes, exporty: ItemOutcome; ErrorClass; BatchIsolationResult; runBatchWithIsolation.
+- `nexus/core/idempotency/IdempotencyStore.ts` — canonical core; 140 ř.; 6579 B; yes, exporty: IdempotencyState; IDEMPOTENCY_STATE_DEFINITION; IdempotencyKeyRef; ClaimResult; IdempotencyStore; InMemoryIdempotencyStore.
+- `nexus/core/reconciliation/GenericReconciliation.ts` — canonical core; 164 ř.; 7192 B; yes, exporty: DriftSeverity; classifyDrift; DebouncedMismatch; DebounceState; DebounceDecision; evaluateDebounce; MultiEntityReconciliation.
+- `nexus/core/snapshot/Snapshot.ts` — canonical core; 172 ř.; 8530 B; yes, exporty: SnapshotState; SNAPSHOT_STATE_DEFINITION; Snapshot; SnapshotStore; InMemorySnapshotStore.
+- `nexus/core/state-machine/StateMachine.ts` — canonical core; 105 ř.; 4629 B; yes, exporty: StateAxis; StateAxisDefinition; TransitionResult; evaluateTransition; MultiAxisState; evaluateAxisTransition.
+- `nexus/core/tenant/types.ts` — canonical core; 235 ř.; 9715 B; yes, exporty: TenantStatus; PlanTier; Tenant; TenantIntegrationConfig; TenantPlan; TenantPolicy; TenantPolicyHistoryEntry; TenantScopedTier; signály ke kontrole: 7.
+- `nexus/core/validation/ValidationFramework.md` — canonical core; 19 ř.; 1841 B; yes.
+- `nexus/core/validation/errorIsolation.ts` — canonical core; 16 ř.; 752 B; yes, exporty: aggregateStageStatus.
+- `nexus/core/validation/types.ts` — canonical core; 50 ř.; 1814 B; yes, exporty: StageName; StageStatus; OutcomeStatus; ErrorClass; StageError; StageResult; IdempotencyKey; ManualOverride.
+- `nexus/docs/ARCHITECTURE_MAP.md` — documentation; 45 ř.; 4631 B; yes; signály ke kontrole: 1.
+- `nexus/docs/CANONICAL_MODEL_SYNTHESIS.md` — documentation; 153 ř.; 10735 B; yes.
+- `nexus/docs/MIGRATION_PLAN.md` — documentation; 260 ř.; 36936 B; yes; signály ke kontrole: 6.
+- `nexus/docs/PHASE6_REPO_VERIFICATION_2026-09-05.md` — documentation; 106 ř.; 5231 B; yes; signály ke kontrole: 4.
+- `nexus/docs/SHOPTET-PRICING-MODEL.md` — documentation; 282 ř.; 11687 B; yes.
+- `nexus/docs/design-proposals/Digital-Voucher.md` — documentation; 1074 ř.; 46430 B; yes, exporty: TenantVoucherConfig; signály ke kontrole: 1.
+- `nexus/docs/design-proposals/ERP-Generic-Layer.md` — documentation; 790 ř.; 42006 B; yes, exporty: CanonicalAccountingDocument; Invoice; AccountingSystemId; AccountingCapabilities; AccountingConnector; AccountingOutcomeStatu; signály ke kontrole: 6.
+- `nexus/docs/design-proposals/Fase6-new-domains-status.md` — documentation; 54 ř.; 2812 B; yes; signály ke kontrole: 1.
+- `nexus/docs/design-proposals/Pricing-Shadow-Migration.md` — documentation; 518 ř.; 41021 B; yes, exporty: CONFIG; ShadowWriteBlockedError; signály ke kontrole: 8.
+- `nexus/docs/design-proposals/QuantityTier-Hecmania.md` — documentation; 339 ř.; 17055 B; yes, exporty: PricingComputationInput.
+- `nexus/docs/design-proposals/Shoptet-Premium-Template.md` — documentation; 1089 ř.; 64500 B; yes, exporty: NEXUS_SLOTS; signály ke kontrole: 4.
+- `nexus/docs/entity-audit/Customer.md` — documentation; 109 ř.; 12964 B; yes; signály ke kontrole: 3.
+- `nexus/docs/entity-audit/Invoice.md` — documentation; 47 ř.; 5050 B; yes.
+- `nexus/docs/entity-audit/Order.md` — documentation; 77 ř.; 3696 B; yes.
+- `nexus/docs/entity-audit/Price-PriceList-QuantityTier.md` — documentation; 100 ř.; 7926 B; yes.
+- `nexus/docs/entity-audit/Product.md` — documentation; 84 ř.; 9245 B; yes; signály ke kontrole: 2.
+- `nexus/docs/entity-audit/Promotion-Campaign-Creative.md` — documentation; 78 ř.; 8029 B; yes; signály ke kontrole: 1.
+- `nexus/docs/entity-audit/PurchaseOrder.md` — documentation; 115 ř.; 13512 B; yes; signály ke kontrole: 7.
+- `nexus/docs/entity-audit/Stock.md` — documentation; 147 ř.; 12021 B; yes; signály ke kontrole: 1.
+- `nexus/docs/okfish-integration/forwardToNexus.ts` — documentation; 151 ř.; 6854 B; yes, exporty: NexusForwardEnv; forwardToNexus.
+- `nexus/docs/shadow-reports/MISSING-PRICING-LOGIC.md` — documentation; 267 ř.; 12828 B; yes; signály ke kontrole: 3.
+- `nexus/docs/shadow-reports/SHADOW-RUN-2026-09-07.md` — documentation; 416 ř.; 20774 B; yes.
+- `nexus/domains/availability/AvailabilityRule.ts` — domain rules; 101 ř.; 4454 B; yes, exporty: AvailabilityRule.
+- `nexus/domains/availability/ConversionRule.ts` — domain rules; 56 ř.; 2493 B; yes, exporty: ToBaseQuantityInput; FromBaseQuantityInput; ToBaseQuantityRule; FromBaseQuantityRule.
+- `nexus/domains/availability/OrderQuantityValidationRule.ts` — domain rules; 67 ř.; 2640 B; yes, exporty: OrderQuantityValidationInput; OrderQuantityValidationRule.
+- `nexus/domains/availability/PackagingDepositRule.ts` — domain rules; 42 ř.; 1867 B; yes, exporty: PackagingDepositInput; PackagingDepositRule.
+- `nexus/domains/availability/SalesUnitAvailabilityRule.ts` — domain rules; 97 ř.; 4439 B; yes, exporty: SalesUnitAvailabilityInput; SalesUnitAvailabilityRule; NormaliseToProcurementDemandInput; NormaliseToProcurementDemandResult;.
+- `nexus/domains/availability/SortingRule.ts` — domain rules; 39 ř.; 1571 B; yes, exporty: SortingRuleInput; SortingRuleResult; SortingRule.
+- `nexus/domains/b2b/BusinessProfileAccessor.ts` — domain rules; 60 ř.; 3361 B; yes, exporty: getBusinessProfile; isBusinessCustomer; getB2BPricingContext.
+- `nexus/domains/b2b/BusinessProfileValidationRule.ts` — domain rules; 63 ř.; 3157 B; yes, exporty: BusinessProfileValidationResult; BusinessProfileValidationRule.
+- `nexus/domains/b2b/CustomerBusinessContextFlow.ts` — domain rules; 70 ř.; 3607 B; yes, exporty: CustomerBusinessContextResult; resolveCustomerBusinessContext.
+- `nexus/domains/billing/SubscriptionLifecycleRule.ts` — domain rules; 132 ř.; 7152 B; yes, exporty: isConsistentWithTenantPlan; SubscriptionLifecycleRuleInput; SubscriptionLifecycleRuleResult; SubscriptionLifecycleRule.
+- `nexus/domains/billing/TenantSubscriptionPlanFlow.ts` — domain rules; 74 ř.; 3931 B; yes, exporty: TenantSubscriptionPlanFlowInput; TenantSubscriptionPlanFlowResult; evaluateTenantSubscriptionPlanFlow.
+- `nexus/domains/campaign/CampaignFlows.ts` — domain rules; 201 ř.; 9060 B; yes, exporty: CampaignPromoGroupResolution; resolveCampaignPromoGroupForProduct; CampaignEvaluationResult; evaluateCampaignForProduct; Camp.
+- `nexus/domains/campaign/CampaignLifecycleRule.ts` — domain rules; 72 ř.; 3307 B; yes, exporty: CampaignLifecycleRuleInput; CampaignLifecycleRuleResult; CampaignLifecycleRule; shouldEvaluateCampaign.
+- `nexus/domains/campaign/CreativeLifecycleRule.ts` — domain rules; 62 ř.; 2797 B; yes, exporty: CreativeLifecycleRuleInput; CreativeLifecycleRuleResult; CreativeLifecycleRule.
+- `nexus/domains/campaign/CreativeResolutionRule.ts` — domain rules; 108 ř.; 5928 B; yes, exporty: CreativeResolutionRuleInput; CreativeResolutionBlockedReason; CreativeResolutionRuleResult; CreativeResolutionRule; signály ke kontrole: 2.
+- `nexus/domains/campaign/PromoGroupDiscountRule.ts` — domain rules; 140 ř.; 8012 B; yes, exporty: PromoGroupDiscountRuleInput; PromoGroupDiscountSource; PromoGroupDiscountRuleResult; PromoGroupDiscountRule.
+- `nexus/domains/campaign/PromoGroupPriorityRule.ts` — domain rules; 108 ř.; 4925 B; yes, exporty: PromoGroupPriorityValidationInput; PromoGroupPriorityValidationResult; PromoGroupPriorityValidationRule; PromoGroupConflictRe.
+- `nexus/domains/invoice/InvoiceLifecycleRule.ts` — domain rules; 101 ř.; 5138 B; yes, exporty: InvoiceLifecycleRuleInput; InvoiceLifecycleRuleResult; InvoiceLifecycleRule.
+- `nexus/domains/invoice/OrderInvoiceOmegaFlow.ts` — domain rules; 67 ř.; 3560 B; yes, exporty: OrderInvoiceOmegaFlowInput; OrderInvoiceOmegaFlowResult; evaluateOrderInvoiceOmegaFlow.
+- `nexus/domains/omega/DecisionRules.ts` — domain rules; 69 ř.; 3201 B; yes, exporty: DecisionEngineRuleInput; DecisionEngineRule; SourceDocumentIdExistsRuleAdapter; CustomerIdentityValidRuleAdapter; VatDetermin.
+- `nexus/domains/omega/NOT_MIGRATED.md` — domain rules; 25 ř.; 1266 B; yes; signály ke kontrole: 1.
+- `nexus/domains/omega/OmegaMapperRule.ts` — domain rules; 27 ř.; 1275 B; yes, exporty: OmegaMapperRuleInput; OmegaMapperRule.
+- `nexus/domains/omega/OmegaValidationRules.ts` — domain rules; 44 ř.; 1983 B; yes, exporty: OmegaOutputValidationRule; OmegaImportLogParserRule; OmegaPostImportValidationRule.
+- `nexus/domains/omega/ValidatorRules.ts` — domain rules; 108 ř.; 4758 B; yes, exporty: MoneyValidationInput; MoneyValidatorRule; AddressValidatorRule; TaxValidationInput; TaxValidatorRule; CustomerValidatorRule; ; signály ke kontrole: 2.
+- `nexus/domains/pricing/BasePriceRule.ts` — domain rules; 28 ř.; 1009 B; yes, exporty: BasePriceRuleInput; BasePriceRuleResult; BasePriceRule.
+- `nexus/domains/pricing/BestCandidatePriceRule.ts` — domain rules; 91 ř.; 4585 B; yes, exporty: CandidateSource; PriceCandidate; BestCandidatePriceRuleInput; BestCandidatePriceRuleResult; BestCandidatePriceRule.
+- `nexus/domains/pricing/BrandSaleDiscountRule.ts` — domain rules; 135 ř.; 6815 B; yes, exporty: BrandSaleDiscountRuleInput; BrandSaleDiscountRuleResult; BrandSaleDiscountRule.
+- `nexus/domains/pricing/ClearanceWindowRule.ts` — domain rules; 150 ř.; 6347 B; yes, exporty: ClearanceEntry; ClearanceWindowRuleInput; ClearanceInactiveReason; ClearanceWindowRuleResult; ClearanceWindowRule; signály ke kontrole: 1.
+- `nexus/domains/pricing/CouponPolicyRule.ts` — domain rules; 37 ř.; 1908 B; yes, exporty: CouponPolicyRuleInput; CouponPolicyRule.
+- `nexus/domains/pricing/DiscountLimitRule.ts` — domain rules; 85 ř.; 3881 B; yes, exporty: DiscountLimitSource; DiscountLimitRuleInput; DiscountLimitRuleResult; DiscountLimitRule.
+- `nexus/domains/pricing/HighestDiscountRule.ts` — domain rules; 69 ř.; 3010 B; yes, exporty: HighestDiscountRuleInput; HighestDiscountRuleResult; HighestDiscountRule.
+- `nexus/domains/pricing/NoOpActionPriceRule.ts` — domain rules; 70 ř.; 3142 B; yes, exporty: NoOpActionPriceRuleInput; NoOpActionPriceRuleResult; NoOpActionPriceRule.
+- `nexus/domains/pricing/PricingAdapter.ts` — domain rules; 84 ř.; 3349 B; yes, exporty: PricingRuleResult; LegacyPricingResult; LegacyPricingInput; PricingAdapter.
+- `nexus/domains/pricing/PricingConfigurationProvider.ts` — domain rules; 87 ř.; 4283 B; yes, exporty: PolicyConfig; PricingConfigurationProvider; InMemoryPricingConfigurationProvider.
+- `nexus/domains/pricing/ProductLimitCompositionRule.ts` — domain rules; 179 ř.; 8366 B; yes, exporty: ProductLimitSourceFile; ProductLimitCompositionRuleInput; ProductLimitConflict; ProductLimitCompositionRuleResult; ProductLim.
+- `nexus/domains/pricing/QuantityTierRule.ts` — domain rules; 65 ř.; 3103 B; yes, exporty: QuantityTierRuleInput; QuantityTierRuleResult; QuantityTierRule; signály ke kontrole: 1.
+- `nexus/domains/pricing/RoundingRule.ts` — domain rules; 33 ř.; 1300 B; yes, exporty: RoundingRuleInput; RoundingRuleResult; RoundingRule.
+- `nexus/domains/pricing/StaticPricingConfigurationProvider.ts` — domain rules; 47 ř.; 1337 B; yes, exporty: DEFAULT_ANASTASIA_PRICING_CONFIG; StaticPricingConfigurationProvider.
+- `nexus/domains/pricing/ValidationRule.ts` — domain rules; 62 ř.; 2662 B; yes, exporty: ValidationInputCheck; ValidationResultCheck; ValidationOutcome; ValidationRule.
+- `nexus/domains/pricing/VoucherCouponRule.ts` — domain rules; 42 ř.; 2109 B; yes, exporty: VoucherCouponRuleInput; VoucherCouponRule.
+- `nexus/domains/pricing/XPlusXRule.ts` — domain rules; 60 ř.; 2631 B; yes, exporty: XPlusXRuleInput; XPlusXRuleResult; XPlusXRule.
+- `nexus/domains/pricing/createNexusPricingCalculator.ts` — domain rules; 168 ř.; 8761 B; yes, exporty: createNexusPricingCalculator; signály ke kontrole: 1.
+- `nexus/domains/procurement/NOT_MIGRATED.md` — domain rules; 49 ř.; 2831 B; yes; signály ke kontrole: 2.
+- `nexus/domains/procurement/ProcurementRule.ts` — domain rules; 54 ř.; 2736 B; yes, exporty: ProcurementPlanRuleInput; ProcurementPlanRule; ProcurementReceiveRuleInput; ProcurementReceiveRule.
+- `nexus/domains/procurement/SupplierSelectionRule.ts` — domain rules; 49 ř.; 2830 B; yes, exporty: SupplierSelectionRuleInput; SupplierSelectionRule.
+- `nexus/domains/safeorder/AuditLedgerRule.ts` — domain rules; 20 ř.; 998 B; yes, exporty: AuditLedgerRule.
+- `nexus/domains/safeorder/BacktestRule.ts` — domain rules; 44 ř.; 1936 B; yes, exporty: MetricSetRuleInput; MetricSetRule; RocAucRule; BrierScoreRule; signály ke kontrole: 1.
+- `nexus/domains/safeorder/BlindToken.ts` — domain rules; 14 ř.; 864 B; yes.
+- `nexus/domains/safeorder/CalibrationRule.ts` — domain rules; 48 ř.; 2040 B; yes, exporty: CalibrationRuleInput; CalibrationRuleResult; CalibrationRule; EvidentiaryConfidenceRule.
+- `nexus/domains/safeorder/EconomicsRule.ts` — domain rules; 30 ř.; 1529 B; yes, exporty: EconomicsRuleInput; EconomicsRule.
+- `nexus/domains/safeorder/IdentityNormalizationRule.ts` — domain rules; 30 ř.; 1562 B; yes, exporty: IdentityNormalizationRuleInput; IdentityNormalizationRule.
+- `nexus/domains/safeorder/LocalizationRule.ts` — domain rules; 39 ř.; 1599 B; yes, exporty: LocalizeReasonCodesInput; LocalizeReasonCodesRule; FormatCurrencyAmountInput; FormatCurrencyAmountRule.
+- `nexus/domains/safeorder/NOT_MIGRATED.md` — domain rules; 88 ř.; 4367 B; yes; signály ke kontrole: 3.
+- `nexus/domains/safeorder/OutcomeEngineRule.ts` — domain rules; 42 ř.; 2039 B; yes, exporty: OutcomeEngineRuleInput; OutcomeEngineRuleResult; OutcomeEngineRule.
+- `nexus/domains/safeorder/PolicyRule.ts` — domain rules; 38 ř.; 1924 B; yes, exporty: PolicyRuleInput; PolicyRule; PolicyOptimizationRule.
+- `nexus/domains/safeorder/RetentionRule.ts` — domain rules; 26 ř.; 1182 B; yes, exporty: ComputeExpiryTimestampInput; ComputeExpiryTimestampRule.
+- `nexus/domains/safeorder/RiskEngineRule.ts` — domain rules; 24 ř.; 1306 B; yes, exporty: RiskEngineRule.
+- `nexus/domains/safeorder/RiskGraphRule.ts` — domain rules; 27 ř.; 1394 B; yes, exporty: RiskGraphRuleInput; RiskGraphRule.
+- `nexus/domains/safeorder/ValidationStageRules.ts` — domain rules; 90 ř.; 5066 B; yes, exporty: InputValidationStageRule; SignalValidationStageRuleInput; SignalValidationStageRule; RiskPolicyStageRuleInput; RiskPolicyStag.
+- `nexus/domains/shoptet/CsvParserGateRule.ts` — domain rules; 23 ř.; 1151 B; yes, exporty: CsvParserGateRule.
+- `nexus/domains/shoptet/ShoptetRowParserRule.ts` — domain rules; 27 ř.; 1345 B; yes, exporty: ShoptetRowParserRuleInput; ShoptetRowParserRule.
+- `nexus/domains/supplier-csv/SupplierCsvRule.ts` — domain rules; 46 ř.; 1872 B; yes, exporty: ExportPurchaseOrderRule; ImportSupplierOffersRuleInput; ImportSupplierOffersRule; ImportGoodsReceiptRule.
+- `nexus/domains/voucher/CreditVoucherCodeGenerator.ts` — domain rules; 299 ř.; 13910 B; yes, exporty: VOUCHER_CODE_ALPHABET; VOUCHER_CODE_PREFIX; VOUCHER_CODE_GROUP_LENGTH; VOUCHER_CODE_GROUP_COUNT; VOUCHER_CODE_ENTROPY_CHARS; .
+- `nexus/domains/voucher/CreditVoucherLifecycleRule.ts` — domain rules; 102 ř.; 5180 B; yes, exporty: CreditVoucherLifecycleRuleInput; CreditVoucherLifecycleRuleResult; CreditVoucherLifecycleRule; isCreditVoucherTerminal.
+- `nexus/domains/voucher/CreditVoucherRedemptionRule.ts` — domain rules; 220 ř.; 10131 B; yes, exporty: CreditVoucherRedemptionRuleInput; CreditVoucherRedemptionRejectionReason; CreditVoucherRedemptionRuleResult; CreditVoucherRed.
+- `nexus/domains/voucher/CreditVoucherStore.ts` — domain rules; 676 ř.; 32140 B; yes, exporty: IssueCreditVoucherInput; IssueCreditVoucherResult; RedeemCreditVoucherParams; NotRedeemableReason; RedeemOutcome; RefundCredi.
+- `nexus/domains/voucher/CreditVoucherValidityRule.ts` — domain rules; 165 ř.; 7252 B; yes, exporty: CreditVoucherValidityRuleInput; CreditVoucherInvalidityReason; CreditVoucherValidityRuleResult; CreditVoucherValidityRule.
+- `nexus/domains/voucher/VoucherRedemptionAudit.ts` — domain rules; 168 ř.; 6881 B; yes, exporty: VoucherAuditOutcome; VoucherAuditInput; auditVoucherRedemption; shouldPersistBurnedAmount; requiresManualReview.
+- `nexus/domains/warehouse/WarehouseStockFlow.ts` — domain rules; 68 ř.; 3334 B; yes, exporty: evaluateWarehouseStockLink; WarehouseStockLinkResolution; resolveWarehouseStockLinks.
+- `nexus/domains/warehouse/WarehouseStockLinkRule.ts` — domain rules; 86 ř.; 4245 B; yes, exporty: WarehouseStockLinkRuleInput; WarehouseStockLinkStatus; WarehouseStockLinkRuleResult; WarehouseStockLinkRule.
+- `nexus/migrations/0001_credit_voucher.sql` — database migration; 161 ř.; 8209 B; yes.
+- `nexus/migrations/0002_voucher_audit.sql` — database migration; 65 ř.; 3209 B; yes.
+- `nexus/migrations/0003_execution_intents.sql` — database migration; 106 ř.; 5466 B; yes.
+- `nexus/migrations/0004_voucher_burned_unclaimed.sql` — database migration; 49 ř.; 2558 B; yes.
+- `nexus/package-lock.json` — repo metadata; 2787 ř.; 91023 B; yes; signály ke kontrole: 3.
+- `nexus/package.json` — repo metadata; 28 ř.; 705 B; yes.
+- `nexus/tests/integration/ExecutionPipeline.test.ts` — test/fixture; 306 ř.; 12475 B; yes.
+- `nexus/tests/integration/PricingEndToEnd.test.ts` — test/fixture; 175 ř.; 9068 B; yes.
+- `nexus/tests/integration/PromoQuantityBoundaryMatrix.test.ts` — test/fixture; 276 ř.; 14288 B; yes.
+- `nexus/tests/regression/availability/availability-sales-units-parity.test.ts` — test/fixture; 258 ř.; 14020 B; yes.
+- `nexus/tests/regression/availability/procurement-rule-parity.test.ts` — test/fixture; 262 ř.; 14305 B; yes.
+- `nexus/tests/regression/connectors/omega-decision-rules-parity.test.ts` — test/fixture; 113 ř.; 5602 B; yes.
+- `nexus/tests/regression/connectors/omega-executor-sanity.test.ts` — test/fixture; 156 ř.; 7468 B; yes; signály ke kontrole: 7.
+- `nexus/tests/regression/connectors/omega-legacy-sanity.test.ts` — test/fixture; 151 ř.; 7824 B; yes.
+- `nexus/tests/regression/connectors/omega-rule-parity.test.ts` — test/fixture; 111 ř.; 6353 B; yes.
+- `nexus/tests/regression/connectors/omega-validators-parity.test.ts` — test/fixture; 128 ř.; 7252 B; yes.
+- `nexus/tests/regression/connectors/shoptet-csv-sanity.test.ts` — test/fixture; 101 ř.; 4818 B; yes.
+- `nexus/tests/regression/connectors/shoptet-rule-parity.test.ts` — test/fixture; 55 ř.; 2842 B; yes.
+- `nexus/tests/regression/connectors/supplier-csv-rule-parity.test.ts` — test/fixture; 37 ř.; 2293 B; yes.
+- `nexus/tests/regression/connectors/supplier-csv-sanity.test.ts` — test/fixture; 57 ř.; 2953 B; yes.
+- `nexus/tests/regression/golden-pricing/base-price-rule-parity.test.ts` — test/fixture; 35 ř.; 1606 B; yes.
+- `nexus/tests/regression/golden-pricing/brand-sale-discount-rule-parity.test.ts` — test/fixture; 260 ř.; 10793 B; yes.
+- `nexus/tests/regression/golden-pricing/brand-sale-vs-loyalty.test.ts` — test/fixture; 198 ř.; 7307 B; yes.
+- `nexus/tests/regression/golden-pricing/clearance-window-rule-parity.test.ts` — test/fixture; 200 ř.; 9025 B; yes.
+- `nexus/tests/regression/golden-pricing/coupon-policy-rule-parity.test.ts` — test/fixture; 75 ř.; 4051 B; yes.
+- `nexus/tests/regression/golden-pricing/discount-limit-rule-parity.test.ts` — test/fixture; 212 ř.; 10393 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/001-normal-product.csv` — test/fixture; 2 ř.; 144 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/002-sale-overrides-loyalty.csv` — test/fixture; 2 ř.; 155 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/003-brand-limit.csv` — test/fixture; 2 ř.; 148 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/004-category-limit.csv` — test/fixture; 2 ř.; 147 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/005-product-limit.csv` — test/fixture; 2 ř.; 144 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/006-rounding.csv` — test/fixture; 2 ř.; 130 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/007-invalid-price.csv` — test/fixture; 2 ř.; 144 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR10.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR12.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR14.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR16.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR18.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR20.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR25.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR4.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR6.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR8.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR10.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR12.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR14.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR16.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR18.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR20.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR25.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR4.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR6.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR8.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR10.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR12.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR14.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR16.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR18.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR20.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR25.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR4.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR6.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR8.csv` — test/fixture; 2 ř.; 27 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR10.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR12.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR14.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR16.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR18.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR20.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR25.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR4.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR6.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR8.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR10.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR12.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR14.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR16.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR18.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR20.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR25.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR4.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR6.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR8.csv` — test/fixture; 2 ř.; 25 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR10.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR12.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR14.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR16.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR18.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR20.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR25.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR4.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR6.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR8.csv` — test/fixture; 2 ř.; 26 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR10.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR12.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR14.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR16.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR18.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR20.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR25.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR4.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR6.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR8.csv` — test/fixture; 1 ř.; 11 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/okfish-policy/clearance-sale-products.json` — test/fixture; 46 ř.; 719 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/okfish-policy/okfish-products-actionprice-sample.csv` — test/fixture; 29 ř.; 2441 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/okfish-policy/okfish-products-import-snapshot.csv` — test/fixture; 101 ř.; 13872 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/okfish-policy/policy-v1.json` — test/fixture; 58 ř.; 1358 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/okfish-policy/product-max-discount-overrides.json` — test/fixture; 4 ř.; 35 B; yes.
+- `nexus/tests/regression/golden-pricing/fixtures/okfish-policy/zero-discount-products.json` — test/fixture; 208 ř.; 2277 B; yes.
+- `nexus/tests/regression/golden-pricing/full-chain-parity.test.ts` — test/fixture; 241 ř.; 11112 B; yes.
+- `nexus/tests/regression/golden-pricing/golden.test.ts` — test/fixture; 85 ř.; 4074 B; yes.
+- `nexus/tests/regression/golden-pricing/highest-discount-rule-parity.test.ts` — test/fixture; 219 ř.; 10040 B; yes.
+- `nexus/tests/regression/golden-pricing/nexus-calculator-parity.test.ts` — test/fixture; 98 ř.; 5152 B; yes.
+- `nexus/tests/regression/golden-pricing/noop-action-price-rule-parity.test.ts` — test/fixture; 172 ř.; 7306 B; yes.
+- `nexus/tests/regression/golden-pricing/okfish-missing-logic-integration.test.ts` — test/fixture; 501 ř.; 22909 B; yes.
+- `nexus/tests/regression/golden-pricing/product-limit-composition-rule-parity.test.ts` — test/fixture; 304 ř.; 13149 B; yes.
+- `nexus/tests/regression/golden-pricing/quantity-tier-rule-hypothesis.test.ts` — test/fixture; 146 ř.; 7995 B; yes; signály ke kontrole: 2.
+- `nexus/tests/regression/golden-pricing/rounding-rule-parity.test.ts` — test/fixture; 50 ř.; 2294 B; yes.
+- `nexus/tests/regression/golden-pricing/validation-rule-parity.test.ts` — test/fixture; 81 ř.; 4862 B; yes.
+- `nexus/tests/regression/golden-pricing/voucher-coupon-rule-parity.test.ts` — test/fixture; 146 ř.; 6287 B; yes.
+- `nexus/tests/regression/golden-pricing/x-plus-x-rule-parity.test.ts` — test/fixture; 51 ř.; 2285 B; yes.
+- `nexus/tests/regression/safeorder/backtest-rule-parity.test.ts` — test/fixture; 90 ř.; 4246 B; yes.
+- `nexus/tests/regression/safeorder/calibration-rule-parity.test.ts` — test/fixture; 62 ř.; 2844 B; yes.
+- `nexus/tests/regression/safeorder/economics-policy-rule-parity.test.ts` — test/fixture; 119 ř.; 5710 B; yes.
+- `nexus/tests/regression/safeorder/legacy-safeorder-sanity.test.ts` — test/fixture; 205 ř.; 9274 B; yes.
+- `nexus/tests/regression/safeorder/localization-retention-rule-parity.test.ts` — test/fixture; 54 ř.; 2791 B; yes.
+- `nexus/tests/regression/safeorder/risk-engine-rule-parity.test.ts` — test/fixture; 51 ř.; 2656 B; yes.
+- `nexus/tests/regression/safeorder/risk-graph-outcome-rule-parity.test.ts` — test/fixture; 128 ř.; 6912 B; yes.
+- `nexus/tests/regression/safeorder/validation-stages-parity.test.ts` — test/fixture; 166 ř.; 9793 B; yes.
+- `nexus/tests/regression/shadow/pricing-parity-baseline.test.ts` — test/fixture; 269 ř.; 10704 B; yes, exporty: PRICING_PARITY_BASELINE.
+- `nexus/tests/regression/shadow/shadow-harness.test.ts` — test/fixture; 212 ř.; 9645 B; yes; signály ke kontrole: 1.
+- `nexus/tests/tenant-isolation/assertTenantOwnership.test.ts` — test/fixture; 31 ř.; 1347 B; yes.
+- `nexus/tests/unit/AuditRecord.test.ts` — test/fixture; 255 ř.; 10061 B; yes.
+- `nexus/tests/unit/B2BFlows.test.ts` — test/fixture; 102 ř.; 4513 B; yes.
+- `nexus/tests/unit/B2BRules.test.ts` — test/fixture; 158 ř.; 7208 B; yes.
+- `nexus/tests/unit/BestCandidatePriceRule.test.ts` — test/fixture; 90 ř.; 3948 B; yes.
+- `nexus/tests/unit/BillingFlows.test.ts` — test/fixture; 145 ř.; 5983 B; yes.
+- `nexus/tests/unit/BillingRules.test.ts` — test/fixture; 127 ř.; 6757 B; yes.
+- `nexus/tests/unit/CampaignFlows.test.ts` — test/fixture; 299 ř.; 13658 B; yes.
+- `nexus/tests/unit/CampaignRules.test.ts` — test/fixture; 216 ř.; 9058 B; yes.
+- `nexus/tests/unit/CreativeResolutionRule.test.ts` — test/fixture; 150 ř.; 5874 B; yes.
+- `nexus/tests/unit/CreditVoucherRules.test.ts` — test/fixture; 643 ř.; 25846 B; yes.
+- `nexus/tests/unit/CreditVoucherStore.test.ts` — test/fixture; 917 ř.; 35399 B; yes.
+- `nexus/tests/unit/ErrorIsolation.test.ts` — test/fixture; 148 ř.; 6900 B; yes.
+- `nexus/tests/unit/Execution.test.ts` — test/fixture; 31 ř.; 1125 B; yes.
+- `nexus/tests/unit/ExecutionIntentStore.test.ts` — test/fixture; 294 ř.; 11460 B; yes; signály ke kontrole: 1.
+- `nexus/tests/unit/GenericReconciliation.test.ts` — test/fixture; 108 ř.; 4780 B; yes.
+- `nexus/tests/unit/IdempotencyStore.test.ts` — test/fixture; 159 ř.; 7507 B; yes.
+- `nexus/tests/unit/IntentExecutor.test.ts` — test/fixture; 310 ř.; 12115 B; yes.
+- `nexus/tests/unit/IntentReconciliation.test.ts` — test/fixture; 248 ř.; 9090 B; yes.
+- `nexus/tests/unit/InvoiceFlows.test.ts` — test/fixture; 91 ř.; 3700 B; yes.
+- `nexus/tests/unit/InvoiceRules.test.ts` — test/fixture; 98 ř.; 4792 B; yes.
+- `nexus/tests/unit/MedusaConnector.test.ts` — test/fixture; 28 ř.; 1076 B; yes.
+- `nexus/tests/unit/Phase6DomainSkeleton.test.ts` — test/fixture; 361 ř.; 15210 B; yes.
+- `nexus/tests/unit/PromoGroupDiscountRule.test.ts` — test/fixture; 105 ř.; 5736 B; yes.
+- `nexus/tests/unit/PurchaseOrder.test.ts` — test/fixture; 34 ř.; 1186 B; yes.
+- `nexus/tests/unit/ReadOnlyGuard.test.ts` — test/fixture; 133 ř.; 4960 B; yes; signály ke kontrole: 4.
+- `nexus/tests/unit/Reconciliation.test.ts` — test/fixture; 29 ř.; 1529 B; yes.
+- `nexus/tests/unit/ShoptetPriceConnector.test.ts` — test/fixture; 229 ř.; 8531 B; yes.
+- `nexus/tests/unit/Snapshot.test.ts` — test/fixture; 101 ř.; 4915 B; yes.
+- `nexus/tests/unit/StateMachine.test.ts` — test/fixture; 158 ř.; 8322 B; yes.
+- `nexus/tests/unit/TenantConfig.test.ts` — test/fixture; 86 ř.; 3610 B; yes.
+- `nexus/tests/unit/ValidationFramework.test.ts` — test/fixture; 43 ř.; 2280 B; yes.
+- `nexus/tests/unit/VoucherPurchaseDetection.test.ts` — test/fixture; 145 ř.; 4618 B; yes.
+- `nexus/tests/unit/VoucherRedemptionAudit.test.ts` — test/fixture; 268 ř.; 10540 B; yes.
+- `nexus/tests/unit/WarehouseFlows.test.ts` — test/fixture; 108 ř.; 4425 B; yes.
+- `nexus/tests/unit/WarehouseRules.test.ts` — test/fixture; 105 ř.; 4684 B; yes.
+- `nexus/tests/unit/aiGatewayRoute.test.ts` — test/fixture; 38 ř.; 1418 B; yes.
+- `nexus/tests/unit/klubSubscribeRoute.test.ts` — test/fixture; 39 ř.; 1599 B; yes; signály ke kontrole: 2.
+- `nexus/tests/unit/nexusPricingRoute.test.ts` — test/fixture; 43 ř.; 1696 B; yes.
+- `nexus/tests/unit/nexusSafeOrderRoute.test.ts` — test/fixture; 45 ř.; 1792 B; yes.
+- `nexus/tests/workers/schema.test.ts` — test/fixture; 514 ř.; 18127 B; yes; signály ke kontrole: 2.
+- `nexus/tests/workers/setup.ts` — test/fixture; 30 ř.; 1302 B; yes.
+- `nexus/tests/workers/tsconfig.json` — test/fixture; 35 ř.; 1490 B; yes.
+- `nexus/tools/shadow/adapters.ts` — repo metadata; 180 ř.; 8266 B; yes, exporty: parsePrice; resolveAllowLoyaltyDiscount; NormalizedProduct; normalizeRow; toRootEngineProduct; NexusInputMode; toNexusInput.
+- `nexus/tools/shadow/feed.ts` — repo metadata; 162 ř.; 6644 B; yes, exporty: MASTER_FEED_URL; CsvRow; parseCsv; FeedLoadResult; loadFeed; parseArgs.
+- `nexus/tools/shadow/okfishConfig.ts` — repo metadata; 131 ř.; 5913 B; yes, exporty: OKFISH_ROOT; OkfishConfig; loadOkfishConfig.
+- `nexus/tools/shadow/okfishEngines.ts` — repo metadata; 126 ř.; 5712 B; yes, exporty: OkfishEngines; assertOkfishCwd; loadOkfishEngines; assertNoWriterModulesLoaded; assertNoShoptetToken; signály ke kontrole: 2.
+- `nexus/tools/shadow/p2-nexus-vs-okfish.ts` — repo metadata; 351 ř.; 15327 B; yes, exporty: P2Class; P2Diff; P2ModeResult; P2Result; runP2; signály ke kontrole: 1.
+- `nexus/tools/shadow/p3-okfish-selfcheck.ts` — repo metadata; 243 ř.; 10409 B; yes, exporty: P3Class; EXPECTED_P3_CLASSES; P3Diff; P3Result; runP3.
+- `nexus/tools/shadow/run.sh` — repo metadata; 46 ř.; 1602 B; yes.
+- `nexus/tsconfig.json` — repo metadata; 21 ř.; 854 B; yes.
+- `nexus/vitest.config.ts` — repo metadata; 23 ř.; 1062 B; yes.
+- `nexus/vitest.workers.config.ts` — repo metadata; 60 ř.; 3050 B; yes; signály ke kontrole: 1.
+- `nexus/workers/api/SecurityCoordinator.ts` — Cloudflare worker; 695 ř.; 29394 B; yes, exporty: SecurityCoordinator.
+- `nexus/workers/api/hmac.ts` — Cloudflare worker; 341 ř.; 13985 B; yes, exporty: VoucherTokenPayload; buildVoucherCanonicalString; CanonicalizationError; isWellFormedSignature; signVoucherToken; verifyVouch; signály ke kontrole: 1.
+- `nexus/workers/api/http.ts` — Cloudflare worker; 163 ř.; 5648 B; yes, exporty: LogFields; LogLevel; log; redactVoucherCode; redactToken; ErrorCode; ApiError; jsonResponse; jsonError; withCors; preflightRe.
+- `nexus/workers/api/index.ts` — Cloudflare worker; 202 ř.; 8300 B; yes; signály ke kontrole: 1.
+- `nexus/workers/api/routes/aiGateway.ts` — Cloudflare worker; 165 ř.; 5334 B; yes, exporty: handleAIQuery.
+- `nexus/workers/api/routes/issuance.ts` — Cloudflare worker; 834 ř.; 35323 B; yes, exporty: handleIssue.
+- `nexus/workers/api/routes/klubSubscribe.ts` — Cloudflare worker; 152 ř.; 4424 B; yes, exporty: handleKlubSubscribe.
+- `nexus/workers/api/routes/medusaWebhook.ts` — Cloudflare worker; 48 ř.; 1618 B; yes, exporty: handleMedusaWebhook.
+- `nexus/workers/api/routes/nexusPricing.ts` — Cloudflare worker; 58 ř.; 2610 B; yes, exporty: handleNexusPricing.
+- `nexus/workers/api/routes/nexusSafeOrder.ts` — Cloudflare worker; 61 ř.; 2242 B; yes, exporty: handleNexusSafeOrder.
+- `nexus/workers/api/routes/shoptetWebhook.ts` — Cloudflare worker; 357 ř.; 15292 B; yes, exporty: ShoptetWebhookPayload; handleShoptetWebhook.
+- `nexus/workers/api/routes/voucher.ts` — Cloudflare worker; 1277 ř.; 53384 B; yes, exporty: handleValidate; handleRedeem; signály ke kontrole: 1.
+- `nexus/workers/api/types.ts` — Cloudflare worker; 212 ř.; 9831 B; yes, exporty: D1Meta; D1Result; D1PreparedStatement; D1Database; NonceStore; RateLimitVerdict; DurableObjectId; DurableObjectStub; DurableO; signály ke kontrole: 1.
+- `nexus/workers/tsconfig.json` — Cloudflare worker; 34 ř.; 1508 B; yes.
+- `nexus/wrangler.jsonc` — repo metadata; 110 ř.; 4328 B; yes.
+
+## Nevyřešené relativní importy (heuristický výstup)
+
+## Metodika a omezení
+Klasifikace exportů a markerů je automatická. Importy mohou zahrnovat záměrné modulové aliasy a `.js` mapované na `.ts`; jejich počet není automaticky počet chyb. Nepoužíval jsem produkční API, DB ani služby; testy aplikace jsem nespouštěl. ZIP neobsahuje Git historii ani informace o aktuálním necommitnutém worktree. Některé dokumenty a návrhy mohou být zastaralé.
