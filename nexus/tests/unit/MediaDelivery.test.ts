@@ -16,10 +16,13 @@ function makeEnv(files: Record<string, string>): Env {
     return {
         MEDIA_TOKEN_SECRET: SECRET,
         MEDIA_BUCKET: {
-            head: async (key: string) => (key in files ? { size: files[key].length, httpEtag: '"e"' } : null),
+            head: async (key: string) => {
+                const content = files[key];
+                return typeof content === 'string' ? { size: content.length, httpEtag: '"e"' } : null;
+            },
             get: async (key: string, opts?: { range?: { offset?: number; length?: number } }) => {
-                if (!(key in files)) return null;
                 const full = files[key];
+                if (typeof full !== 'string') return null;
                 const part = opts?.range ? full.slice(opts.range.offset ?? 0, (opts.range.offset ?? 0) + (opts.range.length ?? full.length)) : full;
                 return { body: new Response(part).body, size: full.length, text: async () => full };
             },

@@ -19,7 +19,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | S1-06 | Generátor QR v administraci (kupón → URL s automatickou slevou + QR) | C3 `qr-redirects` | IMPLEMENTED_UNVERIFIED | sloučeno do wave1-base, middleware zapojen, tsc+testy zelené; aktivace slevy přes NEXUS/K1 ještě chybí |
 | S1-07 | 301 přesměrování všech starých URL a vytištěných QR | C3 | PARTIAL | mapa 44 URL hotová, edge nasazení (Cloudflare Redirect Rules) neprovedeno |
 | S1-08 | Administrace na míru, správa produktů/cen/kategorií/kupónů/objednávek/zákaznic | C5 `admin-ui` + Medusa Admin | NOT_IMPLEMENTED | až po K4/K5; Medusa Admin build prošel |
-| S1-09 | Zabezpečení, odstranění rizik z auditu | K-sec review | PARTIAL | server-verified pricing a SafeOrder fail-closed (unit testy); audit rizik starého webu se týká starého systému, nový je řeší návrhem; SafeOrder Worker route bez autentizace (otevřené) |
+| S1-09 | Zabezpečení, odstranění rizik z auditu | K-sec review | PARTIAL | server-verified pricing a SafeOrder fail-closed (unit testy); audit rizik starého webu se týká starého systému, nový je řeší návrhem; SafeOrder služba a tenant ověřovány, všechny completion cesty chráněny (lokální testy); runtime/persistence P0 akceptace BLOCKED, viz backend/docs/wp/wave1-security.md |
 | S1-10 | Potvrzovací e-mail objednávky | E-mail provider | NOT_IMPLEMENTED | rozhodnutí: Resend/SMTP |
 
 ## 3. Příloha č. 1, testovací scénáře Fáze 1
@@ -116,3 +116,24 @@ Po dokončení Fáze 1, kdykoliv a bez ohlášení, proběhne útočný test. Ú
 - Totéž pravidlo integrity přípravy (viz výše) platí zesíleně: kontrola, že v izolované síti není nic navíc, musí počítat s tím, že "navíc" mohlo být vloženo už ve fázi přípravy/tréninku, ne jen po jejím dokončení.
 
 Claude (tento model) tuto část sám nenavrhuje ani neověřuje (nemá náhled do Cloudflare topologie ani prostředky fyzicky izolovat síť).
+
+
+## Wave 1 execution delta — 2026-10-11, codex/wave1-security
+
+Aktuální stav P0: **IMPLEMENTED**, lokální testy a typové kontroly se evidují v
+[CODEX_PROGRESS.md](../CODEX_PROGRESS.md). Akceptace fáze 1: **BLOCKED**, dokud
+neproběhne workerd a skutečné dokončení Medusa objednávky na schváleném izolovaném
+syntetickém prostředí. Předchozí tabulky popisují historický baseline; tato delta
+neoznačuje checkout, platby ani Wave 1 za akceptované.
+
+| Požadavek | Implementace | Test | Důkaz | Stav |
+|---|---|---|---|---|
+| A-10 / S1-09 identita + tenant | nexus/workers/api/medusaServiceAuth.ts, routes/nexusSafeOrder.ts | nexusSafeOrderRoute.test.ts, SafeOrderHttp.test.ts | journal + wave1-security.md | lokální verifikace; runtime BLOCKED |
+| A-04 / A-10 zákaz obejití SafeOrder | backend/src/workflows/hooks.ts (locked snapshot) | safeorder-completion.unit.spec.ts | journal + wave1-security.md | implementováno; skutečná persistence BLOCKED |
+| A-11 cena a měna | snapshot line/quantity/payment comparison + response binding | safeorder.unit.spec.ts, safeorder-completion.unit.spec.ts | journal + wave1-security.md | lokálně ověřeno; checkout E2E BLOCKED |
+| S1-09 administrátorský Worker zápis | routes/issuance.ts service auth + tenant | nexusSafeOrderRoute.test.ts | journal + wave1-security.md | negativní testy; platba/voucher runtime neakceptován |
+| S1-09 CORS, secrets a logy | stávající production allowlist; SafeOrder bez PII, TLS + redirect guard | nexusSafeOrderRoute.test.ts, safeorder.unit.spec.ts | journal + wave1-security.md | lokální kontrola; staging/Fable zbývá |
+| T1-7 skutečný Worker runtime | nexus/tests/workers/safeOrder.test.ts | npm run test:workers | macOS 12.6 odmítnut workerd (minimum 13.5) | BLOCKED; žádné runtime testy neběžely |
+
+Další kritické fáze (Auth až Admin) nebyly zahájeny přes otevřenou P0 bránu.
+SK/EN/RU, Zlatá brána a členský klub jsou podle aktuální direktivy mimo Wave 1.

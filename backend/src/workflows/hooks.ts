@@ -13,7 +13,7 @@
  */
 import { addToCartWorkflow, completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { StepResponse } from "@medusajs/framework/workflows-sdk"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { assertSafeOrderAllows, SafeOrderError } from "../api/store/nexus-checkout/safeorder"
 import { repriceCart } from "../api/store/nexus-cart/route"
 
 addToCartWorkflow.hooks.setPricingContext(async () => {
@@ -23,14 +23,9 @@ addToCartWorkflow.hooks.setPricingContext(async () => {
 // Read-only guard against cart changes between the adapter reprice and Medusa's
 // locked completion snapshot. Never mutate the cart from completeCartWorkflow's
 // validate hook: Medusa documents that the order is built from its earlier snapshot.
-completeCartWorkflow.hooks.validate(async ({ input }, { container }) => {
-    const query: any = (container as any).resolve(ContainerRegistrationKeys.QUERY)
-    const { data } = await query.graph({
-        entity: "cart",
-        fields: ["id", "currency_code", "total", "payment_collection.amount", "payment_collection.currency_code", "payment_collection.payment_sessions.amount", "payment_collection.payment_sessions.currency_code"],
-        filters: { id: input.id },
-    })
-    const cart = data?.[0]
+completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { container }) => {
+    // This is the locked snapshot Medusa uses to create the order, not a later query.
+    const cart = snapshot as any
     const total = amountValue(cart?.total)
     const collectionAmount = amountValue(cart?.payment_collection?.amount)
     const sessions = cart?.payment_collection?.payment_sessions || []
@@ -38,10 +33,20 @@ completeCartWorkflow.hooks.validate(async ({ input }, { container }) => {
         throw new Error("MEDUSA_PAYMENT_AMOUNT_MISMATCH")
     }
     const result = await repriceCart(input.id, container as any, false)
-    if (result.pricesChanged) throw new Error("NEXUS_PRICE_MISMATCH")
+    if (result.pricesChanged || result.items.length !== cart.items?.length || result.items.some((item) => {
+        const line = cart.items.find((line: any) => line.id === item.id)
+        return !line || amountValue(line.unit_price) !== item.unit_price || line.quantity !== item.quantity
+    })) throw new Error("NEXUS_PRICE_MISMATCH")
+    const processable = sessions.filter((session: any) => ["pending", "requires_more", "authorized", "captured", "pending_authorization"].includes(session.status))
+    if (!processable.length || cart.currency_code !== "eur") throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
+    // Check every processable provider: a benign first session must not hide a COD session.
+    for (const session of processable) {
+        await assertSafeOrderAllows({ orderSum: total, paymentMethod: session.provider_id, customerEmail: cart.email })
+    }
 })
 
 function amountValue(value: any): number {
     const numeric = typeof value === "object" && value !== null ? value.numeric ?? value.value : value
+    if (typeof numeric !== "number" && (typeof numeric !== "string" || !numeric.trim())) return NaN
     return Number(numeric)
 }

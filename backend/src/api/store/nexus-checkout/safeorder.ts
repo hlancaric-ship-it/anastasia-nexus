@@ -26,7 +26,14 @@ export function resolveSafeOrderUrl(env: Record<string, string | undefined> = pr
 export async function assertSafeOrderAllows(input: SafeOrderInput, env: Record<string, string | undefined> = process.env, fetchImpl: typeof fetch = fetch): Promise<{ score: number; factors: string[] }> {
   const url = resolveSafeOrderUrl(env)
   const apiKey = env.NEXUS_PRICING_API_KEY
-  if (!url || !apiKey) throw new SafeOrderError("SAFEORDER_NOT_CONFIGURED")
+  const tenantId = env.NEXUS_TENANT_ID
+  if (!url || !apiKey || !tenantId) throw new SafeOrderError("SAFEORDER_NOT_CONFIGURED")
+  // Send the credential only over TLS, except isolated loopback development.
+  let endpoint: URL
+  try { endpoint = new URL(url) } catch { throw new SafeOrderError("SAFEORDER_NOT_CONFIGURED") }
+  if (endpoint.username || endpoint.password || (endpoint.protocol !== "https:" && !(endpoint.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(endpoint.hostname)))) {
+    throw new SafeOrderError("SAFEORDER_NOT_CONFIGURED")
+  }
   if (!Number.isFinite(input.orderSum) || input.orderSum < 0) throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
 
   let response: Response
@@ -34,7 +41,8 @@ export async function assertSafeOrderAllows(input: SafeOrderInput, env: Record<s
     response = await fetchImpl(url, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, tenantId, currency: "eur" }),
+      redirect: "error",
       signal: AbortSignal.timeout(5000),
     })
   } catch {
@@ -48,10 +56,10 @@ export async function assertSafeOrderAllows(input: SafeOrderInput, env: Record<s
   } catch {
     throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
   }
-  const score = Number(body?.score)
-  const factors: string[] = Array.isArray(body?.factors) ? body.factors.map(String) : []
-  if (body?.ok !== true || !Number.isFinite(score)) throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
-  if (body.decision === "ALLOW") return { score, factors }
+  const score = body?.score
+  const factors = body?.factors
+  if (body?.ok !== true || body.tenantId !== tenantId || body.currency !== "eur" || body.orderSum !== input.orderSum || typeof score !== "number" || !Number.isFinite(score) || score < 0 || score > 100 || !Array.isArray(factors) || factors.some((factor: unknown) => typeof factor !== "string")) throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
+  if (body.decision === "ALLOW" && score < 40) return { score, factors }
   if (body.decision === "REVIEW") throw new SafeOrderError("SAFEORDER_REVIEW_REQUIRED", score, factors)
   if (body.decision === "BLOCK") throw new SafeOrderError("SAFEORDER_BLOCKED", score, factors)
   throw new SafeOrderError("SAFEORDER_UNAVAILABLE")

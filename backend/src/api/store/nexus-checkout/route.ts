@@ -2,7 +2,7 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../nexus-cart/route"
-import { assertSafeOrderAllows, SafeOrderError } from "./safeorder"
+import { SafeOrderError } from "./safeorder"
 
 /** Revalidate with NEXUS, then let Medusa's normal workflow create the order. */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
@@ -22,21 +22,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       })
     }
 
-    const query0: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-    const { data: cartData } = await query0.graph({
-      entity: "cart",
-      fields: ["id", "email", "customer.email", "payment_collection.payment_sessions.provider_id"],
-      filters: { id: cartId },
-    })
-    const cartInfo = cartData?.[0]
-    const orderSum = pricing.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)
-    const sessions = cartInfo?.payment_collection?.payment_sessions || []
-    await assertSafeOrderAllows({
-      orderSum,
-      paymentMethod: String(sessions[0]?.provider_id ?? ""),
-      customerEmail: String(cartInfo?.email || cartInfo?.customer?.email || ""),
-    })
-
+    // SafeOrder runs in completeCartWorkflow's validation hook for every completion path.
     const result = await completeCartWorkflow(req.scope).run({ input: { id: cartId } })
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const { data } = await query.graph({
