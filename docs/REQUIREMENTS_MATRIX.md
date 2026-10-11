@@ -137,3 +137,15 @@ neoznačuje checkout, platby ani Wave 1 za akceptované.
 
 Další kritické fáze (Auth až Admin) nebyly zahájeny přes otevřenou P0 bránu.
 SK/EN/RU, Zlatá brána a členský klub jsou podle aktuální direktivy mimo Wave 1.
+
+### P0 persistence evidence update — 2026-10-11
+
+Výše uvedený Medusa persistence blocker je lokálně vyřešen; workerd blocker trvá.
+
+| Požadavek | Implementace | Test | Důkaz | Stav |
+|---|---|---|---|---|
+| A-04 / A-10 SafeOrder bez bypassu | completeCartWorkflow locked hook + oba HTTP completion endpointy | safeorder-persistence.spec.ts, 10 negativních scénářů, nulový přírůstek objednávek | backend/docs/wp/evidence/safeorder-medusa-persistence.json | Medusa/Postgres VERIFIED; workerd BLOCKED |
+| A-11 cena a měna | server pricing + locked snapshot | 2 ALLOW scénáře, EUR, unit 50, total 61.5 = cart | stejný syntetický důkaz | persistence VERIFIED; celé K1–K4 zbývá |
+| A-10 chybové statusy | nexus-checkout přesné kódy po serializaci workflow | route-errors.unit.spec.ts + skutečný HTTP test 503/409/403 | journal + syntetický důkaz | VERIFIED |
+
+Fáze 1 jako celek zůstává BLOCKED; fáze 2 nebyla zahájena.

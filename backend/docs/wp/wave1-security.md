@@ -90,3 +90,38 @@ voucher concurrency/restart a restore acceptance zde dosud neověřeny.
 
 Skutečné výsledky a historie commitů: [CODEX_PROGRESS.md](../../../CODEX_PROGRESS.md).
 Trasování: [REQUIREMENTS_MATRIX.md](../../../docs/REQUIREMENTS_MATRIX.md).
+
+## Ověřená persistence — pokračování 2026-10-11
+
+Předchozí blocker Medusa persistence byl vyřešen lokálně. Spuštěn skutečný Medusa
+2.19 HTTP server a workflow nad novým soukromým PostgreSQL 16 clusterem; skutečný
+Worker handler přes Node HTTP bridge. Žádná existující databáze nebyla použita.
+
+Reprodukce z čistého worktree bez `.env*` kromě šablony, s instalovanými zamčenými
+závislostmi a lokálními `initdb`, `pg_ctl`, Node: z kořene spusťte
+`python3 backend/scripts/verify-safeorder-local.py`. Launcher nepřebírá service
+credentials; ověřuje skutečnou datovou cestu clusteru a používá pouze loopback.
+Po běhu zastaví vlastní procesy, důkazy zachová v oznámeném soukromém adresáři.
+
+Výsledek: 12/12 scénářů, Jest 1/1 PASS. Oba completion endpointy: neautorizovaný
+Worker, unavailable, malformed JSON, REVIEW a BLOCK nevytvořily žádnou objednávku
+ani nedokončily košík. ALLOW u každého vytvořil jednu objednávku EUR, jednotková
+cena 50, total 61.5 odpovídající skutečnému serverovému košíku. Klientské přepsání
+částky/metody/e-mailu neobešlo locked snapshot. Custom endpoint přesně vrací
+503 pro unavailable, 409 REVIEW, 403 BLOCK. Medusa serializací ztrácí prototyp
+chyby; route nyní rozpoznává uzavřený seznam přesných chybových kódů. Standardní
+Medusa endpoint zamítá tyto požadavky 500 bez objednávky.
+
+[Syntetický důkaz](evidence/safeorder-medusa-persistence.json) obsahuje jen
+výsledky a částky. Lokální logy neobsahovaly kontrolované syntetické klíče/e-maily.
+Backend unit: 17/17 suites, 157/157 PASS; TypeScript PASS.
+
+P0 runtime blocker stále platí: macOS 12.6 nespouští workerd. Nová task-owned
+Linux VM v UTM je připravena, ale start i změnu konfigurace odmítá macOS
+AppleEvents (OSStatus -10004; log potvrzuje chybějící oprávnění odesílatele).
+Obě VM zůstávají zastavené, původní VM nebyla změněna. Neobcházíme systémová
+oprávnění. Vyžaduje kompatibilní izolovaný Linux/CI nebo spuštění pouze VM
+`Wave1 Synthetic Runtime` vlastníkem. Potom spustit skutečné
+`cd nexus && npm run test:workers`; do té doby brána BLOCKED a Auth nezahájeno.
+Opakování/souběh checkoutu patří do navazující K1–K4 akceptace; tento běh je
+neprokazuje. Nový test není workerd, staging ani produkční readiness.
