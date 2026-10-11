@@ -159,3 +159,16 @@ Skutečný run 38124610864 byl odmítnut před startem runneru kvůli billing lo
 účtu. Počet spuštěných kroků i testů: 0. Důkaz:
 `backend/docs/wp/evidence/safeorder-ci-startup.json`. T1-7 a celá P0 brána
 zůstávají BLOCKED; lokální runtime se podle pokynu vlastníka dál nespouští.
+
+### P0 continuation after reported billing payment — 2026-10-11
+
+| Požadavek | Implementace | Test | Důkaz | Stav |
+|---|---|---|---|---|
+| S1-09 ochrana pricing service secrets/transport | nexus-cart TLS/loopback guard, URL credential rejection, no redirect, timeout | pricing-transport.unit.spec.ts (14 připravených případů) + skutečný HTTP redirect counter | wave1-security.md | IMPLEMENTED_UNVERIFIED |
+| A-10 admin/tenant/CORS/log isolation | existující guard + workerd/D1 kontrola nulového přírůstku | safeOrder.test.ts (15 připravených případů) | CI run38125396491 attempts1/2 | BLOCKED, 0 testů běželo |
+| A-04 / A-11 fail-closed order persistence/replay/concurrency | locked snapshot guard + bezpečný pricing transport | safeorder-persistence.spec.ts (38 připravených scenario records) | CI medusa-persistence job skipped | IMPLEMENTED_UNVERIFIED; dřívějších 12 scénářů PASS se na novou matici nepřenáší |
+
+Vlastník oznámil úhradu billing. Oba nové verify pokusy byly stále odmítnuty před
+startem runneru stejným account-lock důvodem. Přesná data:
+`backend/docs/wp/evidence/safeorder-ci-after-payment.json`. Gate P0 zůstává
+BLOCKED, Auth nebylo otevřeno. Další krok je rerun38125396491 po změně stavu účtu.

@@ -194,3 +194,23 @@ zatím IMPLEMENTED_UNVERIFIED; staré 12/12 nejsou důkazem nových 38.
 Vlastník oznámil uhrazení GitHub billing a požádal o Actions. Publikace aktuální
 revize spustí nový běh; odstranění billing locku prokáže až skutečně přidělený
 runner a test output. Lokální runtime zůstává zakázán.
+
+### Actions po oznámené platbě — ověřený výsledek
+
+Publikováno HEAD `02e97655121eab2bb4d06b09d50ae707589515c5` bez force.
+[Run 38125396491](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38125396491)
+attempt1: verify114428587451 failure před startem, medusa114428594924 skipped.
+Po krátké prodlevě vyžádán rerun failed jobs; connector měl Actions write 403,
+existující autorizovaný GitHub CLI přijal tentýž vzdálený rerun. Attempt2:
+verify114429013822 runner_id=0, steps=[], failure; medusa114429020948 skipped.
+Oba verify joby mají přesnou billing-lock anotaci stejně jako první běh.
+**0 kroků/testů skutečně vykonáno, žádné artifacts.**
+
+[Důkaz po platbě](evidence/safeorder-ci-after-payment.json) rozlišuje tvrzení
+vlastníka o platbě od skutečného scheduler výsledku. Nový pricing kód a nové
+testy jsou IMPLEMENTED_UNVERIFIED. Staré PASS výsledky se na ně nepřenášejí.
+[Oficiální GitHub postup](https://docs.github.com/en/billing/how-tos/troubleshooting/locked-account)
+uvádí automatické odblokování po úspěšném zpracování platby, které může trvat
+až 24h; žádnou konkrétní dobu pro tento účet nelze z těchto dat tvrdit.
+Nic dalšího nebylo účtováno ani měněno v billing/subscription nastavení.
+Jakmile se stav účtu změní, rerun38125396491 ověří oba P0 joby v jejich pořadí.
