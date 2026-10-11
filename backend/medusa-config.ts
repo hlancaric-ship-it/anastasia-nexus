@@ -110,6 +110,20 @@ const modules: Array<Record<string, unknown>> = [
     resolve: "@medusajs/medusa/notification",
     options: { providers: [notificationProvider] },
   },
+  {
+    key: Modules.AUTH,
+    resolve: "@medusajs/medusa/auth",
+    options: {
+      providers: [
+        { resolve: "@medusajs/medusa/auth-emailpass", id: "emailpass" },
+        {
+          resolve: "./src/modules/auth-magic-link",
+          id: "magic-link",
+          options: { linkBaseUrl: env("MAGIC_LINK_BASE_URL") },
+        },
+      ],
+    },
+  },
   { resolve: "./src/modules/entitlement" },
   { resolve: "./src/modules/booking" },
 ]
