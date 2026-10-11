@@ -8,7 +8,7 @@ Pravidlo tohoto logu: procenta a stavy vycházejí jen z toho, co bylo **spušt�
 
 ## 1. V jaké jsme fázi
 
-**Fáze: Fáze 1 — backend a doménové jádro.** Storefront (frontend) se podle pravidla stanoveného 9. 10. 2026 nezačíná, dokud není backend ověřený. To platí pořád — frontend je 0 %.
+**Fáze: Fáze 1 — backend a doménové jádro.** Storefront (frontend) je v této session a v procentech níže veden jako 0 %, protože tady se na něm nepracovalo — **Jose ho ale souběžně staví s Codexem mimo tuto session**, takže reálný celkový stav Fáze 1 je lepší, než říká tabulka v bodě 2. Tento dokument sleduje jen backend; stav storefrontu sem zapisovat nebudu, dokud ho sem Jose/Lucky výslovně nedoplní.
 
 Uvnitř Fáze 1 jsme ve stavu: **jádro hotové a ověřené na lokální DB, integrace mezi částmi a produkční infrastruktura chybí.**
 
