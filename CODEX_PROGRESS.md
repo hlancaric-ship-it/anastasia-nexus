@@ -470,3 +470,51 @@ BLOCKED — external runner not allocated; not a security test failure or PASS.
 ### Next Action
 Exact next executable task: when the account state changes, rerun failed jobs of38125396491, inspect actual workerd/regression and dependent backend/persistence results, fix failures and retain output before Auth.
 Owner input required: confirm actual unlocked status for hlancaric-ship-it (async question pending) or allow payment processing to complete; alternative isolated remote Linux/CI may be provided. Do not request another payment or change billing automatically. Current publication/testing authorization persists; local runtime remains prohibited.
+
+## COMMIT RECORD
+
+Timestamp UTC: 2026-10-11 09:12:34 UTC
+Repository: hlancaric-ship-it/anastasia-nexus
+Branch: codex/wave1-security
+Work Commit SHA: 50792eb5d29929bf394b8912c2a40480564fbef8
+Journal Commit SHA: unique subject `docs(wave1): journal unlock retry 50792eb`; resolve with git log (no self-hash cycle).
+Previous Journal Commit SHA: a44fa42ac0932e22081f400341bda4b1ab6d9529
+Phase: 1 — P0 SafeOrder
+Task ID: S1-09 / T1-7
+
+### Changes
+- Retained actual attempt3 after owner explicitly reported account unlocked.
+- Existing authorization used to retry remote GitHub Actions; no local application/test/DB/VM runtime.
+
+### Files Changed
+- backend/docs/wp/evidence/safeorder-ci-unlock-retry.json
+
+### Verification
+Commands:
+- GitHub API POST actions/runs/38125396491/rerun-failed-jobs.
+- GET run, attempt3/jobs, check-runs/114434890026/annotations and artifacts.
+- git status --short --branch; git diff --check.
+Results:
+- Remote rerun accepted; attempt3 completed failure before allocation.
+- verify114434890026 runner_id=0, steps=[], tests executed0.
+- Exact GitHub annotation: "The job was not started because your account is locked due to a billing issue."
+- medusa114434897340 skipped; artifacts=[]; new security code still IMPLEMENTED_UNVERIFIED.
+- Git diff whitespace check PASS; worktree was clean before evidence change.
+Evidence:
+- backend/docs/wp/evidence/safeorder-ci-unlock-retry.json
+- https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38125396491/attempts/3
+
+### Security
+Risks:
+- Owner-reported unlock does not match scheduler state; no successful test claimed.
+- No production access, deployment, billing modifications or local application execution.
+Open Blockers:
+- P0: GitHub still refuses runner allocation with billing-lock annotation.
+- P1: later acceptance gates remain unverified and unopened.
+
+### Acceptance
+BLOCKED — zero executed tests; P0 gate remains closed.
+
+### Next Action
+Exact next executable task: rerun failed jobs of38125396491 after actual GitHub scheduler unlock; inspect and fix real workerd/backend/persistence results before Auth.
+Owner authority/input: account owner or GitHub support must resolve the scheduler billing lock if the account interface already shows unlocked. Existing publication/remote testing authorization persists.
