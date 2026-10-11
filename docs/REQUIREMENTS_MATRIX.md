@@ -66,7 +66,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | A-14 SK/EN/RU | NOT_IMPLEMENTED | C6 | Fáze 2 |
 | A-15 inventář a migrace | PARTIAL | C2, C4 | |
 | A-16 migrace DB a obnova | VERIFIED (lokálně) | K4, C7 | `backup-local.mjs`/`restore-local.mjs`/`db-recovery.cjs` (4 unit testy), jen lokální DB, produkci explicitně odmítá. Ověřeno živě: `pg_dump` vytvořil zálohu (500 KB, sha256 ověřený), obnova do čisté scratch DB vrátila přesné počty (30 produktů, 17 zákaznic, 18 entitlementů) |
-| A-17 monitoring/zálohy | PARTIAL | C7 | Lokální zálohování a obnova VERIFIED (viz A-16). CHYBÍ: produkční hosting a přístupy, strukturované logování/monitoring dostupnosti, alerty, plán retence |
+| A-17 monitoring/zálohy | PARTIAL | C7 | Lokální zálohování a obnova VERIFIED (viz A-16). **Rozhodnuto 12. 10. 2026 (Jose):** produkční zálohy poběží vlastními skripty C7 (`backup-local.mjs`/`restore-local.mjs`) proti Medusa Cloud Postgres, výstup do R2, **jen ve všední dny** (ne denně — pozor, smlouva čl. 6 mluví o „denních" zálohách, tenhle rozdíl stojí za jednu větu klientce, i když je rozhodnutí hotové). Spouštěč (GH Actions cron / Worker Cron Trigger) a konkrétní implementace zatím chybí a půjde jen po schválení — viz poučení z incidentu v bodě 6a. CHYBÍ: hosting vybrán (Medusa Cloud, tier Develop $29/mo kvůli stropu 50 €/měs, viz níže), přístupy, strukturované logování/monitoring dostupnosti, alerty, plán retence |
 | A-18 Zlatá brána | FUTURE_SCOPE | | |
 
 ## 5a. Sloučení vlny 1 (9. 10. 2026)
@@ -95,6 +95,8 @@ Codex dostal za úkol bezpečnostní review SafeOrder (`codex/wave1-security`) a
 
 ## 7. Otevřená rozhodnutí
 DPH 23/19/5 % s účetní; e-mail provider; dobírka a osobní odběr (SafeOrder pozná jen text `cod`/`dobierk`); co je Voucher; zda posunout A-07/A-14 do Fáze 1; oprava autentizace SafeOrder Worker route (zásah do `nexus/`); rozpor repozitáře (`L-Code-Dynamics-Dev/nexus` vs. `hlancaric-ship-it/anastasia-nexus`).
+
+**Hosting Medusy — rozhodnuto 12. 10. 2026 (Jose):** Medusa Cloud, tier **Develop ($29/mo)**, ne Launch ($99/mo) — klientce je přislíbený rozpočet 50 €/měsíc na provozní a spotřební služby (smlouva čl. 6 odst. 4) a Launch by ho sám vyčerpal. Důsledek ověřený z oficiálního ceníku (`docs.medusajs.com/cloud/pricing`): Develop nemá vestavěné automatické zálohy ani vlastní doménu pro backend; **nevyřešeno a potřebuje ověření před nasazením: co se stane po vyčerpání stropu 600 compute hodin/měsíc** (jediný zdroj v tabulce bez možnosti doplatit) — pokud to znamená reálný výpadek, je to riziko pro cíl 24/7 z čl. 6, a nejde to vyřešit vlastním kódem ani v rámci rozpočtu, jen volbou jiného hostingu nebo potvrzením od Medusy, že jde o soft-limit.
 
 ## 8. Brána po Fázi 2: red team (rozhodnutí Luckyho 9.–10. 2026, termín upřesněn 12. 10. 2026)
 
