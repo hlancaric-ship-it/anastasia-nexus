@@ -76,11 +76,9 @@ describe("MagicLinkAuthService.authenticate", () => {
     expect(await svc.authenticate({ body: { email: "a@b.sk", token: "spatny" } }, auth)).toEqual({ success: false, error: "INVALID_OR_EXPIRED_TOKEN" })
   })
 
-  it("propojí existující migrovaný účet zákaznice přes SQL, jen pokud ještě není propojen", async () => {
+  it("propojí existující migrovaný účet zákaznice přes SQL (CTE), jen pokud ještě není propojen", async () => {
     const { svc, calls } = makeProvider({
-      pgRows: {
-        "select": [[{ id: "cus_1" }], [{ app_metadata: { customer_id: "cus_1" } }]],
-      },
+      pgRows: { "with c": [[{ app_metadata: { customer_id: "cus_1" }, customer_id: "cus_1" }]] },
     })
     const auth = makeAuthIdentityProviderService()
     const email = "zakaznice@b.sk"
@@ -88,29 +86,42 @@ describe("MagicLinkAuthService.authenticate", () => {
     const result: any = await svc.authenticate({ body: { email, token: "tok" } }, auth)
     expect(result.success).toBe(true)
     expect(result.authIdentity.app_metadata).toEqual({ customer_id: "cus_1" })
-    expect(calls.some((c) => c.sql.includes("update auth_identity"))).toBe(true)
+    expect(calls.some((c) => c.sql.includes("with candidate_customers"))).toBe(true)
   })
 
-  it("žádný migrovaný zákazník s tímto e-mailem: přihlásí bez propojení, bez pokusu o update", async () => {
-    const { svc, calls } = makeProvider({ pgRows: { "select": [[]] } })
+  it("žádný migrovaný zákazník (nebo nejednoznačný duplicitní e-mail): CTE nic nevrátí, přihlásí bez propojení", async () => {
+    // Stejná odpověď pro „žádný zákazník" i pro „víc zákaznic se stejným e-mailem" (HAVING count(*)=1
+    // v reálné CTE obě situace sbalí na 0 řádků) — skutečnou SQL logiku ověřuje live e2e test, ne mock.
+    const { svc, calls } = makeProvider({ pgRows: { "with c": [[]], "select": [[]] } })
     const auth = makeAuthIdentityProviderService()
     const email = "neznama@b.sk"
     auth.__store.set(stateKey(email), { email, tokenHash: sha256Hex("tok") })
     const result: any = await svc.authenticate({ body: { email, token: "tok" } }, auth)
     expect(result.success).toBe(true)
     expect(result.authIdentity.app_metadata).toEqual({})
-    expect(calls.some((c) => c.sql.includes("update auth_identity"))).toBe(false)
+    // jediný CTE pokus (bez rozlišení "neexistuje" vs. "duplicitní") + jeden zpětný select, nic víc
+    expect(calls).toHaveLength(2)
   })
 
-  it("již propojená identita se znovu nepokouší o SQL update", async () => {
-    const { svc, calls } = makeProvider()
+  it("již propojená identita: jen obnoví has_account, žádný další SQL update identity", async () => {
+    const { svc, calls } = makeProvider({ pgRows: { "update": [[{ id: "cus_1" }]] } })
     const auth = makeAuthIdentityProviderService({
       retrieve: jest.fn(async () => ({ id: "authid_1", entity_id: "a@b.sk", app_metadata: { customer_id: "cus_1" } })),
     })
     auth.__store.set(stateKey("a@b.sk"), { email: "a@b.sk", tokenHash: sha256Hex("tok") })
     const result: any = await svc.authenticate({ body: { email: "a@b.sk", token: "tok" } }, auth)
     expect(result.authIdentity.app_metadata).toEqual({ customer_id: "cus_1" })
-    expect(calls).toHaveLength(0)
+    expect(calls).toHaveLength(1)
+    expect(calls[0].sql).toContain("update customer")
+  })
+
+  it("propojená identita s nesouhlasícím e-mailem (manipulovaný stav) se odmítne", async () => {
+    const { svc } = makeProvider({ pgRows: { "update": [[]] } }) // 0 řádků: email/id neodpovídají
+    const auth = makeAuthIdentityProviderService({
+      retrieve: jest.fn(async () => ({ id: "authid_1", entity_id: "a@b.sk", app_metadata: { customer_id: "cus_1" } })),
+    })
+    auth.__store.set(stateKey("a@b.sk"), { email: "a@b.sk", tokenHash: sha256Hex("tok") })
+    await expect(svc.authenticate({ body: { email: "a@b.sk", token: "tok" } }, auth)).rejects.toMatchObject({ type: "unauthorized" })
   })
 
   it("chyba při vyžádání odeslání (event bus) se spolkne a fáze 1 stejně vrátí LINK_SENT", async () => {

@@ -97,40 +97,80 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
 
   /**
    * Zákaznice migrované v C2 mají účet (Customer), ale žádnou identitu pro přihlášení.
-   * Atomické SQL (UPDATE ... WHERE customer_id IS NULL) zaručuje, že propojení proběhne
-   * nejvýš jednou i při souběžných požadavcích; vrácené app_metadata je vždy aktuální z DB.
+   * C2 záměrně nastavuje `has_account=false`; magic-link po ověření e-mailu je okamžik,
+   * kdy se existující Customer propojí s AuthIdentity a účet aktivuje.
+   *
+   * Jeden SQL příkaz uzamkne kandidáty (`FOR UPDATE`), odmítne nejednoznačný e-mail
+   * (`HAVING count(*) = 1` — víc zákaznic se stejným e-mailem se nepropojí nazdařbůh)
+   * a atomicky aktualizuje AuthIdentity i `customer.has_account`. Souběžné požadavky
+   * tak nemohou přiřadit stejnou identitu k různým zákaznicím ani nechat napůl
+   * dokončený stav. Logika převzata z nezávislé implementace Codexu (`codex/auth-magic-link`,
+   * 10. 10. 2026), jen s opravenými placeholdery (viz POZOR níže).
+   *
+   * POZOR: toto je knex `.raw()`, placeholdery jsou `?` (pozičně), NE pg-driver styl
+   * `$1`/`$2` (ten bez knexího parsování skončí chybou "Expected N bindings, saw 0" —
+   * ověřeno za běhu na reálném serveru i přímo v node s knexem).
    */
   private async linkExistingCustomer(authIdentity: any, email: string) {
-    if (authIdentity.app_metadata?.customer_id) return authIdentity
-    try {
-      // has_account se NEFILTRUJE: migrované zákaznice (C2) mají has_account=false (hesla se nepřenáší,
-      // viz migrate-legacy-customers-orders.ts) a magic-link je právě cesta, jak jim poprvé účet aktivovat.
-      // POZOR: toto je knex `.raw()`, placeholdery jsou `?` (pozičně), NE pg-driver styl `$1`/`$2`
-      // (ten bez knexího parsování skončí chybou "Expected N bindings, saw 0" — ověřeno za běhu).
-      const { rows: customers } = await this.pg_.raw(
-        `select id from customer where lower(email) = ? and deleted_at is null limit 1`,
-        [email]
+    // `authIdentity.entity_id` neexistuje na AuthIdentityDTO (jen na vnořeném
+    // ProviderIdentityDTO) -- ověřeno za běhu: kontrola `authIdentity.entity_id !== email`
+    // byla vždy `undefined !== email`, tedy vždy true, a odmítla úplně každé přihlášení.
+    // Email je už zaručený tím, že authIdentityProviderService.retrieve/create byl
+    // volán přesně s `entity_id: email` (viz confirmLink výše), netřeba znovu ověřovat.
+    const existingCustomerId = authIdentity.app_metadata?.customer_id
+    if (existingCustomerId) {
+      const { rows } = await this.pg_.raw(
+        `update customer set has_account = true, updated_at = now()
+         where id = ? and lower(email) = ? and deleted_at is null
+         returning id`,
+        [existingCustomerId, email]
       )
-      const customerId = customers[0]?.id
-      if (!customerId) return authIdentity
-
-      const { rows: linked } = await this.pg_.raw(
-        `update auth_identity set app_metadata = coalesce(app_metadata, '{}'::jsonb) || jsonb_build_object('customer_id', ?::text)
-         where id = ? and (app_metadata->>'customer_id') is null and deleted_at is null
-         returning app_metadata`,
-        [customerId, authIdentity.id]
-      )
-      if (linked[0]) {
-        await this.pg_.raw(`update customer set has_account = true where id = ? and has_account = false`, [customerId])
-        return { ...authIdentity, app_metadata: linked[0].app_metadata }
-      }
-
-      const { rows: current } = await this.pg_.raw(`select app_metadata from auth_identity where id = ?`, [authIdentity.id])
-      return current[0] ? { ...authIdentity, app_metadata: current[0].app_metadata } : authIdentity
-    } catch (error) {
-      this.logger_.error("[auth-magic-link] propojení se zákaznickým účtem selhalo", error as Error)
+      if (rows.length !== 1) throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "Customer account link is invalid")
       return authIdentity
     }
+
+    const { rows: linked } = await this.pg_.raw(
+      `with candidate_customers as materialized (
+         select id from customer where lower(email) = ? and deleted_at is null order by id limit 2 for update
+       ), unique_customer as (
+         select min(id) as id from candidate_customers having count(*) = 1
+       ), linked_identity as (
+         update auth_identity as ai
+         set app_metadata = coalesce(ai.app_metadata, '{}'::jsonb) || jsonb_build_object('customer_id', uc.id::text),
+             updated_at = now()
+         from unique_customer as uc
+         where ai.id = ? and ai.deleted_at is null
+           and nullif(ai.app_metadata->>'customer_id', '') is null
+         returning ai.app_metadata, uc.id as customer_id
+       ), activated_customer as (
+         update customer as c set has_account = true, updated_at = now()
+         from linked_identity as li
+         where c.id = li.customer_id and c.deleted_at is null
+         returning c.id
+       )
+       select li.app_metadata, li.customer_id
+       from linked_identity as li join activated_customer as ac on ac.id = li.customer_id`,
+      [email, authIdentity.id]
+    )
+    if (linked[0]) return { ...authIdentity, app_metadata: linked[0].app_metadata }
+
+    // Jiné paralelní potvrzení mohlo právě provést vazbu. Načteme ji z DB a
+    // ověříme, že stále patří odpovídající zákaznici podle e-mailu (`auth_identity`
+    // nemá sloupec entity_id -- ten je jen v `provider_identity` -- identitu tedy
+    // jednoznačně určuje `ai.id`, přiřazený touto AuthIdentityProviderService).
+    const { rows: current } = await this.pg_.raw(
+      `select ai.app_metadata, c.id as customer_id
+       from auth_identity as ai
+       left join customer as c on c.id = ai.app_metadata->>'customer_id' and lower(c.email) = ? and c.deleted_at is null
+       where ai.id = ? and ai.deleted_at is null`,
+      [email, authIdentity.id]
+    )
+    const currentIdentity = current[0]
+    const currentCustomerId = currentIdentity?.app_metadata?.customer_id
+    if (currentCustomerId && currentIdentity.customer_id !== currentCustomerId) {
+      throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "Customer account link is invalid")
+    }
+    return currentIdentity ? { ...authIdentity, app_metadata: currentIdentity.app_metadata } : authIdentity
   }
 }
 
