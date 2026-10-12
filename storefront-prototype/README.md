@@ -117,3 +117,6 @@ HOST=0.0.0.0 node storefront-prototype/serve.mjs 4173
 ```
 
 Výchozí adresa zůstává pouze lokální `127.0.0.1`. Veřejné nasazení tím nevzniká.
+
+Pokud dodaná složka videa už není dostupná, příprava použije existující kopie
+v `public/media/`. Bez zdroje i bez těchto kopií skončí chybou; média se nevyrábějí.
