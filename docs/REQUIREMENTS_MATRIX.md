@@ -19,7 +19,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | S1-06 | Generátor QR v administraci (kupón → URL s automatickou slevou + QR) | C3 `qr-redirects` | IMPLEMENTED_UNVERIFIED | sloučeno do wave1-base, middleware zapojen, tsc+testy zelené; aktivace slevy přes NEXUS/K1 ještě chybí |
 | S1-07 | 301 přesměrování všech starých URL a vytištěných QR | C3 | PARTIAL | mapa 44 URL hotová, edge nasazení (Cloudflare Redirect Rules) neprovedeno |
 | S1-08 | Administrace na míru, správa produktů/cen/kategorií/kupónů/objednávek/zákaznic | C5 `admin-ui` + Medusa Admin | NOT_IMPLEMENTED | až po K4/K5; Medusa Admin build prošel |
-| S1-09 | Zabezpečení, odstranění rizik z auditu | K-sec review | PARTIAL | server-verified pricing a SafeOrder fail-closed (unit testy); audit rizik starého webu se týká starého systému, nový je řeší návrhem; SafeOrder Worker route bez autentizace (otevřené) |
+| S1-09 | Zabezpečení, odstranění rizik z auditu | K-sec review | PARTIAL | server-verified pricing a SafeOrder fail-closed (unit testy); audit rizik starého webu se týká starého systému, nový je řeší návrhem; SafeOrder služba a tenant ověřovány, všechny completion cesty chráněny (lokální testy); runtime/persistence P0 akceptace BLOCKED, viz backend/docs/wp/wave1-security.md |
 | S1-10 | Potvrzovací e-mail objednávky | E-mail provider | NOT_IMPLEMENTED | rozhodnutí: Resend/SMTP |
 
 ## 3. Příloha č. 1, testovací scénáře Fáze 1
@@ -134,3 +134,59 @@ Kdykoliv po dokončení Fáze 2, bez ohlášení, proběhne útočný test. Úto
 - Totéž pravidlo integrity přípravy (viz výše) platí zesíleně: kontrola, že v izolované síti není nic navíc, musí počítat s tím, že "navíc" mohlo být vloženo už ve fázi přípravy/tréninku, ne jen po jejím dokončení.
 
 Claude (tento model) tuto část sám nenavrhuje ani neověřuje (nemá náhled do Cloudflare topologie ani prostředky fyzicky izolovat síť).
+
+
+## Wave 1 execution delta — 2026-10-11, codex/wave1-security
+
+Aktuální stav P0: **IMPLEMENTED**, lokální testy a typové kontroly se evidují v
+[CODEX_PROGRESS.md](../CODEX_PROGRESS.md). Akceptace fáze 1: **BLOCKED**, dokud
+neproběhne workerd a skutečné dokončení Medusa objednávky na schváleném izolovaném
+syntetickém prostředí. Předchozí tabulky popisují historický baseline; tato delta
+neoznačuje checkout, platby ani Wave 1 za akceptované.
+
+| Požadavek | Implementace | Test | Důkaz | Stav |
+|---|---|---|---|---|
+| A-10 / S1-09 identita + tenant | nexus/workers/api/medusaServiceAuth.ts, routes/nexusSafeOrder.ts | nexusSafeOrderRoute.test.ts, SafeOrderHttp.test.ts | journal + wave1-security.md | lokální verifikace; runtime BLOCKED |
+| A-04 / A-10 zákaz obejití SafeOrder | backend/src/workflows/hooks.ts (locked snapshot) | safeorder-completion.unit.spec.ts | journal + wave1-security.md | implementováno; skutečná persistence BLOCKED |
+| A-11 cena a měna | snapshot line/quantity/payment comparison + response binding | safeorder.unit.spec.ts, safeorder-completion.unit.spec.ts | journal + wave1-security.md | lokálně ověřeno; checkout E2E BLOCKED |
+| S1-09 administrátorský Worker zápis | routes/issuance.ts service auth + tenant | nexusSafeOrderRoute.test.ts | journal + wave1-security.md | negativní testy; platba/voucher runtime neakceptován |
+| S1-09 CORS, secrets a logy | stávající production allowlist; SafeOrder bez PII, TLS + redirect guard | nexusSafeOrderRoute.test.ts, safeorder.unit.spec.ts | journal + wave1-security.md | lokální kontrola; staging/Fable zbývá |
+| T1-7 skutečný Worker runtime | nexus/tests/workers/safeOrder.test.ts | npm run test:workers | macOS 12.6 odmítnut workerd (minimum 13.5) | BLOCKED; žádné runtime testy neběžely |
+
+Další kritické fáze (Auth až Admin) nebyly zahájeny přes otevřenou P0 bránu.
+SK/EN/RU, Zlatá brána a členský klub jsou podle aktuální direktivy mimo Wave 1.
+
+### P0 persistence evidence update — 2026-10-11
+
+Výše uvedený Medusa persistence blocker je lokálně vyřešen; workerd blocker trvá.
+
+| Požadavek | Implementace | Test | Důkaz | Stav |
+|---|---|---|---|---|
+| A-04 / A-10 SafeOrder bez bypassu | completeCartWorkflow locked hook + oba HTTP completion endpointy | safeorder-persistence.spec.ts, 10 negativních scénářů, nulový přírůstek objednávek | backend/docs/wp/evidence/safeorder-medusa-persistence.json | Medusa/Postgres VERIFIED; workerd BLOCKED |
+| A-11 cena a měna | server pricing + locked snapshot | 2 ALLOW scénáře, EUR, unit 50, total 61.5 = cart | stejný syntetický důkaz | persistence VERIFIED; celé K1–K4 zbývá |
+| A-10 chybové statusy | nexus-checkout přesné kódy po serializaci workflow | route-errors.unit.spec.ts + skutečný HTTP test 503/409/403 | journal + syntetický důkaz | VERIFIED |
+
+Fáze 1 jako celek zůstává BLOCKED; fáze 2 nebyla zahájena.
+
+### P0 remote runtime attempt — 2026-10-11
+
+Vlastník schválil publikaci pracovní větve a GitHub Actions. Workflow
+`.github/workflows/wave1-p0.yml` připravuje Ubuntu/Node a testovací Docker
+kontejner bez sítě a produkčních secrets. Rozšířené workerd testy jsou připravené.
+Skutečný run 38124610864 byl odmítnut před startem runneru kvůli billing locku
+účtu. Počet spuštěných kroků i testů: 0. Důkaz:
+`backend/docs/wp/evidence/safeorder-ci-startup.json`. T1-7 a celá P0 brána
+zůstávají BLOCKED; lokální runtime se podle pokynu vlastníka dál nespouští.
+
+### P0 continuation after reported billing payment — 2026-10-11
+
+| Požadavek | Implementace | Test | Důkaz | Stav |
+|---|---|---|---|---|
+| S1-09 ochrana pricing service secrets/transport | nexus-cart TLS/loopback guard, URL credential rejection, no redirect, timeout | pricing-transport.unit.spec.ts (14 připravených případů) + skutečný HTTP redirect counter | wave1-security.md | IMPLEMENTED_UNVERIFIED |
+| A-10 admin/tenant/CORS/log isolation | existující guard + workerd/D1 kontrola nulového přírůstku | safeOrder.test.ts (15 připravených případů) | CI run38125396491 attempts1/2 | BLOCKED, 0 testů běželo |
+| A-04 / A-11 fail-closed order persistence/replay/concurrency | locked snapshot guard + bezpečný pricing transport | safeorder-persistence.spec.ts (38 připravených scenario records) | CI medusa-persistence job skipped | IMPLEMENTED_UNVERIFIED; dřívějších 12 scénářů PASS se na novou matici nepřenáší |
+
+Vlastník oznámil úhradu billing. Oba nové verify pokusy byly stále odmítnuty před
+startem runneru stejným account-lock důvodem. Přesná data:
+`backend/docs/wp/evidence/safeorder-ci-after-payment.json`. Gate P0 zůstává
+BLOCKED, Auth nebylo otevřeno. Další krok je rerun38125396491 po změně stavu účtu.

@@ -91,9 +91,15 @@ changed during this task.
   gateway or credentials are configured. Provider webhook signature
   verification, captured-payment idempotency, and post-payment digital delivery
   are not implemented or verified by this integration.
-- SafeOrder, digital-product entitlements, and membership provisioning are not
-  called by checkout. The current SafeOrder HTTP route exists independently, but
-  its policy and a durable order decision record are not connected here.
+- SafeOrder runs in the read-only `completeCartWorkflow.hooks.validate` guard,
+  including standard Medusa cart completion. The guard uses the locked snapshot's
+  full total (including shipping/taxes), email and all processable payment
+  providers after validating NEXUS prices and payment amounts. Anything except
+  a tenant/amount/currency-bound, well-formed ALLOW stops completion. This has
+  local negative tests; actual workerd + Medusa order persistence acceptance is
+  still blocked on an approved isolated compatible environment.
+- SafeOrder has no durable order decision record. Digital delivery and membership
+  must not infer captured payment from a SafeOrder ALLOW.
 - NEXUS webhook signature verification uses Medusa's timestamped
   `X-Medusa-Signature` HMAC format and a five-minute replay window. Delivery
   receipts are deduplicated durably in D1. The current asynchronous handlers
@@ -119,3 +125,33 @@ order's persisted line prices and total match NEXUS and Medusa's cart. The test
 provider does not make a real charge. This was run successfully against a
 temporary PostgreSQL instance on this machine; it does not import production
 catalog or customer data.
+
+
+## Wave 1 P0 SafeOrder contract (2026-10-11)
+
+`POST /api/nexus/safeorder` is server-to-server JSON only. It requires the
+existing dedicated `MEDUSA_PRICING_API_KEY` Bearer credential and binds it to
+`MEDUSA_PRICING_TENANT_ID`. The backend must set matching
+`NEXUS_PRICING_API_KEY` and `NEXUS_TENANT_ID`. No voucher HMAC fallback exists.
+
+Request fields: `{ tenantId, currency: "eur", orderSum, paymentMethod, customerEmail }`.
+The amount is a finite nonnegative number from the locked cart total. Extra
+fields (including `amount`, `codLimit`, prices) are rejected. Existing COD limit
+120 EUR and score thresholds are retained on the server. Supported methods:
+`stripe`, `pp_stripe_stripe`, `cardpay`, `CardPay Platobná karta`, `cod`,
+`dobierka`, `Platba na dobierku`, `platba pri prevzatí` (case insensitive).
+Unknown/empty methods fail closed. `pp_system_default` is permitted only with
+Worker `ENVIRONMENT=test` or `development`, never production or unset.
+
+Response includes `tenantId`, `currency`, `orderSum`, numeric score (0–100),
+decision and string factors. Backend rejects mismatched context, malformed
+responses, high-score ALLOW, redirects and HTTP/network/JSON failures. Credential
+transport requires HTTPS; HTTP is permitted only on loopback for isolated tests.
+The administrative `POST /api/vouchers/issue` also requires this service identity
+and matching body tenant before touching storage. This does not verify real
+payment receipts; that is the later payment/voucher gate. Existing external
+issuance callers must explicitly adopt the service contract before integration.
+
+No production configuration or deployment changed. See
+[security verification](docs/wp/wave1-security.md) and
+[execution journal](../CODEX_PROGRESS.md).

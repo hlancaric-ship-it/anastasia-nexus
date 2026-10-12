@@ -4,7 +4,7 @@ import { handleMedusaWebhook } from "../../workers/api/routes/medusaWebhook.js"
 import type { Env } from "../../workers/api/types.js"
 
 const secret = "worker-test-webhook-secret"
-const workerEnv = { DB: env.DB, ENVIRONMENT: "production", MEDUSA_WEBHOOK_SECRET: secret } as Env
+const workerEnv = { DB: env.DB, HMAC_SECRET: 'synthetic-unused-hmac', ENVIRONMENT: "production", MEDUSA_WEBHOOK_SECRET: secret } as Env
 const ctx = { waitUntil: (_promise: Promise<unknown>) => {} }
 
 async function signedRequest(eventId: string) {

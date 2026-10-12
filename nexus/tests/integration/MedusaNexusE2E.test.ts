@@ -49,18 +49,20 @@ describe('NEXUS pricing API boundary (unit-level; not a Medusa E2E test)', () =>
         await expect(handleNexusPricing(cartReq, pricingEnv)).rejects.toThrow('Požadovaný tenant neodpovídá tenantovi přidělenému této službě.');
     });
 
-    it('3. Vyhodnotí SafeOrder riziko pre bezpečnú CardPay objednávku a schváli vytvorenie Medusa objednávky', async () => {
+    it('3. Vyhodnotí SafeOrder riziko pre bezpečnú CardPay objednávku (handler only; no Medusa order created)', async () => {
         const checkoutReq = new Request('https://nexus-api.internal/api/nexus/safeorder', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', authorization: 'Bearer integration-key' },
             body: JSON.stringify({
+                tenantId: 'anastasia',
+                currency: 'eur',
                 orderSum: 18.68,
                 paymentMethod: 'CardPay Platobná karta',
                 customerEmail: 'lucia@example.com',
             }),
         });
 
-        const res = await handleNexusSafeOrder(checkoutReq, {} as Env);
+        const res = await handleNexusSafeOrder(checkoutReq, pricingEnv);
         expect(res.status).toBe(200);
 
         const data = await res.json() as {
@@ -77,15 +79,17 @@ describe('NEXUS pricing API boundary (unit-level; not a Medusa E2E test)', () =>
     it('4. Zablokuje podozrivú dobierkovú objednávku s dočasným e-mailom cez SafeOrder Risk OS', async () => {
         const checkoutReq = new Request('https://nexus-api.internal/api/nexus/safeorder', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', authorization: 'Bearer integration-key' },
             body: JSON.stringify({
+                tenantId: 'anastasia',
+                currency: 'eur',
                 orderSum: 350.00,
                 paymentMethod: 'Platba na dobierku',
                 customerEmail: 'fraud@mailinator.com',
             }),
         });
 
-        const res = await handleNexusSafeOrder(checkoutReq, {} as Env);
+        const res = await handleNexusSafeOrder(checkoutReq, pricingEnv);
         expect(res.status).toBe(200);
 
         const data = await res.json() as {

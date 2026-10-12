@@ -1,0 +1,99 @@
+{
+  "status": "PASS",
+  "runtime": "Medusa 2.19 + Node Worker handler (not workerd)",
+  "scenarios": [
+    {
+      "endpoint": "standard",
+      "scenario": "unauthorized",
+      "status": 500,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "standard",
+      "scenario": "unavailable",
+      "status": 500,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "standard",
+      "scenario": "malformed",
+      "status": 500,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "standard",
+      "scenario": "REVIEW",
+      "status": 500,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "standard",
+      "scenario": "BLOCK",
+      "status": 500,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "standard",
+      "scenario": "ALLOW",
+      "status": 200,
+      "orderDelta": 1,
+      "currency": "eur",
+      "total": 61.5,
+      "unitPrice": 50
+    },
+    {
+      "endpoint": "custom",
+      "scenario": "unauthorized",
+      "status": 503,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "custom",
+      "scenario": "unavailable",
+      "status": 503,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "custom",
+      "scenario": "malformed",
+      "status": 503,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "custom",
+      "scenario": "REVIEW",
+      "status": 409,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "custom",
+      "scenario": "BLOCK",
+      "status": 403,
+      "orderDelta": 0,
+      "cartCompleted": false
+    },
+    {
+      "endpoint": "custom",
+      "scenario": "ALLOW",
+      "status": 200,
+      "orderDelta": 1,
+      "currency": "eur",
+      "total": 61.5,
+      "unitPrice": 50
+    }
+  ],
+  "recordedAtUTC": "2026-10-11T07:53:35.065103+00:00",
+  "command": "python3 backend/scripts/verify-safeorder-local.py",
+  "sourceWorkCommit": "recorded in CODEX_PROGRESS.md",
+  "clusterCleanup": "PASS: private cluster and Worker stopped",
+  "sensitiveSyntheticMarkersInLogs": 0
+}

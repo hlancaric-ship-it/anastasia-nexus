@@ -2,7 +2,7 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../nexus-cart/route"
-import { assertSafeOrderAllows, SafeOrderError } from "./safeorder"
+import { SafeOrderError } from "./safeorder"
 
 /** Revalidate with NEXUS, then let Medusa's normal workflow create the order. */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
@@ -22,21 +22,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       })
     }
 
-    const query0: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-    const { data: cartData } = await query0.graph({
-      entity: "cart",
-      fields: ["id", "email", "customer.email", "payment_collection.payment_sessions.provider_id"],
-      filters: { id: cartId },
-    })
-    const cartInfo = cartData?.[0]
-    const orderSum = pricing.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)
-    const sessions = cartInfo?.payment_collection?.payment_sessions || []
-    await assertSafeOrderAllows({
-      orderSum,
-      paymentMethod: String(sessions[0]?.provider_id ?? ""),
-      customerEmail: String(cartInfo?.email || cartInfo?.customer?.email || ""),
-    })
-
+    // SafeOrder runs in completeCartWorkflow's validation hook for every completion path.
     const result = await completeCartWorkflow(req.scope).run({ input: { id: cartId } })
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const { data } = await query.graph({
@@ -58,10 +44,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const workflowMessage = typeof error === "object" && error !== null && "message" in error && typeof error.message === "string"
       ? error.message
       : "CHECKOUT_FAILED"
-    if (error instanceof SafeOrderError) {
-      const status = error.code === "SAFEORDER_UNAVAILABLE" || error.code === "SAFEORDER_NOT_CONFIGURED" ? 503 : error.code === "SAFEORDER_REVIEW_REQUIRED" ? 409 : 403
-      req.scope.resolve(ContainerRegistrationKeys.LOGGER).warn(`SafeOrder ${error.code} cart=${cartId} score=${error.score ?? "n/a"}`)
-      return res.status(status).json({ ok: false, error: error.code })
+    // Medusa workflows serialize hook errors, losing their class prototype.
+    // Recognize only these exact codes; never log serialized error payloads.
+    const safeOrderCode = error instanceof SafeOrderError ? error.code : workflowMessage
+    if (["SAFEORDER_UNAVAILABLE", "SAFEORDER_NOT_CONFIGURED", "SAFEORDER_REVIEW_REQUIRED", "SAFEORDER_BLOCKED"].includes(safeOrderCode)) {
+      const status = safeOrderCode === "SAFEORDER_UNAVAILABLE" || safeOrderCode === "SAFEORDER_NOT_CONFIGURED" ? 503 : safeOrderCode === "SAFEORDER_REVIEW_REQUIRED" ? 409 : 403
+      req.scope.resolve(ContainerRegistrationKeys.LOGGER).warn(`SafeOrder ${safeOrderCode}`)
+      return res.status(status).json({ ok: false, error: safeOrderCode })
     }
     const message = error instanceof Error ? error.message : workflowMessage
     const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER)

@@ -63,6 +63,7 @@ import {
     isValidVoucherCodeFormat,
 } from '../../../domains/voucher/CreditVoucherCodeGenerator.js';
 import { ApiError, jsonResponse, log, redactVoucherCode } from '../http.js';
+import { authenticateMedusaService } from '../medusaServiceAuth.js';
 import type { D1Database, Env } from '../types.js';
 
 // ---------------------------------------------------------------------------
@@ -170,8 +171,12 @@ interface IssueResponse {
 // ---------------------------------------------------------------------------
 
 export async function handleIssue(request: Request, env: Env): Promise<Response> {
+    const tenantId = authenticateMedusaService(request, env);
     const body = await parseJsonBody(request);
     const input = validateIssueRequest(body);
+    if (input.tenantId !== tenantId) {
+        throw new ApiError('REJECT_SIGNATURE', 403, 'Tenant neodpovídá identitě služby.');
+    }
 
     // -----------------------------------------------------------------
     // 1. OVĚŘENÍ OBJEDNÁVKY (§4). Nezaplacená objednávka = žádný kredit.
