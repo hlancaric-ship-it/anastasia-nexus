@@ -325,3 +325,25 @@ Akademie (`anastasia.academy`) a AI Anastasia (`aianastasia.com`) jsou podle sml
 ---
 
 **Shrnutí pro Codexe v jedné větě:** postav scénáře 1–5 z přílohy č. 1 nad API výše, nikdy nepočítej peníze ani přístup sám, a scénáře 1–2 (platba) nepůjdou doopravdy dotáhnout do konce, dokud nedorazí testovací Stripe klíč.
+
+## 9. Upřesnění při kontrole náhledu (12. 10. 2026)
+
+Tato upřesnění mají přednost před starší sekcí 6.11 a placeholder texty:
+
+- Zachovat současný Outfit, olivovou `#2a3222`, krémovou `#EFE5C7` a zlatou
+  `#C9A355`. Obsah původních dostupných sekcí `anastasiaoz.eu` zachovat
+  slovně 1:1; krátké odstavce vznikají dělením, nikoliv parafrází nebo výpustkami.
+- V hero pouze velké menu podle mockupu. Hamburger v levém pruhu se objeví
+  až po úplném odscrollování hero; otevře úzké, mírně průhledné menu stejné
+  typografie a palety. Pruhy pokračují při scrollování úvodní stránky.
+- Jazyk vlevo, telefon vpravo; účet a košík uvnitř menu. Velké menu posunout
+  výš a vlevo od pravého pruhu. Na mobilu boční pruhy nezobrazovat.
+- Fotky rozestavěného domu nepoužívat. Fotky, portrét a video mají pravidelně
+  vstupovat do kompozice; nepoužívat stále stejný barevný panel s obřím sloganem.
+- U spojené fotky a barevné plochy: jemný 1px šev, zaoblený levý horní
+  a pravý dolní vnější roh; mimo obrys má být světlé pozadí, ne tmavý klín.
+- „O Lucii“ podle kompozice Parallel Universe / About: výrazné jméno,
+  překryv s portrétem, otevřená typografická plocha, média a scroll-reveal/parallax.
+- Reference mají různé role: Leil = video/menu/ořez/wipe/šipky; Vita = obrazové
+  karty a sklo; Biofarma = odkrytí popisu; Esfirum = pruhy a vedlejší navigace;
+  Parallel Universe = osobní příběh, kompozice médií a pohyb podle scrollu.

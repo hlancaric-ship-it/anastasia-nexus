@@ -14,7 +14,7 @@ node storefront-prototype/build.mjs
 node storefront-prototype/serve.mjs 4173
 ```
 
-Náhled: `http://127.0.0.1:4173`. Generátor vytváří 52 samostatných HTML
+Náhled: `http://127.0.0.1:4173`. Generátor vytváří 61 samostatných HTML
 stránek v `storefront-prototype/dist/`. Přímé adresy fungují bez SPA fallbacku.
 Neznámé adresy vracejí HTTP 404. Náhled je označen `noindex`.
 `dist/` je statický výstup kompatibilní s Cloudflare Pages; nic se automaticky
@@ -101,3 +101,19 @@ Připnuté, lokálně servírované animační knihovny (žádné runtime CDN vo
 `package.json`, lockfile ani backendové závislosti se nemění. Smooth scroll,
 scrub reveal, hero pruhy a parallax respektují `prefers-reduced-motion`.
 Zvuk se spouští pouze kliknutím; video lze zastavit samostatně.
+
+## Obsah a revize vzhledu
+
+Původní veřejné texty jsou ve `src/legacy-content.json`; `src/legacy.mjs`
+je skládá bez zkracování do čitelných bloků a používá původní fotografie.
+`prepare-media.mjs` stáhne chybějící původní obrázky přes `curl` (musí být
+nainstalovaný), existující kopie znovu nestahuje. Fotky stavby jsou vyřazené.
+Zdrojové URL a limity snapshotu uvádí `backend/docs/wp/storefront-phase1.md`.
+
+Pro Linux dostupný z dalšího zařízení lze server spustit takto:
+
+```sh
+HOST=0.0.0.0 node storefront-prototype/serve.mjs 4173
+```
+
+Výchozí adresa zůstává pouze lokální `127.0.0.1`. Veřejné nasazení tím nevzniká.

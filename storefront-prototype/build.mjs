@@ -1,8 +1,9 @@
 import {mkdir,writeFile,readFile,cp} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
+import {legacyContent,legacyPage,legacyLinks} from './src/legacy.mjs';
 import {api} from './src/lib/api/index.mjs';
-import {escape as e,header,menu,footer} from './src/components.mjs';
+import {escape as e,header,rails,compactMenu,menu,footer} from './src/components.mjs';
 import * as views from './src/pages.mjs';
 const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'dist');
 const routes=new Map();
@@ -18,10 +19,21 @@ add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.res
 add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy());
 for(const [slug,title] of [['ritualy','Rituály každodennosti'],['poznanie','Priestor pre poznanie'],['cas-pre-seba','Čas pre seba']])add('/zdravy-svet/clanok/'+slug,title,views.article(title));
 for(const [alias,target] of Object.entries(api.getAliases())){const source=routes.get(target);if(!source)throw new Error(`Missing alias target ${target}`);routes.set(alias,source);}
+for(const [path,page] of Object.entries(legacyContent)){
+  const existing=routes.get(path);
+  if(page.blocks.length){
+    let contactForm='';
+    if(path==='/kontakt')contactForm=`<section class="section legacy-contact-form">${views.contact().match(/<form id="contact-form"[\s\S]*?<\/form>/)?.[0]||''}</section>`;
+    add(path,page.title,legacyPage(page,{contactForm}));
+  }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,views.catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',views.catalog());}
+  else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
+}
+add('/o-lucii','O Lucii',legacyPage(legacyContent['/konzultacie'],{about:true}));
+const homepage=routes.get('/');homepage.body+=legacyLinks();
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
 for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.split(',')[1]);const path=target.pathname.replace(/\/$/,'')||'/';if(!routes.has(path))throw new Error(`Missing legacy route ${path}`);}
-const document=(path,{title,body})=>`<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#2a3222"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/styles.css"></head><body><a class="skip-link" href="#main">Preskočiť na obsah</a><div id="page-shell">${header(path==='/')}<main id="main" tabindex="-1">${body}</main>${footer()}</div>${menu()}<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/gsap.min.js" defer></script><script src="/vendor/ScrollTrigger.min.js" defer></script><script src="/vendor/lenis.min.js" defer></script><script src="/vendor/simpleParallax.min.js" defer></script><script type="module" src="/app.mjs"></script></body></html>`;
+const document=(path,{title,body})=>`<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#2a3222"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/styles.css"></head><body><a class="skip-link" href="#main">Preskočiť na obsah</a><div id="page-shell"${path==='/'?' class="home-shell"':''}>${path==='/'?rails():''}${header(path==='/')}<main id="main" tabindex="-1">${body}</main>${footer()}</div>${menu()}${path==='/'?compactMenu():''}<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/gsap.min.js" defer></script><script src="/vendor/ScrollTrigger.min.js" defer></script><script src="/vendor/lenis.min.js" defer></script><script src="/vendor/simpleParallax.min.js" defer></script><script type="module" src="/app.mjs"></script></body></html>`;
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));
 for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),document(path,page));}
 await writeFile(join(out,'404.html'),document('/404',{title:'Stránka nenájdená',body:views.notFound()}));

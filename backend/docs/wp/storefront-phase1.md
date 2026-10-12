@@ -100,3 +100,51 @@ automaticky jen proto, že testy mock UI prošly.
 Vizuální schválení kostry → výměna mock adaptéru za skutečné API, bezpečné
 přihlášení, serverové cenové snapshoty a kupóny, Stripe, oprávnění a obsah.
 Admin C5, nasazení redirectů, R2/CDN a produkční spuštění jsou samostatné balíky.
+
+## Revize podle kontroly Luckyho (12. 10. 2026)
+
+IMPLEMENTED: aktuálně 61 statických cest. Hero a velké menu zachovávají
+schválený styl. Hamburger až pod hero, malý průhledný panel, jazyky vlevo,
+telefon vpravo, účet/košík uvnitř menu. Opravený společný obrys s protilehlými
+rohy a tenkým švem. Všechny odkazy na `centre.jpg` odstraněny včetně fallback
+obsahových šablon; příprava médií odstraní i staré kopie obrázku z výstupu.
+
+Prohlédnuty screenshoty všech pěti referencí (Leil, Vita Travels, Biofarma,
+Esfirum, Parallel Universe / About), u osobní stránky i několik scroll pozic.
+Odstraněny vlastní obecné slogany a cyklické barevné karty po každém nadpisu.
+Úvod střídá otevřený text, katalog, spojený programový blok, asymetrickou
+fotografickou nabídku konzultací, portrét přes barevnou plochu a široké video.
+O Lucii používá původní portrét, výrazné jméno a původní citát bez vymyšleného CV.
+
+Obsah: `src/legacy-content.json` je veřejný snapshot 17 sekcí z
+`https://anastasiaoz.eu`, pořízený 12. 10. 2026. Zdroj je uveden u každé stránky.
+1372 bloků zachovává slova/pořadí; odstavce jsou rozděleny kvůli čitelnosti.
+19 původních obrázků se připravuje lokálně přes `prepare-media.mjs` (gitignored).
+Zdrojový JavaScript, původní formulářové relace a cookies se nepřenášejí.
+Kontaktní formulář zůstává lokální ukázkou. Texty VOP/GDPR jsou původní obsah,
+nikoliv potvrzení jejich platnosti pro novou platební integraci.
+
+Hranice: `/kurzy` a `/blog` vracejí na původním webu HTTP 404; jejich chybějící
+texty nejsou domýšleny. `/ai-anastasia` nemá ve veřejném HTML obsah; funkční AI
+zůstává Fáze 2. `/zdrava-lekaren` na zdroji přesměrovává na
+`/eshop/kategoria/-vsetko-`; obě cesty nyní zobrazují lokální mock katalog.
+Úplnou migraci katalogu, dynamického AI obsahu a schválení vzhledu tato revize
+neprohlašuje za hotovou.
+
+VERIFIED:
+
+- `node storefront-prototype/build.mjs`: PASS, 61 stránek, 34 cílů redirect mapy.
+- `node --check` pro `public/app.mjs`, `src/components.mjs`, `src/legacy.mjs`: PASS.
+- `node --test storefront-prototype/test/mock.test.mjs`: 12/12 PASS.
+- `node storefront-prototype/test/browser.mjs`: 17/17 skupin PASS nad 60 stránkami;
+  kontrola všech zdrojových slov, obrazů, interních cílů, menu/focus/scroll,
+  320–1440 px, reduced motion i GSAP/Lenis/parallax, bez JS chyb.
+- Po doplnění 61. cesty samostatně ověřeny obě původní lékárenské URL,
+  viditelné tiché video, ruční pause a malé menu při aktivním Lenis: PASS.
+- Backend zůstal beze změn; `npx tsc --noEmit`: PASS;
+  `npm run test:unit -- --runInBand`: 21 suites / 190 testů PASS.
+- `git diff --check`: PASS.
+
+Server běží lokálně na `http://localhost:4173`. Volitelné `HOST=0.0.0.0`
+umožňuje samostatné spuštění na Linuxu; spuštění ve VirtualBoxu neproběhlo,
+protože nebylo dodáno přihlašovací jméno. Soubory ani tajemství se tam nekopírovaly.

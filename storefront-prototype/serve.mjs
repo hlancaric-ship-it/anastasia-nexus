@@ -20,4 +20,5 @@ const server=http.createServer(async(req,res)=>{
     else{res.writeHead(200,{'Content-Length':info.size});if(req.method==='HEAD')res.end();else createReadStream(file).pipe(res);}
   }catch{res.writeHead(404,{'Content-Type':'text/html; charset=utf-8'});if(req.method==='HEAD')res.end();else res.end(await readFile(resolve(root,'404.html')));}
 });
-server.listen(port,'127.0.0.1',()=>console.log(`ANASTASIA local preview: http://127.0.0.1:${port}`));
+const host=process.env.HOST||'127.0.0.1';
+server.listen(port,host,()=>console.log(`ANASTASIA preview: http://${host}:${port}`));
