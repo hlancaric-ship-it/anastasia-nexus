@@ -239,6 +239,27 @@ Alternativa k 6.4 — místo opacity fade používá `max-height` na dlouhé, ho
 ```
 Fotka produktu na pozadí, název/cena vždy viditelné dole, na hover se pomalu (2s) odkryje popis/varianty/tlačítko „Do košíku". Dá se zkombinovat se skleněným pozadím z 6.4, pokud se `.product-card-info` dá vlastní poloprůhledné pozadí.
 
+### 6.11 Boční svislé panely — JEN v hero sekci (esfirum.com)
+
+**Potvrzeno Lucky (12. 10. 2026): platí jen pro hero, ne jako globální layout přes celý web.**
+
+```css
+.left-sidebar, .right-sidebar {
+  position: fixed; top: 0; height: 100vh; width: 80px; z-index: 9;
+}
+.left-sidebar { left: 0; border-right: 1px solid rgba(255,255,255,.1); }
+.right-sidebar { right: 0; border-left: 1px solid rgba(255,255,255,.1); }
+@media (max-width: 768px) { .left-sidebar, .right-sidebar { display: none; } }
+```
+- Dva pevné pruhy přes celou výšku hero sekce, 80px široké, tenký 1px poloprůhledný okraj k obsahu. **Skryté na mobilu** (desktop-only prvek).
+- **Levý pruh:** telefon/kontakt nahoře (ikona, `position:absolute; top:50%; transform:translate(-50%,-50%)`), uprostřed hamburger (3 vodorovné čárky `width:40px;height:2px`), na hoveru se krajní čárky rozjedou (`nth-child(1){translateY(-5px)}`, `nth-child(3){translateY(5px)}`) + slovo „Menu" pod ikonou.
+- **Pravý pruh:** jazykový přepínač nahoře (`SK/EN/RU`, co už máme v menu — sem patří jako trvalý prvek, ne schovaný v menu), pod ním sociální ikony.
+- Hover efekt na celém pruhu: `:before{width:0%; transition:width .3s ease-in; background:#fff}` → najede na `100%` — jemná bílá výplň zespodu/odshora.
+- Vstupní animace při načtení (pruhy „najedou" zleva/zprava, 1s, se zpožděním).
+- Tlačítko „Menu" z mockupu (sekce 5, pilulka vpravo nahoře) **zůstává beze změny** — tenhle levý pruh je samostatný doplňkový prvek, ne náhrada mockupového tlačítka.
+
+**Upřesnění Lucky (12. 10. 2026): pruhy jsou průhledné (ne plná barva jako na esfirum.com) a postupně se mění se scrollem.** Technicky: pozadí pruhů `background: rgba(42,50,34,.3)` (poloprůhledná verze panelové barvy) nebo `backdrop-filter: blur(Npx)` přes video, a jejich neprůhlednost/barva se váže na scroll pozici přes GSAP ScrollTrigger se `scrub: true` (stejná technika jako 6.5) — ne jednorázový fade, ale plynule podle toho, kolik už uživatel sjel. Přesnou cílovou hodnotu (na co se mění — tmavší, úplně zmizí, změní barvu) určit spolu s grafikem/Codexem při implementaci, princip (průhledné + scroll-scrub) je závazný.
+
 ---
 
 ## 7. Zadání pro Codex — hero, hlavní menu a kostra celého storefrontu (12. 10. 2026)
