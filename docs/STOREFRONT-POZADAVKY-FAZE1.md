@@ -89,4 +89,110 @@ Zbytek menu (Obchod, Programy včetně RESET 40+, Zdravý svet/O Lucii/Kontakt) 
 
 ---
 
+## 6. Vizuální efekty a interakce — technický návod podle referenčních webů (12. 10. 2026)
+
+Rozebráno přímo z HTML/CSS/JS referenčních webů (leilsaunas.com, vita-travel.webflow.io, paralleluniverse.com.ua) na žádost Jose. Jde výhradně o **techniku/postup**, ne o kopii cizího obsahu, fotek ani brandingu — to si Codex staví vlastní, jen podle téhož principu. Vše níže je ověřené čtením skutečného zdrojového kódu dané stránky, ne odhad.
+
+### 6.1 Hero — fullscreen video na pozadí (leilsaunas.com)
+```html
+<video class="w-full h-screen object-cover" autoplay muted loop playsinline>
+  <source src="...">
+</video>
+```
+- `max-height: 768px` i při `100vh` — na velkých monitorech se video neroztáhne do nekonečna.
+- Tmavý gradient přes spodní část pro čitelnost textu: `linear-gradient(transparent 70%, rgba(0,0,0,.6))`.
+- Text je `position: absolute`, `flex flex-col justify-end`, bílý, `z-index: 10`.
+- **Zvuk nikdy neautoplayuje** — ambient audio (viz 6.3) se spouští jen tlačítkem.
+
+### 6.2 Vyjížděcí menu (leilsaunas.com)
+- Tlačítko „Menu": `<button class="menu-trigger"><span data-open="Menu" data-close="Close"></span></button>` — text se mění čistě CSS (`content: attr(data-open)`, po `.active` přepne na `attr(data-close)`).
+- Panel menu defaultně `opacity: 0; z-index: -1; transition: opacity .5s`. Klik přidá `.active` → `opacity: 1; z-index: 1010`. Žádný posun, jen fade — ale protože je `position: fixed; right: 0`, vizuálně to je „vyjetí zprava".
+- JS: 2 řádky — klik na trigger přidá `classList.add("active")`, klik na close ho odebere.
+- Položky v menu mají `data-text` atribut a při hoveru se zespodu vysune duplicitní popisek (`:before{content:attr(data-text); transform:translateY(100%)}` → na hover `translateY(0)`, originál dostane `opacity:0`) — „scroll swap" efekt textu.
+
+### 6.3 Ambient zvuk — bezpečný vzor (paralleluniverse.com.ua)
+```js
+$(".sound-switcher").on('click', function() {
+  $(this).toggleClass("is-play");
+  var audio = $(".audio")[0];
+  audio.paused ? audio.play() : audio.pause();
+});
+```
+Žádný autoplay se zvukem (prohlížeče by ho stejně zablokovaly) — jen přepínací tlačítko. **Použít přesně takhle, ne jinak.**
+
+### 6.4 Produktová/karta s hover-reveal info panelem + skleněný efekt (vita-travel.webflow.io)
+- Fotka na pozadí s diagonálním tmavým gradientem dole (`linear-gradient(194deg, transparent 31%, rgba(0,0,0,.5) 85%)`) kvůli čitelnosti jména/popisku vždy viditelného přes fotku.
+- Info panel defaultně `opacity: 0`, na `:hover` karty `opacity: 1; pointer-events: all` — čistý CSS fade, žádný JS.
+- **Skleněný efekt** pro ten panel (recept, ne doslovná kopie — zdrojový web používá `backdrop-filter: blur(12px)` jinde na stránce):
+```css
+.product-card-info {
+  background: rgba(20, 20, 20, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+```
+Pro produkt: fotka dole gradient, název+cena vždy viditelné, na hover se „rozsvítí" skleněný panel s popisem/dostupností/tlačítkem Do košíku.
+
+### 6.5 Scroll-reveal vázaný na pozici scrollu + parallax (paralleluniverse.com.ua/en/about/)
+- **Smooth scroll:** knihovna Lenis, napojená na GSAP ScrollTrigger (`lenis.on('scroll', ScrollTrigger.update)`).
+- **Odkrývání obsahu podle scrollu** (ne jednorázový fade-in, ale plynule vázaný na scroll pozici — `scrub: true`):
+```js
+gsap.from(element, 1, {
+  scrollTrigger: { trigger: element, start: "top-=0px bottom-=15%", end: "top bottom", scrub: true },
+  y: "80px", opacity: 0, ease: "Quint.easeOut"
+});
+```
+- **Parallax obrázky/video** — jen knihovna, žádný vlastní kód:
+```js
+new simpleParallax(document.getElementsByClassName('parallax'), { orientation: 'down', scale: 1.2, delay: 0.5 });
+```
+- Hodí se na stránky „O Lucii"/„Zdravý svet" — stejný scroll-reveal na odstavcích o filozofii, parallax na fotkách/videu RESET 40+.
+
+### 6.6 Signature ořez fotek — jeden zaoblený roh jako vizuální „linie" (leilsaunas.com)
+```css
+.photo-signature {
+  border-radius: 0;
+  border-top-left-radius: 200px;   /* jen jeden roh, zbytek ostrý */
+  overflow: hidden;
+}
+```
+Použít **konzistentně stejný roh** (nebo pravidelně střídat podle pozice v gridu) na všech produktových/hero fotkách napříč webem — vytváří to opakující se vizuální rukopis. Velikost poloměru škálovat podle velikosti fotky (60–100px na kartách, 200px+ na hero).
+
+### 6.7 Přechod mezi stránkami/sekcemi — „glass wipe" (leilsaunas.com)
+```css
+.page-transition {
+  position: fixed; inset: 0; z-index: 9999;
+  background-color: #ffffffc9;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 1s;
+}
+.page-transition.active { opacity: 1; pointer-events: all; }
+```
+Před načtením nové stránky/sekce se přidá `.active` (obrazovka zabělí a rozmlží), po načtení obsahu se třída odebere. Plynulejší než ostrý střih nebo prostý fade.
+
+### 6.8 Hover s rotující šipkou (leilsaunas.com — blog/novinky)
+```css
+.more { transition: transform .8s cubic-bezier(.4,0,.2,1); }
+a:hover .more { transform: rotate(90deg); }
+```
+Čistě CSS, žádný JS. Pomalé, hladké otočení ikony při hoveru na celý odkaz — hezké na „více info"/„zobrazit produkt" odkazy.
+
+### 6.9 Hover swap dvou fotek přes clip-path (leilsaunas.com — kategorie na homepage)
+Dvě fotky na sobě (např. zavřená/otevřená sauna), **wipe efekt, ne crossfade**:
+```css
+.image-below { position: relative; width: 100%; height: 100%; object-fit: cover; }
+.image-above {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+  clip-path: inset(0);
+  transition: clip-path .5s;
+}
+.img-link:hover .image-above { clip-path: inset(0 0 100% 0); }
+```
+Horní fotka se při hoveru „odkrajuje" zespodu nahoru a odkrývá spodní — ne prolnutí, ale postupné odhalení. Vhodné na produktové varianty (např. produkt zavřený/otevřený, s příslušenstvím/bez).
+
+---
+
 **Shrnutí pro Codexe v jedné větě:** postav scénáře 1–5 z přílohy č. 1 nad API výše, nikdy nepočítej peníze ani přístup sám, a scénáře 1–2 (platba) nepůjdou doopravdy dotáhnout do konce, dokud nedorazí testovací Stripe klíč.
