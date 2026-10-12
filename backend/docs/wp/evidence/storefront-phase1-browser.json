@@ -1,0 +1,22 @@
+{
+  "checks": [
+    "hero, poster, silent video, local assets",
+    "menu modal: focus trap, inert, Escape, trigger focus restore",
+    "catalog filters and empty state",
+    "product add, cart quantity, remove and coupon states",
+    "checkout steps, validation and four outcomes",
+    "QR product + quantity + coupon; refresh is idempotent",
+    "magic-link forms are mock only; token removed from URL",
+    "entitlements remain locked until explicit preview selection",
+    "contact form validates without sending or storing values",
+    "all 52 static routes, images and internal link targets",
+    "responsive home/menu + core flows: 320, 360, 390, 768, 1024",
+    "no backend, third-party requests or JavaScript errors",
+    "GSAP + Lenis + parallax active with motion enabled",
+    "motion menu scroll remains usable in a short viewport",
+    "touch cards expose purchase controls without hover"
+  ],
+  "failures": [],
+  "errors": [],
+  "apiCalls": []
+}
