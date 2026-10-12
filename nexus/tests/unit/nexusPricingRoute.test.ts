@@ -31,9 +31,17 @@ describe('handleNexusPricing Route Handler', () => {
         const res = await handleNexusPricing(req, env);
         expect(res.status).toBe(200);
 
-        const data = await res.json() as { ok: boolean; calculated: { finalPrice: number } };
+        const data = await res.json() as { ok: boolean; calculated: { finalPrice: number; appliedRules: unknown[] } };
         expect(data.ok).toBe(true);
         expect(data.calculated.finalPrice).toBe(85);
+        // Regression (2026-10-12): the calculator's native shape is
+        // {rule, metadata?}[]; the Medusa-side consumer contract
+        // (nexus-cart/route.ts PriceResponse) is plain string[]. Sending the
+        // raw objects made every real /store/nexus-cart call fail
+        // INVALID_NEXUS_PRICE_RESPONSE, undetected because no test here ever
+        // asserted on appliedRules' element type for a populated response.
+        expect(data.calculated.appliedRules.length).toBeGreaterThan(0);
+        for (const rule of data.calculated.appliedRules) expect(typeof rule).toBe('string');
     });
 
     it('spočítá loyalty tier cenu pre ne-brandSale výrobcu (ZR25 = 25 % sleva)', async () => {

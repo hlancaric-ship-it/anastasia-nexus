@@ -73,7 +73,13 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
         },
         calculated: {
             finalPrice: Number(result.finalPrice),
-            appliedRules: result.appliedRules,
+            // calculator() returns { rule, metadata? }[] (LegacyPricingResult);
+            // the Medusa-side consumer contract (nexus-cart/route.ts PriceResponse)
+            // is plain string[] -- same flattening PricingAdapter.evaluate() does.
+            // Found 2026-10-12: sending the raw objects made every real
+            // /store/nexus-cart call fail INVALID_NEXUS_PRICE_RESPONSE, masked
+            // until now because no test exercised a populated appliedRules array.
+            appliedRules: result.appliedRules.map((r) => r.rule),
             rejected: result.rejected,
         },
         timestamp: new Date().toISOString(),
