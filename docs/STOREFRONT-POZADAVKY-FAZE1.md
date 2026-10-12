@@ -78,4 +78,15 @@ Base URL Medusa serveru (lokálně `http://localhost:9100`, v NODE_ENV=developme
 
 ---
 
+## 5. Hlavní menu (návrh od Jose, posouzeno 12. 10. 2026)
+
+Vizuální návrh (mlžný les, zlaté kruhové logo, rozjížděcí tmavě zelené menu) odpovídá požadavku na „prémiový e-shop s autorským vzhledem, bez šablony" (čl. 2). Dvě položky v menu ale patří obsahově do **Fáze 2**, ne Fáze 1 — nejde o chybu designu, jen je potřeba mít jasno, co z toho musí být 23. 10. funkční a co jen vizuálně přítomné:
+
+- **Přepínač jazyků SK / EN / RU** — jazykové verze e-shopu jsou výslovně Fáze 2 (čl. 2). V menu může zůstat jako vizuální prvek, ale **nesmí se v Fázi 1 od něj očekávat funkční překlad obsahu**.
+- **„AI ANASTASIA" a „Konzultácie"** pod Službami — AI asistent i rezervace/úhrada konzultace v chatu jsou formálně Fáze 2 (čl. 9). V menu mohou být jako odkazy/struktura, ale **nesmí se 23. 10. předpokládat, že za nimi je funkční stránka** — pokud tam něco bude, ať je to jasně označené jako „již brzy" nebo podobně, ne jako hotová funkce, aby to nepůsobilo jako rozbité při testování s Lucií.
+
+Zbytek menu (Obchod, Programy včetně RESET 40+, Zdravý svet/O Lucii/Kontakt) odpovídá Fázi 1 beze změny.
+
+---
+
 **Shrnutí pro Codexe v jedné větě:** postav scénáře 1–5 z přílohy č. 1 nad API výše, nikdy nepočítej peníze ani přístup sám, a scénáře 1–2 (platba) nepůjdou doopravdy dotáhnout do konce, dokud nedorazí testovací Stripe klíč.
