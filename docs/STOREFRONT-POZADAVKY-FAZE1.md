@@ -193,6 +193,29 @@ Dvě fotky na sobě (např. zavřená/otevřená sauna), **wipe efekt, ne crossf
 ```
 Horní fotka se při hoveru „odkrajuje" zespodu nahoru a odkrývá spodní — ne prolnutí, ale postupné odhalení. Vhodné na produktové varianty (např. produkt zavřený/otevřený, s příslušenstvím/bez).
 
+### 6.10 Produktová karta s pomalým odkrytím popisu (biofarma.com.ar)
+Alternativa k 6.4 — místo opacity fade používá `max-height` na dlouhé, honosné odkrytí (2 sekundy):
+```css
+.product-card {
+  position: relative; overflow: hidden;
+  aspect-ratio: .85/1; border-radius: 1rem; padding: 2rem;
+}
+.product-card-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.product-card:before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, black 100%);
+  opacity: .6;
+}
+.product-card-info {           /* popis/cena/CTA — schované defaultně */
+  max-height: 0; overflow: hidden;
+  transition: max-height 2s;
+}
+.product-card:hover .product-card-info { max-height: 100%; }
+```
+Fotka produktu na pozadí, název/cena vždy viditelné dole, na hover se pomalu (2s) odkryje popis/varianty/tlačítko „Do košíku". Dá se zkombinovat se skleněným pozadím z 6.4, pokud se `.product-card-info` dá vlastní poloprůhledné pozadí.
+
 ---
 
 **Shrnutí pro Codexe v jedné větě:** postav scénáře 1–5 z přílohy č. 1 nad API výše, nikdy nepočítej peníze ani přístup sám, a scénáře 1–2 (platba) nepůjdou doopravdy dotáhnout do konce, dokud nedorazí testovací Stripe klíč.
