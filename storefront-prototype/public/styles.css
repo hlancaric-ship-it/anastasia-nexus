@@ -88,3 +88,24 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 
 .consultation-image>img{transform:scale(1.23);transform-origin:100% 50%}
 @media(prefers-reduced-transparency:reduce){.compact-menu{background:var(--olive);backdrop-filter:none;-webkit-backdrop-filter:none}}
+
+/* Selective curvature; preserve source photographs without zoom crops. */
+.consultation-image,.lucia-home-portrait,.world-film,.source-opening .source-media,.source-gallery:nth-of-type(even) .source-media,.lucia-opening .source-media,.author-film{border-radius:0}
+.consultation-image{height:auto;overflow:visible}.consultation-image img{width:100%;height:auto;transform:none;object-fit:contain}
+.lucia-home-portrait{height:auto;max-width:420px;justify-self:end}.lucia-home-portrait img{height:auto;object-fit:contain}
+.consultation-nature{position:relative;aspect-ratio:16/9;height:auto;overflow:hidden;border-radius:0}.consultation-nature video{display:block;width:100%;height:auto}
+.source-media:has(>img){min-height:0!important;height:auto!important}.source-media>img{position:static;width:auto;height:auto;max-width:100%;object-fit:contain}
+
+/* Text-only vnitřní stránky (astrologický profil, akademie...) neměly žádnou
+   značkovou úpravu -- čistě prohlížečové <ul>/<li> a ploché podnadpisy
+   vedle sebe s fotostránkami vypadaly "genericky". Zlatá odrážka/značka
+   drží stejný vizuální jazyk jako zbytek webu (--gold, tenké linky). */
+.story-copy .source-structure ul{list-style:none;margin:0;padding:0}
+.story-copy .source-structure ul>li{position:relative;padding-left:30px}
+.story-copy .source-structure ul>li:before{content:'';position:absolute;left:0;top:13px;width:14px;height:1px;background:var(--gold)}
+.story-copy .source-structure ol{padding-left:22px}
+.story-copy .source-structure ol>li::marker{color:var(--gold);font-weight:400}
+.story-copy h3,.story-copy h4,.story-copy h5{display:flex;align-items:baseline;gap:16px}
+.story-copy h3:before,.story-copy h4:before,.story-copy h5:before{content:'';width:28px;height:1px;background:var(--gold);flex-shrink:0;transform:translateY(-7px)}
+.source-opening .story-copy>.source-text:first-of-type{font-size:clamp(18px,1.6vw,23px);line-height:1.6;color:var(--muted);max-width:52ch}
+@media(max-width:768px){.story-copy h3:before,.story-copy h4:before,.story-copy h5:before{width:20px}}

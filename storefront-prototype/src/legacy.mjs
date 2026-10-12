@@ -2,7 +2,7 @@ import {escape as e,arrow,button} from './components.mjs';
 import content from './legacy-content.json' with {type:'json'};
 export {content as legacyContent};
 export const legacyLinks=()=>`<section class="section content-directory"><h2>ANASTASIA</h2><nav aria-label="Sekcie pôvodného webu">${Object.entries(content).map(([path,page])=>`<a href="${path}">${e(page.title)}</a>`).join('')}</nav></section>`;
-const media=(src,alt,video=false)=>video?`<div class="source-media"><video class="story-video" muted loop playsinline preload="none" poster="/media/poster.jpg" aria-label="Prírodná atmosféra"><source src="/media/hero-720p.mp4" type="video/mp4"></video><button class="story-video-toggle" type="button" aria-pressed="false" aria-label="Prehrať video">▷</button></div>`:`<figure class="source-media"><img class="parallax" src="${e(src)}" alt="${e(alt)}" loading="lazy" width="900" height="1000"></figure>`;
+const media=(src,alt,video=false)=>video?`<div class="source-media"><video class="story-video" muted loop playsinline preload="none" poster="/media/poster.jpg" aria-label="Prírodná atmosféra"><source src="/media/hero-720p.mp4" type="video/mp4"></video><button class="story-video-toggle" type="button" aria-pressed="false" aria-label="Prehrať video">▷</button></div>`:`<figure class="source-media"><img src="${e(src)}" alt="${e(alt)}" loading="lazy" width="900" height="1000"></figure>`;
 export function legacyPage(page,{about=false,contactForm=''}={}){
   if(!page.blocks.length)return '';
   const photos=page.blocks.filter(b=>b.type==='image');let first=!about;

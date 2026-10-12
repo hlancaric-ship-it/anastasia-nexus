@@ -24,9 +24,19 @@ const originals=new Map(Object.values(legacyContent).flatMap(page=>page.blocks.f
 for(const [local,original] of originals){
   if(!local.startsWith('/media/legacy-')||!original.startsWith('/media/'))throw new Error('Unexpected original media path');
   const file=join(dest,local.slice('/media/'.length));
+  const sourceFile=join(legacy,'Media',decodeURIComponent(original.split('?')[0].slice('/media/'.length)));
+  try{await access(sourceFile);await copyFile(sourceFile,file);continue;}catch(error){if(error.code!=='ENOENT')throw error;}
   try{await access(file);}catch{
     const temporary=file+'.download';
-    try{execFileSync('curl',['-fSL','--max-time','30','--silent','--show-error','https://anastasiaoz.eu'+original,'-o',temporary],{stdio:'inherit'});await rename(temporary,file);}finally{await rm(temporary,{force:true});}
+    // Stáhnout vždy bez resize querystringu (?mode=max&width=...) -- jinak
+    // se z produkce stáhne malá oříznutá verze pro konkrétní starý layout
+    // (např. 314x259), ne originální master, a výsledek je na novém webu
+    // rozmazaný při zvětšení do plochy figure.
+    try{execFileSync('curl',['-fSL','--max-time','30','--silent','--show-error','https://anastasiaoz.eu'+original.split('?')[0],'-o',temporary],{stdio:'inherit'});await rename(temporary,file);}finally{await rm(temporary,{force:true});}
   }
 }
 console.log(`Prepared ${originals.size} original public images; construction photos excluded.`);
+
+const nightSource=join(homedir(),'Documents/857136-hd_1280_720_24fps.mp4');
+try{await access(nightSource);await copyFile(nightSource,join(dest,'night-sky.mp4'));}catch(error){if(error.code!=='ENOENT')throw error;await access(join(dest,'night-sky.mp4'));}
+execFileSync('ffmpeg',['-v','error','-ss','4','-i',join(dest,'night-sky.mp4'),'-frames:v','1','-y',join(dest,'night-sky.jpg')]);
