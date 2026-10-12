@@ -125,6 +125,8 @@ Rozdíl oproti leilsaunas.com, na který si dát pozor: jejich panel menu je hra
 
 **Historická poznámka k fontům — NEPOUŽÍVAT, jen pro přehled (nahrazeno mockupem v sekci 5):** zkoumaly se fonty „Noah"/„Sogo" z leilsaunas.com (Noah je koupitelná rodina od Fontfabric, Sogo naopak není veřejně prodejná a její `.otf` se nesmí převzít) a paleta `NAVRH-eshop/index.html` (Cormorant Garamond + Inter, `--gold:#c9a84c`, `--bg:#0b0912`). Žádná z nich se pro hero/menu nepoužije — závazný je mockup ze sekce 5. Reálný font k tenkému prostrkanému písmu z mockupu ještě vybrat (viz sekce 5, poslední bod).
 
+**Font — zadal Lucky (12. 10. 2026): „stejná typografie jako paralleluniverse.com.ua, nebo podobná."** Jejich `fonts.css` má nadpisový font **„Bounded"** (proměnná váha 100–900) a text **„Haval"** (light/regular/medium) — vlastní `.eot/.ttf` soubory zabalené v jejich WP šabloně, **nestahovat přímo** (stejný problém jako Sogo u leilsaunas — bez ověřené licence pro nás). „Bounded" je i reálně veřejně distribuovaný font pod tímto jménem (ověřit přesný zdroj/licenci před použitím), u „Haval" se licence nepotvrdila. Protože zadání zní „nebo podobná", stačí vizuálně blízká legálně dostupná náhrada (geometrický display font k nadpisům + lehký sans k textu) — nemusí to být doslova stejný soubor.
+
 ### 6.2 Vyjížděcí menu (leilsaunas.com)
 - Tlačítko „Menu": `<button class="menu-trigger"><span data-open="Menu" data-close="Close"></span></button>` — text se mění čistě CSS (`content: attr(data-open)`, po `.active` přepne na `attr(data-close)`).
 - Panel menu defaultně `opacity: 0; z-index: -1; transition: opacity .5s`. Klik přidá `.active` → `opacity: 1; z-index: 1010`. Žádný posun, jen fade — ale protože je `position: fixed; right: 0`, vizuálně to je „vyjetí zprava".
