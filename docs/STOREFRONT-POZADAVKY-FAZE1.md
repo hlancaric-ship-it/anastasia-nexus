@@ -85,7 +85,7 @@ Base URL Medusa serveru (lokálně `http://localhost:9100`, v NODE_ENV=developme
 **Co obrázek přesně ukazuje (popsáno, ne vymyšleno):**
 - Pozadí heru: mlžný les s řekou/jezerem, ranní/večerní světlo — fotografické/renderované pozadí, nálada k replikaci (viz 6.1 pro technické provedení videa).
 - Logo: zlatá lineární značka — kruh se 4 menšími kroužky v bodech kompasu, uvnitř rostlina/list vyrůstající z kořenů, sluníčko na jedné straně. Pod ním nápis „ANASTASIA" (tenké, široce prostrkané velké písmo) a podnadpis „LIGHT FOR THE FUTURE" (menší prostrkaná kapitálka).
-- Barvy: panel menu tmavě olivová zelená `#2a3222`, zlatý akcent `#9c862b`, krémové/bílé pilulkovité tlačítko `#ecf3e7` (tyto tři vzorkované přímo z obrázku, orientační). **Text (závazné, zadal Lucky): `#EFE5C7`** — teplá krémová/pergamenová na tmavém panelu i přes hero video.
+- Barvy: panel menu tmavě olivová zelená `#2a3222` a krémové/bílé pilulkovité tlačítko `#ecf3e7` (vzorkované přímo z obrázku, orientační). **Závazné, zadal Lucky: zlatý akcent `#C9A355`, text `#EFE5C7`** (teplá krémová/pergamenová na tmavém panelu i přes hero video) — tyhle dvě hodnoty nahrazují odhad z obrázku.
 - Tlačítko „Menu" vpravo nahoře: plná pilulka (`border-radius` = polovina výšky), krémové pozadí, tmavý text, hamburger ikona vpravo, šipka zpět vlevo od něj.
 - **Panel menu je ZAOBLENÝ** (velký `border-radius`, plovoucí karta s odstupem od okrajů obrazovky — NE hranatý panel na celou výšku jako leilsaunas.com). V hlavičce panelu: malé logo + ANASTASIA/LIGHT FOR THE FUTURE vlevo, pilulkovité tlačítko „Close ×" vpravo.
 - Tři sloupce menu oddělené tenkou svislou linkou:
