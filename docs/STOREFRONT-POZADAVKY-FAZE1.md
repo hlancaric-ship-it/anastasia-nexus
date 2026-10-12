@@ -78,14 +78,28 @@ Base URL Medusa serveru (lokálně `http://localhost:9100`, v NODE_ENV=developme
 
 ---
 
-## 5. Hlavní menu (návrh od Jose, posouzeno 12. 10. 2026)
+## 5. Hlavní menu — ZÁVAZNÝ mockup nalezen a uložen (12. 10. 2026)
 
-Vizuální návrh (mlžný les, zlaté kruhové logo, rozjížděcí tmavě zelené menu) odpovídá požadavku na „prémiový e-shop s autorským vzhledem, bez šablony" (čl. 2). Dvě položky v menu ale patří obsahově do **Fáze 2**, ne Fáze 1 — nejde o chybu designu, jen je potřeba mít jasno, co z toho musí být 23. 10. funkční a co jen vizuálně přítomné:
+**`docs/design-reference/hero-menu-mockup.png` je ZÁVAZNÁ vizuální reference pro hero + menu.** Soubor dodal Lucky (`~/Documents/Luxusní menu v mlžném lese.png`), uložen do repa. Tím padá předchozí „otevřeno, Codex navrhne variantu" — barvy, logo i tvar panelu jsou dané tímto obrázkem, ne návrhem od Codexe.
 
-- **Přepínač jazyků SK / EN / RU** — jazykové verze e-shopu jsou výslovně Fáze 2 (čl. 2). V menu může zůstat jako vizuální prvek, ale **nesmí se v Fázi 1 od něj očekávat funkční překlad obsahu**.
-- **„AI ANASTASIA" a „Konzultácie"** pod Službami — AI asistent i rezervace/úhrada konzultace v chatu jsou formálně Fáze 2 (čl. 9). V menu mohou být jako odkazy/struktura, ale **nesmí se 23. 10. předpokládat, že za nimi je funkční stránka** — pokud tam něco bude, ať je to jasně označené jako „již brzy" nebo podobně, ne jako hotová funkce, aby to nepůsobilo jako rozbité při testování s Lucií.
+**Co obrázek přesně ukazuje (popsáno, ne vymyšleno):**
+- Pozadí heru: mlžný les s řekou/jezerem, ranní/večerní světlo — fotografické/renderované pozadí, nálada k replikaci (viz 6.1 pro technické provedení videa).
+- Logo: zlatá lineární značka — kruh se 4 menšími kroužky v bodech kompasu, uvnitř rostlina/list vyrůstající z kořenů, sluníčko na jedné straně. Pod ním nápis „ANASTASIA" (tenké, široce prostrkané velké písmo) a podnadpis „LIGHT FOR THE FUTURE" (menší prostrkaná kapitálka).
+- Barvy (vzorkováno přímo z obrázku, orientační hex, doladit s grafikem): panel menu tmavě olivová zelená `#2a3222`, zlatý akcent `#9c862b`, krémové/bílé pilulkovité tlačítko `#ecf3e7`.
+- Tlačítko „Menu" vpravo nahoře: plná pilulka (`border-radius` = polovina výšky), krémové pozadí, tmavý text, hamburger ikona vpravo, šipka zpět vlevo od něj.
+- **Panel menu je ZAOBLENÝ** (velký `border-radius`, plovoucí karta s odstupem od okrajů obrazovky — NE hranatý panel na celou výšku jako leilsaunas.com). V hlavičce panelu: malé logo + ANASTASIA/LIGHT FOR THE FUTURE vlevo, pilulkovité tlačítko „Close ×" vpravo.
+- Tři sloupce menu oddělené tenkou svislou linkou:
+  - **Obchod:** Všetky produkty, Kategórie, Novinky, Bestsellery
+  - **Programy:** RESET 40+, Všetky programy, Pre firmy, Individuálne programy
+  - **Služby:** Konzultácie, Supervízia, AI ANASTASIA, Pre odborníkov
+- Pod sloupci: větší řádky Zdravý svet / O Lucii / Kontakt, pod nimi jazykový přepínač „SK / EN / RU", a vpravo náhledová fotka (interiér/sauna) se **zaobleným jen levým horním rohem** — přesně technika ze sekce 6.6, aplikovat tady doslova.
+- Logo je koncept/raster, ne vektor — pro reálné nasazení ho bude potřeba předělat jako čisté SVG; font v obrázku není doslovně zjistitelný (je to render/koncept, ne živý web) — Codex/grafik má vybrat reálný webfont vizuálně odpovídající tenkému prostrkanému řezu z obrázku, ne hádat jinam.
 
-Zbytek menu (Obchod, Programy včetně RESET 40+, Zdravý svet/O Lucii/Kontakt) odpovídá Fázi 1 beze změny.
+**Fáze 2 upozornění (beze změny):**
+- **Přepínač jazyků SK / EN / RU** — jazykové verze e-shopu jsou výslovně Fáze 2 (čl. 2). V menu zůstává vizuálně (je v mockupu), ale **nesmí se v Fázi 1 od něj očekávat funkční překlad obsahu**.
+- **„AI ANASTASIA"** pod Službami — AI asistent je formálně Fáze 2 (čl. 9). Smí být v menu jako odkaz, ale **nesmí 23. 10. vypadat jako hotová funkce** — označit „již brzy", ne nechat vypadat rozbité při testování s Lucií.
+
+Technika/mechanika (fade/slide chování panelu, hover text-reveal na odkazech, fullscreen video v hero) zůstává podle sekce 6.1/6.2 (leilsaunas.com) — obrázek dává vzhled, leilsaunas dává kód/chování.
 
 ---
 
@@ -94,6 +108,11 @@ Zbytek menu (Obchod, Programy včetně RESET 40+, Zdravý svet/O Lucii/Kontakt) 
 Rozebráno přímo z HTML/CSS/JS referenčních webů (leilsaunas.com, vita-travel.webflow.io, paralleluniverse.com.ua) na žádost Jose. Jde výhradně o **techniku/postup**, ne o kopii cizího obsahu, fotek ani brandingu — to si Codex staví vlastní, jen podle téhož principu. Vše níže je ověřené čtením skutečného zdrojového kódu dané stránky, ne odhad.
 
 ### 6.1 Hero — fullscreen video na pozadí (leilsaunas.com)
+
+**Vzhled (barvy, logo, tvar panelu, fonty) = `docs/design-reference/hero-menu-mockup.png`, viz sekce 5 — to je teď ZÁVAZNÉ, ne otevřené.** Leilsaunas.com dává jen **techniku/chování** (jak video a panel fungují v kódu), ne vzhled — barvy a font z leilsaunas.com (viz Noah/Sogo níže) se **nepoužívají**, byla to jen průzkumná informace z doby, než se našel skutečný mockup. Stejně tak fialovo-zlatý `NAVRH-eshop` koncept se pro hero/menu nepoužívá — platí jen mockup.
+
+Rozdíl oproti leilsaunas.com, na který si dát pozor: jejich panel menu je hranatý, na celou výšku obrazovky. **Mockup chce zaoblený, plovoucí panel s odstupem od okrajů** (viz sekce 5) — tvar/zaoblení podle mockupu, mechaniku zobrazení (fixed pozice, fade/aktivní třída) podle leilsaunas kódu níže.
+
 ```html
 <video class="w-full h-screen object-cover" autoplay muted loop playsinline>
   <source src="...">
@@ -103,6 +122,8 @@ Rozebráno přímo z HTML/CSS/JS referenčních webů (leilsaunas.com, vita-trav
 - Tmavý gradient přes spodní část pro čitelnost textu: `linear-gradient(transparent 70%, rgba(0,0,0,.6))`.
 - Text je `position: absolute`, `flex flex-col justify-end`, bílý, `z-index: 10`.
 - **Zvuk nikdy neautoplayuje** — ambient audio (viz 6.3) se spouští jen tlačítkem.
+
+**Historická poznámka k fontům — NEPOUŽÍVAT, jen pro přehled (nahrazeno mockupem v sekci 5):** zkoumaly se fonty „Noah"/„Sogo" z leilsaunas.com (Noah je koupitelná rodina od Fontfabric, Sogo naopak není veřejně prodejná a její `.otf` se nesmí převzít) a paleta `NAVRH-eshop/index.html` (Cormorant Garamond + Inter, `--gold:#c9a84c`, `--bg:#0b0912`). Žádná z nich se pro hero/menu nepoužije — závazný je mockup ze sekce 5. Reálný font k tenkému prostrkanému písmu z mockupu ještě vybrat (viz sekce 5, poslední bod).
 
 ### 6.2 Vyjížděcí menu (leilsaunas.com)
 - Tlačítko „Menu": `<button class="menu-trigger"><span data-open="Menu" data-close="Close"></span></button>` — text se mění čistě CSS (`content: attr(data-open)`, po `.active` přepne na `attr(data-close)`).
@@ -147,7 +168,7 @@ gsap.from(element, 1, {
 ```js
 new simpleParallax(document.getElementsByClassName('parallax'), { orientation: 'down', scale: 1.2, delay: 0.5 });
 ```
-- Hodí se na stránky „O Lucii"/„Zdravý svet" — stejný scroll-reveal na odstavcích o filozofii, parallax na fotkách/videu RESET 40+.
+- **ZÁVAZNÉ (potvrzeno Lucky 12. 10. 2026): stránka „O Lucii" se staví v tomhle stylu** — stejná technika scroll-reveal + parallax jako paralleluniverse.com.ua/en/about/ (postup/kompozice, ne kopie textu/fotek/brandingu té firmy). Stejná technika se hodí i na „Zdravý svet".
 
 ### 6.6 Signature ořez fotek — jeden zaoblený roh jako vizuální „linie" (leilsaunas.com)
 ```css
@@ -215,6 +236,68 @@ Alternativa k 6.4 — místo opacity fade používá `max-height` na dlouhé, ho
 .product-card:hover .product-card-info { max-height: 100%; }
 ```
 Fotka produktu na pozadí, název/cena vždy viditelné dole, na hover se pomalu (2s) odkryje popis/varianty/tlačítko „Do košíku". Dá se zkombinovat se skleněným pozadím z 6.4, pokud se `.product-card-info` dá vlastní poloprůhledné pozadí.
+
+---
+
+## 7. Zadání pro Codex — hero, hlavní menu a kostra celého storefrontu (12. 10. 2026)
+
+**POSTUP PRÁCE (potvrzeno Lucky 12. 10. 2026): nejdřív kompletní kostra, teprve pak napojení.** Codex má postavit **statickou/mock kostru všech stránek** storefrontu najednou — layout, routing, komponenty, obsah jako placeholder — a **zatím nic nenapojovat** na backendové API (žádné reálné volání `/store/nexus-cart`, `/store/entitlements`, magic-link, Stripe atd.). Napojení na API ze sekce 2 přijde až jako další krok, po schválení kostry. Stránky, které kostra musí obsahovat:
+
+- Hero + hlavní menu (viz body 1–2 níže).
+- Katalog / výpis produktů + detail produktu (karty podle sekce 6.4/6.9/6.10).
+- Košík a checkout (kroky scénářů 1–2 z přílohy č. 1 — jen UI, bez reálné platby).
+- Přihlášení (magic-link UI, bez reálného volání).
+- RESET 40+ / entitlementy (zámek/odemčený stav jako UI stav, ne reálná kontrola).
+- O Lucii — scroll-reveal + parallax styl podle sekce 6.5 (potvrzeno Lucky).
+- Zdravý svet, Konzultácie, Astrológia, Kontakt, GDPR (viz sekce 8 — obsahové stránky ze starého webu).
+
+Teprve na tomhle UI kostry se bude dál stavět — nic z toho se nemá tvářit jako hotová funkce, dokud není napojené.
+
+Současný stav na branchi `codex/anastasia-storefront-visual-foundation` (`storefront-prototype/index.html`) nesplňuje ani vzhled (jiný font, olivová/krémová paleta bez zdroje), ani rozsah (chybí zbytek stránek) — přepracovat kompletně podle bodů níže. **Závazný vzhled hero/menu = `docs/design-reference/hero-menu-mockup.png` (sekce 5), ne žádná vlastní varianta.**
+
+**0. Technický stack a routing — rozhodnout, než se začne stavět**
+- Tento dokument nepředepisuje framework. Než Codex začne, musí být jasné: SSR/SSG (kvůli SEO — staré URL mají mít 301, viz níže) vs. čistě klientský SPA, a kam se nasazuje (Cloudflare Pages/Workers, konzistentně se zbytkem NEXUS infrastruktury, nebo jinam) — to je rozhodnutí pro Jose/Lucky, ne pro Codexe improvizovat.
+- **Routy vycházet z `backend/docs/wp/redirects-map.csv`** (sloupec `target_url`, branch `codex/qr-redirects`, už sloučeno/k dispozici) — to je autoritativní seznam skutečných cest starého webu (`/konzultacie`, `/eshop/produkt/{slug}`, `/zdravy-svet/`, `/kosik`, `/gdpr` atd.), ne odhad. Routa `/eshop/kosik?produkt={kod}&kupon={kod}&ks={mnozstvi}` musí fungovat (vložit produkt + zkusit kupón v košíku), ne jen redirectovat na homepage — to je dnešní chyba, kterou nový web nesmí zopakovat (viz sekce 8).
+- i18n (SK/EN/RU) je Fáze 2 — routing stavět tak, aby šel později rozšířit o jazykový prefix, ale **nenuceně retrofitovat už teď** (žádné `/sk/...` prefixy navíc, pokud to nikdo nepožaduje pro Fázi 1).
+- **„Nic nenapojovat" (bod 0 výše v této sekci) = jedna API vrstva s mock adaptérem**, ne rozházené natvrdo zapsané placeholder hodnoty po komponentách. Komponenty volají jedno rozhraní (např. `lib/api/*`), které teď vrací mock data; napojení na skutečné `/store/...` endpointy (sekce 2) pak bude výměna JEN téhle vrstvy, ne přepis komponent.
+
+**1. Hero**
+- Fullscreen `<video autoplay muted loop playsinline preload="metadata" poster="...">` se 3 zdroji podle šířky (desktop/tablet/mobil) + webm variantou — pozadí/nálada podle `hero-menu-mockup.png` (mlžný les/voda), technické provedení (gradient, max-height, zvuk) podle bodů níže.
+- `max-height: 768px` i při `100vh` — na velkých monitorech se video neroztáhne do nekonečna.
+- Tmavý gradient přes spodní třetinu pro čitelnost textu: `linear-gradient(transparent 70%, rgba(0,0,0,.6))`.
+- Text kopie: `position:absolute`, `flex-col justify-end`, `z-index:10`.
+- Video nikdy nemá vlastní zvukovou stopu — zvuk je samostatný smyčkový `<audio loop preload="none">`, spouští se JEN tlačítkem (sound-switcher), nikdy autoplay.
+- Assety (zpracované, bez zvuku ve videu + samostatné mp3) jsou na `~/Documents/anastasia-hero-video/` (`hero-1080p.mp4`, `hero-720p.mp4`, `hero-480p.mp4`, `hero-1080p.webm`, `poster.jpg`, `nature-ambient.mp3`) — **NEDÁVAT do gitu** (~57 MB dohromady), nahrát do R2/CDN nebo předat mimo repo a odkazovat URL.
+
+**2. Vyjížděcí menu**
+- Vzhled (zaoblený plovoucí panel, barvy, logo, tři sloupce) přesně podle `hero-menu-mockup.png`, viz sekce 5.
+- Mechanika zobrazení z leilsaunas.com: tlačítko „Menu" vpravo nahoře, text přepínaný čistě CSS (`content: attr(data-open)` / `attr(data-close)` podle `.active` třídy); panel `position:fixed`, defaultně `opacity:0; visibility:hidden`, po kliknutí `.active` → `opacity:1` (fade, ne posun) — ale **tvar panelu zaoblený a s odstupem od okrajů podle mockupu**, ne hranatý na celou výšku jako leilsaunas.
+- Položky menu: hover text-reveal (`:before{content:attr(data-text); transform:translateY(100%)}` → na hover `translateY(0)`, originál `opacity:0`).
+- Accessibility (v současném prototypu už udělané dobře, zachovat): `aria-expanded`/`aria-hidden`, focus trap (Tab cyklí mezi prvním a posledním prvkem v panelu), Escape zavírá, focus se po zavření vrací na trigger tlačítko, `prefers-reduced-motion` vypíná transitions.
+- Náhledová fotka v panelu: zaoblit jen levý horní roh (technika 6.6), přesně jak je v mockupu.
+
+**3. Zvuk — žádný jiný vzorec**
+- Jen klik-to-toggle (`play()`/`pause()` na tlačítko), nikdy autoplay.
+
+**4. Obsah menu** (viz sekce 5 — teď s přesnými položkami ze zdrojového mockupu): Obchod (Všetky produkty, Kategórie, Novinky, Bestsellery), Programy (RESET 40+, Všetky programy, Pre firmy, Individuálne programy), Služby (Konzultácie, Supervízia, AI ANASTASIA, Pre odborníkov), + Zdravý svet/O Lucii/Kontakt. SK/EN/RU přepínač a „AI ANASTASIA" = Fáze 2 — vizuálně přítomné, označené „již brzy", ne jako hotová funkce.
+
+---
+
+## 8. Obsahové stránky ze starého webu — MUSÍ se taky migrovat, ne jen e-shop/checkout
+
+Tenhle dokument se zatím soustředil na nákupní tok a vizuál hero/menu. Storefront ale není jen e-shop — podle `backend/docs/wp/INVENTAR-A-AKCEPTACE.md` (balík C4, už sloučeno do `wave1-base`, **povinné čtení pro Codex před stavbou struktury stránek**) musí nový web obsahovat i tyhle reálné obsahové části ze starého `anastasiaoz.eu`:
+
+- **Konzultácie** — `/konzultacie`, `/konzultacie/astrologicky-profil-zdravia-a-vitality/`, `/online-zdravotna-konzultacia/` — odborný obsah, ne obecná produktová landing page.
+- **Astrológia** — `/astrologia/`, propojeno i jako produkt (`/eshop/produkt/astrologia`).
+- **Zdravý svet** — `/zdravy-svet/` — obsahová sekce (články/odborný obsah), součást webu, ne samostatný projekt.
+- **O Lucii** / hlavní stránka — osobní a odborný obsah, ne jen hero.
+- **Kontakt** (`/kontakt/`) s formulářem a **GDPR** (`/gdpr`).
+- Konkrétní produktové detaily, co mají zůstat dohledatelné na stejné nebo ekvivalentní URL: `bio-sprchovy-gel`, `kava-zdrava`, `telove-maslo`, `lanova-sukna`, `ritualne-sviecky`, `pletova-voda`, `saty-lanove`, `supervizia`, `astrologia`.
+- **Stará QR/kupón URL** `/eshop/kosik?produkt={kod}&kupon={kod}&ks={mnozstvi}` — nový ekvivalent musí vložit produkt a uplatnit kupón v košíku, **ne jen přesměrovat na homepage** (to je dnešní chyba, kterou nesmí nová QR cesta zopakovat).
+
+Akademie (`anastasia.academy`) a AI Anastasia (`aianastasia.com`) jsou podle smlouvy čl. 2 **Fáze 2**, do Fáze 1 storefrontu se nestaví.
+
+Úplný seznam včetně rolí, cookies a otevřených bodů je v `INVENTAR-A-AKCEPTACE.md` — Codex ho má číst celý, tohle je jen výtah nejdůležitějšího pro plánování struktury stránek.
 
 ---
 
