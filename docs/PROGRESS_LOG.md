@@ -36,11 +36,11 @@ Měřítko: 0 % nic, 50 % kód existuje a má unit testy, 80 % ověřeno na reá
 | **Administrace (C5)** | 0 % | Nezačato, čeká na zelenou K5 |
 | **i18n SK/EN/RU (C6)** | 0 % | Fáze 2, nezačato |
 | **E2E scénáře (C8)** | 0 % | Nezačato |
-| **Stripe webhook (K7)** | 10 % | Používá se Medusa Stripe provider, ale podpis/idempotence/částka neověřené, žádný API klíč lokálně |
+| **Stripe webhook (K7)** | **55 %** | **Polovina ověřena živě 12. 10. 2026** (skutečný `@medusajs/payment-stripe` + skutečné Stripe SDK, dummy klíč, žádné volání sítě): platný podpis → správná akce/částka; špatný podpis → vyhodí chybu; manipulovaná částka po podpisu → HMAC to sám odhalí; platba bez našeho `session_id` (cizí Stripe integrace na stejném účtu) → bezpečně ignorována, nespadne. **Chybí už jen reálná platba kartou/Apple Pay/Google Pay — to potřebuje Luckyho testovací klíč** |
 | **Voucher runtime (K8)** | 20 % | Worker routy existují, souběh a jednorázovost neověřené, produkt nerozhodnutý |
 | **Storefront** | 0 % | Záměrně nezačato (pravidlo pořadí) |
 
-**Celkový odhad Fáze 1 (bez storefrontu, bez red teamu): zhruba 55–60 % hotovo.** Jádro (katalog, ceny, přihlášení, migrace, zálohy) je silné a ověřené. Slabé místo je integrace plateb (Stripe) a produkční infrastruktura (monitoring, hosting, R2).
+**Celkový odhad Fáze 1 (bez storefrontu, bez red teamu): zhruba 65–70 % hotovo** (upřesněno 12. 10. 2026 po opravě reálné chyby v SafeOrder pricing kontraktu a ověření poloviny Stripe webhooku). Jádro (katalog, ceny, přihlášení, migrace, zálohy, SafeOrder) je silné a ověřené. Slabé místo zůstává produkční infrastruktura (monitoring, hosting, R2) a dokončení platby (potřeba Luckyho testovací Stripe klíč).
 
 ---
 
@@ -62,7 +62,7 @@ Vše níže běželo proti reálné Postgres DB `anastasia_dev_wave1`, nebo prot
 
 - Chráněná média (Worker nad R2) — nikdy neběžel proti skutečnému R2 bucketu.
 - QR kupóny — validace kódu funguje, ale aktivace slevy v košíku (napojení na NEXUS pricing) chybí.
-- Stripe platby — žádný testovací klíč lokálně, webhook nikdy nepřijal skutečnou událost.
+- Stripe platby — podpis/integrita webhooku ověřena živě se skutečným SDK (viz výše, K7 55 %); samotná platba kartou/Apple Pay/Google Pay čeká na Luckyho testovací klíč.
 - SafeOrder Worker route — nález o chybějící autentizaci z `codex/wave1-security`, oprava existuje na té větvi, ale není sloučená.
 - Voucher runtime — Worker routy existují, souběh neotestován.
 
