@@ -37,10 +37,10 @@ Měřítko: 0 % nic, 50 % kód existuje a má unit testy, 80 % ověřeno na reá
 | **i18n SK/EN/RU (C6)** | 0 % | Fáze 2, nezačato |
 | **E2E scénáře (C8)** | 0 % | Nezačato |
 | **Stripe webhook (K7)** | **55 %** | **Polovina ověřena živě 12. 10. 2026** (skutečný `@medusajs/payment-stripe` + skutečné Stripe SDK, dummy klíč, žádné volání sítě): platný podpis → správná akce/částka; špatný podpis → vyhodí chybu; manipulovaná částka po podpisu → HMAC to sám odhalí; platba bez našeho `session_id` (cizí Stripe integrace na stejném účtu) → bezpečně ignorována, nespadne. **Chybí už jen reálná platba kartou/Apple Pay/Google Pay — to potřebuje Luckyho testovací klíč** |
-| **Voucher runtime (K8)** | 20 % | Worker routy existují, souběh a jednorázovost neověřené, produkt nerozhodnutý |
+| **Voucher runtime (K8)** | **80 %** | **Souběh a jednorázovost ověřeny živě 12. 10. 2026** proti skutečnému workerd + D1 + Durable Object (ne mocku) — dvě souběžná čerpání stejného poukazu: jen jedno uspěje, zůstatek nejde do záporu, přesně jeden transakční záznam; replay stejného tokenu zamítnut. 5/5 opakovaných běhů bez nestability. Chybí jen rozhodnutí, co je „Voucher" produkt |
 | **Storefront** | 0 % | Záměrně nezačato (pravidlo pořadí) |
 
-**Celkový odhad Fáze 1 (bez storefrontu, bez red teamu): zhruba 65–70 % hotovo** (upřesněno 12. 10. 2026 po opravě reálné chyby v SafeOrder pricing kontraktu a ověření poloviny Stripe webhooku). Jádro (katalog, ceny, přihlášení, migrace, zálohy, SafeOrder) je silné a ověřené. Slabé místo zůstává produkční infrastruktura (monitoring, hosting, R2) a dokončení platby (potřeba Luckyho testovací Stripe klíč).
+**Celkový odhad Fáze 1 (bez storefrontu, bez red teamu): zhruba 70–75 % hotovo** (upřesněno 12. 10. 2026 — workerd blocker vyřešen, Worker strana SafeOrderu a K8 voucher souběh ověřeny naživo). Jádro (katalog, ceny, přihlášení, migrace, zálohy, SafeOrder, voucher souběh) je silné a ověřené. Slabé místo zůstává produkční infrastruktura (monitoring, hosting, R2) a dokončení platby (potřeba Luckyho testovací Stripe klíč).
 
 ---
 
@@ -126,6 +126,6 @@ anastasia.academy + aianastasia.com na společném jádru, i18n SK/EN/RU, AI asi
 
 ## 8. Co blokuje rychlejší postup
 
-- **Workerd neběží na macOS 12.6** — NEXUS Worker testy se musí spouštět ve vitest (funguje), ale ne v reálném `wrangler dev`/CI bez schváleného izolovaného prostředí.
+- ~~Workerd neběží na macOS 12.6~~ **VYŘEŠENO 12. 10. 2026** — Jose postavil Ubuntu 26.04 ve VirtualBoxu na stejném Macu (Docker i workerd na Linuxu běží nativně bez problémů). `npm run test:workers` teď prochází naživo (38/38 testů), včetně nově napsaného K8 souběhového testu. VM je zatím živá relace (nic se po restartu neuloží) — pokud bude potřeba opakovaně, doporučuju Jose dokončit trvalou instalaci.
 - **Chybí produkční přístupy** (Cloudflare R2, Stripe živé klíče, hosting) — nutné rozhodnutí a součinnost Lucky.
 - **Rozhodnutí čekající na Lucky/účetní:** DPH sazby, e-mail provider, dobírka, produkt Voucher, repo název.
