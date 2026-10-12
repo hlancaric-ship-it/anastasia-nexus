@@ -29,7 +29,7 @@ Měřítko: 0 % nic, 50 % kód existuje a má unit testy, 80 % ověřeno na reá
 | **Chráněná média (A-07)** | 55 % | Backend + Worker napsané a testované (18 unit testů). Nic neběželo na R2, chybí bucket, vodoznak, nahrání souborů |
 | **Zákaznická migrace (C2)** | 85 % | Spuštěno naostro na reálném dumpu: 17 zákaznic, 10 objednávek, 18 entitlementů, `reconciled: true`, idempotentní |
 | **Přihlášení / SSO (K6)** | **90 %** | Magic-link ověřen živě na serveru end-to-end, včetně propojení migrované zákaznice a opravy 3 reálných chyb |
-| **QR kupóny / redirecty (C3)** | 55 % | Generátor a validace hotové a testované. Aktivace slevy přes NEXUS a edge nasazení 301 chybí |
+| **QR kupóny / redirecty (C3)** | **70 %** | **Aktivace slevy propojena s NEXUS pricing 12. 10. 2026** — `/store/nexus-cart` ověří kód přes Medusa Promotion modul, sleva se počítá v NEXUS rule chainu (nový `CouponDiscountRule`, 27 nových testů zelených). Zatím jen procentuální kupóny (ne pevná částka), a **chybí atomické navýšení použití kupónu při dokončení objednávky** (`registerUsage` z `IPromotionModuleService` — ověřeno, že existuje a dělá přesně tohle s row-lockem, ale zapojení do SafeOrder checkout hooku ještě není hotové — bez něj jednorázový kupón jde technicky použít opakovaně). Edge nasazení 301 map pořád chybí. |
 | **Rezervace konzultací (K9)** | 75 % | Modul + API hotové, dvojitá rezervace ověřená přímo v Postgres. Chybí e2e přes HTTP a notifikace |
 | **Inventář webu (C4)** | 100 % | Dokument hotový |
 | **Zálohy a obnova (A-16/A-17 lokálně)** | **95 %** | Záloha i obnova ověřené živě (sha256, přesné počty po obnově do čisté DB). Chybí jen produkční hosting/monitoring |
@@ -61,7 +61,7 @@ Vše níže běželo proti reálné Postgres DB `anastasia_dev_wave1`, nebo prot
 ## 4. Co je napsané, ale NEOVĚŘENÉ (kód existuje, běh proti realitě ne)
 
 - Chráněná média (Worker nad R2) — nikdy neběžel proti skutečnému R2 bucketu.
-- QR kupóny — validace kódu funguje, ale aktivace slevy v košíku (napojení na NEXUS pricing) chybí.
+- QR kupóny — aktivace slevy v košíku teď existuje a je testovaná (viz sekce 2 výše), ale atomické navýšení použití kupónu při objednávce ještě ne.
 - Stripe platby — podpis/integrita webhooku ověřena živě se skutečným SDK (viz výše, K7 55 %); samotná platba kartou/Apple Pay/Google Pay čeká na Luckyho testovací klíč.
 - SafeOrder Worker route — nález o chybějící autentizaci z `codex/wave1-security`, oprava existuje na té větvi, ale není sloučená.
 - Voucher runtime — Worker routy existují, souběh neotestován.
@@ -91,7 +91,7 @@ Administrace (C5), i18n (C6), e2e scénáře (C8), ambasadorský program, AI asi
 
 ### Krok 2 — Dokončit média a QR (A-07, C3)
 5. Vytvořit R2 bucket, nahrát placená média, ověřit Worker živě (ne jen unit testy).
-6. Propojit QR aktivaci slevy s NEXUS pricing (K1).
+6. ~~Propojit QR aktivaci slevy s NEXUS pricing (K1).~~ **HOTOVO 12. 10. 2026 (percentuální kupóny)** — zbývá atomické navýšení použití kupónu při dokončení objednávky (viz sekce 2, C3 70 %).
 7. Nasadit 301 mapu na Cloudflare Redirect Rules.
 
 ### Krok 3 — K4 finální integrace
