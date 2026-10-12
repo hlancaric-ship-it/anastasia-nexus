@@ -19,7 +19,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | S1-06 | Generátor QR v administraci (kupón → URL s automatickou slevou + QR) | C3 `qr-redirects` | IMPLEMENTED_UNVERIFIED | sloučeno do wave1-base, middleware zapojen, tsc+testy zelené; aktivace slevy přes NEXUS/K1 ještě chybí |
 | S1-07 | 301 přesměrování všech starých URL a vytištěných QR | C3 | PARTIAL | mapa 44 URL hotová, edge nasazení (Cloudflare Redirect Rules) neprovedeno |
 | S1-08 | Administrace na míru, správa produktů/cen/kategorií/kupónů/objednávek/zákaznic | C5 `admin-ui` + Medusa Admin | NOT_IMPLEMENTED | až po K4/K5; Medusa Admin build prošel |
-| S1-09 | Zabezpečení, odstranění rizik z auditu | K-sec review | PARTIAL | server-verified pricing a SafeOrder fail-closed (unit testy); audit rizik starého webu se týká starého systému, nový je řeší návrhem; SafeOrder služba a tenant ověřovány, všechny completion cesty chráněny (lokální testy); runtime/persistence P0 akceptace BLOCKED, viz backend/docs/wp/wave1-security.md |
+| S1-09 | Zabezpečení, odstranění rizik z auditu | K-sec review | PARTIAL | sloučeno 12. 10. 2026; obchvat SafeOrderu přes standardní Medusa completion **VERIFIED živě** proti reálné Postgres (viz delta níže); Worker strana (auth, COD limit, TLS guard) jen unit VERIFIED, runtime BLOCKED — workerd neběží na macOS 12.6, viz backend/docs/wp/wave1-security.md |
 | S1-10 | Potvrzovací e-mail objednávky | E-mail provider | NOT_IMPLEMENTED | rozhodnutí: Resend/SMTP |
 
 ## 3. Příloha č. 1, testovací scénáře Fáze 1
@@ -138,23 +138,38 @@ Claude (tento model) tuto část sám nenavrhuje ani neověřuje (nemá náhled 
 
 ## Wave 1 execution delta — 2026-10-11, codex/wave1-security
 
-Aktuální stav P0: **IMPLEMENTED**, lokální testy a typové kontroly se evidují v
-[CODEX_PROGRESS.md](../CODEX_PROGRESS.md). Akceptace fáze 1: **BLOCKED**, dokud
-neproběhne workerd a skutečné dokončení Medusa objednávky na schváleném izolovaném
-syntetickém prostředí. Předchozí tabulky popisují historický baseline; tato delta
-neoznačuje checkout, platby ani Wave 1 za akceptované.
+**Sloučeno do `wave1-base` 12. 10. 2026 (Claude), po vlastním review a živém ověření** —
+viz níže. Diff kromě odstraněné CI (viz bod 6a) prošel celý. Backend po sloučení:
+21 souborů/190 testů PASS, tsc čistý, `medusa build` OK. NEXUS po sloučení: 86
+souborů/1086 testů PASS.
 
-| Požadavek | Implementace | Test | Důkaz | Stav |
-|---|---|---|---|---|
-| A-10 / S1-09 identita + tenant | nexus/workers/api/medusaServiceAuth.ts, routes/nexusSafeOrder.ts | nexusSafeOrderRoute.test.ts, SafeOrderHttp.test.ts | journal + wave1-security.md | lokální verifikace; runtime BLOCKED |
-| A-04 / A-10 zákaz obejití SafeOrder | backend/src/workflows/hooks.ts (locked snapshot) | safeorder-completion.unit.spec.ts | journal + wave1-security.md | implementováno; skutečná persistence BLOCKED |
-| A-11 cena a měna | snapshot line/quantity/payment comparison + response binding | safeorder.unit.spec.ts, safeorder-completion.unit.spec.ts | journal + wave1-security.md | lokálně ověřeno; checkout E2E BLOCKED |
-| S1-09 administrátorský Worker zápis | routes/issuance.ts service auth + tenant | nexusSafeOrderRoute.test.ts | journal + wave1-security.md | negativní testy; platba/voucher runtime neakceptován |
-| S1-09 CORS, secrets a logy | stávající production allowlist; SafeOrder bez PII, TLS + redirect guard | nexusSafeOrderRoute.test.ts, safeorder.unit.spec.ts | journal + wave1-security.md | lokální kontrola; staging/Fable zbývá |
-| T1-7 skutečný Worker runtime | nexus/tests/workers/safeOrder.test.ts | npm run test:workers | macOS 12.6 odmítnut workerd (minimum 13.5) | BLOCKED; žádné runtime testy neběžely |
+**Vlastní živé ověření (Claude, 12. 10. 2026), nezávisle na Codexově dřívějším
+tvrzení:** zavolán skutečný `completeCartWorkflow` přímo (ne přes custom
+`nexus-checkout` route, přesně ten obchvat, co oprava řeší) proti reálné
+Postgres `anastasia_dev_wave1`, se stub serverem místo NEXUS Workeru (workerd
+na tomto Macu stále neběží, stejný blocker jako u Codexe). Výsledek: BLOCK
+nevytvoří žádnou objednávku (`SAFEORDER_BLOCKED` propadne z hooku), ALLOW
+vytvoří přesně jednu objednávku se správnou měnou (`eur`) a e-mailem. **Toto
+poprvé potvrzuje opravu obchvatu na straně Medusy mimo Codexovy vlastní testy.**
 
-Další kritické fáze (Auth až Admin) nebyly zahájeny přes otevřenou P0 bránu.
-SK/EN/RU, Zlatá brána a členský klub jsou podle aktuální direktivy mimo Wave 1.
+**Co zůstává ověřené JEN unit testy, ne živě** (stejný blocker jako Codex měl —
+workerd neběží na tomto Macu, takže Worker-stranu nejde spustit doopravdy):
+autentizace Worker route, pevný COD limit 120 (klient ho nemůže přepsat), TLS/
+redirect/timeout guard na pricing transportu. Unit testy (1086/1086 NEXUS) tuhle
+logiku pokrývají izolovaně, ale ne end-to-end přes skutečný `wrangler`/workerd.
+
+| Požadavek | Implementace | Test | Stav |
+|---|---|---|---|
+| A-10 / S1-09 identita + tenant | nexus/workers/api/medusaServiceAuth.ts, routes/nexusSafeOrder.ts | nexusSafeOrderRoute.test.ts, SafeOrderHttp.test.ts | unit VERIFIED; Worker runtime stále BLOCKED (workerd) |
+| A-04 / A-10 zákaz obejití SafeOrder | backend/src/workflows/hooks.ts (locked snapshot) | safeorder-completion.unit.spec.ts + **živé ověření 12. 10.** | **VERIFIED živě** (viz výše) |
+| A-11 cena a měna | snapshot line/quantity/payment comparison + response binding | safeorder.unit.spec.ts, safeorder-completion.unit.spec.ts + živé ověření | **VERIFIED živě** (měna/e-mail v reálné objednávce sedí) |
+| S1-09 administrátorský Worker zápis | routes/issuance.ts service auth + tenant | nexusSafeOrderRoute.test.ts | unit VERIFIED; Worker runtime BLOCKED |
+| S1-09 CORS, secrets a logy | stávající production allowlist; SafeOrder bez PII, TLS + redirect guard | nexusSafeOrderRoute.test.ts, safeorder.unit.spec.ts | unit VERIFIED; staging/Fable zbývá |
+| T1-7 skutečný Worker runtime | nexus/tests/workers/safeOrder.test.ts | npm run test:workers | **stále BLOCKED** — macOS 12.6 odmítá workerd (minimum 13.5), žádný Docker/Podman/Colima/Lima lokálně |
+
+Zbývá: e2e přes HTTP (ne jen workflow přímo), produkční Stripe klíč (K7),
+a samotný Worker runtime test (čeká na kompatibilní izolovaný Linux/CI —
+GH Actions cesta byla odstraněna, viz bod 6a, nová cesta nerozhodnuta).
 
 ### P0 persistence evidence update — 2026-10-11
 
