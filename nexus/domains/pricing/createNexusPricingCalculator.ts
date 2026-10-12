@@ -42,6 +42,7 @@ import { BasePriceRule } from './BasePriceRule.js';
 import { BrandSaleDiscountRule } from './BrandSaleDiscountRule.js';
 import { HighestDiscountRule } from './HighestDiscountRule.js';
 import { DiscountLimitRule } from './DiscountLimitRule.js';
+import { CouponDiscountRule } from './CouponDiscountRule.js';
 import { RoundingRule } from './RoundingRule.js';
 
 function toDecimalMap(m: Record<string, number> | undefined): Record<string, Decimal> {
@@ -90,6 +91,7 @@ export function createNexusPricingCalculator(
     const brandSaleDiscountRule = new BrandSaleDiscountRule({ ...ctx, ruleId: 'brand-sale-v1' });
     const highestDiscountRule = new HighestDiscountRule({ ...ctx, ruleId: 'highest-discount-v1' });
     const discountLimitRule = new DiscountLimitRule({ ...ctx, ruleId: 'discount-limit-v1' });
+    const couponDiscountRule = new CouponDiscountRule({ ...ctx, ruleId: 'coupon-discount-v1' });
     const roundingRule = new RoundingRule({ ...ctx, ruleId: 'rounding-v1' });
 
     return (input: LegacyPricingInput): LegacyPricingResult => {
@@ -155,6 +157,18 @@ export function createNexusPricingCalculator(
         if (limit.applied && limit.price) {
             currentPrice = limit.price;
             appliedRules.push({ rule: limit.rule! });
+        }
+
+        // Kupón AŽ PO DiscountLimitRule -- viz hlavička CouponDiscountRule.ts
+        // (VAGNER pravidlo by jinak kupón na zlevněných+omezených položkách
+        // tiše smazalo). Žádná tier eligibility -- viz tamtéž.
+        const coupon = couponDiscountRule.evaluate({
+            currentPrice,
+            discountPercent: input.couponDiscountPercent,
+        });
+        if (coupon.applied && coupon.price) {
+            currentPrice = coupon.price;
+            appliedRules.push({ rule: coupon.rule! });
         }
 
         const rounding = roundingRule.evaluate({ currentPrice });

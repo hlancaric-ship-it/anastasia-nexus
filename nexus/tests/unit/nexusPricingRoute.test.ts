@@ -63,4 +63,26 @@ describe('handleNexusPricing Route Handler', () => {
         expect(data.ok).toBe(true);
         expect(data.calculated.finalPrice).toBe(75);
     });
+
+    it('couponDiscountPercent sníží finální cenu o danou procentuální sazbu (12.10.2026)', async () => {
+        const req = new Request('https://nexus-api.internal/api/nexus/pricing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', authorization: 'Bearer test-key' },
+            body: JSON.stringify({ sku: 'TEST-COUPON', basePrice: 100, couponDiscountPercent: 0.2 }),
+        });
+        const res = await handleNexusPricing(req, env);
+        expect(res.status).toBe(200);
+        const data = await res.json() as { calculated: { finalPrice: number; appliedRules: string[] } };
+        expect(data.calculated.finalPrice).toBe(80);
+        expect(data.calculated.appliedRules).toContain('COUPON');
+    });
+
+    it('couponDiscountPercent mimo rozsah <0,1> je VALIDATION_ERROR', async () => {
+        const req = new Request('https://nexus-api.internal/api/nexus/pricing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', authorization: 'Bearer test-key' },
+            body: JSON.stringify({ sku: 'TEST-COUPON', basePrice: 100, couponDiscountPercent: 1.5 }),
+        });
+        await expect(handleNexusPricing(req, env)).rejects.toThrow('couponDiscountPercent musí být číslo mezi 0 a 1.');
+    });
 });

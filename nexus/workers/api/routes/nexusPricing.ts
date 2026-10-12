@@ -39,6 +39,9 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
     if (input.productMaxDiscount !== undefined && (typeof input.productMaxDiscount !== 'number' || !Number.isFinite(input.productMaxDiscount) || input.productMaxDiscount < 0 || input.productMaxDiscount > 1)) {
         throw new ApiError('VALIDATION_ERROR', 400, 'productMaxDiscount musí být nezáporné konečné číslo.');
     }
+    if (input.couponDiscountPercent !== undefined && (typeof input.couponDiscountPercent !== 'number' || !Number.isFinite(input.couponDiscountPercent) || input.couponDiscountPercent < 0 || input.couponDiscountPercent > 1)) {
+        throw new ApiError('VALIDATION_ERROR', 400, 'couponDiscountPercent musí být číslo mezi 0 a 1.');
+    }
 
     if (!/^[a-z0-9_-]{2,32}$/i.test(tenantId)) {
         throw new ApiError('MISSING_BINDING', 503, 'Tenant pricing služby není správně nakonfigurován.');
@@ -60,6 +63,7 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
         category: typeof input.category === 'string' ? input.category : undefined,
         productMaxDiscount: typeof input.productMaxDiscount === 'number' ? new Decimal(input.productMaxDiscount) : undefined,
         allowLoyaltyDiscount: typeof input.allowLoyaltyDiscount === 'boolean' ? input.allowLoyaltyDiscount : true,
+        couponDiscountPercent: typeof input.couponDiscountPercent === 'number' ? new Decimal(input.couponDiscountPercent) : undefined,
     });
 
     return jsonResponse({
