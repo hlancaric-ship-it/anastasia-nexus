@@ -106,6 +106,15 @@ Administrace (C5), i18n (C6), e2e scénáře (C8), ambasadorský program, AI asi
 ### Krok 5 — Administrace (C5)
 13. Admin UI na správu produktů/cen/kupónů/objednávek/zákaznic/rezervací nad hotovým a ověřeným backendem.
 
+**Rozhodnutí Lucky, 13. 10. 2026: admin (C5) se staví KOMPLETNĚ ZNOVU, od nuly.** `admin-demo` (`/Users/lucky/anastasia-nexus/admin-demo`, Cloudflare Worker + D1 + R2) byl jen rychlý jednorázový náhled, aby klientka (Lucia) viděla vizuální směr — **není to základ, na kterém se bude reálně stavět**, nerozšiřovat ani na něj nenavazovat kódem. Reálný C5 se staví nad hotovým a ověřeným backendem (viz sekce 2-3 výše) jako nová věc, se vším, co je zapsané v sekcích 8-9 (self-service princip, editor tier úrovní, newsletter/odstoupenie/reklamácie/fakturace/e-maily, doprava/sklad/storno/refund/souhlas, klub/předplatné — poslední bod čeká na rozhodnutí o rozsahu smlouvy).
+
+**Prioritní sekce v C5 — Lucky 13. 10. 2026, tyhle dvě mají dostat nejvíc péče ze všech:**
+1. **Digitální produkty** (RESET 40+ a další budoucí digitální obsah, napojené na entitlement modul `backend/src/modules/entitlement` a chráněná média/R2) — správa přístupů, obsahu, odemykání.
+2. **Zákaznický účet** — a to oboustranně:
+   - **Zákaznická zóna na storefrontu** (`/ucet`) musí mít OPRAVDU všechno: objednávky, digitální produkty/entitlementy, rezervace (konzultace/booking, K9), faktury, osobní údaje — ne jen útržek.
+   - **Z adminu musí jít se zákaznicí přímo pracovat a komunikovat** — Lucia potřebuje z admin rozhraní vidět a případně i psát/reagovat zákaznici k její objednávce/rezervaci/produktu, ne jen číst data. **Tohle zatím nikde neexistuje** (`contact_messages` v `INVENTAR-A-AKCEPTACE.md` je jen jednosměrný kontaktní formulář, ne obousměrná komunikace vázaná na konkrétní zákaznici/objednávku) — potřeba navrhnout jako nový požadavek pro C5, ne odvozovat z existujícího kódu.
+Objednávkový formulář a rezervační formulář (K9 booking) musí být na tohle napojené stejně pečlivě — jasné, srozumitelné, ne obecný placeholder.
+
 ### Krok 6 — Produkční infrastruktura (A-17)
 14. Produkční hosting Medusa (~29 USD/měsíc dle direktivy), Redis, produkční Postgres.
 15. Strukturované logování, monitoring dostupnosti, alerty.
@@ -129,4 +138,30 @@ anastasia.academy + aianastasia.com na společném jádru, i18n SK/EN/RU, AI asi
 - ~~Workerd neběží na macOS 12.6~~ **VYŘEŠENO 12. 10. 2026** — Jose postavil Ubuntu 26.04 ve VirtualBoxu na stejném Macu (Docker i workerd na Linuxu běží nativně bez problémů). `npm run test:workers` teď prochází naživo (38/38 testů), včetně nově napsaného K8 souběhového testu. VM je zatím živá relace (nic se po restartu neuloží) — pokud bude potřeba opakovaně, doporučuju Jose dokončit trvalou instalaci.
 - **Chybí produkční přístupy** (Cloudflare R2, Stripe živé klíče, hosting) — nutné rozhodnutí a součinnost Lucky.
 - **Rozhodnutí čekající na Lucky/účetní:** DPH sazby, e-mail provider, dobírka, produkt Voucher, repo název.
-- **Věrnostní tier systém (K1) se mění — Lucky 12. 10. 2026: ANASTASIA nebude používat Bronze/Silver/Gold/VIP→ZR1-4 z `anastasia-bootstrap.ts`/`customer-tier.ts`, bude mít vlastní.** Pracovní návrh (zatím "podle mě", NE finální): 3 úrovně — Bronzový/Strieborný/Zlatý, bez VIP. Slevové % na jednotlivé úrovně ještě nejsou určené. Dokud se tier systém nepřepíše, kód s Bronze/Silver/Gold/VIP zůstává nedotčený (neměnit bez finálního potvrzení názvů i procent) — K1 status "HOTOVO"/70 % výše se týká jen mechanismu čtení tieru, ne konkrétních tierů samotných, které se budou měnit.
+- **Věrnostní tier systém (K1) se mění — Lucky 12. 10. 2026: ANASTASIA nebude používat Bronze/Silver/Gold/VIP→ZR1-4 z `anastasia-bootstrap.ts`/`customer-tier.ts`, bude mít vlastní.** Pracovní návrh (zatím "podle mě", NE finální): 3 úrovně — Bronzový/Strieborný/Zlatý, bez VIP. **Upřesnění Lucky 13. 10. 2026: slevové % se zatím vědomě nechávají na 0 % — nerozhodovat, nedomýšlet.** Navíc **názvy úrovní nemají být natvrdo v kódu — klientka (Lucia) si je musí umět sama přejmenovat v administraci** (C5), až bude admin existovat. Dokud se tier systém nepřepíše, kód s Bronze/Silver/Gold/VIP zůstává nedotčený (neměnit bez finálního potvrzení názvů i procent) — K1 status "HOTOVO"/70 % výše se týká jen mechanismu čtení tieru, ne konkrétních tierů samotných, které se budou měnit. **Požadavek pro C5 (admin, zatím 0 %, nezačato): editor úrovní věrnostního programu (název + sleva %) musí být součástí rozsahu admin UI, ne pevně zadrátovaný.**
+- **Obecný princip pro C5 (admin) — Lucky 13. 10. 2026: klientka (Lucia) si musí být schopná VŠECHNO běžné provozní nastavení udělat sama přes administraci, bez zásahu vývojáře.** Konkrétně zmíněno jako příklad, ne vyčerpávající seznam: marketingové akce/kampaně, slevy a jejich pravidla, produktové/kategoriové flagy (novinka, bestseller, doporučujeme...), výprodej/clearance (nastavení i ukončení), názvy věrnostních úrovní (viz výše). Důsledek pro návrh C5: žádná z těchto věcí nesmí být natvrdo v kódu, konfiguračním souboru nasazovaném přes deploy, ani vyžadovat zásah do backendu — musí to být editovatelné přes admin UI a NEXUS pricing/rule engine se musí umět chovat podle toho, co si tam klientka nastaví.
+- **Doplnění stejného seznamu — Lucky 13. 10. 2026, zatím NEOVĚŘENO jako hotové/pokryté, jen zapsáno ať se neztratí:**
+  - **Newsletter** — přihlášení/odhlášení, evidence souhlasu (GDPR), klientka musí umět spravovat/odesílat sama z administrace. (Pozn.: v `INVENTAR-A-AKCEPTACE.md` je newsletter zatím veden jen pod Academy/AI Anastasia entitami, Fáze 2 — potvrdit, jestli hlavní e-shop Fáze 1 vlastní newsletter signup/správu potřebuje taky, nebo stačí jen sběr e-mailu.)
+  - **Formulář odstúpenia od kúpnej zmluvy** (zákonná 14denní lhůta, SR spotřebitelské právo) — není v `STOREFRONT-POZADAVKY-FAZE1.md` ani v redirect mapě veden jako funkční formulář, jen `/vop` jako statická stránka. Potřeba: formulář na storefrontu (podání) + evidence/správa žádostí v adminu (stav vyřízení).
+  - **Reklamácie** — na starém webu i v redirect mapě existuje jen statická stránka `/reklamacie`. Potřeba ověřit/rozhodnout, jestli má Fáze 1 obsahovat i funkční reklamační formulář + workflow správy v adminu, nebo zůstává jen informační text (jako teď).
+  - **Fakturace** — vystavování faktur se zákonným číslováním (SK účetnictví), ne jen Medusa order confirmation. Navazuje na otevřený bod "DPH sazby s účetní" v `PROGRESS_LOG.md` sekci 6/8 — potřeba rozhodnutí s účetní, jestli fakturaci řeší Medusa/vlastní modul, nebo externí účetní systém.
+  - **Transakční e-maily** (notifikační, registrační/vítací, potvrzení objednávky, změna stavu) — potvrzovací e-mail objednávky je už v testovacích scénářích (příloha č. 1), ale registrační/vítací a obecné notifikační e-maily zatím nejsou nikde jako samostatný požadavek. E-mail provider (Resend/SMTP) je už veden jako otevřené rozhodnutí — tohle je navíc konkrétní seznam, JAKÉ e-maily se přes něj mají posílat.
+  - Všechny tyhle položky platí stejný princip jako výše: obsah šablon/textů e-mailů a stav/nastavení (zapnuto/vypnuto, texty) musí jít měnit z administrace, ne jen v kódu.
+
+---
+
+## 9. Checklist pokrytí celé nákupní cesty a provozu e-shopu (13. 10. 2026)
+
+Lucky 13. 10. 2026: "co se týká nákupní cesty a flow e-shopu, musíme mít pokryté úplně vše" — projeto systematicky proti příloze č. 1 (7 scénářů) a `INVENTAR-A-AKCEPTACE.md`, ne jen reaktivně dopisováno.
+
+**Pokryto / sledováno (viz sekce 2-4 výše):** výběr produktu → košík → kupón → platba → potvrzovací e-mail (scénář 1); RESET 40+ auto-odemčení (scénář 2); přihlášení + historie objednávek migrované zákaznice (scénář 3); staré adresy/QR → 301 (scénář 4); QR generátor kupónů (scénář 5); admin správa produktů/cen/kategorií/kupónů/objednávek/**zákaznic** (scénář 6, C5 zatím 0 %); SafeOrder stavy ALLOW/REVIEW/BLOCK/chyba; tier pricing; newsletter/odstoupenie/reklamácie/fakturace/transakční e-maily (viz výše).
+
+**Nově zjištěné mezery — nikde netrackované, potřeba rozhodnutí/zadání:**
+- **Doprava** — výběr dopravce, cena dopravy, pravidla (např. doprava zdarma od částky X). Starý web měl 2 způsoby dopravy (`INVENTAR-A-AKCEPTACE.md`), v Fázi 1 scope to zatím nikde není rozpracované.
+- **Osobní odběr** — zmíněno jen jako otevřené rozhodnutí vedle dobírky (Krok 1, bod 4), bez detailu.
+- **Skladové zásoby** — stav "skladem/vypredané", jak se synchronizuje a zobrazuje zákazníkovi; chybí úplně.
+- **Stornování objednávky zákazníkem** (ne jen adminem) — netrackováno.
+- **Vrácení peněz (refund)** po reklamaci/odstoupení — navazuje na nově přidané body výše, konkrétní mechanismus přes Stripe nikde zmíněný.
+- **Souhlas s VOP/GDPR při checkoutu** (zákonná povinnost, checkbox) — netrackováno jako požadavek.
+- **Správa zákaznických dat (CRM)** — scénář 6 už formálně zahrnuje "správu zákaznic", ale potvrdit rozsah: zobrazení historie, poznámky k zákaznici, GDPR export/výmaz na vyžádání.
+- **Zařazení zákaznic do klubu/předplatného — Lucky 13. 10. 2026, KONFLIKT SE SMLOUVOU:** `INVENTAR-A-AKCEPTACE.md` řádek 149 výslovně říká "Členský Klub a předplatné jsou mimo smlouvu" (Fáze 2/FUTURE_SCOPE). Potřeba rozhodnutí Lucky/Jose: (a) jen admin tag/segmentace zákaznic bez skutečného opakovaného fakturování — dá se přidat do C5 bez zásahu do smlouvy, nebo (b) skutečné předplatné s opakovanou platbou — to je vědomé rozšíření rozsahu Fáze 1 mimo aktuální smlouvu, ne tichý doplněk.

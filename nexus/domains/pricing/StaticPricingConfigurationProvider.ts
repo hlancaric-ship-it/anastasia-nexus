@@ -4,31 +4,15 @@
 import type { TenantContext } from '../../core/tenant/types.js';
 import type { PolicyConfig, PricingConfigurationProvider } from './PricingConfigurationProvider.js';
 
-export const DEFAULT_ANASTASIA_PRICING_CONFIG: PolicyConfig = {
-    loyaltyTiers: {
-        ZR4: 0.04,
-        ZR6: 0.06,
-        ZR8: 0.08,
-        ZR10: 0.10,
-        ZR12: 0.12,
-        ZR14: 0.14,
-        ZR16: 0.16,
-        ZR18: 0.18,
-        ZR20: 0.20,
-        ZR25: 0.25,
-    },
-    brandLimits: {
-        'DELPHIN': 0.25,
-        'MIVARDI': 0.20,
-        'MIKADO': 0.15,
-        'FISHING POINT': 0.10,
-    },
+// Tenant-neutrálny bezpečný fallback: žiadne tiery, žiadne brand limity/zľavy.
+// NESMIE obsahovať dáta konkrétneho tenanta (OKFISH aj ANASTASIA majú vlastnú
+// politiku v MEDUSA_PRICING_POLICY_JSON) — chýbajúci/čiastočný tenant config
+// sa má prejaviť ako "žiadna zľava", nikdy ako tichý fallback na cudzie čísla.
+export const SAFE_EMPTY_PRICING_CONFIG: PolicyConfig = {
+    loyaltyTiers: {},
+    brandLimits: {},
     categoryLimits: {},
-    brandSaleDiscounts: {
-        'DELPHIN': 0.15,
-        'MIVARDI': 0.10,
-        'MIKADO': 0.09,
-    },
+    brandSaleDiscounts: {},
 };
 
 export class StaticPricingConfigurationProvider implements PricingConfigurationProvider {
@@ -36,7 +20,7 @@ export class StaticPricingConfigurationProvider implements PricingConfigurationP
 
     constructor(customConfig?: Partial<PolicyConfig>) {
         this.config = {
-            ...DEFAULT_ANASTASIA_PRICING_CONFIG,
+            ...SAFE_EMPTY_PRICING_CONFIG,
             ...(customConfig ?? {}),
         };
     }
