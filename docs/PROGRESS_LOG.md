@@ -115,6 +115,7 @@ Administrace (C5), i18n (C6), e2e scénáře (C8), ambasadorský program, AI asi
 2. **Zákaznický účet** — a to oboustranně:
    - **Zákaznická zóna na storefrontu** (`/ucet`) musí mít OPRAVDU všechno: objednávky, digitální produkty/entitlementy, rezervace (konzultace/booking, K9), faktury, osobní údaje — ne jen útržek.
    - **Z adminu musí jít se zákaznicí přímo pracovat a komunikovat** — Lucia potřebuje z admin rozhraní vidět a případně i psát/reagovat zákaznici k její objednávce/rezervaci/produktu, ne jen číst data. **Tohle zatím nikde neexistuje** (`contact_messages` v `INVENTAR-A-AKCEPTACE.md` je jen jednosměrný kontaktní formulář, ne obousměrná komunikace vázaná na konkrétní zákaznici/objednávku) — potřeba navrhnout jako nový požadavek pro C5, ne odvozovat z existujícího kódu.
+   - **Volné termíny konzultací zadává Lucia ručně po týdnech (požadavek Lucky, 13. 10. 2026):** na začátku každého týdne vyplní v adminu volné časy a uloží. Žádná automatická týdenní pravidla; nevyplněný den = zavřeno (fail-closed). Backend `generateSlots` už umí rozsahy pro konkrétní datum (`exceptions.ranges`) — chybí vlastní tabulka dostupnosti místo `product.metadata.booking`, admin týdenní kalendář (zadání/uložení, „zkopírovat minulý týden“, zobrazení obsazených termínů, obsazený čas nelze smazat) a volitelně pondělní připomínka, když týden není vyplněný.
 Objednávkový formulář a rezervační formulář (K9 booking) musí být na tohle napojené stejně pečlivě — jasné, srozumitelné, ne obecný placeholder.
 
 ### Krok 6 — Produkční infrastruktura (A-17)
