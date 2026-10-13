@@ -1,7 +1,8 @@
 var mockValidate: any
+var mockCompensate: any
 jest.mock("@medusajs/medusa/core-flows", () => ({
   addToCartWorkflow: { hooks: { setPricingContext: jest.fn() } },
-  completeCartWorkflow: { hooks: { validate: jest.fn((handler) => { mockValidate = handler }) } },
+  completeCartWorkflow: { hooks: { validate: jest.fn((handler, compensate) => { mockValidate = handler; mockCompensate = compensate }) } },
 }))
 jest.mock("../../api/store/nexus-cart/route", () => ({ repriceCart: jest.fn() }))
 import { repriceCart } from "../../api/store/nexus-cart/route"
@@ -58,5 +59,61 @@ describe("SafeOrder guard on every completeCartWorkflow path", () => {
     }) as any
     await expect(run(cart)).rejects.toMatchObject({ code: "SAFEORDER_REVIEW_REQUIRED" })
     expect(global.fetch).toHaveBeenCalledTimes(2)
+  })
+})
+
+
+describe("C3 coupon usage after SafeOrder", () => {
+  const originalEnv = { ...process.env }
+  const originalFetch = global.fetch
+  const registerUsage = jest.fn()
+  const revertUsage = jest.fn()
+  const container = { resolve: jest.fn(() => ({ registerUsage, revertUsage })) }
+  const cart = () => ({ ...snapshot(), metadata: { nexus_coupon: { code: "SYNTHETIC-ONCE" } } })
+  const validate = (value: any = cart()) => mockValidate({ input: { id: value.id }, cart: value }, { container })
+  beforeEach(() => {
+    jest.resetAllMocks()
+    container.resolve.mockReturnValue({ registerUsage, revertUsage })
+    registerUsage.mockResolvedValue(undefined)
+    process.env.NEXUS_SAFEORDER_URL = "https://nexus.internal/api/nexus/safeorder"
+    process.env.NEXUS_PRICING_API_KEY = "synthetic-key"
+    process.env.NEXUS_TENANT_ID = "anastasia"
+    ;(repriceCart as jest.Mock).mockResolvedValue({ pricesChanged: false, items: [item] })
+    global.fetch = jest.fn(async (_url, options) => new Response(JSON.stringify({ ...JSON.parse(options!.body as string), ok: true, decision: "ALLOW", score: 0, factors: [] }))) as any
+  })
+  afterEach(() => { process.env = { ...originalEnv }; global.fetch = originalFetch })
+  it("registers one action after ALLOW and compensates only a successful registration", async () => {
+    const response = await validate()
+    expect(registerUsage).toHaveBeenCalledWith([{ code: "SYNTHETIC-ONCE", amount: 1 }], { customer_id: null, customer_email: "synthetic@example.test" })
+    expect(container.resolve).toHaveBeenCalledWith("promotion")
+    await mockCompensate(response.compensateInput, { container })
+    expect(revertUsage).toHaveBeenCalledWith(...registerUsage.mock.calls[0])
+  })
+  it.each(["BLOCK", "REVIEW"])("never consumes for %s", async decision => {
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({ ok: true, tenantId: "anastasia", currency: "eur", orderSum: 55, decision, score: decision === "BLOCK" ? 90 : 50, factors: [] }))) as any
+    await expect(validate()).rejects.toBeInstanceOf(SafeOrderError)
+    expect(registerUsage).not.toHaveBeenCalled()
+  })
+  it("does not consume if a later payment provider rejects", async () => {
+    const value = cart()
+    value.payment_collection.payment_sessions.push({ ...value.payment_collection.payment_sessions[0], provider_id: "cod" })
+    global.fetch = jest.fn(async (_url, options) => {
+      const body = JSON.parse(options!.body as string)
+      return new Response(JSON.stringify({ ...body, ok: true, decision: body.paymentMethod === "cod" ? "REVIEW" : "ALLOW", score: body.paymentMethod === "cod" ? 50 : 0, factors: [] }))
+    }) as any
+    await expect(validate(value)).rejects.toBeInstanceOf(SafeOrderError)
+    expect(registerUsage).not.toHaveBeenCalled()
+  })
+  it("propagates the original registration failure", async () => {
+    const error = new Error("Promotion usage exceeds the limit.")
+    registerUsage.mockRejectedValue(error)
+    await expect(validate()).rejects.toBe(error)
+    await mockCompensate(undefined, { container })
+    expect(revertUsage).not.toHaveBeenCalled()
+  })
+  it("skips carts without coupons and already completed carts", async () => {
+    await validate(snapshot())
+    await validate({ ...cart(), completed_at: new Date() })
+    expect(registerUsage).not.toHaveBeenCalled()
   })
 })

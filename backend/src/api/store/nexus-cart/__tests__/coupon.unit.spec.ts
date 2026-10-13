@@ -47,7 +47,7 @@ describe("kupón v /store/nexus-cart", () => {
     process.env.NEXUS_PRICING_API_KEY = "synthetic-service-key"
     process.env.NEXUS_TENANT_ID = "anastasia"
     runMock.mockClear()
-    ;(updateCartWorkflow as jest.Mock).mockClear()
+    ;(updateCartWorkflow as unknown as jest.Mock).mockClear()
   })
   afterEach(() => { process.env = { ...originalEnv }; global.fetch = originalFetch })
 

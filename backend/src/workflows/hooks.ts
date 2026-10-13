@@ -12,6 +12,8 @@
  * hook. See MEDUSA-SPIKE-RESULTS.md section 4/6 for the full trace.
  */
 import { addToCartWorkflow, completeCartWorkflow } from "@medusajs/medusa/core-flows"
+import type { IPromotionModuleService } from "@medusajs/framework/types"
+import { Modules } from "@medusajs/framework/utils"
 import { StepResponse } from "@medusajs/framework/workflows-sdk"
 import { assertSafeOrderAllows, SafeOrderError } from "../api/store/nexus-checkout/safeorder"
 import { repriceCart } from "../api/store/nexus-cart/route"
@@ -20,7 +22,7 @@ addToCartWorkflow.hooks.setPricingContext(async () => {
     return new StepResponse({})
 })
 
-// Read-only guard against cart changes between the adapter reprice and Medusa's
+// Guard against cart changes between the adapter reprice and Medusa's
 // locked completion snapshot. Never mutate the cart from completeCartWorkflow's
 // validate hook: Medusa documents that the order is built from its earlier snapshot.
 completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { container }) => {
@@ -43,6 +45,22 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
     for (const session of processable) {
         await assertSafeOrderAllows({ orderSum: total, paymentMethod: session.provider_id, customerEmail: cart.email })
     }
+    // All providers must ALLOW before consuming the coupon. Medusa owns the
+    // transaction/row locks; let a rejected registration abort this workflow.
+    const coupon = cart.metadata?.nexus_coupon
+    if (!coupon || cart.completed_at) return
+    if (typeof coupon.code !== "string" || !coupon.code.trim()) throw new Error("COUPON_INVALID")
+    const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
+    const computedActions = [{ code: coupon.code, amount: 1 }]
+    const registrationContext = { customer_id: cart.customer?.id || null, customer_email: cart.email || null }
+    await promotions.registerUsage(computedActions, registrationContext)
+    return new StepResponse(undefined, { computedActions, registrationContext })
+}, async (usage, { container }) => {
+    // Match Medusa's own register-usage step: a later payment/order failure
+    // returns only the usage successfully registered by this hook.
+    if (!usage) return
+    const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
+    await promotions.revertUsage(usage.computedActions, usage.registrationContext)
 })
 
 function amountValue(value: any): number {
