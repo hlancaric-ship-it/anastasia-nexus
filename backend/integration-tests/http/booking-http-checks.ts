@@ -1,6 +1,7 @@
 import { ContainerRegistrationKeys, generateJwtToken, Modules } from "@medusajs/framework/utils"
 import { capturePaymentWorkflow, cancelOrderWorkflow } from "@medusajs/medusa/core-flows"
 import { confirmBookingForOrder } from "../../src/modules/booking/order-sync"
+import { mondayOf, weekDates } from "../../src/modules/booking/availability"
 
 /** Called only by the guarded synthetic Medusa/Postgres runner. JWTs are local fixtures. */
 export async function verifyBookingHttp({ api, container, options, newCart, product, countOrders, evidence }: any) {
@@ -11,10 +12,12 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
   const auth = actors.map((customer: any) => ({ Authorization: `Bearer ${generateJwtToken({ actor_id: customer.id, actor_type: "customer", auth_identity_id: `synthetic-${customer.id}` }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` }))
   const opts = auth.map((headers: any) => ({ ...options, headers: { ...options.headers, ...headers } }))
   await container.resolve(Modules.PRODUCT).updateProducts(product.id, { metadata: { booking: {
-    timezone: "Europe/Bratislava", durationMinutes: 60, bufferMinutes: 15, stepMinutes: 30,
-    rules: [1, 2, 3, 4, 5, 6, 7].map(weekday => ({ weekday, start_time: "09:00", end_time: "18:00" })),
+    durationMinutes: 60, bufferMinutes: 15, stepMinutes: 30,
   } } })
   const date = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
+  // Volné úseky zadává Lucia po týdnech; bez nich se nic nenabízí (fail-closed).
+  const weekStart = mondayOf(date)
+  await bookings.replaceWeekAvailability({ week_start: weekStart, days: Object.fromEntries(weekDates(weekStart).map(d => [d, [{ start_time: "09:00", end_time: "18:00" }]])) })
   const slots = await api.get(`/store/booking-slots?product_id=${product.id}&from=${date}&to=${date}`, options)
   expect(slots.status).toBe(200)
   const start = slots.data.slots[0].start
