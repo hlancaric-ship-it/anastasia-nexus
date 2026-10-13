@@ -89,6 +89,18 @@ describe("C3 coupon usage after SafeOrder", () => {
     await mockCompensate(response.compensateInput, { container })
     expect(revertUsage).toHaveBeenCalledWith(...registerUsage.mock.calls[0])
   })
+  it("releases a claimed booking when coupon registration rejects inside validate", async () => {
+    const claim = { id: "b1", cart_id: "cart_synthetic", held_until: new Date() }
+    const releaseCheckoutClaim = jest.fn()
+    container.resolve.mockImplementation(((key: string) => key === "query"
+      ? { graph: async () => ({ data: [{ id: "p1", metadata: { booking: {} } }] }) }
+      : key === "booking" ? { claimForCheckout: async () => claim, releaseCheckoutClaim }
+      : { registerUsage, revertUsage }) as any)
+    registerUsage.mockRejectedValue(new Error("coupon exhausted"))
+    await expect(validate({ ...cart(), customer_id: "c1", metadata: { ...cart().metadata, booking_id: "b1" }, items: [{ ...item, product_id: "p1" }] })).rejects.toThrow("coupon exhausted")
+    expect(releaseCheckoutClaim).toHaveBeenCalledWith(claim)
+    expect(revertUsage).not.toHaveBeenCalled()
+  })
   it.each(["BLOCK", "REVIEW"])("never consumes for %s", async decision => {
     global.fetch = jest.fn(async () => new Response(JSON.stringify({ ok: true, tenantId: "anastasia", currency: "eur", orderSum: 55, decision, score: decision === "BLOCK" ? 90 : 50, factors: [] }))) as any
     await expect(validate()).rejects.toBeInstanceOf(SafeOrderError)

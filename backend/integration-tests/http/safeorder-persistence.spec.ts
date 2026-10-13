@@ -1,3 +1,4 @@
+import { verifyBookingHttp } from "./booking-http-checks"
 import { existsSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { Server } from "node:net"
@@ -63,9 +64,14 @@ medusaIntegrationTestRunner({
         return response.data
       }
       const countOrders = async () => Number((await dbConnection.raw('SELECT count(*) AS count FROM "order"')).rows[0].count)
-      const newCart = async (amount: 50 | 400, disposable = false, couponCode?: string) => {
-        const created = await success("/store/carts", { region_id: region.id, email: disposable ? "synthetic@tempmail.com" : "synthetic@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } })
-        const id = created.cart.id
+      const newCart = async (amount: 50 | 400, disposable = false, couponCode?: string, customerHeaders?: Record<string, string>) => {
+        const createdResponse = await api.post("/store/carts", { region_id: region.id, email: disposable ? "synthetic@tempmail.com" : "synthetic@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } }, customerHeaders ? { ...options, headers: { ...headers, ...customerHeaders } } : options)
+        expect(createdResponse.status).toBe(200)
+        const id = createdResponse.data.cart.id
+        if (customerHeaders) {
+          const assigned = await api.post(`/store/carts/${id}/customer`, {}, { ...options, headers: { ...headers, ...customerHeaders } })
+          expect(assigned.status).toBe(200)
+        }
         const product = products.find((p) => p.handle === `synthetic-p0-${amount}`)!
         await success(`/store/carts/${id}/line-items`, { variant_id: product.variants[0].id, quantity: 1 })
         await success("/store/nexus-cart", { cart_id: id, couponCode, unit_price: 0.01, tenantId: "attacker" })
@@ -83,7 +89,8 @@ medusaIntegrationTestRunner({
         expect(response.status).toBe(200)
       }
       const evidence: any[] = []
-      for (const endpoint of ["standard", "custom"] as const) {
+      const endpoints = process.env.WAVE1_BOOKING_ONLY === "1" ? [] : ["standard", "custom"] as const
+      for (const endpoint of endpoints) {
         for (const scenario of ["unauthorized", "unavailable", "malformed", "REVIEW", "BLOCK", "pricing-redirect", "pricing-malformed", "pricing-tenant", "pricing-change"] as const) {
           await control("normal")
           const before = await countOrders()
@@ -143,7 +150,7 @@ medusaIntegrationTestRunner({
       // C3: real HTTP checkouts, real PromotionModuleService and PostgreSQL.
       // Barrier only aligns arrival; no usage counters or row locks are mocked.
       const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
-      for (const endpoint of ["standard", "custom"] as const) {
+      for (const endpoint of endpoints) {
         const code = `SYNTHETIC-C3-${endpoint}`
         const promotion = await promotions.createPromotions({ code, type: "standard", status: "active", limit: 1,
           application_method: { type: "percentage", value: 10, target_type: "items", allocation: "across" } })
@@ -181,6 +188,7 @@ medusaIntegrationTestRunner({
         expect(Number(order.items[0].unit_price)).toBe(45)
         evidence.push({ endpoint, scenario: "C3_CONCURRENT_SINGLE_USE", statuses: responses!.map(r => r.status), orderDelta: 1, used: 1, unitPrice: 45 })
       }
+      await verifyBookingHttp({ api, container, options, newCart, product: products[0], countOrders, evidence })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
   },

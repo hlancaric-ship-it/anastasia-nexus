@@ -30,7 +30,7 @@ Měřítko: 0 % nic, 50 % kód existuje a má unit testy, 80 % ověřeno na reá
 | **Zákaznická migrace (C2)** | 85 % | Spuštěno naostro na reálném dumpu: 17 zákaznic, 10 objednávek, 18 entitlementů, `reconciled: true`, idempotentní |
 | **Přihlášení / SSO (K6)** | **90 %** | Magic-link ověřen živě na serveru end-to-end, včetně propojení migrované zákaznice a opravy 3 reálných chyb |
 | **QR kupóny / redirecty (C3)** | **90 %** | **Atomické použití ověřeno živě 13. 10. 2026** — `completeCartWorkflow.hooks.validate` po všech SafeOrder ALLOW volá Medusa `registerUsage`; chyba limitu zastaví dokončení a pozdější selhání má kompenzaci `revertUsage`. Dva paralelní HTTP checkouty se stejným jednorázovým kupónem: standardní i NEXUS cesta vždy **1× 200, 1× 400, právě jedna objednávka, used = 1**, cena 45 místo 50 EUR. Ověřeno proti skutečné Medusa 2.19.0 a izolovanému PostgreSQL. Celá backend unit sada **203/203**, HTTP **40 scénářů PASS**, TypeScript PASS. Jen procentuální kupóny; edge nasazení 301 map stále chybí. Implementace ve větvi `codex/coupon-usage`, bez nasazení. |
-| **Rezervace konzultací (K9)** | 75 % | Modul + API hotové, dvojitá rezervace ověřená přímo v Postgres. Chybí e2e přes HTTP a notifikace |
+| **Rezervace konzultací (K9)** | **80 %** | **HTTP a checkout ověřeny lokálně 13. 10. 2026** na skutečné Medusa/PostgreSQL: souběh stejného i překrývajícího se termínu 201/409, izolace zákaznic, přihlášené přiřazení ke košíku, odmítnutí chybějící/cizí/prošlé rezervace na obou completion cestách, kompenzace při chybě platby, capture → potvrzení, storno → uvolnění → nový hold. Platba přes lokální `pp_system_default`, nikoli Stripe. Chybí Stripe E2E, notifikace a admin kalendář. Větev `codex/booking-verification`, bez nasazení; důkazy v [booking-verification.md](../backend/docs/wp/booking-verification.md). |
 | **Inventář webu (C4)** | 100 % | Dokument hotový |
 | **Zálohy a obnova (A-16/A-17 lokálně)** | **95 %** | Záloha i obnova ověřené živě (sha256, přesné počty po obnově do čisté DB). Chybí jen produkční hosting/monitoring |
 | **Administrace (C5)** | 0 % | Nezačato, čeká na zelenou K5 |
@@ -51,7 +51,7 @@ Vše níže běželo proti reálné Postgres DB `anastasia_dev_wave1`, nebo prot
 1. **Katalog:** 30 produktů importováno, ceny sedí na 29 ze 30 proti živému webu (1 nenalezen na webu vůbec, viz `PRODUKTY-SOUCASNY-STAV.md`).
 2. **Migrace zákaznic:** 17 zákaznic, 12 adres, 10 objednávek, 18 entitlementů, `reconciled: true`, druhý běh beze změny.
 3. **Přihlášení (magic-link):** vyžádání → potvrzení → JWT s reálným `actor_id` → propojení migrované zákaznice → `has_account` se přepne na `true`. Testováno na dvou různých migrovaných zákaznicích.
-4. **Rezervace:** skutečný SQL insert dvou rezervací na stejný termín — druhý spadne na unikátním indexu; po zrušení jde termín znovu obsadit.
+4. **Rezervace:** 13. 10. 2026 navíc skutečné HTTP požadavky na Medusa/PostgreSQL: souběh i překryv termínů, vlastnictví a autorizace košíku, odmítnutí neplatného holdu, kompenzace platební chyby, lokální capture, potvrzení a storno s opětovným obsazením. Nejde o ověření reálného Stripe ani notifikací.
 5. **Zálohy:** `pg_dump` vytvoří soubor s ověřeným sha256; obnova do čisté DB vrátí přesné počty řádků.
 6. **Build a migrace:** `medusa build` a `db:migrate` prochází po každém sloučení větví.
 7. **Celá testová sada backendu:** 18 souborů, 157 testů, zelené. Celá sada NEXUSu: 85 souborů, 1053 testů, zelené.
@@ -60,8 +60,10 @@ Vše níže běželo proti reálné Postgres DB `anastasia_dev_wave1`, nebo prot
 
 ## 4. Co je napsané, ale NEOVĚŘENÉ (kód existuje, běh proti realitě ne)
 
+- K9 rezervace — HTTP/checkout a lokální platební lifecycle již ověřeny; zbývá skutečná Stripe platba, notifikace a frontend/admin návaznost. Viz [booking-verification.md](../backend/docs/wp/booking-verification.md).
+
 - Chráněná média (Worker nad R2) — nikdy neběžel proti skutečnému R2 bucketu.
-- QR kupóny — **atomické navýšení již OVĚŘENO 13. 10. 2026** na skutečné Medusa + PostgreSQL pro obě HTTP checkout cesty (souběh 200/400, právě jedna objednávka, `used = 1`). Celá unit sada 203/203, HTTP runner 40 scénářů, `npx tsc --noEmit` PASS. `npm test` v backendu neexistuje (`Missing script: test`); spuštěny celé existující unit testy a izolovaný HTTP runner. První běhy narazily na timeout QR a původní časový limit rozšířeného HTTP testu; konečné opakované běhy prošly. Zbývá sloučení větve a edge nasazení redirectů; podrobnosti v [coupon-usage.md](../backend/docs/wp/coupon-usage.md).
+- QR kupóny — **atomické navýšení již OVĚŘENO 13. 10. 2026** na skutečné Medusa + PostgreSQL pro obě HTTP checkout cesty (souběh 200/400, právě jedna objednávka, `used = 1`). Celá unit sada 203/203, HTTP runner 40 scénářů, `npx tsc --noEmit` PASS. `npm test` v backendu neexistuje (`Missing script: test`); spuštěny celé existující unit testy a izolovaný HTTP runner. První běhy narazily na timeout QR a původní časový limit rozšířeného HTTP testu; konečné opakované běhy prošly. C3 sloučeno do `origin/wave1-base` jako `44dbf33`; zbývá edge nasazení redirectů; podrobnosti v [coupon-usage.md](../backend/docs/wp/coupon-usage.md).
 - Stripe platby — podpis/integrita webhooku ověřena živě se skutečným SDK (viz výše, K7 55 %); samotná platba kartou/Apple Pay/Google Pay čeká na Luckyho testovací klíč.
 - SafeOrder Worker route — nález o chybějící autentizaci z `codex/wave1-security`, oprava existuje na té větvi, ale není sloučená.
 - Voucher runtime — Worker routy existují, souběh neotestován.

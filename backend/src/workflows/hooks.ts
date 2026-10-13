@@ -17,6 +17,14 @@ import { Modules } from "@medusajs/framework/utils"
 import { StepResponse } from "@medusajs/framework/workflows-sdk"
 import { assertSafeOrderAllows, SafeOrderError } from "../api/store/nexus-checkout/safeorder"
 import { repriceCart } from "../api/store/nexus-cart/route"
+import { claimCartBooking } from "./booking-checkout"
+import type BookingModuleService from "../modules/booking/service"
+
+type CheckoutCompensation = {
+    bookingClaim?: Awaited<ReturnType<typeof claimCartBooking>>
+    computedActions?: Array<{ code: string; amount: number }>
+    registrationContext?: { customer_id: string | null; customer_email: string | null }
+}
 
 addToCartWorkflow.hooks.setPricingContext(async () => {
     return new StepResponse({})
@@ -25,7 +33,7 @@ addToCartWorkflow.hooks.setPricingContext(async () => {
 // Guard against cart changes between the adapter reprice and Medusa's
 // locked completion snapshot. Never mutate the cart from completeCartWorkflow's
 // validate hook: Medusa documents that the order is built from its earlier snapshot.
-completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { container }) => {
+completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { container }): Promise<StepResponse<undefined, CheckoutCompensation> | undefined> => {
     // This is the locked snapshot Medusa uses to create the order, not a later query.
     const cart = snapshot as any
     const total = amountValue(cart?.total)
@@ -47,20 +55,30 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
     }
     // All providers must ALLOW before consuming the coupon. Medusa owns the
     // transaction/row locks; let a rejected registration abort this workflow.
-    const coupon = cart.metadata?.nexus_coupon
-    if (!coupon || cart.completed_at) return
-    if (typeof coupon.code !== "string" || !coupon.code.trim()) throw new Error("COUPON_INVALID")
-    const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
-    const computedActions = [{ code: coupon.code, amount: 1 }]
-    const registrationContext = { customer_id: cart.customer?.id || null, customer_email: cart.email || null }
-    await promotions.registerUsage(computedActions, registrationContext)
-    return new StepResponse(undefined, { computedActions, registrationContext })
+    if (cart.completed_at) return
+    const bookingClaim = await claimCartBooking(cart, container)
+    try {
+        const coupon = cart.metadata?.nexus_coupon
+        if (!coupon) return bookingClaim ? new StepResponse(undefined, { bookingClaim }) : undefined
+        if (typeof coupon.code !== "string" || !coupon.code.trim()) throw new Error("COUPON_INVALID")
+        const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
+        const computedActions = [{ code: coupon.code, amount: 1 }]
+        const registrationContext = { customer_id: cart.customer?.id || null, customer_email: cart.email || null }
+        await promotions.registerUsage(computedActions, registrationContext)
+        return new StepResponse(undefined, { computedActions, registrationContext, bookingClaim })
+    } catch (error) {
+        if (bookingClaim) await container.resolve<BookingModuleService>("booking").releaseCheckoutClaim(bookingClaim)
+        throw error
+    }
 }, async (usage, { container }) => {
     // Match Medusa's own register-usage step: a later payment/order failure
     // returns only the usage successfully registered by this hook.
     if (!usage) return
-    const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
-    await promotions.revertUsage(usage.computedActions, usage.registrationContext)
+    if (usage.computedActions) {
+        const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
+        await promotions.revertUsage(usage.computedActions, usage.registrationContext!)
+    }
+    if (usage.bookingClaim) await container.resolve<BookingModuleService>("booking").releaseCheckoutClaim(usage.bookingClaim)
 })
 
 function amountValue(value: any): number {

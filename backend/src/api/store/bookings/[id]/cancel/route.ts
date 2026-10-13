@@ -17,6 +17,9 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const booking = await service.cancel(id, "customer_request")
     return res.status(200).json({ booking })
   } catch (error) {
+    if (error instanceof MedusaError && error.type === MedusaError.Types.NOT_ALLOWED) {
+      return res.status(409).json({ type: "not_allowed", message: "Rezervace je součástí objednávky; nejprve zrušte objednávku." })
+    }
     if (error instanceof MedusaError && error.type === MedusaError.Types.NOT_FOUND) {
       return res.status(404).json({ type: "not_found", message: "Rezervace neexistuje" })
     }
