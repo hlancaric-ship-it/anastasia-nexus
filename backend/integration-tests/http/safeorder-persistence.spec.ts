@@ -4,11 +4,12 @@ import { Server } from "node:net"
 import { Client } from "pg"
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
 import { asValue } from "@medusajs/framework/awilix"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import type { IPromotionModuleService } from "@medusajs/framework/types"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
 import bootstrap, { API_KEY_TITLE, SALES_CHANNEL_NAME, DIGITAL_PROFILE_NAME } from "../../src/scripts/anastasia-bootstrap"
 
-jest.setTimeout(300_000)
+jest.setTimeout(600_000)
 const root = process.env.WAVE1_SYNTHETIC_ROOT
 const workerBase = process.env.WAVE1_WORKER_BASE
 if (!root || !existsSync(resolve(root, "synthetic-only.marker")) || !workerBase?.startsWith("http://127.0.0.1:") || process.env.DB_HOST !== "localhost" || process.env.DB_USERNAME !== "wave1_synthetic" || process.env.DB_TEMP_NAME !== "anastasia_dev_wave1") {
@@ -62,12 +63,12 @@ medusaIntegrationTestRunner({
         return response.data
       }
       const countOrders = async () => Number((await dbConnection.raw('SELECT count(*) AS count FROM "order"')).rows[0].count)
-      const newCart = async (amount: 50 | 400, disposable = false) => {
+      const newCart = async (amount: 50 | 400, disposable = false, couponCode?: string) => {
         const created = await success("/store/carts", { region_id: region.id, email: disposable ? "synthetic@tempmail.com" : "synthetic@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } })
         const id = created.cart.id
         const product = products.find((p) => p.handle === `synthetic-p0-${amount}`)!
         await success(`/store/carts/${id}/line-items`, { variant_id: product.variants[0].id, quantity: 1 })
-        await success("/store/nexus-cart", { cart_id: id, unit_price: 0.01, tenantId: "attacker" })
+        await success("/store/nexus-cart", { cart_id: id, couponCode, unit_price: 0.01, tenantId: "attacker" })
         const shipping = await api.get(`/store/shipping-options?cart_id=${id}`, options)
         expect(shipping.status).toBe(200)
         const option = shipping.data.shipping_options.find((item: any) => item.shipping_profile_id === profile.id) || shipping.data.shipping_options[0]
@@ -138,6 +139,47 @@ medusaIntegrationTestRunner({
         expect(Number(persisted.items[0].unit_price)).toBe(50)
         expect(Number(persisted.items[0].quantity)).toBe(1)
         evidence.push({ endpoint, scenario: "ALLOW", status: 200, orderDelta: 1, currency: "eur", total: Number(persisted.total), unitPrice: 50 })
+      }
+      // C3: real HTTP checkouts, real PromotionModuleService and PostgreSQL.
+      // Barrier only aligns arrival; no usage counters or row locks are mocked.
+      const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
+      for (const endpoint of ["standard", "custom"] as const) {
+        const code = `SYNTHETIC-C3-${endpoint}`
+        const promotion = await promotions.createPromotions({ code, type: "standard", status: "active", limit: 1,
+          application_method: { type: "percentage", value: 10, target_type: "items", allocation: "across" } })
+        const ids = await Promise.all([newCart(50, false, code), newCart(50, false, code)])
+        const before = await countOrders()
+        const original = promotions.registerUsage.bind(promotions)
+        let arrivals = 0
+        let release!: () => void
+        const ready = new Promise<void>(resolve => { release = resolve })
+        const registration = jest.spyOn(promotions, "registerUsage").mockImplementation(async (actions, context) => {
+          if (actions.some(action => action.code === code)) {
+            if (++arrivals === 2) release()
+            let timer: ReturnType<typeof setTimeout> | undefined
+            try {
+              await Promise.race([ready, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("C3_BARRIER_TIMEOUT")), 15000) })])
+            } finally { clearTimeout(timer) }
+          }
+          return original(actions, context)
+        })
+        let responses: any[]
+        try {
+          responses = await Promise.all(ids.map(id => api.post(endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout", endpoint === "standard" ? {} : { cart_id: id }, options)))
+        } finally { registration.mockRestore() }
+        expect(arrivals).toBe(2)
+        const winner = responses!.findIndex(response => response.status === 200)
+        expect(responses!.filter(response => response.status === 200)).toHaveLength(1)
+        expect(responses![1 - winner].status).toBeGreaterThanOrEqual(400)
+        expect(JSON.stringify(responses![1 - winner].data)).toContain("Promotion usage exceeds the limit")
+        expect(responses![1 - winner].data.order).toBeUndefined()
+        expect(await countOrders()).toBe(before + 1)
+        expect((await promotions.retrievePromotion(promotion.id)).used).toBe(1)
+        const failed = (await dbConnection.raw('SELECT completed_at FROM cart WHERE id = ?', [ids[1 - winner]])).rows[0]
+        expect(failed.completed_at).toBeNull()
+        const order = await entity("order", { id: responses![winner].data.order.id }, ["id", "items.unit_price"])
+        expect(Number(order.items[0].unit_price)).toBe(45)
+        evidence.push({ endpoint, scenario: "C3_CONCURRENT_SINGLE_USE", statuses: responses!.map(r => r.status), orderDelta: 1, used: 1, unitPrice: 45 })
       }
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
