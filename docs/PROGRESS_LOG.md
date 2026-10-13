@@ -25,7 +25,7 @@ Měřítko: 0 % nic, 50 % kód existuje a má unit testy, 80 % ověřeno na reá
 | **Katalog (C1)** | **90 %** | 30 produktů v DB, ceny ověřené proti živému webu i dumpu. Chybí: obrázky nenahrané do úložiště, DPH 20 % s účetní |
 | **Pricing/tenant (K1)** | 70 % | Tier z metadat funguje, unit testy. Tenant izolace Workeru neauditovaná |
 | **SafeOrder (K2 + review)** | **95 %** | **Sloučeno a ověřeno živě 12. 10. 2026, včetně e2e přes HTTP:** Worker vyžaduje autentizaci (Bearer + tenant), COD limit je pevný na serveru, standardní Medusa `completeCartWorkflow` i custom route jdou obě ověřit přes skutečné HTTP volání na reálném izolovaném Postgres clusteru (`verify-safeorder-local.py`) — **všech 38 scénářů PASS** (unauthorized/unavailable/malformed/REVIEW/BLOCK/pricing-redirect/pricing-malformed/pricing-tenant/pricing-change, oba completion paths). Cestou odhalena a opravena **reálná kritická chyba**: Worker posílal `appliedRules` ve špatném tvaru, což by shodilo úplně každé přidání do košíku proti živému Workeru (viz matice bod A-04/A-11). Chybí už jen produkční Stripe klíč |
-| **Entitlement / RESET 40+ (K3)** | 70 % | Modul funguje, migrace proběhla na DB. Chybí e2e s platbou |
+| **Entitlement / RESET 40+ (K3)** | **80 %** | **Lokální digitální lifecycle ověřen přes HTTP a skutečné payment workflows 14. 10. 2026:** bez nákupu/neuhrazená objednávka bez přístupu, capture → aktivní knihovna, izolace zákaznic/médií, replay bez duplikace, částečný refund zachová přístup, plný refund/storno jej odebere. Syntetický produkt a `pp_system_default`; skutečný RESET obsah a Stripe ještě neověřeny. Viz `backend/docs/wp/integrated-checkout.md`. |
 | **Chráněná média (A-07)** | 55 % | Backend + Worker napsané a testované (18 unit testů). Nic neběželo na R2, chybí bucket, vodoznak, nahrání souborů |
 | **Zákaznická migrace (C2)** | 85 % | Spuštěno naostro na reálném dumpu: 17 zákaznic, 10 objednávek, 18 entitlementů, `reconciled: true`, idempotentní |
 | **Přihlášení / SSO (K6)** | **90 %** | Magic-link ověřen živě na serveru end-to-end, včetně propojení migrované zákaznice a opravy 3 reálných chyb |
@@ -35,7 +35,7 @@ Měřítko: 0 % nic, 50 % kód existuje a má unit testy, 80 % ověřeno na reá
 | **Zálohy a obnova (A-16/A-17 lokálně)** | **95 %** | Záloha i obnova ověřené živě (sha256, přesné počty po obnově do čisté DB). Chybí jen produkční hosting/monitoring |
 | **Administrace (C5)** | 0 % | Nezačato, čeká na zelenou K5 |
 | **i18n SK/EN/RU (C6)** | 0 % | Fáze 2, nezačato |
-| **E2E scénáře (C8)** | 0 % | Nezačato |
+| **E2E scénáře (C8)** | — | **PARTIAL:** 14 nových technických kontrol digitálního nákupu, celkem 65 HTTP scénářů PASS na jedné čerstvé syntetické DB (SafeOrder + QR + booking + digitální přístupy). Nejde o splnění všech 14 akceptačních scénářů direktivy; chybí Stripe, e-mail, R2 a zbytek akceptace. |
 | **Stripe webhook (K7)** | **55 %** | **Polovina ověřena živě 12. 10. 2026** (skutečný `@medusajs/payment-stripe` + skutečné Stripe SDK, dummy klíč, žádné volání sítě): platný podpis → správná akce/částka; špatný podpis → vyhodí chybu; manipulovaná částka po podpisu → HMAC to sám odhalí; platba bez našeho `session_id` (cizí Stripe integrace na stejném účtu) → bezpečně ignorována, nespadne. **Chybí už jen reálná platba kartou/Apple Pay/Google Pay — to potřebuje Luckyho testovací klíč** |
 | **Voucher runtime (K8)** | **80 %** | **Souběh a jednorázovost ověřeny živě 12. 10. 2026** proti skutečnému workerd + D1 + Durable Object (ne mocku) — dvě souběžná čerpání stejného poukazu: jen jedno uspěje, zůstatek nejde do záporu, přesně jeden transakční záznam; replay stejného tokenu zamítnut. 5/5 opakovaných běhů bez nestability. Chybí jen rozhodnutí, co je „Voucher" produkt |
 | **Storefront** | 0 % | Záměrně nezačato (pravidlo pořadí) |
@@ -54,11 +54,13 @@ Vše níže běželo proti reálné Postgres DB `anastasia_dev_wave1`, nebo prot
 4. **Rezervace:** 13. 10. 2026 navíc skutečné HTTP požadavky na Medusa/PostgreSQL: souběh i překryv termínů, vlastnictví a autorizace košíku, odmítnutí neplatného holdu, kompenzace platební chyby, lokální capture, potvrzení a storno s opětovným obsazením. Nejde o ověření reálného Stripe ani notifikací.
 5. **Zálohy:** `pg_dump` vytvoří soubor s ověřeným sha256; obnova do čisté DB vrátí přesné počty řádků.
 6. **Build a migrace:** `medusa build` a `db:migrate` prochází po každém sloučení větví.
-7. **Celá testová sada backendu:** poslední regrese K9: **23 souborů, 218/218 unit testů, 51 HTTP scénářů (11 K9), TypeScript PASS**. Podrobnosti v `backend/docs/wp/booking-verification.md`. Poslední dříve zaznamenaná sada NEXUSu: 85 souborů, 1053 testů, zelené; při tomto K9 ověření nebyla znovu spuštěna.
+7. **Celá testová sada backendu:** poslední integrovaná regrese: **23 souborů, 218/218 unit testů, 65 HTTP scénářů (11 K9 + 14 digitální lifecycle), TypeScript PASS**. Podrobnosti v `backend/docs/wp/integrated-checkout.md`. Poslední dříve zaznamenaná sada NEXUSu: 85 souborů, 1053 testů, zelené; při tomto K9 ověření nebyla znovu spuštěna.
 
 ---
 
 ## 4. Co je napsané, ale NEOVĚŘENÉ (kód existuje, běh proti realitě ne)
+
+- K4/C8 digitální nákup — lokální payment/entitlement lifecycle a HTTP vydání podepsaného odkazu ověřeny v rámci 65 scénářů. Neověřeny skutečná Stripe platba, R2 doručení, reálný RESET obsah a e-maily. Důkaz a přesné hranice: [integrated-checkout.md](../backend/docs/wp/integrated-checkout.md).
 
 - K9 rezervace — HTTP/checkout a lokální platební lifecycle již ověřeny; konečná regrese 218/218 unit, 51 HTTP scénářů a TypeScript PASS; zbývá skutečná Stripe platba, notifikace a frontend/admin návaznost. Viz [booking-verification.md](../backend/docs/wp/booking-verification.md).
 
@@ -70,7 +72,7 @@ Vše níže běželo proti reálné Postgres DB `anastasia_dev_wave1`, nebo prot
 
 ## 5. Co ještě VŮBEC NEZAČALO
 
-Administrace (C5), i18n (C6), e2e scénáře (C8), ambasadorský program, AI asistent, storefront, produkční monitoring a hosting, DRM pro video.
+Administrace (C5), i18n (C6), ambasadorský program, AI asistent, storefront, produkční monitoring a hosting, DRM pro video.
 
 ---
 
