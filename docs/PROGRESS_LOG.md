@@ -54,13 +54,13 @@ Vše níže běželo proti reálné Postgres DB `anastasia_dev_wave1`, nebo prot
 4. **Rezervace:** 13. 10. 2026 navíc skutečné HTTP požadavky na Medusa/PostgreSQL: souběh i překryv termínů, vlastnictví a autorizace košíku, odmítnutí neplatného holdu, kompenzace platební chyby, lokální capture, potvrzení a storno s opětovným obsazením. Nejde o ověření reálného Stripe ani notifikací.
 5. **Zálohy:** `pg_dump` vytvoří soubor s ověřeným sha256; obnova do čisté DB vrátí přesné počty řádků.
 6. **Build a migrace:** `medusa build` a `db:migrate` prochází po každém sloučení větví.
-7. **Celá testová sada backendu:** 18 souborů, 157 testů, zelené. Celá sada NEXUSu: 85 souborů, 1053 testů, zelené.
+7. **Celá testová sada backendu:** poslední regrese K9: **23 souborů, 218/218 unit testů, 51 HTTP scénářů (11 K9), TypeScript PASS**. Podrobnosti v `backend/docs/wp/booking-verification.md`. Poslední dříve zaznamenaná sada NEXUSu: 85 souborů, 1053 testů, zelené; při tomto K9 ověření nebyla znovu spuštěna.
 
 ---
 
 ## 4. Co je napsané, ale NEOVĚŘENÉ (kód existuje, běh proti realitě ne)
 
-- K9 rezervace — HTTP/checkout a lokální platební lifecycle již ověřeny; zbývá skutečná Stripe platba, notifikace a frontend/admin návaznost. Viz [booking-verification.md](../backend/docs/wp/booking-verification.md).
+- K9 rezervace — HTTP/checkout a lokální platební lifecycle již ověřeny; konečná regrese 218/218 unit, 51 HTTP scénářů a TypeScript PASS; zbývá skutečná Stripe platba, notifikace a frontend/admin návaznost. Viz [booking-verification.md](../backend/docs/wp/booking-verification.md).
 
 - Chráněná média (Worker nad R2) — nikdy neběžel proti skutečnému R2 bucketu.
 - QR kupóny — **atomické navýšení již OVĚŘENO 13. 10. 2026** na skutečné Medusa + PostgreSQL pro obě HTTP checkout cesty (souběh 200/400, právě jedna objednávka, `used = 1`). Celá unit sada 203/203, HTTP runner 40 scénářů, `npx tsc --noEmit` PASS. `npm test` v backendu neexistuje (`Missing script: test`); spuštěny celé existující unit testy a izolovaný HTTP runner. První běhy narazily na timeout QR a původní časový limit rozšířeného HTTP testu; konečné opakované běhy prošly. C3 sloučeno do `origin/wave1-base` jako `44dbf33`; zbývá edge nasazení redirectů; podrobnosti v [coupon-usage.md](../backend/docs/wp/coupon-usage.md).
