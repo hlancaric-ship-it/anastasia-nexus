@@ -55,6 +55,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       product_id: productId,
       starts_at: new Date(offered.start),
       ends_at: new Date(offered.end),
+      bufferMinutes: config.bufferMinutes,
     })
     res.setHeader("Cache-Control", "no-store")
     return res.status(201).json({ booking })

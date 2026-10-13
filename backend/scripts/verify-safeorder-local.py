@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run real Medusa HTTP/persistence checks in a newly created synthetic PG cluster."""
 import json
+import argparse
 import os
 from pathlib import Path
 import shutil
@@ -10,6 +11,9 @@ import tempfile
 import time
 
 repo = Path(__file__).resolve().parents[2]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--booking-only', action='store_true', help='Run booking HTTP checks with the same isolated infrastructure')
+args = parser.parse_args()
 backend = repo / 'backend'
 evidence_out = os.environ.get('WAVE1_EVIDENCE_OUT')
 if evidence_out:
@@ -19,6 +23,7 @@ if evidence_out:
 # No inherited DB, cloud, mail, Stripe or NEXUS credentials.
 env = {k: os.environ[k] for k in ('PATH', 'TMPDIR', 'LANG', 'HOME', 'USER', 'LOGNAME') if k in os.environ}
 env.update({'NODE_ENV': 'test', 'MEDUSA_TELEMETRY_DISABLED': 'true', 'NO_COLOR': '1'})
+env['WAVE1_BOOKING_ONLY'] = '1' if args.booking_only else '0'
 for name in ('initdb', 'pg_ctl', 'node'):
     if not shutil.which(name, path=env.get('PATH')):
         raise SystemExit(f'Missing local prerequisite: {name}')

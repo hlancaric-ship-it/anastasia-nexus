@@ -1,0 +1,86 @@
+{
+  "status": "PASS",
+  "runtime": "Medusa 2.19 + Node Worker handler (not workerd)",
+  "payment_provider": "pp_system_default",
+  "full_http_scenario_count": 51,
+  "command": "python3 backend/scripts/verify-safeorder-local.py",
+  "scenarios": [
+    {
+      "scenario": "K9_HTTP_HOLD_RACE_AND_ISOLATION",
+      "statuses": [
+        201,
+        409
+      ],
+      "activeHolds": 1
+    },
+    {
+      "scenario": "K9_OVERLAPPING_STARTS",
+      "statuses": [
+        409,
+        201
+      ],
+      "activeHolds": 1
+    },
+    {
+      "scenario": "K9_BUFFER_OVERLAP",
+      "statuses": [
+        201,
+        409
+      ],
+      "activeHolds": 1
+    },
+    {
+      "scenario": "K9_MISSING_BOOKING",
+      "endpoint": "standard",
+      "status": 400,
+      "orderDelta": 0
+    },
+    {
+      "scenario": "K9_FOREIGN_BOOKING",
+      "endpoint": "standard",
+      "status": 400,
+      "orderDelta": 0
+    },
+    {
+      "scenario": "K9_MISSING_BOOKING",
+      "endpoint": "custom",
+      "status": 400,
+      "orderDelta": 0
+    },
+    {
+      "scenario": "K9_FOREIGN_BOOKING",
+      "endpoint": "custom",
+      "status": 400,
+      "orderDelta": 0
+    },
+    {
+      "scenario": "K9_PAYMENT_FAILURE_COMPENSATES",
+      "status": 400,
+      "orderDelta": 0,
+      "released": true
+    },
+    {
+      "scenario": "K9_CHECKOUT_RACE_CAPTURE_CANCEL_REBOOK",
+      "statuses": [
+        200,
+        400
+      ],
+      "orderDelta": 1,
+      "captured": true,
+      "canceled": true,
+      "rebooked": true
+    },
+    {
+      "scenario": "K9_EXPIRED_HOLD",
+      "endpoint": "standard",
+      "status": 400,
+      "orderDelta": 0
+    },
+    {
+      "scenario": "K9_EXPIRED_HOLD",
+      "endpoint": "custom",
+      "status": 400,
+      "orderDelta": 0
+    }
+  ]
+}

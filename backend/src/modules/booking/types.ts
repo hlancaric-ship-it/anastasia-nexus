@@ -22,6 +22,8 @@ export type HoldSlotInput = {
   ends_at: Date
   /** Jak dlouho hold čeká na potvrzení (zaplacení), než vyprší. */
   holdMinutes?: number
+  /** Server-configured preparation time after a consultation. */
+  bufferMinutes?: number
 }
 
 export type ConfirmBookingInput = { id: string; order_id: string }
