@@ -197,6 +197,11 @@ export function homeSections(products) {
         .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
     }
     let pre='';
+    // Kolekcia na landing page: prehľad (nie obchod) – na mobile vodorovný pás 2 kariet, ktorý sa sám otáča.
+    if(out.includes('id="kolekcia"')){
+      const grid='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));';
+      out=out.replace(grid,'<nav class="kol-tabs" aria-label="Prehľad kolekcie"><a href="/eshop?filter=novinky">Novinky</a><a href="/eshop?filter=bestsellery">Bestsellery</a><a href="/eshop">Celý obchod</a></nav>'+grid.replace('<div ','<div class="kol-track" data-carousel tabindex="0" aria-label="Vybrané produkty" '));
+    }
     if(out.includes('data-video="sky"')){
       out=out.replace('<section ', '<section class="sky-section" ').replace('<div style="order:-1;', '<div class="sky-window" style="order:-1;').replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(0,0,0,0\) 50%,rgba\(0,0,0,0.65\) 100%\)"><\/div>/,'');
       out=out.replace(/(<section[^>]*>)/, '$1<div class="sky-spill" aria-hidden="true"><video data-video="sky-spill" poster="/assets/night-sky.jpg" autoplay muted loop playsinline preload="metadata">'+VIDEO_SOURCES.sky+'</video></div>');
@@ -228,7 +233,52 @@ const ease = (rgb, a0, a1, p0, p1) => SMOOTH.map((k, i) => `rgba(${rgb},${+(a0 +
 // Stejná křivka pro barvu motivu (proměnná), aby přechod navázal na sousední sekci v každém motivu.
 const easeVar = (color, a0, a1, p0, p1) => SMOOTH.map((k, i) => `color-mix(in srgb,${color} ${+((a0 + (a1 - a0) * k) * 100).toFixed(1)}%,transparent) calc(${p0} + (${p1} - ${p0}) * ${i / 10})`).join(',');
 const CREAM = '245,242,232', MASK = '0,0,0';
-export const HELMET_CSS = `html.lenis,html.lenis body{height:auto}
+export const HELMET_CSS = `/* Mobil: úpravy rytmu sekcí (bez centrování – Lucky 2026-10-14) */
+@media(max-width:699.98px){
+section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]:has(>span[style*="height:1px"]){letter-spacing:2px!important;font-size:10px!important;gap:10px!important}
+section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]>span[style*="height:1px"]{width:24px!important}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]{display:grid!important;grid-template-columns:1fr 1fr;gap:34px 18px!important;width:100%;flex:1 1 100%!important}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div{gap:11px!important;min-width:0}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>a{font-size:14px!important;line-height:1.3}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>:first-child{margin-bottom:4px}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;column-gap:18px}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3)>:first-child{grid-column:1/-1}
+footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!important;gap:44px!important}
+#o-lucii{grid-template-columns:1fr!important}
+#o-lucii>div:last-child{display:contents!important}
+#o-lucii>div:last-child>*{margin-inline:24px!important}
+#o-lucii>div:first-child{order:3;min-height:clamp(420px,110vw,560px)!important}
+#o-lucii::before{height:80px!important}#o-lucii>div:last-child>div:first-child{order:1;padding-top:96px}
+#o-lucii h2~div:has(>p){order:2;padding:14px 0 28px!important}
+#o-lucii h2~div:has(>p)>span{display:none}
+#o-lucii h2~div p :is(br,span){display:none}
+#o-lucii h2{order:4;margin-top:40px!important}
+#o-lucii a.dch1{order:5;align-self:flex-start;justify-self:start;margin-top:30px!important;margin-bottom:64px!important}
+.wisdom{position:relative;margin-top:-150px;padding-top:0;background:linear-gradient(180deg,transparent 0,#F5F2E8 150px)!important}
+
+}
+/* Kolekcia na landing page: prehľad (nie obchod), na mobile rotujúci pás 2 kariet */
+.kol-tabs{display:none}
+@media(max-width:699.98px){
+.kol-tabs{display:flex;gap:8px;margin:-24px 0 22px;overflow-x:auto;scrollbar-width:none}
+.kol-tabs a{flex:none;height:34px;padding:0 16px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid rgba(239,229,199,.24);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#EFE5C7;text-decoration:none}
+.kol-tabs a:first-child{background:#C9A355;border-color:#C9A355;color:#283020}
+.kol-track{display:flex!important;gap:12px!important;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:-20px;padding:0 20px 6px;scroll-padding-inline:20px;scrollbar-width:none;overscroll-behavior-x:contain}
+.kol-track::-webkit-scrollbar{display:none}
+.kol-track>article{flex:0 0 calc((100% - 12px)/2);scroll-snap-align:start;gap:12px!important;min-width:0}
+.kol-track>article>div:first-child{border-radius:44px 0 0 0!important}
+.kol-track>article>div:first-child>div[style*="top:18px"]{display:none!important}
+.kol-track>article>div:first-child>div[style*="bottom:16px"]{left:10px!important;bottom:10px!important;height:26px!important;font-size:10px!important}
+.kol-track>article>div:last-child{gap:6px!important}
+.kol-track>article>div:last-child>div:first-child{padding-top:10px!important;gap:6px!important}
+.kol-track>article>div:last-child>div:first-child>span:first-child{font-size:9px!important;letter-spacing:.16em!important}
+.kol-track>article>div:last-child>div:first-child>span:last-child{font-size:13px!important;white-space:nowrap}
+.kol-track>article h3{font-size:17px!important;line-height:1.2!important}
+.kol-track>article button[data-add]{height:36px!important;padding:0 14px!important;font-size:10px!important;letter-spacing:.12em!important;gap:8px!important}
+.sky-section .sky-window{margin-right:-20px!important}
+*:has(>header [data-menu-open]){display:flow-root}
+}
+html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto !important}
 .lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
 .lenis.lenis-stopped{overflow:hidden}
