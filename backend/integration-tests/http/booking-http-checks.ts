@@ -116,6 +116,8 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
   expect((await confirmBookingForOrder(container, orderId)).confirmed).toBe(true)
   await cancelOrderWorkflow(container).run({ input: { order_id: orderId } })
   await waitFor(b => b.status === "canceled")
+  const notificationEvidence = await verifyBookingNotifications(container, booking.id)
+  evidence.push({ scenario: "K9_BOOKING_NOTIFICATIONS", ...notificationEvidence })
   expect((await api.post("/store/bookings", body, opts[other])).status).toBe(201)
   evidence.push({ scenario: "K9_CHECKOUT_RACE_CAPTURE_CANCEL_REBOOK", statuses: completed.map(r => r.status), orderDelta: 1, captured: true, canceled: true, rebooked: true })
 
@@ -234,4 +236,31 @@ async function verifySharedCalendarAdmin({ api, container, options, opts, produc
   expect((await api.get(`/store/booking-slots?product_id=${short.id}&from=${date}&to=${date}`, options)).status).toBe(404)
   evidence.push({ scenario: "K9_ADMIN_TYPE_ARCHIVE", storeStatus: 404 })
   return { admin, date }
+}
+
+/**
+ * notify(): potvrzení i zrušení dorazí právě jednou (order.placed + payment.captured + ruční confirm = 1 e-mail),
+ * adresát je e-mail vlastníka rezervace a data šablony nenesou osobní údaje.
+ */
+async function verifyBookingNotifications(container: any, bookingId: string) {
+  const notifications = container.resolve(Modules.NOTIFICATION)
+  const owner = (await container.resolve("booking").retrieveBooking(bookingId)).customer_id
+  const [customer] = await container.resolve(Modules.CUSTOMER).listCustomers({ id: owner })
+  const byKey = async (key: string) => {
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const rows = await notifications.listNotifications({ idempotency_key: key }, { take: 5 })
+      if (rows.length) return rows
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+    throw new Error(`NOTIFICATION_TIMEOUT ${key}`)
+  }
+  const confirmed = await byKey(`booking.confirmed:${bookingId}`)
+  const canceled = await byKey(`booking.canceled:${bookingId}`)
+  for (const [rows, template] of [[confirmed, "booking-confirmed-sk"], [canceled, "booking-canceled-sk"]] as const) {
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ to: customer.email, channel: "email", template, resource_id: bookingId, resource_type: "booking" })
+    expect(JSON.stringify(rows[0].data)).not.toContain("@")
+  }
+  expect(canceled[0].data.cancel_kind).toBe("order_canceled")
+  return { confirmed: confirmed.length, canceled: canceled.length, cancel_kind: canceled[0].data.cancel_kind }
 }

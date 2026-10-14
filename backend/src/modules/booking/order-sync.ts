@@ -26,7 +26,7 @@ type OrderView = OrderPaymentView & { id: string; customer_id: string; items: Ar
  * Locked validate hook ověří vlastnictví/produkt a atomicky přiřadí hold ke košíku.
  * Po zaplacení se rezervace potvrdí; bez tohoto metadata objednávka žádnou rezervaci nemá.
  */
-export async function confirmBookingForOrder(container: Container, orderId: string): Promise<{ confirmed: boolean; skipped?: string }> {
+export async function confirmBookingForOrder(container: Container, orderId: string): Promise<{ confirmed: boolean; booking_id?: string; skipped?: string }> {
   const { query, logger, bookings } = deps(container)
   const { data } = await query.graph({ entity: "order", fields: ORDER_FIELDS, filters: { id: orderId } })
   const order = data?.[0] as OrderView | undefined
@@ -41,14 +41,18 @@ export async function confirmBookingForOrder(container: Container, orderId: stri
       customer_id: order.customer_id, product_ids: order.items.map(item => item.product_id), paid,
       ...(order.status === "canceled" ? { canceled: true } : {}) })
     if (order.status === "canceled") return { confirmed: false, skipped: "ORDER_CANCELED" }
-    return paid ? { confirmed: true } : { confirmed: false, skipped: "NOT_PAID" }
+    return paid ? { confirmed: true, booking_id: bookingId } : { confirmed: false, booking_id: bookingId, skipped: "NOT_PAID" }
   } catch (error) {
     logger.error(`[booking] potvrzení rezervace ${bookingId} pro objednávku ${orderId} selhalo`, error as Error)
     throw error
   }
 }
 
-export async function cancelBookingForCanceledOrder(container: Container, orderId: string): Promise<number> {
+/** Zruší aktivní rezervace objednávky; vrací počet a ID dříve potvrzených (jen ty dostanou upozornění). */
+export async function cancelBookingForCanceledOrder(container: Container, orderId: string): Promise<{ canceled: number; confirmed_ids: string[] }> {
   const { bookings } = deps(container)
-  return bookings.cancelByOrder(orderId, "order_canceled")
+  if (!orderId) return { canceled: 0, confirmed_ids: [] }
+  const confirmed = (await bookings.listBookings({ order_id: orderId, status: "confirmed" }, { take: 50, select: ["id"] })) as Array<{ id: string }>
+  const canceled = await bookings.cancelByOrder(orderId, "order_canceled")
+  return { canceled, confirmed_ids: canceled ? confirmed.map((b) => b.id) : [] }
 }

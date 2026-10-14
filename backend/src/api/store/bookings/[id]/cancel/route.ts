@@ -2,6 +2,7 @@ import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/frame
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { BOOKING_MODULE } from "../../../../../modules/booking"
 import type BookingModuleService from "../../../../../modules/booking/service"
+import { notify } from "../../../../../lib/notify"
 
 /** POST /store/bookings/:id/cancel: zákaznice ruší jen svou vlastní rezervaci. */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -15,6 +16,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const current = await (service as any).retrieveBooking(id)
     if (current.customer_id !== customerId) return res.status(404).json({ type: "not_found", message: "Rezervace neexistuje" })
     const booking = await service.cancel(id, "customer_request")
+    if (current.status === "confirmed") await notify(req.scope, { type: "booking.canceled", booking_id: id })
     return res.status(200).json({ booking })
   } catch (error) {
     if (error instanceof MedusaError && error.type === MedusaError.Types.NOT_ALLOWED) {

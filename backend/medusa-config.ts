@@ -91,10 +91,10 @@ const fileProvider = s3Configured
 
 // --- Notifikace: lokální log provider (placeholder). Pro SMTP/Resend viz docs/DEPLOY.md ---
 const notificationProvider = {
-  resolve: "@medusajs/medusa/notification-local",
+  resolve: "./src/modules/notification-log",
   id: "local",
   options: {
-    name: "Local notification log",
+    // bez osobních údajů v logu; skutečné doručení = samostatný provider se stejným id
     channels: ["email", "feed"],
   },
 }

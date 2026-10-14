@@ -1,7 +1,7 @@
 import { cancelBookingForCanceledOrder, confirmBookingForOrder } from "../order-sync"
 
 function makeContainer(order: any, overrides: Partial<Record<string, jest.Mock>> = {}) {
-  const bookings = { attachCheckoutOrder: jest.fn(async (i: any) => ({ id: i.id, status: "confirmed" })), cancelByOrder: jest.fn(async () => 1), ...overrides }
+  const bookings = { attachCheckoutOrder: jest.fn(async (i: any) => ({ id: i.id, status: "confirmed" })), cancelByOrder: jest.fn(async () => 1), listBookings: jest.fn(async () => [{ id: "bkg_1" }]), ...overrides }
   const query = { graph: jest.fn(async ({ entity }: any) => ({ data: entity === "order_cart" ? [{ cart_id: "cart_1" }] : order ? [order] : [] })) }
   const logger = { error: jest.fn(), info: jest.fn() }
   const container: any = { resolve: (key: string) => (key === "booking" ? bookings : key === "query" ? query : logger) }
@@ -18,7 +18,7 @@ describe("confirmBookingForOrder", () => {
   })
   it("zaplacená objednávka s booking_id potvrdí rezervaci", async () => {
     const { container, bookings } = makeContainer(paidOrder)
-    expect((await confirmBookingForOrder(container, "o1")).confirmed).toBe(true)
+    expect(await confirmBookingForOrder(container, "o1")).toEqual({ confirmed: true, booking_id: "bkg_1" })
     expect(bookings.attachCheckoutOrder).toHaveBeenCalledWith({ id: "bkg_1", order_id: "o1", cart_id: "cart_1", customer_id: "cus_1", product_ids: ["p1"], paid: true })
   })
   it("bez booking_id v metadatech se přeskočí", async () => {
@@ -35,9 +35,14 @@ describe("confirmBookingForOrder", () => {
 })
 
 describe("cancelBookingForCanceledOrder", () => {
-  it("volá cancelByOrder", async () => {
+  it("volá cancelByOrder a vrátí dříve potvrzené rezervace pro upozornění", async () => {
     const { container, bookings } = makeContainer(null)
-    expect(await cancelBookingForCanceledOrder(container, "o1")).toBe(1)
+    expect(await cancelBookingForCanceledOrder(container, "o1")).toEqual({ canceled: 1, confirmed_ids: ["bkg_1"] })
+    expect(bookings.listBookings).toHaveBeenCalledWith({ order_id: "o1", status: "confirmed" }, expect.anything())
     expect(bookings.cancelByOrder).toHaveBeenCalledWith("o1", "order_canceled")
+  })
+  it("když nic nezrušilo (už zrušeno), neupozorňuje", async () => {
+    const { container } = makeContainer(null, { cancelByOrder: jest.fn(async () => 0) })
+    expect(await cancelBookingForCanceledOrder(container, "o1")).toEqual({ canceled: 0, confirmed_ids: [] })
   })
 })
