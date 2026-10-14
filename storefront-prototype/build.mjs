@@ -17,7 +17,7 @@ add('/eshop','Obchod',views.catalog());add('/eshop/kategorie','Kategórie',views
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',views.catalog('Kozmetika'));
 for(const p of api.getProducts())add(`/eshop/produkt/${p.slug}`,p.name,views.product(p));
 for(const p of api.getPages())add(p.path,p.title,views.content(p));
-add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());
+add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());
 add('/prihlasenie','Prihlásenie',views.login());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
 add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.reset());add('/reset-40/knihovna','Moje programy',views.reset(true));
 add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy());

@@ -7,7 +7,7 @@ export { api, createMockApi } from './mock.mjs';
 // same normalized snapshot; a future adapter can prefetch it at build time.
 export function createApi(storage, adapter=createMockApi(storage)) {
   let writes=Promise.resolve();
-  const mutations=new Set(['addToCart','setQuantity','applyCoupon','removeCoupon','importQr']);
+  const mutations=new Set(['addToCart','setQuantity','applyCoupon','removeCoupon','importQr','sendChatMessage','setChatPreview','addGiftVoucher','applyGiftVoucher','removeGiftVoucher']);
   return Object.fromEntries(Object.entries(adapter).map(([name,value])=>{
     if(typeof value!=='function')return[name,value];
     return[name,(...args)=>{

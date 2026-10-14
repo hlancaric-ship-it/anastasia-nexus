@@ -42,16 +42,26 @@ const aliases = {
   '/eshop/produkt/ritualne-sviecky':'/eshop/produkt/ritualne-sviecky-voskove',
 };
 const clone = value => structuredClone(value);
+// Synthetic API responses; views never define denominations or calculate credit.
+const voucherVariants = [
+  {id:'gv-50',title:'50,00 €'}, {id:'gv-100',title:'100,00 €'}, {id:'gv-200',title:'200,00 €'},
+];
+const voucherProducts=voucherVariants.map(v=>({slug:v.id,code:v.id,name:'Darčekový poukaz',priceLabel:v.title,image:'/assets/brand-mark.svg',giftVoucher:true}));
+const cartProducts=[...products,...voucherProducts];
 const memoryStorage = () => { const values = new Map(); return {getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)}; };
 const KEY='anastasia.skeleton.v1';
 const canonical = path => { const normalized=path.replace(/\/+$/,'')||'/'; return aliases[normalized]||normalized; };
 
 export function createMockApi(storage=memoryStorage()) {
+  let chatPreview='open', conversations=[{id:'demo-chat',subject:'Otázka k programu',status:'open'}];
+  const messages=[{conversation_id:'demo-chat',id:'welcome',author:'lucia',body:'Dobrý deň, tu je priestor pre vaše otázky.',created_at:'2026-10-14T08:00:00Z'}];
+  let sent=0, credit=null;
+  const chatStatus=()=>({eligible:chatPreview!=='ineligible',blocked:chatPreview==='blocked',can_write:!['ineligible','blocked','daily','limit'].includes(chatPreview)&&sent<3,reason:chatPreview==='ineligible'?'chat_not_eligible':chatPreview==='blocked'?'chat_blocked':chatPreview==='daily'?'chat_daily_limit':chatPreview==='limit'||sent>=3?'chat_consecutive_limit':null,remaining:{today:5-sent,in_row:Math.max(0,3-sent),now:Math.max(0,3-sent)},limits:{per_day:5,in_row:3,max_length:2000}});
   let state={lines:[],coupon:'',qrKeys:[]};
-  try { const stored=JSON.parse(storage.getItem(KEY)); if(stored && Array.isArray(stored.lines)) state={lines:stored.lines.filter(l=>products.some(p=>p.slug===l.slug)&&Number.isInteger(l.quantity)&&l.quantity>0&&l.quantity<=99),coupon:stored.coupon==='DEMO10'?'DEMO10':'',qrKeys:Array.isArray(stored.qrKeys)?stored.qrKeys.filter(v=>typeof v==='string').slice(-50):[]}; } catch { /* An unavailable storage must not break the preview. */ }
+  try { const stored=JSON.parse(storage.getItem(KEY)); if(stored && Array.isArray(stored.lines)) state={lines:stored.lines.filter(l=>cartProducts.some(p=>p.slug===l.slug)&&Number.isInteger(l.quantity)&&l.quantity>0&&l.quantity<=99),coupon:stored.coupon==='DEMO10'?'DEMO10':'',qrKeys:Array.isArray(stored.qrKeys)?stored.qrKeys.filter(v=>typeof v==='string').slice(-50):[]}; } catch { /* An unavailable storage must not break the preview. */ }
   const persist=()=>{try{storage.setItem(KEY,JSON.stringify(state));}catch{/* In-memory preview still works. */}};
-  const productByCode=code=>products.find(p=>p.code===code||p.slug===code);
-  const cart=()=>({mode:'mock',lines:state.lines.map(line=>({...clone(products.find(p=>p.slug===line.slug)),quantity:line.quantity})),coupon:state.coupon,subtotalLabel:'Ukážka — bez vyúčtovania',discountLabel:state.coupon?'DEMO10 prijatý v ukážke':'Kupón nezadaný',totalLabel:'Platba nie je aktívna'});
+  const productByCode=code=>cartProducts.find(p=>p.code===code||p.slug===code);
+  const cart=()=>({mode:'mock',lines:state.lines.map(line=>({...clone(cartProducts.find(p=>p.slug===line.slug)),quantity:line.quantity})),gift_voucher:clone(credit),coupon:state.coupon,subtotalLabel:'Ukážka — bez vyúčtovania',discountLabel:state.coupon?'DEMO10 prijatý v ukážke':'Kupón nezadaný',totalLabel:credit?'Ukážka zostatku na úhradu: 0,00 €':'Platba nie je aktívna'});
   const add=(code,quantity=1)=>{
     const product=productByCode(code);
     if(!product)return {ok:false,message:'Kód produktu sa v ukážkovom katalógu nenašiel. Pôvodný odkaz je zachovaný; produkt vyžaduje mapovanie pri napojení.'};
@@ -59,18 +69,49 @@ export function createMockApi(storage=memoryStorage()) {
     const line=state.lines.find(l=>l.slug===product.slug);
     if(line && line.quantity+quantity>99)return{ok:false,message:'Najviac 99 kusov jednej položky v ukážke.'};
     if(line)line.quantity+=quantity;else state.lines.push({slug:product.slug,quantity});
-    persist();return{ok:true,message:'Produkt pridaný do ukážkového košíka.',cart:cart()};
+    credit=null;persist();return{ok:true,message:'Produkt pridaný do ukážkového košíka.',cart:cart()};
   };
-  const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';persist();}return{ok:valid,message:valid?'Ukážkový kupón prijatý. Skutočnú zľavu určí server po napojení.':'Kupón nie je v ukážke dostupný. Na otestovanie použite DEMO10.'};};
+  const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';credit=null;persist();}return{ok:valid,message:valid?'Ukážkový kupón prijatý. Skutočnú zľavu určí server po napojení.':'Kupón nie je v ukážke dostupný. Na otestovanie použite DEMO10.'};};
   return {
     mode:'mock', canonical,
+    setChatPreview:value=>{chatPreview=value;},
+    getChatStatus:chatStatus,
+    getChatConversations:()=>({conversations:clone(conversations)}),
+    getChatConversation:id=>({conversation:clone(conversations.find(c=>c.id===id)),messages:clone(messages.filter(m=>m.conversation_id===id))}),
+    markChatRead:()=>({ok:true}),
+    sendChatMessage:({conversation_id,body})=>{
+      const s=chatStatus();if(!s.can_write)return{ok:false,status:s.eligible&&!s.blocked?429:403,type:s.reason};
+      const conversation=conversations.find(c=>c.id===conversation_id);
+      if(conversation_id&&!conversation)return{ok:false,status:404,type:'not_found'};
+      if(conversation&&(conversation.status==='closed'||chatPreview==='closed'))return{ok:false,status:409,type:'conversation_closed'};
+      body=String(body??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u202a-\u202e\u2066-\u2069]/g,'').trim();
+      if(!body||Array.from(body).length>2000)return{ok:false,status:400,type:body?'message_too_long':'message_empty'};
+      const target=conversation||{id:`demo-chat-${conversations.length+1}`,subject:'Nová konverzácia',status:'open'};
+      if(!conversation)conversations.unshift(target);
+      const message={id:`message-${++sent}`,author:'customer',body,conversation_id:target.id,created_at:new Date().toISOString()};messages.push(message);
+      return{ok:true,status:201,conversation:clone(target),message:clone(message)};
+    },
+    getGiftVoucherProduct:()=>({id:'demo-gift-voucher',handle:'darkovy-poukaz',variants:clone(voucherVariants)}),
+    addGiftVoucher:({variant_id,recipient})=>{
+      if(!voucherVariants.some(v=>v.id===variant_id))return{ok:false,message:'Vybraná hodnota poukazu už nie je dostupná.'};
+      if(!recipient?.name?.trim()||!/^\S+@\S+\.\S+$/.test(recipient?.email||'')||Array.from(recipient.message||'').length>300)return{ok:false,message:'Skontrolujte meno, e-mail a odkaz (najviac 300 znakov).'};
+      const result=add(variant_id);
+      return {...result,recipients:result.ok?{[variant_id]:[clone(recipient)]}:undefined};
+    },
+    applyGiftVoucher:code=>{
+      if(String(code).trim().toUpperCase()!=='DEMO-GIFT')return{ok:false,status:400,error:'GIFT_VOUCHER_INVALID',message:'Poukaz nie je platný alebo už nie je dostupný.'};
+      if(!state.lines.some(l=>!productByCode(l.slug)?.giftVoucher))return{ok:false,status:400,error:'GIFT_VOUCHER_NOT_APPLICABLE',message:'Poukaz sa nedá použiť na nákup ďalšieho poukazu.'};
+      credit={masked_code:'••••-GIFT',amountLabel:'18,00 €',balanceLabel:'50,00 €',amount:18,balance:50};
+      return{ok:true,gift_voucher:clone(credit),cart:cart(),message:'Poukaz bol uplatnený v ukážke.'};
+    },
+    removeGiftVoucher:()=>{credit=null;return cart();},
     getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
     getProduct:slug=>clone(products.find(p=>p.slug===slug)||null),
     getCategories:()=>[...new Set(products.map(p=>p.category))],
     getPages:()=>clone(pages),getPage:path=>clone(pages.find(p=>p.path===canonical(path))||null),getAliases:()=>clone(aliases),
     getCart:cart,addToCart:add,
-    setQuantity:(slug,quantity)=>{if(!Number.isInteger(quantity)||quantity<0||quantity>99)return{ok:false,message:'Množstvo musí byť celé číslo od 0 do 99.'};state.lines=quantity===0?state.lines.filter(l=>l.slug!==slug):state.lines.map(l=>l.slug===slug?{...l,quantity}:l);persist();return{ok:true,cart:cart()};},
-    applyCoupon:coupon,removeCoupon:()=>{state.coupon='';persist();return cart();},
+    setQuantity:(slug,quantity)=>{if(!Number.isInteger(quantity)||quantity<0||quantity>99)return{ok:false,message:'Množstvo musí byť celé číslo od 0 do 99.'};state.lines=quantity===0?state.lines.filter(l=>l.slug!==slug):state.lines.map(l=>l.slug===slug?{...l,quantity}:l);credit=null;persist();return{ok:true,cart:cart()};},
+    applyCoupon:coupon,removeCoupon:()=>{state.coupon='';credit=null;persist();return cart();},
     importQr:params=>{
       const code=params.get('produkt');if(!code)return{ok:false,message:'V odkaze chýba kód produktu.'};
       const qty=params.get('ks')??'1',couponCode=params.get('kupon')??'';

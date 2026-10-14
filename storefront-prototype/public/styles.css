@@ -119,3 +119,5 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 .zs-closing{padding-top:0}
 .zs-signature{margin-top:36px!important;font-size:13px!important;letter-spacing:.32em;text-transform:uppercase;opacity:.7}
 @media (max-width:760px){.zs-lead{margin-bottom:40px}.zs-statement-copy{font-size:17px}.zs-offer p:last-child{font-size:17px}}
+
+.account-chat{margin-top:48px;min-width:0}.account-chat h2{font-size:30px;margin-bottom:20px}.chat-message{border:1px solid var(--line);padding:20px;margin:16px 0;background:#eef0e4}.chat-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px}.account-chat textarea,#gift-voucher-form textarea{width:100%;min-height:120px}.account-chat button:disabled{opacity:.55;cursor:not-allowed}#gift-voucher-form{max-width:640px}#redeem-voucher-form{margin-top:24px}#chat-availability{margin:20px 0}#chat-form .form-status{overflow-wrap:anywhere}
