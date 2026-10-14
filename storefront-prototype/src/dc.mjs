@@ -165,7 +165,7 @@ const ids = html => html
 export function chrome(page) {
   const src = page === 'about' ? P.about : P.home;
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
-  const side=src.side.replace(/(<img src="\.\/assets\/logo-mark\.png"[^>]*>)<div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div>/,'$1');
+  const side=src.side.replace(/<div style="display:flex;align-items:center;gap:14px"><img src="\.\/assets\/logo-mark\.png"[^>]*><div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div><\/div>/,'');
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   const menuBrand=html=>html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   return {
@@ -231,7 +231,6 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 [data-screen-label="01 Hero"] h1,[data-screen-label="01 Hero"] p{color:#EFE5C7!important;text-shadow:0 2px 4px #14200f,0 0 16px #14200f;-webkit-text-stroke:.5px #14200f;paint-order:stroke fill}
 [data-screen-label="01 Hero"] h1{font-weight:200!important}
 .menu-brand-mark{position:relative;display:block;width:56px;height:56px;overflow:hidden;flex-shrink:0;border-radius:50%}.menu-brand-mark img{position:absolute;width:116.62%;height:auto;max-width:none;left:-8.45%;top:-34.01%;filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
-#dc-side-menu .menu-brand-mark{width:64px;height:64px}
 .header-brands{display:flex;align-items:center;justify-content:center;gap:24px;width:300px;height:64px}
 .header-brands>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:84px}
 .header-brands img{height:48px;width:auto;max-width:70px;object-fit:contain}
