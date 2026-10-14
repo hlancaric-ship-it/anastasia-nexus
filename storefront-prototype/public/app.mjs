@@ -278,3 +278,24 @@ const brandWave=document.querySelector('[data-brand-wave]');
 if(brandWave){const start=performance.now();const ripple=now=>{const phase=((now-start)%12000)/12000;brandWave.setAttribute('scale',reducedMotion.matches?'0':String(phase>.72&&phase<.88?Math.sin((phase-.72)/.16*Math.PI)*10:0));requestAnimationFrame(ripple);};requestAnimationFrame(ripple);}
 const skyWindow=document.querySelector('.sky-window'),skySpill=document.querySelector('.sky-spill video');
 if(skyWindow&&skySpill){const original=skyWindow.querySelector('video');const sizeSky=()=>{const box=skyWindow.getBoundingClientRect(),section=skySpill.parentElement.getBoundingClientRect();const width=Math.max(box.width,box.height*(original.videoWidth/original.videoHeight||16/9));Object.assign(skySpill.style,{width:width+'px',height:box.height+'px',left:(box.left-section.left+(box.width-width)/2)+'px',top:(box.top-section.top)+'px'});};new ResizeObserver(sizeSky).observe(skyWindow);original.addEventListener('loadedmetadata',sizeSky);original.addEventListener('play',()=>{skySpill.currentTime=original.currentTime;});sizeSky();}
+
+// Kolekcia na mobile: pás kariet sa sám posúva o jednu kartu; dotyk, hover, fokus alebo skrytá karta ho pozastaví.
+for(const track of document.querySelectorAll('[data-carousel]')){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)'),mobile=matchMedia('(max-width:699.98px)');
+  let hold=false,timer=0,resume=0;
+  const step=()=>{
+    if(hold||document.hidden||reduce.matches||!mobile.matches)return;
+    const card=track.firstElementChild;if(!card)return;
+    const w=card.getBoundingClientRect().width+parseFloat(getComputedStyle(track).columnGap||0);
+    const end=track.scrollLeft+track.clientWidth>=track.scrollWidth-4;
+    track.scrollTo({left:end?0:track.scrollLeft+w,behavior:'smooth'});
+  };
+  const start=()=>{clearInterval(timer);timer=setInterval(step,3800);};
+  const pause=()=>{hold=true;clearTimeout(resume);};
+  const later=()=>{clearTimeout(resume);resume=setTimeout(()=>{hold=false;},6000);};
+  track.addEventListener('pointerdown',pause);track.addEventListener('pointerup',later);track.addEventListener('pointercancel',later);
+  track.addEventListener('mouseenter',pause);track.addEventListener('mouseleave',later);
+  track.addEventListener('focusin',pause);track.addEventListener('focusout',later);
+  track.addEventListener('touchstart',pause,{passive:true});track.addEventListener('touchend',later,{passive:true});
+  new IntersectionObserver(([en])=>{if(en.isIntersecting)start();else clearInterval(timer);},{threshold:.3}).observe(track);
+}
