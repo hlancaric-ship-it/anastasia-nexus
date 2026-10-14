@@ -11,7 +11,7 @@ const watch=ctx=>{
   ctx.on('page',p=>{p.on('pageerror',err=>errors.push(p.url()+' '+err.message));p.on('console',m=>{if(m.type()==='error')errors.push(p.url()+' '+m.text());});});
 };
 const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});watch(context);
-await context.addInitScript(()=>localStorage.setItem('ana-ambient-off','1'));
+await context.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');}catch{}});
 const page=await context.newPage();
 const check=async(name,fn)=>{await fn();checks.push(name);console.log('PASS '+name);};
 const goto=async(path,p=page)=>{const response=await p.goto(base+path,{waitUntil:'load'});await p.evaluate(()=>document.fonts.ready);return response;};
@@ -317,7 +317,7 @@ try{
  });
  await check('no backend, third-party requests or JavaScript errors',async()=>{assert.deepEqual(apiCalls,[]);assert.deepEqual(errors,[]);});
  await context.close();
- const motion=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});watch(motion);await motion.addInitScript(()=>localStorage.setItem('ana-ambient-off','1'));const mp=await motion.newPage();
+ const motion=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});watch(motion);await motion.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');}catch{}});const mp=await motion.newPage();
  await check('Lenis + reveal + parallax + hero fade aktívne pri povolenom pohybe',async()=>{
    await goto('/',mp);await mp.waitForFunction(()=>!!window.__anaLenis);assert.equal(await mp.evaluate(()=>document.documentElement.classList.contains('lenis')),true);
    const floatingLogo=mp.locator('.hero-brand img');assert.match(await floatingLogo.evaluate(el=>getComputedStyle(el).filter),/brand-wave/);assert.equal(await floatingLogo.evaluate(el=>getComputedStyle(el).animationName),'none');const logoBox=await floatingLogo.boundingBox();assert.ok(logoBox.height>=300&&logoBox.x<400,'větší logo je vlevo');
@@ -356,7 +356,7 @@ try{
    await mp.setViewportSize({width:390,height:844});assert.equal(await mp.locator('[data-mobile-media] [data-video-toggle]').isVisible(),true);await mp.setViewportSize({width:1440,height:1000});
  });
  await motion.close();
- const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});watch(touch);await touch.addInitScript(()=>localStorage.setItem('ana-ambient-off','1'));const tp=await touch.newPage();
+ const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});watch(touch);await touch.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');}catch{}});const tp=await touch.newPage();
  await check('touch cards expose purchase controls without hover',async()=>{await tp.goto(base+'/eshop');const card=tp.locator('.product-card').first();assert.equal(await card.locator('[data-add]').isVisible(),true);await card.locator('[data-add]').tap();await tp.goto(base+'/kosik');await tp.locator('.cart-line').waitFor();assert.equal(await tp.locator('.cart-line').count(),1);await tp.goto(base+'/eshop');await tp.locator('.product-card').first().scrollIntoViewIfNeeded();await tp.screenshot({path:root+'catalog-touch.png'});const touchInfo=await tp.locator('.product-info').first().evaluate(el=>({hoverNone:matchMedia('(hover:none)').matches,opacity:getComputedStyle(el).opacity,visibility:getComputedStyle(el).visibility}));assert.equal(touchInfo.opacity,'1');assert.equal(touchInfo.visibility,'visible');});
  await check('touch: menu na úvode sa otvorí ťuknutím a zavrie tlačidlom',async()=>{await tp.goto(base+'/');await headerTrigger(tp).tap();await assertOpen(tp,'top');await tp.locator('#dc-top-menu button[data-menu-close]').tap();await assertClosed(tp,'top');});
  await touch.close();

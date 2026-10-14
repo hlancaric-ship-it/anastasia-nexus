@@ -55,7 +55,7 @@ Z uživatelského UI zmizely přepínače scénářů chatu, checkoutu a odemyk�
 
 Menu a hlavička používají skutečné cílové stránky: Obchod → /eshop, Programy → /programy, Služby/Konzultácie → /konzultacie. Obě menu obsahují Darčekový poukaz. Kontrola `navigation.test.mjs` prochází obě menu ve všech 59 routách: očekávaný cíl podle názvu, existence stránky, existence kotev a žádné prázdné odkazy. Dostupnost jazyků EN/RU se nemění.
 
-Aktuální ověření: build 59/59 stránek PASS, mock 15/15, ambient 9/9, navigace 2/2 (celkem 26/26 Node testů). Browser test má upravené fixture a prošel syntaktickou kontrolou; po této integraci nebyl spuštěn na dohodu s Claudem kvůli přetížení Macu. Starší výsledek 27/27 výše není důkaz pro aktuální integrovanou verzi. Zbývá prohlížečová a vizuální kontrola společné verze; Claude přebírá lehkou kontrolu mobilního chatu a knihovny.
+Aktuální ověření: build 59/59 stránek PASS, mock 15/15, ambient 9/9, navigace 2/2 (celkem 26/26 Node testů). Po finálním sladění a opravách byl spuštěn celý browser test: 27/27 PASS. Výsledek ověřen i v results.json: žádné JavaScript chyby, žádné externí nebo backendové požadavky. Zahrnuje novou kompozici Zdravého světa, mobilní účet a společnou verzi s Claudem.
 
 Dodatečně převzat `a917e60` (další skladba s 1,5s prolnutím); merge `02bdbd8`. HTTP bez prohlížeče: 59/59 rout a CSP self PASS, žádné přepínače scénářů, 13/13 souborů motivů a zvuku dostupných. Deset částí ambientu je připraveno i v exportovaných médiích.
 
@@ -66,3 +66,7 @@ Zdravý svet (novější zadání pro localhost:4175): výraznější úvodní t
 Při společné regresi byla nalezena chybějící římská čísla v textu právních nadpisů. Claude opravil původní číslování v 5311dd3; převzatá je i patička z 4f30db6. Browser běží postupně vždy s jediným otevřeným kontextem; automatický ambient je ve všech testovacích kontextech vypnutý, jeho spuštění se ověřuje jen v určeném testu.
 
 Regrese mobilního právního layoutu odhalila min-content šířku článků na /vop: 404 px v 390px viewportu. Opravené min-width a grid minmax(0,1fr), dlouhé odkazy se mohou zalomit, text se nemění. VOP/GDPR/Reklamácie na 320/390/420/768/1440 px (15 kombinací) PASS. Kontrola původního obsahu nyní zahrnuje i .source-structure (seznamy a tabulky), které první verze testu u nového layoutu opomíjela.
+
+## Finální ověření společné verze
+
+VERIFIED pro lokální mock storefront. Celý `STOREFRONT_URL=http://127.0.0.1:4183 node storefront-prototype/test/browser.mjs`: 27/27 PASS, nulové JS chyby a externí/backendové požadavky. `node --test storefront-prototype/test/*.test.mjs`: 26/26 PASS (mock 15, ambient 9, navigace 2). Build 59 stránek PASS. Zdravý svet je převzatý a sestavený i na uživatelem požadovaném localhost:4175. Finální export nadále obsahuje zdroje, dist a všechna lokální média. Není to produkční napojení backendu.
