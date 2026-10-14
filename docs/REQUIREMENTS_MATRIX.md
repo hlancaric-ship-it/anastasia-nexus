@@ -44,7 +44,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | S2-04 | AI asistent, rezervace a úhrada v chatu | NOT_IMPLEMENTED; rezervační jádro (A-08, K9) se staví teď, chat ho jen volá; AI nikdy v cestě peněz |
 | S2-05 | Ambasadorský program | NOT_IMPLEMENTED |
 | S2-06 | ComGate (volitelně) | FUTURE_SCOPE |
-| S2-07 | Generování a stažení QR kódu přímo v administraci (UI pro Lucii nad hotovým C3 generátorem) | NOT_IMPLEMENTED; přesunuto do Fáze 2 rozhodnutím Luckyho 14. 10. 2026, viz bod 7 |
+| S2-07 | Generování a stažení QR kódu přímo v administraci (UI pro Lucii nad hotovým C3 generátorem) | NOT_IMPLEMENTED; přesunuto do Fáze 2 rozhodnutím Luckyho 14. 10. 2026, viz bod 7. Stavět společně s S2-05 (ambasadoři): stejný mechanismus odkaz s kódem → přiřazení objednávky → QR, jen jiný vlastník kódu (kampaň vs. ambasadorka) |
 | MIMO | Členský klub/předplatné, Zlatá brána (220 € samostatně) | FUTURE_SCOPE |
 
 ## 5. Direktiva A-01..A-18
