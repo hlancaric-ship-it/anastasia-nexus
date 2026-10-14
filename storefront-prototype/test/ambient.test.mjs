@@ -141,3 +141,21 @@ test('rychlé stop/play/stop skončí tichem', async () => {
   assert.equal(amb.paused, true);
   assert.ok(audios.every(x => x.paused && x.volume === 0));
 });
+
+test('ruční přepnutí skladby prolne na další část a hraje jen jeden deck', async () => {
+  const {amb, audios, advance} = setup();
+  await amb.play(); await advance(1000);
+  const before = audios.find(a => !a.paused).src;
+  const done = amb.next(1500);
+  await advance(2000); await done;
+  const playing = audios.filter(a => !a.paused);
+  assert.equal(playing.length, 1);
+  assert.notEqual(playing[0].src, before);
+  assert.equal(amb.crossfading, false);
+});
+
+test('přepnutí skladby při vypnutém zvuku nic nespustí', async () => {
+  const {amb, audios, advance} = setup();
+  await amb.next(1500); await advance(500);
+  assert.ok(audios.every(a => a.paused));
+});

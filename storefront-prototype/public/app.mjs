@@ -119,7 +119,8 @@ const AMB_OFF='ana-ambient-off';
 let ambOff=false;try{ambOff=localStorage.getItem(AMB_OFF)==='1';}catch{}
 const amb=createAmbient({createAudio:()=>new Audio(),raf:f=>requestAnimationFrame(f),caf:id=>cancelAnimationFrame(id),now:()=>performance.now(),storage,onChange:()=>soundLabel()});
 const videoLabel=()=>{if(!playBtn)return;const paused=heroVideo?heroVideo.paused:amb.paused,label=paused?(heroVideo?'Prehrať video':'Spustiť zvuk'):(heroVideo?'Pozastaviť video':'Pozastaviť zvuk');playBtn.setAttribute('aria-pressed',String(paused));playBtn.setAttribute('aria-label',label);playBtn.title=label;setLabel(playBtn,label);};
-const soundLabel=()=>{if(!soundBtn)return;const on=!amb.paused,label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
+const nextBtn=$('[data-sound-next]');
+const soundLabel=()=>{if(nextBtn)nextBtn.hidden=amb.paused;if(!soundBtn)return;const on=!amb.paused,label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
 const ambUnlockEvents=['pointerdown','keydown','touchend'];
 function ambUnlock(event){
   if(event.target.closest?.('[data-sound-toggle],[data-video-toggle]'))return;
@@ -137,6 +138,7 @@ const vio=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.i
 $$('video').forEach(v=>{v.muted=true;if(reducedMotion.matches){v.autoplay=false;v.pause();}vio.observe(v);});
 playBtn?.addEventListener('click',()=>{if(!heroVideo){toggleAmbient();return;}if(heroVideo.paused){userPaused=false;heroVideo.play().catch(()=>toast('Video sa nepodarilo spustiť.'));}else{userPaused=true;heroVideo.pause();}videoLabel();});
 soundBtn?.addEventListener('click',toggleAmbient);
+nextBtn?.addEventListener('click',()=>{amb.next(1500);});
 addEventListener('pagehide',amb.save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)amb.save();});
 if(!ambOff)amb.play().catch(()=>ambUnlockEvents.forEach(t=>document.addEventListener(t,ambUnlock,{capture:true,passive:true})));

@@ -87,8 +87,8 @@ export function createAmbient({
     await Promise.all(decks.map(el => fadeTo(el, 0, 400)));
     if (g === gen) decks.forEach(silence);
   }
-  // Přechod na další část: druhý deck naběhne z ticha, aktuální dozní.
-  async function next() {
+  // Přechod na další část: druhý deck naběhne z ticha, aktuální dozní. Ruční přepnutí volá kratší `ms`.
+  async function next(ms = xfade * 1000) {
     if (paused || xfading === gen) return;
     const g = gen; xfading = g;
     const from = decks[cur], to = decks[1 - cur], n = (part + 1) % parts;
@@ -99,7 +99,7 @@ export function createAmbient({
       await to.play();
       if (g !== gen) { if (paused) silence(to); return; }
       cur = 1 - cur; part = n; save();
-      await Promise.all([fadeTo(to, volume, xfade * 1000), fadeTo(from, 0, xfade * 1000)]);
+      await Promise.all([fadeTo(to, volume, ms), fadeTo(from, 0, ms)]);
       if (g !== gen) return;
       from.pause(); from.removeAttribute('src'); from.load();
     } catch {
