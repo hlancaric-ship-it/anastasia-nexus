@@ -193,11 +193,15 @@ export function homeSections(products) {
         .replace(/<div style="position:relative;flex:1;min-height:0"><\/div>/,'<div class="hero-brand"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><filter id="brand-wave" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="1" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" data-brand-wave/></filter></defs></svg><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future"></div>')
         .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
     }
+    let pre='';
     if(out.includes('data-video="sky"')){
       out=out.replace('<section ', '<section class="sky-section" ').replace('<div style="order:-1;', '<div class="sky-window" style="order:-1;').replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(0,0,0,0\) 50%,rgba\(0,0,0,0.65\) 100%\)"><\/div>/,'');
       out=out.replace(/(<section[^>]*>)/, '$1<div class="sky-spill" aria-hidden="true"><video data-video="sky-spill" poster="/assets/night-sky.jpg" autoplay muted loop playsinline preload="metadata">'+VIDEO_SOURCES.sky+'</video></div>');
+      // TODO(Lucia): nahradit vlastní myšlenkou Lucie, až ji dodá; zatím oficiální slogan značky
+      pre='<section class="wisdom" data-screen-label="04b Myšlienka" aria-label="Light for the Future"><figure><span class="wisdom-mark" aria-hidden="true"></span><blockquote>Light for the Future</blockquote><figcaption>ANASTASIA</figcaption></figure></section>\n';
     }
-    return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : bleed(out);
+    // pásmo se vkládá až za bleed, aby sekce s oblohou dál dostala odsazení pod boční lištu
+    return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : pre+bleed(out);
   }).join('\n');
 }
 
@@ -243,15 +247,25 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .header-academy b{font-size:10px;letter-spacing:2px;font-weight:200}
 [data-screen-label="01 Hero"] header{background:#26321E}
 :is(.dc-root,.dc-chrome):not(.customer-page *,.customer-login *) header:has([data-menu-open]){background:linear-gradient(180deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),color-mix(in srgb,var(--site-dark) 42%,transparent)!important;border-bottom:1px solid rgba(255,255,255,0.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(255,255,255,0.12),0 10px 40px rgba(0,0,0,0.14);backdrop-filter:blur(26px) saturate(180%) brightness(1.05);-webkit-backdrop-filter:blur(26px) saturate(180%) brightness(1.05)}
-.sky-section{--sky-overlap:64px;--sky-inset:96px;position:relative;isolation:isolate;overflow:visible}
+.sky-section{--sky-overlap:0px;--sky-inset:96px;--sky-fade:linear-gradient(transparent,#000 24%,#000 80%,transparent);position:relative;isolation:isolate;overflow:visible}
 .sky-spill{position:absolute;inset:calc(-1 * var(--sky-overlap)) 0 0;pointer-events:none;z-index:-1;overflow:hidden;opacity:.3}
-.sky-spill video{position:absolute;object-fit:cover;max-width:none;filter:none;mask-image:linear-gradient(to right,#000 75%,transparent)}
+.sky-spill video{position:absolute;object-fit:cover;max-width:none;filter:none;-webkit-mask-image:linear-gradient(to right,#000 75%,transparent),var(--sky-fade);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,#000 75%,transparent),var(--sky-fade);mask-composite:intersect}
 .sky-section>div:not(.sky-spill){position:relative;padding-top:var(--sky-inset)!important;padding-bottom:0!important}
 .sky-window{margin-top:calc(-1 * (var(--sky-inset) + var(--sky-overlap)))}
-@media(min-width:1000px) and (max-width:1300px){.sky-section{--sky-overlap:32px;--sky-inset:32px}.sky-section>div:not(.sky-spill)>div:first-child{gap:24px!important}.sky-section a:has([data-roll-target]){padding-block:22px!important}}
-@media(max-width:999.98px){.sky-section{--sky-overlap:32px;--sky-inset:0px}.sky-section>div:not(.sky-spill){padding-bottom:48px!important}.sky-section>div:not(.sky-spill)>div:first-child{padding-inline:20px}}
+@media(min-width:1000px) and (max-width:1300px){.sky-section{--sky-inset:32px}.sky-section>div:not(.sky-spill)>div:first-child{gap:24px!important}.sky-section a:has([data-roll-target]){padding-block:22px!important}}
+@media(max-width:999.98px){.sky-section{--sky-inset:0px}.sky-section>div:not(.sky-spill){padding-bottom:48px!important}.sky-section>div:not(.sky-spill)>div:first-child{padding-inline:20px}}
 .dc-root:has(.sky-section)>footer{position:relative;border-top:0!important}.dc-root:has(.sky-section)>footer::before{content:"";position:absolute;inset:0 0 auto;height:140px;background:linear-gradient(180deg,#26321E,#17332F);pointer-events:none}.dc-root:has(.sky-section)>footer>div{position:relative}
 .sky-window video{opacity:1;filter:none}
+.sky-section .sky-window{background:transparent!important;-webkit-mask-image:var(--sky-fade);mask-image:var(--sky-fade)}
+.sky-section .sky-window>div:last-child{bottom:22%!important}
+@media(min-width:1000px){.sky-section>div:not(.sky-spill)>div:first-child{align-self:center}}
+.wisdom{margin-left:var(--rail-neg);padding:clamp(48px,6vw,96px) clamp(20px,4vw,64px) 0 calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
+.wisdom figure{margin:0 auto;max-width:980px;display:flex;flex-direction:column;align-items:center;gap:clamp(24px,3vw,40px)}
+.wisdom-mark{width:1px;height:clamp(48px,6vw,80px);background:linear-gradient(transparent,var(--site-accent-deep))}
+.wisdom blockquote{margin:0;font-weight:100;font-size:clamp(34px,4.6vw,72px);line-height:1.08;letter-spacing:-0.035em}
+.wisdom figcaption{display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--site-accent-deep)}
+.wisdom figcaption::before,.wisdom figcaption::after{content:"";width:48px;height:1px;background:currentColor;opacity:.6}
+#program>div[style^="position:absolute;inset:0;background:linear-gradient(90deg"]{background:linear-gradient(180deg,transparent 78%,#F5F2E8),linear-gradient(90deg,rgba(16,24,15,0.82) 0%,rgba(16,24,15,0.35) 55%,rgba(16,24,15,0.6) 100%)!important}
 @media(max-width:999.98px){header:has(.header-brands){gap:6px!important;padding-inline:16px!important}.header-brands{width:128px;gap:5px;height:48px}.header-brands>span{width:40px}.header-brands img{height:28px;max-width:36px}.header-brands>span:first-child img{height:44px}.header-academy b{font-size:6px;letter-spacing:.5px}.header-brands small{font-size:4px;letter-spacing:.3px}}
 @media(prefers-reduced-motion:reduce){.hero-brand img{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}}
 @media(max-width:999.98px){.hero-brand{padding:16px 20px}.hero-brand img{height:clamp(180px,27vh,260px)}}
