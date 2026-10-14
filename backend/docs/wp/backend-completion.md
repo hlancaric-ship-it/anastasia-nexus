@@ -35,9 +35,10 @@ Společnou korelaci a logování ostatních domén vlastní Claude. Toto ještě
 
 - TypeScript PASS.
 - Pět unit testů limitu PASS; čtyři unit testy auditu PASS.
-- Plná unit sada s limitem: 310/310 PASS; audit přidán následně, úplná sada se zopakuje na integrovaném základu.
-- HTTP runner: probíhá; zahrnuje 25 souběžných požadavků (20×400 pro neplatný kód, 5×429),
-  sdílený čítač, obnovení po expiraci a ověření ochrany/měny/pohybů auditu.
+- Plná unit sada po retenci, exportu, auditu a limitu na integračním základu: **385/385 PASS**; TypeScript PASS.
+- Plný HTTP runner původního základu + limit: PASS, důkaz `wave1-safeorder-ux444ckb/medusa-persistence-evidence.json`.
+  Ověřeno 25 souběžných požadavků (20×400 pro neplatný kód, 5×429), sdílený čítač a reset po expiraci.
+  Audit a retence čekají na plný společný HTTP běh integrační větve.
 
 Žádný push, deploy, produkční databáze ani skutečný e-mail.
 
