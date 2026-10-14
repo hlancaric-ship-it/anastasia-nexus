@@ -264,6 +264,8 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .sky-section .sky-window>div:last-child>span:first-child{display:flex;align-items:center;gap:14px}
 .sky-section .sky-window>div:last-child>span:first-child::before{content:"";width:40px;height:1px;background:currentColor}
 .sky-section .sky-window>div:last-child>span:last-child{font-size:clamp(26px,2.6vw,40px)!important}
+/* krémová mezera mezi konzultacemi a O Lucii */
+.sky-section{padding-bottom:clamp(96px,10vw,180px)!important}
 #o-lucii{position:relative}
 .cream-band{margin-left:var(--rail-neg);height:clamp(140px,14vw,240px);background:linear-gradient(180deg,var(--site-main),#F5F2E8 55%)}
 #o-lucii::before{content:"";position:absolute;inset:0 0 auto;height:clamp(120px,14vw,220px);background:linear-gradient(#F5F2E8,rgba(245,242,232,0));pointer-events:none;z-index:1}
