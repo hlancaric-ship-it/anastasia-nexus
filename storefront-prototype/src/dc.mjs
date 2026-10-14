@@ -236,6 +236,7 @@ export const HELMET_CSS = `/* Mobil: úpravy rytmu sekcí (bez centrování – 
 @media(max-width:699.98px){
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]:has(>span[style*="height:1px"]){letter-spacing:2px!important;font-size:10px!important;gap:10px!important}
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]>span[style*="height:1px"]{width:24px!important}
+#o-lucii h2{order:2}#o-lucii h2~div:has(>p){order:1;padding-top:0!important;margin-top:-14px}#o-lucii h2~div:has(>p)>span{display:none}#o-lucii a.dch1{order:3}#o-lucii h2~div p :is(br,span){display:none}
 .wisdom{position:relative;margin-top:-150px;padding-top:0;background:linear-gradient(180deg,transparent 0,#F5F2E8 150px)!important}
 footer :has(>div>a+a+a){display:grid!important;grid-template-columns:1fr 1fr;gap:36px 20px!important;width:100%;flex:1 1 100%!important;text-align:left}
 }
