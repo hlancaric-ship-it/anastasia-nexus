@@ -30,7 +30,7 @@ describe('ops-ingest (Worker -> Medusa ops_event)', () => {
         expect(queue[0]).not.toHaveProperty('message');
         expect(queue[0]).not.toHaveProperty('stack');
         expect(queue[0]).not.toHaveProperty('nested');
-        expect(String(queue[0].long)).toHaveLength(200);
+        expect(String(queue[0]!.long)).toHaveLength(200);
     });
 
     it('fronta je omezená a přetečení se nahlásí', async () => {
@@ -38,7 +38,7 @@ describe('ops-ingest (Worker -> Medusa ops_event)', () => {
         expect(_opsQueueForTests().queue).toHaveLength(100);
         const { calls, impl } = fakeFetch();
         await flushOpsEvents({ OPS_INGEST_URL: URL_, OPS_INGEST_SECRET: SECRET }, impl, NOW);
-        const events = JSON.parse(String(calls[0].init.body)).events;
+        const events = JSON.parse(String(calls[0]!.init.body)).events;
         expect(events).toHaveLength(100);
         expect(events.at(-1)).toMatchObject({ event: 'ops.ingest_dropped', count: 5 });
         expect(_opsQueueForTests().queue).toHaveLength(0);
@@ -49,10 +49,10 @@ describe('ops-ingest (Worker -> Medusa ops_event)', () => {
         const { calls, impl } = fakeFetch();
         await flushOpsEvents({ OPS_INGEST_URL: URL_, OPS_INGEST_SECRET: SECRET }, impl, NOW);
         expect(calls).toHaveLength(1);
-        const headers = calls[0].init.headers as Record<string, string>;
+        const headers = calls[0]!.init.headers as Record<string, string>;
         const ts = headers['x-nexus-timestamp'];
         expect(ts).toBe(String(NOW / 1000));
-        const expected = createHmac('sha256', SECRET).update(`${ts}.${String(calls[0].init.body)}`).digest('hex');
+        const expected = createHmac('sha256', SECRET).update(`${ts}.${String(calls[0]!.init.body)}`).digest('hex');
         expect(headers['x-nexus-signature']).toBe(expected);
     });
 
