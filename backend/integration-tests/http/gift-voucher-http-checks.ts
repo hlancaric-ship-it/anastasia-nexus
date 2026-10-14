@@ -246,6 +246,17 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   expect(JSON.stringify(history)).not.toContain(single.code)
   evidence.push({ scenario: "K8_ADMIN_TRANSACTION_HISTORY", count: history.count })
 
+  const settingsAudit = await ok(api.get("/admin/ops/audit?action=gift_voucher.settings.update&limit=100", adminOpts))
+  expect(settingsAudit.count).toBeGreaterThan(0)
+  expect(settingsAudit.entries[0]).toMatchObject({ actor_id: admin.id, entity_type: "gift_voucher_settings", entity_id: "default" })
+  const voidAudit = await ok(api.get(`/admin/ops/audit?action=gift_voucher.void&entity_id=${toVoid.id}`, adminOpts))
+  expect(voidAudit.count).toBe(1)
+  const refundAudit = await ok(api.get(`/admin/ops/audit?action=gift_voucher.refund&entity_id=${fullOrderId}`, adminOpts))
+  expect(refundAudit.count).toBe(1)
+  expect(refundAudit.entries[0].actor_id).toBe(admin.id)
+  expect(JSON.stringify([...voidAudit.entries, ...refundAudit.entries])).not.toContain(toVoid.code)
+  evidence.push({ scenario: "K8_ADMIN_CHANGES_AUDIT", settings: settingsAudit.count, void: voidAudit.count, refund: refundAudit.count, replayNoDuplicate: true })
+
   // Shared database limiter: HTTP middleware and real concurrent PostgreSQL upserts.
   await dbConnection.raw("DELETE FROM gift_voucher_rate_limit")
   const attempts = await Promise.all(Array.from({ length: 25 }, () => api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "invalid" }, options)))

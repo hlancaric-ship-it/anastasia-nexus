@@ -1,6 +1,7 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { maskedVoucher } from "../../../../../modules/gift-voucher/service"
 import { requireAdmin, sendAdminError, vouchersService } from "../../shared"
+import { auditAdminChange } from "../../../../../lib/observability/audit"
 
 /** POST /admin/vouchers/:id/void { reason } – ručné zneplatnenie (zostatok → 0, záznam v histórii). */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -13,6 +14,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   if (!reason) return res.status(400).json({ type: "invalid_data", message: "Uveďte dôvod zneplatnenia." })
   try {
     const voucher = await vouchersService(req).voidVoucher({ id, reason, actor_id: actorId })
+    await auditAdminChange(req, "gift_voucher.void", "gift_voucher", id, null, { status: voucher.status, balance_minor: voucher.balance })
     return res.json({ voucher: maskedVoucher(voucher) })
   } catch (error) {
     return sendAdminError(req, res, error, "zneplatnenie poukazu")

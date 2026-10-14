@@ -1,6 +1,7 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { fromMinor, toMinor } from "../../../../modules/gift-voucher/policy"
 import { requireAdmin, sendAdminError, vouchersService } from "../shared"
+import { auditAdminChange } from "../../../../lib/observability/audit"
 
 /**
  * POST /admin/vouchers/refund { order_id, amount, idempotency_key, note? }
@@ -19,6 +20,9 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   if (!Number.isInteger(amount) || amount <= 0) return res.status(400).json({ type: "invalid_data", message: "Zadajte kladnú sumu v eurách." })
   try {
     const refunds = await vouchersService(req).refundOrderToVoucher({ order_id: orderId, amount_minor: amount, idempotency_key: `admin:${key}`, actor_id: actorId, note })
+    if (refunds.length) await auditAdminChange(req, "gift_voucher.refund", "order", orderId, null, {
+      refunds: refunds.map((r) => ({ voucher_id: r.voucher_id, amount_minor: r.amount_minor, balance_after_minor: r.balance_after })),
+    })
     return res.json({ refunds: refunds.map((r) => ({ voucher_id: r.voucher_id, amount: fromMinor(r.amount_minor), balance: fromMinor(r.balance_after) })), replayed: refunds.length === 0 })
   } catch (error) {
     return sendAdminError(req, res, error, "vrátenie na poukaz")
