@@ -12,7 +12,14 @@ Přihlašovací obrazovka dostala paletu centra, ale zachovává přihlášení 
 
 Spoj zákaznického centra s patičkou má přechod pouze mezi původní vínovou a modrozelenou barvou; světlá plocha obsahu se nepřebarvuje.
 
-Homepage: původní horní a spodní mezery u Konzultácie jsou na poslední žádost obnovené. Zkušební 64px překrytí a maska prolnutí byly odstraněné, stejně jako navazující úpravy odsazení textu. Další návrh návaznosti čeká na společné doladění. Zeleno-modrý přechod O Lucii do patičky zůstává.
+Homepage: návaznost RESET 40+ → Konzultácie je řešená kompozicí. Samotný obraz oblohy přesahuje nad okraj sekce o 64 px (32 px na menších šířkách), text má vlastní odsazení 96/32 px ve světlé ploše. Výřez, přirozené barvy a 100% krytí videa se zachovávají. Nepoužívá se společná maska prolnutí. Na mobilu se obraz a text skládají pod sebe. Původní zaoblený roh tvoří propojení obrazu s lesem; odstraněný je celoplošný prázdný pás, zůstává prostor pro čtení v textovém sloupci. Zeleno-modrý přechod O Lucii do patičky zůstává.
+
+Pro výběr postupu byl porovnaný celý místní katalog (131 souborů SKILL.md) i nové zdroje přes skills.sh: `better-layout` (jakubkrehel/skills), Impeccable (pbakaus/impeccable), `gpt-taste` (leonxlnx/taste-skill) a Microsoft `frontend-design-review`. Použité nové postupy: better-layout (společné hrany, mediální přesah, odsazení textu, kontrola reflow) a Microsoft review (kompozice, zřetelné akce, respekt k designu). Náhodný redesign a přidávání GSAP z gpt-taste nejsou vhodné pro schválený statický prototyp.
+
+Zdroje nových skillů:
+- https://github.com/jakubkrehel/skills/blob/main/skills/better-layout/SKILL.md
+- https://github.com/microsoft/skills/blob/main/.github/skills/frontend-design-review/SKILL.md
+- https://github.com/pbakaus/impeccable/blob/main/plugin/skills/impeccable/SKILL.md
 
 Výřez noční oblohy zachovává rozměry a plné krytí. Pokračování za ním používá stejnou velikost videa s 30% krytím a měkkým zakončením do světlého pozadí; původní výřez se nezvětšuje.
 
@@ -32,6 +39,10 @@ Ověření:
 
 Poslední kontrola přesunu loga pod kontaktní formulář: 5/5 šířek (320/390/1000/1440/1920 px) PASS, žádný vodorovný overflow, boční menu bez loga, horní logo zachované, dekorace neblokuje kliknutí, mock odeslání a obě menu s Escape PASS. Vizuálně zkontrolovaný snímek celého formuláře.
 
-Obnovení mezer ověřeno při 390/1440/1920 px: horní i spodní padding 100/172.8/190 px, margin-top 0, maska prolnutí none. Poslední změna homepage vrací rozestupy podle původního návrhu; dřívější kontrola 64px prolnutí popisovala následně odmítnutou variantu.
+Nová kompozice ověřena při 320/390/1000/1120/1440/1920 px: obraz přesahuje 32/64 px nad sekci, poměr původního výřezu zůstává 4:5, opacity 1, filter none, společná maska none, žádný vodorovný overflow. Na desktopu obraz navazuje spodní hranou přímo na O Lucii; na užších šířkách následuje konzultační text v přirozeném toku. Zkontrolován i 720px CSS viewport jako ekvivalent 200% zvětšení při šířce 1440 px. RTL a překlady mimo aktuální slovenský náhled se neověřovaly.
 
 Blokery pro lokální náhled: žádné. Další krok: vizuální kontrola náhledu uživatelem; produkční backendové napojení zůstává mimo tento mock export.
+
+Obchod má vycentrovaný nadpis i celý katalog v dostupné šířce vedle lišty. Kategorie z existujícího mock API mají velké navigační dlaždice s lokálními SVG a existujícími obrázky kategorií: šest sloupců na širokém desktopu, tři na menším desktopu, dva na mobilu, čtvercové obrazy, aktivní kategorie a klávesnicový focus. Směr vychází z uživatelem doložených obrazových karet Collaborations na https://store.tomorrowland.com/en-int; zachovává vlastní paletu ANASTASIA a původní filtry.
+
+Pole používají jednotnou světlou plochu, text a kurzor podle kontextu; Chrome autofill je překrytý barvou pole i v přihlášení, profilu a patičce. Kontrola vynuceného autofillu: 12/12 polí napříč dvěma lokálními náhledy PASS. Celý browser běh po přidání navigace a autofillu: 27/27 PASS; poslední úprava velikosti dlaždic a centrování má samostatnou kontrolu pěti šířek na obou náhledech. Mock po poslední změně: 15/15 PASS.
