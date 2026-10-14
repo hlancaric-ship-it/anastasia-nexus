@@ -12,7 +12,7 @@ Přihlašovací obrazovka dostala paletu centra, ale zachovává přihlášení 
 
 Spoj zákaznického centra s patičkou má přechod pouze mezi původní vínovou a modrozelenou barvou; světlá plocha obsahu se nepřebarvuje.
 
-Homepage: Konzultácie mají odstraněný horní a spodní vnější padding i mezeru mezi řádky; obloha bez bílých pásů navazuje na RESET 40+ a O Lucii. Ostrý horní spoj nahrazuje 64px překrytí s prolnutím celé sekce; text začíná pod prolnutím. Rozměry výřezu videa se nemění. Spoj O Lucii s patičkou má přechod ze stávající zelené do stávající modré.
+Homepage: původní horní a spodní mezery u Konzultácie jsou na poslední žádost obnovené. Zkušební 64px překrytí a maska prolnutí byly odstraněné, stejně jako navazující úpravy odsazení textu. Další návrh návaznosti čeká na společné doladění. Zeleno-modrý přechod O Lucii do patičky zůstává.
 
 Výřez noční oblohy zachovává rozměry a plné krytí. Pokračování za ním používá stejnou velikost videa s 30% krytím a měkkým zakončením do světlého pozadí; původní výřez se nezvětšuje.
 
@@ -32,6 +32,6 @@ Ověření:
 
 Poslední kontrola přesunu loga pod kontaktní formulář: 5/5 šířek (320/390/1000/1440/1920 px) PASS, žádný vodorovný overflow, boční menu bez loga, horní logo zachované, dekorace neblokuje kliknutí, mock odeslání a obě menu s Escape PASS. Vizuálně zkontrolovaný snímek celého formuláře.
 
-Kontrola návaznosti homepage: 6/6 šířek (320/390/1000/1120/1440/1920 px) PASS. Horní prolnutí má 64 px, vnější padding Konzultácie je nulový, O Lucii navazuje bez mezery, video má vlastní opacity 1 a podklad 0.3; žádný overflow. Na desktopu spodní hrana výřezu přímo navazuje na další sekci. Snímky horního spoje i zeleno-modré patičky vizuálně ověřeny.
+Obnovení mezer ověřeno při 390/1440/1920 px: horní i spodní padding 100/172.8/190 px, margin-top 0, maska prolnutí none. Poslední změna homepage vrací rozestupy podle původního návrhu; dřívější kontrola 64px prolnutí popisovala následně odmítnutou variantu.
 
 Blokery pro lokální náhled: žádné. Další krok: vizuální kontrola náhledu uživatelem; produkční backendové napojení zůstává mimo tento mock export.

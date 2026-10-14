@@ -238,15 +238,12 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .header-brands small{font-size:7px;letter-spacing:1px;color:#C9A355;white-space:nowrap}
 .header-academy b{font-size:10px;letter-spacing:2px;font-weight:200}
 [data-screen-label="01 Hero"] header{background:#26321E}
-.sky-section{position:relative;isolation:isolate;overflow:hidden;margin-top:-64px;mask-image:linear-gradient(to bottom,transparent,#000 64px)}
+.sky-section{position:relative;isolation:isolate;overflow:hidden}
 .sky-spill{position:absolute;inset:0;pointer-events:none;z-index:-1;overflow:hidden;opacity:.3}
 .sky-spill video{position:absolute;object-fit:cover;max-width:none;filter:none;mask-image:linear-gradient(to right,#000 75%,transparent)}
-.sky-section>div:not(.sky-spill){position:relative;padding-top:0!important;padding-bottom:0!important;row-gap:0!important}
+.sky-section>div:not(.sky-spill){position:relative}
 .dc-root:has(.sky-section)>footer{position:relative;border-top:0!important}.dc-root:has(.sky-section)>footer::before{content:"";position:absolute;inset:0 0 auto;height:140px;background:linear-gradient(180deg,#26321E,#17332F);pointer-events:none}.dc-root:has(.sky-section)>footer>div{position:relative}
 .sky-window video{opacity:1;filter:none}
-.sky-section>div:not(.sky-spill)>div:first-child{padding-top:80px}
-@media(min-width:1000px) and (max-width:1300px){.sky-section>div:not(.sky-spill)>div:first-child{gap:24px!important;padding-top:64px}.sky-section a:has([data-roll-target]){padding-block:22px!important}}
-@media(max-width:999.98px){.sky-section>div:not(.sky-spill)>div:first-child{padding:32px 20px}}
 @media(max-width:999.98px){header:has(.header-brands){gap:6px!important;padding-inline:16px!important}.header-brands{width:128px;gap:5px;height:48px}.header-brands>span{width:40px}.header-brands img{height:28px;max-width:36px}.header-brands>span:first-child img{height:44px}.header-academy b{font-size:6px;letter-spacing:.5px}.header-brands small{font-size:4px;letter-spacing:.3px}}
 @media(prefers-reduced-motion:reduce){.hero-brand img{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}}
 @media(max-width:999.98px){.hero-brand{padding:16px 20px}.hero-brand img{height:clamp(180px,27vh,260px)}}
