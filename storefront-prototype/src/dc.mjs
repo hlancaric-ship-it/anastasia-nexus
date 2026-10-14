@@ -146,6 +146,11 @@ function parts(src) {
 }
 const P = {home: parts(SOURCES.home), about: parts(SOURCES.about)};
 
+const mediaControls=`<div data-media-controls aria-label="Ovládanie videa a zvuku">
+  <button type="button" data-sound-toggle aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path class="sound-cross" d="m9 17 6 6m0-6-6 6"/></svg><span class="sc-interp media-label">Zvuk vypnutý</span></button>
+  <button type="button" data-video-toggle aria-pressed="false" aria-label="Pozastaviť video" title="Pozastaviť video"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path class="pause-icon" d="M8 4v16M16 4v16"/><path class="play-icon" d="m7 4 13 8-13 8z"/></svg><span class="sc-interp media-label">Pozastaviť video</span></button>
+</div>`;
+
 // Bleed pod lištu (applyBleed z návrhu) staticky: sekce mimo úvodní mají margin -52px a padding +52px.
 const bleed = html => html.replace(/^<(section|footer)\b([^>]*?)style="([^"]*)"/, (_, tag, a, style) =>
   `<${tag}${a}style="${style};margin-left:var(--rail-neg);padding-left:var(--rail-pad)"`);
@@ -164,7 +169,7 @@ export function chrome(page) {
     header: convert(src.header, {page: linkPage, region: 'header'}),
     footer: bleed(convert(src.footer, {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
-    rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})),
+    rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${['home','world'].includes(page)?mediaControls:''}</aside>`),
     menus: ids(convert(src.side, {page: linkPage, region: 'menu'})) + ids(convert(src.top, {page: linkPage, region: 'menu'})),
   };
 }
@@ -179,7 +184,11 @@ export function homeSections(products) {
     ],
   };
   return P.home.sections.map((s, i) => {
-    const out = convert(s, {page: 'home', data});
+    let out = convert(s, {page: 'home', data});
+    if(i===0){
+      out=out.replace(/<div style="position:relative;flex:1;min-height:0"><\/div>/,'<div class="hero-brand"><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future"></div>')
+        .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
+    }
     return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : bleed(out);
   }).join('\n');
 }
@@ -208,4 +217,14 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .dc-root input:-webkit-autofill,.dc-root input:-webkit-autofill:hover,.dc-root input:-webkit-autofill:focus,.dc-chrome input:-webkit-autofill,.dc-chrome input:-webkit-autofill:hover,.dc-chrome input:-webkit-autofill:focus{-webkit-text-fill-color:#EFE5C7;-webkit-box-shadow:0 0 0 1000px rgba(0,0,0,0) inset;box-shadow:0 0 0 1000px rgba(0,0,0,0) inset;transition:background-color 99999s ease 0s;caret-color:#EFE5C7}
 .dc-root input:focus,.dc-chrome input:focus{outline:none}
 .dc-root input,.dc-chrome input{-webkit-appearance:none;appearance:none;background-clip:padding-box}
-.dc-root input::placeholder,.dc-chrome input::placeholder{color:#69705E}`;
+.dc-root input::placeholder,.dc-chrome input::placeholder{color:#69705E}
+.hero-brand{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:20px}
+.hero-brand img{height:clamp(140px,22vh,240px);max-height:100%;max-width:100%;object-fit:contain;filter:invert(1) sepia(0.3) saturate(1.4) brightness(0.95)}
+[data-media-controls]{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;flex-shrink:0;border-top:1px solid currentColor}
+[data-media-controls] button{display:grid;place-items:center;position:relative;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer}
+[data-media-controls] button:hover{background:rgba(201,163,85,.15)}
+[data-media-controls] button:focus-visible{outline:2px solid #C9A355;outline-offset:1px}
+[data-media-controls] svg{width:20px;height:20px;display:block}
+[data-media-controls] .media-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+[data-sound-toggle][aria-pressed=false] .sound-waves,[data-sound-toggle][aria-pressed=true] .sound-cross,[data-video-toggle][aria-pressed=false] .play-icon,[data-video-toggle][aria-pressed=true] .pause-icon{display:none}
+@media(max-width:999.98px){[data-mobile-media]{position:absolute;left:20px;bottom:12px}[data-mobile-media] [data-media-controls] button{color:#EFE5C7!important}.zs-intro>[data-mobile-media]{position:fixed;left:16px;bottom:16px;z-index:39;color:#EFE5C7}[data-mobile-media] [data-media-controls]{flex-direction:row;border:0;padding:0;background:rgba(30,38,25,.4);border-radius:24px;backdrop-filter:blur(14px)}}`;

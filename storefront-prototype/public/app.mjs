@@ -91,17 +91,20 @@ initRoll();
 
 // Videa: ztlumená, mimo obrazovku pauza.
 const heroVideo=$('video[data-video="hero"]'),playBtn=$('[data-video-toggle]'),soundBtn=$('[data-sound-toggle]');
+const mediaControls=$('[data-media-controls]'),mobileMedia=$('[data-mobile-media]'),wideMedia=matchMedia('(min-width:1000px)');
+const placeMedia=()=>{if(mediaControls&&mobileMedia)(wideMedia.matches?$('#ana-rail'):mobileMedia).append(mediaControls);};
+placeMedia();wideMedia.addEventListener('change',placeMedia);
+let ambient=null;
+const videoLabel=()=>{if(!playBtn)return;const media=heroVideo||ambient,paused=!media||media.paused,label=paused?(heroVideo?'Prehrať video':'Spustiť zvuk'):(heroVideo?'Pozastaviť video':'Pozastaviť zvuk');playBtn.setAttribute('aria-pressed',String(paused));playBtn.setAttribute('aria-label',label);playBtn.title=label;setLabel(playBtn,label);};
+const soundLabel=()=>{if(!soundBtn)return;const on=!!ambient&&!ambient.paused,label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
+const getAmbient=()=>{if(!ambient){ambient=Object.assign(new Audio('/media/nature-ambient.mp3'),{loop:true,preload:'none'});ambient.addEventListener('play',soundLabel);ambient.addEventListener('pause',soundLabel);}return ambient;};
+const toggleAmbient=async()=>{const media=getAmbient();if(media.paused){try{await media.play();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}}else media.pause();soundLabel();};
+heroVideo?.addEventListener('play',videoLabel);heroVideo?.addEventListener('pause',videoLabel);videoLabel();soundLabel();
 let userPaused=false;
 const vio=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.isIntersecting&&!(v===heroVideo&&userPaused)&&!reducedMotion.matches)v.play?.().catch(()=>{});else if(!en.isIntersecting)v.pause?.();}));
 $$('video').forEach(v=>{v.muted=true;if(reducedMotion.matches){v.autoplay=false;v.pause();}vio.observe(v);});
-playBtn?.addEventListener('click',()=>{if(!heroVideo)return;if(heroVideo.paused){userPaused=false;heroVideo.play().catch(()=>toast('Video sa nepodarilo spustiť.'));setLabel(playBtn,'II');}else{userPaused=true;heroVideo.pause();setLabel(playBtn,'▷');}});
-let ambient=null;
-soundBtn?.addEventListener('click',async()=>{
-  ambient??=Object.assign(new Audio('/media/nature-ambient.mp3'),{loop:true,preload:'none'});
-  if(ambient.paused){try{await ambient.play();setLabel(soundBtn,'Zvuk zapnutý');soundBtn.setAttribute('aria-pressed','true');}catch{toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}}
-  else{ambient.pause();setLabel(soundBtn,'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed','false');}
-});
-soundBtn?.setAttribute('aria-pressed','false');
+playBtn?.addEventListener('click',()=>{if(!heroVideo){toggleAmbient();return;}if(heroVideo.paused){userPaused=false;heroVideo.play().catch(()=>toast('Video sa nepodarilo spustiť.'));}else{userPaused=true;heroVideo.pause();}videoLabel();});
+soundBtn?.addEventListener('click',toggleAmbient);
 
 // Newsletter: v náhľade sa nič neodosiela.
 $$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();if(form.elements.email.value.includes('@'))setLabel($('button',form),'Ďakujeme');}));
@@ -130,22 +133,28 @@ if(motion&&$('.dc-root')){
   let tops=[],vh=innerHeight;
   const measure=()=>{vh=innerHeight;const sy=scrollY;tops=pars.map(p=>{const r=p.el.getBoundingClientRect();return{top:r.top+sy,h:r.height};});};
   measure();
-  const rail=$('#ana-rail');let tone='dark',toneTick=0;
+  const rail=$('#ana-rail');let tone=null;
   const lum=c=>{const m=c.match(/[\d.]+/g);if(!m)return 0;const a=m[3]===undefined?1:+m[3];if(a<0.5)return -1;return(0.299*m[0]+0.587*m[1]+0.114*m[2])/255;};
   const setTone=t=>{
     if(!rail||t===tone)return;tone=t;const light=t==='light';
     rail.style.background=light?'linear-gradient(100deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.06) 100%)':'linear-gradient(100deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),rgba(30,38,25,0.16)';
     rail.style.color=light?'#283020':'#EFE5C7';rail.style.borderRightColor=light?'rgba(40,48,32,0.08)':'rgba(255,255,255,0.24)';
-    $$('img',rail).forEach(i=>{i.style.transition='filter 600ms ease';i.style.filter=light?'brightness(0.22) sepia(0.4)':'none';});
     $$('div',rail).forEach(d=>{if(d.style.borderBottom||d.style.borderTop)d.style.borderColor=light?'rgba(40,48,32,0.1)':'rgba(255,255,255,0.16)';});
   };
+  const toneAt=y=>{
+    let el=document.elementFromPoint(80,Math.max(0,Math.min(innerHeight-1,y)));
+    while(el){if(!el.closest('aside')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||el.hasAttribute('data-par')||/url\(/.test(cs.backgroundImage))return 'dark';const colors=(cs.backgroundImage.match(/rgba?\([^)]*\)/g)||[]).map(lum).filter(L=>L>=0);if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';const L=lum(cs.backgroundColor);if(L>=0)return L>0.62?'light':'dark';}el=el.parentElement;}
+    return 'dark';
+  };
   const probe=()=>{
-    if(!rail||!rail.getClientRects().length)return;
-    let el=document.elementFromPoint(80,innerHeight/2);
-    while(el&&el!==document.body){if(!el.closest('aside')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||el.hasAttribute('data-par')||/url\(/.test(cs.backgroundImage)){setTone('dark');return;}const L=lum(cs.backgroundColor);if(L>=0){setTone(L>0.62?'light':'dark');return;}}el=el.parentElement;}
+    if(!rail||!rail.getClientRects().length||menuOpen)return;
+    setTone(toneAt(innerHeight/2));
+    // Lišta může současně překrývat světlou i tmavou sekci.
+    // Každá ikona a popisek proto čte pozadí ve své vlastní výšce.
+    $$('a,button',rail).forEach(control=>{const r=control.getBoundingClientRect(),t=toneAt(r.top+r.height/2);if(control.dataset.railTone===t)return;control.dataset.railTone=t;control.style.color=t==='light'?'#283020':'#EFE5C7';$$('img',control).forEach(img=>{img.style.filter=t==='light'?'brightness(0.22) sepia(0.4)':'none';});});
   };
   const fxFrame=()=>{
-    if((toneTick++%6)===0)probe();
+    probe();
     if(!motion)return;
     const y=lenis?lenis.scroll:scrollY;
     if(hero&&heroContent&&y<vh*1.3){heroContent.style.opacity=Math.max(0,1-y/(vh*0.7)).toFixed(3);heroContent.style.transform='translate3d(0,'+(-y*0.12).toFixed(1)+'px,0)';}

@@ -36,11 +36,11 @@ add2('/o-lucii','O Lucii',aboutSections(),'about');
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
 for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.split(',')[1]);const path=target.pathname.replace(/\/$/,'')||'/';if(!routes.has(path))throw new Error(`Missing legacy route ${path}`);}
-const CHROME={home:chrome('home'),about:chrome('about'),other:chrome('other')};
+const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),other:chrome('other')};
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
 const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script type="module" src="/app.mjs"></script>';
 const document=(path,{title,body,design})=>{
-  const c=CHROME[design||'other'];
+  const c=CHROME[path==='/zdravy-svet'?'world':design||'other'];
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1">${body.replace('%%HEADER%%',c.header)}</main>${c.footer}</div>`
     :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:#283020;margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1">${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
@@ -60,6 +60,7 @@ await writeFile(join(out,'dc.css'),[
   '.dc-root dc-wide,.dc-chrome dc-wide{display:contents}.dc-root dc-narrow,.dc-chrome dc-narrow{display:none}@media (max-width:999.98px){.dc-root dc-wide,.dc-chrome dc-wide{display:none}.dc-root dc-narrow,.dc-chrome dc-narrow{display:contents}}',
   '/* Přístupnost: v návrhu se na úzkém displeji tlačítko „Zavrieť“ horního menu ocitne mimo panel (vodorovný scroll uvnitř menu); řádek se zalomí. */@media (max-width:999.98px){#dc-top-menu>div:nth-child(3){flex-wrap:wrap;row-gap:10px}}',
   '.legacy-shell{padding-left:var(--rail-pad)}.legacy-shell>.dc-chrome{overflow-x:clip}.legacy-main>*{margin-left:var(--rail-neg);border-left:var(--rail-pad) solid transparent}',
+  '.legacy-shell>.dc-chrome:has(footer){overflow-x:visible}.legacy-shell footer{overflow-x:clip}',
   dcCss()].join('\n'));
 await writeFile(join(out,'404.html'),document('/404',{title:'Stránka nenájdená',body:views.notFound()}));
 await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');

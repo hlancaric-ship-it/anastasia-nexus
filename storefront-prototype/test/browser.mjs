@@ -36,7 +36,7 @@ const assertTrap=async(p,kind)=>{
 };
 const assertClosed=async(p,kind)=>{const s=await menuState(p,kind);assert.equal(s.hidden,'true');assert.equal(s.inert,true);assert.equal(s.shellInert,false);assert.equal(s.skipInert,false);if(s.railInert!==null)assert.equal(s.railInert,false);};
 const assertOpen=async(p,kind)=>{await p.waitForFunction(k=>getComputedStyle(document.querySelector(`#dc-${k}-menu`)).opacity==='1',kind);const s=await menuState(p,kind);assert.equal(s.hidden,'false');assert.equal(s.inert,false);assert.equal(s.pointer,'auto');assert.equal(s.shellInert,true,'zbytek stránky je inert');assert.equal(s.skipInert,true,'skip-link je inert');if(s.railInert!==null)assert.equal(s.railInert,true,'lišta je inert');await p.waitForFunction(k=>document.querySelector(`#dc-${k}-menu`).contains(document.activeElement),kind);};
-// Opakované malé posuny: tón lišty se sonduje každý ~6. snímek scrollu (jako v návrhu).
+// Ustálení pozice při kontrolách geometrie a přechodů. Přesnost tónu testujeme i jediným skokem.
 const settleScroll=async(p,y)=>{for(let i=0;i<8;i++){await p.evaluate(v=>scrollTo(0,v),y+(i%2));await p.waitForTimeout(40);}};
 try{
  await check('hero: ztlumené video bez zvuku, CSP self, lokální assety, hlavička uvnitř hero',async()=>{
@@ -48,6 +48,9 @@ try{
    assert.deepEqual(external,[],'všechny skripty, styly a média jsou lokální');
    const hero=page.locator('[data-screen-label="01 Hero"]'),video=hero.locator('video[data-video="hero"]');
    assert.equal(await hero.locator('header').count(),1,'hlavička je uvnitř hero');
+   assert.equal(await hero.locator('.hero-brand img').getAttribute('src'),await page.locator('footer img').first().getAttribute('src'),'hero přebírá první původní logo z patičky');
+   assert.equal(await page.locator('#ana-rail [data-sound-toggle],#ana-rail [data-video-toggle]').count(),2,'ovladače jsou v levé liště');
+   assert.equal(await hero.locator('[data-sound-toggle],[data-video-toggle]').count(),0,'desktop: ovladače odešly z hero do lišty');
    assert.equal(await video.evaluate(v=>v.muted&&v.defaultMuted),true,'hero video je ztlumené');
    assert.equal(await video.evaluate(v=>v.paused&&!v.autoplay),true,'reduced motion: hero video stojí');
    assert.ok(await video.evaluate(v=>[...v.querySelectorAll('source')].every(s=>s.getAttribute('src').startsWith('/media/'))));
@@ -106,6 +109,25 @@ try{
    await page.screenshot({path:root+'rail-light.png'});
    await settleScroll(page,0);await page.waitForFunction(()=>document.querySelector('#ana-rail').style.color==='rgb(239, 229, 199)');
    assert.equal(await rail.evaluate(el=>getComputedStyle(el).position),'fixed');
+   // Transparentní světlé sekce Zdravého světa dědí pozadí z body.
+   // Jediný scroll event musí přepnout tón; žádné další scrollování na vynucení šestého eventu.
+   await goto('/zdravy-svet');
+   const picture=page.locator('.zs-intro .content-landscape img');await picture.evaluate(el=>el.decode());
+   const photo=await picture.boundingBox();assert.equal(photo.x+photo.width,1440,'fotografie přiléhá k pravému okraji');assert.equal(photo.width,960,'původní šířka fotografie');assert.equal(photo.height,558,'původní výška bez ořezu');
+   const green=await page.locator('.statement').boundingBox();assert.ok(Math.abs(photo.y+photo.height-green.y)<1,'fotografie se dotýká zelené sekce');
+   assert.equal(await picture.locator('..').evaluate(el=>getComputedStyle(el).borderTopLeftRadius),'170px','levý horní roh zůstává zaoblený');
+   const stops=await page.evaluate(()=>[...document.querySelectorAll('main section')].map(s=>({y:Math.max(0,s.getBoundingClientRect().top+scrollY+s.offsetHeight/2-innerHeight/2),light:!s.classList.contains('statement')})));
+   for(const stop of [stops[0],stops[1],stops[2],stops[1],{y:0,light:true}]){
+     await page.evaluate(y=>scrollTo(0,y),stop.y);
+     await page.waitForFunction(light=>document.querySelector('#ana-rail').style.color===(light?'rgb(40, 48, 32)':'rgb(239, 229, 199)'),stop.light);
+   }
+   const split=await page.locator('.statement').evaluate(el=>el.getBoundingClientRect().top+scrollY-innerHeight*.75);
+   await page.evaluate(y=>scrollTo(0,y),split);
+   await page.waitForFunction(()=>document.querySelector('#ana-rail a[aria-label=SK]').style.color==='rgb(40, 48, 32)'&&document.querySelector('#ana-rail>a').style.color==='rgb(239, 229, 199)');
+   await page.screenshot({path:root+'zdravy-svet-rail.png'});
+   await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
+   await page.waitForFunction(()=>document.querySelector('#ana-rail').style.color==='rgb(239, 229, 199)'&&document.querySelector('#ana-rail [data-sound-toggle]').style.color==='rgb(239, 229, 199)');
+   await page.screenshot({path:root+'zdravy-svet-footer-rail.png'});
  });
  await check('reduced motion zobrazí veškerý obsah bez animací',async()=>{
    for(const path of ['/','/o-lucii','/zdravy-svet']){
@@ -249,6 +271,8 @@ try{
      for(const path of ['/','/o-lucii','/zdravy-svet','/eshop','/eshop/produkt/bio-sprchovy-gel','/kosik','/pokladna','/kontakt','/reset-40/knihovna']){await goto(path);await overflow(page,path+'@'+width);}
      await goto('/');
      assert.equal(await page.locator('#ana-rail').isVisible(),width>=1000,`lišta @${width}`);
+     for(const selector of ['[data-sound-toggle]','[data-video-toggle]'])assert.equal(await page.locator(selector).isVisible(),true,`ovladač dostupný @${width}`);
+     const controlsHost=width>=1000?'#ana-rail':'[data-mobile-media]';assert.equal(await page.locator(controlsHost+' [data-media-controls]').count(),1,'správné umístění ovladačů');
      assert.equal(await page.locator('header a[href="#kolekcia"]').isVisible(),width>=1000,`odkazy hlavičky @${width}`);
      await loadImages();await page.screenshot({path:root+`home-${width}.png`,fullPage:true});
      const trigger=headerTrigger();await trigger.click();await assertOpen(page,'top');await overflow(page,'menu@'+width);
@@ -292,6 +316,12 @@ try{
    const video=mp.locator('video[data-video="hero"]');await mp.waitForFunction(()=>!document.querySelector('video[data-video="hero"]').paused);
    await mp.locator('[data-video-toggle]').click();assert.equal(await video.evaluate(v=>v.paused),true);await mp.locator('[data-video-toggle]').click();await mp.waitForFunction(()=>!document.querySelector('video[data-video="hero"]').paused);
    assert.equal(await video.evaluate(v=>v.muted),true,'video zostáva stlmené');
+   await goto('/zdravy-svet',mp);const audioPlay=mp.locator('#ana-rail [data-video-toggle]'),headphones=mp.locator('#ana-rail [data-sound-toggle]');
+   assert.equal(await audioPlay.isVisible(),true);assert.equal(await headphones.isVisible(),true);
+   assert.equal(await audioPlay.getAttribute('aria-label'),'Spustiť zvuk');assert.equal(await headphones.getAttribute('aria-pressed'),'false');
+   await audioPlay.click();await mp.waitForFunction(()=>document.querySelector('[data-sound-toggle]').getAttribute('aria-pressed')==='true');
+   await audioPlay.click();await mp.waitForFunction(()=>document.querySelector('[data-sound-toggle]').getAttribute('aria-pressed')==='false');
+   await mp.setViewportSize({width:390,height:844});assert.equal(await mp.locator('[data-mobile-media] [data-video-toggle]').isVisible(),true);await mp.setViewportSize({width:1440,height:1000});
  });
  const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});watch(touch);const tp=await touch.newPage();
  await check('touch cards expose purchase controls without hover',async()=>{await tp.goto(base+'/eshop');const card=tp.locator('.product-card').first();assert.equal(await card.locator('[data-add]').isVisible(),true);await card.locator('[data-add]').tap();await tp.goto(base+'/kosik');await tp.locator('.cart-line').waitFor();assert.equal(await tp.locator('.cart-line').count(),1);await tp.goto(base+'/eshop');await tp.locator('.product-card').first().scrollIntoViewIfNeeded();await tp.screenshot({path:root+'catalog-touch.png'});const touchInfo=await tp.locator('.product-info').first().evaluate(el=>({hoverNone:matchMedia('(hover:none)').matches,opacity:getComputedStyle(el).opacity,visibility:getComputedStyle(el).visibility}));assert.equal(touchInfo.opacity,'1');assert.equal(touchInfo.visibility,'visible');});

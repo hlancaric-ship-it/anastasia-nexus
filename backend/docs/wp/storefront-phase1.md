@@ -148,3 +148,14 @@ VERIFIED:
 Server běží lokálně na `http://localhost:4173`. Volitelné `HOST=0.0.0.0`
 umožňuje samostatné spuštění na Linuxu; spuštění ve VirtualBoxu neproběhlo,
 protože nebylo dodáno přihlašovací jméno. Soubory ani tajemství se tam nekopírovaly.
+
+## Zdravý svet, logo a ovládání médií (14. 10. 2026)
+
+Větev `codex/storefront-chat`, lokální náhled `http://127.0.0.1:4183`.
+
+- Lišta čte i zděděné pozadí `body`/`html` a barevné přechody a přepíná při každém scroll snímku. Pozadí patičky pokračuje pod lištu; její obsah se ořezává až uvnitř patičky, takže nevzniká vodorovný overflow. Ikony a popisky určují kontrast ve své vlastní výšce, takže zůstávají čitelné i přes hranici světlé a tmavé sekce.
+- Hero používá původní logo ANASTASIA OZ (`lucia-logo.png`), stejné jako první logo z trojice v patičce.
+- Fotografie Zdravého světa má přirozených 960 × 558 px bez ořezu, zarovnání k pravému okraji a původní zaoblený levý horní roh. Spodní hrana navazuje bez mezery na zelenou sekci. Mezera nad fotografií je zmenšená na polovinu (35 px desktop, 20 px mobil); oba bloky se tím posunuly společně výš. Na menších displejích se zachovává poměr stran.
+- Sluchátko a spuštění/pauza jsou v levé liště úvodu i Zdravého světa. Na mobilu se stejné ovladače přesouvají vlevo dole. Na úvodu tlačítko ovládá video; na Zdravém světě stávající lokální ambientní zvuk. Zvuk se vytváří a spouští až po kliknutí. Rychlé pozastavení rozběhnutého požadavku není chyba přehrávání.
+
+Ověření: cílené kontroly rozměrů, dotyku zelené sekce a overflow při 320–1920 px PASS; ovládání dotykem, zvuk, play/pause a zachování stavu při změně šířky PASS. Plný `STOREFRONT_URL=http://127.0.0.1:4183 node storefront-prototype/test/browser.mjs` po poslední úpravě: 26/26 skupin PASS, včetně patičky s přechodem, bez JS chyb a cizích requestů. Mock sada 14/14 PASS; syntaktické kontroly a `git diff --check` PASS. CSP zůstalo `'self'`.
