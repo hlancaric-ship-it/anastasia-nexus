@@ -41,7 +41,8 @@ describe("auth-magic-link PostgreSQL integration", () => {
       await client.query("insert into entitlement values ($1,$2,$3)", ["legacy_access_1", "cus_c2_1", "prod_ep001"])
 
       const state = new Map<string, unknown>([[stateKey("c2.user@example.test"), { email: "c2.user@example.test", tokenHash: sha256Hex("verified-token") }]])
-      const pg = { raw: async (sql: string, bindings: unknown[] = []) => client.query(sql, bindings) }
+      // Služba volá knex `.raw()` s pozičními `?`; shim je převede na pg `$n` stejně jako knex.
+      const pg = { raw: async (sql: string, bindings: unknown[] = []) => { let i = 0; return client.query(sql.replace(/\?/g, () => `$${++i}`), bindings) } }
       const cradle = {
         logger: { warn: jest.fn(), error: jest.fn() },
         [ContainerRegistrationKeys.PG_CONNECTION]: pg,
