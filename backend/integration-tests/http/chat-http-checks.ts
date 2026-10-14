@@ -1,4 +1,5 @@
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
+import { REMOVED_CHAT_BODY } from "../../src/modules/chat/retention"
 
 /**
  * C5 chat přes skutečné HTTP a PostgreSQL: oprávnění psát, limity pod souběhem, odpověď Lucie,
@@ -88,4 +89,25 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
   expect((await api.post(`/admin/chat/customers/${customerB}/block`, { blocked: false }, admin)).status).toBe(200)
   expect((await api.post(`/store/chat/conversations/${bConv}/messages`, { body: "díky za odblokování" }, b)).status).toBe(201)
   evidence.push({ scenario: "C5_CLOSE_MUTE_BLOCK", statuses: [closed.status, blocked.status, 201] })
+
+  // Retention acts on closed content only; preserves counters, open/recent conversations and IDs.
+  const chat = container.resolve("chat")
+  const old = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date("2020-01-01"), subject: "synthetic private subject" })
+  const recent = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date(), subject: "recent subject" })
+  await chat.createChatMessages([
+    { conversation_id: old.id, customer_id: customerB, author_type: "customer", author_id: customerB, body: "old synthetic personal content" },
+    { conversation_id: recent.id, customer_id: customerB, author_type: "customer", author_id: customerB, body: "recent content" },
+  ])
+  const beforeCounters = (await api.get("/store/chat/status", b)).data.remaining
+  const cutoff = new Date(Date.now() - 365 * 86400000)
+  const retained = await chat.redactExpiredContent(cutoff)
+  expect(retained).toEqual({ conversations: 1, messages: 1 })
+  expect(await chat.redactExpiredContent(cutoff)).toEqual({ conversations: 0, messages: 0 })
+  const retainedThread = (await api.get(`/store/chat/conversations/${old.id}`, b)).data
+  expect(retainedThread.conversation.subject).toBeNull()
+  expect(retainedThread.messages[0].body).toBe(REMOVED_CHAT_BODY)
+  expect((await api.get(`/store/chat/conversations/${recent.id}`, b)).data.messages[0].body).toBe("recent content")
+  expect((await api.get(`/store/chat/conversations/${bConv}`, b)).data.messages[0].body).not.toBe(REMOVED_CHAT_BODY)
+  expect((await api.get("/store/chat/status", b)).data.remaining).toEqual(beforeCounters)
+  evidence.push({ scenario: "C5_CLOSED_CONTENT_RETENTION", redacted: retained, replayNoOp: true, countersPreserved: true })
 }

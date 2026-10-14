@@ -4,6 +4,7 @@ import ChatConversation from "./models/chat-conversation"
 import ChatMessage from "./models/chat-message"
 import ChatCustomerBlock from "./models/chat-customer-block"
 import ChatNotificationState from "./models/chat-notification-state"
+import { redactClosedChatContent } from "./retention"
 import {
   ChatPolicyError, evaluateCustomerSend, isDigestDue, localDayStart, MAX_ADMIN_MESSAGE_LENGTH,
   normalizeMessageBody, normalizeSubject, shouldNotifyCustomer, type SendCounters,
@@ -58,6 +59,12 @@ export class ConversationNotFoundError extends Error {
 }
 
 class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, ChatCustomerBlock, ChatNotificationState }) {
+  /** Erase expired closed content while retaining message counters and financial associations. */
+  @InjectTransactionManager()
+  async redactExpiredContent(cutoff: Date, @MedusaContext() context: Context = {}) {
+    return redactClosedChatContent(this.transactionKnex(context), cutoff)
+  }
+
   protected transactionKnex(context: Context) {
     const knex = (context.transactionManager as any)?.getTransactionContext?.()
     if (!knex) throw new Error("CHAT_TRANSACTION_REQUIRED")
