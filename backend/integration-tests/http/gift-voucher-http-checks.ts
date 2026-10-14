@@ -234,4 +234,32 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   for (const voucher of [big, small, exact, single]) expect(serialized).not.toContain(voucher.code)
   expect(list.vouchers.find((v: any) => v.id === toVoid.id)).toMatchObject({ status: "void", balance: 0 })
   evidence.push({ scenario: "K8_ADMIN_LIST_MASKED", count: list.count })
+
+  expect((await api.get(`/admin/vouchers/${single.id}/transactions`, options)).status).toBe(401)
+  const history = await ok(api.get(`/admin/vouchers/${single.id}/transactions?limit=100`, adminOpts))
+  expect(history.voucher_id).toBe(single.id)
+  expect(history.currency_code).toBe("eur")
+  expect(history.transactions.some((tx: any) => tx.type === "redeemed" && tx.amount === 50)).toBe(true)
+  expect(history.transactions.some((tx: any) => tx.type === "refunded")).toBe(true)
+  expect(history.transactions.every((tx: any) => !("note" in tx) && !("metadata" in tx) && !("idempotency_key" in tx))).toBe(true)
+  expect(JSON.stringify(history)).not.toContain(single.code)
+  evidence.push({ scenario: "K8_ADMIN_TRANSACTION_HISTORY", count: history.count })
+
+  // Shared database limiter: HTTP middleware and real concurrent PostgreSQL upserts.
+  await dbConnection.raw("DELETE FROM gift_voucher_rate_limit")
+  const attempts = await Promise.all(Array.from({ length: 25 }, () => api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "invalid" }, options)))
+  expect(attempts.filter((r) => r.status === 400)).toHaveLength(20)
+  expect(attempts.filter((r) => r.status === 429)).toHaveLength(5)
+  const limited = attempts.find((r) => r.status === 429)!
+  expect(limited.data.error).toBe("GIFT_VOUCHER_RATE_LIMITED")
+  expect(Number(limited.headers["retry-after"])).toBeGreaterThan(0)
+  const { rows: counters } = await dbConnection.raw("SELECT subject, attempts FROM gift_voucher_rate_limit")
+  expect(counters).toHaveLength(1)
+  expect(counters[0].subject).toMatch(/^[a-f0-9]{64}$/)
+  expect(counters[0].attempts).toBe(21)
+  await dbConnection.raw("UPDATE gift_voucher_rate_limit SET expires_at = now() - interval '1 second'")
+  expect((await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "invalid" }, options)).status).toBe(400)
+  const { rows: reset } = await dbConnection.raw("SELECT attempts FROM gift_voucher_rate_limit")
+  expect(reset[0].attempts).toBe(1)
+  evidence.push({ scenario: "K8_APPLY_RATE_LIMIT", accepted: 20, limited: 5, expiryReset: true })
 }
