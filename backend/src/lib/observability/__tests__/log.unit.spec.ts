@@ -54,6 +54,24 @@ describe("observability/log", () => {
     expect(JSON.parse(formatLogLine("warn", "job", "x", { request_id: "explicit_1" }, now)).request_id).toBe("explicit_1")
   })
 
+  it("pole volajícího nepřepíšou ts/level/domain/event/request_id", () => {
+    const now = new Date("2026-10-14T10:00:00.000Z")
+    const line = JSON.parse(formatLogLine("info", "payment", "captured", { ts: "x", level: "error", domain: "auth", event: "fake", request_id: "bad id" } as any, now))
+    expect(line).toMatchObject({ ts: "2026-10-14T10:00:00.000Z", level: "info", domain: "payment", event: "captured" })
+    expect(line.request_id).toMatch(/^[0-9a-f-]{36}$/)
+  })
+
+  it("Error nevypíše token, kód poukazu ani payload", () => {
+    const err = Object.assign(new Error("Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.sig_abcdefgh kód ANA-7K2P-QX9M pro jana@x.sk"), {
+      code: "E_VOUCHER", response: { body: { token: "tajne" } },
+    })
+    const out = redact({ error: err }) as any
+    expect(out.error.code).toBe("E_VOUCHER")
+    expect(out.error.message).not.toMatch(/eyJ|ANA-7K2P|jana@/)
+    expect(JSON.stringify(out)).not.toContain("tajne")
+    expect(out.error.message.length).toBeLessThanOrEqual(200)
+  })
+
   it("logEvent volá správnou úroveň a nikdy nevyhodí", () => {
     const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
     logEvent(logger, "warn", "coupon", "rejected", { coupon_code: "SPRING-2026-X" })

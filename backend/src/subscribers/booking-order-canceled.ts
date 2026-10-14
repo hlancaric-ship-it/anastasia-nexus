@@ -1,14 +1,13 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { cancelBookingForCanceledOrder } from "../modules/booking/order-sync"
+import { recordEvent } from "../lib/observability/events"
 
 export default async function bookingOrderCanceledHandler({ event, container }: SubscriberArgs<{ id: string }>) {
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   try {
     const count = await cancelBookingForCanceledOrder(container, event.data.id)
-    if (count) logger.info(`[booking] order.canceled ${event.data.id}: zrušeno rezervací ${count}`)
+    if (count) await recordEvent(container, "info", "booking", "canceled_for_order", { order_id: event.data.id, canceled: count })
   } catch (error) {
-    logger.error(`[booking] order.canceled ${event.data.id} selhalo`, error as Error)
+    await recordEvent(container, "error", "booking", "order_canceled_sync_failed", { order_id: event.data.id, error })
     throw error
   }
 }

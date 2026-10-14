@@ -1,14 +1,13 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { revokeEntitlementsForCanceledOrder } from "../modules/entitlement/order-sync"
+import { recordEvent } from "../lib/observability/events"
 
 export default async function entitlementOrderCanceledHandler({ event, container }: SubscriberArgs<{ id: string }>) {
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   try {
     const revoked = await revokeEntitlementsForCanceledOrder(container, event.data.id)
-    if (revoked) logger.info(`[entitlement] order.canceled ${event.data.id}: zrušeno ${revoked} přístupů`)
+    if (revoked) await recordEvent(container, "info", "entitlement", "revoked_for_canceled_order", { order_id: event.data.id, revoked })
   } catch (error) {
-    logger.error(`[entitlement] order.canceled ${event.data.id} selhalo`, error as Error)
+    await recordEvent(container, "error", "entitlement", "order_canceled_sync_failed", { order_id: event.data.id, error })
     throw error
   }
 }

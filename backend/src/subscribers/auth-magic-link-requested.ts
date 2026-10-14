@@ -1,12 +1,12 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { Modules } from "@medusajs/framework/utils"
 import { MAGIC_LINK_REQUESTED_EVENT } from "../modules/auth-magic-link/service"
+import { recordEvent } from "../lib/observability/events"
 
 type MagicLinkRequested = { email: string; url: string; ttl_minutes: number }
 
 /** Skutečné odeslání přihlašovacího odkazu (notifikace má plný přístup k modulům, provider ne). */
 export default async function authMagicLinkRequestedHandler({ event, container }: SubscriberArgs<MagicLinkRequested>) {
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   try {
     const notification = container.resolve(Modules.NOTIFICATION)
     await notification.createNotifications({
@@ -16,7 +16,7 @@ export default async function authMagicLinkRequestedHandler({ event, container }
       data: { url: event.data.url, subject: "Prihlasovací odkaz k vášmu účtu ANASTASIA", ttl_minutes: event.data.ttl_minutes },
     })
   } catch (error) {
-    logger.error("[auth-magic-link] odeslání e-mailu selhalo", error as Error)
+    await recordEvent(container, "error", "notification", "magic_link_send_failed", { error })
   }
 }
 

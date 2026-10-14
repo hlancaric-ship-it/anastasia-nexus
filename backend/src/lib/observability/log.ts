@@ -42,6 +42,10 @@ export function currentRequestId(): string | undefined {
 
 const SENSITIVE_KEY = /^(e-?mail|.*_email|email_.*|phone|telephone|.*_phone|first_name|last_name|full_name|name|recipient_name|sender_name|address|address_\d|.*_address|city|postal_code|zip|ip|ip_address|user_agent|token|.*_token|token_.*|secret|.*_secret|password|authorization|cookie|code|voucher_code|coupon_code|promo_code|body|message|message_body|note|reason)$/i
 const EMAIL_IN_TEXT = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
+/** Kódy poukazů/kupónů ve tvaru ABCD-EFGH… a dlouhé tokeny (JWT, hex, base64) v textu chyb. */
+const CODE_IN_TEXT = /\b[A-Z0-9]{3,}(?:-[A-Z0-9]{3,}){1,}\b/g
+const TOKEN_IN_TEXT = /[A-Za-z0-9+/_=.-]{24,}/g
+const MAX_ERROR_MESSAGE = 200
 const MAX_DEPTH = 6
 const MAX_STRING = 500
 
@@ -50,6 +54,21 @@ function maskValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return String(value ?? "")
   if (/code$/i.test(key) && typeof value === "string" && value.length > 6) return `***${value.slice(-4)}`
   return "[redacted]"
+}
+
+/**
+ * Chyba do logu: jen název, případný `code` a zkrácená zpráva bez e-mailů, kódů a tokenů.
+ * Libovolný payload chyby (response body, config, stack s daty) se záměrně nevypisuje.
+ */
+export function redactError(error: Error): { name: string; code?: string; message: string } {
+  const message = String(error.message ?? "")
+    .replace(EMAIL_IN_TEXT, "[email]")
+    .replace(TOKEN_IN_TEXT, "[token]")
+    .replace(CODE_IN_TEXT, "[code]")
+    .slice(0, MAX_ERROR_MESSAGE)
+  const rawCode = (error as Error & { code?: unknown }).code
+  const code = typeof rawCode === "string" && /^[A-Za-z0-9_.:-]{1,60}$/.test(rawCode) ? rawCode : undefined
+  return code ? { name: error.name, code, message } : { name: error.name, message }
 }
 
 /** Hluboká kopie s odstraněnými osobními údaji. Bezpečná i pro cykly a obří struktury. */
@@ -62,7 +81,7 @@ export function redact(input: unknown, depth = 0, seen = new WeakSet<object>()):
   if (typeof input === "number" || typeof input === "boolean") return input
   if (typeof input === "bigint") return input.toString()
   if (input instanceof Date) return input.toISOString()
-  if (input instanceof Error) return { name: input.name, message: redact(input.message, depth + 1, seen) }
+  if (input instanceof Error) return redactError(input)
   if (typeof input !== "object") return undefined
   if (seen.has(input)) return "[circular]"
   if (depth >= MAX_DEPTH) return "[truncated]"
@@ -77,17 +96,21 @@ export function redact(input: unknown, depth = 0, seen = new WeakSet<object>()):
 
 export type LogFields = Record<string, unknown> & { request_id?: string }
 
+const RESERVED_FIELDS = new Set(["ts", "level", "domain", "event", "request_id"])
+
 /** Sestaví řádek logu (exportováno kvůli testům). */
 export function formatLogLine(level: LogLevel, domain: LogDomain, event: string, fields: LogFields = {}, now = new Date()): string {
   const { request_id, ...rest } = fields
   const safe = redact(rest) as Record<string, unknown>
+  for (const key of RESERVED_FIELDS) delete safe[key]
+  // povinná pole až po polích volajícího – ta je nesmí přepsat
   return JSON.stringify({
+    ...safe,
     ts: now.toISOString(),
     level,
     domain,
     event,
-    request_id: request_id ?? currentRequestId() ?? null,
-    ...safe,
+    request_id: typeof request_id === "string" && request_id ? normalizeRequestId(request_id) : currentRequestId() ?? null,
   })
 }
 
