@@ -150,6 +150,7 @@ const P = {home: parts(SOURCES.home), about: parts(SOURCES.about)};
 
 const mediaControls=`<div data-media-controls aria-label="Ovládanie videa a zvuku">
   <button type="button" data-sound-toggle aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path class="sound-cross" d="m9 17 6 6m0-6-6 6"/></svg><span class="sc-interp media-label">Zvuk vypnutý</span></button>
+  <button type="button" data-sound-next hidden aria-label="Ďalšia skladba" title="Ďalšia skladba"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m5 5 10 7-10 7z"/><path d="M19 5v14"/></svg><span class="media-label">Ďalšia skladba</span></button>
   <button type="button" data-video-toggle aria-pressed="false" aria-label="Pozastaviť video" title="Pozastaviť video"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path class="pause-icon" d="M8 4v16M16 4v16"/><path class="play-icon" d="m7 4 13 8-13 8z"/></svg><span class="sc-interp media-label">Pozastaviť video</span></button>
 </div>`;
 
@@ -291,6 +292,7 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 [data-media-controls]{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;flex-shrink:0;border-top:1px solid currentColor}
 [data-media-controls] button{display:grid;place-items:center;position:relative;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer}
 [data-media-controls] button:hover{background:rgba(201,163,85,.15)}
+[data-media-controls] button[hidden]{display:none!important}
 [data-media-controls] button:focus-visible{outline:2px solid #C9A355;outline-offset:1px}
 [data-media-controls] svg{width:20px;height:20px;display:block}
 [data-media-controls] .media-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
