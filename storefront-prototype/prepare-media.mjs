@@ -11,13 +11,20 @@ for(const name of ['hero-1080p.mp4','hero-720p.mp4','hero-480p.mp4','hero-1080p.
   try{await access(join(source,name));}catch(error){if(error.code!=='ENOENT')throw error;await access(join(dest,name));continue;}
   await copyFile(join(source,name),join(dest,name));
 }
+// Ambient je rozsekaný na části NN.mp3 (app.mjs AMB_PARTS musí odpovídat počtu).
+await mkdir(join(dest,'ambient'),{recursive:true});
+let ambientParts=0;
+for(let i=1;;i++){
+  const name=String(i).padStart(2,'0')+'.mp3';
+  try{await copyFile(join(source,'ambient-parts',name),join(dest,'ambient',name));ambientParts++;}catch(error){if(error.code!=='ENOENT')throw error;break;}
+}
 const legacy=join(homedir(),'Downloads/anozeu/dufeksoft.ecommerce.web/dufeksoft.ecommerce.web');
 for(const [from,to] of [['Media/00qdnkts/vyuka-vedomeho-vnimania.jpg','learning.jpg']]) {
   try {await copyFile(join(legacy,from),join(dest,to));}catch{await copyFile(join(dest,'poster.jpg'),join(dest,to));}
 }
 await rm(join(dest,'centre.jpg'),{force:true});
 await rm(join(root,'dist/media/centre.jpg'),{force:true});
-console.log('Prepared 6 supplied hero assets and 1 public legacy image in ignored public/media/.');
+console.log(`Prepared 6 supplied hero assets, ${ambientParts} ambient parts and 1 public legacy image in ignored public/media/.`);
 
 const legacyContent=JSON.parse(await readFile(join(root,'src/legacy-content.json'),'utf8'));
 const originals=new Map(Object.values(legacyContent).flatMap(page=>page.blocks.filter(block=>block.type==='image').map(block=>[block.src,block.originalSrc])));

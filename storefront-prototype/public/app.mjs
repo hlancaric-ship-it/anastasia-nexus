@@ -112,17 +112,98 @@ const heroVideo=$('video[data-video="hero"]'),playBtn=$('[data-video-toggle]'),s
 const mediaControls=$('[data-media-controls]'),mobileMedia=$('[data-mobile-media]'),wideMedia=matchMedia('(min-width:1000px)');
 const placeMedia=()=>{if(mediaControls&&mobileMedia)(wideMedia.matches?$('#ana-rail'):mobileMedia).append(mediaControls);};
 placeMedia();wideMedia.addEventListener('change',placeMedia);
-let ambient=null;
-const videoLabel=()=>{if(!playBtn)return;const media=heroVideo||ambient,paused=!media||media.paused,label=paused?(heroVideo?'Prehrať video':'Spustiť zvuk'):(heroVideo?'Pozastaviť video':'Pozastaviť zvuk');playBtn.setAttribute('aria-pressed',String(paused));playBtn.setAttribute('aria-label',label);playBtn.title=label;setLabel(playBtn,label);};
-const soundLabel=()=>{if(!soundBtn)return;const on=!!ambient&&!ambient.paused,label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
-const getAmbient=()=>{if(!ambient){ambient=Object.assign(new Audio('/media/nature-ambient.mp3'),{loop:true,preload:'none'});ambient.addEventListener('play',soundLabel);ambient.addEventListener('pause',soundLabel);}return ambient;};
-const toggleAmbient=async()=>{const media=getAmbient();if(media.paused){try{await media.play();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}}else media.pause();soundLabel();};
+// Ambient: skladba je rozsekaná na části (/media/ambient/NN.mp3) s 4s překryvem. Každá nová návštěva začne náhodnou
+// částí, další části navazují s prolnutím a po poslední se pokračuje první. Pozice se drží v sessionStorage (čas běží
+// dál i během přechodu mezi stránkami), vypnutí v localStorage. Bez gesta prohlížeč zvuk nepustí, proto se rozjede
+// při první interakci se stránkou. Ovládá se tlačítky v boční liště (na mobilu pod hero).
+const AMB_PARTS=10,AMB_XFADE=4,AMB_VOL=0.6,AMB_KEY='ana-ambient',AMB_OFF='ana-ambient-off';
+const ambSrc=i=>`/media/ambient/${String(i+1).padStart(2,'0')}.mp3`;
+const ambDecks=[0,1].map(()=>Object.assign(new Audio(),{preload:'none',volume:0}));
+let ambCur=0,ambPart=0,ambStarted=false,ambSavedAt=0,ambXfading=false,ambPaused=true;
+let ambOff=false;try{ambOff=localStorage.getItem(AMB_OFF)==='1';}catch{}
+let ambState=null;try{ambState=JSON.parse(storage?.getItem(AMB_KEY)||'null');}catch{}
+const videoLabel=()=>{if(!playBtn)return;const paused=heroVideo?heroVideo.paused:ambPaused,label=paused?(heroVideo?'Prehrať video':'Spustiť zvuk'):(heroVideo?'Pozastaviť video':'Pozastaviť zvuk');playBtn.setAttribute('aria-pressed',String(paused));playBtn.setAttribute('aria-label',label);playBtn.title=label;setLabel(playBtn,label);};
+const soundLabel=()=>{if(!soundBtn)return;const on=!ambPaused,label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
+const ambFades=new WeakMap();
+function ambFadeTo(el,target,ms){
+  cancelAnimationFrame(ambFades.get(el));const from=el.volume,t0=performance.now();
+  return new Promise(done=>{const step=now=>{const k=Math.min(1,(now-t0)/ms);el.volume=Math.min(1,Math.max(0,from+(target-from)*k));if(k<1)ambFades.set(el,requestAnimationFrame(step));else done();};ambFades.set(el,requestAnimationFrame(step));});
+}
+function ambSave(){
+  const el=ambDecks[ambCur];
+  if(!ambStarted||!Number.isFinite(el.currentTime))return;
+  try{storage?.setItem(AMB_KEY,JSON.stringify({part:ambPart,pos:el.currentTime,at:Date.now()}));}catch{}
+}
+function ambLoad(el,part){
+  el.src=ambSrc(part);el.preload='auto';
+  return el.readyState>=1?Promise.resolve():new Promise((ok,fail)=>{el.addEventListener('loadedmetadata',ok,{once:true});el.addEventListener('error',()=>fail(new Error('AMBIENT_LOAD')),{once:true});});
+}
+async function ambPlay(){
+  ambPaused=false;
+  const el=ambDecks[ambCur];
+  try{
+    if(!ambStarted){
+      let part=Math.floor(Math.random()*AMB_PARTS),pos=0;
+      if(ambState&&Number.isInteger(ambState.part)&&ambState.part>=0&&ambState.part<AMB_PARTS&&Number.isFinite(ambState.pos)){
+        part=ambState.part;pos=ambState.pos+Math.max(0,(Date.now()-(ambState.at||Date.now()))/1000);
+      }
+      await ambLoad(el,part);
+      // Čas strávený mimo web může přeskočit i celou část – posuneme se o odpovídající počet částí.
+      const len=Math.max(1,el.duration-AMB_XFADE);
+      if(pos>=len){part=(part+Math.floor(pos/len))%AMB_PARTS;pos%=len;await ambLoad(el,part);}
+      ambPart=part;el.currentTime=pos;ambStarted=true;
+    }
+    await el.play();
+  }catch(error){ambPaused=true;soundLabel();throw error;}
+  soundLabel();ambSave();ambFadeTo(el,AMB_VOL,900);
+}
+async function ambStop(){
+  ambPaused=true;soundLabel();ambSave();
+  await Promise.all(ambDecks.map(el=>ambFadeTo(el,0,400)));
+  if(ambPaused)ambDecks.forEach(el=>el.pause());
+}
+async function ambNext(){
+  // Přechod na další část: druhý přehrávač naběhne z ticha, aktuální dozní. Části se překrývají o AMB_XFADE sekund.
+  if(ambXfading||ambPaused)return;ambXfading=true;
+  const from=ambDecks[ambCur],to=ambDecks[1-ambCur],next=(ambPart+1)%AMB_PARTS;
+  try{
+    await ambLoad(to,next);to.currentTime=0;to.volume=0;await to.play();
+    ambCur=1-ambCur;ambPart=next;ambSave();
+    await Promise.all([ambFadeTo(to,AMB_VOL,AMB_XFADE*1000),ambFadeTo(from,0,AMB_XFADE*1000)]);
+    from.pause();from.removeAttribute('src');from.load();
+  }catch{
+    // Další část se nenačetla – aktuální přehrajeme znovu, ať zvuk nevypadne.
+    from.currentTime=0;
+  }finally{ambXfading=false;}
+}
+ambDecks.forEach(el=>{
+  el.addEventListener('timeupdate',()=>{
+    if(el!==ambDecks[ambCur])return;
+    if(Number.isFinite(el.duration)&&el.currentTime>=el.duration-AMB_XFADE)ambNext();
+    const now=Date.now();if(now-ambSavedAt>2000){ambSavedAt=now;ambSave();}
+  });
+  el.addEventListener('ended',()=>{if(el===ambDecks[ambCur])ambNext();});
+});
+const ambUnlockEvents=['pointerdown','keydown','touchend'];
+function ambUnlock(event){
+  if(event.target.closest?.('[data-sound-toggle],[data-video-toggle]'))return;
+  ambUnlockEvents.forEach(t=>document.removeEventListener(t,ambUnlock,true));
+  if(!ambOff&&ambPaused)ambPlay().catch(()=>{});
+}
+const toggleAmbient=async()=>{
+  if(!ambPaused){ambOff=true;try{localStorage.setItem(AMB_OFF,'1');}catch{}await ambStop();return;}
+  ambOff=false;try{localStorage.removeItem(AMB_OFF);}catch{}
+  try{await ambPlay();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}
+};
 heroVideo?.addEventListener('play',videoLabel);heroVideo?.addEventListener('pause',videoLabel);videoLabel();soundLabel();
 let userPaused=false;
 const vio=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.isIntersecting&&!(v===heroVideo&&userPaused)&&!reducedMotion.matches)v.play?.().catch(()=>{});else if(!en.isIntersecting)v.pause?.();}));
 $$('video').forEach(v=>{v.muted=true;if(reducedMotion.matches){v.autoplay=false;v.pause();}vio.observe(v);});
 playBtn?.addEventListener('click',()=>{if(!heroVideo){toggleAmbient();return;}if(heroVideo.paused){userPaused=false;heroVideo.play().catch(()=>toast('Video sa nepodarilo spustiť.'));}else{userPaused=true;heroVideo.pause();}videoLabel();});
 soundBtn?.addEventListener('click',toggleAmbient);
+addEventListener('pagehide',ambSave);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)ambSave();});
+if(!ambOff)ambPlay().catch(()=>ambUnlockEvents.forEach(t=>document.addEventListener(t,ambUnlock,{capture:true,passive:true})));
 
 // Newsletter: v náhľade sa nič neodosiela.
 $$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();if(form.elements.email.value.includes('@'))setLabel($('button',form),'Ďakujeme');}));
