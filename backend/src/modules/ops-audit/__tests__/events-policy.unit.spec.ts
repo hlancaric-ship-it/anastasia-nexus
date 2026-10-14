@@ -40,5 +40,8 @@ describe("ops-audit/events-policy", () => {
     expect(retentionCutoff("30", 90, 7, 730, now).toISOString()).toBe("2026-09-14T00:00:00.000Z")
     expect(retentionCutoff("1", 90, 7, 730, now).toISOString()).toBe("2026-07-16T00:00:00.000Z")
     expect(retentionCutoff(undefined, 90, 7, 730, now).toISOString()).toBe("2026-07-16T00:00:00.000Z")
+    for (const junk of ["7junk", "7.9", "1e1", " ", "-30", "0x10"]) {
+      expect(retentionCutoff(junk, 90, 7, 730, now).toISOString()).toBe("2026-07-16T00:00:00.000Z")
+    }
   })
 })

@@ -40,7 +40,18 @@ export function currentRequestId(): string | undefined {
   return storage.getStore()?.requestId
 }
 
-const SENSITIVE_KEY = /^(e-?mail|.*_email|email_.*|phone|telephone|.*_phone|first_name|last_name|full_name|name|recipient_name|sender_name|address|address_\d|.*_address|city|postal_code|zip|ip|ip_address|user_agent|token|.*_token|token_.*|secret|.*_secret|password|authorization|cookie|code|voucher_code|coupon_code|promo_code|body|message|message_body|note|reason)$/i
+const SENSITIVE_KEY = /^(e-?mail|.*_email|email_.*|phone|telephone|.*_phone|first_name|last_name|full_name|name|recipient_name|sender_name|address|address_\d|.*_address|city|postal_code|zip|ip|ip_address|user_agent|token|.*_token|token_.*|secret|.*_secret|password|.*_password|authorization|cookie|set_cookie|code|.*_code|api_key|.*_api_key|apikey|private_key|access_key|secret_key|signing_key|idempotency_key|body|message|message_body|note|reason|signature|.*_signature)$/i
+
+/** `voucherCode`, `api-key`, `X-Api-Key` → `voucher_code`, `api_key`, `x_api_key` (jednotné posouzení citlivosti). */
+export function normalizeKey(key: string): string {
+  return key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/[-\s]+/g, "_").toLowerCase()
+}
+/** Technické kódy bez osobních údajů a tajemství (kódy chyb, měn, zemí, HTTP stavů). */
+const SAFE_CODE_KEYS = new Set(["error_code", "currency_code", "country_code", "status_code", "http_code", "region_code", "locale_code", "provider_code"])
+const isSensitiveKey = (key: string) => {
+  const normalized = normalizeKey(key)
+  return !SAFE_CODE_KEYS.has(normalized) && SENSITIVE_KEY.test(normalized)
+}
 const EMAIL_IN_TEXT = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
 /** Kódy poukazů/kupónů ve tvaru ABCD-EFGH… a dlouhé tokeny (JWT, hex, base64) v textu chyb. */
 const CODE_IN_TEXT = /\b[A-Z0-9]{3,}(?:-[A-Z0-9]{3,}){1,}\b/g
@@ -52,7 +63,7 @@ const MAX_STRING = 500
 /** Hodnota citlivého klíče se nahradí; kódy si ponechají poslední 4 znaky kvůli dohledání s podporou. */
 function maskValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return String(value ?? "")
-  if (/code$/i.test(key) && typeof value === "string" && value.length > 6) return `***${value.slice(-4)}`
+  if (/(^|_)code$/.test(normalizeKey(key)) && typeof value === "string" && value.length > 6) return `***${value.slice(-4)}`
   return "[redacted]"
 }
 
@@ -89,7 +100,7 @@ export function redact(input: unknown, depth = 0, seen = new WeakSet<object>()):
   if (Array.isArray(input)) return input.slice(0, 50).map((item) => redact(item, depth + 1, seen))
   const out: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-    out[key] = SENSITIVE_KEY.test(key) ? maskValue(key, value) : redact(value, depth + 1, seen)
+    out[key] = isSensitiveKey(key) ? maskValue(key, value) : redact(value, depth + 1, seen)
   }
   return out
 }

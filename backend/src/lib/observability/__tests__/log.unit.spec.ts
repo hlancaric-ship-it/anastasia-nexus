@@ -26,6 +26,22 @@ describe("observability/log", () => {
     expect(out.text).toBe("kontakt [email] prosím")
   })
 
+  it("redact normalizuje camelCase a kebab-case klíče", () => {
+    const out = redact({ apiKey: "synthetic-api-key-value", api_key: "synthetic", "X-Api-Key": "synthetic", voucherCode: "ANA-ABCD-EFGH-9876", couponCode: "SPRING26XY" }) as Record<string, any>
+    expect(out.apiKey).toBe("[redacted]")
+    expect(out.api_key).toBe("[redacted]")
+    expect(out["X-Api-Key"]).toBe("[redacted]")
+    expect(out.voucherCode).toBe("***9876")
+    expect(out.couponCode).toBe("***26XY")
+    expect(redact({ errorCode: "SAFEORDER_BLOCKED", currency_code: "eur" })).toEqual({ errorCode: "SAFEORDER_BLOCKED", currency_code: "eur" })
+  })
+
+  it("redact skryje osobní údaje v camelCase i tajemství pod jinými názvy", () => {
+    const out = redact({ firstName: "Jana", customerEmail: "a@b.cz", accessToken: "t", clientSecret: "s", idempotencyKey: "k", webhookSignature: "sig", setCookie: "c", productId: "prod_1" }) as Record<string, any>
+    for (const key of ["firstName", "customerEmail", "accessToken", "clientSecret", "idempotencyKey", "webhookSignature", "setCookie"]) expect(out[key]).toBe("[redacted]")
+    expect(out.productId).toBe("prod_1")
+  })
+
   it("redact zvládne cyklus, hloubku, dlouhé řetězce, pole a Error", () => {
     const cyc: Record<string, unknown> = { a: 1 }
     cyc.self = cyc

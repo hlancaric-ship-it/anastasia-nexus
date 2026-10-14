@@ -65,7 +65,9 @@ export function parseOpsEventQuery(query: Record<string, unknown> | undefined): 
 
 /** Retence v dnech z env (celé číslo v rozsahu), jinak výchozí. */
 export function retentionCutoff(raw: string | undefined, fallbackDays: number, min: number, max: number, now = new Date()): Date {
-  const parsed = Number.parseInt(String(raw ?? ""), 10)
+  // jen čisté celé číslo: „7junk“, „7.9“, „1e3“ nebo prázdno nesmí zkrátit retenci → výchozí hodnota
+  const text = String(raw ?? "").trim()
+  const parsed = /^\d{1,5}$/.test(text) ? Number(text) : NaN
   const days = Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : fallbackDays
   return new Date(now.getTime() - days * 86_400_000)
 }
