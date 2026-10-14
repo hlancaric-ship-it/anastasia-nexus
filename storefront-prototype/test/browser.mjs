@@ -47,7 +47,7 @@ try{
    const external=await page.evaluate(()=>[...document.querySelectorAll('script[src],link[href],img[src],video source[src],video[poster],audio[src],iframe')].map(el=>el.getAttribute('src')||el.getAttribute('href')||el.getAttribute('poster')).filter(u=>/^(https?:)?\/\//.test(u)));
    assert.deepEqual(external,[],'všechny skripty, styly a média jsou lokální');
    const hero=page.locator('[data-screen-label="01 Hero"]'),video=hero.locator('video[data-video="hero"]');
-   assert.equal(await hero.locator('header').count(),1,'hlavička je uvnitř hero');assert.equal(await hero.locator('.header-brands>span').count(),3);assert.equal(await page.locator('.sky-window video').evaluate(el=>getComputedStyle(el).opacity),'1');assert.equal(await page.locator('.sky-spill').evaluate(el=>getComputedStyle(el).opacity),'0.3');
+   assert.equal(await hero.locator('header').count(),1,'hlavička je uvnitř hero');assert.equal(await hero.locator('.header-brands').count(),0,'hlavička je bez trojice log');assert.equal(await page.locator('.sky-window video').evaluate(el=>getComputedStyle(el).opacity),'1');assert.equal(await page.locator('.sky-spill').evaluate(el=>getComputedStyle(el).opacity),'0.3');
    assert.equal(await hero.locator('.hero-brand img').evaluate(el=>getComputedStyle(el).animationName),'none','logo respektuje reduced motion');
    assert.equal(await hero.locator('.hero-brand img').getAttribute('src'),await page.locator('footer img').first().getAttribute('src'),'hero přebírá první původní logo z patičky');
    assert.equal(await page.locator('#ana-rail [data-sound-toggle],#ana-rail [data-video-toggle]').count(),2,'ovladače jsou v levé liště');

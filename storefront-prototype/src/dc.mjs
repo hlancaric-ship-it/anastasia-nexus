@@ -169,7 +169,7 @@ export function chrome(page) {
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   const menuBrand=html=>html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   return {
-    header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, `<a href="/" class="header-brands" aria-label="ANASTASIA — úvod"><span><img src="/assets/lucia-logo.png" alt="ANASTASIA OZ"></span><span class="header-academy"><b>ANASTASIA</b><small>— ACADEMY —</small></span><span><img src="/assets/logo-mark.png" alt="AI ANASTASIA"><small>AI ANASTASIA</small></span></a>`),
+    header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>'),
     footer: bleed(convert(src.footer, {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${['home','world'].includes(page)?mediaControls:''}</aside>`),
@@ -242,6 +242,7 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .header-brands small{font-size:7px;letter-spacing:1px;color:#C9A355;white-space:nowrap}
 .header-academy b{font-size:10px;letter-spacing:2px;font-weight:200}
 [data-screen-label="01 Hero"] header{background:#26321E}
+:is(.dc-root,.dc-chrome):not(.customer-page *,.customer-login *) header:has([data-menu-open]){background:linear-gradient(180deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),color-mix(in srgb,var(--site-dark) 42%,transparent)!important;border-bottom:1px solid rgba(255,255,255,0.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(255,255,255,0.12),0 10px 40px rgba(0,0,0,0.14);backdrop-filter:blur(26px) saturate(180%) brightness(1.05);-webkit-backdrop-filter:blur(26px) saturate(180%) brightness(1.05)}
 .sky-section{--sky-overlap:64px;--sky-inset:96px;position:relative;isolation:isolate;overflow:visible}
 .sky-spill{position:absolute;inset:calc(-1 * var(--sky-overlap)) 0 0;pointer-events:none;z-index:-1;overflow:hidden;opacity:.3}
 .sky-spill video{position:absolute;object-fit:cover;max-width:none;filter:none;mask-image:linear-gradient(to right,#000 75%,transparent)}
