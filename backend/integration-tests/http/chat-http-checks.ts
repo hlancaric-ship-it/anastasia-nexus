@@ -92,9 +92,11 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
 
   // Retention acts on closed content only; preserves counters, open/recent conversations and IDs.
   const chat = container.resolve("chat")
-  const old = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date("2020-01-01"), subject: "synthetic private subject" })
+  // 31-day fixtures expire under the tested 30-day policy, but not the scheduled default 365-day job.
+  const expiredClosure = new Date(Date.now() - 31 * 86400000)
+  const old = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: expiredClosure, subject: "synthetic private subject" })
   const recent = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date(), subject: "recent subject" })
-  const archived = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date("2020-01-01"), subject: "archived private subject" })
+  const archived = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: expiredClosure, subject: "archived private subject" })
   const pg = container.resolve(ContainerRegistrationKeys.PG_CONNECTION)
   await pg.raw("UPDATE chat_conversation SET deleted_at = now() WHERE id = ?", [archived.id])
   await chat.createChatMessages([
@@ -103,7 +105,7 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
     { conversation_id: archived.id, customer_id: customerB, author_type: "customer", author_id: customerB, body: "archived private content" },
   ])
   const beforeCounters = (await api.get("/store/chat/status", b)).data.remaining
-  const cutoff = new Date(Date.now() - 365 * 86400000)
+  const cutoff = new Date(Date.now() - 30 * 86400000)
   const concurrentRetention = await Promise.all([chat.redactExpiredContent(cutoff), chat.redactExpiredContent(cutoff)])
   expect(concurrentRetention.map((r: any) => r.conversations).sort()).toEqual([0, 2])
   expect(concurrentRetention.map((r: any) => r.messages).sort()).toEqual([0, 2])
