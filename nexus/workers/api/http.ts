@@ -13,6 +13,8 @@
 //   3. Structured logging (master rule "chyby čitelné bez dolování"):
 //      jeden JSON řádek s `requestId`, ne `console.error("[Worker]", err)`.
 
+import { enqueueOpsEvent } from './ops-ingest.js';
+
 export interface LogFields {
     readonly [key: string]: unknown;
 }
@@ -27,12 +29,15 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
  * Na to je `redactVoucherCode` / `redactToken` níže.
  */
 export function log(level: LogLevel, event: string, fields: LogFields = {}): void {
+    const ts = new Date().toISOString();
     const line = JSON.stringify({
         level,
         event,
-        ts: new Date().toISOString(),
+        ts,
         ...fields,
     });
+    // warn/error se navíc přepošlou do Medusa `ops_event` (viz ops-ingest.ts)
+    enqueueOpsEvent(level, event, ts, fields);
 
     if (level === 'error') {
         console.error(line);

@@ -235,4 +235,8 @@ export interface Env {
      * konfigurovatelná forma (§11 zakazuje dávat platnost natvrdo do kódu).
      */
     readonly VOUCHER_VALIDITY_MONTHS?: string;
+    /** Volitelně: endpoint Medusa `/hooks/ops/edge-events` pro přeposílání warn/error událostí. */
+    readonly OPS_INGEST_URL?: string;
+    /** Sdílené tajemství s Medusou (`OPS_INGEST_SECRET`, min. 32 znaků) -- jen `wrangler secret put`. */
+    readonly OPS_INGEST_SECRET?: string;
 }

@@ -16,7 +16,7 @@ export type LoggerLike = { info: (msg: string) => void; warn: (msg: string) => v
 
 export const LOG_DOMAINS = [
   "http", "safeorder", "pricing", "checkout", "payment", "webhook", "coupon", "gift_voucher",
-  "booking", "entitlement", "auth", "migration", "chat", "job", "notification", "admin_audit",
+  "booking", "entitlement", "auth", "migration", "chat", "job", "notification", "admin_audit", "edge",
 ] as const
 export type LogDomain = (typeof LOG_DOMAINS)[number]
 
@@ -38,6 +38,12 @@ export function runWithRequestId<T>(requestId: string, fn: () => T): T {
 
 export function currentRequestId(): string | undefined {
   return storage.getStore()?.requestId
+}
+
+/** Hlavička pro odchozí volání (NEXUS Worker) – stejné ID pak najdeš v `ops_event` z obou stran. */
+export function requestIdHeaders(): Record<string, string> {
+  const id = currentRequestId()
+  return id ? { [REQUEST_ID_HEADER]: id } : {}
 }
 
 const SENSITIVE_KEY = /^(e-?mail|.*_email|email_.*|phone|telephone|.*_phone|first_name|last_name|full_name|name|recipient_name|sender_name|address|address_\d|.*_address|city|postal_code|zip|ip|ip_address|user_agent|token|.*_token|token_.*|secret|.*_secret|password|.*_password|authorization|cookie|set_cookie|code|.*_code|api_key|.*_api_key|apikey|private_key|access_key|secret_key|signing_key|idempotency_key|body|message|message_body|note|reason|signature|.*_signature)$/i

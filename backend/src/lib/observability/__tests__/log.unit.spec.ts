@@ -1,4 +1,4 @@
-import { currentRequestId, formatLogLine, logEvent, normalizeRequestId, redact, runWithRequestId } from "../log"
+import { currentRequestId, formatLogLine, logEvent, normalizeRequestId, redact, requestIdHeaders, runWithRequestId } from "../log"
 
 describe("observability/log", () => {
   it("normalizeRequestId převezme bezpečné ID a jinak vytvoří nové", () => {
@@ -96,5 +96,9 @@ describe("observability/log", () => {
     expect(logger.error).toHaveBeenCalledTimes(1)
     const broken = { info: () => { throw new Error("x") }, warn: jest.fn(), error: jest.fn() }
     expect(() => logEvent(broken, "info", "http", "x")).not.toThrow()
+  })
+  it("requestIdHeaders: ID z kontextu jde do odchozí hlavičky, mimo kontext nic", () => {
+    expect(requestIdHeaders()).toEqual({})
+    expect(runWithRequestId("req_abcdefgh", () => requestIdHeaders())).toEqual({ "x-request-id": "req_abcdefgh" })
   })
 })

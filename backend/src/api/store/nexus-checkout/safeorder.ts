@@ -1,3 +1,5 @@
+import { requestIdHeaders } from "../../../lib/observability/log"
+
 export type SafeOrderDecision = "ALLOW" | "REVIEW" | "BLOCK"
 
 export type SafeOrderInput = {
@@ -40,7 +42,7 @@ export async function assertSafeOrderAllows(input: SafeOrderInput, env: Record<s
   try {
     response = await fetchImpl(url, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}`, ...requestIdHeaders() },
       body: JSON.stringify({ ...input, tenantId, currency: "eur" }),
       redirect: "error",
       signal: AbortSignal.timeout(5000),

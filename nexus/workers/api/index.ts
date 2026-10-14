@@ -30,6 +30,7 @@ import { handleAIQuery } from './routes/aiGateway.js';
 import { handleIssue } from './routes/issuance.js';
 import { handleRedeem, handleValidate } from './routes/voucher.js';
 import type { Env } from './types.js';
+import { flushOpsEvents } from './ops-ingest.js';
 
 /**
  * DO třída MUSÍ být exportovaná z `main` modulu (wrangler.jsonc
@@ -50,66 +51,95 @@ export default {
     // `ctx` je potřeba pro `ctx.waitUntil()` -- webhook musí odpovědět do
     // 4 s (§16) a zpracování běží až po odeslání odpovědi.
     async fetch(request: Request, env: Env, ctx: ExecutionContextLike): Promise<Response> {
-        const origin = request.headers.get('Origin');
-        const requestId = crypto.randomUUID();
-        const startedAt = Date.now();
-
-        // Preflight se řeší PŘED validací bindingů: prohlížeč po něm chce
-        // jen hlavičky a 503 by CORS rozbil i pro čtení chybové hlášky.
-        if (request.method === 'OPTIONS') {
-            return preflightResponse(env, origin);
-        }
-
-        const url = new URL(request.url);
-
+        const requestId = resolveRequestId(request.headers.get(REQUEST_ID_HEADER));
         try {
-            assertRequiredBindings(env);
-
-            const response = await route(request, env, url, ctx);
-
-            log('info', 'http.request', {
-                requestId,
-                method: request.method,
-                path: url.pathname,
-                status: response.status,
-                durationMs: Date.now() - startedAt,
-            });
-
-            return withCors(response, env, origin);
-        } catch (error) {
-            if (error instanceof ApiError) {
-                // Očekávaná, klasifikovaná chyba -- kód i hláška jdou ven.
-                log(error.status >= 500 ? 'error' : 'warn', 'http.api_error', {
-                    requestId,
-                    method: request.method,
-                    path: url.pathname,
-                    code: error.code,
-                    status: error.status,
-                    message: error.message,
-                    ...(error.details ?? {}),
-                    durationMs: Date.now() - startedAt,
-                });
-                return withCors(jsonError(error.code, error.message, error.status), env, origin);
-            }
-
-            // Neočekávaná chyba: detail JEN do logu, ven obecná hláška.
-            // Stack trace v odpovědi je únik informací o vnitřní struktuře.
-            log('error', 'http.unhandled_error', {
-                requestId,
-                method: request.method,
-                path: url.pathname,
-                message: error instanceof Error ? error.message : String(error),
-                stack: error instanceof Error ? error.stack : undefined,
-                durationMs: Date.now() - startedAt,
-            });
-            return withCors(
-                jsonError('INTERNAL_ERROR', 'Vnitřní chyba serveru.', 500),
-                env,
-                origin,
-            );
+            return withRequestId(await handle(request, env, ctx, requestId), requestId);
+        } finally {
+            // warn/error události do Medusa `ops_event` až po odeslání odpovědi
+            ctx.waitUntil(flushOpsEvents(env));
         }
     },
 };
+
+const REQUEST_ID_HEADER = 'x-request-id';
+const REQUEST_ID_RE = /^[A-Za-z0-9._:-]{8,64}$/;
+
+/** Bezpečné příchozí ID (Medusa / storefront) se převezme kvůli korelaci, jinak nové. */
+function resolveRequestId(incoming: string | null): string {
+    return incoming && REQUEST_ID_RE.test(incoming) ? incoming : crypto.randomUUID();
+}
+
+function withRequestId(response: Response, requestId: string): Response {
+    try {
+        response.headers.set(REQUEST_ID_HEADER, requestId);
+        return response;
+    } catch {
+        // neměnné hlavičky (např. odpověď přímo z fetch/R2) -- kopie
+        const copy = new Response(response.body, response);
+        copy.headers.set(REQUEST_ID_HEADER, requestId);
+        return copy;
+    }
+}
+
+async function handle(request: Request, env: Env, ctx: ExecutionContextLike, requestId: string): Promise<Response> {
+    const origin = request.headers.get('Origin');
+    const startedAt = Date.now();
+
+    // Preflight se řeší PŘED validací bindingů: prohlížeč po něm chce
+    // jen hlavičky a 503 by CORS rozbil i pro čtení chybové hlášky.
+    if (request.method === 'OPTIONS') {
+        return preflightResponse(env, origin);
+    }
+
+    const url = new URL(request.url);
+
+    try {
+        assertRequiredBindings(env);
+
+        const response = await route(request, env, url, ctx);
+
+        log('info', 'http.request', {
+            requestId,
+            method: request.method,
+            path: url.pathname,
+            status: response.status,
+            durationMs: Date.now() - startedAt,
+        });
+
+        return withCors(response, env, origin);
+    } catch (error) {
+        if (error instanceof ApiError) {
+            // Očekávaná, klasifikovaná chyba -- kód i hláška jdou ven.
+            log(error.status >= 500 ? 'error' : 'warn', 'http.api_error', {
+                requestId,
+                method: request.method,
+                path: url.pathname,
+                code: error.code,
+                status: error.status,
+                message: error.message,
+                ...(error.details ?? {}),
+                durationMs: Date.now() - startedAt,
+            });
+            return withCors(jsonError(error.code, error.message, error.status), env, origin);
+        }
+
+        // Neočekávaná chyba: detail JEN do logu, ven obecná hláška.
+        // Stack trace v odpovědi je únik informací o vnitřní struktuře.
+        log('error', 'http.unhandled_error', {
+            requestId,
+            method: request.method,
+            path: url.pathname,
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            durationMs: Date.now() - startedAt,
+        });
+        return withCors(
+            jsonError('INTERNAL_ERROR', 'Vnitřní chyba serveru.', 500),
+            env,
+            origin,
+        );
+    }
+}
 
 async function route(request: Request, env: Env, url: URL, ctx: ExecutionContextLike): Promise<Response> {
     const path = url.pathname.replace(/\/+$/, '');

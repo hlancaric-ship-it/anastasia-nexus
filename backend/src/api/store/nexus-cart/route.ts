@@ -7,6 +7,8 @@ import { resolveCustomerTier } from "./customer-tier"
 import { codeAvailable } from "../../admin/coupon-links/validation"
 import { GIFT_VOUCHER_CREDIT_REFERENCE, isGiftVoucherProduct, toMinor, fromMinor, variantAmountMinor } from "../../../modules/gift-voucher/policy"
 import { syncGiftVoucherCredit, type CreditState } from "../../../modules/gift-voucher/cart"
+import { recordEvent } from "../../../lib/observability/events"
+import { requestIdHeaders } from "../../../lib/observability/log"
 
 type PriceResponse = {
   ok: true
@@ -164,7 +166,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
         method: "POST",
         redirect: "error",
         signal: AbortSignal.timeout(5000),
-        headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+        headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}`, ...requestIdHeaders() },
         body: JSON.stringify({
         tenantId,
         sku: variant.sku,
@@ -220,9 +222,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       return res.status(400).json({ ok: false, error: "VALIDATION_ERROR" })
     }
     const pricing = await repriceCart(cartId || "", req.scope, true, couponCode)
+    await recordEvent(req.scope, "info", "pricing", "repriced", {
+      cart_id: cartId, tenant_id: pricing.tenantId, lines: pricing.items.length, prices_changed: pricing.pricesChanged,
+      coupon_applied: Boolean(pricing.coupon), gift_voucher_applied: Boolean(pricing.gift_voucher),
+    })
     return res.status(200).json({ ok: true, ...pricing })
   } catch (error) {
     const message = error instanceof Error ? error.message : "PRICING_FAILED"
+    const cartId = (req.body as { cart_id?: unknown } | undefined)?.cart_id
+    await recordEvent(req.scope, message.startsWith("NEXUS_PRICING") || message === "INVALID_NEXUS_PRICE_RESPONSE" ? "error" : "warn", message === "COUPON_INVALID" ? "coupon" : "pricing", "reprice_failed", {
+      cart_id: typeof cartId === "string" ? cartId : null, error_code: /^[A-Z][A-Z0-9_]{2,63}$/.test(message) ? message : "PRICING_FAILED",
+    })
     const status = message === "CART_NOT_FOUND" ? 404 : message === "COUPON_INVALID" ? 400 : message.startsWith("NEXUS_PRICING") ? 503 : 400
     return res.status(status).json({ ok: false, error: message })
   }

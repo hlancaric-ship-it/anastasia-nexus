@@ -16,6 +16,7 @@ import type { IPromotionModuleService } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 import { StepResponse } from "@medusajs/framework/workflows-sdk"
 import { assertSafeOrderAllows, SafeOrderError } from "../api/store/nexus-checkout/safeorder"
+import { recordEvent } from "../lib/observability/events"
 import { repriceCart } from "../api/store/nexus-cart/route"
 import { claimCartBooking } from "./booking-checkout"
 import type BookingModuleService from "../modules/booking/service"
@@ -61,7 +62,20 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
         if (!processable.length) throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
         // Check every processable provider: a benign first session must not hide a COD session.
         for (const session of processable) {
-            await assertSafeOrderAllows({ orderSum: total, paymentMethod: session.provider_id, customerEmail: cart.email })
+            try {
+                const verdict = await assertSafeOrderAllows({ orderSum: total, paymentMethod: session.provider_id, customerEmail: cart.email })
+                await recordEvent(container as any, "info", "safeorder", "decision", { cart_id: cart.id, customer_id: cart.customer_id ?? null, decision: "ALLOW", score: verdict.score, factors: verdict.factors, payment_provider: session.provider_id, order_sum: total })
+            } catch (error) {
+                const code = error instanceof SafeOrderError ? error.code : "SAFEORDER_UNAVAILABLE"
+                const decision = code === "SAFEORDER_BLOCKED" ? "BLOCK" : code === "SAFEORDER_REVIEW_REQUIRED" ? "REVIEW" : "UNAVAILABLE"
+                await recordEvent(container as any, decision === "UNAVAILABLE" ? "error" : "warn", "safeorder", "decision", {
+                    cart_id: cart.id, customer_id: cart.customer_id ?? null, decision, error_code: code,
+                    score: error instanceof SafeOrderError ? error.score ?? null : null,
+                    factors: error instanceof SafeOrderError ? error.factors ?? [] : [],
+                    payment_provider: session.provider_id, order_sum: total,
+                })
+                throw error
+            }
         }
     }
     // All providers must ALLOW before consuming the coupon. Medusa owns the
