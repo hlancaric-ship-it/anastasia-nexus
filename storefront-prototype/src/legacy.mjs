@@ -40,7 +40,7 @@ function legalPage(page,render){
   const id=(t,i)=>'cl-'+String(t.match(ROMAN)?.[1]||i+1).toLowerCase();
   const toc=arts.length>2?`<nav class="legal-toc" aria-label="Obsah">${arts.map((a,i)=>{const m=a.title.match(ROMAN);return `<a href="#${id(a.title,i)}"><b>${e(m?.[1]||i+1)}</b>${e(m?.[2]||a.title)}</a>`;}).join('')}</nav>`:'';
   const isClaims=page.source.endsWith('/reklamacie');
-  const art=(a,i)=>{const m=a.title.match(ROMAN);return `<section class="legal-art reveal" id="${id(a.title,i)}">${a.title?`<div class="legal-num" aria-hidden="true">${e(m?.[1]||'')}</div><h2>${e(m?.[2]||a.title)}</h2>`:''}<div class="legal-body">${point(a.body.map(render).join(''))}</div></section>`;};
+  const art=(a,i)=>{const m=a.title.match(ROMAN);return `<section class="legal-art reveal" id="${id(a.title,i)}">${a.title?`<div class="legal-num" aria-hidden="true">${e(m?.[1]||'')}</div><h2>${m?`<span class="legal-h-num">${e(a.title.slice(0,a.title.length-m[2].length))}</span>${e(m[2])}`:e(a.title)}</h2>`:''}<div class="legal-body">${point(a.body.map(render).join(''))}</div></section>`;};
   return `<section class="legal-hero"><p class="legal-eyebrow">ANASTASIA · Právne informácie</p><h1>${e(head?.text||page.title)}</h1>${toc}</section><article class="legal-doc">${arts.filter(a=>a.title||a.body.length).map(art).join('')}${isClaims?`<a class="legal-more reveal" href="/vop"><span>Úplné znenie</span><strong>Všeobecné obchodné podmienky</strong>${arrow}</a>`:''}</article>${button('/','Na úvod','legacy-back')}`;
 }
 export function legacyPage(page,{about=false,contactForm=''}={}){
