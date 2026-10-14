@@ -116,6 +116,9 @@ try{
    const photo=await picture.boundingBox();assert.equal(photo.x+photo.width,1440,'fotografie přiléhá k pravému okraji');assert.equal(photo.width,960,'původní šířka fotografie');assert.equal(photo.height,558,'původní výška bez ořezu');
    const green=await page.locator('.statement').boundingBox();assert.ok(Math.abs(photo.y+photo.height-green.y)<1,'fotografie se dotýká zelené sekce');
    assert.equal(await picture.locator('..').evaluate(el=>getComputedStyle(el).borderTopLeftRadius),'170px','levý horní roh zůstává zaoblený');
+   const followImage=page.locator('.zs-follow-image img');await followImage.evaluate(el=>el.decode());const follow=await followImage.boundingBox();
+   assert.equal(follow.width,photo.width,'obě fotografie mají stejnou šířku');assert.equal(follow.x,0,'nová fotografie zasahuje pod levou lištu');assert.ok(Math.abs(follow.y-green.y-green.height)<1,'horní hrana navazuje na spodní zelenou hranu');
+   assert.equal(await followImage.locator('..').evaluate(el=>getComputedStyle(el).borderBottomRightRadius),'170px','pravý spodní roh má stejné zaoblení');
    const stops=await page.evaluate(()=>[...document.querySelectorAll('main section')].map(s=>({y:Math.max(0,s.getBoundingClientRect().top+scrollY+s.offsetHeight/2-innerHeight/2),light:!s.classList.contains('statement')})));
    for(const stop of [stops[0],stops[1],stops[2],stops[1],{y:0,light:true}]){
      await page.evaluate(y=>scrollTo(0,y),stop.y);
