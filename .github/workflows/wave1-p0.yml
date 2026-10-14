@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
-            --read-only --tmpfs /tmp:rw,nosuid,size=1g \
+            --read-only --tmpfs /tmp:rw,exec,nosuid,size=1g \
             --user "$(id -u):$(id -g)" \
             --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/workspace" \
             --workdir /workspace/nexus \
@@ -103,7 +103,7 @@ jobs:
         run: |
           set -euo pipefail
           docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges --shm-size 256m \
-            --read-only --tmpfs /tmp:rw,nosuid,size=2g \
+            --read-only --tmpfs /tmp:rw,exec,nosuid,size=2g \
             --user "$(id -u):$(id -g)" \
             --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/workspace" \
             --workdir /workspace \
