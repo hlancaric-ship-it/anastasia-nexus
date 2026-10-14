@@ -100,8 +100,10 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
   ])
   const beforeCounters = (await api.get("/store/chat/status", b)).data.remaining
   const cutoff = new Date(Date.now() - 365 * 86400000)
-  const retained = await chat.redactExpiredContent(cutoff)
-  expect(retained).toEqual({ conversations: 1, messages: 1 })
+  const concurrentRetention = await Promise.all([chat.redactExpiredContent(cutoff), chat.redactExpiredContent(cutoff)])
+  expect(concurrentRetention.map((r: any) => r.conversations).sort()).toEqual([0, 1])
+  expect(concurrentRetention.map((r: any) => r.messages).sort()).toEqual([0, 1])
+  const retained = { conversations: 1, messages: 1 }
   expect(await chat.redactExpiredContent(cutoff)).toEqual({ conversations: 0, messages: 0 })
   const retainedThread = (await api.get(`/store/chat/conversations/${old.id}`, b)).data
   expect(retainedThread.conversation.subject).toBeNull()
