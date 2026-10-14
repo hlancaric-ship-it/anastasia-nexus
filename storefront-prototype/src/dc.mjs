@@ -243,7 +243,16 @@ footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>:first-chi
 footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;column-gap:18px}
 footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3)>:first-child{grid-column:1/-1}
 footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!important;gap:44px!important}
-#o-lucii h2{order:2}#o-lucii h2~div:has(>p){order:1;padding-top:0!important;margin-top:-14px}#o-lucii h2~div:has(>p)>span{display:none}#o-lucii a.dch1{order:3}#o-lucii h2~div p :is(br,span){display:none}
+#o-lucii{grid-template-columns:1fr!important}
+#o-lucii>div:last-child{display:contents!important}
+#o-lucii>div:last-child>*{margin-inline:24px!important}
+#o-lucii>div:first-child{order:3;min-height:clamp(420px,110vw,560px)!important}
+#o-lucii::before{height:80px!important}#o-lucii>div:last-child>div:first-child{order:1;padding-top:96px}
+#o-lucii h2~div:has(>p){order:2;padding:14px 0 28px!important}
+#o-lucii h2~div:has(>p)>span{display:none}
+#o-lucii h2~div p :is(br,span){display:none}
+#o-lucii h2{order:4;margin-top:40px!important}
+#o-lucii a.dch1{order:5;align-self:flex-start;justify-self:start;margin-top:30px!important;margin-bottom:64px!important}
 .wisdom{position:relative;margin-top:-150px;padding-top:0;background:linear-gradient(180deg,transparent 0,#F5F2E8 150px)!important}
 
 }
