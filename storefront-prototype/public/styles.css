@@ -171,6 +171,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .legal-doc{max-width:960px;margin:0 auto;padding:clamp(40px,6vw,80px) clamp(20px,5vw,60px) 30px;display:grid;gap:clamp(18px,2.4vw,28px)}
 .legal-art{position:relative;display:grid;grid-template-columns:auto 1fr;column-gap:clamp(18px,3vw,40px);padding:clamp(26px,3.6vw,48px);background:#fbf8ef;border:1px solid #e6dfc8;border-radius:28px 28px 28px 6px;scroll-margin-top:90px}
 .legal-art:nth-child(even){border-radius:28px 6px 28px 28px}
+.legal-h-num{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .legal-num{grid-row:span 2;font-size:clamp(34px,4.4vw,58px);font-weight:200;line-height:.9;color:var(--gold);min-width:1.4em}
 .legal-art h2{margin:4px 0 18px;font-size:clamp(22px,2.6vw,32px);font-weight:300;line-height:1.2;color:var(--ink)}
 .legal-art:not(:has(h2)){grid-template-columns:1fr}
