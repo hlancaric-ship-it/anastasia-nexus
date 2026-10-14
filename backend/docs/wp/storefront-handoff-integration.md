@@ -55,4 +55,6 @@ Z uživatelského UI zmizely přepínače scénářů chatu, checkoutu a odemyk�
 
 Menu a hlavička používají skutečné cílové stránky: Obchod → /eshop, Programy → /programy, Služby/Konzultácie → /konzultacie. Obě menu obsahují Darčekový poukaz. Kontrola `navigation.test.mjs` prochází obě menu ve všech 59 routách: očekávaný cíl podle názvu, existence stránky, existence kotev a žádné prázdné odkazy. Dostupnost jazyků EN/RU se nemění.
 
-Aktuální ověření: build 59/59 stránek PASS, mock 15/15, ambient 7/7, navigace 2/2 (celkem 24/24 Node testů). Browser test má upravené fixture a prošel syntaktickou kontrolou; po této integraci nebyl spuštěn na dohodu s Claudem kvůli přetížení Macu. Starší výsledek 27/27 výše není důkaz pro aktuální integrovanou verzi. Zbývá prohlížečová a vizuální kontrola společné verze; Claude přebírá lehkou kontrolu mobilního chatu a knihovny.
+Aktuální ověření: build 59/59 stránek PASS, mock 15/15, ambient 9/9, navigace 2/2 (celkem 26/26 Node testů). Browser test má upravené fixture a prošel syntaktickou kontrolou; po této integraci nebyl spuštěn na dohodu s Claudem kvůli přetížení Macu. Starší výsledek 27/27 výše není důkaz pro aktuální integrovanou verzi. Zbývá prohlížečová a vizuální kontrola společné verze; Claude přebírá lehkou kontrolu mobilního chatu a knihovny.
+
+Dodatečně převzat `a917e60` (další skladba s 1,5s prolnutím); merge `02bdbd8`. HTTP bez prohlížeče: 59/59 rout a CSP self PASS, žádné přepínače scénářů, 13/13 souborů motivů a zvuku dostupných. Deset částí ambientu je připraveno i v exportovaných médiích.
