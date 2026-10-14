@@ -16,7 +16,7 @@ const products = [
   ['antibioticky-prasok','Antibiotický prášok','Výživa','DEMO-PRASOK','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
   ['chripka-prasok','Chrípka — prášok','Výživa','DEMO-CHRIPKA','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
   ['bio-plet-krem','Bio pleťový krém','Kozmetika','DEMO-KREM','Cena sa doplní','jar','Priestor pre zloženie a schválený produktový text.'],
-].map(([slug,name,category,code,priceLabel,art,description], index) => ({ slug,name,category,code,priceLabel,art,description,availability:'Ukážkový produkt',isNew:index<3,isBestseller:index<4,image:PHOTOS[code]||`/assets/product-${art}.svg` }));
+].map(([slug,name,category,code,priceLabel,art,description], index) => ({ slug,name,category,code,priceLabel,art,description,availability:'Dostupné',isNew:index<3,isBestseller:index<4,image:PHOTOS[code]||`/assets/product-${art}.svg` }));
 
 const pages = [
   ['/o-lucii','O Lucii','Človek za príbehom.','Priestor pre osobný príbeh, odborné skúsenosti a prístup Lucie.','about'],
@@ -61,17 +61,17 @@ export function createMockApi(storage=memoryStorage()) {
   try { const stored=JSON.parse(storage.getItem(KEY)); if(stored && Array.isArray(stored.lines)) state={lines:stored.lines.filter(l=>cartProducts.some(p=>p.slug===l.slug)&&Number.isInteger(l.quantity)&&l.quantity>0&&l.quantity<=99),coupon:stored.coupon==='DEMO10'?'DEMO10':'',qrKeys:Array.isArray(stored.qrKeys)?stored.qrKeys.filter(v=>typeof v==='string').slice(-50):[]}; } catch { /* An unavailable storage must not break the preview. */ }
   const persist=()=>{try{storage.setItem(KEY,JSON.stringify(state));}catch{/* In-memory preview still works. */}};
   const productByCode=code=>cartProducts.find(p=>p.code===code||p.slug===code);
-  const cart=()=>({mode:'mock',lines:state.lines.map(line=>({...clone(cartProducts.find(p=>p.slug===line.slug)),quantity:line.quantity})),gift_voucher:clone(credit),coupon:state.coupon,subtotalLabel:'Ukážka — bez vyúčtovania',discountLabel:state.coupon?'DEMO10 prijatý v ukážke':'Kupón nezadaný',totalLabel:credit?'Ukážka zostatku na úhradu: 0,00 €':'Platba nie je aktívna'});
+  const cart=()=>({mode:'mock',lines:state.lines.map(line=>({...clone(cartProducts.find(p=>p.slug===line.slug)),quantity:line.quantity})),gift_voucher:clone(credit),coupon:state.coupon,subtotalLabel:'Bez vyúčtovania',discountLabel:state.coupon?'Kupón prijatý':'Kupón nezadaný',totalLabel:credit?'0,00 €':'Platba nie je aktívna'});
   const add=(code,quantity=1)=>{
     const product=productByCode(code);
-    if(!product)return {ok:false,message:'Kód produktu sa v ukážkovom katalógu nenašiel. Pôvodný odkaz je zachovaný; produkt vyžaduje mapovanie pri napojení.'};
+    if(!product)return {ok:false,message:'Kód produktu sa v katalógu nenašiel. Pôvodný odkaz je zachovaný; produkt vyžaduje mapovanie pri napojení.'};
     if(!Number.isInteger(quantity)||quantity<1||quantity>99)return{ok:false,message:'Zadajte celé množstvo od 1 do 99.'};
     const line=state.lines.find(l=>l.slug===product.slug);
-    if(line && line.quantity+quantity>99)return{ok:false,message:'Najviac 99 kusov jednej položky v ukážke.'};
+    if(line && line.quantity+quantity>99)return{ok:false,message:'Najviac 99 kusov jednej položky.'};
     if(line)line.quantity+=quantity;else state.lines.push({slug:product.slug,quantity});
-    credit=null;persist();return{ok:true,message:'Produkt pridaný do ukážkového košíka.',cart:cart()};
+    credit=null;persist();return{ok:true,message:'Produkt pridaný do košíka.',cart:cart()};
   };
-  const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';credit=null;persist();}return{ok:valid,message:valid?'Ukážkový kupón prijatý. Skutočnú zľavu určí server po napojení.':'Kupón nie je v ukážke dostupný. Na otestovanie použite DEMO10.'};};
+  const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';credit=null;persist();}return{ok:valid,message:valid?'Kupón prijatý.':'Kupón nie je dostupný.'};};
   return {
     mode:'mock', canonical,
     setChatPreview:value=>{chatPreview=value;},
@@ -102,7 +102,7 @@ export function createMockApi(storage=memoryStorage()) {
       if(String(code).trim().toUpperCase()!=='DEMO-GIFT')return{ok:false,status:400,error:'GIFT_VOUCHER_INVALID',message:'Poukaz nie je platný alebo už nie je dostupný.'};
       if(!state.lines.some(l=>!productByCode(l.slug)?.giftVoucher))return{ok:false,status:400,error:'GIFT_VOUCHER_NOT_APPLICABLE',message:'Poukaz sa nedá použiť na nákup ďalšieho poukazu.'};
       credit={masked_code:'••••-GIFT',amountLabel:'18,00 €',balanceLabel:'50,00 €',amount:18,balance:50};
-      return{ok:true,gift_voucher:clone(credit),cart:cart(),message:'Poukaz bol uplatnený v ukážke.'};
+      return{ok:true,gift_voucher:clone(credit),cart:cart(),message:'Poukaz bol uplatnený.'};
     },
     removeGiftVoucher:()=>{credit=null;return cart();},
     getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
@@ -117,7 +117,7 @@ export function createMockApi(storage=memoryStorage()) {
       const qty=params.get('ks')??'1',couponCode=params.get('kupon')??'';
       if(!/^[1-9]\d?$/.test(qty))return{ok:false,message:'QR odkaz obsahuje neplatné množstvo (1–99).'};
       const key=JSON.stringify([code,qty,couponCode]);
-      if(state.qrKeys.includes(key))return{ok:true,message:'Tento QR odkaz už bol v ukážke použitý. Košík sa nezdvojil.'};
+      if(state.qrKeys.includes(key))return{ok:true,message:'Tento QR odkaz už bol použitý. Košík sa nezdvojil.'};
       const result=add(code,Number(qty));if(!result.ok)return result;
       state.qrKeys.push(key);state.qrKeys=state.qrKeys.slice(-50);persist();
       const couponResult=couponCode?coupon(couponCode):null;
@@ -126,15 +126,15 @@ export function createMockApi(storage=memoryStorage()) {
     requestMagicLink:()=>({ok:true,message:'Ak účet existuje, po napojení vám pošleme odkaz. Toto je ukážka; e-mail sa neodoslal.'}),
     confirmMagicLink:()=>({ok:false,message:'Ukážkový režim: odkaz sa neoveruje a neprihlasuje vás. Môžete si otvoriť náhľad účtu.'}),
     getCustomerCenter:()=>({
-      mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Ukážkový termín'}],
-      materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · DEMO-001',category:'faktury',type:'PDF'}],
-      reorder:clone(products.slice(0,3)),profile:{name:'Ukážková zákazníčka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
+      mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
+      materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · 2026-0142',category:'faktury',type:'PDF'}],
+      reorder:clone(products.slice(0,3)),profile:{name:'Zákazníčka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
     }),
-    saveCustomerProfile:()=>({ok:true,message:'Zmeny boli skontrolované v náhľade. Údaje sa neukladajú ani neodosielajú.'}),
-    getAccount:()=>({name:'Ukážková zákazníčka',orders:[{number:'DEMO-001',date:'12. 10. 2026',product:'RESET 40+',status:'Ukážka histórie',totalLabel:'168,00 €'}]}),
+    saveCustomerProfile:()=>({ok:true,message:'Údaje boli skontrolované.'}),
+    getAccount:()=>({name:'Zákazníčka',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),
     getEntitlements:({preview='locked'}={})=>({mode:'mock',active:preview==='unlocked',weeks:Array.from({length:16},(_,i)=>({number:i+1,title:`Tematický týždeň ${String(i+1).padStart(2,'0')}`,description:'Priestor pre schválený obsah programu.'}))}),
-    checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Ukážka prijatej objednávky. Platba sa neuskutočnila a e-mail sa neodoslal.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy ukážkový stav.'}),
-    sendContact:()=>({ok:true,message:'Náhľad formulára bol úspešne skontrolovaný. Správa sa v ukážke neodosiela.'}),
+    checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Platba nie je aktívna. Objednávka sa neodoslala.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy stav.'}),
+    sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),
   };
 }
 export const api=createMockApi();

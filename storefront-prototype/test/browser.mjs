@@ -11,6 +11,7 @@ const watch=ctx=>{
   ctx.on('page',p=>{p.on('pageerror',err=>errors.push(p.url()+' '+err.message));p.on('console',m=>{if(m.type()==='error')errors.push(p.url()+' '+m.text());});});
 };
 const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});watch(context);
+await context.addInitScript(()=>localStorage.setItem('ana-ambient-off','1'));
 const page=await context.newPage();
 const check=async(name,fn)=>{await fn();checks.push(name);console.log('PASS '+name);};
 const goto=async(path,p=page)=>{const response=await p.goto(base+path,{waitUntil:'load'});await p.evaluate(()=>document.fonts.ready);return response;};
@@ -75,11 +76,9 @@ try{
    // Zavření tlačítkem a klikem na overlay.
    await trigger.click();await assertOpen(page,'top');await page.locator('#dc-top-menu button[data-menu-close]').click();await assertClosed(page,'top');assert.equal(await isActive(trigger),true);
    await trigger.click();await assertOpen(page,'top');await page.mouse.click(200,900);await assertClosed(page,'top');assert.equal(await isActive(trigger),true,'overlay vrací fokus');
-   // Odkaz v menu zavře menu a naviguje (kotva na úvodu i jiná stránka).
-   await trigger.click();await assertOpen(page,'top');await page.locator('#dc-top-menu a[href="#kolekcia"]').click();await assertClosed(page,'top');
-   await page.waitForFunction(()=>Math.abs(document.querySelector('#kolekcia').getBoundingClientRect().top)<=2);assert.equal(new URL(page.url()).hash,'#kolekcia');
-   await page.evaluate(()=>scrollTo(0,0));await trigger.click();await assertOpen(page,'top');
-   await Promise.all([page.waitForURL(base+'/eshop'),page.locator('#dc-top-menu a[href="/eshop"]').click()]);
+   // Obchod vede do celého katalogu, nikoliv zpět na kolekci homepage.
+   await trigger.click();await assertOpen(page,'top');
+   await Promise.all([page.waitForURL(base+'/eshop'),page.locator('#dc-top-menu').getByRole('link',{name:'Obchod',exact:true}).click()]);
    assert.equal(await page.locator('#dc-top-menu').getAttribute('aria-hidden'),'true');
  });
  await check('side menu z lišty: focus trap, inert, Escape, návrat fokusu, umístění vedle lišty',async()=>{
@@ -168,10 +167,10 @@ try{
      assert.equal(closedMenuFocusable,false,path+': zavřená menu nejsou v pořadí Tabu');
    }
    await page.setViewportSize({width:1440,height:1000});await goto('/');
-   const link=page.locator('header a[href="#kolekcia"]');
+   const link=page.locator('header a[href="/eshop"]');
    assert.equal(await link.getAttribute('data-roll'),'1');
    assert.equal(await link.locator('[aria-hidden="true"]').textContent(),'Obchod','duplikát pro roll je skrytý čtečkám');
-   assert.equal(await page.getByRole('link',{name:'Obchod',exact:true}).first().evaluate(el=>el.getAttribute('href')),'#kolekcia','přístupný název beze zdvojení');
+   assert.equal(await page.getByRole('link',{name:'Obchod',exact:true}).first().evaluate(el=>el.getAttribute('href')),'/eshop','přístupný název beze zdvojení');
    await page.mouse.move(700,700);await link.hover();await page.waitForTimeout(700);
    assert.match(await link.locator('.roll-a').evaluate(el=>el.style.transform),/translateY\(-105%\)/);
    assert.equal(await link.locator('.roll-a').evaluate(el=>Math.round(el.getBoundingClientRect().top)<Math.round(el.parentElement.getBoundingClientRect().top)),true,'text roll odjede nahoru');
@@ -201,16 +200,26 @@ try{
  });
  await check('catalog filters and empty state',async()=>{await goto('/eshop');await page.getByRole('searchbox').fill('nenajdeny-produkt');assert.equal(await page.locator('.product-card').count(),0);await page.getByRole('button',{name:'Zobraziť všetko'}).click();assert.equal(await page.locator('.product-card').count(),16);await page.locator('[name=category]').selectOption('Kozmetika');assert.equal(await page.locator('.product-card').count(),4);await page.screenshot({path:root+'catalog-desktop.png',fullPage:true});});
  await check('home: Do košíka z kolekcie zvýši počet v hlavičke aj menu',async()=>{await page.evaluate(()=>sessionStorage.clear());await goto('/');const add=page.locator('[data-add]').first();await add.click();await page.waitForFunction(()=>[...document.querySelectorAll('.cart-count')].every(el=>el.textContent==='1'));assert.match(await add.textContent(),/Pridané/);await page.evaluate(()=>sessionStorage.clear());});
- await check('product add, cart quantity, remove and coupon states',async()=>{await goto('/eshop/produkt/bio-sprchovy-gel');await page.locator('[name=quantity]').fill('2');await page.getByRole('button',{name:'Pridať do košíka'}).click();await goto('/kosik');assert.equal(await page.locator('.quantity>span').textContent(),'2');await page.getByRole('button',{name:'Zvýšiť množstvo: Bio sprchový gél'}).click();assert.equal(await page.locator('.quantity>span').textContent(),'3');await page.locator('[name=coupon]').fill('INVALID');await page.getByRole('button',{name:'Použiť',exact:true}).click();assert.match(await page.locator('.coupon-form .form-status').textContent(),/nie je/);await page.locator('[name=coupon]').fill('DEMO10');await page.getByRole('button',{name:'Použiť',exact:true}).click();assert.match(await page.locator('.order-summary').textContent(),/DEMO10/);await page.screenshot({path:root+'cart-desktop.png',fullPage:true});});
- await check('checkout steps, validation and four outcomes',async()=>{await goto('/pokladna');await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();assert.equal(await page.locator('[data-step="1"]').isVisible(),true);await page.locator('#checkout-form [name=firstName]').fill('Demo');await page.locator('#checkout-form [name=lastName]').fill('Ukazka');await page.locator('#checkout-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();await page.getByRole('button',{name:'Pokračovať na platbu'}).click();await page.locator('[name=consent]').check();for(const scenario of ['ALLOW','REVIEW','BLOCK','ERROR']){await page.locator('[name=scenario]').selectOption(scenario);await page.getByRole('button',{name:'Vyskúšať dokončenie'}).click();assert.equal(await page.locator('#checkout-result').getAttribute('data-state'),scenario);}await page.screenshot({path:root+'checkout-desktop.png',fullPage:true});});
- await check('QR product + quantity + coupon; refresh is idempotent',async()=>{await page.evaluate(()=>sessionStorage.clear());await goto('/eshop/kosik?produkt=DEMO-GEL&kupon=DEMO10&ks=2');assert.equal(await page.locator('.quantity>span').textContent(),'2');assert.match(await page.locator('.order-summary').textContent(),/DEMO10/);await page.reload();assert.equal(await page.locator('.quantity>span').textContent(),'2');await goto('/eshop/kosik?produkt=DEMO-GEL&ks=bad');assert.match(await page.locator('.qr-status').textContent(),/neplatné/);});
+ await check('product add, cart quantity, remove and coupon states',async()=>{await goto('/eshop/produkt/bio-sprchovy-gel');await page.locator('[name=quantity]').fill('2');await page.getByRole('button',{name:'Pridať do košíka'}).click();await goto('/kosik');assert.equal(await page.locator('.quantity>span').textContent(),'2');await page.getByRole('button',{name:'Zvýšiť množstvo: Bio sprchový gél'}).click();assert.equal(await page.locator('.quantity>span').textContent(),'3');await page.locator('[name=coupon]').fill('INVALID');await page.getByRole('button',{name:'Použiť',exact:true}).click();assert.match(await page.locator('.coupon-form .form-status').textContent(),/nie je/);await page.locator('[name=coupon]').fill('DEMO10');await page.getByRole('button',{name:'Použiť',exact:true}).click();assert.match(await page.locator('.order-summary').textContent(),/Kupón prijatý/);await page.screenshot({path:root+'cart-desktop.png',fullPage:true});});
+ await check('checkout validation and API outcomes without customer scenario controls',async()=>{
+   let checkoutFixture='ALLOW';
+   const checkoutRoute=async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text()).replace("checkout:({scenario='ALLOW'}={})",`checkout:({scenario='${checkoutFixture}'}={})`)});};
+   await page.route('**/lib/api/mock.mjs',checkoutRoute);
+   for(const scenario of ['ALLOW','REVIEW','BLOCK','ERROR']){
+     checkoutFixture=scenario;await goto('/pokladna');assert.equal(await page.locator('[name=scenario]').count(),0);
+     await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();assert.equal(await page.locator('[data-step="1"]').isVisible(),true);
+     await page.locator('#checkout-form [name=firstName]').fill('Demo');await page.locator('#checkout-form [name=lastName]').fill('Ukazka');await page.locator('#checkout-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();await page.getByRole('button',{name:'Pokračovať na platbu'}).click();await page.locator('[name=consent]').check();await page.getByRole('button',{name:'Dokončiť objednávku'}).click();await page.waitForFunction(s=>document.querySelector('#checkout-result').dataset.state===s,scenario);
+   }
+   await page.unroute('**/lib/api/mock.mjs',checkoutRoute);await page.screenshot({path:root+'checkout-desktop.png',fullPage:true});
+ });
+ await check('QR product + quantity + coupon; refresh is idempotent',async()=>{await page.evaluate(()=>sessionStorage.clear());await goto('/eshop/kosik?produkt=DEMO-GEL&kupon=DEMO10&ks=2');assert.equal(await page.locator('.quantity>span').textContent(),'2');assert.match(await page.locator('.order-summary').textContent(),/Kupón prijatý/);await page.reload();assert.equal(await page.locator('.quantity>span').textContent(),'2');await goto('/eshop/kosik?produkt=DEMO-GEL&ks=bad');assert.match(await page.locator('.qr-status').textContent(),/neplatné/);});
  await check('magic-link forms are mock only; token removed from URL',async()=>{await goto('/prihlasenie');await page.locator('#login-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Poslať prihlasovací odkaz'}).click();assert.match(await page.locator('#login-form .form-status').textContent(),/Ak účet existuje/);await goto('/prihlasenie/potvrdit?email=demo@example.test&token=fake');assert.equal(new URL(page.url()).search,'');assert.match(await page.locator('#magic-confirm').textContent(),/neprihlasuje/);});
  await check('unified customer centre: navigation, programs, materials, profile and reorder',async()=>{
    await page.evaluate(()=>sessionStorage.clear());await goto('/ucet');assert.equal(await page.locator('#account-prehlad').isVisible(),true);
    for(const id of ['programy','konzultacie','chat','objednavky','materialy','profil','prehlad']){await page.locator(`.center-sidebar [data-account-go="${id}"]`).click();assert.equal(await page.locator(`#account-${id}`).isVisible(),true);assert.equal(new URL(page.url()).hash,'#'+id);assert.equal(await page.locator('.center-sidebar [aria-current=page]').count(),1);}
-   await page.locator('.center-sidebar [data-account-go=programy]').click();assert.equal(await page.locator('.lesson').count(),0);await page.locator('#entitlement-preview').selectOption('unlocked');await page.locator('.lesson').first().waitFor();assert.equal(await page.locator('.lesson').count(),16);
+   await page.locator('.center-sidebar [data-account-go=programy]').click();assert.equal(await page.locator('.lesson').count(),0);assert.equal(await page.locator('#entitlement-preview').count(),0);assert.equal(await page.locator('.empty-state').isVisible(),true);
    await page.locator('.center-sidebar [data-account-go=materialy]').click();await page.locator('[data-material-filter=faktury]').click();assert.equal(await page.locator('.center-material:visible').count(),1);
-   await page.locator('.center-sidebar [data-account-go=profil]').click();await page.locator('#center-profile [name=name]').fill('Demo');await page.locator('#center-profile button[type=submit]').click();await page.locator('#center-profile .form-status').getByText('Zmeny boli skontrolované v náhľade. Údaje sa neukladajú ani neodosielajú.').waitFor();assert.equal(await page.locator('input[type=password]').count(),0);assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);
+   await page.locator('.center-sidebar [data-account-go=profil]').click();await page.locator('#center-profile [name=name]').fill('Demo');await page.locator('#center-profile button[type=submit]').click();await page.locator('#center-profile .form-status').getByText('Údaje boli skontrolované.').waitFor();assert.equal(await page.locator('input[type=password]').count(),0);assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);
    await page.locator('.center-sidebar [data-account-go=objednavky]').click();await page.locator('#account-objednavky [data-add]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('.cart-count')].every(el=>el.textContent==='1'));
    await page.screenshot({path:root+'account-desktop.png',fullPage:true});await page.reload();assert.equal(await page.locator('#account-objednavky').isVisible(),true);
    await page.setViewportSize({width:320,height:844});for(const id of ['prehlad','programy','konzultacie','chat','objednavky','materialy','profil']){await page.locator(`.center-sidebar [data-account-go="${id}"]`).click();await overflow(page,'account-'+id+'@320');}
@@ -221,14 +230,18 @@ try{
    await page.locator('#chat-messages').getByText('Dobrý deň, tu je priestor pre vaše otázky.').waitFor();
    await body.fill('😀'.repeat(2000));assert.match(await page.locator('#chat-counter').textContent(),/^2000 \/ 2000/);assert.equal(await send.isEnabled(),true);
    await body.fill('x'.repeat(2001));assert.equal(await send.isDisabled(),true);
-   const text='<img src=x onerror=alert(1)> https://example.test';await body.fill(text);await send.click();await form.getByText('Správa bola pridaná do ukážkovej konverzácie.').waitFor();
+   const text='<img src=x onerror=alert(1)> https://example.test';await body.fill(text);await send.click();await form.getByText('Správa bola pridaná do konverzácie.').waitFor();
    assert.equal(await page.locator('#chat-messages p').last().textContent(),text);assert.equal(await page.locator('#chat-messages img,#chat-messages a').count(),0);
-   await body.fill('Ďalšia otázka');await page.getByText('Ukážkové stavy chatu',{exact:true}).click();
+   assert.equal(await page.locator('#chat-preview').count(),0);
+   let chatFixture='open';
+   const chatRoute=async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text()).replace("let chatPreview='open'",`let chatPreview='${chatFixture}'`)});};
+   await page.route('**/lib/api/mock.mjs',chatRoute);
    for(const [value,expected] of [['ineligible','Chat je dostupný po nákupe'],['blocked','Odosielanie správ je pre váš účet pozastavené'],['limit','Počkajte, prosím, na odpoveď Lucie'],['daily','Skúste to znova zajtra']]){
-     await page.locator('#chat-preview').selectOption(value);await page.waitForFunction(t=>document.querySelector('#chat-availability').textContent.includes(t),expected);assert.equal(await send.isDisabled(),true);
+     chatFixture=value;await page.reload();await page.waitForFunction(t=>document.querySelector('#chat-availability').textContent.includes(t),expected);await body.fill('Ďalšia otázka');assert.equal(await send.isDisabled(),true);
    }
-   await page.locator('#chat-preview').selectOption('closed');await send.waitFor({state:'visible'});await page.waitForFunction(()=>!document.querySelector('#chat-form button').disabled);await send.click();await form.getByText('Táto konverzácia je uzavretá. Môžete začať novú konverzáciu.').waitFor();assert.equal(await body.inputValue(),'Ďalšia otázka');
-   await page.locator('#chat-new').click();await send.click();await form.getByText('Správa bola pridaná do ukážkovej konverzácie.').waitFor();assert.equal(await page.locator('#chat-messages p').last().textContent(),'Ďalšia otázka');
+   chatFixture='closed';await page.reload();await body.fill('Ďalšia otázka');await page.waitForFunction(()=>!document.querySelector('#chat-form button').disabled);await send.click();await form.getByText('Táto konverzácia je uzavretá. Môžete začať novú konverzáciu.').waitFor();assert.equal(await body.inputValue(),'Ďalšia otázka');
+   await page.locator('#chat-new').click();await send.click();await form.getByText('Správa bola pridaná do konverzácie.').waitFor();assert.equal(await page.locator('#chat-messages p').last().textContent(),'Ďalšia otázka');
+   await page.unroute('**/lib/api/mock.mjs',chatRoute);
    await page.setViewportSize({width:320,height:844});await overflow(page,'chat@320');await page.screenshot({path:root+'chat-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});
    assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('Ďalšia otázka')),false);
  });
@@ -241,7 +254,7 @@ try{
    await page.reload();await page.waitForFunction(()=>document.querySelector('#gift-voucher-form option')?.textContent==='75,00 €');
    await page.unroute('**/lib/api/mock.mjs');await page.reload();await page.waitForFunction(()=>!document.querySelector('#gift-voucher-form select').disabled);
    await form.locator('[name=variant_id]').selectOption('gv-100');await form.locator('[name=name]').fill('Demo');await form.locator('[name=email]').fill('bad');await form.locator('button').click();assert.equal(await form.locator('[name=email]').evaluate(el=>el.validity.valid),false);
-   await form.locator('[name=email]').fill('demo@example.test');await form.locator('[name=message]').fill('Všetko najlepšie');await form.locator('button').click();await form.getByText('Poukaz bol pridaný do ukážkového košíka.').waitFor();
+   await form.locator('[name=email]').fill('demo@example.test');await form.locator('[name=message]').fill('Všetko najlepšie');await form.locator('button').click();await form.getByText('Poukaz bol pridaný do košíka.').waitFor();
    await goto('/kosik');await page.locator('.cart-line').waitFor();assert.match(await page.locator('.cart-line').textContent(),/100,00 €/);await page.reload();await page.locator('.cart-line').waitFor();
    await page.locator('#redeem-voucher-form [name=code]').fill('DEMO-GIFT');await page.getByRole('button',{name:'Uplatniť poukaz',exact:true}).click();await page.locator('#redeem-voucher-form').getByText('Poukaz sa nedá použiť na nákup ďalšieho poukazu.').waitFor();
    await goto('/eshop/produkt/bio-sprchovy-gel');await page.getByRole('button',{name:'Pridať do košíka'}).click();await goto('/kosik');await page.locator('#redeem-voucher-form').waitFor();
@@ -252,8 +265,8 @@ try{
    assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);
    await page.setViewportSize({width:320,height:844});await goto('/darcekovy-poukaz');await overflow(page,'voucher@320');await page.screenshot({path:root+'gift-voucher-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>sessionStorage.clear());
  });
- await check('entitlements remain locked until explicit preview selection',async()=>{await goto('/reset-40/knihovna');assert.equal(await page.locator('.lesson').count(),0);await page.locator('#entitlement-preview').selectOption('unlocked');assert.equal(await page.locator('.lesson').count(),16);await page.locator('[data-lesson="1"]').click();assert.match(await page.locator('#lesson-content').textContent(),/Platené materiály nie sú/);await page.reload();assert.equal(await page.locator('.lesson').count(),0);});
- await check('contact form validates without sending or storing values',async()=>{await goto('/kontakt');await page.locator('#contact-form [name=name]').fill('Demo');await page.locator('#contact-form [name=email]').fill('demo@example.test');await page.locator('#contact-form [name=message]').fill('Toto je testovacia sprava.');await page.locator('#contact-form input[type=checkbox]').check();await page.getByRole('button',{name:'Vyskúšať formulár'}).click();assert.match(await page.locator('#contact-form .form-status').textContent(),/neodosiela/);assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);});
+ await check('library stays locked with no customer preview override',async()=>{await goto('/reset-40/knihovna');await page.locator('.empty-state').waitFor();assert.equal(await page.locator('.lesson').count(),0);assert.equal(await page.locator('#entitlement-preview').count(),0);await page.reload();await page.locator('.empty-state').waitFor();assert.equal(await page.locator('.lesson').count(),0);});
+ await check('contact form validates without sending or storing values',async()=>{await goto('/kontakt');await page.locator('#contact-form [name=name]').fill('Demo');await page.locator('#contact-form [name=email]').fill('demo@example.test');await page.locator('#contact-form [name=message]').fill('Toto je testovacia sprava.');await page.locator('#contact-form input[type=checkbox]').check();await page.getByRole('button',{name:'Odoslať správu'}).click();assert.match(await page.locator('#contact-form .form-status').textContent(),/neodosiela/);assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);});
  await check('newsletter v patičke nič neodosiela',async()=>{await goto('/');const form=page.locator('form[data-newsletter]');await form.locator('[name=email]').fill('demo@example.test');const before=page.url();await form.locator('button').click();await page.waitForTimeout(150);assert.equal(page.url(),before);assert.match(await form.locator('button').textContent(),/Ďakujeme/);assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);});
  const routes=JSON.parse(await readFile(new URL('../dist/routes.json',import.meta.url),'utf8'));
  const csv=await readFile(new URL('../../backend/docs/wp/redirects-map.csv',import.meta.url),'utf8');
@@ -290,7 +303,7 @@ try{
      assert.equal(await page.locator('#ana-rail').isVisible(),width>=1000,`lišta @${width}`);
      for(const selector of ['[data-sound-toggle]','[data-video-toggle]'])assert.equal(await page.locator(selector).isVisible(),true,`ovladač dostupný @${width}`);
      const controlsHost=width>=1000?'#ana-rail':'[data-mobile-media]';assert.equal(await page.locator(controlsHost+' [data-media-controls]').count(),1,'správné umístění ovladačů');
-     assert.equal(await page.locator('header a[href="#kolekcia"]').isVisible(),width>=1000,`odkazy hlavičky @${width}`);
+     assert.equal(await page.locator('header a[href="/eshop"]').isVisible(),width>=1000,`odkazy hlavičky @${width}`);
      await loadImages();await page.screenshot({path:root+`home-${width}.png`,fullPage:true});
      const trigger=headerTrigger();await trigger.click();await assertOpen(page,'top');await overflow(page,'menu@'+width);
      const box=await page.locator('#dc-top-menu').boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width&&box.y>=0&&box.y+box.height<=844,`top menu v okně @${width}`);

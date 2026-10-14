@@ -76,7 +76,7 @@ test('voucher variants come from API; recipient validation, cart reload and auth
   assert.equal(api.addGiftVoucher({variant_id:'gv-100',recipient:{name:'Demo',email:'demo@example.test',message:'Darček'}}).ok,true);
   assert.equal(createMockApi(storage).getCart().lines[0].priceLabel,'100,00 €');
   assert.equal(api.applyGiftVoucher('DEMO-GIFT').error,'GIFT_VOUCHER_NOT_APPLICABLE');api.addToCart('DEMO-GEL');
-  assert.equal(api.applyGiftVoucher('unknown').ok,false);const applied=api.applyGiftVoucher('DEMO-GIFT');assert.equal(applied.gift_voucher.amountLabel,'18,00 €');assert.equal(applied.cart.totalLabel,'Ukážka zostatku na úhradu: 0,00 €');
+  assert.equal(api.applyGiftVoucher('unknown').ok,false);const applied=api.applyGiftVoucher('DEMO-GIFT');assert.equal(applied.gift_voucher.amountLabel,'18,00 €');assert.equal(applied.cart.totalLabel,'0,00 €');
   assert.equal(JSON.stringify([...values.values()]).includes('example.test'),false);
   api.setQuantity('bio-sprchovy-gel',2);assert.equal(api.getCart().gift_voucher,null);
   api.applyGiftVoucher('DEMO-GIFT');assert.equal(api.removeGiftVoucher().gift_voucher,null);

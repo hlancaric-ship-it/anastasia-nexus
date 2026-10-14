@@ -46,3 +46,13 @@ Blokery pro lokální náhled: žádné. Další krok: vizuální kontrola náhl
 Obchod má vycentrovaný nadpis i celý katalog v dostupné šířce vedle lišty. Kategorie z existujícího mock API mají velké navigační dlaždice s lokálními SVG a existujícími obrázky kategorií: šest sloupců na širokém desktopu, tři na menším desktopu, dva na mobilu, čtvercové obrazy, aktivní kategorie a klávesnicový focus. Směr vychází z uživatelem doložených obrazových karet Collaborations na https://store.tomorrowland.com/en-int; zachovává vlastní paletu ANASTASIA a původní filtry.
 
 Pole používají jednotnou světlou plochu, text a kurzor podle kontextu; Chrome autofill je překrytý barvou pole i v přihlášení, profilu a patičce. Kontrola vynuceného autofillu: 12/12 polí napříč dvěma lokálními náhledy PASS. Celý browser běh po přidání navigace a autofillu: 27/27 PASS; poslední úprava velikosti dlaždic a centrování má samostatnou kontrolu pěti šířek na obou náhledech. Mock po poslední změně: 15/15 PASS.
+
+## Společná verze s Claudem (14. 10., večer)
+
+Do `codex/storefront-chat` jsou převzaté Claude commity do `52bd3b2`: motivy, skleněná hlavička bez horní trojice log, uživatelem nově schválené návaznosti sekcí, mobilní centrum a ambient s odděleným testovatelným přehrávačem. Novější uživatelovy pokyny nahrazují výše popsané starší varianty log a přesahu oblohy. Homepage má strom, krémové pásmo se sloganem Light for the Future, plynulé přechody oblohy a ostrou hranu kolekce nad RESET. Žádný vymyšlený citát Lucie.
+
+Z uživatelského UI zmizely přepínače scénářů chatu, checkoutu a odemykání knihovny, ukázkové popisky a mazání demo košíku. Knihovna nadále respektuje API oprávnění a zůstává zamčená. API chybové hlášky 403/429/409 a všechny backendové kontrakty jsou zachované. Browser testy injektují odpovědi mock modulu přes Playwright route fixture; uživatelské ovladače stavu nepotřebují. Platby/přihlášení/odesílání formuláře se tím neaktivují a dokumentace mock režim popisuje dál.
+
+Menu a hlavička používají skutečné cílové stránky: Obchod → /eshop, Programy → /programy, Služby/Konzultácie → /konzultacie. Obě menu obsahují Darčekový poukaz. Kontrola `navigation.test.mjs` prochází obě menu ve všech 59 routách: očekávaný cíl podle názvu, existence stránky, existence kotev a žádné prázdné odkazy. Dostupnost jazyků EN/RU se nemění.
+
+Aktuální ověření: build 59/59 stránek PASS, mock 15/15, ambient 7/7, navigace 2/2 (celkem 24/24 Node testů). Browser test má upravené fixture a prošel syntaktickou kontrolou; po této integraci nebyl spuštěn na dohodu s Claudem kvůli přetížení Macu. Starší výsledek 27/27 výše není důkaz pro aktuální integrovanou verzi. Zbývá prohlížečová a vizuální kontrola společné verze; Claude přebírá lehkou kontrolu mobilního chatu a knihovny.
