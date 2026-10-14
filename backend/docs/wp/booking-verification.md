@@ -19,11 +19,16 @@ Větev `codex/booking-verification`, základ `44dbf33`. Pouze syntetické lokál
 
 ## Ověření
 
-Stav: HTTP lokálně VERIFIED; konečná regrese ještě běží.
+Stav: **VERIFIED lokálně**. Konečná regrese dokončena, bez nasazení.
+
+- `python3 backend/scripts/verify-safeorder-local.py`: **PASS, 51 scénářů (11 K9), 187,879 s**. Včetně původních SafeOrder a QR souběhů, překryvu samotné pauzy, kompenzace platební chyby a capture/storno. Trvalý výpis K9: [evidence/booking-checkout.json](evidence/booking-checkout.json). Celý lokální důkaz: `/var/folders/l5/pzrmlcfd0wqchdb6_m1qmnnm0000gn/T/wave1-safeorder-9qda_ocz/medusa-persistence-evidence.json`.
+- `cd backend && npx tsc --noEmit`: **PASS**.
+- `cd backend && npm run test:unit`: **23/23 souborů, 218/218 testů PASS**, 87,021 s. QR test prošel beze změny limitu. Log: `/tmp/booking-unit-regression.log`.
+- `git diff --check`: **PASS**.
 
 - Cílené unit testy: 42/42 PASS před posledním rozšířením.
 - `python3 backend/scripts/verify-safeorder-local.py --booking-only`: PASS, 10 zaznamenaných scénářů, 97,636 s. Důkaz: `/var/folders/l5/pzrmlcfd0wqchdb6_m1qmnnm0000gn/T/wave1-safeorder-1bfi_180/medusa-persistence-evidence.json`.
-- První kompletní unit běh: 216/217, známý timeout QR PNG při souběhu s integrací; neopravována implementace QR ani navyšován její timeout. Finální běhy jsou spouštěny postupně.
+- První kompletní unit běh: 216/217, známý timeout QR PNG při souběhu s integrací; neopravována implementace QR ani navyšován její timeout. Finální běhy byly spuštěny postupně a prošly.
 - Dva průběžné integrační běhy byly ukončeny během dalších změn, nejsou počítané jako PASS. První cílený běh odhalil chybějící standardní přiřazení zákaznice ke košíku v test fixture; druhý obecnou HTTP chybu místo pojmenovaného odmítnutí prošlého holdu. Obojí opraveno a cílený běh zopakován úspěšně.
 
 Runner `python3 backend/scripts/verify-safeorder-local.py --booking-only` používá stejný bezpečnostně omezený, nově vytvořený PostgreSQL cluster jako celý runner. HTTP routy, Medusa workflows, booking service, platba `pp_system_default` a subscribers běží skutečně. Autentizované zákaznice mají syntetické JWT fixtures; toto není test přihlašovacího procesu. Bariéra pouze synchronizuje vstupy do skutečné služby. Při testu kompenzace je úmyslně vyvolána jedna chyba autorizace platby. NEXUS handler běží přes Node bridge, nikoli workerd.

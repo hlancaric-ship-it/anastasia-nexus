@@ -1,5 +1,6 @@
 import { verifyBookingHttp } from "./booking-http-checks"
 import { verifyGiftVoucherHttp } from "./gift-voucher-http-checks"
+import { verifyDigitalCheckout } from "./digital-checkout-checks"
 import { existsSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { Server } from "node:net"
@@ -192,6 +193,7 @@ medusaIntegrationTestRunner({
       }
       if (!giftVoucherOnly) await verifyBookingHttp({ api, container, options, newCart, product: products[0], countOrders, evidence })
       if (process.env.WAVE1_BOOKING_ONLY !== "1") await verifyGiftVoucherHttp({ api, container, options, channel, region, profile, countOrders, dbConnection, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyDigitalCheckout({ api, container, options, newCart, product: products[0], evidence })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
   },
