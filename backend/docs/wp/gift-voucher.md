@@ -32,6 +32,8 @@ Vydaný poukaz si drží vlastní snapshot pravidel. Změna nastavení platí je
 
 ## Nastavení a admin
 
+Nově `GET /admin/vouchers/:id/transactions` zpřístupňuje trvalou historii pohybů správci, stránkovaně a bez kódů/poznámek/kontaktů. Částky převádí server; dokumentace v `backend-completion.md`.
+
 - `GET/POST /admin/vouchers/settings`:
   - Validuje hodnoty v eurech (1–10 hodnot, max. 2 desetinná místa, bez duplicit), platnost 1–60 měsíců, rozsah `all` / `categories` s ID kategorií, postupné čerpání a způsob doručení (`recipient_email` / `buyer_pdf` / `both`).
   - Po uložení se zosúladí produkt `darkovy-poukaz` (`is_giftcard`, bez slev, digitální profil). Každá hodnota má jednu variantu, `GIFT-VOUCHER-<centy>`, s cenou EUR = nominální hodnota.
@@ -121,7 +123,7 @@ Ověřeno po opravě: plný `python3 backend/scripts/verify-safeorder-local.py` 
 ## Rizika a otevřené body
 
 - **DPH:** poukaz je dnes produkt s cenou v EUR. Zda jde o jednoúčelový, nebo víceúčelový poukaz (moment zdanění), musí potvrdit účetní, protože rozsah `all` přes různé sazby DPH je typicky víceúčelový.
-- **Kód v DB v otevřené podobě** (stejně jako D1 ve Workeru), aby šel znovu poslat. Odolnost proti hádání dává 80 bitů entropie. Na `/store/gift-vouchers/apply` **není rate limit**; doporučeno doplnit (edge/Worker nebo Medusa middleware).
+- **Kód v DB v otevřené podobě** (stejně jako D1 ve Workeru), aby šel znovu poslat. Odolnost proti hádání dává 80 bitů entropie. Na `/store/gift-vouchers/apply` je PostgreSQL limit 20 pokusů za 60 sekund na síťového klienta (sdílený mezi instancemi), 429 + Retry-After; výpadek jeho úložiště → 503. Podrobnosti a migrační pořadí v `backend-completion.md`.
 - **Doručení at-most-once:** claim se zapíše před odesláním. Pád procesu mezi claimem a odesláním znamená neodeslaný e-mail bez opakování. Selhání odeslání se opakuje (max. 5 pokusů).
 - **Čerpání a workflow nejsou v jedné DB transakci:** stejně jako C3 kupón. Pád procesu po `redeem` a před kompenzací může nechat čerpání bez objednávky. Je auditovatelné v `gift_voucher_transaction` (redeemed bez `order_id`) a vratné `reverseRedemption`.
 - Rozsah kategorií porovnává přesná ID (bez podkategorií). Doprava se počítá jen při rozsahu `all`.
@@ -130,7 +132,6 @@ Ověřeno po opravě: plný `python3 backend/scripts/verify-safeorder-local.py` 
 
 ## Zbývá
 
-- Storefront: výběr hodnoty, formulář obdarovaného, pole pro kód v košíku (API je připravené).
+- Storefront má prototyp výběru hodnoty, formuláře obdarovaného a pole pro kód v košíku nad mockem; připojení na skutečné backend API zůstává samostatnou integrační prací.
 - Automatické zneplatnění koupeného poukazu při plném refundu kartou (`payment.refunded`) a napojení Medusa returns na vratku na poukaz.
-- Rate limit na uplatnění kódu.
 - E-mailové šablony u vybraného providera a rozhodnutí účetní k DPH.
