@@ -6,9 +6,13 @@ import { giftVoucherAdminMiddlewares } from "./admin/vouchers/middlewares"
 import { giftVoucherStoreMiddlewares } from "./store/gift-vouchers/middlewares"
 import { bookingAdminMiddlewares } from "./admin/booking/middlewares"
 import { chatMiddlewares } from "./chat-middlewares"
+import { opsAdminMiddlewares } from "./admin/ops/middlewares"
+import { requestIdMiddleware } from "../lib/observability/request-id"
 
 export default defineMiddlewares({
   routes: [
+    // Korelace: musí být první, aby request_id měly i chyby autentizace a validace.
+    { matcher: "/*", middlewares: [requestIdMiddleware] },
     ...entitlementStoreMiddlewares,
     ...bookingStoreMiddlewares,
     ...couponLinkMiddlewares,
@@ -16,5 +20,6 @@ export default defineMiddlewares({
     ...giftVoucherStoreMiddlewares,
     ...bookingAdminMiddlewares,
     ...chatMiddlewares,
+    ...opsAdminMiddlewares,
   ],
 })

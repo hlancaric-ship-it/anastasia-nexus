@@ -2,6 +2,7 @@ import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/frame
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { ENTITLEMENT_MODULE } from "../../../modules/entitlement"
 import type EntitlementModuleService from "../../../modules/entitlement/service"
+import { auditAdminChange } from "../../../lib/observability/audit"
 
 const str = (v: unknown): string | undefined => {
   const s = Array.isArray(v) ? v[0] : v
@@ -83,6 +84,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       granted_by: req.auth_context?.actor_id ?? null,
       metadata: typeof body.reason === "string" && body.reason.trim() ? { reason: body.reason.trim().slice(0, 500) } : null,
     })
+    await auditAdminChange(req, "entitlement.grant", "entitlement", (entitlement as { id?: string })?.id ?? null, null, { customer_id: customerId, product_id: productId, status: (entitlement as { status?: string })?.status ?? null })
     return res.status(201).json({ entitlement })
   } catch (error) {
     req.scope.resolve(ContainerRegistrationKeys.LOGGER).error("POST /admin/entitlements selhalo", error as Error)

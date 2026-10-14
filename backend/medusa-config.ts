@@ -128,6 +128,7 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/booking" },
   { resolve: "./src/modules/gift-voucher" },
   { resolve: "./src/modules/chat" },
+  { resolve: "./src/modules/ops-audit" },
 ]
 
 if (stripeApiKey) {

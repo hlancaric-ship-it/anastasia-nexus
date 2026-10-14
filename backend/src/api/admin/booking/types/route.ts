@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
 import { DIGITAL_PROFILE_NAME, SALES_CHANNEL_NAME } from "../../../../scripts/anastasia-bootstrap"
 import { bookingMeta, createTypeSchema, listTypeProducts, requireAdmin, retrieveTypeProduct, toTypeDTO, uniqueHandle, zodMessage } from "./helpers"
+import { auditAdminChange } from "../../../../lib/observability/audit"
 
 /** GET /admin/booking/types?include_archived=true : typy konzultací (produkty s metadata.booking). */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -57,7 +58,9 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       metadata: { booking: bookingMeta({ ...input, archived: false }) },
     }] } })
     const created = await retrieveTypeProduct(req.scope, result[0].id)
-    return res.status(201).json({ type: toTypeDTO(created ?? result[0]) })
+    const dto = toTypeDTO(created ?? result[0])
+    await auditAdminChange(req, "booking_type.create", "booking_type", result[0].id, null, dto as unknown as Record<string, unknown>)
+    return res.status(201).json({ type: dto })
   } catch (error) {
     req.scope.resolve(ContainerRegistrationKeys.LOGGER).error("POST /admin/booking/types selhalo", error as Error)
     return res.status(500).json({ message: "Typ konzultace se nepodařilo vytvořit." })

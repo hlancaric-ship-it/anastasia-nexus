@@ -2,6 +2,7 @@ import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/frame
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { BOOKING_MODULE } from "../../../../../modules/booking"
 import type BookingModuleService from "../../../../../modules/booking/service"
+import { auditAdminChange } from "../../../../../lib/observability/audit"
 
 /** POST /admin/bookings/:id/cancel { reason? } */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -12,6 +13,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   try {
     const service = req.scope.resolve(BOOKING_MODULE) as BookingModuleService
     const booking = await service.cancel(id, reason)
+    await auditAdminChange(req, "booking.cancel", "booking", id, null, { status: (booking as { status?: string })?.status ?? "cancelled", reason })
     return res.status(200).json({ booking })
   } catch (error) {
     if (error instanceof MedusaError && error.type === MedusaError.Types.NOT_FOUND) {
