@@ -236,9 +236,16 @@ export const HELMET_CSS = `/* Mobil: úpravy rytmu sekcí (bez centrování – 
 @media(max-width:699.98px){
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]:has(>span[style*="height:1px"]){letter-spacing:2px!important;font-size:10px!important;gap:10px!important}
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]>span[style*="height:1px"]{width:24px!important}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]{display:grid!important;grid-template-columns:1fr 1fr;gap:34px 18px!important;width:100%;flex:1 1 100%!important}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div{gap:11px!important;min-width:0}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>a{font-size:14px!important;line-height:1.3}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>:first-child{margin-bottom:4px}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;column-gap:18px}
+footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3)>:first-child{grid-column:1/-1}
+footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!important;gap:44px!important}
 #o-lucii h2{order:2}#o-lucii h2~div:has(>p){order:1;padding-top:0!important;margin-top:-14px}#o-lucii h2~div:has(>p)>span{display:none}#o-lucii a.dch1{order:3}#o-lucii h2~div p :is(br,span){display:none}
 .wisdom{position:relative;margin-top:-150px;padding-top:0;background:linear-gradient(180deg,transparent 0,#F5F2E8 150px)!important}
-footer :has(>div>a+a+a){display:grid!important;grid-template-columns:1fr 1fr;gap:36px 20px!important;width:100%;flex:1 1 100%!important;text-align:left}
+
 }
 /* Kolekcia na landing page: prehľad (nie obchod), na mobile rotujúci pás 2 kariet */
 .kol-tabs{display:none}
