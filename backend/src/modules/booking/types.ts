@@ -4,6 +4,7 @@ export type BookingDTO = {
   id: string
   customer_id: string
   product_id: string
+  calendar_id?: string
   order_id: string | null
   status: BookingStatus
   starts_at: Date | string
@@ -24,6 +25,10 @@ export type HoldSlotInput = {
   holdMinutes?: number
   /** Server-configured preparation time after a consultation. */
   bufferMinutes?: number
+  /** Kalendář (výchozí CALENDAR_ID); obsazenost a zámek platí nad ním, ne nad produktem. */
+  calendar_id?: string
+  /** Časová zóna oken kalendáře (výchozí Europe/Bratislava). */
+  timezone?: string
 }
 
 export type ConfirmBookingInput = { id: string; order_id: string }

@@ -23,6 +23,10 @@ export type WeeklyRule = { weekday: number; start_time: string; end_time: string
 /** closed=true zavře celý den; jinak `ranges` nahradí týdenní pravidla pro ten den. */
 export type DayException = { date: string; closed: boolean; ranges?: Array<{ start_time: string; end_time: string }> }
 export type Interval = { start: Date; end: Date }
+/** Obsazený úsek kalendáře; `bufferMinutes` = pauza této rezervace (jinak pauza zvoleného typu). */
+export type BusyInterval = Interval & { bufferMinutes?: number }
+/** Volný úsek zadaný v adminu pro konkrétní lokální den. */
+export type AvailabilityWindow = { date: string; start_time: string; end_time: string }
 export type Slot = { start: string; end: string }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -60,13 +64,13 @@ export function utcToLocalDate(at: Date, timeZone: string): string {
   return p
 }
 
-function isoWeekday(date: string): number {
+export function isoWeekday(date: string): number {
   const [y, m, d] = date.split("-").map(Number)
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
   return wd === 0 ? 7 : wd
 }
 
-function addDays(date: string, days: number): string {
+export function addDays(date: string, days: number): string {
   const [y, m, d] = date.split("-").map(Number)
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
 }
@@ -77,13 +81,15 @@ export function overlaps(a: Interval, b: Interval): boolean {
 
 /**
  * Volné termíny v intervalu lokálních dnů [fromDate, toDate] (včetně).
- * `busy` = existující aktivní rezervace (held/confirmed); pauza po konzultaci se připočítá zde.
+ * `busy` = existující aktivní rezervace (held/confirmed) celého kalendáře. Za každou se připočte
+ * její vlastní pauza (`bufferMinutes`, jinak pauza zvoleného typu) a za nabízený slot pauza typu,
+ * stejně jako to kontroluje `BookingModuleService.assertSlotAvailable`.
  */
 export function generateSlots(input: {
   config: BookingConfig
   rules: WeeklyRule[]
   exceptions?: DayException[]
-  busy?: Interval[]
+  busy?: BusyInterval[]
   fromDate: string
   toDate: string
   now?: Date
@@ -93,7 +99,8 @@ export function generateSlots(input: {
   const exceptions = new Map((input.exceptions ?? []).map((e) => [e.date, e]))
   const earliest = now.getTime() + config.minNoticeHours * 3_600_000
   const latest = now.getTime() + config.maxAdvanceDays * 86_400_000
-  const busy = (input.busy ?? []).map((b) => ({ start: b.start, end: new Date(b.end.getTime() + config.bufferMinutes * 60_000) }))
+  const busy = (input.busy ?? []).map((b) => ({ start: b.start, end: new Date(b.end.getTime() + (b.bufferMinutes ?? config.bufferMinutes) * 60_000) }))
+  const ownBufferMs = Math.max(0, config.bufferMinutes) * 60_000
   const slots: Slot[] = []
 
   if (config.durationMinutes <= 0 || config.stepMinutes <= 0) throw new Error("INVALID_CONFIG")
@@ -109,12 +116,52 @@ export function generateSlots(input: {
         const end = zonedToUtc(date, t + config.durationMinutes, config.timezone)
         if (!start || !end) continue
         if (start.getTime() < earliest || start.getTime() > latest) continue
-        if (busy.some((b) => overlaps({ start, end }, b))) continue
+        if (busy.some((b) => overlaps({ start, end: new Date(end.getTime() + ownBufferMs) }, b))) continue
         slots.push({ start: start.toISOString(), end: end.toISOString() })
       }
     }
   }
   return slots
+}
+
+/**
+ * Sloty jen z ručně zadaných oken po dnech (žádná týdenní pravidla): den bez okna = nic (fail-closed).
+ */
+export function generateSlotsFromWindows(input: {
+  config: BookingConfig
+  windows: AvailabilityWindow[]
+  busy?: BusyInterval[]
+  fromDate: string
+  toDate: string
+  now?: Date
+}): Slot[] {
+  const byDate = new Map<string, Array<{ start_time: string; end_time: string }>>()
+  for (const w of input.windows) {
+    if (w.date < input.fromDate || w.date > input.toDate) continue
+    byDate.set(w.date, [...(byDate.get(w.date) ?? []), { start_time: w.start_time, end_time: w.end_time }])
+  }
+  const exceptions: DayException[] = [...byDate].map(([date, ranges]) => ({
+    date, closed: false, ranges: ranges.sort((a, b) => parseTime(a.start_time) - parseTime(b.start_time)),
+  }))
+  return generateSlots({ config: input.config, rules: [], exceptions, busy: input.busy, fromDate: input.fromDate, toDate: input.toDate, now: input.now })
+}
+
+/** Lokální datum a minuta dne v časové zóně provozovny. */
+export function utcToLocalMinutes(at: Date, timeZone: string): { date: string; minutes: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+  }).formatToParts(at)
+  const get = (t: string) => parts.find((p) => p.type === t)!.value
+  return { date: `${get("year")}-${get("month")}-${get("day")}`, minutes: Number(get("hour")) * 60 + Number(get("minute")) }
+}
+
+/** Celá konzultace [start, end] leží v jednom zadaném okně téhož lokálního dne. */
+export function isWithinWindows(start: Date, end: Date, windows: AvailabilityWindow[], timeZone: string): boolean {
+  if (!(end.getTime() > start.getTime())) return false
+  const s = utcToLocalMinutes(start, timeZone)
+  const e = utcToLocalMinutes(end, timeZone)
+  if (s.date !== e.date || e.minutes <= s.minutes) return false
+  return windows.some((w) => w.date === s.date && parseTime(w.start_time) <= s.minutes && e.minutes <= parseTime(w.end_time))
 }
 
 /** Server ověří, že požadovaný začátek je skutečně nabízený slot (klientovi se nevěří). */

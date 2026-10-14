@@ -1,6 +1,8 @@
 import { ContainerRegistrationKeys, generateJwtToken, Modules } from "@medusajs/framework/utils"
 import { capturePaymentWorkflow, cancelOrderWorkflow } from "@medusajs/medusa/core-flows"
 import { confirmBookingForOrder } from "../../src/modules/booking/order-sync"
+import { mondayOf, weekDates } from "../../src/modules/booking/availability"
+import { verifyChatHttp } from "./chat-http-checks"
 
 /** Called only by the guarded synthetic Medusa/Postgres runner. JWTs are local fixtures. */
 export async function verifyBookingHttp({ api, container, options, newCart, product, countOrders, evidence }: any) {
@@ -11,10 +13,12 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
   const auth = actors.map((customer: any) => ({ Authorization: `Bearer ${generateJwtToken({ actor_id: customer.id, actor_type: "customer", auth_identity_id: `synthetic-${customer.id}` }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` }))
   const opts = auth.map((headers: any) => ({ ...options, headers: { ...options.headers, ...headers } }))
   await container.resolve(Modules.PRODUCT).updateProducts(product.id, { metadata: { booking: {
-    timezone: "Europe/Bratislava", durationMinutes: 60, bufferMinutes: 15, stepMinutes: 30,
-    rules: [1, 2, 3, 4, 5, 6, 7].map(weekday => ({ weekday, start_time: "09:00", end_time: "18:00" })),
+    durationMinutes: 60, bufferMinutes: 15, stepMinutes: 30,
   } } })
   const date = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
+  // Volné úseky zadává Lucia po týdnech; bez nich se nic nenabízí (fail-closed).
+  const weekStart = mondayOf(date)
+  await bookings.replaceWeekAvailability({ week_start: weekStart, days: Object.fromEntries(weekDates(weekStart).map(d => [d, [{ start_time: "09:00", end_time: "18:00" }]])) })
   const slots = await api.get(`/store/booking-slots?product_id=${product.id}&from=${date}&to=${date}`, options)
   expect(slots.status).toBe(200)
   const start = slots.data.slots[0].start
@@ -129,4 +133,105 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
     expect(await countOrders()).toBe(expiredBefore)
     evidence.push({ scenario: "K9_EXPIRED_HOLD", endpoint, status: response.status, orderDelta: 0 })
   }
+
+  const { admin } = await verifySharedCalendarAdmin({ api, container, options, opts, product, raceHolds, evidence })
+  await verifyChatHttp({ api, container, options, admin, evidence })
+}
+
+/**
+ * Společný kalendář přes skutečné admin API: nový typ konzultace, týden volných úseků,
+ * souběh dvou různých typů přes sebe a odmítnutí zkrácení úseku s rezervací.
+ */
+async function verifySharedCalendarAdmin({ api, container, options, opts, product, raceHolds, evidence }: any) {
+  const [user] = await container.resolve(Modules.USER).createUsers([{ email: "lucia-admin@example.test" }])
+  const adminToken = generateJwtToken({ actor_id: user.id, actor_type: "user", auth_identity_id: `synthetic-${user.id}`, app_metadata: { user_id: user.id } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
+  const admin = { ...options, headers: { Authorization: `Bearer ${adminToken}` } }
+  // Admin API nepřijme zákaznický token ani anonymní volání.
+  expect((await api.get("/admin/booking/types", opts[0])).status).toBe(401)
+  expect((await api.get("/admin/booking/types", options)).status).toBe(401)
+
+  const invalid = await api.post("/admin/booking/types", { title: "X", duration_minutes: "šedesát", buffer_minutes: 0, price_eur: -1, form: "online", active: true }, admin)
+  expect(invalid.status).toBe(400)
+  const created = await api.post("/admin/booking/types", { title: "Krátká konzultace", duration_minutes: 30, buffer_minutes: 0, price_eur: 20, form: "online", active: true, description: "Syntetický typ" }, admin)
+  expect(created.status).toBe(201)
+  const short = created.data.type
+  expect(short).toMatchObject({ duration_minutes: 30, buffer_minutes: 0, price_eur: 20, active: true, archived: false })
+  const listed = await api.get("/admin/booking/types", admin)
+  expect(listed.status).toBe(200)
+  expect(listed.data.types.map((t: any) => t.id)).toContain(short.id)
+  evidence.push({ scenario: "K9_ADMIN_TYPE_CREATE", invalidStatus: invalid.status, createdStatus: created.status })
+
+  // Samostatný týden (o 2 týdny dál), aby se nemíchal s předchozími scénáři.
+  const date = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)
+  const weekStart = mondayOf(date)
+  const week = (ranges: Record<string, { start_time: string; end_time: string }[]>) => ({
+    week_start: weekStart, days: weekDates(weekStart).map(d => ({ date: d, ranges: ranges[d] ?? [] })),
+  })
+  const overlapping = await api.post("/admin/booking/availability", week({ [date]: [{ start_time: "10:00", end_time: "13:00" }, { start_time: "12:00", end_time: "14:00" }] }), admin)
+  expect(overlapping.status).toBe(400)
+  const saved = await api.post("/admin/booking/availability", week({ [date]: [{ start_time: "10:00", end_time: "14:00" }] }), admin)
+  expect(saved.status).toBe(200)
+  expect(saved.data.days.find((d: any) => d.date === date).ranges).toEqual([{ start_time: "10:00", end_time: "14:00" }])
+
+  const slotsOf = async (productId: string) => {
+    const response = await api.get(`/store/booking-slots?product_id=${productId}&from=${date}&to=${date}`, options)
+    expect(response.status).toBe(200)
+    return response.data.slots as { start: string; end: string }[]
+  }
+  const hhmm = (iso: string) => new Intl.DateTimeFormat("cs-CZ", { timeZone: "Europe/Bratislava", hour: "2-digit", minute: "2-digit" }).format(new Date(iso))
+  const at = (slots: { start: string }[], time: string) => {
+    const slot = slots.find(s => hhmm(s.start) === time)
+    if (!slot) throw new Error(`SYNTHETIC_SLOT_MISSING_${time}`)
+    return slot.start
+  }
+  const longSlots = await slotsOf(product.id)
+  const shortSlots = await slotsOf(short.id)
+  // 60 min + 15 min pauza od 10:00 vs. 30 min od 10:30: různé typy, stejný kalendář → jen jeden projde.
+  const crossType = await raceHolds([
+    { product_id: product.id, starts_at: at(longSlots, "10:00") },
+    { product_id: short.id, starts_at: at(shortSlots, "10:30") },
+  ])
+  const crossWinner = crossType.find((r: any) => r.status === 201).data.booking
+  const longWon = crossWinner.product_id === product.id
+  evidence.push({ scenario: "K9_CROSS_TYPE_OVERLAP_RACE", statuses: crossType.map((r: any) => r.status), winner: longWon ? "60+15" : "30+0", activeHolds: 1 })
+
+  // Pauza jednoho typu blokuje i jiný typ; nejbližší volný začátek v rastru 30 min po konci (vč. pauzy) projde.
+  const follow = longWon
+    ? [{ product_id: short.id, starts_at: at(shortSlots, "11:00"), expected: 409 }, { product_id: short.id, starts_at: at(shortSlots, "11:30"), expected: 201 }]
+    : [{ product_id: product.id, starts_at: at(longSlots, "10:30"), expected: 409 }, { product_id: product.id, starts_at: at(longSlots, "11:00"), expected: 201 }]
+  const followStatuses: number[] = []
+  for (const { expected, ...body } of follow) {
+    const response = await api.post("/store/bookings", body, opts[0])
+    expect(response.status).toBe(expected)
+    followStatuses.push(response.status)
+  }
+  evidence.push({ scenario: "K9_CROSS_TYPE_BUFFER", statuses: followStatuses })
+
+  // Admin vidí obsazené termíny se jménem zákaznice a typem.
+  const view = await api.get(`/admin/booking/availability?week_start=${date}`, admin)
+  expect(view.status).toBe(200)
+  expect(view.data.week_start).toBe(weekStart)
+  expect(view.data.bookings.find((b: any) => b.id === crossWinner.id)).toMatchObject({
+    status: "held", customer: expect.objectContaining({ name: expect.any(String) }), product: expect.objectContaining({ title: expect.any(String) }),
+  })
+
+  // Zkrácení / smazání úseku, ze kterého by rezervace vypadla → 409 availability_conflict, úseky beze změny.
+  const shortened = await api.post("/admin/booking/availability", week({ [date]: [{ start_time: "11:30", end_time: "14:00" }] }), admin)
+  expect(shortened.status).toBe(409)
+  expect(shortened.data.type).toBe("availability_conflict")
+  expect(shortened.data.conflicts.map((b: any) => b.id)).toContain(crossWinner.id)
+  const removed = await api.post("/admin/booking/availability", week({}), admin)
+  expect(removed.status).toBe(409)
+  const unchanged = await api.get(`/admin/booking/availability?week_start=${weekStart}`, admin)
+  expect(unchanged.data.days.find((d: any) => d.date === date).ranges).toEqual([{ start_time: "10:00", end_time: "14:00" }])
+  // Zkrácení mimo rezervace projde.
+  const trimmed = await api.post("/admin/booking/availability", week({ [date]: [{ start_time: "10:00", end_time: "12:30" }] }), admin)
+  expect(trimmed.status).toBe(200)
+  evidence.push({ scenario: "K9_ADMIN_SHORTEN_WITH_BOOKING", statuses: [shortened.status, removed.status, trimmed.status], conflicts: shortened.data.conflicts.length })
+
+  // Archivovaný typ se přestane nabízet.
+  expect((await api.post(`/admin/booking/types/${short.id}`, { archived: true }, admin)).status).toBe(200)
+  expect((await api.get(`/store/booking-slots?product_id=${short.id}&from=${date}&to=${date}`, options)).status).toBe(404)
+  evidence.push({ scenario: "K9_ADMIN_TYPE_ARCHIVE", storeStatus: 404 })
+  return { admin, date }
 }

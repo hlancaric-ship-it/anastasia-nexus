@@ -1,7 +1,10 @@
 import { InjectTransactionManager, MedusaContext, MedusaError, MedusaService } from "@medusajs/framework/utils"
 import type { Context } from "@medusajs/framework/types"
 import Booking from "./models/booking"
+import BookingAvailability from "./models/booking-availability"
+import { BOOKING_TIMEZONE, CALENDAR_ID, weekDates, weekWindows, type WeekInput } from "./availability"
 import { clampHoldMinutes, isHoldExpired, UNIQUE_VIOLATION } from "./policy"
+import { addDays, isWithinWindows, utcToLocalDate, zonedToUtc, type AvailabilityWindow, type BusyInterval } from "./slots"
 import type { BookingDTO, ConfirmBookingInput, HoldSlotInput } from "./types"
 
 export class SlotTakenError extends Error {
@@ -10,19 +13,70 @@ export class SlotTakenError extends Error {
   }
 }
 
-class BookingModuleService extends MedusaService({ Booking }) {
-  private async assertSlotAvailable(input: HoldSlotInput, context: Context) {
+/** Požadovaný čas neleží v žádném volném úseku kalendáře (např. úsek mezitím odebrán). */
+export class SlotNotAvailableError extends Error {
+  constructor() {
+    super("SLOT_NOT_AVAILABLE")
+  }
+}
+
+export type CalendarBookingRow = {
+  id: string
+  product_id: string
+  customer_id: string
+  order_id: string | null
+  status: "held" | "confirmed"
+  starts_at: Date
+  ends_at: Date
+  held_until: Date | null
+  buffer_minutes: number
+  in_checkout: boolean
+}
+
+/** Uložení týdne by vyřadilo aktivní rezervace z volných úseků. */
+export class AvailabilityConflictError extends Error {
+  constructor(public readonly bookings: CalendarBookingRow[]) {
+    super("AVAILABILITY_CONFLICTS_WITH_BOOKINGS")
+  }
+}
+
+const ACTIVE = ["held", "confirmed"] as const
+const bufferOf = (metadata: unknown): number => {
+  const n = Number((metadata as Record<string, unknown> | null)?.buffer_minutes ?? 0)
+  return Number.isInteger(n) && n >= 0 ? n : 0
+}
+
+class BookingModuleService extends MedusaService({ Booking, BookingAvailability }) {
+  private transactionKnex(context: Context) {
     const knex = (context.transactionManager as any)?.getTransactionContext()
     if (!knex) throw new Error("BOOKING_TRANSACTION_REQUIRED")
+    return knex
+  }
+
+  /**
+   * Jeden zámek na celý kalendář: serializuje holdy všech typů konzultací i úpravy volných úseků,
+   * takže se nepotkají ani různé produkty s překrývajícími se časy, ani hold s odebraným úsekem.
+   */
+  private async lockCalendar(knex: any, calendarId: string) {
     await knex.raw("SET LOCAL lock_timeout = '3s'")
-    // A slot may not have a row yet. Serialize inserts per product, including
-    // different start times whose consultation/buffer intervals overlap.
-    await knex.raw("SELECT pg_advisory_xact_lock(hashtext(?))", [`booking:${input.product_id}`])
+    await knex.raw("SELECT pg_advisory_xact_lock(hashtext(?))", [`booking:calendar:${calendarId}`])
+  }
+
+  private async assertSlotAvailable(input: HoldSlotInput, context: Context) {
+    const knex = this.transactionKnex(context)
+    const calendarId = input.calendar_id ?? CALENDAR_ID
+    const timezone = input.timezone ?? BOOKING_TIMEZONE
+    await this.lockCalendar(knex, calendarId)
     const now = new Date()
-    await knex("booking").where({ product_id: input.product_id, status: "held" }).whereNull("deleted_at")
+    await knex("booking").where({ calendar_id: calendarId, status: "held" }).whereNull("deleted_at")
       .where("held_until", "<=", now).whereRaw("metadata->>'checkout_cart_id' IS NULL")
       .update({ status: "canceled", canceled_at: now, cancel_reason: "hold_expired", updated_at: now })
-    const busy = await knex("booking").where({ product_id: input.product_id }).whereNull("deleted_at")
+    // Okna se čtou až pod zámkem: úsek odebraný adminem mezitím nesmí projít (fail-closed).
+    const windows: AvailabilityWindow[] = await knex("booking_availability")
+      .where({ calendar_id: calendarId, date: utcToLocalDate(input.starts_at, timezone) }).whereNull("deleted_at")
+      .select("date", "start_time", "end_time")
+    if (!isWithinWindows(input.starts_at, input.ends_at, windows, timezone)) throw new SlotNotAvailableError()
+    const busy = await knex("booking").where({ calendar_id: calendarId }).whereNull("deleted_at")
       .whereIn("status", ["held", "confirmed"])
       .where("starts_at", "<", new Date(input.ends_at.getTime() + (input.bufferMinutes ?? 0) * 60000))
       .whereRaw("ends_at + COALESCE((metadata->>'buffer_minutes')::integer, 0) * interval '1 minute' > ?", [input.starts_at])
@@ -83,8 +137,8 @@ class BookingModuleService extends MedusaService({ Booking }) {
   }
   /**
    * Zarezervuje termín na dobu holdu (výchozí 15 min, max 60), dokud zákaznice nezaplatí.
-   * Transakční zámek produktu chrání i překrývající se začátky a pauzy; unikátní
-   * index (product_id, starts_at) zůstává další ochranou shodného termínu.
+   * Transakční zámek kalendáře chrání překrývající se začátky a pauzy napříč všemi typy;
+   * unikátní index (calendar_id, starts_at) zůstává další ochranou shodného termínu.
    */
   @InjectTransactionManager()
   async holdSlot(input: HoldSlotInput, @MedusaContext() context: Context = {}): Promise<BookingDTO> {
@@ -101,6 +155,7 @@ class BookingModuleService extends MedusaService({ Booking }) {
       return (await this.createBookings({
         customer_id: input.customer_id,
         product_id: input.product_id,
+        calendar_id: input.calendar_id ?? CALENDAR_ID,
         status: "held",
         starts_at: input.starts_at,
         ends_at: input.ends_at,
@@ -161,14 +216,64 @@ class BookingModuleService extends MedusaService({ Booking }) {
     return count
   }
 
-  /** Aktivní (held nevypršelé + confirmed) rezervace v okně, pro generateSlots (parametr `busy`). */
-  async listActiveInRange(productId: string, fromDate: Date, toDate: Date): Promise<Array<{ start: Date; end: Date }>> {
+  /** Aktivní (held nevypršelé nebo v checkoutu + confirmed) rezervace kalendáře, které zasahují do [from, to). */
+  async listCalendarBookings(fromDate: Date, toDate: Date, calendarId: string = CALENDAR_ID, context: Context = {}): Promise<CalendarBookingRow[]> {
     const rows = (await this.listBookings(
-      { product_id: productId, status: ["held", "confirmed"], starts_at: { $gte: fromDate, $lte: toDate } },
-      { take: 500 }
+      { calendar_id: calendarId, status: [...ACTIVE], starts_at: { $lt: toDate }, ends_at: { $gt: fromDate } },
+      { take: 2000, order: { starts_at: "ASC" } },
+      context
     )) as unknown as BookingDTO[]
     const now = new Date()
-    return rows.filter((b) => b.status === "confirmed" || !isHoldExpired(b, now)).map((b) => ({ start: new Date(b.starts_at), end: new Date(b.ends_at) }))
+    return rows.filter((b) => b.status === "confirmed" || !isHoldExpired(b, now)).map((b) => ({
+      id: b.id, product_id: b.product_id, customer_id: b.customer_id, order_id: b.order_id,
+      status: b.status as "held" | "confirmed", starts_at: new Date(b.starts_at), ends_at: new Date(b.ends_at),
+      held_until: b.held_until ? new Date(b.held_until) : null, buffer_minutes: bufferOf(b.metadata),
+      in_checkout: Boolean(b.metadata?.checkout_cart_id),
+    }))
+  }
+
+  /** Obsazené úseky celého kalendáře (všechny typy) pro generateSlots, včetně pauzy každé rezervace. */
+  async listActiveInRange(fromDate: Date, toDate: Date, calendarId: string = CALENDAR_ID): Promise<BusyInterval[]> {
+    return (await this.listCalendarBookings(fromDate, toDate, calendarId))
+      .map((b) => ({ start: b.starts_at, end: b.ends_at, bufferMinutes: b.buffer_minutes }))
+  }
+
+  /** Volné úseky kalendáře pro lokální dny [fromDate, toDate] (včetně). */
+  async listAvailability(fromDate: string, toDate: string, calendarId: string = CALENDAR_ID): Promise<AvailabilityWindow[]> {
+    const rows = (await this.listBookingAvailabilities(
+      { calendar_id: calendarId, date: { $gte: fromDate, $lte: toDate } },
+      { take: 2000, order: { date: "ASC", start_time: "ASC" } }
+    )) as unknown as AvailabilityWindow[]
+    return rows.map((r) => ({ date: r.date, start_time: r.start_time, end_time: r.end_time }))
+  }
+
+  /**
+   * Nahradí volné úseky celého týdne (validovaný vstup). Pod zámkem kalendáře odmítne uložení,
+   * pokud by některá aktivní rezervace (held/confirmed, včetně rozpracovaného checkoutu)
+   * přestala ležet celá v některém úseku – obsazený čas nejde smazat ani zkrátit.
+   */
+  @InjectTransactionManager()
+  async replaceWeekAvailability(
+    input: WeekInput & { calendar_id?: string; timezone?: string },
+    @MedusaContext() context: Context = {}
+  ): Promise<AvailabilityWindow[]> {
+    const knex = this.transactionKnex(context)
+    const calendarId = input.calendar_id ?? CALENDAR_ID
+    const timezone = input.timezone ?? BOOKING_TIMEZONE
+    const dates = weekDates(input.week_start)
+    await this.lockCalendar(knex, calendarId)
+    const from = zonedToUtc(dates[0], 0, timezone) ?? new Date(`${dates[0]}T00:00:00Z`)
+    const end = addDays(dates[6], 1)
+    const to = zonedToUtc(end, 0, timezone) ?? new Date(`${end}T00:00:00Z`)
+    const windows = weekWindows(input)
+    const active = await this.listCalendarBookings(from, to, calendarId, context)
+    const conflicts = active.filter((b) => !isWithinWindows(b.starts_at, b.ends_at, windows, timezone))
+    if (conflicts.length) throw new AvailabilityConflictError(conflicts)
+    await knex("booking_availability").where({ calendar_id: calendarId }).whereIn("date", dates).whereNull("deleted_at").del()
+    if (windows.length) {
+      await this.createBookingAvailabilities(windows.map((w) => ({ calendar_id: calendarId, ...w })), context)
+    }
+    return windows
   }
 }
 

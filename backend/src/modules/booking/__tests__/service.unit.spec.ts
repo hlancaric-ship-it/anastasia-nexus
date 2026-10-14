@@ -131,7 +131,10 @@ describe("BookingModuleService", () => {
         { status: "held", held_until: new Date(now.getTime() - 1000), starts_at: "2026-10-12T11:00:00Z", ends_at: "2026-10-12T12:00:00Z" },
       ]),
     })
-    const r = await svc.listActiveInRange("p_l005", new Date(), new Date())
+    const r = await svc.listActiveInRange(new Date(), new Date())
     expect(r).toHaveLength(2)
+    // Obsazenost se čte nad celým kalendářem, ne nad jedním produktem.
+    expect(svc.listBookings.mock.calls[0][0]).toMatchObject({ calendar_id: "lucia" })
+    expect(svc.listBookings.mock.calls[0][0]).not.toHaveProperty("product_id")
   })
 })
