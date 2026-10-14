@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+<style>
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto !important}
+.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
+.lenis.lenis-stopped{overflow:hidden}
+html,body{margin:0;background:#283020}
+*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}a:hover{color:#C9A355}
+input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-text-fill-color:#EFE5C7;-webkit-box-shadow:0 0 0 1000px rgba(0,0,0,0) inset;box-shadow:0 0 0 1000px rgba(0,0,0,0) inset;transition:background-color 99999s ease 0s;caret-color:#EFE5C7}
+input:focus{outline:none}
+input{-webkit-appearance:none;appearance:none;background-clip:padding-box}
+input::placeholder{color:#69705E}
+</style>
+</helmet>
+<div lang="sk" style="font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:#283020;overflow-x:hidden;padding:0 0 0 {{ railPad }}">
+
+<section data-screen-label="01 Hero" style="margin:0 0 0 {{ railNeg }};padding:0 0 0 {{ railPad }};position:relative;height:{{ heroHeight }};min-height:680px;background:#26321E;display:flex;flex-direction:column;overflow:hidden">
+  <div data-par="1" aria-hidden="true" style="position:absolute;left:0;right:0;top:0;bottom:0;background:url(./assets/hero-forest.jpg) center 40%/cover no-repeat;will-change:transform;transform:translate3d(0,0,0)"></div>
+  <sc-if value="{{ hasHeroVideo }}" hint-placeholder-val="{{ false }}"><video ref="{{ heroRef }}" data-v="heroVideo" poster="./assets/hero-forest.jpg" autoPlay="{{ true }}" muted="{{ true }}" loop="{{ true }}" playsInline="{{ true }}" preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 40%"></video></sc-if>
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,24,15,0.62) 0%,rgba(16,24,15,0.34) 26%,rgba(16,24,15,0.5) 52%,rgba(8,12,7,0.78) 80%,rgba(4,6,4,0.92) 100%)"></div>
+
+  <header style="position:relative;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;padding:26px clamp(20px,4vw,64px);border-bottom:1px solid rgba(201,163,85,0.28)">
+    <div style="display:flex;align-items:center;gap:clamp(18px,2.4vw,40px);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;font-weight:400">
+      <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openMenu }}" aria-label="Otvoriť menu" style="height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;background:transparent;border:0;padding:0;color:#EFE5C7;font-family:Outfit,sans-serif;font-weight:400;font-size:12px;letter-spacing:1.6px;text-transform:uppercase" style-hover="color:#C9A355"><span style="display:flex;flex-direction:column;gap:5px"><span style="width:22px;height:1px;background:currentColor"></span><span style="width:14px;height:1px;background:currentColor"></span></span>Menu</button></sc-if>
+      <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><a href="#kolekcia">Obchod</a></sc-if>
+      <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><a href="#program">Programy</a></sc-if>
+    </div>
+    <a href="#" style="display:flex;flex-direction:column;align-items:center;gap:6px">
+      <img src="./assets/logo-mark.png" alt="" style="width:40px;height:40px;object-fit:contain">
+      <span style="font-weight:300;font-size:15px;letter-spacing:7px;padding-left:7px">ANASTASIA</span>
+    </a>
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:clamp(18px,2.4vw,40px);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;font-weight:400">
+      <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><a href="#konzultacie">Konzultácie</a></sc-if>
+      <span style="display:flex;align-items:center;gap:8px">Košík <span style="color:#C9A355">({{ cartCount }})</span></span>
+      <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openMenu }}" style="height:50px;border-radius:80px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease;color:#EFE5C7;display:flex;align-items:center;gap:22px;padding:0 25px;font-family:Outfit,sans-serif;font-weight:400;font-size:15px;letter-spacing:0;text-transform:none;cursor:pointer" style-hover="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#EFE5C7">Menu <span style="display:flex;flex-direction:column;gap:4px"><span style="width:20px;height:1px;background:#EFE5C7"></span><span style="width:20px;height:1px;background:#EFE5C7"></span><span style="width:20px;height:1px;background:#EFE5C7"></span></span></button></sc-if>
+    </div>
+  </header>
+
+  <div style="position:relative;flex:1;min-height:0"></div>
+
+  <div style="position:relative;padding:0 clamp(20px,4vw,64px) clamp(36px,6vh,64px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:clamp(28px,4vw,64px);align-items:end">
+    <div style="display:flex;flex-direction:column;gap:clamp(18px,2.4vh,28px);grid-column:span 2;min-width:0">
+      <div style="display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#EFE5C7;text-shadow:0 1px 12px rgba(0,0,0,0.6)"><span style="width:48px;height:1px;background:#C9A355"></span>Light for the Future</div>
+      <h1 style="margin:0;font-weight:100;font-size:clamp(56px,min(8.6vw,13vh),156px);line-height:0.9;letter-spacing:-0.05em;text-wrap:balance">V rovnováhe so&nbsp;sebou. S&nbsp;prírodou.</h1>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:26px;max-width:380px;padding-bottom:8px">
+      <p style="margin:0;font-size:16px;line-height:1.7;color:#C4C7B6">Návrat k tomu podstatnému. Prírodná kozmetika, programy a sprevádzanie pre tých, ktorí chcú žiť pomalšie a vedomejšie.</p>
+      <a href="#manifest" style="align-self:flex-start;height:58px;border-radius:29px;background:#EFE5C7;color:#283020;transition:background 400ms ease;display:flex;align-items:center;gap:28px;padding:0 28px;white-space:nowrap;font-size:14px;font-weight:400;letter-spacing:0.3px" style-hover="background:#F5F2E8;color:#283020">Objavte svet ANASTASIA <span style="font-size:18px;font-weight:300">↗</span></a>
+      <a href="#kolekcia" style="align-self:flex-start;height:52px;border-radius:26px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease;display:flex;align-items:center;gap:24px;padding:0 24px;font-size:13px;white-space:nowrap;color:#EFE5C7" style-hover="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#EFE5C7">Kolekcia <span style="font-size:16px">↓</span></a>
+      <sc-if value="{{ hasHeroVideo }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:10px;align-items:center">
+        <button onClick="{{ togglePlay }}" aria-label="Prehrať / pozastaviť video" style="width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease;color:#EFE5C7;font-family:Outfit,sans-serif;font-size:12px;cursor:pointer" style-hover="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#EFE5C7">{{ playIcon }}</button>
+        <button onClick="{{ toggleSound }}" style="height:44px;border-radius:22px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease;color:#EFE5C7;display:flex;align-items:center;gap:12px;padding:0 18px;font-family:Outfit,sans-serif;font-weight:300;font-size:12px;white-space:nowrap;cursor:pointer" style-hover="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#EFE5C7">{{ soundLabel }} <span>◎</span></button>
+      </div></sc-if>
+    </div>
+  </div>
+</section>
+
+<section id="manifest" data-screen-label="02 Manifest" style="background:#F5F2E8;color:#283020">
+  <div style="max-width:1440px;margin:0 auto;padding:clamp(110px,14vw,220px) clamp(20px,4vw,64px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:clamp(36px,4vw,56px)">
+    <img src="./assets/logo-mark.png" alt="" style="width:64px;height:64px;object-fit:contain;filter:brightness(0.35) sepia(1) saturate(1.6) hue-rotate(15deg)">
+    <div style="font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#796236">Vitajte</div>
+    <p style="margin:0;max-width:1120px;font-weight:200;font-size:clamp(30px,3.7vw,60px);line-height:1.18;letter-spacing:-0.035em;text-wrap:balance">Táto časť webu patrí projektu ANASTASIA. <span style="color:#748054">Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani&nbsp;riadené.</span></p>
+    <a href="#manifest" style="display:flex;align-items:center;gap:14px;font-size:12px;font-weight:400;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;height:50px;padding:0 24px;border-radius:25px;background:rgba(255,255,255,0.42);border:1px solid rgba(255,255,255,0.75);box-shadow:inset 0 1px 0 rgba(255,255,255,0.9),0 1px 2px rgba(40,48,32,0.05);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease" style-hover="background:rgba(255,255,255,0.68);color:#283020">Zdravý svet <span style="font-size:15px;font-weight:300;letter-spacing:0">↗</span></a>
+  </div>
+</section>
+
+<section id="kolekcia" data-screen-label="03 Kolekcia" style="background:#283020">
+  <div style="max-width:1560px;margin:0 auto;padding:clamp(90px,11vw,170px) clamp(20px,4vw,64px)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:32px;align-items:end;margin-bottom:clamp(48px,6vw,88px)">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#C9A355"><span style="width:48px;height:1px;background:#C9A355"></span>Kolekcia</div>
+        <h2 style="margin:0;font-weight:100;font-size:clamp(56px,7vw,120px);line-height:0.9;letter-spacing:-0.05em">Vybrané pre&nbsp;vás.</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:24px;justify-self:end;max-width:360px">
+        <p style="margin:0;font-size:15px;line-height:1.7;color:#C4C7B6">Malé série z prírodných surovín. Pre každodenné rituály, ktoré nič nevyžadujú.</p>
+        <a href="#" style="display:flex;align-items:center;gap:14px;font-size:12px;font-weight:400;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;height:50px;padding:0 24px;border-radius:25px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease" style-hover="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#EFE5C7">Celý obchod <span style="font-size:15px;font-weight:300;letter-spacing:0">↗</span></a>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:clamp(20px,2.4vw,40px) clamp(16px,1.8vw,28px)">
+      <sc-for list="{{ products }}" as="p" hint-placeholder-count="4">
+        <article style="display:flex;flex-direction:column;gap:22px">
+          <div style="position:relative;aspect-ratio:3/4;border-radius:90px 0 0 0;overflow:hidden;background:#D5D6BD">
+            <div style="position:absolute;inset:0;background-image:url({{ p.img }});background-size:cover;background-position:center;transition:transform 900ms cubic-bezier(.2,.7,.2,1)" style-hover="transform:scale(1.05)"></div>
+            <div style="position:absolute;left:16px;bottom:16px;height:30px;padding:0 12px;border-radius:15px;white-space:nowrap;display:flex;align-items:center;font-weight:300;font-size:11px;letter-spacing:1px;color:#EFE5C7;background:rgba(38,50,30,0.28);border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%)">{{ p.n }}</div><div style="position:absolute;top:18px;right:16px;height:30px;padding:0 12px;border-radius:15px;white-space:nowrap;display:flex;align-items:center;font-weight:400;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#fff;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.4);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%)">{{ p.cat }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding-top:2px;border-top:1px solid rgba(201,163,85,0.35)">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:16px">
+              <span style="font-weight:400;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">{{ p.cat }}</span>
+              <span style="font-size:15px;letter-spacing:0.3px">{{ p.price }}</span>
+            </div>
+            <h3 style="margin:0;font-weight:200;font-size:clamp(24px,2vw,30px);line-height:1.1;letter-spacing:-0.03em">{{ p.name }}</h3>
+            <button onClick="{{ p.add }}" style="align-self:flex-start;margin-top:8px;height:42px;padding:0 18px;border-radius:21px;white-space:nowrap;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease;color:{{ p.fg }};font-family:Outfit,sans-serif;font-weight:400;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:12px" style-hover="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#EFE5C7">{{ p.label }} <span style="font-weight:300;font-size:14px;letter-spacing:0">↗</span></button>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    <p style="margin:clamp(40px,4vw,64px) 0 0;font-size:12px;letter-spacing:0.3px;color:#69705E">Ilustračné náhľady a ukážkové ceny. Finálny katalóg sa doplní pri napojení.</p>
+  </div>
+</section>
+
+<section id="program" data-screen-label="04 RESET 40+" style="position:relative;min-height:clamp(640px,96vh,980px);gap:clamp(60px,8vw,120px);background:#26321E;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between">
+  <div data-par="1" aria-hidden="true" style="position:absolute;left:0;right:0;top:-14%;bottom:-14%;background:url(./assets/hero-forest.jpg) 70% center/cover no-repeat;will-change:transform;transform:translate3d(0,0,0)"></div>
+  <sc-if value="{{ hasProgramVideo }}" hint-placeholder-val="{{ false }}"><video ref="{{ programRef }}" data-v="programVideo" poster="./assets/hero-forest.jpg" autoPlay="{{ true }}" muted="{{ true }}" loop="{{ true }}" playsInline="{{ true }}" preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% center"></video></sc-if>
+  <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(16,24,15,0.82) 0%,rgba(16,24,15,0.35) 55%,rgba(16,24,15,0.6) 100%)"></div>
+  <div style="position:relative;padding:clamp(40px,5vw,72px) clamp(20px,4vw,64px) 0;display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#C9A355"><span style="width:48px;height:1px;background:#C9A355"></span>Program RESET 40+</div>
+  <div style="position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:40px;align-items:end;padding:0 clamp(20px,4vw,64px) clamp(40px,5vw,72px)">
+    <div style="font-weight:100;font-size:clamp(220px,30vw,500px);line-height:0.76;letter-spacing:-0.09em;color:#EFE5C7;margin-left:-0.04em">40<span style="color:#C9A355;font-size:0.36em;line-height:1;position:relative;top:-1.05em;letter-spacing:0">+</span></div>
+    <div style="justify-self:end;max-width:480px;display:flex;flex-direction:column;gap:28px;padding:clamp(30px,3vw,44px);background:linear-gradient(160deg,rgba(52,62,42,0.5) 0%,rgba(30,38,25,0.6) 100%);border:1px solid rgba(239,229,199,0.18);border-radius:70px 0 0 0;box-shadow:0 30px 80px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.08);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%)">
+      <h2 style="margin:0;font-weight:200;font-size:clamp(38px,3.6vw,56px);line-height:1;letter-spacing:-0.04em;text-wrap:balance">Nová kapitola sa začína vami.</h2>
+      <p style="margin:0;font-size:16px;line-height:1.7;color:#C4C7B6">Šestnásť tematických týždňov. Priestor zastaviť sa, spoznávať a objavovať vlastný rytmus.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid rgba(239,229,199,0.25);border-bottom:1px solid rgba(239,229,199,0.25)">
+        <div style="padding:14px 10px 14px 0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:200;font-size:28px;line-height:1">16</span><span style="font-size:11px;color:#C4C7B6">týždňov</span></div>
+        <div style="padding:14px 10px;border-left:1px solid rgba(239,229,199,0.25);display:flex;flex-direction:column;gap:2px"><span style="font-weight:200;font-size:28px;line-height:1">∞</span><span style="font-size:11px;color:#C4C7B6">vlastné tempo</span></div>
+        <div style="padding:14px 0 14px 10px;border-left:1px solid rgba(239,229,199,0.25);display:flex;flex-direction:column;gap:2px"><span style="font-weight:200;font-size:28px;line-height:1">1×</span><span style="font-size:11px;color:#C4C7B6">jednorazový prístup</span></div>
+      </div>
+      <a href="#" style="align-self:flex-start;height:58px;border-radius:29px;background:#EFE5C7;color:#283020;transition:background 400ms ease;display:flex;align-items:center;gap:28px;padding:0 28px;white-space:nowrap;font-size:14px;font-weight:400" style-hover="background:#F5F2E8;color:#283020">Objaviť RESET 40+ <span style="font-size:18px;font-weight:300">↗</span></a>
+    </div>
+  </div>
+</section>
+
+<section id="konzultacie" data-screen-label="05 Konzultácie" style="background:#F5F2E8;color:#283020">
+  <div style="padding:clamp(100px,12vw,190px) clamp(20px,4vw,64px) clamp(100px,12vw,190px) 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:clamp(48px,7vw,120px);align-items:start">
+    <div style="display:flex;flex-direction:column;gap:clamp(36px,4vw,56px)">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#796236"><span style="width:48px;height:1px;background:#796236"></span>Sprevádzanie</div>
+        <h2 style="margin:0;font-weight:100;font-size:clamp(56px,7vw,120px);line-height:0.9;letter-spacing:-0.05em">Konzultácie.</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;border-top:1px solid #283020">
+        <sc-for list="{{ consults }}" as="c" hint-placeholder-count="3">
+          <a href="#" style="display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:18px;padding:30px 0;border-bottom:1px solid #BFC4B3;color:#283020;transition:padding 400ms ease" style-hover="padding-left:14px;color:#283020">
+            <span style="font-weight:200;font-size:14px;letter-spacing:1px;color:#796236">{{ c.n }}</span>
+            <span style="display:flex;flex-direction:column;gap:6px"><span data-roll-target="1" style="font-weight:200;font-size:clamp(28px,2.8vw,44px);line-height:1.05;letter-spacing:-0.035em">{{ c.title }}</span><span style="font-size:13px;color:#69705E">{{ c.sub }}</span></span>
+            <span style="font-size:22px;font-weight:200">↗</span>
+          </a>
+        </sc-for>
+      </div>
+      <a href="#" style="align-self:flex-start;display:flex;align-items:center;gap:14px;font-size:12px;font-weight:400;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;height:50px;padding:0 24px;border-radius:25px;background:rgba(255,255,255,0.42);border:1px solid rgba(255,255,255,0.75);box-shadow:inset 0 1px 0 rgba(255,255,255,0.9),0 1px 2px rgba(40,48,32,0.05);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease" style-hover="background:rgba(255,255,255,0.68);color:#283020">Všetky konzultácie <span style="font-size:15px;font-weight:300;letter-spacing:0">↗</span></a>
+    </div>
+    <div style="order:-1;margin-left:{{ railNeg }};position:relative;aspect-ratio:4/5;border-radius:0 160px 0 0;overflow:hidden;background:#26321E url(./assets/night-sky.jpg) center/cover">
+      <sc-if value="{{ hasSkyVideo }}" hint-placeholder-val="{{ false }}"><video ref="{{ skyRef }}" data-v="skyVideo" poster="./assets/night-sky.jpg" autoPlay="{{ true }}" muted="{{ true }}" loop="{{ true }}" playsInline="{{ true }}" preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center"></video></sc-if>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.65) 100%)"></div>
+      <div style="position:absolute;left:{{ captionLeft }};right:20px;bottom:20px;padding:24px 26px;border-radius:44px 0 0 0;background:rgba(20,28,18,0.32);border:1px solid rgba(239,229,199,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);display:flex;flex-direction:column;gap:10px;color:#EFE5C7">
+        <span style="font-weight:400;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">Astrologický profil</span>
+        <span style="font-weight:200;font-size:clamp(22px,2vw,30px);line-height:1.15;letter-spacing:-0.02em">Nočná obloha v deň vášho narodenia.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="o-lucii" data-screen-label="06 O Lucii" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));background:#26321E">
+  <div style="margin-left:{{ railNeg }};min-height:clamp(520px,90vh,940px);background:#E8DFCF url(./assets/lucia-portrait.jpg) 40% 25%/cover"></div>
+  <div style="padding:clamp(64px,8vw,130px) clamp(24px,5vw,96px);display:flex;flex-direction:column;justify-content:center;gap:clamp(30px,3vw,44px)">
+    <div style="display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#C9A355"><span style="width:48px;height:1px;background:#C9A355"></span>Zakladateľka</div>
+    <h2 style="margin:0;font-weight:100;font-size:clamp(60px,6.8vw,118px);line-height:0.9;letter-spacing:-0.05em">„Ďakujem, že&nbsp;smiem pomáhať.“</h2>
+    <div style="display:flex;align-items:center;gap:20px;padding-top:8px">
+      <span style="width:48px;height:1px;background:rgba(239,229,199,0.5)"></span>
+      <p style="margin:0;font-size:15px;line-height:1.6">Mgr. Lucia Rogožanová, MBA<br><span style="color:#C4C7B6">zakladateľka ANASTASIA</span></p>
+    </div>
+    <a href="#" style="align-self:flex-start;display:flex;align-items:center;gap:14px;font-size:12px;font-weight:400;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;height:50px;padding:0 24px;border-radius:25px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease" style-hover="background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#EFE5C7">Príbeh Lucie <span style="font-size:15px;font-weight:300;letter-spacing:0">↗</span></a>
+  </div>
+</section>
+
+
+<footer id="kontakt" data-screen-label="08 Footer" style="background:linear-gradient(180deg,#17332F 0%,#112724 100%);border-top:1px solid rgba(201,163,85,0.28)">
+  <div style="max-width:1560px;margin:0 auto;padding:clamp(80px,9vw,140px) clamp(20px,4vw,64px) 36px">
+    <div style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom:clamp(60px,7vw,110px)">
+      <div style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px;min-width:0">
+        <p style="margin:0;font-weight:100;font-size:clamp(40px,4vw,64px);letter-spacing:-0.04em;line-height:1">Zostaňme v&nbsp;kontakte.</p>
+        <p style="margin:0;font-size:14px;color:#C4C7B6;max-width:420px;line-height:1.7">Občasný list o nových programoch, rituáloch a kolekciách. Bez zhonu.</p>
+        <form onSubmit="{{ subscribe }}" style="display:flex;max-width:480px;border-bottom:1px solid rgba(239,229,199,0.6);margin-top:8px">
+          <input type="email" placeholder="Váš e-mail" value="{{ email }}" onChange="{{ setEmail }}" style="flex:1;min-width:0;height:56px;background:transparent;border:0;outline:0;color:#EFE5C7;font-family:Outfit,sans-serif;font-weight:300;font-size:16px">
+          <button type="submit" style="height:46px;margin:5px 0;padding:0 20px;border-radius:23px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease;color:#EFE5C7;font-family:Outfit,sans-serif;font-weight:400;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:12px">{{ subscribeLabel }} <span style="font-size:15px;font-weight:300;letter-spacing:0">↗</span></button>
+        </form>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"><div style="display:flex;flex-direction:column;gap:14px;font-size:14px;min-width:150px">
+        <span style="font-weight:400;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355;margin-bottom:8px">Svet</span>
+        <a href="#manifest">Zdravý svet</a><a href="#program">Programy</a><a href="#program">RESET 40+</a><a href="#">AI ANASTASIA</a><a href="#">AI ANASTASIA ACADEMY</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:14px;min-width:150px">
+        <span style="font-weight:400;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355;margin-bottom:8px">Sprevádzanie</span>
+        <a href="#konzultacie">Konzultácie</a><a href="#konzultacie">Online konzultácia</a><a href="#konzultacie">Supervízia</a><a href="#konzultacie">Astrologický profil</a><a href="#konzultacie">Pre odborníkov</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:14px;min-width:150px">
+        <span style="font-weight:400;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355;margin-bottom:8px">Informácie</span>
+        <a href="O Lucii.dc.html">O Lucii</a><a href="#">Pharmanews</a><a href="#">Zdravé lekárne</a><a href="#">Pre firmy</a><a href="#kontakt">Kontakt</a>
+      </div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:clamp(24px,6vw,120px);padding:clamp(20px,3vw,40px) clamp(0px,4vw,80px) clamp(36px,4vw,56px);border-bottom:1px solid rgba(201,163,85,0.28)">
+      <div style="display:grid;grid-template-rows:clamp(170px,17vw,240px) auto;justify-items:center;align-items:end;row-gap:18px;min-width:0"><img src="./assets/lucia-logo.png" alt="ANASTASIA — Light for the Future" style="height:clamp(150px,15vw,220px);width:auto;filter:invert(1) sepia(0.3) saturate(1.4) brightness(0.95)"><span style="font-weight:400;font-size:9px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">ANASTASIA OZ</span></div>
+      <div style="display:grid;grid-template-rows:clamp(170px,17vw,240px) auto;justify-items:center;align-items:end;row-gap:18px;min-width:0"><div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding-bottom:6px"><span style="width:1px;height:46px;background:linear-gradient(180deg,rgba(201,163,85,0),#C9A355)"></span><span style="font-weight:200;font-size:clamp(20px,2vw,30px);letter-spacing:0.34em;padding-left:0.34em;color:#EFE5C7;white-space:nowrap">ANASTASIA</span><span style="display:flex;align-items:center;gap:12px;font-weight:300;font-size:clamp(11px,0.9vw,13px);letter-spacing:0.6em;padding-left:0.6em;color:#C9A355;white-space:nowrap"><span style="width:22px;height:1px;background:#C9A355"></span>ACADEMY<span style="width:22px;height:1px;background:#C9A355"></span></span></div><span style="font-weight:400;font-size:9px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">ANASTASIA.ACADEMY</span></div>
+      <div style="display:grid;grid-template-rows:clamp(170px,17vw,240px) auto;justify-items:center;align-items:end;row-gap:18px;min-width:0"><div style="display:flex;flex-direction:column;align-items:center;gap:12px"><img src="./assets/logo-mark.png" alt="" style="width:clamp(90px,9vw,140px);height:auto"><span style="font-weight:200;font-size:clamp(16px,1.6vw,24px);letter-spacing:0.32em;padding-left:0.32em;white-space:nowrap">ANASTASIA</span></div><span style="font-weight:400;font-size:9px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">AI ANASTASIA</span></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:12px;color:#C4C7B6">
+      <span>© 2026 ANASTASIA · Light for the Future</span>
+      <div style="display:flex;gap:28px;flex-wrap:wrap"><a href="#">Obchodné podmienky</a><a href="#">Súkromie a GDPR</a><a href="#">Reklamácie</a></div>
+      <sc-if value="{{ showPreviewNotice }}" hint-placeholder-val="{{ true }}"><span style="color:#8FA39C">Ukážka webu · nákupy a formuláre nie sú aktívne</span></sc-if>
+    </div>
+  </div>
+</footer>
+
+<div onClick="{{ closeMenu }}" style="position: fixed; inset: 0; z-index: 50; background: rgba(12,18,10,0.22); opacity: {{ overlayOpacity }}; pointer-events: {{ overlayPointer }}; transition: opacity 450ms ease; left: -5px; top: 37px"></div>
+
+<sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+<aside id="ana-rail" data-screen-label="Rail" style="position:fixed;left:0;top:0;bottom:0;width:52px;z-index:40;color:#EFE5C7;background:linear-gradient(100deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),rgba(30,38,25,0.16);border-right:1px solid rgba(255,255,255,0.24);box-shadow:inset -1px 0 0 rgba(255,255,255,0.12),inset 1px 0 0 rgba(255,255,255,0.18),10px 0 40px rgba(0,0,0,0.14);backdrop-filter:blur(26px) saturate(180%) brightness(1.05);-webkit-backdrop-filter:blur(26px) saturate(180%) brightness(1.05);will-change:transform;transform:translateZ(0);display:flex;flex-direction:column;align-items:center;transition:background 600ms ease,color 600ms ease,border-color 600ms ease">
+  <div style="align-self:stretch;height:132px;border-bottom:1px solid rgba(255,255,255,0.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-shadow:0 1px 8px rgba(0,0,0,0.35)"><a href="#" aria-label="SK" style="position:relative;width:40px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;letter-spacing:1.2px;padding-left:1.2px;opacity:1;transition:opacity 400ms ease" style-hover="opacity:1">SK<span style="position:absolute;bottom:2px;left:50%;width:14px;height:1.5px;margin-left:-7px;background:#C9A355;border-radius:1px"></span></a><a href="#" aria-label="EN" style="position:relative;width:40px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:300;letter-spacing:1.2px;padding-left:1.2px;opacity:0.5;transition:opacity 400ms ease" style-hover="opacity:1">EN</a><a href="#" aria-label="RU" style="position:relative;width:40px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:300;letter-spacing:1.2px;padding-left:1.2px;opacity:0.5;transition:opacity 400ms ease" style-hover="opacity:1">RU</a></div>
+  <div style="flex:1;display:flex;align-items:center">
+    <button onClick="{{ openSide }}" aria-label="Menu" style="width:46px;height:60px;background:transparent;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:Outfit,sans-serif;font-weight:300;font-size:10px" style-hover="color:#C9A355"><span style="display:flex;flex-direction:column;gap:5px"><span style="width:20px;height:1px;background:currentColor"></span><span style="width:20px;height:1px;background:currentColor"></span><span style="width:20px;height:1px;background:currentColor"></span></span>Menu</button>
+  </div>
+  <div style="align-self:stretch;border-top:1px solid rgba(255,255,255,0.16);border-bottom:1px solid rgba(255,255,255,0.16);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0">
+    <a href="tel:" aria-label="Zavolať ANASTASIA" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;transition:background 300ms ease, box-shadow 300ms ease" style-hover="background:rgba(255,255,255,0.14);box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 4px 14px rgba(0,0,0,0.15)"><img src="./assets/ic-phone.svg" alt="" style="width:17px;height:17px"></a>
+    <a href="#" aria-label="Napíšte nám" style="position:relative;width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;transition:background 300ms ease, box-shadow 300ms ease" style-hover="background:rgba(255,255,255,0.14);box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 4px 14px rgba(0,0,0,0.15)"><img src="./assets/ic-mail.svg" alt="" style="width:19px;height:15px"><img src="./assets/ic-mail2.svg" alt="" style="position:absolute;width:17px;height:13px"></a>
+    <a href="#" aria-label="Facebook" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;transition:background 300ms ease, box-shadow 300ms ease" style-hover="background:rgba(255,255,255,0.14);box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 4px 14px rgba(0,0,0,0.15)"><img src="./assets/ic-fb.svg" alt="" style="width:10px;height:18px"></a>
+    <a href="#" aria-label="YouTube" style="position:relative;width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;transition:background 300ms ease, box-shadow 300ms ease" style-hover="background:rgba(255,255,255,0.14);box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 4px 14px rgba(0,0,0,0.15)"><img src="./assets/ic-yt.svg" alt="" style="width:19px;height:13px"><img src="./assets/ic-yt2.svg" alt="" style="position:absolute;width:5px;height:6px"></a>
+  </div>
+  <a href="#" style="padding:24px 0 26px;writing-mode:vertical-rl;transform:rotate(180deg);font-size:8.5px;letter-spacing:1.62px;white-space:nowrap;text-shadow:0 1px 8px rgba(0,0,0,0.35)">LIGHT FOR THE FUTURE</a>
+</aside>
+</sc-if>
+
+<aside data-lenis-prevent="true" role="dialog" aria-label="Menu" style="position:fixed;left:64px;top:50%;z-index:51;width:255px;max-height:calc(100vh - 40px);overflow-y:auto;background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.04) 30%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.08) 100%),rgba(26,34,22,0.42);color:#EFE5C7;border:1px solid rgba(255,255,255,0.2);box-shadow:0 50px 140px rgba(0,0,0,0.4),0 10px 30px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.32),inset 0 -1px 0 rgba(255,255,255,0.12),inset 1px 0 0 rgba(255,255,255,0.2),inset -1px 0 0 rgba(255,255,255,0.1),inset 0 0 40px rgba(255,255,255,0.06);backdrop-filter:blur(40px) saturate(170%) brightness(0.52);-webkit-backdrop-filter:blur(40px) saturate(170%) brightness(0.52);text-shadow:0 1px 14px rgba(0,0,0,0.35);border-radius:18px;padding:22px 18px 18px;display:flex;flex-direction:column;gap:14px;opacity:{{ sideOpacity }};pointer-events:{{ sidePointer }};transform:{{ sideTransform }};transition:transform 550ms cubic-bezier(.22,.8,.2,1),opacity 400ms ease">
+  <div aria-hidden="true" style="position:absolute;z-index:-1;left:0;right:0;top:0;height:46%;pointer-events:none;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 55%,rgba(255,255,255,0) 100%)"></div>
+  <div aria-hidden="true" style="position:absolute;z-index:-1;top:-30%;left:-20%;width:60%;height:80%;pointer-events:none;background:radial-gradient(closest-side,rgba(255,255,255,0.08),rgba(255,255,255,0));filter:blur(10px)"></div>
+  <div style="display:flex;align-items:center;gap:14px"><img src="./assets/logo-mark.png" alt="" style="width:26px;height:26px;object-fit:contain"><div style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:300;font-size:11px;letter-spacing:2.9px">ANASTASIA</span><span style="font-weight:300;font-size:7px;letter-spacing:2.7px">LIGHT FOR THE FUTURE</span></div></div>
+  <div style="display:flex;align-items:center;gap:2px;margin-left:-10px"><a href="#" aria-label="Môj účet" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center"><span style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="width:8px;height:8px;border-radius:4px;border:1px solid currentColor"></span><span style="width:14px;height:6px;border-radius:7px 7px 0 0;border:1px solid currentColor;border-bottom:0"></span></span></a>
+      <a href="#" aria-label="Košík" style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center"><span style="width:14px;height:12px;border:1px solid currentColor;border-radius:0 0 3px 3px;margin-top:4px"></span><span style="position:absolute;top:5px;right:4px;min-width:15px;height:15px;border-radius:8px;background:#EFE5C7;color:#2A3222;font-size:9px;font-weight:400;display:flex;align-items:center;justify-content:center;padding:0 4px">{{ cartCount }}</span></a><button onClick="{{ closeMenu }}" aria-label="Zavrieť" style="width:40px;height:40px;background:transparent;border:0;color:#EFE5C7;font-size:15px;cursor:pointer" style-hover="color:#C9A355">✕</button></div>
+  <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:12px;border-bottom:1px solid rgba(239,229,199,0.15)"><a href="#kolekcia" onClick="{{ closeMenu }}" style="font-size:19px;color:#C9A355;margin-bottom:6px">Obchod</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Všetky produkty</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Kategórie</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Novinky</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Bestsellery</a></div>
+  <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:12px;border-bottom:1px solid rgba(239,229,199,0.15)"><a href="#program" onClick="{{ closeMenu }}" style="font-size:19px;color:#C9A355;margin-bottom:6px">Programy</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">RESET 40+</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Všetky programy</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Pre firmy</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Individuálne programy</a></div>
+  <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:12px;border-bottom:1px solid rgba(239,229,199,0.15)"><a href="#konzultacie" onClick="{{ closeMenu }}" style="font-size:19px;color:#C9A355;margin-bottom:6px">Služby</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Konzultácie</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Supervízia</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">AI ANASTASIA</a><a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">Pre odborníkov</a></div>
+  <div style="display:flex;gap:12px;font-size:10px"><a href="#manifest" onClick="{{ closeMenu }}">Zdravý svet</a><a href="#o-lucii" onClick="{{ closeMenu }}">O Lucii</a><a href="#" onClick="{{ closeMenu }}">Kontakt</a></div>
+</aside>
+
+<aside data-lenis-prevent="true" role="dialog" aria-label="Hlavné menu" style="position:fixed;top:24px;right:{{ menuRight }};z-index:51;width:min(850px,calc(100vw - 24px));max-height:calc(100vh - 48px);overflow-y:auto;background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.04) 30%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.08) 100%),rgba(26,34,22,0.42);color:#EFE5C7;border:1px solid rgba(255,255,255,0.2);box-shadow:0 50px 140px rgba(0,0,0,0.4),0 10px 30px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.32),inset 0 -1px 0 rgba(255,255,255,0.12),inset 1px 0 0 rgba(255,255,255,0.2),inset -1px 0 0 rgba(255,255,255,0.1),inset 0 0 40px rgba(255,255,255,0.06);backdrop-filter:blur(40px) saturate(170%) brightness(0.52);-webkit-backdrop-filter:blur(40px) saturate(170%) brightness(0.52);text-shadow:0 1px 14px rgba(0,0,0,0.35);border-radius:24px;padding:26px 36px 28px;display:flex;flex-direction:column;gap:26px;opacity:{{ menuOpacity }};pointer-events:{{ menuPointer }};transform:{{ menuTransform }};transition:transform 550ms cubic-bezier(.22,.8,.2,1),opacity 400ms ease">
+  <div aria-hidden="true" style="position:absolute;z-index:-1;left:0;right:0;top:0;height:46%;pointer-events:none;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 55%,rgba(255,255,255,0) 100%)"></div>
+  <div aria-hidden="true" style="position:absolute;z-index:-1;top:-30%;left:-20%;width:60%;height:80%;pointer-events:none;background:radial-gradient(closest-side,rgba(255,255,255,0.08),rgba(255,255,255,0));filter:blur(10px)"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <div style="display:flex;align-items:center;gap:14px"><img src="./assets/logo-mark.png" alt="" style="width:48px;height:48px;object-fit:contain"><div style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:300;font-size:20px;letter-spacing:5.3px">ANASTASIA</span><span style="font-weight:300;font-size:7px;letter-spacing:2.7px">LIGHT FOR THE FUTURE</span></div></div>
+    <div style="display:flex;align-items:center;gap:6px"><a href="#" aria-label="Môj účet" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center"><span style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="width:8px;height:8px;border-radius:4px;border:1px solid currentColor"></span><span style="width:14px;height:6px;border-radius:7px 7px 0 0;border:1px solid currentColor;border-bottom:0"></span></span></a>
+      <a href="#" aria-label="Košík" style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center"><span style="width:14px;height:12px;border:1px solid currentColor;border-radius:0 0 3px 3px;margin-top:4px"></span><span style="position:absolute;top:5px;right:4px;min-width:15px;height:15px;border-radius:8px;background:#EFE5C7;color:#2A3222;font-size:9px;font-weight:400;display:flex;align-items:center;justify-content:center;padding:0 4px">{{ cartCount }}</span></a><button onClick="{{ closeMenu }}" style="height:44px;border-radius:80px;background:rgba(255,255,255,0.42);border:1px solid rgba(255,255,255,0.75);box-shadow:inset 0 1px 0 rgba(255,255,255,0.9),0 1px 2px rgba(40,48,32,0.05);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background 400ms ease,border-color 400ms ease;color:#2A3222;display:flex;align-items:center;gap:16px;padding:0 20px;font-family:Outfit,sans-serif;font-weight:400;font-size:14px;cursor:pointer;margin-left:6px" style-hover="background:rgba(255,255,255,0.68);color:#283020">Zavrieť <span style="font-size:14px">✕</span></button></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));row-gap:24px">
+    <div style="display:flex;flex-direction:column;gap:4px;padding-right:20px;border-right:1px solid rgba(255,255,255,0.14)"><a href="#kolekcia" onClick="{{ closeMenu }}" style="font-weight:300;font-size:25px;letter-spacing:-0.5px;margin-bottom:10px">Obchod</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Všetky produkty</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Kategórie</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Novinky</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Bestsellery</a></div>
+    <div style="display:flex;flex-direction:column;gap:4px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.14)"><a href="#program" onClick="{{ closeMenu }}" style="font-weight:300;font-size:25px;letter-spacing:-0.5px;margin-bottom:10px">Programy</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">RESET 40+</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Všetky programy</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Pre firmy</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Individuálne programy</a></div>
+    <div style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><a href="#konzultacie" onClick="{{ closeMenu }}" style="font-weight:300;font-size:25px;letter-spacing:-0.5px;margin-bottom:10px">Služby</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Konzultácie</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Supervízia</a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;padding:4px 0 0;display:flex;flex-direction:column;gap:2px" style-hover="color:#C9A355">AI ANASTASIA<span style="font-size:9px;color:#C9A355">Už čoskoro</span></a><a href="#" onClick="{{ closeMenu }}" style="font-size:14px;color:#EFE5C7;padding:4px 0" style-hover="color:#C9A355">Pre odborníkov</a></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;padding-top:20px;border-top:1px solid rgba(239,229,199,0.15)">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;gap:24px">
+      <div style="display:flex;flex-direction:column">
+        <a href="#manifest" onClick="{{ closeMenu }}" style="font-weight:300;font-size:30px;line-height:1.35;letter-spacing:-0.6px" style-hover="color:#C9A355">Zdravý svet</a>
+        <a href="#o-lucii" onClick="{{ closeMenu }}" style="font-weight:300;font-size:30px;line-height:1.35;letter-spacing:-0.6px" style-hover="color:#C9A355">O Lucii</a>
+        <a href="#" onClick="{{ closeMenu }}" style="font-weight:300;font-size:30px;line-height:1.35;letter-spacing:-0.6px" style-hover="color:#C9A355">Kontakt</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:10px;font-size:12px"><span>SK</span><span style="opacity:0.5">/</span><span style="opacity:0.6">EN</span><span style="opacity:0.5">/</span><span style="opacity:0.6">RU</span></div><span style="font-size:9px;opacity:0.7">EN / RU už čoskoro</span></div>
+    </div>
+    <div style="grid-column:span 2;min-height:190px;border-radius:12px;background:#26321E url(./assets/hero-forest.jpg) center/cover"></div>
+  </div>
+</aside>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;heroVideo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Videá&quot;},&quot;programVideo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Videá&quot;},&quot;worldVideo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Videá&quot;},&quot;skyVideo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Videá&quot;},&quot;heroSize&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;full&quot;,&quot;compact&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;'full'|'compact'&quot;},&quot;showPreviewNotice&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { cart: 0, added: {}, email: '', subscribed: false };
+  base = [
+    { id: 'gel', n: 'N° 01', name: 'Bio sprchový gél', cat: 'Kozmetika', price: '18,00 €', img: './assets/p-gel.png' },
+    { id: 'kava', n: 'N° 02', name: 'Káva zdravá', cat: 'Výživa', price: '24,00 €', img: './assets/p-kava.png' },
+    { id: 'maslo', n: 'N° 03', name: 'Telové maslo', cat: 'Kozmetika', price: '26,00 €', img: './assets/p-maslo.png' },
+    { id: 'svieca', n: 'N° 04', name: 'Rituálne sviečky', cat: 'Domov', price: '22,00 €', img: './assets/p-svieca.png' },
+  ];
+  heroRef = React.createRef(); programRef = React.createRef(); skyRef = React.createRef(); worldRef = React.createRef();
+  vids() { return [this.heroRef, this.programRef, this.skyRef, this.worldRef].map(r => r.current).filter(Boolean); }
+  syncVideos() {
+    const m = { heroVideo: this.heroRef, programVideo: this.programRef, skyVideo: this.skyRef, worldVideo: this.worldRef };
+    const v = this._vals || {};
+    Object.keys(m).forEach(k => { const el = m[k].current, url = v[k]; if (el && url && el.getAttribute('src') !== url) { el.src = url; el.muted = true; el.play?.().catch(() => {}); } });
+  }
+  componentDidUpdate() {
+    this.initRoll && setTimeout(() => this.initRoll(), 0);
+    this.syncVideos(); this.vids().forEach(v => { if (v !== this.heroRef.current || !this.state.sound) v.muted = true; if (v.paused && !(v === this.heroRef.current && this.state.paused)) v.play?.().catch(() => {}); }); }
+  componentDidMount() {
+    setTimeout(() => this.syncVideos(), 0);
+    this.vids().forEach(v => { v.muted = true; v.play?.().catch(() => {}); });
+    this.onResize = () => { this.setState({ w: window.innerWidth }); setTimeout(() => this.applyBleed(), 0); };
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
+    window.addEventListener('keydown', this.onKey);
+    this.onScroll = () => { const p = window.scrollY > window.innerHeight * 0.85; if (p !== this.state.past) this.setState({ past: p }); };
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    this.applyBleed();
+    this.initFx();
+    this.initRoll();
+    requestAnimationFrame(() => this.initRoll());
+    [300, 1200, 2500].forEach(t => setTimeout(() => this.initRoll(), t));
+    this.initLenis();
+  }
+  applyBleed() {
+    const root = document.getElementById('ana-rail')?.parentElement || document.querySelector('[lang="sk"]');
+    if (!root) return;
+    const wide = window.innerWidth >= 1000;
+    [...root.children].forEach(el => {
+      if (!/^(SECTION|FOOTER)$/.test(el.tagName) || /01 Hero|01 Úvod/.test(el.getAttribute('data-screen-label') || '')) return;
+      if (el._basePL === undefined) el._basePL = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+      el.style.marginLeft = wide ? '-52px' : '';
+      el.style.paddingLeft = wide ? (el._basePL + 52) + 'px' : '';
+    });
+  }
+  initRoll() {
+    const ease = 'cubic-bezier(.16,1,.3,1)';
+    const targets = [...document.querySelectorAll('a, button')].map(el => ({ el, host: el })).concat([...document.querySelectorAll('[data-roll-target]')].map(el => ({ el, host: el.closest('a, button') || el })));
+    targets.forEach(({ el, host }) => {
+      if (el.dataset.roll) return;
+      const tn = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 1);
+      if (!tn) return;
+      el.dataset.roll = '1';
+      const wrap = document.createElement('span');
+      wrap.style.cssText = 'display:inline-block;position:relative;overflow:hidden;vertical-align:middle;line-height:inherit;padding-bottom:0.14em;margin-bottom:-0.14em';
+      const a = document.createElement('span');
+      a.style.cssText = 'display:block;white-space:nowrap;transition:transform 650ms ' + ease;
+      const b = document.createElement('span');
+      b.setAttribute('aria-hidden', 'true');
+      b.style.cssText = 'position:absolute;left:0;top:100%;display:block;white-space:nowrap;transition:transform 650ms ' + ease;
+      el.insertBefore(wrap, tn); a.appendChild(tn); wrap.append(a, b);
+      b.textContent = tn.nodeValue.trim();
+      host.addEventListener('mouseenter', () => { b.textContent = a.textContent.trim(); a.style.transform = 'translateY(-105%)'; b.style.transform = 'translateY(-100%)'; });
+      host.addEventListener('mouseleave', () => { a.style.transform = ''; b.style.transform = ''; });
+    });
+  }
+  initFx() {
+    const ease = 'cubic-bezier(.16,1,.3,1)';
+    const els = [...document.querySelectorAll('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form')].filter(e => !e.closest('aside') && !e.closest('article p'));
+    const io = new IntersectionObserver(entries => entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      const el = en.target; io.unobserve(el);
+      el.style.willChange = 'opacity, transform';
+      el.style.opacity = '1'; el.style.transform = 'translate3d(0,0,0)';
+      setTimeout(() => { el.style.willChange = 'auto'; }, 1600);
+    }), { rootMargin: '0px 0px -6% 0px', threshold: 0.01 });
+    els.forEach(el => {
+      const i = [...el.parentElement.children].indexOf(el) % 6;
+      el.style.opacity = '0'; el.style.transform = 'translate3d(0,28px,0)';
+      el.style.transition = 'opacity 1100ms ' + ease + ', transform 1300ms ' + ease;
+      el.style.transitionDelay = (i * 80) + 'ms';
+      io.observe(el);
+    });
+    this.io = io;
+    window.addEventListener('beforeprint', () => els.forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; }));
+    // pause videos off-screen
+    this.vio = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) v.play?.().catch(() => {}); else v.pause?.(); }));
+    document.querySelectorAll('video').forEach(v => this.vio.observe(v));
+    const hero = document.querySelector('[data-screen-label="01 Hero"]');
+    const heroLayer = hero && hero.querySelector('[data-par]');
+    const heroVid = hero && hero.querySelector('video');
+    const heroContent = hero && hero.lastElementChild;
+    if (heroContent) heroContent.style.willChange = 'opacity, transform';
+    const pars = [...document.querySelectorAll('[data-screen-label="04 RESET 40+"], [data-screen-label="07 Vízia"]')].map(el => ({ el, layer: el.querySelector('[data-par]'), vid: el.querySelector('video') }));
+    const photos = [...document.querySelectorAll('section div')].filter(d => !d.closest('aside') && !d.closest('article') && /lucia\.jpg|hero-forest\.jpg/.test(d.style.backgroundImage || d.style.background || '') && !d.hasAttribute('data-par') && !d.closest('[data-screen-label="01 Hero"]') && d.offsetHeight > 200);
+    // luxury parallax: move an inner image layer inside each photo frame + curtain reveal
+    const lux = 'cubic-bezier(.16,1,.3,1)';
+    photos.forEach(d => {
+      const cs = getComputedStyle(d);
+      const inner = document.createElement('div');
+      inner.setAttribute('aria-hidden', 'true');
+      inner.style.cssText = 'position:absolute;left:0;right:0;top:-16%;bottom:-16%;background-image:' + cs.backgroundImage + ';background-size:cover;background-position:' + cs.backgroundPosition + ';will-change:transform;transform:translate3d(0,0,0) scale(1.18);pointer-events:none';
+      if (cs.position === 'static') d.style.position = 'relative';
+      d.style.overflow = 'hidden'; d.style.isolation = 'isolate';
+      d.style.backgroundImage = 'none';
+      d.insertBefore(inner, d.firstChild);
+      [...d.children].forEach(ch => { if (ch !== inner && getComputedStyle(ch).position === 'static') ch.style.position = 'relative'; });
+      d._inner = inner;
+      d.style.clipPath = 'inset(18% 0 0 0)'; d.style.transition = 'clip-path 1800ms ' + lux;
+    });
+    pars.forEach(p => { if (p.layer) p.layer.style.transform = 'translate3d(0,0,0) scale(1.12)'; });
+    this.cio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.style.clipPath = 'inset(0 0 0 0)'; this.cio.unobserve(e.target); } }), { threshold: 0.12 });
+    photos.forEach(d => this.cio.observe(d));
+    window.addEventListener('beforeprint', () => photos.forEach(d => { d.style.clipPath = 'none'; }));
+    let tops = [], ptops = [], vh = window.innerHeight;
+    const measure = () => {
+      vh = window.innerHeight; const sy = window.scrollY;
+      tops = pars.map(p => { const r = p.el.getBoundingClientRect(); return { top: r.top + sy, h: r.height }; });
+      ptops = photos.map(d => { const r = d.getBoundingClientRect(); return { top: r.top + sy, h: r.height }; });
+    };
+    measure();
+    this.onMeasure = () => { measure(); this.fxFrame && this.fxFrame(); };
+    window.addEventListener('resize', this.onMeasure);
+    document.fonts?.ready.then(this.onMeasure);
+    setTimeout(this.onMeasure, 1500);
+    const rail = document.getElementById('ana-rail');
+    let tone = 'dark', toneTick = 0;
+    const lum = c => { const m = c.match(/[\d.]+/g); if (!m) return 0; const a = m[3] === undefined ? 1 : +m[3]; if (a < 0.5) return -1; return (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) / 255; };
+    const setTone = t => {
+      if (!rail || t === tone) return; tone = t;
+      const light = t === 'light';
+      rail.style.background = light ? 'linear-gradient(100deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.06) 100%)' : 'linear-gradient(100deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),rgba(30,38,25,0.16)';
+      rail.style.color = light ? '#283020' : '#EFE5C7';
+      rail.style.borderRightColor = light ? 'rgba(40,48,32,0.08)' : 'rgba(255,255,255,0.24)';
+      rail.querySelectorAll('img').forEach(i => { i.style.transition = 'filter 600ms ease'; i.style.filter = light ? 'brightness(0.22) sepia(0.4)' : 'none'; });
+      rail.querySelectorAll('div').forEach(d => { if (d.style.borderBottom || d.style.borderTop) { d.style.borderColor = light ? 'rgba(40,48,32,0.1)' : 'rgba(255,255,255,0.16)'; } });
+    };
+    const probe = () => {
+      if (!rail) return;
+      let el = document.elementFromPoint(80, window.innerHeight / 2);
+      while (el && el !== document.body) { if (!el.closest('aside')) { const cs = getComputedStyle(el); if (el._inner || el.tagName === 'VIDEO' || el.hasAttribute('data-par') || /url\(/.test(cs.backgroundImage)) { setTone('dark'); return; } const L = lum(cs.backgroundColor); if (L >= 0) { setTone(L > 0.62 ? 'light' : 'dark'); return; } } el = el.parentElement; }
+    };
+    this.fxFrame = () => {
+      if ((toneTick++ % 6) === 0) probe();
+      const y = this.lenis ? this.lenis.scroll : window.scrollY;
+      const rects = tops.map(t => ({ top: t.top - y, height: t.h, bottom: t.top - y + t.h }));
+      const prects = ptops.map(t => ({ top: t.top - y, height: t.h, bottom: t.top - y + t.h }));
+      if (hero && y < vh * 1.3) {
+        if (heroContent) { heroContent.style.opacity = Math.max(0, 1 - y / (vh * 0.7)).toFixed(3); heroContent.style.transform = 'translate3d(0,' + (-y * 0.12).toFixed(1) + 'px,0)'; }
+      }
+      const prog = r => Math.max(-1, Math.min(1, (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2)));
+      pars.forEach((p, i) => {
+        const r = rects[i];
+        if (!p.layer || p.vid || r.bottom < -150 || r.top > vh + 150) return;
+        const k = prog(r);
+        const sc = 1.06 + Math.max(0, k) * 0.1;
+        p.layer.style.transform = 'translate3d(0,' + (-k * r.height * 0.11).toFixed(2) + 'px,0) scale(' + sc.toFixed(4) + ')';
+      });
+      photos.forEach((d, i) => {
+        const r = prects[i];
+        if (!d._inner || r.bottom < -150 || r.top > vh + 150) return;
+        const k = prog(r);
+        const sc = 1.12 + Math.max(0, k) * 0.08;
+        d._inner.style.transform = 'translate3d(0,' + (-k * r.height * 0.1).toFixed(2) + 'px,0) scale(' + sc.toFixed(4) + ')';
+      });
+    };
+    let ticking = false;
+    this.onFx = () => { if (this.lenis || ticking) return; ticking = true; requestAnimationFrame(() => { ticking = false; this.fxFrame(); }); };
+    window.addEventListener('scroll', this.onFx, { passive: true });
+    this.fxFrame();
+  }
+  initLenis() {
+    const start = () => {
+      if (!window.Lenis) return setTimeout(start, 60);
+      if (window.__anaLenis) window.__anaLenis.destroy();
+      const lenis = new window.Lenis({
+        lerp: 0.09,
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        touchMultiplier: 1,
+        syncTouch: false,
+        autoRaf: false,
+        anchors: { duration: 1.8, easing: t => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2) },
+      });
+      window.__anaLenis = this.lenis = lenis;
+      lenis.on('scroll', () => this.fxFrame && this.fxFrame());
+      const raf = time => { lenis.raf(time); this.lenisRaf = requestAnimationFrame(raf); };
+      this.lenisRaf = requestAnimationFrame(raf);
+    };
+    start();
+  }
+
+  setMenu(open) {
+    this.setState({ menu: open });
+    if (this.lenis) { open ? this.lenis.stop() : this.lenis.start(); } else { document.documentElement.style.overflow = open ? 'hidden' : ''; }
+  }
+  onKey = e => { if (e.key === 'Escape' && this.state.menu) this.setMenu(false); };
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); window.removeEventListener('keydown', this.onKey); window.removeEventListener('scroll', this.onScroll); window.removeEventListener('scroll', this.onFx); window.removeEventListener('resize', this.onMeasure); this.io?.disconnect(); this.vio?.disconnect(); this.cio?.disconnect(); cancelAnimationFrame(this.lenisRaf); this.lenis?.destroy(); window.__anaLenis = null; document.documentElement.style.overflow = ''; }
+  add(id) {
+    this.setState(s => ({ cart: s.cart + 1, added: { ...s.added, [id]: true } }));
+    clearTimeout(this['t' + id]);
+    this['t' + id] = setTimeout(() => this.setState(s => ({ added: { ...s.added, [id]: false } })), 1600);
+  }
+  renderVals() {
+    const { added } = this.state;
+    const ok = u => (typeof u === 'string' && /^(https?:|\.?\/|blob:|data:video)|\.(mp4|webm|mov|m4v)(\?|$)/i.test(u.trim())) ? u.trim() : undefined;
+    const wideNow = (this.state.w ?? 1440) >= 1000;
+    const hv = ok(this.props.heroVideo);
+    const pv = ok(this.props.programVideo), wv = ok(this.props.worldVideo), sv = ok(this.props.skyVideo);
+    return {
+      heroRef: this.heroRef, programRef: this.programRef, skyRef: this.skyRef, worldRef: this.worldRef,
+      heroVideo: hv, hasHeroVideo: !!hv,
+      openMenu: () => this.setMenu('top'),
+      openSide: () => this.setMenu('side'),
+      closeMenu: () => this.setMenu(null),
+      overlayOpacity: this.state.menu ? 1 : 0,
+      overlayPointer: this.state.menu ? 'auto' : 'none',
+      menuOpacity: this.state.menu === 'top' ? 1 : 0,
+      menuPointer: this.state.menu === 'top' ? 'auto' : 'none',
+      menuTransform: this.state.menu === 'top' ? 'translateY(0)' : 'translateY(-16px)',
+      menuRight: wideNow ? '24px' : '12px',
+      sideOpacity: this.state.menu === 'side' ? 1 : 0,
+      sidePointer: this.state.menu === 'side' ? 'auto' : 'none',
+      sideTransform: this.state.menu === 'side' ? 'translate(0,-50%)' : 'translate(-24px,-50%)',
+      railPad: wideNow ? '52px' : '0px',
+      captionLeft: wideNow ? '72px' : '20px',
+      railNeg: wideNow ? '-52px' : '0px',
+      railBg: this.state.past ? 'rgba(36,44,29,0.42)' : 'rgba(30,38,25,0.12)',
+      programVideo: pv, worldVideo: wv, skyVideo: sv,
+      hasProgramVideo: !!pv, hasWorldVideo: !!wv, hasSkyVideo: !!sv,
+      playIcon: this.state.paused ? '▷' : 'II',
+      soundLabel: this.state.sound ? 'Zvuk zapnutý' : 'Zvuk vypnutý',
+      togglePlay: () => { const v = this.heroRef.current; if (!v) return; if (v.paused) { v.play().catch(() => {}); this.setState({ paused: false }); } else { v.pause(); this.setState({ paused: true }); } },
+      toggleSound: () => { const v = this.heroRef.current; const on = !this.state.sound; if (v) { v.muted = !on; if (on) v.play().catch(() => {}); } this.setState({ sound: on, paused: false }); },
+      wide: wideNow, narrow: !wideNow,
+      heroHeight: this.props.heroSize === 'compact' ? '82vh' : '100vh',
+      showPreviewNotice: this.props.showPreviewNotice ?? true,
+      cartCount: this.state.cart,
+      products: this.base.map(p => ({
+        ...p,
+        label: added[p.id] ? 'Pridané' : 'Do košíka',
+        fg: added[p.id] ? '#C9A355' : '#EFE5C7',
+        line: added[p.id] ? '#C9A355' : 'rgba(239,229,199,0.6)',
+        add: () => this.add(p.id),
+      })),
+      consults: [
+        { n: '01', title: 'Online zdravotná konzultácia', sub: 'Osobne aj na diaľku' },
+        { n: '02', title: 'Supervízia', sub: 'Pre odborníkov a tímy' },
+        { n: '03', title: 'Astrologický profil', sub: 'Zdravie a predispozície' },
+      ],
+      email: this.state.email,
+      setEmail: e => this.setState({ email: e.target.value }),
+      subscribeLabel: this.state.subscribed ? 'Ďakujeme' : 'Odoberať',
+      subscribe: e => { e.preventDefault(); if (this.state.email.includes('@')) this.setState({ subscribed: true }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

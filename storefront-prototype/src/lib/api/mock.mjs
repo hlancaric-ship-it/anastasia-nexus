@@ -1,3 +1,4 @@
+const PHOTOS={'DEMO-GEL':'/assets/p-gel.png','DEMO-KAVA':'/assets/p-kava.png','DEMO-MASLO':'/assets/p-maslo.png','DEMO-SVIECKY':'/assets/p-svieca.png'};
 const products = [
   ['bio-sprchovy-gel','Bio sprchový gél','Kozmetika','DEMO-GEL','18,00 €','bottle','Jemný každodenný rituál. Priestor pre zloženie a overený popis produktu.'],
   ['kava-zdrava','Káva zdravá','Výživa','DEMO-KAVA','24,00 €','coffee','Chvíľa pre seba. Priestor pre pôvod, zloženie a spôsob prípravy.'],
@@ -15,7 +16,7 @@ const products = [
   ['antibioticky-prasok','Antibiotický prášok','Výživa','DEMO-PRASOK','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
   ['chripka-prasok','Chrípka — prášok','Výživa','DEMO-CHRIPKA','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
   ['bio-plet-krem','Bio pleťový krém','Kozmetika','DEMO-KREM','Cena sa doplní','jar','Priestor pre zloženie a schválený produktový text.'],
-].map(([slug,name,category,code,priceLabel,art,description], index) => ({ slug,name,category,code,priceLabel,art,description,availability:'Ukážkový produkt',isNew:index<3,isBestseller:index<4,image:`/assets/product-${art}.svg` }));
+].map(([slug,name,category,code,priceLabel,art,description], index) => ({ slug,name,category,code,priceLabel,art,description,availability:'Ukážkový produkt',isNew:index<3,isBestseller:index<4,image:PHOTOS[code]||`/assets/product-${art}.svg` }));
 
 const pages = [
   ['/o-lucii','O Lucii','Človek za príbehom.','Priestor pre osobný príbeh, odborné skúsenosti a prístup Lucie.','about'],

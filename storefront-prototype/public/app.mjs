@@ -8,85 +8,147 @@ function toast(message){const el=$('.toast');el.textContent=message;el.hidden=fa
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
 updateCount();
 
-// Preserve the existing focus trap and add inert background + scroll lock.
-const panels=$$('#main-menu,#compact-menu'),triggers=$$('.menu-trigger'),backdrop=$('.menu-backdrop');
-let panel=null,previousFocus=null,savedOverflow='';
-function toggleMenu(open,target=panel){
-  if(open){panel=target;previousFocus=document.activeElement;savedOverflow=document.body.style.overflow;}
-  if(!panel)return;
-  panel.inert=!open;panel.classList.toggle('active',open);panel.setAttribute('aria-hidden',String(!open));backdrop.hidden=!open;
-  triggers.forEach(trigger=>{const active=open&&trigger.getAttribute('aria-controls')===panel.id;trigger.classList.toggle('active',active);trigger.setAttribute('aria-expanded',String(active));});
-  $('#page-shell').inert=open;
-  if(open){document.body.style.overflow='hidden';window.previewLenis?.stop();$('.menu-close,.compact-close',panel).focus();}
-  else{document.body.style.overflow=savedOverflow;window.previewLenis?.start();const fallback=$('.site-header .menu-trigger');(previousFocus?.getClientRects().length?previousFocus:fallback).focus({preventScroll:true});panel=null;}
+// Chování převzaté z handoff návrhů (design/*.dc.html): menu, Lenis, reveal, parallax, tón lišty, text roll.
+const root=document.documentElement,shell=$('#page-shell'),reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+const MENU={side:{o:'--side-o',p:'--side-p',t:'--side-t',open:'translate(0,-50%)',closed:'translate(-24px,-50%)'},top:{o:'--top-o',p:'--top-p',t:'--top-t',open:'translateY(0)',closed:'translateY(-16px)'}};
+let lenis=null,menuOpen=null,previousFocus=null;
+function setMenu(kind){
+  const prev=menuOpen;if(prev===kind)return;
+  for(const [name,m] of Object.entries(MENU)){const on=name===kind;root.style.setProperty(m.o,on?'1':'0');root.style.setProperty(m.p,on?'auto':'none');root.style.setProperty(m.t,on?m.open:m.closed);const panel=$(`#dc-${name}-menu`);if(panel){panel.inert=!on;panel.setAttribute('aria-hidden',String(!on));}}
+  root.style.setProperty('--ov-o',kind?'1':'0');root.style.setProperty('--ov-p',kind?'auto':'none');
+  $$('[data-menu-open]').forEach(t=>t.setAttribute('aria-expanded',String(t.dataset.menuOpen===kind)));
+  shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
+  menuOpen=kind;
+  if(kind){if(!prev)previousFocus=document.activeElement;lenis?lenis.stop():root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>$('[data-menu-close],a[href]',panel)?.focus({preventScroll:true}));}
+  else{lenis?lenis.start():root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
 }
-triggers.forEach(t=>t.addEventListener('click',()=>toggleMenu(!panel,$('#'+t.getAttribute('aria-controls')))));
-panels.forEach(p=>$('.menu-close,.compact-close',p).addEventListener('click',()=>toggleMenu(false)));
-backdrop.addEventListener('click',()=>toggleMenu(false));
+document.addEventListener('click',event=>{
+  const open=event.target.closest('[data-menu-open]');if(open){event.preventDefault();setMenu(menuOpen===open.dataset.menuOpen?null:open.dataset.menuOpen);return;}
+  // Odkazy v menu (data-menu-close) menu zavřou a normálně navigují; zabrání se jen akci prvků bez cíle.
+  const close=event.target.closest('[data-menu-close]');if(close){if(!close.matches('a[href]:not([href="#"])'))event.preventDefault();setMenu(null);return;}
+  if(event.target.closest('a[href="#"]'))event.preventDefault();
+  if(menuOpen&&event.target.closest('#dc-side-menu a[href],#dc-top-menu a[href]'))setMenu(null);
+},true);
 document.addEventListener('keydown',event=>{
-  if(!panel)return;
-  if(event.key==='Escape'){event.preventDefault();toggleMenu(false);}
+  if(!menuOpen)return;
+  if(event.key==='Escape'){event.preventDefault();setMenu(null);return;}
   if(event.key==='Tab'){
-    const focusable=$$('a[href],button:not([disabled]),[tabindex="0"]',panel).filter(el=>el.getClientRects().length);
-    const first=focusable[0],last=focusable.at(-1);
-    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+    const panel=$(`#dc-${menuOpen}-menu`);
+    const focusable=$$('a[href],button:not([disabled]),input,[tabindex="0"]',panel).filter(el=>el.getClientRects().length);
+    const first=focusable[0],last=focusable.at(-1);if(!first)return;
+    // Fokus mimo panel (např. po kliknutí do prázdné plochy) se vrací do menu, nikdy ven ze stránky.
+    if(!panel.contains(document.activeElement)){event.preventDefault();(event.shiftKey?last:first).focus();}
+    else if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
   }
 });
-const hero=$('.hero'),railMenu=$('.rail-menu');
-if(hero&&railMenu){
-  let scheduled=false;
-  const syncRails=()=>{
-    scheduled=false;const bounds=hero.getBoundingClientRect(),below=bounds.bottom<=0;
-    $('#page-shell').classList.toggle('below-hero',below);
-    railMenu.hidden=!below||innerWidth<=768;
-    if(railMenu.hidden&&panel?.id==='compact-menu')toggleMenu(false);
-  };
-  const schedule=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(syncRails);}};
-  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);addEventListener('pageshow',schedule);syncRails();
+
+// Text roll na odkazech a tlačítkách (initRoll).
+const ROLL_EASE='cubic-bezier(.16,1,.3,1)';
+function initRoll(){
+  // Jen prvky z návrhu (stránky .dc-root a chrome .dc-chrome); starší obsah má dlouhé odkazy (URL), které by nowrap roll vytlačil mimo stránku.
+  const scope=':is(.dc-root,.dc-chrome) :is(a, button)';
+  const targets=$$(scope).map(el=>({el,host:el})).concat($$(':is(.dc-root,.dc-chrome) [data-roll-target]').map(el=>({el,host:el.closest('a, button')||el})));
+  for(const {el,host} of targets){
+    if(el.dataset.roll)continue;
+    const tn=[...el.childNodes].find(n=>n.nodeType===3&&n.nodeValue.trim().length>1);if(!tn)continue;
+    el.dataset.roll='1';
+    const wrap=document.createElement('span');wrap.style.cssText='display:inline-block;position:relative;overflow:hidden;vertical-align:middle;line-height:inherit;padding-bottom:0.14em;margin-bottom:-0.14em';
+    const a=document.createElement('span');a.className='roll-a';a.style.cssText='display:block;white-space:nowrap;transition:transform 650ms '+ROLL_EASE;
+    const b=document.createElement('span');b.setAttribute('aria-hidden','true');b.style.cssText='position:absolute;left:0;top:100%;display:block;white-space:nowrap;transition:transform 650ms '+ROLL_EASE;
+    el.insertBefore(wrap,tn);a.appendChild(tn);wrap.append(a,b);b.textContent=tn.nodeValue.trim();
+    host.addEventListener('mouseenter',()=>{b.textContent=a.textContent.trim();a.style.transform='translateY(-105%)';b.style.transform='translateY(-100%)';});
+    host.addEventListener('mouseleave',()=>{a.style.transform='';b.style.transform='';});
+  }
 }
+const setLabel=(el,text)=>{const a=$('.sc-interp',el)||$('.roll-a',el);if(a)a.textContent=text;else{const tn=[...el.childNodes].find(n=>n.nodeType===3&&n.nodeValue.trim());if(tn)tn.nodeValue=text+' ';}};
+initRoll();
 
-const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
-const audio=$('.ambient-audio'),sound=$('.sound-switcher'),video=$('.hero-video'),videoSwitch=$('.video-switch');
-if(sound)sound.addEventListener('click',async()=>{if(audio.paused){try{await audio.play();sound.innerHTML='Zvuk zapnutý <span aria-hidden="true">◎</span>';sound.setAttribute('aria-pressed','true');}catch{toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}}else{audio.pause();sound.innerHTML='Zvuk vypnutý <span aria-hidden="true">◎</span>';sound.setAttribute('aria-pressed','false');}});
-function syncVideo(){if(!videoSwitch)return;videoSwitch.textContent=video.paused?'▷':'Ⅱ';videoSwitch.setAttribute('aria-pressed',String(video.paused));videoSwitch.setAttribute('aria-label',video.paused?'Prehrať video':'Pozastaviť video');}
-if(video){video.muted=true;video.addEventListener('play',syncVideo);video.addEventListener('pause',syncVideo);videoSwitch.addEventListener('click',()=>{if(video.paused)video.play().catch(()=>toast('Video sa nepodarilo spustiť.'));else video.pause();});if(reducedMotion.matches){video.autoplay=false;video.pause();syncVideo();}}
-
-// Supplemental story videos stay silent, stop off-screen and respect reduced motion.
-$$('.story-video').forEach(v=>{
-  const control=v.parentElement.querySelector('.story-video-toggle');let manual=false;
-  const sync=()=>{control.textContent=v.paused?'▷':'Ⅱ';control.setAttribute('aria-pressed',String(!v.paused));control.setAttribute('aria-label',v.paused?'Prehrať video':'Pozastaviť video');};
-  v.addEventListener('play',sync);v.addEventListener('pause',sync);
-  control.addEventListener('click',()=>{manual=true;if(v.paused)v.play().catch(()=>toast('Video sa nepodarilo spustiť.'));else v.pause();});
-  new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)v.pause();else if(!reducedMotion.matches&&!manual)v.play().catch(()=>{});}},{threshold:.3}).observe(v);
-  reducedMotion.addEventListener('change',event=>{if(event.matches)v.pause();});
+// Videa: ztlumená, mimo obrazovku pauza.
+const heroVideo=$('video[data-video="hero"]'),playBtn=$('[data-video-toggle]'),soundBtn=$('[data-sound-toggle]');
+let userPaused=false;
+const vio=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.isIntersecting&&!(v===heroVideo&&userPaused)&&!reducedMotion.matches)v.play?.().catch(()=>{});else if(!en.isIntersecting)v.pause?.();}));
+$$('video').forEach(v=>{v.muted=true;if(reducedMotion.matches){v.autoplay=false;v.pause();}vio.observe(v);});
+playBtn?.addEventListener('click',()=>{if(!heroVideo)return;if(heroVideo.paused){userPaused=false;heroVideo.play().catch(()=>toast('Video sa nepodarilo spustiť.'));setLabel(playBtn,'II');}else{userPaused=true;heroVideo.pause();setLabel(playBtn,'▷');}});
+let ambient=null;
+soundBtn?.addEventListener('click',async()=>{
+  ambient??=Object.assign(new Audio('/media/nature-ambient.mp3'),{loop:true,preload:'none'});
+  if(ambient.paused){try{await ambient.play();setLabel(soundBtn,'Zvuk zapnutý');soundBtn.setAttribute('aria-pressed','true');}catch{toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}}
+  else{ambient.pause();setLabel(soundBtn,'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed','false');}
 });
+soundBtn?.setAttribute('aria-pressed','false');
 
-if(window.gsap&&window.ScrollTrigger){
-  gsap.registerPlugin(ScrollTrigger);
-  const mm=gsap.matchMedia();
-  mm.add('(prefers-reduced-motion: no-preference)',()=>{
-    let lenis,parallax;
-    const tick=time=>lenis?.raf(time*1000);
-    if(window.Lenis){lenis=new Lenis({anchors:true});window.previewLenis=lenis;lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(tick);}
-    $$('.reveal').forEach(el=>gsap.from(el,{y:65,opacity:0,ease:'power4.out',scrollTrigger:{trigger:el,start:'top bottom',end:'top 78%',scrub:true}}));
-    if($('.hero'))gsap.to('.hero-rail',{backgroundColor:'rgba(42,50,34,.95)',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
-    if(window.simpleParallax&&$$('.parallax').length)parallax=new simpleParallax(document.querySelectorAll('.parallax'),{orientation:'down',scale:1.2,delay:.5});
-    return()=>{lenis?.destroy();parallax?.destroy();gsap.ticker.remove(tick);window.previewLenis=null;};
-  });
+// Newsletter: v náhľade sa nič neodosiela.
+$$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();if(form.elements.email.value.includes('@'))setLabel($('button',form),'Ďakujeme');}));
+
+// Reveal, parallax, hero fade, tón lišty (initFx) + O Lucii linky (initTrust).
+const motion=!reducedMotion.matches;
+if(motion&&$('.dc-root')){
+  const ease='cubic-bezier(.16,1,.3,1)';
+  const els=$$('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form').filter(el=>!el.closest('aside')&&!el.closest('article p'));
+  const io=new IntersectionObserver(entries=>entries.forEach(en=>{if(!en.isIntersecting)return;const el=en.target;io.unobserve(el);el.style.willChange='opacity, transform';el.style.opacity='1';el.style.transform='translate3d(0,0,0)';setTimeout(()=>{el.style.willChange='auto';},1600);}),{rootMargin:'0px 0px -6% 0px',threshold:0.01});
+  els.forEach(el=>{const i=[...el.parentElement.children].indexOf(el)%6;el.style.opacity='0';el.style.transform='translate3d(0,28px,0)';el.style.transition='opacity 1100ms '+ease+', transform 1300ms '+ease;el.style.transitionDelay=(i*80)+'ms';io.observe(el);});
+  addEventListener('beforeprint',()=>els.forEach(el=>{el.style.opacity='1';el.style.transform='none';}));
+  const trust=$('[data-screen-label="01b Dôvera"]');
+  if(trust){
+    const paths=$$('svg path, svg circle',trust);
+    paths.forEach((p,i)=>{const L=(p.getTotalLength?p.getTotalLength():80)+2;p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p.style.transition='stroke-dashoffset 1800ms cubic-bezier(.65,0,.35,1) '+(300+i*180)+'ms';});
+    const tio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){paths.forEach(p=>{p.style.strokeDashoffset='0';});tio.disconnect();}}),{threshold:0.3});tio.observe(trust);
+    addEventListener('beforeprint',()=>paths.forEach(p=>{p.style.strokeDashoffset='0';}));
+  }
 }
-reducedMotion.addEventListener('change',event=>{if(event.matches&&video){video.pause();syncVideo();}});
+{
+  const hero=$('[data-screen-label="01 Hero"]'),heroContent=hero?.lastElementChild;
+  if(heroContent&&motion)heroContent.style.willChange='opacity, transform';
+  const pars=$$('[data-screen-label="04 RESET 40+"], [data-screen-label="07 Zdravý svet"], [data-screen-label="07 Vízia"]').map(el=>({el,layer:$('[data-par]',el),vid:$('video',el)}));
+  if(motion)pars.forEach(p=>{if(p.layer)p.layer.style.transform='translate3d(0,0,0) scale(1.12)';});
+  let tops=[],vh=innerHeight;
+  const measure=()=>{vh=innerHeight;const sy=scrollY;tops=pars.map(p=>{const r=p.el.getBoundingClientRect();return{top:r.top+sy,h:r.height};});};
+  measure();
+  const rail=$('#ana-rail');let tone='dark',toneTick=0;
+  const lum=c=>{const m=c.match(/[\d.]+/g);if(!m)return 0;const a=m[3]===undefined?1:+m[3];if(a<0.5)return -1;return(0.299*m[0]+0.587*m[1]+0.114*m[2])/255;};
+  const setTone=t=>{
+    if(!rail||t===tone)return;tone=t;const light=t==='light';
+    rail.style.background=light?'linear-gradient(100deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.06) 100%)':'linear-gradient(100deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),rgba(30,38,25,0.16)';
+    rail.style.color=light?'#283020':'#EFE5C7';rail.style.borderRightColor=light?'rgba(40,48,32,0.08)':'rgba(255,255,255,0.24)';
+    $$('img',rail).forEach(i=>{i.style.transition='filter 600ms ease';i.style.filter=light?'brightness(0.22) sepia(0.4)':'none';});
+    $$('div',rail).forEach(d=>{if(d.style.borderBottom||d.style.borderTop)d.style.borderColor=light?'rgba(40,48,32,0.1)':'rgba(255,255,255,0.16)';});
+  };
+  const probe=()=>{
+    if(!rail||!rail.getClientRects().length)return;
+    let el=document.elementFromPoint(80,innerHeight/2);
+    while(el&&el!==document.body){if(!el.closest('aside')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||el.hasAttribute('data-par')||/url\(/.test(cs.backgroundImage)){setTone('dark');return;}const L=lum(cs.backgroundColor);if(L>=0){setTone(L>0.62?'light':'dark');return;}}el=el.parentElement;}
+  };
+  const fxFrame=()=>{
+    if((toneTick++%6)===0)probe();
+    if(!motion)return;
+    const y=lenis?lenis.scroll:scrollY;
+    if(hero&&heroContent&&y<vh*1.3){heroContent.style.opacity=Math.max(0,1-y/(vh*0.7)).toFixed(3);heroContent.style.transform='translate3d(0,'+(-y*0.12).toFixed(1)+'px,0)';}
+    const prog=r=>Math.max(-1,Math.min(1,(r.top+r.height/2-vh/2)/(vh/2+r.height/2)));
+    pars.forEach((p,i)=>{const t=tops[i];if(!t)return;const r={top:t.top-y,height:t.h,bottom:t.top-y+t.h};if(!p.layer||p.vid||r.bottom< -150||r.top>vh+150)return;const k=prog(r);p.layer.style.transform='translate3d(0,'+(-k*r.height*0.11).toFixed(2)+'px,0) scale('+(1.06+Math.max(0,k)*0.1).toFixed(4)+')';});
+  };
+  const onMeasure=()=>{measure();fxFrame();};
+  addEventListener('resize',onMeasure);document.fonts?.ready.then(onMeasure);setTimeout(onMeasure,1500);
+  let ticking=false;
+  addEventListener('scroll',()=>{if(lenis||ticking)return;ticking=true;requestAnimationFrame(()=>{ticking=false;fxFrame();});},{passive:true});
+  if(motion&&window.Lenis){
+    lenis=new window.Lenis({lerp:0.09,smoothWheel:true,wheelMultiplier:1,touchMultiplier:1,syncTouch:false,autoRaf:false,anchors:{duration:1.8,easing:t=>(t<0.5?8*t*t*t*t:1-Math.pow(-2*t+2,4)/2)}});
+    window.__anaLenis=lenis;lenis.on('scroll',fxFrame);
+    const raf=time=>{lenis.raf(time);requestAnimationFrame(raf);};requestAnimationFrame(raf);
+  }
+  fxFrame();
+}
 
 document.addEventListener('click',async event=>{
   const add=event.target.closest('[data-add]');
-  if(add){const result=await api.addToCart(add.dataset.add);updateCount();toast(result.message);return;}
+  if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='#C9A355';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
   const a=event.target.closest('a[href]');
   if(!a||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
   const url=new URL(a.href,location.href);
   if(url.origin!==location.origin||url.pathname===location.pathname&&url.search===location.search&&url.hash||reducedMotion.matches)return;
   event.preventDefault();$('.page-transition').classList.add('active');setTimeout(()=>location.assign(url.href),220);
 });
-window.addEventListener('pageshow',()=>{$('.page-transition').classList.remove('active');if(panel)toggleMenu(false);updateCount();});
+window.addEventListener('pageshow',()=>{$('.page-transition').classList.remove('active');if(menuOpen)setMenu(null);updateCount();});
 
 const filterForm=$('.catalog-controls');
 if(filterForm){
