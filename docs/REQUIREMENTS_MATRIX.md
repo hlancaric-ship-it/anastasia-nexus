@@ -44,6 +44,7 @@ Smlouva přiřazuje do **Fáze 2** (ne Fáze 1): jazyky SK/EN/RU (A-14), chrán�
 | S2-04 | AI asistent, rezervace a úhrada v chatu | NOT_IMPLEMENTED; rezervační jádro (A-08, K9) se staví teď, chat ho jen volá; AI nikdy v cestě peněz |
 | S2-05 | Ambasadorský program | NOT_IMPLEMENTED |
 | S2-06 | ComGate (volitelně) | FUTURE_SCOPE |
+| S2-07 | Generování a stažení QR kódu přímo v administraci (UI pro Lucii nad hotovým C3 generátorem) | NOT_IMPLEMENTED; přesunuto do Fáze 2 rozhodnutím Luckyho 14. 10. 2026, viz bod 7 |
 | MIMO | Členský klub/předplatné, Zlatá brána (220 € samostatně) | FUTURE_SCOPE |
 
 ## 5. Direktiva A-01..A-18
@@ -95,6 +96,8 @@ Codex dostal za úkol bezpečnostní review SafeOrder (`codex/wave1-security`) a
 
 ## 7. Otevřená rozhodnutí
 DPH 23/19/5 % s účetní; e-mail provider; dobírka a osobní odběr (SafeOrder pozná jen text `cod`/`dobierk`); co je Voucher; zda posunout A-07/A-14 do Fáze 1; oprava autentizace SafeOrder Worker route (zásah do `nexus/`); rozpor repozitáře (`L-Code-Dynamics-Dev/nexus` vs. `hlancaric-ship-it/anastasia-nexus`).
+
+**QR v administraci — rozhodnuto 14. 10. 2026 (Lucky):** generování QR kódu přímo v administraci se dělá až ve Fázi 2 (S2-07). Ve Fázi 1 zůstává backend generátor C3 (kupón → URL s automatickou slevou) a 301 přesměrování starých QR (S1-07). **Rozpor se smlouvou:** příloha č. 1 má generátor QR včetně stažení v akceptaci Fáze 1 (T1-5, S1-06). Před předáním Fáze 1 je potřeba odsouhlasit s klientkou posun T1-5, nebo ve Fázi 1 dodat aspoň stažení QR.
 
 **Hosting Medusy — rozhodnuto 12. 10. 2026 (Jose):** Medusa Cloud, tier **Develop ($29/mo)**, ne Launch ($99/mo) — klientce je přislíbený rozpočet 50 €/měsíc na provozní a spotřební služby (smlouva čl. 6 odst. 4) a Launch by ho sám vyčerpal. Důsledek ověřený z oficiálního ceníku (`docs.medusajs.com/cloud/pricing`): Develop nemá vestavěné automatické zálohy ani vlastní doménu pro backend; strop 600 compute hodin/měsíc **vyřešeno 14. 10. 2026 (Lucky, ověřeno z tooltipu na `medusajs.com/pricing`):** „600 shared compute hours cover one Develop environment running 24/7 for the full month.“ Jedno produkční prostředí 24/7 se tedy do limitu vejde. Hodiny jsou ale sdílené: každé další běžící prostředí (např. preview environment) čerpá ze stejného stropu, takže preview prostředí na Developu nepoužívat, nebo jen krátce.
 
