@@ -1,4 +1,4 @@
-import { generateJwtToken, Modules } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, generateJwtToken, Modules } from "@medusajs/framework/utils"
 import { REMOVED_CHAT_BODY } from "../../src/modules/chat/retention"
 
 /**
@@ -94,20 +94,27 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
   const chat = container.resolve("chat")
   const old = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date("2020-01-01"), subject: "synthetic private subject" })
   const recent = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date(), subject: "recent subject" })
+  const archived = await chat.createChatConversations({ customer_id: customerB, status: "closed", closed_at: new Date("2020-01-01"), subject: "archived private subject" })
+  const pg = container.resolve(ContainerRegistrationKeys.PG_CONNECTION)
+  await pg.raw("UPDATE chat_conversation SET deleted_at = now() WHERE id = ?", [archived.id])
   await chat.createChatMessages([
     { conversation_id: old.id, customer_id: customerB, author_type: "customer", author_id: customerB, body: "old synthetic personal content" },
     { conversation_id: recent.id, customer_id: customerB, author_type: "customer", author_id: customerB, body: "recent content" },
+    { conversation_id: archived.id, customer_id: customerB, author_type: "customer", author_id: customerB, body: "archived private content" },
   ])
   const beforeCounters = (await api.get("/store/chat/status", b)).data.remaining
   const cutoff = new Date(Date.now() - 365 * 86400000)
   const concurrentRetention = await Promise.all([chat.redactExpiredContent(cutoff), chat.redactExpiredContent(cutoff)])
-  expect(concurrentRetention.map((r: any) => r.conversations).sort()).toEqual([0, 1])
-  expect(concurrentRetention.map((r: any) => r.messages).sort()).toEqual([0, 1])
-  const retained = { conversations: 1, messages: 1 }
+  expect(concurrentRetention.map((r: any) => r.conversations).sort()).toEqual([0, 2])
+  expect(concurrentRetention.map((r: any) => r.messages).sort()).toEqual([0, 2])
+  const retained = { conversations: 2, messages: 2 }
   expect(await chat.redactExpiredContent(cutoff)).toEqual({ conversations: 0, messages: 0 })
   const retainedThread = (await api.get(`/store/chat/conversations/${old.id}`, b)).data
   expect(retainedThread.conversation.subject).toBeNull()
   expect(retainedThread.messages[0].body).toBe(REMOVED_CHAT_BODY)
+  const { rows: archivedMessages } = await pg.raw("SELECT body FROM chat_message WHERE conversation_id = ?", [archived.id])
+  expect(archivedMessages[0].body).toBe(REMOVED_CHAT_BODY)
+  expect((await api.get(`/store/chat/conversations/${archived.id}`, b)).status).toBe(404)
   expect((await api.get(`/store/chat/conversations/${recent.id}`, b)).data.messages[0].body).toBe("recent content")
   expect((await api.get(`/store/chat/conversations/${bConv}`, b)).data.messages[0].body).not.toBe(REMOVED_CHAT_BODY)
   expect((await api.get("/store/chat/status", b)).data.remaining).toEqual(beforeCounters)
