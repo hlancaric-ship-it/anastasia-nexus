@@ -194,6 +194,8 @@ export function homeSections(products) {
         .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
     }
     let pre='';
+    // krémové pole nad RESET 40+: kolekce do něj přejde, strom se z něj vynoří (zrcadlí pásmo pod sekcí)
+    if(out.includes('id="program"'))pre='<div class="cream-band" aria-hidden="true"></div>\n';
     if(out.includes('data-video="sky"')){
       out=out.replace('<section ', '<section class="sky-section" ').replace('<div style="order:-1;', '<div class="sky-window" style="order:-1;').replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(0,0,0,0\) 50%,rgba\(0,0,0,0.65\) 100%\)"><\/div>/,'');
       out=out.replace(/(<section[^>]*>)/, '$1<div class="sky-spill" aria-hidden="true"><video data-video="sky-spill" poster="/assets/night-sky.jpg" autoplay muted loop playsinline preload="metadata">'+VIDEO_SOURCES.sky+'</video></div>');
@@ -263,15 +265,16 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .sky-section .sky-window>div:last-child>span:first-child::before{content:"";width:40px;height:1px;background:currentColor}
 .sky-section .sky-window>div:last-child>span:last-child{font-size:clamp(26px,2.6vw,40px)!important}
 #o-lucii{position:relative}
+.cream-band{margin-left:var(--rail-neg);height:clamp(140px,14vw,240px);background:linear-gradient(180deg,var(--site-main),#F5F2E8 55%)}
 #o-lucii::before{content:"";position:absolute;inset:0 0 auto;height:clamp(120px,14vw,220px);background:linear-gradient(#F5F2E8,rgba(245,242,232,0));pointer-events:none;z-index:1}
 @media(min-width:1000px){.sky-section>div:not(.sky-spill)>div:first-child{align-self:center}}
-.wisdom{margin-left:var(--rail-neg);padding:clamp(48px,6vw,96px) clamp(20px,4vw,64px) 0 calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
+.wisdom{margin-left:var(--rail-neg);padding:clamp(48px,6vw,96px) clamp(20px,4vw,64px) clamp(72px,9vw,160px) calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
 .wisdom figure{margin:0 auto;max-width:980px;display:flex;flex-direction:column;align-items:center;gap:clamp(24px,3vw,40px)}
 .wisdom-mark{width:1px;height:clamp(48px,6vw,80px);background:linear-gradient(transparent,var(--site-accent-deep))}
 .wisdom blockquote{margin:0;font-weight:100;font-size:clamp(34px,4.6vw,72px);line-height:1.08;letter-spacing:-0.035em}
 .wisdom figcaption{display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--site-accent-deep)}
 .wisdom figcaption::before,.wisdom figcaption::after{content:"";width:48px;height:1px;background:currentColor;opacity:.6}
-#program>div[style^="position:absolute;inset:0;background:linear-gradient(90deg"]{background:linear-gradient(180deg,var(--site-main),color-mix(in srgb,var(--site-main) 0%,transparent) clamp(120px,16vh,220px)),linear-gradient(180deg,transparent 78%,#F5F2E8),linear-gradient(90deg,rgba(16,24,15,0.82) 0%,rgba(16,24,15,0.35) 55%,rgba(16,24,15,0.6) 100%)!important}
+#program>div[style^="position:absolute;inset:0;background:linear-gradient(90deg"]{background:linear-gradient(180deg,#F5F2E8,rgba(245,242,232,0) clamp(140px,18vh,240px)),linear-gradient(180deg,transparent 78%,#F5F2E8),linear-gradient(90deg,rgba(16,24,15,0.82) 0%,rgba(16,24,15,0.35) 55%,rgba(16,24,15,0.6) 100%)!important}
 @media(max-width:999.98px){header:has(.header-brands){gap:6px!important;padding-inline:16px!important}.header-brands{width:128px;gap:5px;height:48px}.header-brands>span{width:40px}.header-brands img{height:28px;max-width:36px}.header-brands>span:first-child img{height:44px}.header-academy b{font-size:6px;letter-spacing:.5px}.header-brands small{font-size:4px;letter-spacing:.3px}}
 @media(prefers-reduced-motion:reduce){.hero-brand img{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}}
 @media(max-width:999.98px){.hero-brand{padding:16px 20px}.hero-brand img{height:clamp(180px,27vh,260px)}}
