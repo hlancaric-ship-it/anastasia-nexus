@@ -1,4 +1,4 @@
-import { EdgeIngestError, parseEdgeBatch, signEdgeBatch, verifyEdgeSignature } from "../edge-ingest"
+import { EdgeIngestError, parseEdgeBatch, resolveIngestTenant, signEdgeBatch, verifyEdgeSignature } from "../edge-ingest"
 
 const SECRET = "s".repeat(40)
 const NOW = Date.parse("2026-10-14T12:00:00Z")
@@ -20,22 +20,33 @@ describe("ops-audit/edge-ingest", () => {
   })
 
   it("dávka: platné záznamy uloží bez stack/message, neplatné spočítá", () => {
-    const { events, rejected } = parseEdgeBatch(JSON.stringify({ events: [
-      { level: "error", event: "http.unhandled_error", ts: "2026-10-14T11:59:59Z", request_id: "req_abcdefgh", path: "/api/v1/pricing", status: 500, message: "leak a@b.cz", stack: "at x" },
-      { level: "debug", event: "voucher.validate", code: "ANA-ABCD-EFGH-1234" },
-      { level: "fatal", event: "x.y" },
-      { level: "info", event: "Bad Event" },
+    const T = "anastasia"
+    const { events, rejected } = parseEdgeBatch(JSON.stringify({ tenant_id: T, events: [
+      { tenant_id: T, level: "error", event: "http.unhandled_error", ts: "2026-10-14T11:59:59Z", request_id: "req_abcdefgh", path: "/api/v1/pricing", status: 500, message: "leak a@b.cz", stack: "at x" },
+      { tenant_id: T, level: "debug", event: "voucher.validate", code: "ANA-ABCD-EFGH-1234" },
+      { tenant_id: "okfish", level: "error", event: "x.y" },
+      { tenant_id: T, level: "fatal", event: "x.y" },
+      { tenant_id: T, level: "info", event: "Bad Event" },
       "nonsense",
-    ] }))
-    expect(rejected).toBe(3)
+    ] }), T)
+    expect(rejected).toBe(4)
     expect(events[0]).toMatchObject({ level: "error", domain: "edge", event: "http.unhandled_error", request_id: "req_abcdefgh", fields: { path: "/api/v1/pricing", status: 500, edge_ts: "2026-10-14T11:59:59.000Z" } })
     expect(JSON.stringify(events[0])).not.toMatch(/stack|leak|a@b/)
     expect(events[1]).toMatchObject({ level: "info", fields: { code: "***1234" } })
   })
 
   it("odmítne nevalidní JSON, příliš velkou dávku a nadlimitní velikost", () => {
-    expect(code(() => parseEdgeBatch("{"))).toBe("INGEST_INVALID:400")
-    expect(code(() => parseEdgeBatch(JSON.stringify({ events: Array(101).fill({ level: "info", event: "a.b" }) })))).toBe("INGEST_INVALID:400")
-    expect(code(() => parseEdgeBatch("x".repeat(300 * 1024)))).toBe("INGEST_INVALID:413")
+    expect(code(() => parseEdgeBatch("{", "anastasia"))).toBe("INGEST_INVALID:400")
+    expect(code(() => parseEdgeBatch(JSON.stringify({ tenant_id: "anastasia", events: Array(101).fill({ level: "info", event: "a.b" }) }), "anastasia"))).toBe("INGEST_INVALID:400")
+    expect(code(() => parseEdgeBatch("x".repeat(300 * 1024), "anastasia"))).toBe("INGEST_INVALID:413")
+  })
+
+  it("tenant: cizí nebo chybějící tenant dávky 403, bez konfigurace 503", () => {
+    expect(code(() => parseEdgeBatch(JSON.stringify({ tenant_id: "okfish", events: [] }), "anastasia"))).toBe("INGEST_TENANT_MISMATCH:403")
+    expect(code(() => parseEdgeBatch(JSON.stringify({ events: [] }), "anastasia"))).toBe("INGEST_TENANT_MISMATCH:403")
+    expect(resolveIngestTenant({ OPS_INGEST_TENANT_ID: " Anastasia " })).toBe("anastasia")
+    expect(resolveIngestTenant({ NEXUS_TENANT_ID: "anastasia" })).toBe("anastasia")
+    expect(code(() => resolveIngestTenant({}))).toBe("INGEST_NOT_CONFIGURED:503")
+    expect(code(() => resolveIngestTenant({ OPS_INGEST_TENANT_ID: "bad tenant!" }))).toBe("INGEST_NOT_CONFIGURED:503")
   })
 })

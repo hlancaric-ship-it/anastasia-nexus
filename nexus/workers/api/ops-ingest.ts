@@ -2,7 +2,15 @@
 // `ops_event` (POST {OPS_INGEST_URL}, typicky https://<backend>/hooks/ops/edge-events).
 //
 // Pravidla:
-//   - bez `OPS_INGEST_URL` + `OPS_INGEST_SECRET` (min. 32 znaků) je to no-op;
+//   - bez `OPS_INGEST_URL` + `OPS_INGEST_SECRET` (min. 32 znaků) +
+//     `OPS_INGEST_TENANT_ID` je to no-op; URL jen https (http jen localhost),
+//     přesměrování se nenásleduje;
+//   - TENANT: Worker obsluhuje víc tenantů (okfish/Shoptet i Medusu). Do fronty
+//     jde JEN událost s vyhrazeným polem `opsTenant` = OPS_INGEST_TENANT_ID.
+//     `opsTenant` nastavuje výhradně index.ts ze serverové konfigurace pro cesty
+//     svázané s Medusou -- nikdy ze vstupu požadavku (`tenantId` v route logech
+//     může pocházet od klienta, proto se ignoruje). Backend navíc odmítne dávku
+//     s jiným `tenant_id`.
 //   - fronta je omezená (MAX_QUEUE), při přetečení se nejstarší zahodí a počet
 //     se pošle jako `ops.ingest_dropped` -- log nikdy nezablokuje request;
 //   - `stack`, `message` a vnořené struktury se NEPOSÍLAJÍ, jen primitivní
@@ -21,16 +29,39 @@ type EdgeEvent = Record<string, string | number | boolean | null>;
 const queue: EdgeEvent[] = [];
 let dropped = 0;
 
+const TENANT_RE = /^[a-z0-9_-]{2,32}$/;
+
 export interface OpsIngestEnv {
     readonly OPS_INGEST_URL?: string;
     readonly OPS_INGEST_SECRET?: string;
+    readonly OPS_INGEST_TENANT_ID?: string;
+}
+
+const normalizeTenant = (value: unknown): string | null =>
+    typeof value === 'string' && TENANT_RE.test(value.trim().toLowerCase()) ? value.trim().toLowerCase() : null;
+
+/** https, nebo http jen na localhost (lokální test). Jinak null. */
+export function resolveIngestUrl(raw: string | undefined): string | null {
+    if (!raw) return null;
+    try {
+        const url = new URL(raw);
+        if (url.username || url.password) return null;
+        if (url.protocol === 'https:') return url.toString();
+        if (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return url.toString();
+        return null;
+    } catch {
+        return null;
+    }
 }
 
 export function enqueueOpsEvent(level: LogLevel, event: string, ts: string, fields: Readonly<Record<string, unknown>>): void {
     if (level !== 'warn' && level !== 'error') return;
-    const item: EdgeEvent = { level, event, ts };
+    // bez explicitního tenanta se událost do cizího systému neposílá
+    const tenant = normalizeTenant(fields.opsTenant);
+    if (!tenant) return;
+    const item: EdgeEvent = { level, event, ts, tenant_id: tenant };
     for (const [key, value] of Object.entries(fields)) {
-        if (DROP_KEYS.has(key) || value === undefined) continue;
+        if (DROP_KEYS.has(key) || value === undefined || key === 'opsTenant' || key === 'tenantId' || key === 'tenant_id') continue;
         const outKey = key === 'requestId' ? 'request_id' : key;
         if (typeof value === 'string') item[outKey] = value.slice(0, MAX_STRING);
         else if (typeof value === 'number' || typeof value === 'boolean' || value === null) item[outKey] = value;
@@ -55,28 +86,32 @@ async function hmacHex(secret: string, data: string): Promise<string> {
 
 /** Odešle vše, co je ve frontě. Nikdy nevyhodí výjimku. */
 export async function flushOpsEvents(env: OpsIngestEnv, fetchImpl: typeof fetch = fetch, nowMs = Date.now()): Promise<void> {
-    const url = env.OPS_INGEST_URL;
+    const url = resolveIngestUrl(env.OPS_INGEST_URL);
     const secret = env.OPS_INGEST_SECRET;
-    if (!url || !secret || secret.length < 32) {
+    const tenant = normalizeTenant(env.OPS_INGEST_TENANT_ID);
+    if (!url || !tenant || !secret || secret.length < 32) {
         queue.length = 0;
         dropped = 0;
         return;
     }
     if (queue.length === 0 && dropped === 0) return;
-    const events = queue.splice(0, MAX_QUEUE);
+    // jen vlastní tenant; ostatní se zahodí (nesmí skončit v cizím backendu)
+    const events = queue.splice(0, MAX_QUEUE).filter((item) => item.tenant_id === tenant);
     if (dropped > 0) {
         if (events.length >= MAX_QUEUE) events.shift();
-        events.push({ level: 'warn', event: 'ops.ingest_dropped', ts: new Date(nowMs).toISOString(), count: dropped });
+        events.push({ level: 'warn', event: 'ops.ingest_dropped', ts: new Date(nowMs).toISOString(), tenant_id: tenant, count: dropped });
         dropped = 0;
     }
     try {
-        const body = JSON.stringify({ events });
+        if (events.length === 0) return;
+        const body = JSON.stringify({ tenant_id: tenant, events });
         const ts = String(Math.floor(nowMs / 1000));
         const signature = await hmacHex(secret, `${ts}.${body}`);
         const response = await fetchImpl(url, {
             method: 'POST',
             headers: { 'content-type': 'application/json', 'x-nexus-timestamp': ts, 'x-nexus-signature': signature },
             body,
+            redirect: 'error',
             signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
         });
         if (!response.ok) console.warn(JSON.stringify({ level: 'warn', event: 'ops.ingest_failed', status: response.status, count: events.length }));

@@ -92,6 +92,9 @@ async function handle(request: Request, env: Env, ctx: ExecutionContextLike, req
     }
 
     const url = new URL(request.url);
+    // Cesty svázané s Medusou mají tenanta danou credentialem (MEDUSA_PRICING_TENANT_ID);
+    // jen jejich události smí jít do Medusa `ops_event` (viz ops-ingest.ts).
+    const opsTenant = isMedusaBoundPath(url.pathname) ? env.MEDUSA_PRICING_TENANT_ID?.trim().toLowerCase() : undefined;
 
     try {
         assertRequiredBindings(env);
@@ -100,6 +103,7 @@ async function handle(request: Request, env: Env, ctx: ExecutionContextLike, req
 
         log('info', 'http.request', {
             requestId,
+            opsTenant,
             method: request.method,
             path: url.pathname,
             status: response.status,
@@ -118,6 +122,8 @@ async function handle(request: Request, env: Env, ctx: ExecutionContextLike, req
                 status: error.status,
                 message: error.message,
                 ...(error.details ?? {}),
+                // až po details: tenanta nesmí přepsat data z chyby
+                opsTenant,
                 durationMs: Date.now() - startedAt,
             });
             return withCors(jsonError(error.code, error.message, error.status), env, origin);
@@ -127,6 +133,7 @@ async function handle(request: Request, env: Env, ctx: ExecutionContextLike, req
         // Stack trace v odpovědi je únik informací o vnitřní struktuře.
         log('error', 'http.unhandled_error', {
             requestId,
+            opsTenant,
             method: request.method,
             path: url.pathname,
             message: error instanceof Error ? error.message : String(error),
@@ -139,6 +146,11 @@ async function handle(request: Request, env: Env, ctx: ExecutionContextLike, req
             origin,
         );
     }
+}
+
+function isMedusaBoundPath(pathname: string): boolean {
+    const path = pathname.replace(/\/+$/, '');
+    return path.startsWith('/api/nexus/') || path === '/api/webhooks/medusa' || pathname.startsWith(MEDIA_PATH_PREFIX);
 }
 
 async function route(request: Request, env: Env, url: URL, ctx: ExecutionContextLike): Promise<Response> {

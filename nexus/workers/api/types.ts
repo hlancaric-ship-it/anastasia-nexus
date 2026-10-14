@@ -239,4 +239,6 @@ export interface Env {
     readonly OPS_INGEST_URL?: string;
     /** Sdílené tajemství s Medusou (`OPS_INGEST_SECRET`, min. 32 znaků) -- jen `wrangler secret put`. */
     readonly OPS_INGEST_SECRET?: string;
+    /** Tenant, jehož události se přeposílají (= MEDUSA_PRICING_TENANT_ID). Jiné tenanty se neposílají. */
+    readonly OPS_INGEST_TENANT_ID?: string;
 }
