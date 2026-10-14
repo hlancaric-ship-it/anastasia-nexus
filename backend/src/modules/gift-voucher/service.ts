@@ -328,14 +328,14 @@ class GiftVoucherModuleService extends MedusaService({ GiftVoucher, GiftVoucherT
   }
 
   /** Storno objednávky, která poukaz koupila: nevyčerpaný poukaz se zneplatní, načatý se jen nahlásí. */
-  async voidIssuedForCanceledOrder(orderId: string): Promise<{ voided: string[]; used: string[] }> {
+  async voidIssuedForCanceledOrder(orderId: string, reason: "order_canceled" | "order_refunded" = "order_canceled"): Promise<{ voided: string[]; used: string[] }> {
     const vouchers = (await this.listGiftVouchers({ source_order_id: orderId }, { take: 500 })).map(normalizeRow)
     const voided: string[] = []
     const used: string[] = []
     for (const voucher of vouchers) {
       if (voucher.status === "void") continue
       if (voucher.balance !== voucher.initial_amount) { used.push(voucher.id); continue }
-      await this.voidVoucher({ id: voucher.id, reason: "order_canceled" })
+      await this.voidVoucher({ id: voucher.id, reason })
       voided.push(voucher.id)
     }
     return { voided, used }

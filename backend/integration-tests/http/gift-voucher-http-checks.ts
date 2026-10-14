@@ -1,5 +1,5 @@
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
-import { capturePaymentWorkflow, cancelOrderWorkflow, createProductsWorkflow } from "@medusajs/medusa/core-flows"
+import { capturePaymentWorkflow, cancelOrderWorkflow, createProductsWorkflow, refundPaymentWorkflow } from "@medusajs/medusa/core-flows"
 import { GIFT_VOUCHER_MODULE } from "../../src/modules/gift-voucher"
 import { issueVouchersForOrder } from "../../src/modules/gift-voucher/order-sync"
 import { DEFAULT_SETTINGS } from "../../src/modules/gift-voucher/policy"
@@ -145,6 +145,27 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   expect(Number(partial.order.total)).toBeCloseTo(partialTotal - 10, 2)
   expect([Number((await voucherRow(small.id)).balance), (await voucherRow(small.id)).status]).toEqual([0, "depleted"])
   evidence.push({ scenario: "K8_PARTIAL_COVER_PAID_REST", status: 200, voucherBalanceAfter: 0 })
+
+  // --- 4b) Refund kartou: částečný = jen manual_review (poukaz beze změny), plný = poukazová část zpět na poukaz
+  const partialOrderId = partial.order.id
+  const partialPayment = (await query.graph({ entity: "order", filters: { id: partialOrderId }, fields: ["payment_collections.payments.id", "payment_collections.payments.captured_at"] })).data[0].payment_collections[0].payments[0]
+  if (!partialPayment.captured_at) await capturePaymentWorkflow(container).run({ input: { payment_id: partialPayment.id } })
+  const cardPaid = Number(partial.order.total)
+  await refundPaymentWorkflow(container).run({ input: { payment_id: partialPayment.id, amount: 1 } })
+  await poll(async () => (await dbConnection.raw("SELECT 1 FROM ops_event WHERE domain = 'payment' AND event = 'refund_manual_review' AND order_id = ?", [partialOrderId])).rows[0], "refund-manual-review")
+  expect(Number((await voucherRow(small.id)).balance)).toBe(0)
+  await refundPaymentWorkflow(container).run({ input: { payment_id: partialPayment.id, amount: cardPaid - 1 } })
+  const refundRestored = await poll(async () => { const row = await voucherRow(small.id); return Number(row.balance) === 1000 ? row : null }, "refund-compensation")
+  expect(refundRestored.status).toBe("active")
+  const refundTx = (await dbConnection.raw("SELECT amount, idempotency_key FROM gift_voucher_transaction WHERE voucher_id = ? AND type = 'refunded' AND order_id = ?", [small.id, partialOrderId])).rows
+  expect(refundTx).toHaveLength(1)
+  expect(Number(refundTx[0].amount)).toBe(1000)
+  expect(String(refundTx[0].idempotency_key)).toMatch(new RegExp(`^refund:${partialOrderId}:`))
+  // pozdější storno nesmí vrátit podruhé (strop čerpáno − vráceno)
+  await cancelOrderWorkflow(container).run({ input: { order_id: partialOrderId } }).catch(() => undefined)
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  expect(Number((await voucherRow(small.id)).balance)).toBe(1000)
+  evidence.push({ scenario: "K8_CARD_REFUND_COMPENSATES_VOUCHER", partialRefundManualReview: true, voucherBalanceAfter: 10, refundTransactions: 1, cancelAfterRefundNoDouble: true })
 
   // --- 5) Souběh: dva košíky, jeden poukaz – projde právě jedno čerpání, zůstatek nikdy záporný
   const raceIds = [await goodsCart(), await goodsCart()]
