@@ -13,7 +13,6 @@ export function chatRetentionCutoff(raw: string | undefined, now = new Date()): 
 export async function redactClosedChatContent(knex: any, cutoff: Date) {
   const conversations = await knex("chat_conversation")
     .where({ status: "closed" }).whereNotNull("closed_at").where("closed_at", "<", cutoff)
-    .whereNull("deleted_at")
     .where(function(this: any) {
       this.whereNotNull("subject").orWhereExists(
         knex("chat_message").select(knex.raw("1")).whereRaw("chat_message.conversation_id = chat_conversation.id").whereNot("body", REMOVED_CHAT_BODY)

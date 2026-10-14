@@ -1,0 +1,5764 @@
+{
+  "schema_version": 1,
+  "basis": {
+    "branch": "claude/backend-integration",
+    "commit": "cdfcb1d255a91ae82418c1bec5e068adb26f0519",
+    "date": "2026-10-14",
+    "note": "Source inventory, not runtime health or acceptance evidence. No environment files or secret values read."
+  },
+  "custom_routes": [
+    {
+      "path": "/admin/booking/availability",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/booking/availability/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/booking/types/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/booking/types/[id]/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/booking/types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/booking/types/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/bookings/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/bookings/[id]/cancel/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/bookings",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/bookings/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/chat/conversations/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/chat/conversations",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/chat/conversations/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/chat/customers/:id/block",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/coupon-links",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/coupon-links/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/custom",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/custom/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/entitlements/:id/revoke",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/entitlements/[id]/revoke/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/entitlements",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/entitlements/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/ops/audit",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/ops/audit/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/vouchers/:id/transactions",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/vouchers/[id]/transactions/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/vouchers/:id/void",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/vouchers/[id]/void/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/vouchers/refund",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/vouchers/refund/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/vouchers",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/vouchers/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/vouchers/settings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/vouchers/settings/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/store/booking-slots",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/store/booking-slots/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/bookings/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/bookings/[id]/cancel/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/bookings/:id/cart",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/bookings/[id]/cart/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/bookings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/store/bookings/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/chat/conversations/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/store/chat/conversations/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/chat/status",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/store/chat/status/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/coupon-links",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/coupon-links/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/custom",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/store/custom/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/entitlements",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/store/entitlements/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/gift-vouchers/apply",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/gift-vouchers/apply/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/gift-vouchers/recipients",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/gift-vouchers/recipients/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/gift-vouchers/remove",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/gift-vouchers/remove/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/media-access",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/media-access/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/nexus-cart",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/nexus-cart/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/nexus-checkout",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/nexus-checkout/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    }
+  ],
+  "medusa_native_routes": [
+    {
+      "path": "/admin/api-keys/:id/revoke",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/api-keys/[id]/revoke/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/api-keys/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/api-keys/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/api-keys/:id/sales-channels",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/api-keys/[id]/sales-channels/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/api-keys",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/api-keys/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/campaigns/:id/promotions",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/campaigns/[id]/promotions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/campaigns/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/campaigns/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/campaigns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/campaigns/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/claims/[id]/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/claim-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/claims/[id]/claim-items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/claim-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/claims/[id]/claim-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/claims/[id]/inbound/items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/claims/[id]/inbound/items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/claims/[id]/inbound/shipping-method/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/claims/[id]/inbound/shipping-method/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/claims/[id]/outbound/items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/claims/[id]/outbound/items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/claims/[id]/outbound/shipping-method/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/claims/[id]/outbound/shipping-method/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/claims/[id]/request/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/claims/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/claims",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/claims/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/collections/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/collections/[id]/products/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/collections/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/collections/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/collections",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/collections/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/currencies/:code",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/currencies/[code]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/currencies",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/currencies/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customer-groups/:id/customers",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/customer-groups/[id]/customers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customer-groups/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/customer-groups/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customer-groups",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/customer-groups/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customers/:id/addresses/:address_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/customers/[id]/addresses/[address_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customers/:id/addresses",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/customers/[id]/addresses/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customers/:id/customer-groups",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/customers/[id]/customer-groups/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customers/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/customers/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/customers",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/customers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/convert-to-order",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/convert-to-order/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/confirm/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/items/item/:item_id",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/items/item/[item_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/promotions",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/promotions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/request",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/request/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/shipping-methods/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/shipping-methods/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/shipping-methods/method/:method_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/shipping-methods/method/[method_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/shipping-methods",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/edit/shipping-methods/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/draft-orders/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/draft-orders",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/draft-orders/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/inbound/items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/inbound/items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/inbound/shipping-method/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/inbound/shipping-method/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/outbound/items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/outbound/items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/outbound/shipping-method/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/outbound/shipping-method/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/exchanges/[id]/request/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/exchanges/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/exchanges",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/exchanges/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/feature-flags",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/feature-flags/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillment-providers/:id/options",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/fulfillment-providers/[id]/options/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillment-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/fulfillment-providers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillment-sets/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "admin/fulfillment-sets/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillment-sets/:id/service-zones/:zone_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/fulfillment-sets/[id]/service-zones/[zone_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillment-sets/:id/service-zones",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/fulfillment-sets/[id]/service-zones/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillments/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/fulfillments/[id]/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillments/:id/shipment",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/fulfillments/[id]/shipment/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/fulfillments",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/fulfillments/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/index/details",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/index/details/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/index/sync",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/index/sync/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/inventory-items/:id/location-levels/:location_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/inventory-items/[id]/location-levels/[location_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/inventory-items/:id/location-levels/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/inventory-items/[id]/location-levels/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/inventory-items/:id/location-levels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/inventory-items/[id]/location-levels/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/inventory-items/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/inventory-items/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/inventory-items/export",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/inventory-items/export/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/inventory-items/location-levels/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/inventory-items/location-levels/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/inventory-items",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/inventory-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/invites/:id/resend",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/invites/[id]/resend/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/invites/:id",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "source": "admin/invites/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/invites/accept",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/invites/accept/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/invites",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/invites/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/layouts/:zone/configuration",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/layouts/[zone]/configuration/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/layouts/configurations",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/layouts/configurations/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/locales/:code",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/locales/[code]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/locales",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/locales/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/notifications/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/notifications/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/notifications",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/notifications/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-changes/:id",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/order-changes/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/order-edits/[id]/confirm/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/order-edits/[id]/items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id/items/item/:item_id",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/order-edits/[id]/items/item/[item_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/order-edits/[id]/items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id/request",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/order-edits/[id]/request/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "admin/order-edits/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/order-edits/[id]/shipping-method/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits/:id/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/order-edits/[id]/shipping-method/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/order-edits",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/order-edits/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/archive",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/archive/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/changes",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/orders/[id]/changes/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/complete",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/complete/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/credit-lines",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/credit-lines/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/fulfillments/[fulfillment_id]/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/mark-as-delivered",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/fulfillments/[fulfillment_id]/mark-as-delivered/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/shipments",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/fulfillments/[fulfillment_id]/shipments/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/fulfillments/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/line-items",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/orders/[id]/line-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/payment-sessions/authorize",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/payment-sessions/authorize/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/preview",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/orders/[id]/preview/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/orders/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/shipping-options",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/orders/[id]/shipping-options/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/transfer/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/transfer/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/transfer/guest",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/transfer/guest/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/:id/transfer",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/[id]/transfer/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders/export",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/orders/export/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/orders",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/orders/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payment-collections/:id/mark-as-paid",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/payment-collections/[id]/mark-as-paid/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payment-collections/:id/payment-sessions",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/payment-collections/[id]/payment-sessions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payment-collections/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "admin/payment-collections/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payment-collections",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/payment-collections/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payments/:id/capture",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/payments/[id]/capture/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payments/:id/refund",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/payments/[id]/refund/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payments/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/payments/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payments/payment-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/payments/payment-providers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/payments",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/payments/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/plugins",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/plugins/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/price-lists/:id/prices/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/price-lists/[id]/prices/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/price-lists/:id/prices",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/price-lists/[id]/prices/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/price-lists/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/price-lists/[id]/products/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/price-lists/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/price-lists/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/price-lists",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/price-lists/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/price-preferences/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/price-preferences/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/price-preferences",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/price-preferences/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-categories/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/product-categories/[id]/products/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-categories/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-categories/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-categories",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-categories/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-options/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-options/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-options/:id/values/:value_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-options/[id]/values/[value_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-options/:id/values",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/product-options/[id]/values/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-options/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-tags/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-tags/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-tags",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-tags/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-types/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-types/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/product-types/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/product-variants",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/product-variants/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/images/:image_id/variants/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/[id]/images/[image_id]/variants/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/options/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/[id]/options/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/options",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/products/[id]/options/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/products/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id/images/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/[id]/variants/[variant_id]/images/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id/inventory-items/:inventory_item_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/products/[id]/variants/[variant_id]/inventory-items/[inventory_item_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id/inventory-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/[id]/variants/[variant_id]/inventory-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/products/[id]/variants/[variant_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/variants/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/[id]/variants/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/variants/inventory-items/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/[id]/variants/inventory-items/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/:id/variants",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/products/[id]/variants/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/export",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/export/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/import/:transaction_id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/import/[transaction_id]/confirm/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/import",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/import/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/imports/:transaction_id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/imports/[transaction_id]/confirm/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products/imports",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/products/imports/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/products",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/products/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions/:id/:rule_type",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/promotions/[id]/[rule_type]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions/:id/buy-rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/promotions/[id]/buy-rules/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/promotions/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions/:id/rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/promotions/[id]/rules/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions/:id/target-rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/promotions/[id]/target-rules/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/promotions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions/rule-attribute-options/:rule_type",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/promotions/rule-attribute-options/[rule_type]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/promotions/rule-value-options/:rule_type/:rule_attribute_id",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/promotions/rule-value-options/[rule_type]/[rule_attribute_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/property-labels/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/property-labels/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/property-labels/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/property-labels/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/property-labels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/property-labels/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/me/permissions",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/rbac/me/permissions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/policies/:id/roles",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/rbac/policies/[id]/roles/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/policies/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/rbac/policies/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/policies/assignable",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/rbac/policies/assignable/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/policies",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/rbac/policies/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/roles/:id/policies/:policy_id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "admin/rbac/roles/[id]/policies/[policy_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/roles/:id/policies",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/rbac/roles/[id]/policies/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/roles/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/rbac/roles/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/roles/:id/users",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/rbac/roles/[id]/users/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/roles/assignable",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/rbac/roles/assignable/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/rbac/roles",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/rbac/roles/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/refund-reasons/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/refund-reasons/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/refund-reasons",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/refund-reasons/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/regions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/regions/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/regions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/regions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/reservations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/reservations/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/reservations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/reservations/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/return-reasons/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/return-reasons/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/return-reasons",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/return-reasons/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/returns/[id]/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/dismiss-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/returns/[id]/dismiss-items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/dismiss-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/returns/[id]/dismiss-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/receive/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/returns/[id]/receive/confirm/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/receive",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/returns/[id]/receive/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/receive-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/returns/[id]/receive-items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/receive-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/returns/[id]/receive-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/returns/[id]/request/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/request-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/returns/[id]/request-items/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/request-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/returns/[id]/request-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/returns/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "admin/returns/[id]/shipping-method/[action_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns/:id/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/returns/[id]/shipping-method/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/returns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/returns/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/sales-channels/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/sales-channels/[id]/products/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/sales-channels/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/sales-channels/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/sales-channels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/sales-channels/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/search",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/search/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/shipping-option-types/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/shipping-option-types/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/shipping-option-types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/shipping-option-types/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/shipping-options/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/shipping-options/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/shipping-options/:id/rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/shipping-options/[id]/rules/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/shipping-options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/shipping-options/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/shipping-profiles/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/shipping-profiles/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/shipping-profiles",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/shipping-profiles/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/stock-locations/:id/fulfillment-providers",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/stock-locations/[id]/fulfillment-providers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/stock-locations/:id/fulfillment-sets",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/stock-locations/[id]/fulfillment-sets/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/stock-locations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/stock-locations/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/stock-locations/:id/sales-channels",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/stock-locations/[id]/sales-channels/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/stock-locations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/stock-locations/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/stores/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/stores/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/stores",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/stores/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/tax-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/tax-providers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/tax-rates/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/tax-rates/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/tax-rates/:id/rules/:rule_id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "admin/tax-rates/[id]/rules/[rule_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/tax-rates/:id/rules",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/tax-rates/[id]/rules/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/tax-rates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/tax-rates/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/tax-regions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/tax-regions/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/tax-regions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/tax-regions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/translations/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/translations/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/translations/entities",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/translations/entities/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/translations",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/translations/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/translations/settings/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/translations/settings/batch/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/translations/settings",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/translations/settings/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/translations/statistics",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/translations/statistics/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/uploads/:id",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "source": "admin/uploads/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/uploads/presigned-urls",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/uploads/presigned-urls/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/uploads",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/uploads/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/users/:id/roles/:role_id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "admin/users/[id]/roles/[role_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/users/:id/roles",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/users/[id]/roles/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/users/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/users/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/users/me",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/users/me/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/users",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/users/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/views/:entity/columns",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/views/[entity]/columns/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/views/:entity/configurations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "admin/views/[entity]/configurations/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/views/:entity/configurations/active",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/views/[entity]/configurations/active/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/views/:entity/configurations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "admin/views/[entity]/configurations/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/views/entities",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/views/entities/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/workflows-executions/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/:transaction_id",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/workflows-executions/[workflow_id]/[transaction_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/:transaction_id/subscribe",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/workflows-executions/[workflow_id]/[transaction_id]/subscribe/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/run",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/workflows-executions/[workflow_id]/run/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/steps/failure",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/workflows-executions/[workflow_id]/steps/failure/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/steps/success",
+      "methods": [
+        "POST"
+      ],
+      "source": "admin/workflows-executions/[workflow_id]/steps/success/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/subscribe",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/workflows-executions/[workflow_id]/subscribe/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/admin/workflows-executions",
+      "methods": [
+        "GET"
+      ],
+      "source": "admin/workflows-executions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/auth/:actor_type/:auth_provider/callback",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "auth/[actor_type]/[auth_provider]/callback/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/:actor_type/:auth_provider/register",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/[actor_type]/[auth_provider]/register/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/:actor_type/:auth_provider/reset-password",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/[actor_type]/[auth_provider]/reset-password/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/:actor_type/:auth_provider",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "auth/[actor_type]/[auth_provider]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/:actor_type/:auth_provider/update",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/[actor_type]/[auth_provider]/update/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/:actor_type/providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "auth/[actor_type]/providers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/:auth_provider/user",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/[auth_provider]/user/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/mfa/challenges/:id/verify",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/mfa/challenges/[id]/verify/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/mfa/factors/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "auth/mfa/factors/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/mfa/factors/:id/verify",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/mfa/factors/[id]/verify/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/mfa/factors",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "auth/mfa/factors/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/mfa/recovery-codes",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/mfa/recovery-codes/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/session",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "auth/session/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/token/refresh",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/token/refresh/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/verification/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/verification/confirm/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/auth/verification/request",
+      "methods": [
+        "POST"
+      ],
+      "source": "auth/verification/request/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/cloud/auth",
+      "methods": [
+        "GET"
+      ],
+      "source": "cloud/auth/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/cloud/auth/users",
+      "methods": [
+        "POST"
+      ],
+      "source": "cloud/auth/users/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/hooks/payment/:provider",
+      "methods": [
+        "POST"
+      ],
+      "source": "hooks/payment/[provider]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
+    },
+    {
+      "path": "/store/carts/:id/complete",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/carts/[id]/complete/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts/:id/customer",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/carts/[id]/customer/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts/:id/line-items/:line_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "store/carts/[id]/line-items/[line_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts/:id/line-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/carts/[id]/line-items/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts/:id/promotions",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "store/carts/[id]/promotions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "store/carts/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts/:id/shipping-methods",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/carts/[id]/shipping-methods/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts/:id/taxes",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/carts/[id]/taxes/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/carts",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/carts/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/collections/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/collections/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/collections",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/collections/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/currencies/:code",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/currencies/[code]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/currencies",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/currencies/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/customers/me/addresses/:address_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "store/customers/me/addresses/[address_id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/customers/me/addresses",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "store/customers/me/addresses/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/customers/me",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "store/customers/me/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/customers",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/customers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/locales",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/locales/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/orders/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/orders/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/orders/:id/transfer/accept",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/orders/[id]/transfer/accept/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/orders/:id/transfer/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/orders/[id]/transfer/cancel/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/orders/:id/transfer/decline",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/orders/[id]/transfer/decline/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/orders/:id/transfer/request",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/orders/[id]/transfer/request/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/orders",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/orders/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/payment-collections/:id/payment-sessions",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/payment-collections/[id]/payment-sessions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/payment-collections",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/payment-collections/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/payment-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/payment-providers/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-categories/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-categories/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-categories",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-categories/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-options/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-options/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-options",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-options/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-tags/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-tags/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-tags",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-tags/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-types/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-types/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-types",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-types/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-variants/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-variants/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/product-variants",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/product-variants/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/products/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/products/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/products",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/products/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/regions/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/regions/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/regions",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/regions/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/return-reasons/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/return-reasons/[id]/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/return-reasons",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/return-reasons/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/returns",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/returns/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/shipping-options/:id/calculate",
+      "methods": [
+        "POST"
+      ],
+      "source": "store/shipping-options/[id]/calculate/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    },
+    {
+      "path": "/store/shipping-options",
+      "methods": [
+        "GET"
+      ],
+      "source": "store/shipping-options/route.js",
+      "layer": "medusa",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "customer or publishable key; see middleware"
+    }
+  ],
+  "worker_routes": [
+    "/api/nexus/pricing",
+    "/api/nexus/safeorder",
+    "/api/vouchers/validate",
+    "/api/vouchers/redeem",
+    "/api/vouchers/issue",
+    "/api/klub/subscribe",
+    "/api/ai/query",
+    "/api/webhooks/medusa",
+    "/api/webhooks/shoptet"
+  ],
+  "nexus_source_units": [
+    {
+      "source": "nexus/core/audit/AuditRecord.ts",
+      "exports": [
+        "createAuditLog",
+        "appendAuditRecord",
+        "withStateTransition",
+        "transitionResultToAuditEntry"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Billing.ts",
+      "exports": [
+        "SUBSCRIPTION_LIFECYCLE_DEFINITION"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Campaign.ts",
+      "exports": [
+        "CAMPAIGN_LIFECYCLE_DEFINITION",
+        "CREATIVE_LIFECYCLE_DEFINITION",
+        "INITIAL_PLACEMENT_TYPES"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/CreditVoucher.ts",
+      "exports": [
+        "CREDIT_VOUCHER_LIFECYCLE_DEFINITION"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Customer.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Invoice.ts",
+      "exports": [
+        "INVOICE_LIFECYCLE_DEFINITION"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Order.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Price.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Product.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/PurchaseOrder.ts",
+      "exports": [
+        "assertReceivingInvariant"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Stock.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/Warehouse.ts",
+      "exports": [
+        "WAREHOUSE_LIFECYCLE_DEFINITION"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/entities/base.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/lifecycle/Execution.ts",
+      "exports": [
+        "isConfirmedSuccess"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/outcomes/ExecutionIntent.ts",
+      "exports": [
+        "EXECUTION_INTENT_TRANSITIONS",
+        "EXECUTION_INTENT_TERMINAL_STATES",
+        "canTransitionIntent",
+        "isTerminalIntentState",
+        "requiresReconciliation"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/outcomes/ExecutionIntentStore.ts",
+      "exports": [
+        "InMemoryExecutionIntentStore"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/outcomes/IntentExecutor.ts",
+      "exports": [
+        "interpretWriteResult",
+        "nextIntentState",
+        "isRetrySafe",
+        "executeIntent"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/outcomes/IntentReconciliation.ts",
+      "exports": [
+        "reconcileIntent",
+        "reconcileBatch"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/reconciliation/Reconciliation.ts",
+      "exports": [
+        "aggregateBatchStatus"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/rules/Decision.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/rules/Rule.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/canonical/states/StateModel.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/error-isolation/ErrorIsolation.ts",
+      "exports": [
+        "runBatchWithIsolation"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/idempotency/IdempotencyStore.ts",
+      "exports": [
+        "IDEMPOTENCY_STATE_DEFINITION",
+        "InMemoryIdempotencyStore"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/reconciliation/GenericReconciliation.ts",
+      "exports": [
+        "classifyDrift",
+        "evaluateDebounce",
+        "aggregateMultiEntityBatch",
+        "evaluateHistoricalCheckpoint"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/snapshot/Snapshot.ts",
+      "exports": [
+        "SNAPSHOT_STATE_DEFINITION",
+        "InMemorySnapshotStore"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/state-machine/StateMachine.ts",
+      "exports": [
+        "evaluateTransition",
+        "evaluateAxisTransition"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/tenant/types.ts",
+      "exports": [
+        "assertTenantContext",
+        "TenantIsolationViolation",
+        "assertTenantOwnership"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/validation/errorIsolation.ts",
+      "exports": [
+        "aggregateStageStatus"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/core/validation/types.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/availability/AvailabilityRule.ts",
+      "exports": [
+        "AvailabilityRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/availability/ConversionRule.ts",
+      "exports": [
+        "ToBaseQuantityRule",
+        "FromBaseQuantityRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/availability/OrderQuantityValidationRule.ts",
+      "exports": [
+        "OrderQuantityValidationRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/availability/PackagingDepositRule.ts",
+      "exports": [
+        "PackagingDepositRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/availability/SalesUnitAvailabilityRule.ts",
+      "exports": [
+        "SalesUnitAvailabilityRule",
+        "NormaliseToProcurementDemandRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/availability/SortingRule.ts",
+      "exports": [
+        "SortingRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/b2b/BusinessProfileAccessor.ts",
+      "exports": [
+        "getBusinessProfile",
+        "isBusinessCustomer",
+        "getB2BPricingContext"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/b2b/BusinessProfileValidationRule.ts",
+      "exports": [
+        "BusinessProfileValidationRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/b2b/CustomerBusinessContextFlow.ts",
+      "exports": [
+        "resolveCustomerBusinessContext"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/billing/SubscriptionLifecycleRule.ts",
+      "exports": [
+        "isConsistentWithTenantPlan",
+        "SubscriptionLifecycleRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/billing/TenantSubscriptionPlanFlow.ts",
+      "exports": [
+        "evaluateTenantSubscriptionPlanFlow"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/campaign/CampaignFlows.ts",
+      "exports": [
+        "resolveCampaignPromoGroupForProduct",
+        "evaluateCampaignForProduct",
+        "evaluateCampaignPromoPricingForProduct",
+        "publishCreative",
+        "resolveCreativesForPlacement"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/campaign/CampaignLifecycleRule.ts",
+      "exports": [
+        "CampaignLifecycleRule",
+        "shouldEvaluateCampaign"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/campaign/CreativeLifecycleRule.ts",
+      "exports": [
+        "CreativeLifecycleRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/campaign/CreativeResolutionRule.ts",
+      "exports": [
+        "CreativeResolutionRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/campaign/PromoGroupDiscountRule.ts",
+      "exports": [
+        "PromoGroupDiscountRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/campaign/PromoGroupPriorityRule.ts",
+      "exports": [
+        "PromoGroupPriorityValidationRule",
+        "resolveConflict"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/invoice/InvoiceLifecycleRule.ts",
+      "exports": [
+        "InvoiceLifecycleRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/invoice/OrderInvoiceOmegaFlow.ts",
+      "exports": [
+        "evaluateOrderInvoiceOmegaFlow"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/omega/DecisionRules.ts",
+      "exports": [
+        "DecisionEngineRule",
+        "SourceDocumentIdExistsRuleAdapter",
+        "CustomerIdentityValidRuleAdapter",
+        "VatDeterminationRuleAdapter"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/omega/OmegaMapperRule.ts",
+      "exports": [
+        "OmegaMapperRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/omega/OmegaValidationRules.ts",
+      "exports": [
+        "OmegaOutputValidationRule",
+        "OmegaImportLogParserRule",
+        "OmegaPostImportValidationRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/omega/ValidatorRules.ts",
+      "exports": [
+        "MoneyValidatorRule",
+        "AddressValidatorRule",
+        "TaxValidatorRule",
+        "CustomerValidatorRule",
+        "OrderItemValidatorRule",
+        "ShippingValidatorRule",
+        "PaymentValidatorRule",
+        "DiscountValidatorRule",
+        "OrderValidatorRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/BasePriceRule.ts",
+      "exports": [
+        "BasePriceRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/BestCandidatePriceRule.ts",
+      "exports": [
+        "BestCandidatePriceRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/BrandSaleDiscountRule.ts",
+      "exports": [
+        "BrandSaleDiscountRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/ClearanceWindowRule.ts",
+      "exports": [
+        "ClearanceWindowRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/CouponDiscountRule.ts",
+      "exports": [
+        "CouponDiscountRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/CouponPolicyRule.ts",
+      "exports": [
+        "CouponPolicyRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/DiscountLimitRule.ts",
+      "exports": [
+        "DiscountLimitRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/HighestDiscountRule.ts",
+      "exports": [
+        "HighestDiscountRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/NoOpActionPriceRule.ts",
+      "exports": [
+        "NoOpActionPriceRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/PricingAdapter.ts",
+      "exports": [
+        "PricingAdapter"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/PricingConfigurationProvider.ts",
+      "exports": [
+        "InMemoryPricingConfigurationProvider"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/ProductLimitCompositionRule.ts",
+      "exports": [
+        "ProductLimitCompositionRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/QuantityTierRule.ts",
+      "exports": [
+        "QuantityTierRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/RoundingRule.ts",
+      "exports": [
+        "RoundingRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/StaticPricingConfigurationProvider.ts",
+      "exports": [
+        "SAFE_EMPTY_PRICING_CONFIG",
+        "StaticPricingConfigurationProvider"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/ValidationRule.ts",
+      "exports": [
+        "ValidationRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/VoucherCouponRule.ts",
+      "exports": [
+        "VoucherCouponRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/XPlusXRule.ts",
+      "exports": [
+        "XPlusXRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/pricing/createNexusPricingCalculator.ts",
+      "exports": [
+        "createNexusPricingCalculator"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/procurement/ProcurementRule.ts",
+      "exports": [
+        "ProcurementPlanRule",
+        "ProcurementReceiveRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/procurement/SupplierSelectionRule.ts",
+      "exports": [
+        "SupplierSelectionRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/AuditLedgerRule.ts",
+      "exports": [
+        "AuditLedgerRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/BacktestRule.ts",
+      "exports": [
+        "MetricSetRule",
+        "RocAucRule",
+        "BrierScoreRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/BlindToken.ts",
+      "exports": [],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/CalibrationRule.ts",
+      "exports": [
+        "CalibrationRule",
+        "EvidentiaryConfidenceRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/EconomicsRule.ts",
+      "exports": [
+        "EconomicsRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/IdentityNormalizationRule.ts",
+      "exports": [
+        "IdentityNormalizationRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/LocalizationRule.ts",
+      "exports": [
+        "LocalizeReasonCodesRule",
+        "FormatCurrencyAmountRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/OutcomeEngineRule.ts",
+      "exports": [
+        "OutcomeEngineRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/PolicyRule.ts",
+      "exports": [
+        "PolicyRule",
+        "PolicyOptimizationRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/RetentionRule.ts",
+      "exports": [
+        "ComputeExpiryTimestampRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/RiskEngineRule.ts",
+      "exports": [
+        "RiskEngineRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/RiskGraphRule.ts",
+      "exports": [
+        "RiskGraphRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/safeorder/ValidationStageRules.ts",
+      "exports": [
+        "InputValidationStageRule",
+        "SignalValidationStageRule",
+        "RiskPolicyStageRule",
+        "DecisionActionStageRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/shoptet/CsvParserGateRule.ts",
+      "exports": [
+        "CsvParserGateRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/shoptet/ShoptetRowParserRule.ts",
+      "exports": [
+        "ShoptetRowParserRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/supplier-csv/SupplierCsvRule.ts",
+      "exports": [
+        "ExportPurchaseOrderRule",
+        "ImportSupplierOffersRule",
+        "ImportGoodsReceiptRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/voucher/CreditVoucherCodeGenerator.ts",
+      "exports": [
+        "VOUCHER_CODE_ALPHABET",
+        "VOUCHER_CODE_PREFIX",
+        "VOUCHER_CODE_GROUP_LENGTH",
+        "VOUCHER_CODE_GROUP_COUNT",
+        "VOUCHER_CODE_ENTROPY_CHARS",
+        "VOUCHER_CODE_PATTERN",
+        "webCryptoRandomBytes",
+        "VoucherCodeGenerationError",
+        "generateVoucherCode",
+        "isValidVoucherCodeFormat",
+        "normalizeVoucherCode"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/voucher/CreditVoucherLifecycleRule.ts",
+      "exports": [
+        "CreditVoucherLifecycleRule",
+        "isCreditVoucherTerminal"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/voucher/CreditVoucherRedemptionRule.ts",
+      "exports": [
+        "CreditVoucherRedemptionRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/voucher/CreditVoucherStore.ts",
+      "exports": [
+        "InMemoryCreditVoucherStore"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/voucher/CreditVoucherValidityRule.ts",
+      "exports": [
+        "CreditVoucherValidityRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/voucher/VoucherRedemptionAudit.ts",
+      "exports": [
+        "auditVoucherRedemption",
+        "shouldPersistBurnedAmount",
+        "requiresManualReview"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/warehouse/WarehouseStockFlow.ts",
+      "exports": [
+        "evaluateWarehouseStockLink",
+        "resolveWarehouseStockLinks"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/domains/warehouse/WarehouseStockLinkRule.ts",
+      "exports": [
+        "WarehouseStockLinkRule"
+      ],
+      "role": "domain_or_adapter",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/SecurityCoordinator.ts",
+      "exports": [
+        "SecurityCoordinator"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/hmac.ts",
+      "exports": [
+        "buildVoucherCanonicalString",
+        "CanonicalizationError",
+        "isWellFormedSignature",
+        "signVoucherToken",
+        "verifyVoucherToken",
+        "timingSafeEqualHex",
+        "generateNonce",
+        "computeCartFingerprint",
+        "isTimestampFresh"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/http.ts",
+      "exports": [
+        "log",
+        "redactVoucherCode",
+        "redactToken",
+        "ApiError",
+        "jsonResponse",
+        "jsonError",
+        "withCors",
+        "resolveAllowedOrigin",
+        "preflightResponse"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/index.ts",
+      "exports": [],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/medusaServiceAuth.ts",
+      "exports": [
+        "authenticateMedusaService"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/aiGateway.ts",
+      "exports": [
+        "handleAIQuery"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/issuance.ts",
+      "exports": [
+        "handleIssue"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/klubSubscribe.ts",
+      "exports": [
+        "handleKlubSubscribe"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/mediaDelivery.ts",
+      "exports": [
+        "MEDIA_PATH_PREFIX",
+        "verifyMediaToken",
+        "isKeyAllowed",
+        "parseRange",
+        "rewritePlaylist",
+        "handleMediaDelivery"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/medusaWebhook.ts",
+      "exports": [
+        "handleMedusaWebhook"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/nexusPricing.ts",
+      "exports": [
+        "handleNexusPricing"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/nexusSafeOrder.ts",
+      "exports": [
+        "handleNexusSafeOrder"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/shoptetWebhook.ts",
+      "exports": [
+        "handleShoptetWebhook"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/routes/voucher.ts",
+      "exports": [
+        "handleValidate",
+        "handleRedeem"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
+      "source": "nexus/workers/api/types.ts",
+      "exports": [],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    }
+  ],
+  "environment_setting_references": [
+    {
+      "name": "ADMIN_CORS",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ALLOWED_ORIGINS",
+      "sources": [
+        "nexus/workers/api/http.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ANASTASIA_REGION_COUNTRIES",
+      "sources": [
+        "backend/src/scripts/anastasia-bootstrap.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ANASTASIA_WAREHOUSE_ADDRESS",
+      "sources": [
+        "backend/src/scripts/anastasia-bootstrap.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ANASTASIA_WAREHOUSE_CITY",
+      "sources": [
+        "backend/src/scripts/anastasia-bootstrap.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ANASTASIA_WAREHOUSE_COUNTRY",
+      "sources": [
+        "backend/src/scripts/anastasia-bootstrap.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "AUTH_CORS",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "BACKEND_PUBLIC_URL",
+      "sources": [
+        "backend/medusa-config.ts",
+        "backend/src/modules/chat/notifier.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "CHAT_ADMIN_NOTIFY_EMAIL",
+      "sources": [
+        "backend/src/modules/chat/notifier.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "CHAT_ADMIN_URL",
+      "sources": [
+        "backend/src/modules/chat/notifier.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "CHAT_RETENTION_DAYS",
+      "sources": [
+        "backend/src/jobs/chat-retention.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "CHAT_STOREFRONT_URL",
+      "sources": [
+        "backend/src/modules/chat/notifier.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "COOKIE_SECRET",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "COUPON_LINK_STOREFRONT_ORIGIN",
+      "sources": [
+        "backend/src/api/admin/coupon-links/route.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "DATABASE_URL",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "DB",
+      "sources": [
+        "nexus/workers/api/index.ts",
+        "nexus/workers/api/routes/issuance.ts",
+        "nexus/workers/api/routes/medusaWebhook.ts",
+        "nexus/workers/api/routes/voucher.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ENVIRONMENT",
+      "sources": [
+        "nexus/workers/api/http.ts",
+        "nexus/workers/api/routes/medusaWebhook.ts",
+        "nexus/workers/api/routes/nexusSafeOrder.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "GIFT_VOUCHER_DELIVERY",
+      "sources": [
+        "backend/src/modules/gift-voucher/delivery.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "HMAC_SECRET",
+      "sources": [
+        "nexus/workers/api/index.ts",
+        "nexus/workers/api/routes/voucher.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "JWT_SECRET",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MAGIC_LINK_BASE_URL",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MEDIA_BUCKET",
+      "sources": [
+        "nexus/workers/api/routes/mediaDelivery.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MEDIA_DELIVERY_BASE_URL",
+      "sources": [
+        "backend/src/api/store/media-access/route.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MEDIA_TOKEN_SECRET",
+      "sources": [
+        "backend/src/api/store/media-access/route.ts",
+        "nexus/workers/api/routes/mediaDelivery.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MEDUSA_PRICING_API_KEY",
+      "sources": [
+        "nexus/workers/api/medusaServiceAuth.ts",
+        "nexus/workers/api/routes/nexusPricing.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MEDUSA_PRICING_POLICY_JSON",
+      "sources": [
+        "nexus/workers/api/routes/nexusPricing.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MEDUSA_PRICING_TENANT_ID",
+      "sources": [
+        "nexus/workers/api/medusaServiceAuth.ts",
+        "nexus/workers/api/routes/nexusPricing.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "MEDUSA_WEBHOOK_SECRET",
+      "sources": [
+        "nexus/workers/api/routes/medusaWebhook.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "NEXUS_FORWARD_TOKEN",
+      "sources": [
+        "nexus/workers/api/routes/shoptetWebhook.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "NEXUS_PRICING_API_KEY",
+      "sources": [
+        "backend/src/api/store/nexus-cart/route.ts",
+        "backend/src/api/store/nexus-checkout/safeorder.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "NEXUS_PRICING_URL",
+      "sources": [
+        "backend/src/api/store/nexus-cart/route.ts",
+        "backend/src/api/store/nexus-checkout/safeorder.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "NEXUS_SAFEORDER_URL",
+      "sources": [
+        "backend/src/api/store/nexus-checkout/safeorder.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "NEXUS_TENANT_ID",
+      "sources": [
+        "backend/src/api/store/nexus-cart/route.ts",
+        "backend/src/api/store/nexus-checkout/safeorder.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "NODE_ENV",
+      "sources": [
+        "backend/medusa-config.ts",
+        "backend/src/scripts/anastasia-bootstrap.ts",
+        "backend/src/scripts/migrate-legacy-customers-orders.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "REDIS_URL",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "S3_BUCKET",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "S3_ENDPOINT",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "S3_FILE_URL",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "S3_REGION",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "SECURITY_DO",
+      "sources": [
+        "nexus/workers/api/index.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "SHOPTET_API_TOKEN",
+      "sources": [
+        "nexus/workers/api/routes/shoptetWebhook.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "SHOPTET_WEBHOOK_SIGNING_KEY",
+      "sources": [
+        "nexus/workers/api/routes/shoptetWebhook.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "STORE_CORS",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "STRIPE_API_KEY",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "STRIPE_PAYMENT_METHOD_CONFIGURATION",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "STRIPE_WEBHOOK_SECRET",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "VOUCHER_PRODUCT_CODE",
+      "sources": [
+        "nexus/workers/api/routes/shoptetWebhook.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "VOUCHER_SECURITY",
+      "sources": [
+        "nexus/workers/api/routes/voucher.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "VOUCHER_VALIDITY_MONTHS",
+      "sources": [
+        "nexus/workers/api/routes/issuance.ts"
+      ],
+      "secret_value_included": false
+    }
+  ],
+  "models": [
+    {
+      "source": "backend/src/modules/booking/models/booking-availability.ts",
+      "model": [
+        "booking_availability"
+      ],
+      "fields": [
+        "id",
+        "calendar_id",
+        "date",
+        "start_time",
+        "end_time"
+      ]
+    },
+    {
+      "source": "backend/src/modules/booking/models/booking.ts",
+      "model": [
+        "booking"
+      ],
+      "fields": [
+        "id",
+        "customer_id",
+        "product_id",
+        "calendar_id",
+        "order_id",
+        "status",
+        "starts_at",
+        "ends_at",
+        "held_until",
+        "canceled_at",
+        "cancel_reason",
+        "notes",
+        "metadata"
+      ]
+    },
+    {
+      "source": "backend/src/modules/chat/models/chat-conversation.ts",
+      "model": [
+        "chat_conversation"
+      ],
+      "fields": [
+        "id",
+        "customer_id",
+        "subject",
+        "order_id",
+        "booking_id",
+        "status",
+        "muted",
+        "closed_at",
+        "last_message_at",
+        "last_customer_message_at",
+        "last_admin_message_at",
+        "admin_last_read_at",
+        "customer_last_read_at",
+        "customer_notified_at"
+      ]
+    },
+    {
+      "source": "backend/src/modules/chat/models/chat-customer-block.ts",
+      "model": [
+        "chat_customer_block"
+      ],
+      "fields": [
+        "id",
+        "customer_id",
+        "blocked",
+        "reason",
+        "changed_by",
+        "changed_at"
+      ]
+    },
+    {
+      "source": "backend/src/modules/chat/models/chat-message.ts",
+      "model": [
+        "chat_message"
+      ],
+      "fields": [
+        "id",
+        "conversation_id",
+        "customer_id",
+        "author_type",
+        "author_id",
+        "body"
+      ]
+    },
+    {
+      "source": "backend/src/modules/chat/models/chat-notification-state.ts",
+      "model": [
+        "chat_notification_state"
+      ],
+      "fields": [
+        "id",
+        "key",
+        "last_sent_at"
+      ]
+    },
+    {
+      "source": "backend/src/modules/entitlement/models/entitlement.ts",
+      "model": [
+        "entitlement"
+      ],
+      "fields": [
+        "id",
+        "customer_id",
+        "product_id",
+        "variant_id",
+        "order_id",
+        "status",
+        "source",
+        "granted_at",
+        "expires_at",
+        "revoked_at",
+        "revoke_reason",
+        "granted_by",
+        "dedupe_key",
+        "metadata"
+      ]
+    },
+    {
+      "source": "backend/src/modules/gift-voucher/models/gift-voucher-settings.ts",
+      "model": [
+        "gift_voucher_settings"
+      ],
+      "fields": [
+        "id",
+        "key",
+        "enabled",
+        "values_minor",
+        "validity_months",
+        "scope_type",
+        "category_ids",
+        "partial_redemption",
+        "delivery_method",
+        "updated_by",
+        "metadata"
+      ]
+    },
+    {
+      "source": "backend/src/modules/gift-voucher/models/gift-voucher-transaction.ts",
+      "model": [
+        "gift_voucher_transaction"
+      ],
+      "fields": [
+        "id",
+        "voucher_id",
+        "type",
+        "amount",
+        "balance_after",
+        "cart_id",
+        "order_id",
+        "reference_id",
+        "reversed_at",
+        "idempotency_key",
+        "actor_id",
+        "note",
+        "metadata"
+      ]
+    },
+    {
+      "source": "backend/src/modules/gift-voucher/models/gift-voucher.ts",
+      "model": [
+        "gift_voucher"
+      ],
+      "fields": [
+        "id",
+        "code",
+        "code_last4",
+        "currency_code",
+        "initial_amount",
+        "balance",
+        "status",
+        "issued_at",
+        "expires_at",
+        "issue_key",
+        "source_order_id",
+        "source_variant_id",
+        "scope",
+        "partial_redemption",
+        "delivery_method",
+        "delivery_status",
+        "delivered_at",
+        "delivery_attempts",
+        "recipient_name",
+        "recipient_email",
+        "message",
+        "delivery_date",
+        "purchaser_email",
+        "voided_at",
+        "void_reason",
+        "metadata"
+      ]
+    },
+    {
+      "source": "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
+      "model": [
+        "ops_audit_entry"
+      ],
+      "fields": [
+        "id",
+        "actor_type",
+        "actor_id",
+        "action",
+        "entity_type",
+        "entity_id",
+        "changes",
+        "request_id"
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "source": "backend/src/jobs/chat-admin-digest.ts",
+      "name": [
+        "chat-admin-digest"
+      ],
+      "schedule": [
+        "*/10 * * * *"
+      ]
+    },
+    {
+      "source": "backend/src/jobs/chat-retention.ts",
+      "name": [
+        "chat-retention"
+      ],
+      "schedule": [
+        "*/10 * * * *"
+      ]
+    },
+    {
+      "source": "backend/src/jobs/gift-voucher-maintenance.ts",
+      "name": [
+        "gift-voucher-maintenance"
+      ],
+      "schedule": [
+        "17 * * * *"
+      ]
+    },
+    {
+      "source": "backend/src/jobs/gift-voucher-rate-limit-cleanup.ts",
+      "name": [
+        "gift-voucher-rate-limit-cleanup"
+      ],
+      "schedule": [
+        "*/10 * * * *"
+      ]
+    }
+  ],
+  "subscribers": [
+    {
+      "source": "backend/src/subscribers/auth-magic-link-requested.ts",
+      "events": []
+    },
+    {
+      "source": "backend/src/subscribers/booking-order-canceled.ts",
+      "events": [
+        "order.canceled"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/booking-order-placed.ts",
+      "events": [
+        "order.placed"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/booking-payment-captured.ts",
+      "events": [
+        "payment.captured"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/chat-admin-reply.ts",
+      "events": []
+    },
+    {
+      "source": "backend/src/subscribers/chat-customer-message.ts",
+      "events": []
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-order-canceled.ts",
+      "events": [
+        "order.canceled"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-order-placed.ts",
+      "events": [
+        "order.placed"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-payment-captured.ts",
+      "events": [
+        "payment.captured"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-payment-refunded.ts",
+      "events": [
+        "payment.refunded"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-issued.ts",
+      "events": []
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-order-canceled.ts",
+      "events": [
+        "order.canceled"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-order-placed.ts",
+      "events": [
+        "order.placed"
+      ]
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-payment-captured.ts",
+      "events": [
+        "payment.captured"
+      ]
+    }
+  ],
+  "log_sources": [
+    {
+      "source": "backend/src/api/admin/ops/audit/route.ts",
+      "structured_events": [
+        "audit_read_failed"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/api/admin/vouchers/settings/route.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/api/store/entitlements/route.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/api/store/media-access/route.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/api/store/nexus-checkout/route.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/jobs/chat-admin-digest.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/jobs/chat-retention.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/jobs/gift-voucher-maintenance.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/lib/observability/audit.ts",
+      "structured_events": [
+        "audit_invalid_input",
+        "audit_write_failed"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/lib/observability/log.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/modules/auth-magic-link/service.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/modules/booking/order-sync.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/modules/chat/notifier.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/modules/entitlement/order-sync.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/modules/gift-voucher/delivery.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/modules/gift-voucher/order-sync.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/scripts/anastasia-bootstrap.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/scripts/import-anastasia-catalog.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/auth-magic-link-requested.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/booking-order-canceled.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/booking-order-placed.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/booking-payment-captured.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/chat-admin-reply.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/chat-customer-message.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-order-canceled.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-order-placed.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-payment-captured.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/entitlement-payment-refunded.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-issued.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-order-canceled.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-order-placed.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "backend/src/subscribers/gift-voucher-payment-captured.ts",
+      "structured_events": [],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "nexus/workers/api/SecurityCoordinator.ts",
+      "structured_events": [
+        "security_do.alarm_schedule_failed",
+        "security_do.cleanup",
+        "security_do.cleanup_failed",
+        "security_do.cleanup_reschedule_failed",
+        "security_do.health_storage_failed",
+        "security_do.init_failed",
+        "security_do.nonce.replay_memory",
+        "security_do.nonce.replay_storage",
+        "security_do.nonce.storage_failed",
+        "security_do.nonce_cache_evicted",
+        "security_do.rate_limited",
+        "security_do.rate_windows_pruned"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "nexus/workers/api/index.ts",
+      "structured_events": [
+        "http.request",
+        "http.unhandled_error",
+        "worker.missing_bindings"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "nexus/workers/api/routes/issuance.ts",
+      "structured_events": [
+        "voucher.issue.code_collision",
+        "voucher.issue.code_collision_exhausted",
+        "voucher.issue.d1_read_failed",
+        "voucher.issue.d1_write_failed",
+        "voucher.issue.idempotent_race",
+        "voucher.issue.idempotent_replay",
+        "voucher.issue.invalid_validity_config",
+        "voucher.issue.malformed_generated_code",
+        "voucher.issue.no_voucher_lines",
+        "voucher.issue.ok",
+        "voucher.issue.reject_unpaid",
+        "voucher.issue.source_order_conflict_without_row",
+        "voucher.issue.transaction_write_failed"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "nexus/workers/api/routes/mediaDelivery.ts",
+      "structured_events": [
+        "media.deliver",
+        "media.denied"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "nexus/workers/api/routes/medusaWebhook.ts",
+      "structured_events": [
+        "medusa.customer_created.processed",
+        "medusa.order_placed.processed",
+        "medusa.webhook_async_failed",
+        "webhook.medusa.duplicate_skipped",
+        "webhook.medusa.received"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "nexus/workers/api/routes/shoptetWebhook.ts",
+      "structured_events": [
+        "webhook.accepted",
+        "webhook.audit.discounts_read",
+        "webhook.audit.token_missing",
+        "webhook.forward_token_invalid",
+        "webhook.forward_token_missing",
+        "webhook.ignored_event",
+        "webhook.malformed_body",
+        "webhook.order_event.missing_instance",
+        "webhook.processing_failed",
+        "webhook.signature_invalid",
+        "webhook.signing_key_missing",
+        "webhook.voucher.product_code_missing",
+        "webhook.voucher.purchase_detected",
+        "webhook.voucher.units_unreadable"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    },
+    {
+      "source": "nexus/workers/api/routes/voucher.ts",
+      "structured_events": [
+        "voucher.audit.hold_write_failed",
+        "voucher.d1.consume_failed",
+        "voucher.d1.read_failed",
+        "voucher.nonce.binding_missing",
+        "voucher.nonce.reserve_failed",
+        "voucher.ratelimit.check_failed",
+        "voucher.redeem.compensation_failed",
+        "voucher.redeem.compensation_missed",
+        "voucher.redeem.conflict",
+        "voucher.redeem.fingerprint_mismatch",
+        "voucher.redeem.hold_amount_mismatch",
+        "voucher.redeem.idempotent_replay",
+        "voucher.redeem.not_applicable",
+        "voucher.redeem.ok",
+        "voucher.redeem.reject_expired",
+        "voucher.redeem.reject_replay",
+        "voucher.redeem.reject_signature",
+        "voucher.redeem.transaction_write_failed",
+        "voucher.redeem.version_conflict",
+        "voucher.redeem.voucher_not_found",
+        "voucher.validate.malformed_code",
+        "voucher.validate.not_applicable",
+        "voucher.validate.not_found",
+        "voucher.validate.ok",
+        "voucher.validate.rate_limited"
+      ],
+      "persistence": "stdout unless explicitly persisted by domain/audit service"
+    }
+  ]
+}
