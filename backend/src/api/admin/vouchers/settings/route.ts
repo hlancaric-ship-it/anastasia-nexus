@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { fromMinor, parseSettingsInput, type GiftVoucherSettings } from "../../../../modules/gift-voucher/policy"
 import { syncGiftVoucherProduct } from "../../../../modules/gift-voucher/product-sync"
 import { requireAdmin, vouchersService } from "../shared"
+import { auditAdminChange } from "../../../../lib/observability/audit"
 
 /** Nastavenie v eurách pre admin (v DB centy). */
 export function settingsResponse(settings: GiftVoucherSettings) {
@@ -33,6 +34,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
   try {
     const settings = await vouchersService(req).saveSettings(parsed.value, actorId)
+    // Persist the applied snapshot even when subsequent product synchronization fails.
+    await auditAdminChange(req, "gift_voucher.settings.update", "gift_voucher_settings", "default", null, { ...settings })
     let product: Awaited<ReturnType<typeof syncGiftVoucherProduct>> | null = null
     try {
       product = await syncGiftVoucherProduct(req.scope, settings)
