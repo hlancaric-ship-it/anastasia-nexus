@@ -1,5 +1,5 @@
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
-import { capturePaymentWorkflow, cancelOrderWorkflow } from "@medusajs/medusa/core-flows"
+import { capturePaymentWorkflow, cancelOrderWorkflow, createProductsWorkflow } from "@medusajs/medusa/core-flows"
 import { GIFT_VOUCHER_MODULE } from "../../src/modules/gift-voucher"
 import { issueVouchersForOrder } from "../../src/modules/gift-voucher/order-sync"
 import { DEFAULT_SETTINGS } from "../../src/modules/gift-voucher/policy"
@@ -8,16 +8,19 @@ import { DEFAULT_SETTINGS } from "../../src/modules/gift-voucher/policy"
  * K8 dárkový poukaz – reálné HTTP + PostgreSQL scénáře. Volá je jen chráněný syntetický
  * runner (scripts/verify-safeorder-local.py). JWT jsou lokální fixtures, data syntetická.
  */
-export async function verifyGiftVoucherHttp({ api, container, options, product, region, profile, countOrders, dbConnection, evidence }: any) {
+export async function verifyGiftVoucherHttp({ api, container, options, channel, region, profile, countOrders, dbConnection, evidence }: any) {
   const vouchers = container.resolve(GIFT_VOUCHER_MODULE)
   const query = container.resolve("query")
   const [admin] = await container.resolve(Modules.USER).createUsers([{ email: "gift-voucher-admin@example.test" }])
   const adminToken = generateJwtToken({ actor_id: admin.id, actor_type: "user", auth_identity_id: `synthetic-${admin.id}` }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
   const adminOpts = { ...options, headers: { ...options.headers, Authorization: `Bearer ${adminToken}` } }
-  // Booking scénář (běží dřív) nastaví sdílenému produktu povinnou rezervaci; K8 potřebuje běžné zboží.
-  const products = container.resolve(Modules.PRODUCT)
-  const originalMetadata = (await products.retrieveProduct(product.id)).metadata ?? null
-  if (originalMetadata?.booking) await products.updateProducts(product.id, { metadata: { ...originalMetadata, booking: "" } })
+  // Vlastní zboží bez rezervace: booking scénáře mohou svůj produkt dál používat.
+  const { result: [product] } = await createProductsWorkflow(container).run({ input: { products: [{
+    title: "Synthetic K8 goods", handle: "synthetic-k8-goods", status: "published", shipping_profile_id: profile.id,
+    sales_channels: [{ id: channel.id }], options: [{ title: "Default", values: ["Default"] }],
+    variants: [{ title: "Default", sku: "SYNTHETIC-K8-GOODS", manage_inventory: false, options: { Default: "Default" }, prices: [{ amount: 50, currency_code: "eur" }] }],
+  }] } })
+  expect((await container.resolve(Modules.PRODUCT).retrieveProduct(product.id)).metadata?.booking).toBeFalsy()
   const ok = async (promise: Promise<any>, status = 200) => {
     const response = await promise
     if (response.status !== status) throw new Error(`HTTP ${response.status} != ${status}: ${JSON.stringify(response.data).slice(0, 400)}`)
@@ -231,5 +234,4 @@ export async function verifyGiftVoucherHttp({ api, container, options, product, 
   for (const voucher of [big, small, exact, single]) expect(serialized).not.toContain(voucher.code)
   expect(list.vouchers.find((v: any) => v.id === toVoid.id)).toMatchObject({ status: "void", balance: 0 })
   evidence.push({ scenario: "K8_ADMIN_LIST_MASKED", count: list.count })
-  if (originalMetadata?.booking) await products.updateProducts(product.id, { metadata: originalMetadata })
 }

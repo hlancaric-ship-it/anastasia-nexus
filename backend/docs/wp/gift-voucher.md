@@ -112,6 +112,12 @@ Pořadí doručení:
 
 Stav: **VERIFIED lokálně** (syntetická data, bez nasazení). Výsledky běhů jsou v sekci Výsledky níže.
 
+### Oprava izolace HTTP testů (14. 10. 2026)
+
+K8 vytváří vlastní produkt `synthetic-k8-goods` bez rezervace (50 EUR, stejný prodejní kanál a shipping profil). Nesdílí produkt s booking scénáři ani nepřepisuje jejich metadata. Kód poukazu a Python runner zůstaly beze změny.
+
+Ověřeno po opravě: plný `python3 backend/scripts/verify-safeorder-local.py` (bez přepínačů, lokální Medusa + nový syntetický PostgreSQL) PASS; `npm run test:unit` v `backend/` 305/305 PASS; `npx tsc --noEmit` PASS. Důkaz plného běhu: `/var/folders/l5/pzrmlcfd0wqchdb6_m1qmnnm0000gn/T/wave1-safeorder-fxz47cf2/medusa-persistence-evidence.json`.
+
 ## Rizika a otevřené body
 
 - **DPH:** poukaz je dnes produkt s cenou v EUR. Zda jde o jednoúčelový, nebo víceúčelový poukaz (moment zdanění), musí potvrdit účetní, protože rozsah `all` přes různé sazby DPH je typicky víceúčelový.
