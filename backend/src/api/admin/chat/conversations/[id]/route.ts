@@ -4,6 +4,7 @@ import type { ChatConversationRow } from "../../../../../modules/chat/service"
 import { ConversationNotFoundError } from "../../../../../modules/chat/service"
 import { chatService, conversationActionSchema, parseBody, requireActor, sendChatError } from "../../../../chat-helpers"
 import { loadCustomers } from "../../helpers"
+import { auditAdminChange } from "../../../../../lib/observability/audit"
 
 async function detail(req: AuthenticatedMedusaRequest, conversation: ChatConversationRow) {
   const chat = chatService(req)
@@ -42,6 +43,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   if (!input) return
   try {
     const updated = await chatService(req).applyConversationAction(req.params.id, input.action)
+    await auditAdminChange(req, `chat_conversation.${input.action}`, "chat_conversation", req.params.id, null, { action: input.action })
     return res.status(200).json(await detail(req, updated))
   } catch (error) {
     return sendChatError(req, res, error, "POST /admin/chat/conversations/:id")

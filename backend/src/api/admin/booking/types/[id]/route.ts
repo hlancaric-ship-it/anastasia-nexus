@@ -2,6 +2,7 @@ import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/frame
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { updateProductsWorkflow, updateProductVariantsWorkflow } from "@medusajs/medusa/core-flows"
 import { bookingMeta, requireAdmin, retrieveTypeProduct, toTypeDTO, updateTypeSchema, zodMessage } from "../helpers"
+import { auditAdminChange } from "../../../../../lib/observability/audit"
 
 /** GET /admin/booking/types/:id */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -58,7 +59,9 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       },
     }] } })
     const updated = await retrieveTypeProduct(req.scope, product.id)
-    return res.json({ type: toTypeDTO(updated) })
+    const dto = toTypeDTO(updated)
+    await auditAdminChange(req, "booking_type.update", "booking_type", product.id, toTypeDTO(product) as unknown as Record<string, unknown>, dto as unknown as Record<string, unknown>)
+    return res.json({ type: dto })
   } catch (error) {
     req.scope.resolve(ContainerRegistrationKeys.LOGGER).error("POST /admin/booking/types/:id selhalo", error as Error)
     return res.status(500).json({ message: "Typ konzultace se nepodařilo uložit." })

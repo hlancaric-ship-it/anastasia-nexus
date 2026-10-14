@@ -4,6 +4,7 @@ import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../nexus-cart/route"
 import { SafeOrderError } from "./safeorder"
 import { giftVoucherHttpError } from "../gift-vouchers/errors"
+import { recordEvent } from "../../../lib/observability/events"
 
 /** Revalidate with NEXUS, then let Medusa's normal workflow create the order. */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
@@ -15,6 +16,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
     const pricing = await repriceCart(cartId, req.scope)
     if (pricing.pricesChanged) {
+      await recordEvent(req.scope, "warn", "checkout", "price_changed", { cart_id: cartId })
       return res.status(409).json({
         ok: false,
         error: "PRICE_CHANGED_PAYMENT_REINITIALIZATION_REQUIRED",
@@ -35,6 +37,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     if (!order) throw new Error("ORDER_NOT_FOUND_AFTER_COMPLETION")
     const payment = order.payment_collections?.flatMap((collection: any) => collection.payments || []) || []
     const isPaid = payment.some((entry: any) => entry?.captured_at || entry?.status === "captured")
+    await recordEvent(req.scope, "info", "checkout", "completed", { cart_id: cartId, order_id: order.id, paid: isPaid, currency_code: order.currency_code })
     return res.status(200).json({
       ok: true,
       order,
@@ -50,17 +53,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const safeOrderCode = error instanceof SafeOrderError ? error.code : workflowMessage
     if (["SAFEORDER_UNAVAILABLE", "SAFEORDER_NOT_CONFIGURED", "SAFEORDER_REVIEW_REQUIRED", "SAFEORDER_BLOCKED"].includes(safeOrderCode)) {
       const status = safeOrderCode === "SAFEORDER_UNAVAILABLE" || safeOrderCode === "SAFEORDER_NOT_CONFIGURED" ? 503 : safeOrderCode === "SAFEORDER_REVIEW_REQUIRED" ? 409 : 403
-      req.scope.resolve(ContainerRegistrationKeys.LOGGER).warn(`SafeOrder ${safeOrderCode}`)
+      await recordEvent(req.scope, "warn", "safeorder", safeOrderCode.toLowerCase(), { cart_id: cartId, http_status: status })
       return res.status(status).json({ ok: false, error: safeOrderCode })
     }
     const voucherError = giftVoucherHttpError(workflowMessage)
     if (voucherError) {
-      req.scope.resolve(ContainerRegistrationKeys.LOGGER).warn(`Gift voucher checkout ${voucherError.body.error}`)
+      await recordEvent(req.scope, "warn", "gift_voucher", "checkout_rejected", { cart_id: cartId, error_code: voucherError.body.error })
       return res.status(voucherError.status).json(voucherError.body)
     }
     const message = error instanceof Error ? error.message : workflowMessage
-    const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
-    logger.error("NEXUS checkout failed", new Error(message))
+    // do logu jen kód chyby, nikdy libovolná zpráva nebo payload
+    await recordEvent(req.scope, "error", "checkout", "failed", { cart_id: cartId, error_code: /^[A-Z][A-Z0-9_]{2,63}$/.test(message) ? message : "CHECKOUT_FAILED" })
     if (message === "NEXUS_PRICE_MISMATCH") {
       return res.status(409).json({ ok: false, error: message, message: "Cena košíku se změnila během checkoutu. Přepočítejte košík a znovu vytvořte platební relaci." })
     }

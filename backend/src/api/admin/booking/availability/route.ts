@@ -6,6 +6,7 @@ import { AvailabilityConflictError, type CalendarBookingRow } from "../../../../
 import type BookingModuleService from "../../../../modules/booking/service"
 import { addDays, zonedToUtc } from "../../../../modules/booking/slots"
 import { requireAdmin } from "../types/helpers"
+import { auditAdminChange } from "../../../../lib/observability/audit"
 
 type Scope = AuthenticatedMedusaRequest["scope"]
 
@@ -86,6 +87,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   try {
     const service = req.scope.resolve(BOOKING_MODULE) as BookingModuleService
     await service.replaceWeekAvailability(parsed.value)
+    await auditAdminChange(req, "booking_availability.set_week", "booking_week", parsed.value.week_start, null, { days: parsed.value.days })
     return res.json(await weekView(req.scope, parsed.value.week_start))
   } catch (error) {
     if (error instanceof AvailabilityConflictError) {

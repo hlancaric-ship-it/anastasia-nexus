@@ -1,6 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { attachRedemptionsToOrder, issueVouchersForOrder } from "../modules/gift-voucher/order-sync"
+import { recordEvent } from "../lib/observability/events"
 
 /**
  * order.placed: (1) čerpání poukazu z košíku se priradí k objednávke (podklad pre vratky),
@@ -8,13 +8,12 @@ import { attachRedemptionsToOrder, issueVouchersForOrder } from "../modules/gift
  * Nezaplatenú objednávku dorieši payment.captured.
  */
 export default async function giftVoucherOrderPlacedHandler({ event, container }: SubscriberArgs<{ id: string }>) {
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   try {
     await attachRedemptionsToOrder(container, event.data.id)
     const result = await issueVouchersForOrder(container, event.data.id)
-    if (result.rejected.length) logger.warn(`[gift-voucher] order.placed ${event.data.id}: ${result.rejected.length} riadkov odmietnutých`)
+    if (result.rejected.length) await recordEvent(container, "warn", "gift_voucher", "issue_rejected_lines", { order_id: event.data.id, rejected: result.rejected.length })
   } catch (error) {
-    logger.error(`[gift-voucher] order.placed ${event.data.id} selhalo`, error as Error)
+    await recordEvent(container, "error", "gift_voucher", "order_placed_sync_failed", { order_id: event.data.id, error })
     throw error // event bus zopakuje; vystavenie je idempotentné (issue_key)
   }
 }

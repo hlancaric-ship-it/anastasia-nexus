@@ -1,0 +1,56 @@
+import { generateJwtToken, Modules } from "@medusajs/framework/utils"
+
+/**
+ * Pozorovatelnost přes skutečné HTTP: x-request-id korelace, trvalé provozní události
+ * (GET /admin/ops/events) a trvalý audit admin změn (GET /admin/ops/audit). Jen syntetická data.
+ */
+export async function verifyOpsObservability({ api, container, options, evidence, bookingRan }: any) {
+  const [user] = await container.resolve(Modules.USER).createUsers([{ email: "ops-admin@example.test" }])
+  const token = generateJwtToken({ actor_id: user.id, actor_type: "user", auth_identity_id: `synthetic-${user.id}`, app_metadata: { user_id: user.id } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
+  const admin = { ...options, headers: { Authorization: `Bearer ${token}` } }
+
+  // Admin čtení logů jen pro správce.
+  expect((await api.get("/admin/ops/events", options)).status).toBe(401)
+  expect((await api.get("/admin/ops/audit", options)).status).toBe(401)
+  expect((await api.get("/admin/ops/events?domain=neexistuje", admin)).status).toBe(400)
+  expect((await api.get("/admin/ops/events?from=2026-01-01&to=2026-10-01", admin)).status).toBe(400)
+
+  // Korelace: bezpečné příchozí ID se vrátí, nebezpečné se nahradí novým.
+  const requestId = `ops-verify-${Date.now()}`
+  const failed = await api.post("/store/nexus-checkout", { cart_id: "cart_synthetic_missing" }, { ...options, headers: { ...options.headers, "x-request-id": requestId } })
+  expect(failed.status).toBeGreaterThanOrEqual(400)
+  expect(failed.headers["x-request-id"]).toBe(requestId)
+  const unsafe = await api.get("/admin/ops/events?limit=1", { ...admin, headers: { ...admin.headers, "x-request-id": "bad id <script>" } })
+  expect(unsafe.headers["x-request-id"]).toMatch(/^[0-9a-f-]{36}$/)
+
+  // Neúspěšný checkout je dohledatelný podle request_id i košíku; v polích nejsou osobní údaje.
+  const byRequest = await api.get(`/admin/ops/events?request_id=${requestId}`, admin)
+  expect(byRequest.status).toBe(200)
+  expect(byRequest.headers["cache-control"]).toBe("no-store")
+  expect(byRequest.data.count).toBeGreaterThanOrEqual(1)
+  const failure = byRequest.data.events.find((row: any) => row.domain === "checkout" && row.event === "failed")
+  expect(failure).toMatchObject({ level: "error", cart_id: "cart_synthetic_missing", request_id: requestId })
+  expect(JSON.stringify(byRequest.data)).not.toMatch(/@example\.test/)
+  const byCart = await api.get("/admin/ops/events?cart_id=cart_synthetic_missing&domain=checkout&level=error", admin)
+  expect(byCart.data.events.every((row: any) => row.cart_id === "cart_synthetic_missing" && row.level === "error")).toBe(true)
+
+  // Úspěšné nákupy a zpracování objednávek z předchozích kroků se zapsaly jako trvalé události.
+  const completed = await api.get("/admin/ops/events?domain=checkout&event=completed&limit=5", admin)
+  expect(completed.data.count).toBeGreaterThanOrEqual(1)
+  expect(completed.data.events[0].order_id).toMatch(/^order_/)
+  const window = await api.get(`/admin/ops/events?from=${new Date(Date.now() - 3_600_000).toISOString()}&to=${new Date(Date.now() + 60_000).toISOString()}&limit=100`, admin)
+  expect(window.data.count).toBeGreaterThanOrEqual(completed.data.count)
+
+  const auditSummary: Record<string, number> = {}
+  if (bookingRan) {
+    // Změny nastavení z admin kroků (typ konzultace, týden dostupnosti, chat) jsou v trvalém auditu s aktérem a diffem.
+    for (const action of ["booking_type.create", "booking_type.update", "booking_availability.set_week", "chat_conversation.close", "chat_customer.block"]) {
+      const page = await api.get(`/admin/ops/audit?action=${action}`, admin)
+      expect(page.status).toBe(200)
+      expect(page.data.count).toBeGreaterThanOrEqual(1)
+      expect(page.data.entries[0].actor_type).toBe("user")
+      auditSummary[action] = page.data.count
+    }
+  }
+  evidence.push({ endpoint: "/admin/ops/*", scenario: "OPS_OBSERVABILITY", requestIdEcho: true, failedCheckoutCorrelated: true, completedEvents: completed.data.count, audit: auditSummary })
+}

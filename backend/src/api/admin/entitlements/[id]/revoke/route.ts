@@ -2,6 +2,7 @@ import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/frame
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { ENTITLEMENT_MODULE } from "../../../../../modules/entitlement"
 import type EntitlementModuleService from "../../../../../modules/entitlement/service"
+import { auditAdminChange } from "../../../../../lib/observability/audit"
 
 /** POST /admin/entitlements/:id/revoke  { reason? } */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -12,6 +13,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   try {
     const service = req.scope.resolve(ENTITLEMENT_MODULE) as EntitlementModuleService
     const entitlement = await service.revoke(id, reason)
+    await auditAdminChange(req, "entitlement.revoke", "entitlement", id, null, { status: (entitlement as { status?: string })?.status ?? "revoked", reason })
     return res.status(200).json({ entitlement })
   } catch (error) {
     if (error instanceof MedusaError && error.type === MedusaError.Types.NOT_FOUND) {
