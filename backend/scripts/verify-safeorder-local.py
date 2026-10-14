@@ -13,6 +13,7 @@ import time
 repo = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--booking-only', action='store_true', help='Run booking HTTP checks with the same isolated infrastructure')
+parser.add_argument('--gift-voucher-only', action='store_true', help='Run only the K8 gift voucher HTTP checks with the same isolated infrastructure')
 args = parser.parse_args()
 backend = repo / 'backend'
 evidence_out = os.environ.get('WAVE1_EVIDENCE_OUT')
@@ -24,6 +25,7 @@ if evidence_out:
 env = {k: os.environ[k] for k in ('PATH', 'TMPDIR', 'LANG', 'HOME', 'USER', 'LOGNAME') if k in os.environ}
 env.update({'NODE_ENV': 'test', 'MEDUSA_TELEMETRY_DISABLED': 'true', 'NO_COLOR': '1'})
 env['WAVE1_BOOKING_ONLY'] = '1' if args.booking_only else '0'
+env['WAVE1_GIFT_VOUCHER_ONLY'] = '1' if args.gift_voucher_only else '0'
 for name in ('initdb', 'pg_ctl', 'node'):
     if not shutil.which(name, path=env.get('PATH')):
         raise SystemExit(f'Missing local prerequisite: {name}')

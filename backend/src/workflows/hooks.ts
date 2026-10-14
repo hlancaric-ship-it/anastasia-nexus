@@ -19,11 +19,16 @@ import { assertSafeOrderAllows, SafeOrderError } from "../api/store/nexus-checko
 import { repriceCart } from "../api/store/nexus-cart/route"
 import { claimCartBooking } from "./booking-checkout"
 import type BookingModuleService from "../modules/booking/service"
+import { GIFT_VOUCHER_MODULE } from "../modules/gift-voucher"
+import { giftVoucherCreditLines } from "../modules/gift-voucher/cart"
+import type GiftVoucherModuleService from "../modules/gift-voucher/service"
+import { prepareGiftVoucherCheckout } from "./gift-voucher-checkout"
 
 type CheckoutCompensation = {
     bookingClaim?: Awaited<ReturnType<typeof claimCartBooking>>
     computedActions?: Array<{ code: string; amount: number }>
     registrationContext?: { customer_id: string | null; customer_email: string | null }
+    giftVoucherRedemption?: string
 }
 
 addToCartWorkflow.hooks.setPricingContext(async () => {
@@ -37,9 +42,12 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
     // This is the locked snapshot Medusa uses to create the order, not a later query.
     const cart = snapshot as any
     const total = amountValue(cart?.total)
+    // Košík celý uhrazený poukazem: Medusa platbu přeskočí (total 0, kredit ≥ 0), SafeOrder
+    // nemá co posoudit. Výše kreditu se ověří níž proti zůstatku a způsobilé částce.
+    const coveredByVoucher = !!cart && total === 0 && giftVoucherCreditLines(cart).length > 0
     const collectionAmount = amountValue(cart?.payment_collection?.amount)
     const sessions = cart?.payment_collection?.payment_sessions || []
-    if (!cart || cart.currency_code !== cart.payment_collection?.currency_code || !Number.isFinite(total) || !Number.isFinite(collectionAmount) || Math.abs(total - collectionAmount) > 0.000001 || sessions.some((session: any) => !Number.isFinite(amountValue(session.amount)) || session.currency_code !== cart.currency_code || Math.abs(amountValue(session.amount) - total) > 0.000001)) {
+    if (!coveredByVoucher && (!cart || cart.currency_code !== cart.payment_collection?.currency_code || !Number.isFinite(total) || !Number.isFinite(collectionAmount) || Math.abs(total - collectionAmount) > 0.000001 || sessions.some((session: any) => !Number.isFinite(amountValue(session.amount)) || session.currency_code !== cart.currency_code || Math.abs(amountValue(session.amount) - total) > 0.000001))) {
         throw new Error("MEDUSA_PAYMENT_AMOUNT_MISMATCH")
     }
     const result = await repriceCart(input.id, container as any, false)
@@ -47,39 +55,65 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
         const line = cart.items.find((line: any) => line.id === item.id)
         return !line || amountValue(line.unit_price) !== item.unit_price || line.quantity !== item.quantity
     })) throw new Error("NEXUS_PRICE_MISMATCH")
-    const processable = sessions.filter((session: any) => ["pending", "requires_more", "authorized", "captured", "pending_authorization"].includes(session.status))
-    if (!processable.length || cart.currency_code !== "eur") throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
-    // Check every processable provider: a benign first session must not hide a COD session.
-    for (const session of processable) {
-        await assertSafeOrderAllows({ orderSum: total, paymentMethod: session.provider_id, customerEmail: cart.email })
+    if (cart.currency_code !== "eur") throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
+    if (!coveredByVoucher) {
+        const processable = sessions.filter((session: any) => ["pending", "requires_more", "authorized", "captured", "pending_authorization"].includes(session.status))
+        if (!processable.length) throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
+        // Check every processable provider: a benign first session must not hide a COD session.
+        for (const session of processable) {
+            await assertSafeOrderAllows({ orderSum: total, paymentMethod: session.provider_id, customerEmail: cart.email })
+        }
     }
     // All providers must ALLOW before consuming the coupon. Medusa owns the
     // transaction/row locks; let a rejected registration abort this workflow.
     if (cart.completed_at) return
-    const bookingClaim = await claimCartBooking(cart, container)
+    // Poukazy se ověří ještě před jakoukoli rezervací (nic se nespotřebuje).
+    const giftVoucher = await prepareGiftVoucherCheckout(cart, container)
+    const compensation: CheckoutCompensation = {}
+    compensation.bookingClaim = await claimCartBooking(cart, container) ?? undefined
     try {
         const coupon = cart.metadata?.nexus_coupon
-        if (!coupon) return bookingClaim ? new StepResponse(undefined, { bookingClaim }) : undefined
-        if (typeof coupon.code !== "string" || !coupon.code.trim()) throw new Error("COUPON_INVALID")
-        const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
-        const computedActions = [{ code: coupon.code, amount: 1 }]
-        const registrationContext = { customer_id: cart.customer?.id || null, customer_email: cart.email || null }
-        await promotions.registerUsage(computedActions, registrationContext)
-        return new StepResponse(undefined, { computedActions, registrationContext, bookingClaim })
+        if (coupon) {
+            if (typeof coupon.code !== "string" || !coupon.code.trim()) throw new Error("COUPON_INVALID")
+            const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
+            const computedActions = [{ code: coupon.code, amount: 1 }]
+            const registrationContext = { customer_id: cart.customer?.id || null, customer_email: cart.email || null }
+            await promotions.registerUsage(computedActions, registrationContext)
+            compensation.computedActions = computedActions
+            compensation.registrationContext = registrationContext
+        }
+        if (giftVoucher?.redeem) {
+            // Atomické čerpání (zámek řádku poukazu); případné selhání objednávky ho vrátí kompenzací.
+            const redemption = await container.resolve<GiftVoucherModuleService>(GIFT_VOUCHER_MODULE).redeem(giftVoucher.redeem)
+            compensation.giftVoucherRedemption = redemption.transaction_id
+        }
+        if (!compensation.bookingClaim && !compensation.computedActions && !compensation.giftVoucherRedemption) return undefined
+        return new StepResponse(undefined, compensation)
     } catch (error) {
-        if (bookingClaim) await container.resolve<BookingModuleService>("booking").releaseCheckoutClaim(bookingClaim)
+        // Při výjimce Medusa kompenzaci tohoto hooku nevolá – vrátit ručně, co se už stihlo.
+        await rollbackCheckout(compensation, container)
         throw error
     }
 }, async (usage, { container }) => {
     // Match Medusa's own register-usage step: a later payment/order failure
     // returns only the usage successfully registered by this hook.
     if (!usage) return
-    if (usage.computedActions) {
-        const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
-        await promotions.revertUsage(usage.computedActions, usage.registrationContext!)
-    }
-    if (usage.bookingClaim) await container.resolve<BookingModuleService>("booking").releaseCheckoutClaim(usage.bookingClaim)
+    await rollbackCheckout(usage, container, true)
 })
+
+async function rollbackCheckout(usage: CheckoutCompensation, container: { resolve: <T = any>(key: string) => T }, rethrow = false) {
+    const failures: unknown[] = []
+    const attempt = async (fn: () => Promise<unknown>) => {
+        try { await fn() } catch (error) { failures.push(error) }
+    }
+    if (usage.giftVoucherRedemption) await attempt(() => container.resolve<GiftVoucherModuleService>(GIFT_VOUCHER_MODULE).reverseRedemption(usage.giftVoucherRedemption!))
+    if (usage.computedActions) {
+        await attempt(() => container.resolve<IPromotionModuleService>(Modules.PROMOTION).revertUsage(usage.computedActions!, usage.registrationContext!))
+    }
+    if (usage.bookingClaim) await attempt(() => container.resolve<BookingModuleService>("booking").releaseCheckoutClaim(usage.bookingClaim!))
+    // V kompenzaci se chyba propaguje (Medusa ji zaznamená); v hooku má přednost původní chyba.
+    if (rethrow && failures.length) throw failures[0]
+}
 
 function amountValue(value: any): number {
     const numeric = typeof value === "object" && value !== null ? value.numeric ?? value.value : value

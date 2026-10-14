@@ -1,4 +1,5 @@
 import { verifyBookingHttp } from "./booking-http-checks"
+import { verifyGiftVoucherHttp } from "./gift-voucher-http-checks"
 import { existsSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { Server } from "node:net"
@@ -89,7 +90,8 @@ medusaIntegrationTestRunner({
         expect(response.status).toBe(200)
       }
       const evidence: any[] = []
-      const endpoints = process.env.WAVE1_BOOKING_ONLY === "1" ? [] : ["standard", "custom"] as const
+      const giftVoucherOnly = process.env.WAVE1_GIFT_VOUCHER_ONLY === "1"
+      const endpoints = process.env.WAVE1_BOOKING_ONLY === "1" || giftVoucherOnly ? [] : ["standard", "custom"] as const
       for (const endpoint of endpoints) {
         for (const scenario of ["unauthorized", "unavailable", "malformed", "REVIEW", "BLOCK", "pricing-redirect", "pricing-malformed", "pricing-tenant", "pricing-change"] as const) {
           await control("normal")
@@ -188,7 +190,8 @@ medusaIntegrationTestRunner({
         expect(Number(order.items[0].unit_price)).toBe(45)
         evidence.push({ endpoint, scenario: "C3_CONCURRENT_SINGLE_USE", statuses: responses!.map(r => r.status), orderDelta: 1, used: 1, unitPrice: 45 })
       }
-      await verifyBookingHttp({ api, container, options, newCart, product: products[0], countOrders, evidence })
+      if (!giftVoucherOnly) await verifyBookingHttp({ api, container, options, newCart, product: products[0], countOrders, evidence })
+      if (process.env.WAVE1_BOOKING_ONLY !== "1") await verifyGiftVoucherHttp({ api, container, options, product: products[0], region, profile, countOrders, dbConnection, evidence })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
   },

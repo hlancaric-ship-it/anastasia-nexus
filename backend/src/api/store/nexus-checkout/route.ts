@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../nexus-cart/route"
 import { SafeOrderError } from "./safeorder"
+import { giftVoucherHttpError } from "../gift-vouchers/errors"
 
 /** Revalidate with NEXUS, then let Medusa's normal workflow create the order. */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
@@ -51,6 +52,11 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       const status = safeOrderCode === "SAFEORDER_UNAVAILABLE" || safeOrderCode === "SAFEORDER_NOT_CONFIGURED" ? 503 : safeOrderCode === "SAFEORDER_REVIEW_REQUIRED" ? 409 : 403
       req.scope.resolve(ContainerRegistrationKeys.LOGGER).warn(`SafeOrder ${safeOrderCode}`)
       return res.status(status).json({ ok: false, error: safeOrderCode })
+    }
+    const voucherError = giftVoucherHttpError(workflowMessage)
+    if (voucherError) {
+      req.scope.resolve(ContainerRegistrationKeys.LOGGER).warn(`Gift voucher checkout ${voucherError.body.error}`)
+      return res.status(voucherError.status).json(voucherError.body)
     }
     const message = error instanceof Error ? error.message : workflowMessage
     const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
