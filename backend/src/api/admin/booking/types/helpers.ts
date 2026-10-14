@@ -5,19 +5,23 @@ import { CONSULTATION_FORMS, type BookingProductMeta } from "../../../../modules
 
 const twoDecimals = (n: number) => Math.abs(Math.round(n * 100) - n * 100) < 1e-6
 
+// Hlášky čte Lucia v adminu: česky i u chybného typu hodnoty (prázdné pole, text místo čísla).
 const fields = {
-  title: z.string().trim().min(2, "Název musí mít aspoň 2 znaky").max(120, "Název může mít nejvýš 120 znaků"),
-  description: z.string().trim().max(2000, "Popis může mít nejvýš 2000 znaků"),
-  duration_minutes: z.number().int().min(15, "Délka nejméně 15 minut").max(480, "Délka nejvýš 8 hodin")
+  title: z.string({ error: "Vyplňte název" }).trim().min(2, "Název musí mít aspoň 2 znaky").max(120, "Název může mít nejvýš 120 znaků"),
+  description: z.string({ error: "Popis musí být text" }).trim().max(2000, "Popis může mít nejvýš 2000 znaků"),
+  duration_minutes: z.number({ error: "Délka musí být číslo v minutách" }).int("Délka musí být celé číslo minut")
+    .min(15, "Délka nejméně 15 minut").max(480, "Délka nejvýš 8 hodin")
     .refine((n) => n % 5 === 0, "Délka musí být násobek 5 minut"),
-  buffer_minutes: z.number().int().min(0).max(240, "Pauza nejvýš 240 minut"),
-  price_eur: z.number().min(0, "Cena nesmí být záporná").max(100000).refine(twoDecimals, "Cena může mít nejvýš 2 desetinná místa"),
-  form: z.enum(CONSULTATION_FORMS),
-  active: z.boolean(),
+  buffer_minutes: z.number({ error: "Pauza musí být číslo v minutách" }).int("Pauza musí být celé číslo minut")
+    .min(0, "Pauza nesmí být záporná").max(240, "Pauza nejvýš 240 minut"),
+  price_eur: z.number({ error: "Cena musí být číslo v eurech" }).min(0, "Cena nesmí být záporná").max(100000, "Cena nejvýš 100 000 €")
+    .refine(twoDecimals, "Cena může mít nejvýš 2 desetinná místa"),
+  form: z.enum(CONSULTATION_FORMS, { error: "Zvolte formu: online nebo osobně" }),
+  active: z.boolean({ error: "Pole „aktivní“ musí být ano/ne" }),
 }
 
-export const createTypeSchema = z.object({ ...fields, description: fields.description.default("") }).strict()
-export const updateTypeSchema = z.object({ ...fields, archived: z.boolean() }).partial().strict()
+export const createTypeSchema = z.object({ ...fields, description: fields.description.default("") }, { error: "Neplatná data formuláře" }).strict()
+export const updateTypeSchema = z.object({ ...fields, archived: z.boolean({ error: "Pole „archiv“ musí být ano/ne" }) }, { error: "Neplatná data formuláře" }).partial().strict()
   .refine((v) => Object.keys(v).length > 0, "Není co uložit")
 
 export type CreateTypeInput = z.infer<typeof createTypeSchema>
