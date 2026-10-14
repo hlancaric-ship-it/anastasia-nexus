@@ -2,6 +2,7 @@ import { ContainerRegistrationKeys, generateJwtToken, Modules } from "@medusajs/
 import { capturePaymentWorkflow, cancelOrderWorkflow } from "@medusajs/medusa/core-flows"
 import { confirmBookingForOrder } from "../../src/modules/booking/order-sync"
 import { mondayOf, weekDates } from "../../src/modules/booking/availability"
+import { verifyChatHttp } from "./chat-http-checks"
 
 /** Called only by the guarded synthetic Medusa/Postgres runner. JWTs are local fixtures. */
 export async function verifyBookingHttp({ api, container, options, newCart, product, countOrders, evidence }: any) {
@@ -133,7 +134,8 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
     evidence.push({ scenario: "K9_EXPIRED_HOLD", endpoint, status: response.status, orderDelta: 0 })
   }
 
-  await verifySharedCalendarAdmin({ api, container, options, opts, product, raceHolds, evidence })
+  const { admin } = await verifySharedCalendarAdmin({ api, container, options, opts, product, raceHolds, evidence })
+  await verifyChatHttp({ api, container, options, admin, evidence })
 }
 
 /**
