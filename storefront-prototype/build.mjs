@@ -6,6 +6,11 @@ import {chrome,homeSections,aboutSections,dcCss,ROOT_STYLE,HELMET_CSS} from './s
 import {api} from './src/lib/api/index.mjs';
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
+import {centerThemeCss,centerThemeBoot} from './src/center-themes.mjs';
+import {siteThemes,siteThemeCss,siteThemeBoot,tokenizeColors} from './src/site-themes.mjs';
+// Motiv webu volí Lucia v adminu; v produkci ho dosadí server, v náhledu SITE_THEME=bordo node build.mjs.
+const siteTheme=process.env.SITE_THEME||siteThemes[0].id;
+if(!siteThemes.some(t=>t.id===siteTheme))throw new Error(`Unknown SITE_THEME ${siteTheme}`);
 const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'dist');
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
@@ -39,23 +44,27 @@ for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.sp
 const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),other:chrome('other')};
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
 const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script type="module" src="/app.mjs"></script>';
-const document=(path,{title,body,design})=>{
+const document=(...args)=>tokenizeColors(renderDocument(...args));
+const renderDocument=(path,{title,body,design})=>{
   const customerLogin=['/prihlasenie','/prihlasenie/potvrdit','/nova-registracia'].includes(path);
   const c=CHROME[path==='/zdravy-svet'?'world':design||'other'];
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1">${body.replace('%%HEADER%%',c.header)}</main>${c.footer}</div>`
-    :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'#4A1A26':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1">${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
-  return `<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/dc.css"></head><body${design?' class="dc-page"':path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
+    :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'var(--center-main)':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1">${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
+  return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/dc.css"><script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}</head><body${design?' class="dc-page"':path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
 };
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));
 for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),document(path,page));}
 // styles.css ve vrstvě: neoznačená pravidla z dc.css (reset a inline návrh) mají vždy přednost.
 await writeFile(join(out,'base.css'),'@import url("/styles.css") layer(legacy);\n');
-await writeFile(join(out,'dc.css'),[
+await writeFile(join(out,'styles.css'),tokenizeColors(await readFile(join(out,'styles.css'),'utf8')));
+// Definice motivů se netokenizují (jinak by --site-main:#283020 odkazoval sám na sebe).
+await writeFile(join(out,'dc.css'),centerThemeCss()+'\n'+siteThemeCss()+'\n'+tokenizeColors([
   '/* Návrhové stránky a chrome nemají žádný styl kromě inline – starší styles.css se v nich vrací na výchozí hodnoty prohlížeče. */',
   '/* SVG mimo reset: all:revert by zahodil prezentační atributy (stroke, fill). */.dc-root :where(:not(svg,svg *)),.dc-chrome :where(:not(svg,svg *)){all:revert}.dc-root :where(svg),.dc-chrome :where(svg){width:revert;height:revert;flex-shrink:revert}.dc-root,.dc-chrome{font-synthesis:weight style;font-size:16px;line-height:normal}',
   HELMET_CSS,
-  '.customer-page footer{position:relative;border-top:0!important}.customer-page footer::before{content:"";position:absolute;top:0;left:var(--rail-neg);right:0;height:140px;background:linear-gradient(180deg,#4A1A26 0%,#17332F 100%);pointer-events:none}.customer-page footer>div{position:relative}',
+  '/* Zákaznická část: barvu určuje zákaznice, menu a lišta ji přebírají přes stejné proměnné. */.customer-page,.customer-login{--site-main:var(--center-main);--site-deep:color-mix(in srgb,var(--center-main) 82%,#000);--site-dark:color-mix(in srgb,var(--center-main) 45%,#000);--site-accent:var(--center-accent);--site-accent-deep:color-mix(in srgb,var(--center-accent) 60%,var(--center-main))}',
+  '.customer-page footer{position:relative;border-top:0!important}.customer-page footer::before{content:"";position:absolute;top:0;left:var(--rail-neg);right:0;height:140px;background:linear-gradient(180deg,var(--center-main) 0%,var(--center-deep) 100%);pointer-events:none}.customer-page footer>div{position:relative}',
   '.customer-page .legacy-shell>.dc-chrome:first-child{position:sticky;top:0;z-index:30}.customer-page .legacy-shell>.dc-chrome:first-child header{height:76px;padding-top:0!important;padding-bottom:0!important}',
   '/* Přístupnost: návrh ruší obrys inputu (i inline outline:0); pro klávesnici vracíme zlatý obrys (bez vlivu na vzhled bez fokusu). */.dc-root input:focus-visible,.dc-chrome input:focus-visible{outline:1px solid #C9A355!important;outline-offset:4px}',
   ':root{--rail-pad:0px;--rail-neg:0px;--cap-left:20px;--menu-right:12px;--ov-o:0;--ov-p:none;--side-o:0;--side-p:none;--side-t:translate(-24px,-50%);--top-o:0;--top-p:none;--top-t:translateY(-16px)}',
@@ -65,7 +74,9 @@ await writeFile(join(out,'dc.css'),[
   '.legacy-shell{padding-left:var(--rail-pad)}.legacy-shell>.dc-chrome{overflow-x:clip}.legacy-main>*{margin-left:var(--rail-neg);border-left:var(--rail-pad) solid transparent}',
   '.legacy-main>.zs-follow-image{border-left:0}',
   '.legacy-shell>.dc-chrome:has(footer){overflow-x:visible}.legacy-shell footer{overflow-x:clip}',
-  dcCss()].join('\n'));
+  dcCss()].join('\n')));
+await writeFile(join(out,'center-theme.js'),centerThemeBoot());
+await writeFile(join(out,'site-theme.js'),siteThemeBoot());
 await writeFile(join(out,'404.html'),document('/404',{title:'Stránka nenájdená',body:views.notFound()}));
 await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 await writeFile(join(out,'_headers'),'/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src \'self\'; script-src \'self\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\'; media-src \'self\'; font-src \'self\'; connect-src \'self\'; frame-ancestors \'none\'; base-uri \'none\'; form-action \'self\'\n');

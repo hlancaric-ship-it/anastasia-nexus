@@ -10,6 +10,12 @@ updateCount();
 
 const customerCenter=$('.customer-center');
 if(customerCenter){
+  // Barva účtu: platné id přijdou z vyrenderovaných swatchů, první je výchozí (bez atributu). Uloženo jen v prohlížeči.
+  const themeIds=[...new Set($$('[data-center-theme-pick]',customerCenter).map(btn=>btn.dataset.centerThemePick))];
+  const markTheme=id=>$$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.centerThemePick===id)));
+  const setTheme=id=>{if(!themeIds.includes(id))id=themeIds[0];if(id===themeIds[0])delete document.documentElement.dataset.centerTheme;else document.documentElement.dataset.centerTheme=id;markTheme(id);try{if(id===themeIds[0])localStorage.removeItem('ana-center-theme');else localStorage.setItem('ana-center-theme',id);}catch{}};
+  markTheme(document.documentElement.dataset.centerTheme||themeIds[0]);
+  $$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.centerThemePick)));
   const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
   const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];return id;};
   show(location.hash.slice(1));
