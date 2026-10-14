@@ -163,6 +163,23 @@ const ids = html => html
   .replace('<aside data-lenis-prevent="true" role="dialog" aria-label="Hlavné menu"', '<aside id="dc-top-menu" data-lenis-prevent="true" role="dialog" aria-modal="true" aria-label="Hlavné menu" aria-hidden="true" inert')
   .replace(/^<div /, '<div data-menu-overlay ');
 
+// Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
+const FOOTER_GROUPS = {
+  'Svet': [['Obchod', '/eshop'], ['Programy', '/programy'], ['Pre firmy', '/programy/pre-firmy'], ['Zdravý svet', '/zdravy-svet']],
+  'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Pre odborníkov', '/pre-odbornikov']],
+  'Informácie': [['O Lucii', '/o-lucii'], ['Zdravé lekárne', '/zdrava-lekaren'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
+};
+const FOOTER_BRANDS = {'ANASTASIA.ACADEMY': '/ai-anastasia-academy', 'AI ANASTASIA': '/ai-anastasia'};
+function footerLinks(html) {
+  let out = html;
+  for (const [title, links] of Object.entries(FOOTER_GROUPS)) {
+    out = out.replace(new RegExp(`(>${title}</span>\\s*)(?:<a\\b[^>]*>[^<]*</a>)+`), (_, head) => head + links.map(([t, h]) => `<a href="${h}">${t}</a>`).join(''));
+  }
+  // Loga Academy a AI ANASTASIA jsou odkazy na své stránky (stejný styl, jen <a> místo <div>).
+  return out.replace(/<div (style="display:grid;grid-template-rows:clamp\(170px,17vw,240px\) auto;[^"]*")>((?:(?!<\/?div\b)[\s\S]|<div\b[\s\S]*?<\/div>)*?<span [^>]*>([^<]+)<\/span>)<\/div>/g,
+    (whole, style, inner, label) => FOOTER_BRANDS[label] ? `<a href="${FOOTER_BRANDS[label]}" class="footer-brand" ${style}>${inner}</a>` : whole);
+}
+
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
 export function chrome(page) {
   const src = page === 'about' ? P.about : P.home;
@@ -172,7 +189,7 @@ export function chrome(page) {
   const menuBrand=html=>html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   return {
     header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>'),
-    footer: bleed(convert(src.footer, {page: linkPage, region: 'footer'})),
+    footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${['home','world'].includes(page)?mediaControls:''}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
@@ -333,7 +350,7 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .wisdom figcaption{display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--site-accent-deep)}
 .wisdom figcaption::before,.wisdom figcaption::after{content:"";width:48px;height:1px;background:currentColor;opacity:.6}
 #program>div[style^="position:absolute;inset:0;background:linear-gradient(90deg"]{background:linear-gradient(180deg,${ease(CREAM,0,1,'56%','100%')}),linear-gradient(90deg,rgba(16,24,15,0.82) 0%,rgba(16,24,15,0.35) 55%,rgba(16,24,15,0.6) 100%)!important}
-/* patička na mobilu: tři loga zmenšená v jednom řádku, ne natažená pod sebou */@media(max-width:699.98px){footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]{gap:10px!important;padding:28px 0 32px!important;align-items:start!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div{grid-template-rows:auto auto!important;row-gap:12px!important;align-items:center!important;align-content:start}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div>img{height:92px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div>div{gap:8px!important;padding-bottom:0!important;min-height:92px;justify-content:center}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div>div>span:first-child[style*="width:1px"]{display:none!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div>div>img{width:58px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div span[style*="white-space:nowrap"]{font-size:11px!important;letter-spacing:.22em!important;padding-left:.22em!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div span[style*="letter-spacing:0.6em"]{font-size:7.5px!important;letter-spacing:.38em!important;gap:5px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div span[style*="letter-spacing:0.6em"]>span{width:8px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>div>span:last-child{font-size:7.5px!important;letter-spacing:1.4px!important;text-align:center}footer div[style*="justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px"]{padding-bottom:88px}}
+/* patička na mobilu: tři loga zmenšená v jednom řádku, ne natažená pod sebou */@media(max-width:699.98px){footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]{gap:10px!important;padding:28px 0 32px!important;align-items:start!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a){grid-template-rows:auto auto!important;row-gap:12px!important;align-items:center!important;align-content:start}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>img{height:92px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>div{gap:8px!important;padding-bottom:0!important;min-height:92px;justify-content:center}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>div>span:first-child[style*="width:1px"]{display:none!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>div>img{width:58px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a) span[style*="white-space:nowrap"]{font-size:11px!important;letter-spacing:.22em!important;padding-left:.22em!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a) span[style*="letter-spacing:0.6em"]{font-size:7.5px!important;letter-spacing:.38em!important;gap:5px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a) span[style*="letter-spacing:0.6em"]>span{width:8px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>span:last-child{font-size:7.5px!important;letter-spacing:1.4px!important;text-align:center}footer div[style*="justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px"]{padding-bottom:88px}}
 /* menu: dekorativní obrázek lesa v menu nechceme */[style*="hero-forest.jpg"][style*="min-height:190px"]{display:none!important}
 @media(max-width:999.98px){header:has(.header-brands){gap:6px!important;padding-inline:16px!important}.header-brands{width:128px;gap:5px;height:48px}.header-brands>span{width:40px}.header-brands img{height:28px;max-width:36px}.header-brands>span:first-child img{height:44px}.header-academy b{font-size:6px;letter-spacing:.5px}.header-brands small{font-size:4px;letter-spacing:.3px}}
 @media(prefers-reduced-motion:reduce){.hero-brand img{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}}
