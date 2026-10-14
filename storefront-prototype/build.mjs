@@ -24,9 +24,9 @@ add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy(
 for(const [alias,target] of Object.entries(api.getAliases())){const source=routes.get(target);if(!source)throw new Error(`Missing alias target ${target}`);routes.set(alias,source);}
 for(const [path,page] of Object.entries(legacyContent)){
   const existing=routes.get(path);
+  if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
-    if(path==='/kontakt')contactForm=`<section class="section legacy-contact-form">${views.contact().match(/<form id="contact-form"[\s\S]*?<\/form>/)?.[0]||''}</section>`;
     add(path,page.title,legacyPage(page,{contactForm}));
   }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,views.catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',views.catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
@@ -40,11 +40,12 @@ const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),ot
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
 const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script type="module" src="/app.mjs"></script>';
 const document=(path,{title,body,design})=>{
+  const customerLogin=['/prihlasenie','/prihlasenie/potvrdit','/nova-registracia'].includes(path);
   const c=CHROME[path==='/zdravy-svet'?'world':design||'other'];
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1">${body.replace('%%HEADER%%',c.header)}</main>${c.footer}</div>`
-    :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:#283020;margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1">${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
-  return `<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/dc.css"></head><body${design?' class="dc-page"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
+    :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'#4A1A26':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1">${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
+  return `<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/dc.css"></head><body${design?' class="dc-page"':path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
 };
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));
 for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),document(path,page));}
@@ -54,6 +55,8 @@ await writeFile(join(out,'dc.css'),[
   '/* Návrhové stránky a chrome nemají žádný styl kromě inline – starší styles.css se v nich vrací na výchozí hodnoty prohlížeče. */',
   '/* SVG mimo reset: all:revert by zahodil prezentační atributy (stroke, fill). */.dc-root :where(:not(svg,svg *)),.dc-chrome :where(:not(svg,svg *)){all:revert}.dc-root :where(svg),.dc-chrome :where(svg){width:revert;height:revert;flex-shrink:revert}.dc-root,.dc-chrome{font-synthesis:weight style;font-size:16px;line-height:normal}',
   HELMET_CSS,
+  '.customer-page footer{position:relative;border-top:0!important}.customer-page footer::before{content:"";position:absolute;top:0;left:var(--rail-neg);right:0;height:140px;background:linear-gradient(180deg,#4A1A26 0%,#17332F 100%);pointer-events:none}.customer-page footer>div{position:relative}',
+  '.customer-page .legacy-shell>.dc-chrome:first-child{position:sticky;top:0;z-index:30}.customer-page .legacy-shell>.dc-chrome:first-child header{height:76px;padding-top:0!important;padding-bottom:0!important}',
   '/* Přístupnost: návrh ruší obrys inputu (i inline outline:0); pro klávesnici vracíme zlatý obrys (bez vlivu na vzhled bez fokusu). */.dc-root input:focus-visible,.dc-chrome input:focus-visible{outline:1px solid #C9A355!important;outline-offset:4px}',
   ':root{--rail-pad:0px;--rail-neg:0px;--cap-left:20px;--menu-right:12px;--ov-o:0;--ov-p:none;--side-o:0;--side-p:none;--side-t:translate(-24px,-50%);--top-o:0;--top-p:none;--top-t:translateY(-16px)}',
   '@media (min-width:1000px){:root{--rail-pad:52px;--rail-neg:-52px;--cap-left:72px;--menu-right:24px}}',

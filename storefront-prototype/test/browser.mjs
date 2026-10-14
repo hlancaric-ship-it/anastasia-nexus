@@ -47,11 +47,14 @@ try{
    const external=await page.evaluate(()=>[...document.querySelectorAll('script[src],link[href],img[src],video source[src],video[poster],audio[src],iframe')].map(el=>el.getAttribute('src')||el.getAttribute('href')||el.getAttribute('poster')).filter(u=>/^(https?:)?\/\//.test(u)));
    assert.deepEqual(external,[],'všechny skripty, styly a média jsou lokální');
    const hero=page.locator('[data-screen-label="01 Hero"]'),video=hero.locator('video[data-video="hero"]');
-   assert.equal(await hero.locator('header').count(),1,'hlavička je uvnitř hero');
+   assert.equal(await hero.locator('header').count(),1,'hlavička je uvnitř hero');assert.equal(await hero.locator('.header-brands>span').count(),3);assert.equal(await page.locator('.sky-window video').evaluate(el=>getComputedStyle(el).opacity),'1');assert.equal(await page.locator('.sky-spill').evaluate(el=>getComputedStyle(el).opacity),'0.3');
+   assert.equal(await hero.locator('.hero-brand img').evaluate(el=>getComputedStyle(el).animationName),'none','logo respektuje reduced motion');
    assert.equal(await hero.locator('.hero-brand img').getAttribute('src'),await page.locator('footer img').first().getAttribute('src'),'hero přebírá první původní logo z patičky');
    assert.equal(await page.locator('#ana-rail [data-sound-toggle],#ana-rail [data-video-toggle]').count(),2,'ovladače jsou v levé liště');
    assert.equal(await hero.locator('[data-sound-toggle],[data-video-toggle]').count(),0,'desktop: ovladače odešly z hero do lišty');
    assert.equal(await video.evaluate(v=>v.muted&&v.defaultMuted),true,'hero video je ztlumené');
+   assert.deepEqual(await video.evaluate(v=>{const s=getComputedStyle(v);return{filter:s.filter,opacity:s.opacity,blend:s.mixBlendMode};}),{filter:'none',opacity:'1',blend:'normal'},'hero video zůstává bez úprav barev');
+   const overlays=await hero.locator(':scope>div').evaluateAll(els=>els.filter(el=>{const s=getComputedStyle(el);return s.position==='absolute'&&s.top==='0px'&&s.bottom==='0px'&&s.backgroundImage.includes('gradient');}));assert.equal(overlays.length,0,'žádný celoplošný překryv videa');
    assert.equal(await video.evaluate(v=>v.paused&&!v.autoplay),true,'reduced motion: hero video stojí');
    assert.ok(await video.evaluate(v=>[...v.querySelectorAll('source')].every(s=>s.getAttribute('src').startsWith('/media/'))));
    assert.equal(await page.locator('audio').count(),0,'žádný audio prvek se nevytvoří bez kliknutí');
@@ -169,7 +172,7 @@ try{
    assert.equal(await link.getAttribute('data-roll'),'1');
    assert.equal(await link.locator('[aria-hidden="true"]').textContent(),'Obchod','duplikát pro roll je skrytý čtečkám');
    assert.equal(await page.getByRole('link',{name:'Obchod',exact:true}).first().evaluate(el=>el.getAttribute('href')),'#kolekcia','přístupný název beze zdvojení');
-   await link.hover();await page.waitForTimeout(700);
+   await page.mouse.move(700,700);await link.hover();await page.waitForTimeout(700);
    assert.match(await link.locator('.roll-a').evaluate(el=>el.style.transform),/translateY\(-105%\)/);
    assert.equal(await link.locator('.roll-a').evaluate(el=>Math.round(el.getBoundingClientRect().top)<Math.round(el.parentElement.getBoundingClientRect().top)),true,'text roll odjede nahoru');
    await page.mouse.move(700,700);await page.waitForTimeout(700);assert.equal(await link.locator('.roll-a').evaluate(el=>el.style.transform),'');
@@ -194,7 +197,7 @@ try{
      assert.ok(await page.locator('video').evaluateAll(videos=>videos.every(v=>v.muted&&v.paused)),'reduced motion pauses supplemental videos');
    }
    await goto('/');assert.equal(await page.locator('header a[aria-label="Môj účet"]').count(),0);
-   for(const kind of ['side','top']){assert.equal(await page.locator(`#dc-${kind}-menu a[aria-label="Košík"][href="/kosik"]`).count(),1);assert.equal(await page.locator(`#dc-${kind}-menu a[aria-label="Môj účet"][href="/prihlasenie"]`).count(),1);}
+   for(const kind of ['side','top']){assert.equal(await page.locator(`#dc-${kind}-menu a[aria-label="Košík"][href="/kosik"]`).count(),1);assert.equal(await page.locator(`#dc-${kind}-menu a[aria-label="Môj účet"][href="/ucet"]`).count(),1);}
  });
  await check('catalog filters and empty state',async()=>{await goto('/eshop');await page.getByRole('searchbox').fill('nenajdeny-produkt');assert.equal(await page.locator('.product-card').count(),0);await page.getByRole('button',{name:'Zobraziť všetko'}).click();assert.equal(await page.locator('.product-card').count(),16);await page.locator('[name=category]').selectOption('Kozmetika');assert.equal(await page.locator('.product-card').count(),4);await page.screenshot({path:root+'catalog-desktop.png',fullPage:true});});
  await check('home: Do košíka z kolekcie zvýši počet v hlavičke aj menu',async()=>{await page.evaluate(()=>sessionStorage.clear());await goto('/');const add=page.locator('[data-add]').first();await add.click();await page.waitForFunction(()=>[...document.querySelectorAll('.cart-count')].every(el=>el.textContent==='1'));assert.match(await add.textContent(),/Pridané/);await page.evaluate(()=>sessionStorage.clear());});
@@ -202,8 +205,19 @@ try{
  await check('checkout steps, validation and four outcomes',async()=>{await goto('/pokladna');await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();assert.equal(await page.locator('[data-step="1"]').isVisible(),true);await page.locator('#checkout-form [name=firstName]').fill('Demo');await page.locator('#checkout-form [name=lastName]').fill('Ukazka');await page.locator('#checkout-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();await page.getByRole('button',{name:'Pokračovať na platbu'}).click();await page.locator('[name=consent]').check();for(const scenario of ['ALLOW','REVIEW','BLOCK','ERROR']){await page.locator('[name=scenario]').selectOption(scenario);await page.getByRole('button',{name:'Vyskúšať dokončenie'}).click();assert.equal(await page.locator('#checkout-result').getAttribute('data-state'),scenario);}await page.screenshot({path:root+'checkout-desktop.png',fullPage:true});});
  await check('QR product + quantity + coupon; refresh is idempotent',async()=>{await page.evaluate(()=>sessionStorage.clear());await goto('/eshop/kosik?produkt=DEMO-GEL&kupon=DEMO10&ks=2');assert.equal(await page.locator('.quantity>span').textContent(),'2');assert.match(await page.locator('.order-summary').textContent(),/DEMO10/);await page.reload();assert.equal(await page.locator('.quantity>span').textContent(),'2');await goto('/eshop/kosik?produkt=DEMO-GEL&ks=bad');assert.match(await page.locator('.qr-status').textContent(),/neplatné/);});
  await check('magic-link forms are mock only; token removed from URL',async()=>{await goto('/prihlasenie');await page.locator('#login-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Poslať prihlasovací odkaz'}).click();assert.match(await page.locator('#login-form .form-status').textContent(),/Ak účet existuje/);await goto('/prihlasenie/potvrdit?email=demo@example.test&token=fake');assert.equal(new URL(page.url()).search,'');assert.match(await page.locator('#magic-confirm').textContent(),/neprihlasuje/);});
+ await check('unified customer centre: navigation, programs, materials, profile and reorder',async()=>{
+   await page.evaluate(()=>sessionStorage.clear());await goto('/ucet');assert.equal(await page.locator('#account-prehlad').isVisible(),true);
+   for(const id of ['programy','konzultacie','chat','objednavky','materialy','profil','prehlad']){await page.locator(`.center-sidebar [data-account-go="${id}"]`).click();assert.equal(await page.locator(`#account-${id}`).isVisible(),true);assert.equal(new URL(page.url()).hash,'#'+id);assert.equal(await page.locator('.center-sidebar [aria-current=page]').count(),1);}
+   await page.locator('.center-sidebar [data-account-go=programy]').click();assert.equal(await page.locator('.lesson').count(),0);await page.locator('#entitlement-preview').selectOption('unlocked');await page.locator('.lesson').first().waitFor();assert.equal(await page.locator('.lesson').count(),16);
+   await page.locator('.center-sidebar [data-account-go=materialy]').click();await page.locator('[data-material-filter=faktury]').click();assert.equal(await page.locator('.center-material:visible').count(),1);
+   await page.locator('.center-sidebar [data-account-go=profil]').click();await page.locator('#center-profile [name=name]').fill('Demo');await page.locator('#center-profile button[type=submit]').click();await page.locator('#center-profile .form-status').getByText('Zmeny boli skontrolované v náhľade. Údaje sa neukladajú ani neodosielajú.').waitFor();assert.equal(await page.locator('input[type=password]').count(),0);assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);
+   await page.locator('.center-sidebar [data-account-go=objednavky]').click();await page.locator('#account-objednavky [data-add]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('.cart-count')].every(el=>el.textContent==='1'));
+   await page.screenshot({path:root+'account-desktop.png',fullPage:true});await page.reload();assert.equal(await page.locator('#account-objednavky').isVisible(),true);
+   await page.setViewportSize({width:320,height:844});for(const id of ['prehlad','programy','konzultacie','chat','objednavky','materialy','profil']){await page.locator(`.center-sidebar [data-account-go="${id}"]`).click();await overflow(page,'account-'+id+'@320');}
+   await page.screenshot({path:root+'account-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>sessionStorage.clear());
+ });
  await check('account chat: text only, Unicode counter, history, 403/429/409 and new conversation',async()=>{
-   await goto('/ucet');const form=page.locator('#chat-form'),body=form.locator('[name=body]'),send=form.locator('button');
+   await goto('/ucet#chat');const form=page.locator('#chat-form'),body=form.locator('[name=body]'),send=form.locator('button');
    await page.locator('#chat-messages').getByText('Dobrý deň, tu je priestor pre vaše otázky.').waitFor();
    await body.fill('😀'.repeat(2000));assert.match(await page.locator('#chat-counter').textContent(),/^2000 \/ 2000/);assert.equal(await send.isEnabled(),true);
    await body.fill('x'.repeat(2001));assert.equal(await send.isDisabled(),true);
@@ -271,7 +285,7 @@ try{
  await check('responsive: overflow + menu na 320, 360, 390, 768, 1024; lišta jen ≥1000px',async()=>{
    for(const width of [320,360,390,768,1024]){
      await page.setViewportSize({width,height:844});
-     for(const path of ['/','/o-lucii','/zdravy-svet','/eshop','/eshop/produkt/bio-sprchovy-gel','/kosik','/pokladna','/kontakt','/reset-40/knihovna']){await goto(path);await overflow(page,path+'@'+width);}
+     for(const path of ['/','/o-lucii','/zdravy-svet','/eshop','/eshop/produkt/bio-sprchovy-gel','/kosik','/pokladna','/kontakt','/ucet','/reset-40/knihovna']){await goto(path);await overflow(page,path+'@'+width);}
      await goto('/');
      assert.equal(await page.locator('#ana-rail').isVisible(),width>=1000,`lišta @${width}`);
      for(const selector of ['[data-sound-toggle]','[data-video-toggle]'])assert.equal(await page.locator(selector).isVisible(),true,`ovladač dostupný @${width}`);
@@ -292,6 +306,7 @@ try{
  const motion=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});watch(motion);const mp=await motion.newPage();
  await check('Lenis + reveal + parallax + hero fade aktívne pri povolenom pohybe',async()=>{
    await goto('/',mp);await mp.waitForFunction(()=>!!window.__anaLenis);assert.equal(await mp.evaluate(()=>document.documentElement.classList.contains('lenis')),true);
+   const floatingLogo=mp.locator('.hero-brand img');assert.match(await floatingLogo.evaluate(el=>getComputedStyle(el).filter),/brand-wave/);assert.equal(await floatingLogo.evaluate(el=>getComputedStyle(el).animationName),'none');const logoBox=await floatingLogo.boundingBox();assert.ok(logoBox.height>=300&&logoBox.x<400,'větší logo je vlevo');
    const video=mp.locator('video[data-video="hero"]');assert.equal(await video.evaluate(v=>v.muted),true);await mp.waitForFunction(()=>!document.querySelector('video[data-video="hero"]').paused);assert.equal(await mp.locator('audio').count(),0);
    const target=mp.locator('[data-screen-label="05 Konzultácie"] h2').first();assert.equal(await target.evaluate(el=>el.style.opacity),'0','reveal čeká mimo obrazovku');
    const par=mp.locator('[data-screen-label="04 RESET 40+"] [data-par]');assert.match(await par.evaluate(el=>el.style.transform),/scale/);

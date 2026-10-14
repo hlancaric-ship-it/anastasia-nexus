@@ -81,3 +81,10 @@ test('voucher variants come from API; recipient validation, cart reload and auth
   api.setQuantity('bio-sprchovy-gel',2);assert.equal(api.getCart().gift_voucher,null);
   api.applyGiftVoucher('DEMO-GIFT');assert.equal(api.removeGiftVoucher().gift_voucher,null);
 });
+
+test('customer centre shares account fixtures, keeps programs locked and never persists profile data',async()=>{
+  const values=new Map(),storage={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};const api=createApi(storage);const center=await api.getCustomerCenter();
+  assert.equal(center.mode,'mock');assert.equal(center.bookings.length,1);assert.equal(center.materials.length,3);center.profile.name='changed';assert.notEqual((await api.getCustomerCenter()).profile.name,'changed');
+  assert.equal((await api.getEntitlements()).active,false);assert.equal((await api.saveCustomerProfile({email:'private@example.test'})).ok,true);assert.equal(JSON.stringify([...values.values()]).includes('private@example.test'),false);
+  assert.ok((await api.addToCart(center.reorder[0].code)).ok);assert.equal((await api.getCart()).lines.length,1);
+});

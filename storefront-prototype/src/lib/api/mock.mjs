@@ -125,6 +125,12 @@ export function createMockApi(storage=memoryStorage()) {
     },
     requestMagicLink:()=>({ok:true,message:'Ak účet existuje, po napojení vám pošleme odkaz. Toto je ukážka; e-mail sa neodoslal.'}),
     confirmMagicLink:()=>({ok:false,message:'Ukážkový režim: odkaz sa neoveruje a neprihlasuje vás. Môžete si otvoriť náhľad účtu.'}),
+    getCustomerCenter:()=>({
+      mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Ukážkový termín'}],
+      materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · DEMO-001',category:'faktury',type:'PDF'}],
+      reorder:clone(products.slice(0,3)),profile:{name:'Ukážková zákazníčka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
+    }),
+    saveCustomerProfile:()=>({ok:true,message:'Zmeny boli skontrolované v náhľade. Údaje sa neukladajú ani neodosielajú.'}),
     getAccount:()=>({name:'Ukážková zákazníčka',orders:[{number:'DEMO-001',date:'12. 10. 2026',product:'RESET 40+',status:'Ukážka histórie',totalLabel:'168,00 €'}]}),
     getEntitlements:({preview='locked'}={})=>({mode:'mock',active:preview==='unlocked',weeks:Array.from({length:16},(_,i)=>({number:i+1,title:`Tematický týždeň ${String(i+1).padStart(2,'0')}`,description:'Priestor pre schválený obsah programu.'}))}),
     checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Ukážka prijatej objednávky. Platba sa neuskutočnila a e-mail sa neodoslal.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy ukážkový stav.'}),

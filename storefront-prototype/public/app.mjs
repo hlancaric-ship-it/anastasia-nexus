@@ -8,6 +8,18 @@ function toast(message){const el=$('.toast');el.textContent=message;el.hidden=fa
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
 updateCount();
 
+const customerCenter=$('.customer-center');
+if(customerCenter){
+  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
+  const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];return id;};
+  show(location.hash.slice(1));
+  $$('[data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);$('#account-title').focus({preventScroll:true});}));
+  addEventListener('popstate',()=>show(location.hash.slice(1)));
+  addEventListener('hashchange',()=>show(location.hash.slice(1)));
+  $$('[data-material-filter]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const filter=btn.dataset.materialFilter;$$('[data-material-filter]',customerCenter).forEach(item=>item.setAttribute('aria-pressed',String(item===btn)));$$('[data-material-category]',customerCenter).forEach(row=>{row.hidden=!!filter&&row.dataset.materialCategory!==filter;});}));
+  $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{$('.form-status',form).textContent=(await api.saveCustomerProfile(Object.fromEntries(new FormData(form)))).message;}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
+}
+
 const chatErrors={chat_not_eligible:'Chat je dostupný po nákupe produktu, programu alebo rezervácii služby.',chat_blocked:'Odosielanie správ je pre váš účet pozastavené. Kontaktujte nás cez kontaktný formulár.',chat_consecutive_limit:'Odoslali ste tri správy po sebe. Počkajte, prosím, na odpoveď Lucie.',chat_daily_limit:'Dosiahli ste denný limit správ. Skúste to znova zajtra.',conversation_closed:'Táto konverzácia je uzavretá. Môžete začať novú konverzáciu.',message_too_long:'Správa môže mať najviac 2000 znakov.',message_empty:'Napíšte správu pred odoslaním.'};
 const chatForm=$('#chat-form');
 if(chatForm){
@@ -15,7 +27,7 @@ if(chatForm){
   let busy=false,status;
   const count=()=>{const length=Array.from(body.value).length;$('#chat-counter').textContent=`${length} / 2000 znakov`;send.disabled=busy||!status?.can_write||!body.value.trim()||length>2000;};
   const availability=async()=>{status=await api.getChatStatus();$('#chat-availability').textContent=chatErrors[status.reason]||'Lucii môžete napísať správu.';count();};
-  const detail=async()=>{const id=selection.value;const data=id?await api.getChatConversation(id):{messages:[]};$('#chat-messages').replaceChildren(...data.messages.map(message=>{const article=document.createElement('article');article.className='chat-message';const author=document.createElement('strong');author.textContent=message.author==='lucia'?'Lucia':'Vy';const text=document.createElement('p');text.textContent=message.body;article.append(author,text);return article;}));if(id)await api.markChatRead(id);};
+  const detail=async()=>{const id=selection.value;const data=id?await api.getChatConversation(id):{messages:[]};$('#chat-messages').replaceChildren(...data.messages.map(message=>{const article=document.createElement('article');article.className='chat-message';article.dataset.author=message.author;const author=document.createElement('strong');author.textContent=message.author==='lucia'?'Lucia':'Vy';const text=document.createElement('p');text.textContent=message.body;article.append(author,text);return article;}));if(id)await api.markChatRead(id);};
   const list=async(id)=>{const data=await api.getChatConversations();selection.replaceChildren(...data.conversations.map(c=>new Option(c.subject,c.id)));selection.append(new Option('Nová konverzácia',''));if(id!==undefined)selection.value=id;await detail();};
   body.addEventListener('input',count);
   selection.addEventListener('change',()=>{detail();$('.form-status',chatForm).textContent='';});
@@ -234,3 +246,9 @@ const entitlementSelect=$('#entitlement-preview');
 if(entitlementSelect){const render=async()=>{const access=await api.getEntitlements({preview:entitlementSelect.value});$('#library-view').innerHTML=access.active?`<p class="form-status">Ukážka aktívneho prístupu. Všetky lekcie sú iba zástupný obsah.</p><div class="library-grid">${access.weeks.map(w=>`<article class="lesson"><span class="eyebrow">TÝŽDEŇ ${String(w.number).padStart(2,'0')}</span><h2>${w.title}</h2><p>${w.description}</p><button class="button outline" data-lesson="${w.number}">Pozrieť náhľad ${arrow}</button></article>`).join('')}</div><div id="lesson-content" class="form-status" tabindex="-1" hidden></div>`:`<div class="empty-state"><p class="eyebrow">ZAMKNUTÁ KNIŽNICA</p><h2>Tento priestor čaká na vás.</h2><p>Program je dostupný len s aktívnym oprávnením.<br>Po napojení sa prístup overí na serveri.</p>${button('/prihlasenie','Prihlásiť sa')}${button('/reset-40','O programe','outline')}</div>`;
     $$('[data-lesson]').forEach(btn=>btn.addEventListener('click',()=>{const content=$('#lesson-content');content.hidden=false;content.textContent=`Týždeň ${btn.dataset.lesson} — náhľad. Sem patrí schválený obsah lekcie. Platené materiály nie sú súčasťou tejto kostry.`;content.focus();}));};entitlementSelect.addEventListener('change',render);render();}
 $('#clear-demo')?.addEventListener('click',async()=>{for(const line of (await api.getCart()).lines)await api.setQuantity(line.slug,0);await api.removeCoupon();try{storage?.removeItem('anastasia.skeleton.v1');}catch{}updateCount();$('.form-status').textContent='Ukážkový košík bol vymazaný.';});
+
+// A short ripple every twelve seconds, applied only to the logo.
+const brandWave=document.querySelector('[data-brand-wave]');
+if(brandWave){const start=performance.now();const ripple=now=>{const phase=((now-start)%12000)/12000;brandWave.setAttribute('scale',reducedMotion.matches?'0':String(phase>.72&&phase<.88?Math.sin((phase-.72)/.16*Math.PI)*10:0));requestAnimationFrame(ripple);};requestAnimationFrame(ripple);}
+const skyWindow=document.querySelector('.sky-window'),skySpill=document.querySelector('.sky-spill video');
+if(skyWindow&&skySpill){const original=skyWindow.querySelector('video');const sizeSky=()=>{const box=skyWindow.getBoundingClientRect(),section=skyWindow.closest('section').getBoundingClientRect();const width=Math.max(box.width,box.height*(original.videoWidth/original.videoHeight||16/9));Object.assign(skySpill.style,{width:width+'px',height:box.height+'px',left:(box.left-section.left+(box.width-width)/2)+'px',top:(box.top-section.top)+'px'});};new ResizeObserver(sizeSky).observe(skyWindow);original.addEventListener('loadedmetadata',sizeSky);original.addEventListener('play',()=>{skySpill.currentTime=original.currentTime;});sizeSky();}

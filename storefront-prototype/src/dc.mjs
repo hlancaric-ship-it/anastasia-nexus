@@ -27,7 +27,7 @@ const ROUTES = {
   'Zdravý svet': '/zdravy-svet', 'O Lucii': '/o-lucii', 'Príbeh Lucie': '/o-lucii', 'Kontakt': '/kontakt',
   'Pharmanews': '/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny', 'Zdravé lekárne': '/zdrava-lekaren',
   'Obchodné podmienky': '/vop', 'Súkromie a GDPR': '/gdpr', 'Reklamácie': '/reklamacie',
-  'Môj účet': '/prihlasenie', 'Košík': '/kosik', 'Napíšte nám': '/kontakt',
+  'Môj účet': '/ucet', 'Košík': '/kosik', 'Napíšte nám': '/kontakt',
 };
 // Kotvy, které v návrhu vedou na sekce stránky a zůstávají kotvami (nadpisy menu, hlavička, hero).
 const KEEP_ANCHOR = new Set(['Obchod', 'Programy', 'Služby', 'Konzultácie', 'Objavte svet ANASTASIA', 'Kolekcia']);
@@ -59,7 +59,7 @@ function rewriteLinks(html, {page, region}) {
     else if (label === 'EN' || label === 'RU') target = null; // jazykové mutace zatím nejsou
     else if (/\.dc\.html/.test(href)) {
       const hash = href.split('#')[1];
-      target = /O Lucii/.test(href) ? '/o-lucii' : hash && (region === 'header' || KEEP_ANCHOR.has(text)) ? `/#${hash}` : ROUTES[label] ?? ROUTES[text] ?? '/';
+      target = /Môj účet/.test(href) ? '/ucet' : /O Lucii/.test(href) ? '/o-lucii' : hash && (region === 'header' || KEEP_ANCHOR.has(text)) ? `/#${hash}` : ROUTES[label] ?? ROUTES[text] ?? '/';
     } else if (href.startsWith('#') && href.length > 1 && region !== 'footer' && (region === 'header' || KEEP_ANCHOR.has(text))) {
       target = page === 'home' || (page === 'about' && href === '#pomoc') ? href : href === '#pomoc' ? '/konzultacie' : `/${href}`;
     } else target = ROUTES[label] ?? ROUTES[text] ?? (href.startsWith('#') && href.length > 1 && page === 'home' ? href : '/');
@@ -165,12 +165,13 @@ const ids = html => html
 export function chrome(page) {
   const src = page === 'about' ? P.about : P.home;
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
+  const side=src.side.replace('width:26px;height:26px;object-fit:contain','width:44px;height:44px;object-fit:contain').replace(/(<img src="\.\/assets\/logo-mark\.png"[^>]*>)<div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div>/,'$1');
   return {
-    header: convert(src.header, {page: linkPage, region: 'header'}),
+    header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, `<a href="/" class="header-brands" aria-label="ANASTASIA — úvod"><span><img src="/assets/lucia-logo.png" alt="ANASTASIA OZ"></span><span class="header-academy"><b>ANASTASIA</b><small>— ACADEMY —</small></span><span><img src="/assets/logo-mark.png" alt="AI ANASTASIA"><small>AI ANASTASIA</small></span></a>`),
     footer: bleed(convert(src.footer, {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${['home','world'].includes(page)?mediaControls:''}</aside>`),
-    menus: ids(convert(src.side, {page: linkPage, region: 'menu'})) + ids(convert(src.top, {page: linkPage, region: 'menu'})),
+    menus: ids(convert(side.replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)'), {page: linkPage, region: 'menu'})) + ids(convert(src.top.replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)'), {page: linkPage, region: 'menu'})),
   };
 }
 
@@ -186,8 +187,13 @@ export function homeSections(products) {
   return P.home.sections.map((s, i) => {
     let out = convert(s, {page: 'home', data});
     if(i===0){
-      out=out.replace(/<div style="position:relative;flex:1;min-height:0"><\/div>/,'<div class="hero-brand"><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future"></div>')
+      out=out.replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(16,24,15,0\.62\)[^"]*"><\/div>/,'')
+        .replace(/<div style="position:relative;flex:1;min-height:0"><\/div>/,'<div class="hero-brand"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><filter id="brand-wave" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="1" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" data-brand-wave/></filter></defs></svg><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future"></div>')
         .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
+    }
+    if(out.includes('data-video="sky"')){
+      out=out.replace('<section ', '<section class="sky-section" ').replace('<div style="order:-1;', '<div class="sky-window" style="order:-1;').replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(0,0,0,0\) 50%,rgba\(0,0,0,0.65\) 100%\)"><\/div>/,'');
+      out=out.replace(/(<section[^>]*>)/, '$1<div class="sky-spill" aria-hidden="true"><video data-video="sky-spill" poster="/assets/night-sky.jpg" autoplay muted loop playsinline preload="metadata">'+VIDEO_SOURCES.sky+'</video></div>');
     }
     return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : bleed(out);
   }).join('\n');
@@ -218,8 +224,25 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 .dc-root input:focus,.dc-chrome input:focus{outline:none}
 .dc-root input,.dc-chrome input{-webkit-appearance:none;appearance:none;background-clip:padding-box}
 .dc-root input::placeholder,.dc-chrome input::placeholder{color:#69705E}
-.hero-brand{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:20px}
-.hero-brand img{height:clamp(140px,22vh,240px);max-height:100%;max-width:100%;object-fit:contain;filter:invert(1) sepia(0.3) saturate(1.4) brightness(0.95)}
+.hero-brand{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:flex-start;padding:20px clamp(80px,12vw,220px)}
+.hero-brand img{height:clamp(220px,34vh,360px);max-height:100%;max-width:100%;object-fit:contain;filter:invert(1) sepia(0.3) saturate(1.4) brightness(0.95) url(#brand-wave)}
+[data-screen-label="01 Hero"] h1,[data-screen-label="01 Hero"] p{color:#EFE5C7!important;text-shadow:0 2px 4px #14200f,0 0 16px #14200f;-webkit-text-stroke:.5px #14200f;paint-order:stroke fill}
+[data-screen-label="01 Hero"] h1{font-weight:200!important}
+.header-brands{display:flex;align-items:center;justify-content:center;gap:24px;width:300px;height:64px}
+.header-brands>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:84px}
+.header-brands img{height:48px;width:auto;max-width:70px;object-fit:contain}
+.header-brands>span:first-child img{height:62px;filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
+.header-brands small{font-size:7px;letter-spacing:1px;color:#C9A355;white-space:nowrap}
+.header-academy b{font-size:10px;letter-spacing:2px;font-weight:200}
+[data-screen-label="01 Hero"] header{background:#26321E}
+.sky-section{position:relative;isolation:isolate;overflow:hidden}
+.sky-spill{position:absolute;inset:0;pointer-events:none;z-index:-1;overflow:hidden;opacity:.3}
+.sky-spill video{position:absolute;object-fit:cover;max-width:none;filter:none;mask-image:linear-gradient(to right,#000 75%,transparent)}
+.sky-section>div:not(.sky-spill){position:relative}
+.sky-window video{opacity:1;filter:none}
+@media(max-width:999.98px){header:has(.header-brands){gap:6px!important;padding-inline:16px!important}.header-brands{width:128px;gap:5px;height:48px}.header-brands>span{width:40px}.header-brands img{height:28px;max-width:36px}.header-brands>span:first-child img{height:44px}.header-academy b{font-size:6px;letter-spacing:.5px}.header-brands small{font-size:4px;letter-spacing:.3px}}
+@media(prefers-reduced-motion:reduce){.hero-brand img{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}}
+@media(max-width:999.98px){.hero-brand{padding:16px 20px}.hero-brand img{height:clamp(180px,27vh,260px)}}
 [data-media-controls]{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;flex-shrink:0;border-top:1px solid currentColor}
 [data-media-controls] button{display:grid;place-items:center;position:relative;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer}
 [data-media-controls] button:hover{background:rgba(201,163,85,.15)}
