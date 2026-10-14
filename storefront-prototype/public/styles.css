@@ -239,3 +239,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .legacy-main>.zs-story{border-left:0!important}
 @media(min-width:700px){.zs-offer{grid-template-columns:1fr}.zs-offer h2{max-width:1100px}.zs-offer p:last-child{justify-self:end;max-width:400px}}
 @media(max-width:999.98px){.zs-intro{position:relative}.zs-intro>[data-mobile-media]{position:absolute!important;left:24px!important;bottom:16px!important}.zs-intro [data-media-controls]{background:rgba(30,38,25,.82)!important}}
+/* Legal article grids must shrink around long source links on narrow screens. */
+.legal-doc{grid-template-columns:minmax(0,1fr)}
+.legal-art,.legal-body{min-width:0}
+.legal-body .source-text{overflow-wrap:anywhere}

@@ -190,7 +190,7 @@ try{
      }else{
        // Zdravý svet je nová kompozice (bloky rozdělené do sekcí): každá původní věta musí být doslova přítomna.
        // Jediná povolená odchylka: oprava překlepu „Ligth“ → „Light“ z původního webu.
-       const main=(await page.locator('main').evaluate(el=>[...el.querySelectorAll('h1,h2,h3,p')].map(n=>{const c=n.cloneNode(true);c.querySelectorAll('[aria-hidden="true"]').forEach(x=>x.remove());return c.textContent;}).join(' '))).replace(/\s/g,'');
+       const main=(await page.locator('main').evaluate(el=>[...el.querySelectorAll('h1,h2,h3,p,.source-structure')].map(n=>{const c=n.cloneNode(true);c.querySelectorAll('[aria-hidden="true"]').forEach(x=>x.remove());return c.textContent;}).join(' '))).replace(/\s/g,'');
        for(const text of texts)for(const sentence of text.split(/(?<=[.?!…])\s+/))assert.ok(main.includes(sentence.replace('Ligth','Light').replace(/\s/g,'')),`${path}: chýba „${sentence.slice(0,60)}“`);
      }
      assert.ok(await page.locator('video').evaluateAll(videos=>videos.every(v=>v.muted&&v.paused)),'reduced motion pauses supplemental videos');
@@ -316,7 +316,8 @@ try{
    await page.setViewportSize({width:1440,height:1000});
  });
  await check('no backend, third-party requests or JavaScript errors',async()=>{assert.deepEqual(apiCalls,[]);assert.deepEqual(errors,[]);});
- const motion=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});watch(motion);const mp=await motion.newPage();
+ await context.close();
+ const motion=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});watch(motion);await motion.addInitScript(()=>localStorage.setItem('ana-ambient-off','1'));const mp=await motion.newPage();
  await check('Lenis + reveal + parallax + hero fade aktívne pri povolenom pohybe',async()=>{
    await goto('/',mp);await mp.waitForFunction(()=>!!window.__anaLenis);assert.equal(await mp.evaluate(()=>document.documentElement.classList.contains('lenis')),true);
    const floatingLogo=mp.locator('.hero-brand img');assert.match(await floatingLogo.evaluate(el=>getComputedStyle(el).filter),/brand-wave/);assert.equal(await floatingLogo.evaluate(el=>getComputedStyle(el).animationName),'none');const logoBox=await floatingLogo.boundingBox();assert.ok(logoBox.height>=300&&logoBox.x<400,'větší logo je vlevo');
@@ -354,7 +355,8 @@ try{
    await audioPlay.click();await mp.waitForFunction(()=>document.querySelector('[data-sound-toggle]').getAttribute('aria-pressed')==='false');
    await mp.setViewportSize({width:390,height:844});assert.equal(await mp.locator('[data-mobile-media] [data-video-toggle]').isVisible(),true);await mp.setViewportSize({width:1440,height:1000});
  });
- const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});watch(touch);const tp=await touch.newPage();
+ await motion.close();
+ const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});watch(touch);await touch.addInitScript(()=>localStorage.setItem('ana-ambient-off','1'));const tp=await touch.newPage();
  await check('touch cards expose purchase controls without hover',async()=>{await tp.goto(base+'/eshop');const card=tp.locator('.product-card').first();assert.equal(await card.locator('[data-add]').isVisible(),true);await card.locator('[data-add]').tap();await tp.goto(base+'/kosik');await tp.locator('.cart-line').waitFor();assert.equal(await tp.locator('.cart-line').count(),1);await tp.goto(base+'/eshop');await tp.locator('.product-card').first().scrollIntoViewIfNeeded();await tp.screenshot({path:root+'catalog-touch.png'});const touchInfo=await tp.locator('.product-info').first().evaluate(el=>({hoverNone:matchMedia('(hover:none)').matches,opacity:getComputedStyle(el).opacity,visibility:getComputedStyle(el).visibility}));assert.equal(touchInfo.opacity,'1');assert.equal(touchInfo.visibility,'visible');});
  await check('touch: menu na úvode sa otvorí ťuknutím a zavrie tlačidlom',async()=>{await tp.goto(base+'/');await headerTrigger(tp).tap();await assertOpen(tp,'top');await tp.locator('#dc-top-menu button[data-menu-close]').tap();await assertClosed(tp,'top');});
  await touch.close();
