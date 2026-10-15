@@ -61,8 +61,13 @@ Větev `codex/legal-consents`, základ `claude/backend-integration` 8cf9c86. Bac
 
 ## Ověření
 
-`npx tsc --noEmit` PASS; fokus unit 6 sad / 57 testů PASS (legal policy/guard/routes,
-SafeOrder workflow, voucher workflow a nexus-checkout errors). Plná unit a HTTP výhradně GitHub Actions
-po zapojení modulu, middleware a fixtures Claudem. Lokální PostgreSQL/HTTP nespouštěny.
-Stav: IMPLEMENTED; runtime integrace a plná regrese zatím IMPLEMENTED_UNVERIFIED.
+Lokální TypeScript PASS; fokus legal/checkout testy PASS, včetně regresí guest/registered košíku
+(7/7 routy) a nové verze newsletteru (2/2). Plná sada a HTTP běžely výhradně v GitHub Actions.
+Registraci modulu, middleware, verzí a fixtures provedl Claude v integrační větvi.
 Bez nových závislostí, bez zásahu do cen, entitlement modulu, `.env` nebo produkce.
+
+Integrovaný kód **VERIFIED** na `claude/backend-integration` **4ba87ff**:
+[GitHub Actions 38667772955](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38667772955), oba joby `verify` a `medusa-persistence` PASS.
+Backend TypeScript + **516/516 unit** (53 sad), celý skutečný Medusa/PostgreSQL HTTP běh PASS,
+všech **15/15 scénářů X1–X3** PASS. Dále NEXUS1102/1102 a workerd38/38 PASS.
+Tento důkaz ověřuje syntetické kontrakty; není produkčním nasazením ani právním schválením textů.
