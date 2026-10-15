@@ -1,0 +1,66 @@
+{
+  "status": "VERIFIED",
+  "scope": "Native Medusa creation-event delivery to durable inbox; not a business consumer or complete autonomy",
+  "source_head": "606e1d53399753e1a86d0dc6adb9044db48dc9dd",
+  "tested_merge": "70dad4495123f4e47a83337bd7c179ee28da1f28",
+  "merged_master": "5027b3e2869728f319cec23d95782e9bcf6a8513",
+  "pull_request": 16,
+  "ci_run": 38825594461,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38825594461",
+  "results": {
+    "backend_unit": 602,
+    "nexus_unit_integration": 1230,
+    "workerd_d1": 111,
+    "http_postgresql_scenarios": 137
+  },
+  "new_scenarios": [
+    {
+      "scenario": "MEDUSA_NATIVE_EVENT_DURABLE_DELIVERY",
+      "status": "PASS",
+      "checkpointBeforeSend": true,
+      "signed": true,
+      "replayRequests": 0
+    },
+    {
+      "scenario": "MEDUSA_DELIVERY_LOST_REPLY_RECOVERY",
+      "status": "PASS",
+      "attempts": 2,
+      "sameInboxKey": true
+    },
+    {
+      "scenario": "MEDUSA_DELIVERY_PERMANENT_FAILURE",
+      "status": "PASS",
+      "attempts": 1,
+      "state": "reverted"
+    },
+    {
+      "scenario": "MEDUSA_DELIVERY_RETRY_EXHAUSTION",
+      "status": "PASS",
+      "attempts": 4,
+      "state": "reverted",
+      "needsReview": true
+    }
+  ],
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "backend-unit.json": "c0a8ffecd98233a62500aac8830b828cbd0951a33212e0874973ffb18e478a63",
+    "nexus.json": "d93a6385b7fec92fbf51b1a50b8224ef2fd0dc8be4f0520d37ddeb0e2788421a",
+    "workerd.json": "3f2a9234d9366cba8b99db803ee8e5222a93e920436ab7869afac99c6f975a92",
+    "medusa-persistence-evidence.json": "a69ca41aae9b9b351b258f0ccb2cd83c1dc961ba20cf8cfa2dec92698860ca6f"
+  },
+  "trees": {
+    "backend": "54f4ec910a1d5d4ac74242e7a556216e5cd64ebe",
+    "nexus": "8f62a30262b874bc3546fe635823c438722c9137",
+    "storefront-prototype": "cd1ba7c4458c6361914d6b7a0179b21d27299c95"
+  },
+  "previous_failed_run": {
+    "ci_run": 38824724917,
+    "reason": "Integration assertion assumed immediate rejection; corrected to assert persisted terminal failure."
+  },
+  "limits": [
+    "HTTP receiver in Medusa/PG tests is a local contract fixture; D1 intake is independently verified in workerd.",
+    "Production Redis restart and event-bus failure before the initial workflow checkpoint are not verified or resolved by this package.",
+    "No inbox business consumer, production deployment or commercial policy change."
+  ]
+}
