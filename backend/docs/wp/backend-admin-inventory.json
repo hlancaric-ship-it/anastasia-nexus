@@ -2,8 +2,10 @@
   "schema_version": 1,
   "basis": {
     "branch": "claude/backend-integration",
-    "commit": "cdfcb1d255a91ae82418c1bec5e068adb26f0519",
-    "date": "2026-10-14",
+    "commit": "8cf9c86986e0e630ad14014992bb54ab37c3850f",
+    "worktree_dirty": false,
+    "date": "2026-10-15",
+    "generated_at_utc": "2026-10-15T01:04:48.820383+00:00",
     "note": "Source inventory, not runtime health or acceptance evidence. No environment files or secret values read."
   },
   "custom_routes": [
@@ -163,6 +165,16 @@
       "access": "user (Medusa admin namespace)"
     },
     {
+      "path": "/admin/ops/events",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/ops/events/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "user (Medusa admin namespace)"
+    },
+    {
       "path": "/admin/vouchers/:id/transactions",
       "methods": [
         "GET"
@@ -212,6 +224,16 @@
       "layer": "custom",
       "verification": "IMPLEMENTED_UNVERIFIED",
       "access": "user (Medusa admin namespace)"
+    },
+    {
+      "path": "/hooks/ops/edge-events",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/hooks/ops/edge-events/route.ts",
+      "layer": "custom",
+      "verification": "IMPLEMENTED_UNVERIFIED",
+      "access": "framework authentication"
     },
     {
       "path": "/store/booking-slots",
@@ -4695,6 +4717,17 @@
       "verification": "IMPLEMENTED_UNVERIFIED"
     },
     {
+      "source": "nexus/workers/api/ops-ingest.ts",
+      "exports": [
+        "resolveIngestUrl",
+        "enqueueOpsEvent",
+        "_opsQueueForTests",
+        "flushOpsEvents"
+      ],
+      "role": "runtime",
+      "verification": "IMPLEMENTED_UNVERIFIED"
+    },
+    {
       "source": "nexus/workers/api/routes/aiGateway.ts",
       "exports": [
         "handleAIQuery"
@@ -4780,6 +4813,13 @@
     }
   ],
   "environment_setting_references": [
+    {
+      "name": "ACCOUNT_BOOKINGS_URL",
+      "sources": [
+        "backend/src/lib/notify/index.ts"
+      ],
+      "secret_value_included": false
+    },
     {
       "name": "ADMIN_CORS",
       "sources": [
@@ -4974,6 +5014,7 @@
     {
       "name": "MEDUSA_PRICING_TENANT_ID",
       "sources": [
+        "nexus/workers/api/index.ts",
         "nexus/workers/api/medusaServiceAuth.ts",
         "nexus/workers/api/routes/nexusPricing.ts"
       ],
@@ -5020,7 +5061,8 @@
       "name": "NEXUS_TENANT_ID",
       "sources": [
         "backend/src/api/store/nexus-cart/route.ts",
-        "backend/src/api/store/nexus-checkout/safeorder.ts"
+        "backend/src/api/store/nexus-checkout/safeorder.ts",
+        "backend/src/modules/ops-audit/edge-ingest.ts"
       ],
       "secret_value_included": false
     },
@@ -5030,6 +5072,43 @@
         "backend/medusa-config.ts",
         "backend/src/scripts/anastasia-bootstrap.ts",
         "backend/src/scripts/migrate-legacy-customers-orders.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "OPS_AUDIT_RETENTION_DAYS",
+      "sources": [
+        "backend/src/jobs/ops-retention.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "OPS_EVENT_RETENTION_DAYS",
+      "sources": [
+        "backend/src/jobs/ops-retention.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "OPS_INGEST_SECRET",
+      "sources": [
+        "backend/src/api/hooks/ops/edge-events/route.ts",
+        "nexus/workers/api/ops-ingest.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "OPS_INGEST_TENANT_ID",
+      "sources": [
+        "backend/src/modules/ops-audit/edge-ingest.ts",
+        "nexus/workers/api/ops-ingest.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "OPS_INGEST_URL",
+      "sources": [
+        "nexus/workers/api/ops-ingest.ts"
       ],
       "secret_value_included": false
     },
@@ -5149,6 +5228,41 @@
       "name": "VOUCHER_VALIDITY_MONTHS",
       "sources": [
         "nexus/workers/api/routes/issuance.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ZEPTOMAIL_API_KEY",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ZEPTOMAIL_API_URL",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ZEPTOMAIL_FROM_EMAIL",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ZEPTOMAIL_FROM_NAME",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "secret_value_included": false
+    },
+    {
+      "name": "ZEPTOMAIL_REPLY_TO",
+      "sources": [
+        "backend/medusa-config.ts"
       ],
       "secret_value_included": false
     }
@@ -5360,6 +5474,24 @@
         "changes",
         "request_id"
       ]
+    },
+    {
+      "source": "backend/src/modules/ops-audit/models/ops-event.ts",
+      "model": [
+        "ops_event"
+      ],
+      "fields": [
+        "id",
+        "level",
+        "domain",
+        "event",
+        "request_id",
+        "order_id",
+        "cart_id",
+        "customer_id",
+        "entity_id",
+        "fields"
+      ]
     }
   ],
   "jobs": [
@@ -5398,6 +5530,15 @@
       "schedule": [
         "*/10 * * * *"
       ]
+    },
+    {
+      "source": "backend/src/jobs/ops-retention.ts",
+      "name": [
+        "ops-retention"
+      ],
+      "schedule": [
+        "17 3 * * *"
+      ]
     }
   ],
   "subscribers": [
@@ -5430,6 +5571,12 @@
     {
       "source": "backend/src/subscribers/chat-customer-message.ts",
       "events": []
+    },
+    {
+      "source": "backend/src/subscribers/compensation-payment-refunded.ts",
+      "events": [
+        "payment.refunded"
+      ]
     },
     {
       "source": "backend/src/subscribers/entitlement-order-canceled.ts",
@@ -5481,172 +5628,164 @@
   "log_sources": [
     {
       "source": "backend/src/api/admin/ops/audit/route.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "audit_read_failed"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
+    },
+    {
+      "source": "backend/src/api/admin/ops/events/route.ts",
+      "structured_stdout_events": [
+        "ops_events_read_failed"
+      ],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/api/admin/vouchers/settings/route.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
+    },
+    {
+      "source": "backend/src/api/hooks/ops/edge-events/route.ts",
+      "structured_stdout_events": [
+        "ingest_failed",
+        "ingest_refused",
+        "ingest_rejected_items"
+      ],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/api/store/entitlements/route.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/api/store/media-access/route.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/jobs/chat-admin-digest.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/jobs/chat-retention.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/jobs/gift-voucher-maintenance.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
+    },
+    {
+      "source": "backend/src/jobs/ops-retention.ts",
+      "structured_stdout_events": [
+        "ops_retention",
+        "ops_retention_failed"
+      ],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/lib/observability/audit.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "audit_invalid_input",
         "audit_write_failed"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
+    },
+    {
+      "source": "backend/src/lib/observability/events.ts",
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/lib/observability/log.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/modules/auth-magic-link/service.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/modules/booking/order-sync.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/modules/chat/notifier.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/modules/entitlement/order-sync.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/modules/gift-voucher/delivery.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/modules/gift-voucher/order-sync.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
+    },
+    {
+      "source": "backend/src/modules/notification-log/service.ts",
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
+    },
+    {
+      "source": "backend/src/modules/notification-zeptomail/service.ts",
+      "structured_stdout_events": [
+        "provider_send",
+        "render_failed",
+        "send_failed",
+        "send_rejected"
+      ],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/scripts/anastasia-bootstrap.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "backend/src/scripts/import-anastasia-catalog.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/auth-magic-link-requested.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/booking-order-canceled.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/booking-order-placed.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/booking-payment-captured.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/chat-admin-reply.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/chat-customer-message.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/entitlement-order-canceled.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/entitlement-order-placed.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/entitlement-payment-captured.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/entitlement-payment-refunded.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/gift-voucher-issued.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/gift-voucher-order-canceled.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/gift-voucher-order-placed.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
-    },
-    {
-      "source": "backend/src/subscribers/gift-voucher-payment-captured.ts",
-      "structured_events": [],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "structured_stdout_events": [],
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "nexus/workers/api/SecurityCoordinator.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "security_do.alarm_schedule_failed",
         "security_do.cleanup",
         "security_do.cleanup_failed",
@@ -5660,20 +5799,22 @@
         "security_do.rate_limited",
         "security_do.rate_windows_pruned"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "nexus/workers/api/index.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "http.request",
         "http.unhandled_error",
         "worker.missing_bindings"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "nexus/workers/api/routes/issuance.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "voucher.issue.code_collision",
         "voucher.issue.code_collision_exhausted",
         "voucher.issue.d1_read_failed",
@@ -5688,30 +5829,33 @@
         "voucher.issue.source_order_conflict_without_row",
         "voucher.issue.transaction_write_failed"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "nexus/workers/api/routes/mediaDelivery.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "media.deliver",
         "media.denied"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "nexus/workers/api/routes/medusaWebhook.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "medusa.customer_created.processed",
         "medusa.order_placed.processed",
         "medusa.webhook_async_failed",
         "webhook.medusa.duplicate_skipped",
         "webhook.medusa.received"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "nexus/workers/api/routes/shoptetWebhook.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "webhook.accepted",
         "webhook.audit.discounts_read",
         "webhook.audit.token_missing",
@@ -5727,11 +5871,12 @@
         "webhook.voucher.purchase_detected",
         "webhook.voucher.units_unreadable"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     },
     {
       "source": "nexus/workers/api/routes/voucher.ts",
-      "structured_events": [
+      "structured_stdout_events": [
         "voucher.audit.hold_write_failed",
         "voucher.d1.consume_failed",
         "voucher.d1.read_failed",
@@ -5758,7 +5903,8 @@
         "voucher.validate.ok",
         "voucher.validate.rate_limited"
       ],
-      "persistence": "stdout unless explicitly persisted by domain/audit service"
+      "persistent_ops_events": [],
+      "persistence": "ops_event for recordEvent callers; other logger calls remain stdout/domain-specific"
     }
   ]
 }

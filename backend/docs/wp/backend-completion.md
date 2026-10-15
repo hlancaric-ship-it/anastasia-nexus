@@ -29,18 +29,28 @@ Neobsahuje kód, kontakty, poznámky, idempotency klíče ani libovolná metadat
 Neexistující poukaz vrací 404, odpovědi nejsou cachovatelné.
 
 Historie zpřístupňuje existující `gift_voucher_transaction`, nevytváří druhý účetní deník.
-Společnou korelaci a logování ostatních domén vlastní Claude. Toto ještě není přehled všech logů.
+Společnou korelaci a logování ostatních domén vlastní Claude (`/admin/ops/events`, `/admin/ops/audit`).
+Pohyby poukazu jsou oddělené od provozních událostí a historie konfigurace.
+
+Nastavení, zneplatnění a ruční vratka používají společný ops audit. Nastavení ukládá **aplikovaný
+snapshot**, i když následná synchronizace produktu vrátí502; netvrdí starý stav přečtený bez zámku.
+Void/refund neukládají kód, důvod, poznámku ani idempotency key do ops auditu.
+Replay refundu nepíše druhý audit záznam. Finanční deník a limity vratek zůstávají beze změny.
+Pět fokus unit testů a skutečný gift-only HTTP ověřily settings2/void1/refund1/replayNoDuplicate.
 
 ## Ověření
 
 - TypeScript PASS.
 - Pět unit testů limitu PASS; čtyři unit testy auditu PASS.
-- Plná unit sada po retenci, exportu, auditu a limitu na integračním základu: **385/385 PASS**; TypeScript PASS.
+- Plná unit sada po retenci, exportu, auditu a limitu na integračním základu: **412/412 PASS**; TypeScript PASS.
 - Plný HTTP runner původního základu + limit: PASS, důkaz `wave1-safeorder-ux444ckb/medusa-persistence-evidence.json`.
   Ověřeno 25 souběžných požadavků (20×400 pro neplatný kód, 5×429), sdílený čítač a reset po expiraci.
-  Audit a retence čekají na plný společný HTTP běh integrační větve.
+  Audit, retence i společné provozní API prošly plným společným HTTP během `wave1-safeorder-o5t4amac`.
+  Následné doplnění admin auditu poukazů prošlo gift-only HTTP `wave1-safeorder-qotli3sf`.
 
-Žádný push, deploy, produkční databáze ani skutečný e-mail.
+Integrátor následně doložil plný HTTP PASS na c500401 a CI `verify` + `medusa-persistence` PASS
+na fc7e7f2 (run 38648035677). Další práce dle `ROZDELENI-BACKEND-ZBYTEK.md` zůstává před administrací.
+Žádný deploy, produkční databáze ani skutečný e-mail v těchto ověřovacích bězích.
 
 ## Retence uzavřeného chatu
 

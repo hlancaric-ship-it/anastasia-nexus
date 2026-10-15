@@ -18,7 +18,7 @@ Stav `IMPLEMENTED_UNVERIFIED` v inventáři znamená nalezenou implementaci; nen
 | NEXUS pricing | `POST /store/nexus-cart` → Worker `/api/nexus/pricing` | Serverový tenant/credential, policy JSON; product metadata `manufacturer`, `category`, `max_discount` | Přepočet pod kontrolou serveru; snapshot v košíku. Medusa promotions se nesmějí vrstvit přes autoritativní cenu. |
 | Checkout | `POST /store/nexus-checkout`, standardní cart complete, `workflows/hooks.ts` | Snapshot, platební session, kupón/rezervace/poukaz z PostgreSQL | Guard nad zamčeným košíkem, kompenzace, změna ceny invaliduje platbu. Plný lokální HTTP runner. |
 | SafeOrder | Worker `/api/nexus/safeorder`, serverový `safeorder.ts` | Aktuální HTTP policy má v kódu COD 120 EUR a prahy 40/70; klient je nesmí měnit | Není zaměnitelná s kompletní sadou doménových SafeOrder pravidel. REVIEW/BLOCK/výpadek zastavují checkout; nastavovací admin zatím chybí. |
-| Platební události a refundy | Medusa payment/order events, entitlement/voucher subscribery | Payment provider, skutečný capture, vazby objednávky | Bez capture nevzniká nárok. Refundy integruje Claude; Stripe E2E se skutečným test klíčem ještě není lokální synthetic důkaz. |
+| Platební události a refundy | Medusa payment/order events, entitlement/voucher subscribery | Payment provider, skutečný capture, vazby objednávky | Bez capture nevzniká nárok. Plný refund kompenzuje poukazovou část a revokuje digitální přístupy; částečný refund poukazu vyžaduje ruční kontrolu; Stripe E2E se skutečným test klíčem ještě není lokální synthetic důkaz. |
 | QR kupóny | `/admin/coupon-links`, `/store/coupon-links`, serverová coupon policy | Medusa promotions/kampaně + `COUPON_LINK_STOREFRONT_ORIGIN` | Generování SVG/PNG je lokální. Preflight není aplikovaná sleva; cenu aktivuje checkout/pricing. Existující admin `coupon-links`. |
 | 301 přesměrování | `src/scripts/export-edge-redirects.ts`, GSC `redirects-map.csv` | Importovaná `metadata.legacy_path`, handle a stav produktu/kategorie | Read-only export; query musí zachovat Worker. Nasazení ani dostupnost všech cílových stránek tím nejsou ověřené. |
 | Darčekové poukazy | `/admin/vouchers/**`, `/store/gift-vouchers/**`, modul `gift-voucher` | `gift_voucher_settings`, snapshot pravidel na vydaném poukazu | Výběr hodnot, vystavení po platbě, kredit, vrácení, expirace, doručení; existující admin `vouchers`. |
@@ -33,13 +33,13 @@ Stav `IMPLEMENTED_UNVERIFIED` v inventáři znamená nalezenou implementaci; nen
 | Notifikace a joby | Medusa event subscribers/jobs, Notification adaptery | Provider a URL/recipient konfigurace | Lokální synthetic doručení není skutečné odeslání pošty. Claim/retry semantics nutno posuzovat po doménách. |
 | Migrace katalogu/zákaznic/objednávek | `src/scripts/import-anastasia-catalog.ts`, `migrate-legacy-customers-orders.ts` | Dry-run, legacy ID, důkazy/importní soubory | CLI, idempotence, bez osobních dat v veřejném inventáři. Není to frontendová admin akce. |
 | Záloha/obnova | backup-local/restore-local/db-recovery | Jen schválená lokální databáze a artefakty | Runbook, guard lokální DB, restore drill; žádná automatická produkční obnova. |
-| Korelace a audit změn | `lib/observability`, `/admin/ops/audit`, `ops-audit` | PostgreSQL `ops_audit_entry`, request ID | Claude implementuje; viz přesné hranice níže. Neznamená zatím dostupnost všech stdout logů v adminu. |
+| Korelace, provozní události a audit změn | `lib/observability`, `/admin/ops/events`, `/admin/ops/audit`, `ops-audit` | PostgreSQL `ops_event`, `ops_audit_entry`, request ID | Trvalé čtení/filtry ověřeny skutečným HTTP; přesné pokrytí callerů níže. |
 
 ## Konfigurace: kdo ji mění a kde
 
 | Nastavení | Typ / výchozí stav | Autorita a způsob změny | Audit |
 |---|---|---|---|
-| Poukazy: `enabled`, hodnoty, `validity_months`, `scope_type`, `category_ids`, `partial_redemption`, `delivery_method` | enabled; 50/100/200 EUR; 12 měsíců; all; postupné; both. Validace v `gift-voucher/policy.ts` | Správce přes `/admin/vouchers/settings`; PG jediný default řádek; synchronizace produktu | `updated_by` + čas; transakční deník je oddělený od historie konfigurace. Napojení na obecný audit kontrolovat ve finální integraci. |
+| Poukazy: `enabled`, hodnoty, `validity_months`, `scope_type`, `category_ids`, `partial_redemption`, `delivery_method` | enabled; 50/100/200 EUR; 12 měsíců; all; postupné; both. Validace v `gift-voucher/policy.ts` | Správce přes `/admin/vouchers/settings`; PG jediný default řádek; synchronizace produktu | `updated_by` + čas a ops audit aplikovaného snapshotu, i když navazující sync produktu selže. Void/refund mají audit bez kódu/poznámek, replay refundu záznam nezdvojí. |
 | NEXUS pricing policy | JSON loyaltyTiers/brandLimits/categoryLimits/brandSaleDiscounts, validace Workerem | `MEDUSA_PRICING_POLICY_JSON`; deployment/tenant vlastník. Zatím žádný konfigurační write API/admin editor | Samotný env update netvoří ops_audit_entry. |
 | NEXUS propojení | URL, tenant string, secret | Backend `NEXUS_PRICING_URL`, `NEXUS_TENANT_ID`, `NEXUS_PRICING_API_KEY`; Worker dedicated credential/tenant | Secret hodnoty nepatří do adminu ani inventáře. |
 | Booking typy | Booking metadata dle `booking/offer.ts`, varianta a cena v PG | Správce přes booking types API | Společný admin audit v integrační větvi. |
@@ -48,6 +48,7 @@ Stav `IMPLEMENTED_UNVERIFIED` v inventáři znamená nalezenou implementaci; nen
 | Retence obsahu | `CHAT_RETENTION_DAYS`, 365; celé 30–3650 | Serverová konfigurace; neplatná hodnota job bezpečně zastaví | Počty odstraněného obsahu do logu; env změna není admin audit. |
 | Chat upozornění | `CHAT_ADMIN_NOTIFY_EMAIL`, `CHAT_ADMIN_URL`, `CHAT_STOREFRONT_URL` | Serverová konfigurace, adapter Notification | E-mail a obsah zpráv se nesmějí stát provozním logem. |
 | Doručení poukazu | `GIFT_VOUCHER_DELIVERY`, aktivní pouze `notification` | Server + vybraný provider a šablony | Maskované provozní informace, delivery stav/pokusy v PG. |
+| Retence provozních událostí / admin auditu | `OPS_EVENT_RETENTION_DAYS`: 90, rozsah7–730; `OPS_AUDIT_RETENTION_DAYS`: 1095, rozsah365–3650 | Serverová konfigurace, daily `ops-retention` job, dávky po500 / maximum10000 na běh | Neplatná hodnota používá bezpečný default; striktní celé číslo, žádné parseInt zkrácení typu7junk. Finanční deník poukazů tímto jobem mizet nesmí. |
 | Média | Bucket, token secret a serverové URL/TTL dle source inventory | Deployment vlastník, R2 a backend | Log token nikdy neobsahuje. |
 | Auth/CORS/DB/payment | Názvy env a poskytovatelé v `medusa-config.ts` | Deployment; běžné obchodní nastavení přes nativní Medusa admin | Žádné čtení `.env`, výpis secretů nebo klientský přepínač tenantu. |
 
@@ -61,16 +62,17 @@ oddělená; Worker svazuje tenant s credentialem, ne s libovolným vstupem store
 | Zdroj | Co lze dohledat | Trvalost / přístup | Mezery |
 |---|---|---|---|
 | `ops_audit_entry` | Aktér, akce, entita, čas, redigované změny, request ID | PG; `/admin/ops/audit`, user auth, stránkování/filtry | Audit helper se volá po obchodní změně. Selhání auditu nezruší už provedenou změnu; vzniká error log. Nejde o atomický audit ve všech doménách. |
+| `ops_event` | Úroveň, doména, event, request/order/cart/customer/entity ID, čas a redigovaná pole | PG; `/admin/ops/events`, pouze správce, no-store, limitmax100, filtry ID/domain/level/event/from/to | HTTP ověřil chybný i úspěšný checkout, korelaci, filtry a401 pro anonymní přístup. Maximální explicitní časové okno93d. Zápis je best-effort: při chybě DB zůstává error ve stdout; obchodu se nemění výsledek. |
 | `gift_voucher_transaction` | Vystavení, čerpání, propadnutí, kompenzace, refund, void, expiry | PG; `/admin/vouchers/:id/transactions` | Není to všechen provoz aplikace; audit settings je jiný typ události. |
-| Medusa structured log | Doména/event/úroveň/čas/request ID; zprávy HTTP a domén | Server stdout/log collector | `logEvent` helper sám nezmění všechna stará volání loggeru; pokrytí jednotlivých callerů je v inventáři. Bez collector API nejde tvrdit admin přehled všech chyb. |
-| Worker structured log | requestId, pricing/SafeOrder/webhook/voucher události, chyby | Workers log infrastruktura; lokálně worker.log | Není zde bezpečné čtecí API propojené do Medusa adminu. Retence/streamování je záležitost skutečné infrastruktury. |
+| Medusa structured log | Doména/event/úroveň/čas/request ID; zprávy HTTP a domén | `recordEvent` callery mají i PG záznam; `logEvent`/přímý logger jsou stdout | V inventáři `persistent_ops_events` oproti `structured_stdout_events`. Samotná deklarace domény v helperu není důkaz pokrytí všech operací; native framework stdout není automaticky převzat do PG. |
+| Worker structured log | requestId, pricing/SafeOrder/webhook/voucher události, chyby | Workers log infrastruktura; lokálně worker.log | Warn/error z Medusa cest přenáší podepsaný tenantově svázaný ingest do `ops_event`; debug/info a ostatní tenanty zůstávají ve Worker stdout. Celý Worker → backend řetěz v jednom běhu zatím není doložen. |
 | Worker D1 voucher audit | Pohyby/reject/hold, tenant/order; execution intents a webhook receipts | D1 tabulky dle migrací | Oddělené od Medusa EUR poukazů; nelze slučovat dva zůstatky ani oba systémy označit za jeden účetní deník. |
 | Booking / entitlement / chat stav | Stav rezervace/nároku/konverzace, akce a časová pole | PG + příslušné admin API | Stav entity není úplná neměnná historie všech přechodů. Chat body je chráněný obsah, ne provozní log. |
 | Lokální ověřovací důkazy | Syntetické scénáře, statusy, souběh, order delta, persistentní částky | JSON HTTP runneru; test logy; `docs/wp/evidence` | Testové důkazy nejsou živé provozní logy ani produkční acceptance. |
 
-Požadavek „vidět veškeré logy“ je dokončený teprve s backendem pro bezpečné čtení
-provozních událostí z reálného collector/store, filtrováním podle request/order/domain/time,
-přístupem správce a definovanou retencí. Samotný stdout helper a audit změn to nepokrývají.
+Čtecí backend pro trvalé provozní události nyní existuje, včetně filtrování, oprávnění a retence.
+Požadavek „vidět veškeré logy“ je pokrytý pro skutečně zapojené `recordEvent` callery;
+samotný stdout helper, seznam domén ani audit změn nenahrazují zapojení dalších zdrojů.
 Do budoucího adminu nezavádět čtení libovolných souborů, raw SQL nebo zobrazování tokenů,
 celých kódů, kontaktů či chatových zpráv v provozním přehledu.
 
@@ -95,6 +97,13 @@ perzistence, oprávnění a testy. `NOT_MIGRATED.md` není důkaz úplné migrac
 3. Doplnit do této mapy výsledný commit a konkrétní zbylé mezery kontraktů.
 4. Teprve potom společně začít admin nad skutečnými API. Tato mapa nevytváří žádný admin UI.
 
-Dosavadní Codex důkaz: původní backend + rate limit plný HTTP PASS; integrační základ
-s limitem/auditem/retencí/exportem **385/385 unit** a TypeScript PASS. Retence 10/10 a export 11/11 fokus testů PASS;
-nové HTTP scénáře se ověřují při finální integrační regresi. Bez pushe a nasazení.
+Dosavadní důkaz: plná integrovaná Medusa/PG regrese `wave1-safeorder-o5t4amac` PASS,
+včetně retence dvou uzavřených konverzací (jedna archivovaná), souběhu/replay, audit historie
+poukazů a OPS_OBSERVABILITY. Nové admin změny poukazů ověřil navíc `wave1-safeorder-qotli3sf`
+(gift-only): settings2/void1/refund1, refund replay bez duplikace. Codex ověřil 412/412 unit a TypeScript PASS.
+Integrátor doložil na d37c213 backend 416/416 a NEXUS 572/572 testů PASS; plný HTTP na c500401 PASS.
+Podle předání Clauda prošly na fc7e7f2 oba CI joby `verify` a `medusa-persistence`
+(run 38648035677), včetně notifikací, kompenzací refundu a izolace A-02.
+Inventář je snapshot čistého 8cf9c86; novější ZeptoMail provider tím není označen za ověřené reálné doručení.
+Další backendové balíky X1–X3 a C-1–C-4 určuje `ROZDELENI-BACKEND-ZBYTEK.md`; admin stále čeká.
+Bez nasazení nebo produkčních zásahů.
