@@ -1,6 +1,6 @@
 # Obnova trvalých operací po pádu
 
-Stav před balíkem: PARTIAL. Stav implementace: IMPLEMENTED_UNVERIFIED pro workerd/D1 do dokončení CI. Navazuje na docs/INTEGRATION_STATUS.md a docs/NEXUS_AUTONOMY_SPEC.md §2–3; vlastní větev codex/intent-recovery z ověřeného master e465b43. Žádné nasazení.
+Stav před balíkem: PARTIAL. Stav implementace: VERIFIED v izolovaném workerd/D1 a plné regresi, CI 38817700077; PR #11 sloučen do master. Důkaz: docs/evidence/intent-recovery-20261016.json. Navazuje na docs/INTEGRATION_STATUS.md a docs/NEXUS_AUTONOMY_SPEC.md §2–3; vlastní větev codex/intent-recovery z ověřeného master e465b43. Žádné nasazení.
 
 ## Nejmenší navazující plán
 
@@ -30,3 +30,7 @@ Plný workerd/NEXUS/backend/HTTP PostgreSQL běh pouze workflow wave1-p0.yml. V�
 Tento balík nedělá žádný vnější obchodní zápis, neposílá platby ani dokumenty a nezavádí automatický retry nejistých výsledků. UNKNOWN zůstává pro ověření proti autoritativnímu cíli. Překročený deadline nezaručuje, že vzdálený systém zastavil již odeslaný zápis; policy ověření musí tuto nejistotu respektovat.
 
 Konfigurace cronu ani produkční deadline se tímto nemění: zapnutí je součástí schváleného nasazení s pravidly konkrétních operací. Následuje konkrétní runtime tok s uložením záměru, ověřením výsledku a bezpečným zpracováním fronty nejistot; generický retry framework se nevytváří. Pro velký objem bude třeba index a policy podle druhu operace; teď je průchod úmyslně omezený a určený konfigurovanému Medusa tenantovi.
+
+## Výsledek CI 16. 10. 2026
+
+Běh 38817700077: NEXUS 1202/1202, workerd/D1 80/80, backend 544/544, HTTP/PostgreSQL 132 scénářů PASS. Typové kontroly PASS. Ověřený HEAD 9481535, testovací merge 2f6a76b. Produkční aktivace ani celá obchodní autonomie se tím netvrdí.

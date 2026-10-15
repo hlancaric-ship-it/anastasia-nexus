@@ -1,0 +1,23 @@
+{
+  "status": "VERIFIED",
+  "scope": "Expired execution recovery and attempt fencing",
+  "source_head": "9481535443ebf2169f70856d87349152a368153b",
+  "tested_merge": "2f6a76b8a7cd5623a053f5ac1d198cbf18f85623",
+  "pull_request": 11,
+  "ci_run": 38817700077,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38817700077",
+  "results": {
+    "backend_unit": 544,
+    "nexus_unit_integration": 1202,
+    "workerd_d1": 80,
+    "http_postgresql_scenarios": 132
+  },
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "nexus.json": "917f614c677bb4d9aaefd0d5cf3e71bf89246b2da17901a1f6b86e67d73a205c",
+    "workerd.json": "21455d93fdee196744c94bf2fb93ba2b7ab17a17deff5d2bd9617731f7fb6b72",
+    "backend-unit.json": "37e83865b0f13305fb51ebd5031eb4395f9875458d5f1339501e3843876278f2",
+    "medusa-persistence-evidence.json": "35e88547270bcfa5c6861ae6e3f2b75fc9fb9c19eb04e5666d95eba57cc3325e"
+  }
+}

@@ -36,7 +36,7 @@
 //   - NERETRYUJE a NEROZHODUJE o provedení. To je věc volajícího a
 //     `IntentExecutor`.
 
-import { assertExecutionAttempt, validateRecoveryInput, type RecoverExecutionsInput } from '../../core/canonical/outcomes/ExecutionIntentStore.js';
+import { assertExecutionAttempt, validateRecoveryInput, reconciliationUpdate, type ReconciliationOutcomeInput, type RecoverExecutionsInput } from '../../core/canonical/outcomes/ExecutionIntentStore.js';
 import { assertTenantContext, type TenantContext } from '../../core/tenant/types.js';
 import type { EntityId } from '../../core/canonical/entities/base.js';
 import type {
@@ -281,6 +281,21 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
         }
     }
 
+    async recordReconciliation(context: TenantContext, input: ReconciliationOutcomeInput): Promise<void> {
+        assertTenantContext(context, 'D1ExecutionIntentStore.recordReconciliation');
+        const current = await this.findById(context.tenantId, input.intentId);
+        if (!current) throw new Error('INTENT_NOT_FOUND');
+        const update = reconciliationUpdate(current, input);
+        const changed = await this.db.prepare(
+            `UPDATE execution_intents SET state = ?3, confirmation_quality = ?4, failure_reason = ?5, updated_at = ?6
+             WHERE id = ?1 AND tenant_id = ?2 AND state = ?7 AND attempt = ?8 AND updated_at = ?9
+               AND (state = 'UNKNOWN' OR (state = 'EXECUTED' AND confirmation_quality = 'LOG_INFERRED'))`,
+        ).bind(input.intentId, context.tenantId, update.state, update.confirmationQuality ?? null,
+            update.failureReason ?? null, input.recordedAt, input.expectedState, input.expectedAttempt,
+            input.expectedUpdatedAt).run();
+        if (changed.meta.changes !== 1) throw new Error('STALE_RECONCILIATION_SNAPSHOT');
+    }
+
     async recoverExpiredExecutions(context: TenantContext, input: RecoverExecutionsInput): Promise<readonly EntityId[]> {
         assertTenantContext(context, 'D1ExecutionIntentStore.recoverExpiredExecutions');
         validateRecoveryInput(input);
@@ -328,7 +343,7 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
                   WHERE tenant_id = ?1
                     AND (state = 'UNKNOWN'
                          OR (state = 'EXECUTED' AND confirmation_quality = 'LOG_INFERRED'))
-                  ORDER BY updated_at ASC
+                  ORDER BY julianday(updated_at), id
                   LIMIT ?2`,
             )
             .bind(tenantId, limit)

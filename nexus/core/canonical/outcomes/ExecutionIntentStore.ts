@@ -108,6 +108,36 @@ export function assertExecutionAttempt(intent: ExecutionIntent, input: RecordOut
     }
 }
 
+export interface ReconciliationOutcomeInput {
+    readonly intentId: EntityId;
+    readonly expectedState: ExecutionIntentState;
+    readonly expectedAttempt: number;
+    readonly expectedUpdatedAt: string;
+    readonly outcome: 'CONFIRMED' | 'NOT_EXECUTED';
+    readonly recordedAt: string;
+}
+
+export function reconciliationUpdate(intent: ExecutionIntent, input: ReconciliationOutcomeInput) {
+    const recordedAt = Date.parse(input.recordedAt);
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(input.recordedAt) ||
+        !Number.isFinite(recordedAt) || !Number.isFinite(Date.parse(intent.updatedAt)) || recordedAt < Date.parse(intent.updatedAt)) {
+        throw new Error('INVALID_RECONCILIATION_TIME');
+    }
+    if (intent.state !== input.expectedState || intent.attempt !== input.expectedAttempt ||
+        intent.updatedAt !== input.expectedUpdatedAt || !requiresReconciliation(intent)) {
+        throw new Error('STALE_RECONCILIATION_SNAPSHOT');
+    }
+    if (input.outcome === 'CONFIRMED') {
+        return { state: 'EXECUTED' as const, confirmationQuality: 'SYSTEM_CONFIRMED' as const,
+            failureReason: undefined };
+    }
+    if (input.outcome !== 'NOT_EXECUTED' || intent.state !== 'UNKNOWN') {
+        throw new Error('RECONCILIATION_REQUIRES_REVIEW');
+    }
+    return { state: 'FAILED' as const, confirmationQuality: undefined,
+        failureReason: 'RECONCILIATION_NOT_EXECUTED' };
+}
+
 export interface ExecutionIntentStore {
     /**
      * Naplánuje Intent. Idempotentní na `(tenantId, idempotencyKey)` --
@@ -130,6 +160,9 @@ export interface ExecutionIntentStore {
         /** Čas jako VSTUP, ne `Date.now()` uvnitř -- determinismus a testy. */
         claimedAt: string,
     ): Promise<ClaimIntentOutcome<TPayload, TExpected>>;
+
+    /** Persist authoritative read-back only if the reconciled snapshot is still current. */
+    recordReconciliation(context: TenantContext, input: ReconciliationOutcomeInput): Promise<void>;
 
     /** Expired executions become UNKNOWN for reconciliation, never automatically retried. */
     recoverExpiredExecutions(context: TenantContext, input: RecoverExecutionsInput): Promise<readonly EntityId[]>;
@@ -279,6 +312,14 @@ export class InMemoryExecutionIntentStore implements ExecutionIntentStore {
         });
     }
 
+    async recordReconciliation(context: TenantContext, input: ReconciliationOutcomeInput): Promise<void> {
+        assertTenantContext(context, 'InMemoryExecutionIntentStore.recordReconciliation');
+        const current = this.intents.get(input.intentId);
+        if (!current || current.tenantId !== context.tenantId) throw new Error('INTENT_NOT_FOUND');
+        const update = reconciliationUpdate(current, input);
+        this.intents.set(input.intentId, { ...current, ...update, updatedAt: input.recordedAt });
+    }
+
     async recoverExpiredExecutions(context: TenantContext, input: RecoverExecutionsInput): Promise<readonly EntityId[]> {
         assertTenantContext(context, 'InMemoryExecutionIntentStore.recoverExpiredExecutions');
         validateRecoveryInput(input);
@@ -309,7 +350,7 @@ export class InMemoryExecutionIntentStore implements ExecutionIntentStore {
     ): Promise<ExecutionIntent[]> {
         return [...this.intents.values()]
             .filter((i) => i.tenantId === tenantId && requiresReconciliation(i))
-            .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
+            .sort((a, b) => Date.parse(a.updatedAt) - Date.parse(b.updatedAt) || a.id.localeCompare(b.id))
             .slice(0, limit);
     }
 
