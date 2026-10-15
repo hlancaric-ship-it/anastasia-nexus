@@ -49,7 +49,7 @@ describe("customer privacy",()=>{
  })
  it("does not claim completion if magic-link invalidation fails",async()=>{
   const service={listCustomerErasures:async()=>[{id:"e",customer_id:"c"}],prepareErasure:async()=>({row:{},emails:["synthetic@example.test"],replayed:false}),completeErasure:jest.fn()}
-  const req:any={params:{id:"e"},body:{confirm:true,customer_id:"c"},auth_context:{actor_type:"user",actor_id:"admin"},scope:{resolve:(k:string)=>k==="auth"?{getAuthIdentityProviderService:()=>({getState:async()=>{throw new Error("cache unavailable")}})}:k==="logger"?{error:jest.fn()}:service}},response=res()
+  const req:any={params:{id:"e"},body:{confirm:true,customer_id:"c"},auth_context:{actor_type:"user",actor_id:"admin"},scope:{resolve:(k:string)=>k==="pg_connection"?{raw:async()=>({rows:[]})}:k==="auth"?{getAuthIdentityProviderService:()=>({getState:async()=>{throw new Error("cache unavailable")}})}:k==="logger"?{error:jest.fn()}:service}},response=res()
   await execute(req,response as any);expect(response.status).toHaveBeenCalledWith(503);expect(service.completeErasure).not.toHaveBeenCalled()
  })
 })

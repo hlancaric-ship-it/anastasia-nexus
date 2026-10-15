@@ -2,6 +2,7 @@ import { Client } from "pg"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import MagicLinkAuthService from "../service"
 import { sha256Hex, stateKey } from "../policy"
+import { storeLink } from "../state"
 
 describe("auth-magic-link PostgreSQL integration", () => {
   jest.setTimeout(30_000)
@@ -20,6 +21,7 @@ describe("auth-magic-link PostgreSQL integration", () => {
       // TEMP relations shadow Medusa tables for this session. The test touches no
       // persistent customer, order, entitlement, or auth data and rolls back.
       await client.query(`
+        create temporary table auth_link_state (id text primary key, token_hash text not null, expires_at timestamptz not null, updated_at timestamptz null) on commit drop;
         create temporary table customer (
           id text primary key, email text not null, has_account boolean not null,
           deleted_at timestamptz null, updated_at timestamptz null
@@ -54,6 +56,7 @@ describe("auth-magic-link PostgreSQL integration", () => {
         retrieve: jest.fn(async () => ({ id: "auth_c2_1", entity_id: "c2.user@example.test", app_metadata: {} })),
       }
 
+      await storeLink(pg, "c2.user@example.test", "verified-token")
       const result = await service.authenticate({ body: { email: "C2.User@Example.Test", token: "verified-token" } }, authProvider)
       expect(result.success).toBe(true)
       expect(result.authIdentity.app_metadata.customer_id).toBe("cus_c2_1")
@@ -69,6 +72,7 @@ describe("auth-magic-link PostgreSQL integration", () => {
         getState: jest.fn(async (key: string) => { const value = relinkState.get(key) ?? null; relinkState.delete(key); return value }),
         retrieve: jest.fn(async () => ({ id: "auth_c2_1", entity_id: "c2.user@example.test", app_metadata: { customer_id: "cus_c2_1" } })),
       }
+      await storeLink(pg, "c2.user@example.test", "relink-token")
       expect((await service.authenticate({ body: { email: "c2.user@example.test", token: "relink-token" } }, linkedProvider)).success).toBe(true)
       expect((await client.query("select has_account from customer where id = $1", ["cus_c2_1"])).rows[0].has_account).toBe(true)
 
@@ -80,6 +84,7 @@ describe("auth-magic-link PostgreSQL integration", () => {
         getState: jest.fn(async (key: string) => { const value = duplicateState.get(key) ?? null; duplicateState.delete(key); return value }),
         retrieve: jest.fn(async () => ({ id: "auth_dup", entity_id: "duplicate@example.test", app_metadata: {} })),
       }
+      await storeLink(pg, "duplicate@example.test", "duplicate-token")
       const duplicateResult = await service.authenticate({ body: { email: "duplicate@example.test", token: "duplicate-token" } }, duplicateProvider)
       expect(duplicateResult.success).toBe(true)
       expect(duplicateResult.authIdentity.app_metadata).toEqual({})
