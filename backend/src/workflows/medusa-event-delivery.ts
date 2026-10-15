@@ -20,5 +20,5 @@ const deliveryStep = createStep({ name: 'nexus-medusa-durable-intake', maxRetrie
   })
 
 // Native Medusa checkpoints/retry scheduler; no second order database or global event retry.
-export const medusaEventDeliveryWorkflow = createWorkflow({ name: MEDUSA_DELIVERY_WORKFLOW, store: true,
+export const medusaEventDeliveryWorkflow = createWorkflow({ name: MEDUSA_DELIVERY_WORKFLOW, store: true, idempotent: true,
   retentionTime: 7 * 24 * 60 * 60, timeout: 90 }, (input: MedusaDelivery) => new WorkflowResponse(deliveryStep(input)))
