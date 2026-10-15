@@ -18,6 +18,20 @@ describe("legal routes",()=>{
   await accept(req,res as any)
   expect(res.status).toHaveBeenCalledWith(404);expect(service.accept).not.toHaveBeenCalled()
  })
+ it("accepts a native guest cart by its opaque ID and rejects a foreign authenticated actor",async()=>{
+  const service={accept:jest.fn(async(input:any)=>({...input,accepted_at:new Date()}))}
+  const {req}=request(service,{id:"cart",customer_id:"guest",customer:{has_account:false}},{terms_accepted:true,privacy_acknowledged:true,terms_version:"v1",privacy_version:"p1"})
+  req.auth_context=undefined;const guestResponse=response();await accept(req,guestResponse as any)
+  expect(guestResponse.status).toHaveBeenCalledWith(200)
+  expect(service.accept).toHaveBeenCalledWith(expect.objectContaining({customer_id:"guest"}))
+  req.auth_context={actor_type:"customer",actor_id:"foreign"};service.accept.mockClear();const denied=response();await accept(req,denied as any)
+  expect(denied.status).toHaveBeenCalledWith(404);expect(service.accept).not.toHaveBeenCalled()
+ })
+ it("requires authentication for a registered customer's cart",async()=>{
+  const service={accept:jest.fn()}, {req}=request(service,{id:"cart",customer_id:"registered",customer:{has_account:true}},{terms_accepted:true,privacy_acknowledged:true,terms_version:"v1",privacy_version:"p1"})
+  req.auth_context=undefined;const denied=response();await accept(req,denied as any)
+  expect(denied.status).toHaveBeenCalledWith(404);expect(service.accept).not.toHaveBeenCalled()
+ })
  it("returns the original withdrawal receipt after the window without creating a refund",async()=>{
   const row={id:"w",order_id:"o",customer_id:"owner",items:[{item_id:"i",quantity:1}],status:"received"}
   const service={listLegalWithdrawals:async()=>[row],requestWithdrawal:jest.fn(async()=>({row,replayed:true}))}

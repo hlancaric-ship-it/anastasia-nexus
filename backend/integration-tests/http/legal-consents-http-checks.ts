@@ -4,7 +4,7 @@ import { capturePaymentWorkflow } from "@medusajs/medusa/core-flows"
 export async function verifyLegalConsents({api,container,options,newCart,evidence}:any) {
  const legal=container.resolve("legal"),query=container.resolve(ContainerRegistrationKeys.QUERY)
  const record=(scenario:string)=>evidence.push({scenario:`X1_${scenario}`,status:"PASS"})
- const customer=await container.resolve(Modules.CUSTOMER).createCustomers({email:"legal-owner@example.test"})
+ const customer=await container.resolve(Modules.CUSTOMER).createCustomers({email:"legal-owner@example.test",has_account:true})
  const token=generateJwtToken({actor_id:customer.id,actor_type:"customer",auth_identity_id:`synthetic-${customer.id}`},{secret:process.env.JWT_SECRET!,expiresIn:"1h"})
  const auth={Authorization:`Bearer ${token}`},owned={...options,headers:{...options.headers,...auth}}
  const id=await newCart(50,false,undefined,auth)

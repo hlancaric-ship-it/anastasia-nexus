@@ -8,7 +8,7 @@ export async function assertCartConsent(scope: Pick<MedusaContainer,"resolve">, 
   isCurrentConsent(rows[0],cart.customer_id ?? null)
 }
 export async function loadConsentCart(scope: Pick<MedusaContainer,"resolve">, id:string) {
-  const {data}=await (scope.resolve(ContainerRegistrationKeys.QUERY) as any).graph({entity:"cart",fields:["id","customer_id","completed_at"],filters:{id}})
+  const {data}=await (scope.resolve(ContainerRegistrationKeys.QUERY) as any).graph({entity:"cart",fields:["id","customer_id","completed_at","customer.has_account"],filters:{id}})
   if(!data[0]) throw new LegalError("CART_NOT_FOUND",404)
   return data[0]
 }

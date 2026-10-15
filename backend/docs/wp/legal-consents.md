@@ -10,7 +10,8 @@ Větev `codex/legal-consents`, základ `claude/backend-integration` 8cf9c86. Bac
   doklad i při pozdější změně metadat objednávky. Asociace je asynchronní, ne druhá finanční transakce.
 - `GET /store/legal/versions`: aktuální `terms_version`, `privacy_version`.
 - `POST /store/carts/:id/consents`: `{terms_accepted:true, privacy_acknowledged:true, terms_version, privacy_version}`.
-  Přihlášená zákaznice jen ke svému košíku; anonymní košík funguje se znalostí náhodného cart ID
+  Přihlášená zákaznice jen ke svému košíku; Medusa guest customer_id s `has_account=false`
+  neznamená přihlášený účet. Anonymní guest košík funguje se znalostí náhodného cart ID
   stejně jako nativní Store API. Převod košíku na jinou zákaznici vyžaduje nový souhlas.
   Obchodní podmínky jsou přijetí; soukromí je potvrzení seznámení, nikoli marketingový souhlas.
 - Standardní complete i nexus-checkout mají HTTP guard 422 `TERMS_NOT_ACCEPTED` a kontrolu
