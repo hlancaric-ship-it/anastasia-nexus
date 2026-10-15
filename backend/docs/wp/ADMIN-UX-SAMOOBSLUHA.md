@@ -124,3 +124,15 @@ Chrome/Playwright: 4/4 šířky (1440, 1024, 768, 390 px), oba pohledy bez vodor
 přepnutí navigace, rozbalení polí a ukázkové uložení PASS, bez chyb JavaScriptu.
 Snímky [přehledu](admin-design-overview.png) a [nastavení](admin-design-settings.png) vizuálně zkontrolovány.
 Nejde o plnou funkční ani uživatelskou akceptaci adminu; žádné napojení na backend zatím neproběhlo.
+
+### Doplnění proklikávání návrhu
+
+Všechny položky bočního menu otevírají vlastní obrazovku: přehled, objednávky, produkty,
+zákaznice, konzultace, zprávy, poukazy, obsah, nastavení a nápověda. Nastavení vedou také na dopravu,
+věrnostní úrovně a e-maily; obsah na stránky, newsletter a QR. Celkem 17 ukázkových obrazovek.
+Seznamy podporují hledání, ukázkové detaily mají zavíratelný dialog, funguje návrat prohlížeče.
+Roztažené přepínače a souběžné zvýraznění dvou položek menu jsou opravené.
+
+Kontrola: 28/28 přechodů menu/přímých odkazů (menu při 1440 i 390 px), hledání a prázdný výsledek,
+detail/Escape, návrat se zachovaným filtrem PASS. Původní kontrola obou obrazovek na čtyřech šířkách
+znovu PASS, bez chyb JavaScriptu. Nadále jde výhradně o vizuální návrh s ukázkovými daty.
