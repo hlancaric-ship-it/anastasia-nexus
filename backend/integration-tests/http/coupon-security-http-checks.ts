@@ -12,7 +12,7 @@ export async function verifyCouponSecurity({api,container,options,channel,region
   const code=`SECURITY-RESTRICTED-${kind.toUpperCase()}`
   await container.resolve(Modules.PROMOTION).createPromotions({code,type:'standard',status:'active',limit:10,
    rules:kind==='customer'?[{attribute:'customer_id',operator:'eq',values:[customer.id]}]:[],
-   application_method:{type:'percentage',value:10,target_type:'items',allocation:'across',
+   application_method:{type:'percentage',value:10,target_type:'items',allocation:kind==='quantity'?'each':'across',
     ...(kind==='quantity'?{max_quantity:1}:{}),
     target_rules:kind==='product'?[{attribute:'product_id',operator:'eq',values:['synthetic-other-product']}]:[]},
   })
