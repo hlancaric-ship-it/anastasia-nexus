@@ -1,3 +1,4 @@
+jest.mock("../../lib/legal/checkout", () => ({ assertCartConsent: jest.fn(async () => {}) }))
 var mockValidate: any
 var mockCompensate: any
 jest.mock("@medusajs/medusa/core-flows", () => ({
