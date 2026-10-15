@@ -19,39 +19,39 @@ jobs:
       max-parallel: 20
       matrix:
         include:
-          - { id: "001-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "002-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "003-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "004-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "005-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "006-isolated", filter: "safeOrder.test.ts" }
-          - { id: "007-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "008-isolated", filter: "schema.test.ts" }
-          - { id: "009-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "010-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "011-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "012-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "013-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "014-isolated", filter: "safeOrder.test.ts" }
-          - { id: "015-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "016-isolated", filter: "schema.test.ts" }
-          - { id: "017-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "018-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "019-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "020-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "021-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "022-isolated", filter: "safeOrder.test.ts" }
-          - { id: "023-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "024-isolated", filter: "schema.test.ts" }
-          - { id: "025-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "026-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "027-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "028-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "029-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "030-isolated", filter: "safeOrder.test.ts" }
-          - { id: "031-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "032-isolated", filter: "schema.test.ts" }
-          - { id: "033-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "001-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "002-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "003-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "004-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "005-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "006-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "007-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "008-isolated", filter: "safeOrder.test.ts" }
+          - { id: "009-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "010-isolated", filter: "schema.test.ts" }
+          - { id: "011-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "012-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "013-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "014-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "015-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "016-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "017-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "018-isolated", filter: "safeOrder.test.ts" }
+          - { id: "019-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "020-isolated", filter: "schema.test.ts" }
+          - { id: "021-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "022-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "023-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "024-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "025-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "026-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "027-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "028-isolated", filter: "safeOrder.test.ts" }
+          - { id: "029-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "030-isolated", filter: "schema.test.ts" }
+          - { id: "031-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "032-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "033-isolated", filter: "audit-hls-sibling-scope.test.ts" }
           - { id: "034-isolated", filter: "audit-media-boundary.test.ts" }
           - { id: "035-isolated", filter: "audit-post-refund-replay.test.ts" }
           - { id: "036-isolated", filter: "voucherConcurrency.test.ts" }
@@ -59,39 +59,39 @@ jobs:
           - { id: "038-isolated", filter: "safeOrder.test.ts" }
           - { id: "039-isolated", filter: "edgeRedirects.test.ts" }
           - { id: "040-isolated", filter: "schema.test.ts" }
-          - { id: "041-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "042-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "043-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "044-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "045-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "046-isolated", filter: "safeOrder.test.ts" }
-          - { id: "047-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "048-isolated", filter: "schema.test.ts" }
-          - { id: "049-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "050-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "051-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "052-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "053-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "054-isolated", filter: "safeOrder.test.ts" }
-          - { id: "055-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "056-isolated", filter: "schema.test.ts" }
-          - { id: "057-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "058-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "059-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "060-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "061-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "062-isolated", filter: "safeOrder.test.ts" }
-          - { id: "063-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "064-isolated", filter: "schema.test.ts" }
-          - { id: "065-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "066-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "067-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "068-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "069-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "070-isolated", filter: "safeOrder.test.ts" }
-          - { id: "071-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "072-isolated", filter: "schema.test.ts" }
-          - { id: "073-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "041-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "042-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "043-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "044-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "045-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "046-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "047-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "048-isolated", filter: "safeOrder.test.ts" }
+          - { id: "049-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "050-isolated", filter: "schema.test.ts" }
+          - { id: "051-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "052-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "053-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "054-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "055-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "056-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "057-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "058-isolated", filter: "safeOrder.test.ts" }
+          - { id: "059-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "060-isolated", filter: "schema.test.ts" }
+          - { id: "061-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "062-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "063-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "064-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "065-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "066-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "067-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "068-isolated", filter: "safeOrder.test.ts" }
+          - { id: "069-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "070-isolated", filter: "schema.test.ts" }
+          - { id: "071-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "072-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "073-isolated", filter: "audit-hls-sibling-scope.test.ts" }
           - { id: "074-isolated", filter: "audit-media-boundary.test.ts" }
           - { id: "075-isolated", filter: "audit-post-refund-replay.test.ts" }
           - { id: "076-isolated", filter: "voucherConcurrency.test.ts" }
@@ -99,26 +99,26 @@ jobs:
           - { id: "078-isolated", filter: "safeOrder.test.ts" }
           - { id: "079-isolated", filter: "edgeRedirects.test.ts" }
           - { id: "080-isolated", filter: "schema.test.ts" }
-          - { id: "081-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "082-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "083-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "084-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "085-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "086-isolated", filter: "safeOrder.test.ts" }
-          - { id: "087-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "088-isolated", filter: "schema.test.ts" }
-          - { id: "089-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "090-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "091-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "092-isolated", filter: "voucherConcurrency.test.ts" }
-          - { id: "093-isolated", filter: "medusaWebhook.test.ts" }
-          - { id: "094-isolated", filter: "safeOrder.test.ts" }
-          - { id: "095-isolated", filter: "edgeRedirects.test.ts" }
-          - { id: "096-isolated", filter: "schema.test.ts" }
-          - { id: "097-isolated", filter: "audit-media-schema-range.test.ts" }
-          - { id: "098-isolated", filter: "audit-media-boundary.test.ts" }
-          - { id: "099-isolated", filter: "audit-post-refund-replay.test.ts" }
-          - { id: "100-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "081-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "082-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "083-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "084-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "085-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "086-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "087-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "088-isolated", filter: "safeOrder.test.ts" }
+          - { id: "089-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "090-isolated", filter: "schema.test.ts" }
+          - { id: "091-isolated", filter: "audit-media-negative-controls.test.ts" }
+          - { id: "092-isolated", filter: "audit-media-schema-range.test.ts" }
+          - { id: "093-isolated", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "094-isolated", filter: "audit-media-boundary.test.ts" }
+          - { id: "095-isolated", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "096-isolated", filter: "voucherConcurrency.test.ts" }
+          - { id: "097-isolated", filter: "medusaWebhook.test.ts" }
+          - { id: "098-isolated", filter: "safeOrder.test.ts" }
+          - { id: "099-isolated", filter: "edgeRedirects.test.ts" }
+          - { id: "100-isolated", filter: "schema.test.ts" }
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
