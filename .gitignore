@@ -2,6 +2,9 @@ node_modules
 .wrangler
 .medusa
 .env
+.env.*
 .DS_Store
 dist
 build
+data-private/
+backend/data-private/

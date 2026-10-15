@@ -20,6 +20,23 @@ checkout returns 409 until a new session exists. A completion-workflow validatio
 hook rechecks NEXUS pricing against Medusa's locked cart snapshot and confirms
 the payment collection/session amounts and currency match that snapshot.
 
+## Authentication & cart ownership
+
+Both routes require an authenticated customer session (`session` or `bearer`),
+enforced by `nexusCartMiddlewares` registered in `src/api/middlewares.ts`. An
+unauthenticated request is rejected with `401 { "ok": false, "error": "UNAUTHORIZED" }`
+before any body handling.
+
+After loading the cart, the handler verifies ownership: `cart.customer_id` must
+equal the authenticated customer. A mismatched **or guest** cart (`customer_id`
+null, not yet associated to the caller) is rejected with
+`403 { "ok": false, "error": "CART_ACCESS_DENIED" }`. A cart must therefore be
+associated to the signed-in customer (`POST /store/carts/:id/customer`) before
+`nexus-cart`/`nexus-checkout` will accept it. This prevents pricing, coupon
+changes and checkout on carts owned by another customer or on guest carts
+(findings C1/C3/F3). It does **not** rate-limit coupon guessing on the caller's
+own cart; C1 is only made costlier, not closed.
+
 ## Store API contracts
 
 Both adapter routes use Medusa's Store API namespace and accept JSON only.
@@ -45,8 +62,9 @@ rule names in Medusa line-item metadata.
 ```
 
 Success returns `{ "ok": true, "order": <Medusa order>, "pricing": <verified NEXUS snapshot>, "paymentStatus": "PENDING" | "PAID" }`.
-The routes return 400 for invalid cart/line/currency or a malformed pricing
-response, 404 for an unknown cart, and 503 when NEXUS is unconfigured or
+The routes return 401 for an unauthenticated request, 403 for a foreign/guest
+cart (`CART_ACCESS_DENIED`), 400 for invalid cart/line/currency or a malformed
+pricing response, 404 for an unknown cart, and 503 when NEXUS is unconfigured or
 unavailable. The NEXUS server credential is only sent backend-to-Worker.
 
 Configure `NEXUS_PRICING_URL`, `NEXUS_PRICING_API_KEY`, and `NEXUS_TENANT_ID` in
