@@ -17,9 +17,9 @@ describe("self cancellation",()=>{
  it("never permits cancellation after a digital grant, including revoked grants",()=>{
   expect(()=>assertSelfCancelable(order(),"c",{...signals(),entitlements:[{status:"revoked"}]})).toThrow("DIGITAL_CONTENT_ALREADY_AVAILABLE")
  })
- it("does not refund an order whose issued voucher was consumed",()=>{
-  expect(()=>assertSelfCancelable(order(),"c",{...signals(),issuedVouchers:[{initial_amount:10000,balance:9000}]})).toThrow("ISSUED_VOUCHER_ALREADY_USED")
-  expect(()=>assertSelfCancelable(order(),"c",{...signals(),issuedVouchers:[{initial_amount:10000,balance:10000}]})).not.toThrow()
+ it("does not race a card refund against redemption of an already issued bearer code",()=>{
+  expect(()=>assertSelfCancelable(order(),"c",{...signals(),issuedVouchers:[{initial_amount:10000,balance:9000}]})).toThrow("ISSUED_VOUCHER_ALREADY_DELIVERED")
+  expect(()=>assertSelfCancelable(order(),"c",{...signals(),issuedVouchers:[{initial_amount:10000,balance:10000}]})).toThrow("ISSUED_VOUCHER_ALREADY_DELIVERED")
  })
  it("uses server deadline and fails closed for invalid configuration",()=>{
   expect(bookingCancellationHours()).toBe(24);expect(bookingCancellationHours("0")).toBe(0)

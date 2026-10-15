@@ -9,7 +9,7 @@ const MESSAGES:Record<string,string>={
  ORDER_ALREADY_FULFILLED:"Objednávka sa už vybavuje alebo bola odoslaná. Kontaktujte nás.",
  DIGITAL_CONTENT_ALREADY_AVAILABLE:"Digitálny obsah už bol sprístupnený. Obráťte sa na nás s požiadavkou.",
  BOOKING_CANCEL_TOO_LATE:"Lehota na zrušenie konzultácie v účte už uplynula. Kontaktujte nás.",
- ISSUED_VOUCHER_ALREADY_USED:"Poukaz z tejto objednávky už bol použitý. Kontaktujte nás.",
+ ISSUED_VOUCHER_ALREADY_DELIVERED:"Poukaz z tejto objednávky už bol vystavený. Pre zrušenie nás kontaktujte.",
 }
 export async function POST(req:MedusaRequest,res:MedusaResponse) {
  res.setHeader("Cache-Control","no-store")

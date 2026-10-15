@@ -19,8 +19,10 @@ Kontroly před každou mutací:
 - Aktivní rezervace musí být více než `ORDER_SELF_CANCEL_BOOKING_HOURS` před začátkem;
   výchozí24h, celé0–720. Neplatná konfigurace bezpečně503; přesná hranice se odmítá409.
   Zahrnuje vazbu booking_id v objednávce ještě před asynchronním order.placed připojením rezervace.
-- Už čerpaný poukaz vydaný touto objednávkou se neposílá automaticky do refundu;409/ruční řešení.
-  Nevyčerpané poukazy zneplatní existující storno subscriber. Nad100 rezervací/poukazů ruční kontrola.
+- Objednávka s už vystaveným poukazem patří do ručního storna správce (409), i když ještě není čerpaný.
+  Vystavený bearer kód už mohl opustit účet; prostá kontrola zůstatku by nevyloučila souběžné čerpání
+  mezi kontrolou a refundem karty. Žádná druhá logika void/refund se nepřidává. Vrácení kreditu
+  poukazu použitého k úhradě běžné objednávky funguje nadále. Nad100 rezervací/poukazů ruční kontrola.
 
 Dva souběžné požadavky serializuje **PostgreSQL pg_try_advisory_xact_lock**, ne paměť procesu.
 Cizí vlastník se odmítne ještě před mutexem, stav se uvnitř znovu načte. Prohrávající požadavek409,
@@ -58,5 +60,5 @@ vrácení termínu do skutečné nabídky a obnovení poukazového kreditu. Vyž
 syntetický fulfillment/payment provider, nikdy dopravce ani reálné peníze.
 
 `npx tsc --noEmit` PASS; fokus unit1 sada/11 testů PASS (vlastník, stavy, fulfillment,
-digitální grant, čerpaný poukaz, lhůta/config, mutex a delegování do nativního workflow). Plná sada/HTTP jen GitHub Actions; lokálně žádný PG/HTTP.
+digitální grant, vystavený poukaz, lhůta/config, mutex a delegování do nativního workflow). Plná sada/HTTP jen GitHub Actions; lokálně žádný PG/HTTP.
 IMPLEMENTED, runtime a plná regrese zatím IMPLEMENTED_UNVERIFIED. Nic nenasazeno.

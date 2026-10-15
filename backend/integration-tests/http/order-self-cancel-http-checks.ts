@@ -59,6 +59,12 @@ export async function verifyOrderSelfCancel({api,container,options,channel,regio
  const available=await ok(api.get(`/store/booking-slots?product_id=${bookingProduct.id}&from=${date}&to=${date}`,opts[0]))
  expect(available.slots.some((s:any)=>s.start===slots.slots[0].start)).toBe(true)
  record("BOOKING_TERM_RELEASED")
+ const issuedOrder=await cart()
+ const alreadyIssued=(await vouchers.issueVoucher({issue_key:"self-cancel-already-issued",amount_minor:5000,order_id:issuedOrder,variant_id:products[0].variants[0].id,settings:{...DEFAULT_SETTINGS,delivery_method:"buyer_pdf"},recipient:null,purchaser_email:customers[0].email})).voucher
+ expect((await api.post(`/store/orders/${issuedOrder}/cancel`,{},opts[0])).status).toBe(409)
+ expect((await details(issuedOrder)).status).toBe("pending")
+ expect((await vouchers.getVoucher(alreadyIssued.id)).balance).toBe(5000)
+ record("ISSUED_VOUCHER_MANUAL_REVIEW")
  const issued=await vouchers.issueVoucher({issue_key:"self-cancel-credit",amount_minor:2000,order_id:"synthetic-origin-self-cancel",variant_id:products[0].variants[0].id,settings:{...DEFAULT_SETTINGS,delivery_method:"buyer_pdf"},recipient:null,purchaser_email:customers[0].email})
  const credited=await cart("plain",undefined,issued.voucher.code)
  await wait(async()=>(await vouchers.getVoucher(issued.voucher.id)).balance<2000)
