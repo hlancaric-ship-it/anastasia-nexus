@@ -1,0 +1,28 @@
+{
+  "status": "VERIFIED",
+  "scope": "Authenticated operator status API, not full business autonomy",
+  "source_head": "5672898da54b1b5a33722b5b6a256753421fc618",
+  "tested_merge": "0bae66d5594897a23e7ac3b00aca7988c8549b85",
+  "pull_request": 14,
+  "ci_run": 38820524945,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38820524945",
+  "results": {
+    "backend_unit": 567,
+    "nexus_unit_integration": 1230,
+    "workerd_d1": 111,
+    "http_postgresql_scenarios": 133
+  },
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "nexus.json": "4b4c0b49ddc3eb9eb980f004bb9239633f1314b1739c71eb8892ef90da0a5546",
+    "workerd.json": "9d76544bb513f5fd268b1f114c583085f8555ba593dfa1d61c4d22daf7db747d",
+    "backend-unit.json": "a0edf51de61cc5acab697b0a2106388319b837b226a3d93cbbe3b8b6136af452",
+    "medusa-persistence-evidence.json": "1c5453daa91c6eb202d4b454aa82b182a071e64f7b808700d7f078a519e705be"
+  },
+  "trees": {
+    "backend": "f548ee9afed3c19758b882bd3fed6873c13ac2a0",
+    "nexus": "e7571908fcee7f32415b93ae6a3377fcc8ea4853",
+    "storefront-prototype": "cd1ba7c4458c6361914d6b7a0179b21d27299c95"
+  }
+}

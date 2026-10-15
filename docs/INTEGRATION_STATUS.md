@@ -1,5 +1,7 @@
 # Ověřený integrační balík — 15. 10. 2026
 
+Aktualizace 16. 10. 2026: [čtyři navazující ověřené backendové balíky a zbývající kroky plánu](AUTONOMY_PROGRESS.md). Následující součty jsou historický integrační běh z 15. 10.
+
 Stav: VERIFIED pro sjednocení větví a popsané opravy. PR #9 sloučen do master, commit 78214ae. Backend, NEXUS i storefront mají stejný git tree jako ověřený kandidát 62395d3. Bez nasazení.
 
 Tento záznam aktualizuje předběžné stavy z backend/docs/wp/unified-integration.md, nexus-cart-auth.md a intent-claim-safety.md. Ty popisují implementaci a průběh před dokončením CI; rozhodující finální důkaz je zde a v evidence/unified-integration-20261015.json.
