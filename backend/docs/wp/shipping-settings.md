@@ -19,7 +19,7 @@
 - HTTP (Actions, runner nastavuje 100 €; hranice ověřená na hrubé částce: 81,29 € bez DPH je pod hranicí,
   +0,02 € bez DPH nad ní): `integration-tests/http/shipping-settings-http-checks.ts` –
   `C3_SHIPPING_COURIER_PRICE_FROM_DB`, `CLIENT_CANNOT_SET_SHIPPING_PRICE`, `FREE_FROM_THRESHOLD_INCLUSIVE`,
-  `BELOW_THRESHOLD_PAYS_AGAIN`.
+  `BELOW_THRESHOLD_PAYS_AGAIN`, `PHYSICAL_CART_CANNOT_COMPLETE_WITH_DIGITAL_OPTION` (nativní seznam možnost „bez dopravy“ nefiltruje, dokončení ji odmítne).
 
 ## Doplní Lucky
 

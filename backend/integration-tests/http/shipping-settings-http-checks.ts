@@ -1,4 +1,5 @@
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
+import { acceptCheckoutConsent } from "./legal-fixtures"
 
 /**
  * C-3 doprava: kurýr z bootstrapu (DB, upravitelný v adminu) a doprava zdarma od částky
@@ -44,11 +45,9 @@ export async function verifyShippingSettings({ api, container, options, channel,
     const data = await ok(api.get(`/store/shipping-options?cart_id=${cart.id}`, options))
     const courier = data.shipping_options.find((option: any) => option.name === "Kuriér (zásielka)")
     expect(courier).toBeDefined()
-    // Fyzický košík nesmí dostat digitální "bez dopravy" jako levnější únik.
-    expect(data.shipping_options.some((option: any) => option.name === "Digitálny produkt (bez dopravy)")).toBe(false)
     return courier
   }
-  const cartFields = "?fields=+item_total,+item_subtotal,+item_tax_total"
+  const cartFields = "?fields=%2Bitem_total,%2Bitem_subtotal,%2Bitem_tax_total"
   const methodAmount = async () => {
     const data = await ok(api.get(`/store/carts/${cart.id}${cartFields}`, options))
     expect(data.cart.shipping_methods).toHaveLength(1)
@@ -92,4 +91,39 @@ export async function verifyShippingSettings({ api, container, options, channel,
   await ok(api.delete(`/store/carts/${cart.id}/line-items/${centLineId}`, options))
   await expectBelow()
   record("BELOW_THRESHOLD_PAYS_AGAIN")
+
+  // Nativní seznam možností nefiltruje podle profilu položek, takže digitální "bez dopravy" (0 €) se
+  // fyzickému košíku může nabídnout. Autoritativní je dokončení: validateShippingStep objednávku odmítne,
+  // když metoda nepokrývá profil položek. Ověřeno na čerstvém košíku s platbou i souhlasem.
+  const { cart: digitalCart } = await ok(api.post("/store/carts", {
+    region_id: region.id, sales_channel_id: channel.id, email: "shipping-digital@example.test",
+    shipping_address: { first_name: "Synthetic", last_name: "Shipping", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" },
+  }, options))
+  await ok(api.post(`/store/carts/${digitalCart.id}/line-items`, { variant_id: variantId, quantity: 1 }, options))
+  await ok(api.post("/store/nexus-cart", { cart_id: digitalCart.id }, options))
+  const listed = await ok(api.get(`/store/shipping-options?cart_id=${digitalCart.id}`, options))
+  const digital = listed.shipping_options.find((option: any) => option.name === "Digitálny produkt (bez dopravy)")
+  if (digital) {
+    const attach = await api.post(`/store/carts/${digitalCart.id}/shipping-methods`, { option_id: digital.id }, options)
+    if (attach.status === 200) {
+      const collection = await ok(api.post("/store/payment-collections", { cart_id: digitalCart.id }, options))
+      await ok(api.post(`/store/payment-collections/${collection.payment_collection.id}/payment-sessions`, { provider_id: "pp_system_default" }, options))
+      await acceptCheckoutConsent(api, digitalCart.id, options)
+      for (const completion of [
+        () => api.post(`/store/carts/${digitalCart.id}/complete`, {}, options),
+        () => api.post("/store/nexus-checkout", { cart_id: digitalCart.id }, options),
+      ]) {
+        const response = await completion()
+        expect(response.status).toBe(400)
+        expect(response.data.order).toBeUndefined()
+        const message = response.data.error?.message ?? response.data.error ?? response.data.message
+        expect(message).toMatch(/shipping profiles that are not satisfied/i)
+      }
+    } else {
+      expect(attach.status).toBe(400)
+    }
+  }
+  const { data: leaked } = await query.graph({ entity: "order", fields: ["id"], filters: { email: "shipping-digital@example.test" } })
+  expect(leaked).toHaveLength(0)
+  record("PHYSICAL_CART_CANNOT_COMPLETE_WITH_DIGITAL_OPTION")
 }
