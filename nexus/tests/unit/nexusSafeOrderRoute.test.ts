@@ -50,7 +50,8 @@ describe('SafeOrder security boundary', () => {
             const req = request(); req.headers.set('Origin', 'https://attacker.test');
             const response = await worker.fetch(req, { ...env, ENVIRONMENT: 'production', ALLOWED_ORIGINS: 'https://shop.test' }, ctx);
             expect(response.status).toBe(200);
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('null');
+            // P0-1: no Allow-Origin at all; the literal "null" would match opaque (sandboxed) origins.
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
             await worker.fetch(request(valid, 'Bearer wrong'), env, ctx);
             expect(logs.join(' ')).not.toContain(valid.customerEmail);
             expect(logs.join(' ')).not.toContain('synthetic-service-key');

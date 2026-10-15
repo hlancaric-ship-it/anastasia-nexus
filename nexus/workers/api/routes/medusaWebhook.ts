@@ -1,5 +1,5 @@
 // Medusa.js Webhook Route Handler pre Cloudflare Workers
-import { ApiError, jsonResponse, log } from '../http.js';
+import { ApiError, isStrictEnvironment, jsonResponse, log } from '../http.js';
 import type { Env } from '../types.js';
 
 export async function handleMedusaWebhook(
@@ -7,12 +7,28 @@ export async function handleMedusaWebhook(
     env: Env,
     ctx: { waitUntil(promise: Promise<unknown>): void }
 ): Promise<Response> {
-    const webhookSecret = env.MEDUSA_WEBHOOK_SECRET;
-    if (!webhookSecret && env.ENVIRONMENT === 'production') {
-        throw new ApiError('MISSING_BINDING', 503, 'Chybí secret pro podpis Medusa webhooku.');
+    // FAIL-CLOSED (P0-1). Podpis se vyžaduje vždy, kromě JEDINÉ výslovné
+    // výjimky: `ENVIRONMENT` je přesně `development` nebo `test` a secret není
+    // nastaven (lokální vývoj bez Medusy). Chybějící/prázdný secret spolu
+    // s čímkoli jiným -- `production`, nenastavené, přepsané či neznámé
+    // `ENVIRONMENT` -- webhook odmítne dřív, než se čte tělo nebo sahá na D1.
+    // Dřívější podmínka `ENVIRONMENT === 'production'` byla fail-open: wrangler
+    // `vars` se nedědí, takže nedeklarované prostředí přijímalo nepodepsané události.
+    const webhookSecret = typeof env.MEDUSA_WEBHOOK_SECRET === 'string' && env.MEDUSA_WEBHOOK_SECRET.trim().length > 0
+        ? env.MEDUSA_WEBHOOK_SECRET
+        : null;
+    if (webhookSecret === null) {
+        if (isStrictEnvironment(env)) {
+            log('error', 'webhook.medusa.missing_secret', {
+                alert: true,
+                declaredEnvironment: typeof env.ENVIRONMENT === 'string' ? env.ENVIRONMENT : '<unset>',
+            });
+            throw new ApiError('MISSING_BINDING', 503, 'Chybí secret pro podpis Medusa webhooku.');
+        }
+        log('warn', 'webhook.medusa.unsigned_accepted_nonproduction', { environment: env.ENVIRONMENT });
     }
     const rawBody = await request.text();
-    if (webhookSecret && !(await verifyMedusaSignature(request.headers.get('x-medusa-signature'), rawBody, webhookSecret))) {
+    if (webhookSecret !== null && !(await verifyMedusaSignature(request.headers.get('x-medusa-signature'), rawBody, webhookSecret))) {
         throw new ApiError('REJECT_SIGNATURE', 401, 'Neplatný nebo expirovaný podpis Medusa webhooku.');
     }
     let body: unknown;

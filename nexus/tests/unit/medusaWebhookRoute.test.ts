@@ -47,7 +47,8 @@ describe('handleMedusaWebhook Route Handler', () => {
             body: JSON.stringify({ event: 'order.placed', id: eventId, data: { id: 'ord_999' } }),
         });
 
-        const env = makeEnv();
+        // P0-1: unsigned local delivery is a dev/test-only path; it must be requested explicitly.
+        const env = makeEnv({ ENVIRONMENT: 'test' });
         const res1 = await handleMedusaWebhook(req1, env, mockCtx);
         expect(res1.status).toBe(200);
         const data1 = await res1.json() as { received: boolean; duplicate?: boolean };
@@ -75,6 +76,6 @@ describe('handleMedusaWebhook Route Handler', () => {
             body: JSON.stringify({ data: { id: 'ord_123' } }),
         });
 
-        await expect(handleMedusaWebhook(req, makeEnv(), mockCtx)).rejects.toThrow('Payload nesmie chýbať pole event.');
+        await expect(handleMedusaWebhook(req, makeEnv({ ENVIRONMENT: 'test' }), mockCtx)).rejects.toThrow('Payload nesmie chýbať pole event.');
     });
 });

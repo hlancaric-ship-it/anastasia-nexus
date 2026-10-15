@@ -3,11 +3,12 @@
 //
 // ZMĚNY OPROTI PoC:
 //   1. PoC vrací `Access-Control-Allow-Origin: *` natvrdo. Tady je origin
-//      volitelně omezitelný přes `ALLOWED_ORIGINS` -- validační endpoint
-//      prozrazuje zůstatek platidla, takže wildcard je vědomé rozhodnutí
-//      per tenant, ne default bez rozmyslu. Bez konfigurace se chová jako
-//      PoC (`*`), protože Shoptet šablona běží na doméně e-shopu a
-//      request nenese cookies (`credentials` se nepoužívají).
+//      omezitelný přes `ALLOWED_ORIGINS` -- validační endpoint prozrazuje
+//      zůstatek platidla, takže wildcard je vědomé rozhodnutí, ne default.
+//      Wildcard (bez `ALLOWED_ORIGINS`) se vrací JEN při výslovně
+//      deklarovaném `ENVIRONMENT=development|test` (viz
+//      `resolveRuntimeEnvironment`). Chybějící, prázdné, přepsané či neznámé
+//      `ENVIRONMENT` se bere jako PRODUKCE = fail-closed (P0-1).
 //   2. `Vary: Origin` -- bez něj by cache vrátila odpověď s cizím
 //      `Allow-Origin` hlavičkou.
 //   3. Structured logging (master rule "chyby čitelné bez dolování"):
@@ -66,6 +67,36 @@ export function redactToken(token: unknown): string {
     return `${token.slice(0, 8)}...`;
 }
 
+/**
+ * Prostředí, ve kterém Worker běží. Jediná pravda pro bezpečnostní rozhodnutí
+ * závislá na `ENVIRONMENT` (CORS, podpis webhooku).
+ *
+ * FAIL-CLOSED (P0-1): uvolnění (wildcard CORS, nepodepsaný webhook) smí
+ * povolit POUZE přesná hodnota `development` nebo `test`. Cokoli jiného --
+ * `production`, chybějící proměnná, prázdný řetězec, překlep (`prod`,
+ * `Production`), neznámé jméno (`staging`), jiný typ -- se vyhodnotí jako
+ * `production` (přísný režim).
+ *
+ * PROČ TAK A NE `ENVIRONMENT === 'production'`: wrangler `vars` se do `env.*`
+ * nedědí. Zapomenutá deklarace znamenala `ENVIRONMENT === undefined`, a
+ * porovnání s `'production'` pak tiše vypnulo všechny produkční kontroly.
+ * Test proti tomuhle směru je jediný bezpečný: seznam výjimek je krátký a
+ * explicitní, seznam "produkčních" hodnot by musel předvídat každý překlep.
+ */
+export type RuntimeEnvironment = 'development' | 'test' | 'production';
+
+export function resolveRuntimeEnvironment(value: unknown): RuntimeEnvironment {
+    if (value === 'development' || value === 'test') {
+        return value;
+    }
+    return 'production';
+}
+
+/** `true` = přísný (produkční) režim. Výchozí stav pro vše neznámé. */
+export function isStrictEnvironment(env: { ENVIRONMENT?: unknown }): boolean {
+    return resolveRuntimeEnvironment(env.ENVIRONMENT) === 'production';
+}
+
 /** Strojově čitelné chybové kódy. Frontend na nich staví hlášky, ne na textu. */
 export type ErrorCode =
     | 'INVALID_JSON'
@@ -114,14 +145,23 @@ export function jsonError(code: ErrorCode, message: string, status: number): Res
  * Doplní CORS hlavičky. Vzor z PoC, rozšířený o allowlist a `Vary`.
  * Vrací NOVOU Response, protože hlavičky odpovědi z `Response.json()`
  * jsou v některých runtime immutable.
+ *
+ * Není-li origin povolen, NEPOSÍLÁ se žádná `Access-Control-Allow-*`
+ * hlavička (prohlížeč pak odpověď cizí stránce nepředá). Dříve se posílalo
+ * literální `Access-Control-Allow-Origin: null` -- to ale ODPOVÍDÁ requestům
+ * s `Origin: null` (sandboxed iframe, `data:`/`file:` stránky), tedy
+ * nepřímo povolovalo část nedůvěryhodných kontextů.
  */
-export function withCors(response: Response, env: { ALLOWED_ORIGINS?: string; ENVIRONMENT?: string }, origin: string | null): Response {
+export function withCors(response: Response, env: { ALLOWED_ORIGINS?: string; ENVIRONMENT?: unknown }, origin: string | null): Response {
     const headers = new Headers(response.headers);
 
-    headers.set('Access-Control-Allow-Origin', resolveAllowedOrigin(env.ALLOWED_ORIGINS, origin, env.ENVIRONMENT === 'production'));
-    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Nexus-Signature');
-    headers.set('Access-Control-Max-Age', '86400');
+    const allowedOrigin = resolveAllowedOrigin(env.ALLOWED_ORIGINS, origin, isStrictEnvironment(env));
+    if (allowedOrigin !== null) {
+        headers.set('Access-Control-Allow-Origin', allowedOrigin);
+        headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Nexus-Signature');
+        headers.set('Access-Control-Max-Age', '86400');
+    }
     // Bez Vary by sdílená cache podávala odpověď s Allow-Origin jiného originu.
     headers.append('Vary', 'Origin');
 
@@ -133,30 +173,40 @@ export function withCors(response: Response, env: { ALLOWED_ORIGINS?: string; EN
 }
 
 /**
- * Bez `ALLOWED_ORIGINS` v dev/test prostředí vrací `*`.
- * V produkčním prostředí (`isProduction = true`) NIKDY nevrací `*` implicitně.
- * Pokud není origin v allowlistu, vrací `null`.
+ * Vrací hodnotu pro `Access-Control-Allow-Origin`, nebo `null` = žádný grant.
+ *
+ * `isProduction` je ve výchozím stavu `true` (fail-closed): volající, který
+ * příznak zapomene předat, nezíská wildcard.
+ *
+ *   - Přísný režim: `*` se NIKDY nevrací, ani když je v `ALLOWED_ORIGINS`
+ *     (wildcard položka se ignoruje, výslovně vypsané originy vedle ní ale
+ *     platí). Bez použitelného allowlistu není povolen žádný origin.
+ *   - Uvolněný režim (výslovně development/test): bez allowlistu nebo s `*`
+ *     vrací `*`, jinak shoda s allowlistem.
+ *   - Shoda je PŘESNÁ (schéma + host + port). Opaque origin `null` se
+ *     nepovolí nikdy, ani když je uveden v allowlistu.
  */
-export function resolveAllowedOrigin(allowedOrigins: string | undefined, origin: string | null, isProduction = false): string {
-    if (!allowedOrigins || allowedOrigins.trim().length === 0) {
-        return isProduction ? 'null' : '*';
-    }
-
-    const allowed = allowedOrigins
+export function resolveAllowedOrigin(allowedOrigins: string | undefined, origin: string | null, isProduction = true): string | null {
+    const allowed = (allowedOrigins ?? '')
         .split(',')
         .map((value) => value.trim())
         .filter((value) => value.length > 0);
 
-    if (allowed.includes('*')) {
-        return isProduction ? 'null' : '*';
+    if (!isProduction && (allowed.length === 0 || allowed.includes('*'))) {
+        return '*';
     }
-    if (origin !== null && allowed.includes(origin)) {
+    if (origin !== null && origin !== 'null' && allowed.includes(origin) && origin !== '*') {
         return origin;
     }
-    return 'null';
+    return null;
 }
 
-/** Preflight. 204 bez těla, jako v PoC. */
-export function preflightResponse(env: { ALLOWED_ORIGINS?: string; ENVIRONMENT?: string }, origin: string | null): Response {
-    return withCors(new Response(null, { status: 204 }), env, origin);
+/**
+ * Preflight. Povolený origin: 204 bez těla s grantem, jako v PoC.
+ * Nepovolený origin: 403 bez jakékoli `Access-Control-Allow-*` hlavičky --
+ * prohlížeč tím skutečný požadavek vůbec neodešle.
+ */
+export function preflightResponse(env: { ALLOWED_ORIGINS?: string; ENVIRONMENT?: unknown }, origin: string | null): Response {
+    const denied = resolveAllowedOrigin(env.ALLOWED_ORIGINS, origin, isStrictEnvironment(env)) === null;
+    return withCors(new Response(null, { status: denied ? 403 : 204 }), env, origin);
 }

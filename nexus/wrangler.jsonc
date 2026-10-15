@@ -15,6 +15,29 @@
   },
 
   // ---------------------------------------------------------------------
+  // ENVIRONMENT (P0-1) -- bezpečnostní přepínač Workeru, deklarovaný VÝSLOVNĚ
+  // v obou cílech.
+  //
+  // `vars` se do `env.*` NEDĚDÍ (stejně jako d1_databases níže). Dřív tu
+  // `ENVIRONMENT` nebyl vůbec, takže produkční Worker měl `undefined` a kód
+  // porovnávající `=== 'production'` tiše vypnul produkční kontroly
+  // (nepodepsané Medusa webhooky, wildcard CORS).
+  //
+  // Kód je navíc fail-closed nezávisle na tomhle souboru: uvolnění povolí
+  // jen přesná hodnota "development" nebo "test", cokoli jiného (chybí,
+  // překlep, "staging") se bere jako produkce. Tahle deklarace tedy není
+  // jediná pojistka, ale zajišťuje, že lokální/dev běh zůstane použitelný
+  // a že produkce je pojmenovaná ve výpisu konfigurace.
+  //
+  // Top-level je dev/staging cíl -> "development". NIKDY sem nepatří
+  // "production" a do `env.production` nikdy "development"/"test"
+  // (hlídá tests/unit/workerEnvironmentSecurity.test.ts).
+  // ---------------------------------------------------------------------
+  "vars": {
+    "ENVIRONMENT": "development"
+  },
+
+  // ---------------------------------------------------------------------
   // TOP-LEVEL = DEV/STAGING cíl. `wrangler dev` a `wrangler deploy` BEZ
   // --env míří sem, nikdy na produkční kredity.
   //
@@ -75,6 +98,20 @@
     "production": {
       "name": "nexus-api-production",
       "observability": { "enabled": true },
+      // Výslovně produkce (viz blok ENVIRONMENT nahoře; `vars` se nedědí).
+      //
+      // Co sem NEPATŘÍ a nastavuje se až při nasazení, mimo repo:
+      //   - secrets: `wrangler secret put MEDUSA_WEBHOOK_SECRET --env production`
+      //     (bez něj produkční /api/webhooks/medusa odpovídá 503, nikdy 200),
+      //     HMAC_SECRET, MEDUSA_PRICING_API_KEY, ...
+      //   - `ALLOWED_ORIGINS` (var, čárkou oddělené přesné originy storefrontu).
+      //     Reálná doména storefrontu v repu není, proto zde NENÍ vymyšlená.
+      //     Bez ní produkční Worker neposílá žádné CORS povolení (fail-closed)
+      //     -- prohlížečová volání (např. /api/vouchers/validate) nepůjdou,
+      //     dokud se allowlist nenastaví. Wildcard `*` se v produkci ignoruje.
+      "vars": {
+        "ENVIRONMENT": "production"
+      },
       // Fyzicky oddělená databáze, ne jen jiný preview_database_id.
       // U kreditních dat nechceme, aby `wrangler deploy` bez --env mohl
       // sáhnout na produkční zůstatky.

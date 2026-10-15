@@ -70,7 +70,7 @@ describe('SafeOrder workerd security gate', () => {
         try {
             const production = { ...bindings, ENVIRONMENT: 'production', ALLOWED_ORIGINS: 'https://shop.test' };
             const req = request(input, 'synthetic-key'); req.headers.set('Origin', 'https://attacker.test');
-            expect((await worker.fetch(req, production, ctx)).headers.get('Access-Control-Allow-Origin')).toBe('null');
+            expect((await worker.fetch(req, production, ctx)).headers.get('Access-Control-Allow-Origin')).toBeNull();
             expect((await worker.fetch(request({ ...input, paymentMethod: 'pp_system_default' }, 'synthetic-key'), production, ctx)).status).toBe(400);
             await worker.fetch(request(input, 'wrong-key'), bindings, ctx);
             expect(logs.join(' ')).not.toContain(input.customerEmail);
