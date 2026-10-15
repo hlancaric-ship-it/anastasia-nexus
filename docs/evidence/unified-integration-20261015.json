@@ -1,0 +1,62 @@
+{
+  "status": "VERIFIED",
+  "scope": "Consolidation and execution-claim safety, not complete business autonomy",
+  "date": "2026-10-15",
+  "repository": "hlancaric-ship-it/anastasia-nexus",
+  "pull_request": 9,
+  "merged_commit": "78214ae",
+  "source_head": "62395d39fc0bffa6e67b6da510bc1ceb0e9f933e",
+  "tested_merge_commit": "5911d28738c1576c0eb77dc2d3a062b27f2451c8",
+  "ci_run": 38788629533,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38788629533",
+  "results": {
+    "backend_unit": {
+      "passed": 544,
+      "total": 544
+    },
+    "nexus": {
+      "passed": 1188,
+      "total": 1188
+    },
+    "workerd": {
+      "passed": 56,
+      "total": 56
+    },
+    "http_postgresql_scenarios": {
+      "passed": 132,
+      "total": 132
+    },
+    "storefront_node": {
+      "passed": 26,
+      "total": 26
+    },
+    "storefront_browser_groups": {
+      "passed": 27,
+      "total": 27
+    }
+  },
+  "trees": {
+    "backend": "7dcd762f92e1486a520192b92efd99bd29032c89",
+    "nexus": "746ecb96021c05aa8c7ca259c8fa10bc56db66c8",
+    "storefront-prototype": "cd1ba7c4458c6361914d6b7a0179b21d27299c95"
+  },
+  "artifacts": [
+    {
+      "file": "nexus.json",
+      "sha256": "55c12a71a3d5c5718e39a798d62a08b79447c7a583dac6afa1b54db42b5d725e"
+    },
+    {
+      "file": "workerd.json",
+      "sha256": "220f3283de0d991bdd22c12fe686fee3fd3dd842db5630427d13b97a093c7eb2"
+    },
+    {
+      "file": "backend-unit.json",
+      "sha256": "50b417fa9653951e8ac04a32e3c1b2b0ac20b9c4d45b559411d9150e007557e1"
+    },
+    {
+      "file": "medusa-persistence-evidence.json",
+      "sha256": "35e88547270bcfa5c6861ae6e3f2b75fc9fb9c19eb04e5666d95eba57cc3325e"
+    }
+  ],
+  "deployment": false
+}
