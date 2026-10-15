@@ -59,6 +59,11 @@ Kontroluje auth/vlastníka, souběh200/409, odmítnutí expedované objednávky,
 vrácení termínu do skutečné nabídky a obnovení poukazového kreditu. Vyžaduje stávající nativní
 syntetický fulfillment/payment provider, nikdy dopravce ani reálné peníze.
 
-`npx tsc --noEmit` PASS; fokus unit1 sada/11 testů PASS (vlastník, stavy, fulfillment,
-digitální grant, vystavený poukaz, lhůta/config, mutex a delegování do nativního workflow). Plná sada/HTTP jen GitHub Actions; lokálně žádný PG/HTTP.
-IMPLEMENTED, runtime a plná regrese zatím IMPLEMENTED_UNVERIFIED. Nic nenasazeno.
+Lokální `npx tsc --noEmit` PASS, fokus1 sada/11 testů PASS. Middleware a HTTP helper zapojil
+Claude v integrační větvi. Plná sada/HTTP jen GitHub Actions, lokálně žádný PG/HTTP.
+
+Integrovaný kód **VERIFIED** na `claude/backend-integration` **4ba87ff**:
+[GitHub Actions 38667772955](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38667772955), oba joby `verify` a `medusa-persistence` PASS.
+Backend TypeScript + **516/516 unit** (53 sad), celý skutečný Medusa/PostgreSQL HTTP běh PASS,
+všech **15/15 scénářů X1–X3** PASS. Dále NEXUS1102/1102 a workerd38/38 PASS.
+Tento důkaz ověřuje syntetické kontrakty; není produkčním nasazením ani právním schválením textů.
