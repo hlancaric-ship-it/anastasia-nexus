@@ -13,7 +13,7 @@ export function sendLegalError(req:MedusaRequest,res:MedusaResponse,error:unknow
 }
 export const legalPage=(q:any)=>({take:Math.min(100,Math.max(1,Number(q?.limit)||50)),skip:Math.max(0,Number(q?.offset)||0),order:{created_at:"DESC"}})
 export async function ownedOrder(req:MedusaRequest,id:string,customer:string) {
-  const {data}=await (req.scope.resolve(ContainerRegistrationKeys.QUERY) as any).graph({entity:"order",fields:["id","customer_id","email","status","items.id","items.quantity","fulfillments.delivered_at","payment_collections.payments.captured_at"],filters:{id,customer_id:customer}})
+  const {data}=await (req.scope.resolve(ContainerRegistrationKeys.QUERY) as any).graph({entity:"order",fields:["id","display_id","customer_id","email","status","items.id","items.quantity","fulfillments.delivered_at","payment_collections.payments.captured_at"],filters:{id,customer_id:customer}})
   if(!data[0] || data[0].customer_id!==customer) throw new LegalError("ORDER_NOT_FOUND",404)
   return data[0]
 }
