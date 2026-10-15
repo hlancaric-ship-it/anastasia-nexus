@@ -21,3 +21,7 @@ Cílené backend unit testy: 18/18 PASS ve třech souborech (5 ownership + 2 con
 ## Další backend práce
 
 Po sjednocení postupovat podle docs/NEXUS_AUTONOMY_SPEC.md: nejprve zmapovat a propojit stávající trvalé ExecutionIntent a reconciliation, chybějící doručování událostí/obnovu doplnit v samostatném ověřeném balíku. Úspěšný integrační test neznamená, že systém již nahrazuje veškerou práci obchodníka.
+
+## První CI kontrola
+
+Běh 38787876085: backend 544/544 a NEXUS/workerd zelené, HTTP nově odhalilo předřazenou duplicitní kontrolu souhlasu (422 před očekávaným 401). Kontrola pro vlastní nexus-checkout zůstává v handleru po ověření vlastníka; duplicitní middleware odstraněn, nativní complete má svůj middleware zachován. Oprava nejistého D1 claimu cac0bf1 zahrnuta do kandidáta; důkaz a meze v intent-claim-safety.md. Nový úplný CI běh nutný.

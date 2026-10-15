@@ -13,7 +13,7 @@ export async function requireCheckoutConsent(req:any,res:any,next:any) {
 export const legalMiddlewares:MiddlewareRoute[]=[
  {matcher:"/store/carts/:id/consents",method:["POST"],middlewares:[authenticate("customer",["session","bearer"],{allowUnauthenticated:true})],bodyParser:{sizeLimit:"2kb"}},
  {matcher:"/store/carts/:id/complete",method:["POST"],middlewares:[requireCheckoutConsent]},
- {matcher:"/store/nexus-checkout",method:["POST"],middlewares:[requireCheckoutConsent]},
+ // nexus-checkout checks consent in its handler, after authenticating and checking cart ownership.
  {matcher:"/store/withdrawals",method:["POST"],middlewares:[customer,legalRate("withdrawal",10,60,true)],bodyParser:{sizeLimit:"16kb"}},
  {matcher:"/store/newsletter",method:["POST"],middlewares:[legalRate("newsletter")],bodyParser:{sizeLimit:"2kb"}},
  {matcher:"/store/newsletter/unsubscribe",method:["POST"],middlewares:[legalRate("newsletter")],bodyParser:{sizeLimit:"2kb"}},
