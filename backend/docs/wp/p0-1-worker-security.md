@@ -7,9 +7,20 @@ pracovní větev `claude/p0-worker-security`. Výsledný commit viz `git log` v�
 pro soubory `nexus/wrangler.jsonc`, `nexus/workers/api/http.ts`,
 `nexus/workers/api/routes/medusaWebhook.ts` a související testy v `nexus/tests/`.
 
-Zdroj plánu: zadání P0-1 (kapitola 19 `NEXUS_ARCHITECTURE_AS_IS.md`). Tento soubor
-**není** v repozitáři ani na žádné větvi, plán proto nebyl čten a rozsah vychází
-výhradně z textu zadání a z ověřeného stavu kódu.
+Zdroj plánu: `NEXUS_ARCHITECTURE_AS_IS.md`, kapitola 19, bod P0-1. Soubor **není**
+v repozitáři (ani na žádné větvi); text byl dodán zadavatelem v konverzaci až po
+dokončení implementace. Implementace byla zpětně porovnána s bodem P0-1 a se
+souvisejícími částmi §10 a §14 a odpovídá jim:
+
+| Požadavek P0-1 (kap. 19) | Realizace |
+|---|---|
+| deklarovat `ENVIRONMENT` v `env.production` | `wrangler.jsonc`, `vars.ENVIRONMENT` (production i top-level development) |
+| obrátit logiku na fail-closed (webhook secret) | `medusaWebhook.ts` přes `isStrictEnvironment` |
+| obrátit logiku na fail-closed (CORS) | `http.ts` |
+| test „production bez secretu → 503" ve workerd | `tests/workers/workerSecurity.test.ts` (+ Node varianty) |
+
+Záměrně mimo tento balík zůstávají P0 body 2–6 z téže kapitoly (voucher auth,
+magic-link, média, produkční fail-fast, `klub`/`ai` routy).
 
 ## Nález (ověřený na baseline `4397842`)
 
