@@ -1,3 +1,4 @@
+jest.mock("../../../../lib/legal/checkout", () => ({ assertCartConsent: jest.fn(async () => {}), loadConsentCart: jest.fn(async () => ({id:"cart_test"})) }))
 jest.mock("../../nexus-cart/route", () => ({ repriceCart: jest.fn() }))
 jest.mock("@medusajs/medusa/core-flows", () => ({ completeCartWorkflow: jest.fn() }))
 

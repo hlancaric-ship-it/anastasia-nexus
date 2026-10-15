@@ -6,6 +6,9 @@ import { SafeOrderError } from "./safeorder"
 import { giftVoucherHttpError } from "../gift-vouchers/errors"
 import { recordEvent } from "../../../lib/observability/events"
 
+import { assertCartConsent, loadConsentCart } from "../../../lib/legal/checkout"
+import { LegalError } from "../../../modules/legal/policy"
+
 /** Revalidate with NEXUS, then let Medusa's normal workflow create the order. */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const { cart_id: cartId } = req.body as { cart_id?: string }
@@ -14,6 +17,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   try {
+    await assertCartConsent(req.scope, await loadConsentCart(req.scope, cartId))
     const pricing = await repriceCart(cartId, req.scope)
     if (pricing.pricesChanged) {
       await recordEvent(req.scope, "warn", "checkout", "price_changed", { cart_id: cartId })
@@ -45,6 +49,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       paymentStatus: isPaid ? "PAID" : "PENDING",
     })
   } catch (error) {
+    if (error instanceof LegalError) return res.status(error.status).json({ ok: false, error: error.code })
     const workflowMessage = typeof error === "object" && error !== null && "message" in error && typeof error.message === "string"
       ? error.message
       : "CHECKOUT_FAILED"

@@ -25,6 +25,8 @@ import { giftVoucherCreditLines } from "../modules/gift-voucher/cart"
 import type GiftVoucherModuleService from "../modules/gift-voucher/service"
 import { prepareGiftVoucherCheckout } from "./gift-voucher-checkout"
 
+import { assertCartConsent } from "../lib/legal/checkout"
+
 type CheckoutCompensation = {
     bookingClaim?: Awaited<ReturnType<typeof claimCartBooking>>
     computedActions?: Array<{ code: string; amount: number }>
@@ -42,6 +44,7 @@ addToCartWorkflow.hooks.setPricingContext(async () => {
 completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { container }): Promise<StepResponse<undefined, CheckoutCompensation> | undefined> => {
     // This is the locked snapshot Medusa uses to create the order, not a later query.
     const cart = snapshot as any
+    await assertCartConsent(container, cart)
     const total = amountValue(cart?.total)
     // Košík celý uhrazený poukazem: Medusa platbu přeskočí (total 0, kredit ≥ 0), SafeOrder
     // nemá co posoudit. Výše kreditu se ověří níž proti zůstatku a způsobilé částce.
