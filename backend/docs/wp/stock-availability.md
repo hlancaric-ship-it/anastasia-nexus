@@ -1,6 +1,6 @@
 # C-3: skladová dostupnost a rezervace při checkoutu
 
-Stav: **IMPLEMENTED_UNVERIFIED** (HTTP scénáře připravené; skutečný běh pouze na GitHub Actions).
+Stav: **PARTIAL** – skladový helper dokončil všech šest scénářů na Actions; společný HTTP běh blokuje následný test dopravy.
 Větev `codex/stock-availability`, základ `claude/backend-integration` / `c4aea38`.
 
 ## Nejmenší změna
@@ -53,7 +53,13 @@ oba API kontrakty a odpovídající aserci; samotný test nesmí zavádět neexi
 
 - Lokální `./backend/node_modules/.bin/tsc --noEmit -p backend/tsconfig.json`: PASS.
 - Lokální PG/HTTP ani plná sada nebyly spuštěny (dohoda s Claudem).
-- HTTP/PG: čeká na integraci a GitHub Actions, zatím nejde označit VERIFIED.
+- Actions [`38674567783`](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38674567783),
+  integrovaný kód `9e2f1452c5a4162f89e6700f007ba60fec2eb7c4`: backend **518/518**, NEXUS **1179/1179**,
+  workerd **42/42** PASS. Skladový helper dokončil všech šest scénářů; runner následně selhal až ve
+  `verifyShippingSettings` (řádek 48: digitální doprava je přítomná v nativním seznamu možností pro fyzický košík).
+  Dokladem dokončení helperu je sekvenční volání runneru a místo chyby v artefaktu `medusa-test.log`.
+  Celý HTTP běh tedy stále **FAIL**; nesmí se prezentovat jako zelená plná regrese.
+  Opravu testu/kontraktu dopravy a opakování Actions převzal Claude; přesná diagnostika je ve sdíleném předání.
 - První Actions `38673392852`: dostupnost a odmítnutí vyprodané položky prošly; kontrola počtu objednávek
   narazila na nativní implicitní načtení shipping totals (`Shipping method version is required to load adjustments`).
   Opraveno výslovným `select: ["id"], relations: []` u počítání; obchodní logika se nemění. Nový běh je nutný.
