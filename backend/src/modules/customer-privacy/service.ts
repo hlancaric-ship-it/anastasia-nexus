@@ -4,6 +4,7 @@ import type { Context } from "@medusajs/framework/types"
 import CustomerErasure from "./models/customer-erasure"
 import CustomerNote from "./models/customer-note"
 import { LegalError,tokenHash } from "../legal/policy"
+import { verifiedCustomerEmails } from "./identity"
 import { anonymizeCustomer } from "./erase"
 import { noteBody } from "./policy"
 class CustomerPrivacyModuleService extends MedusaService({CustomerErasure,CustomerNote}) {
@@ -24,11 +25,12 @@ class CustomerPrivacyModuleService extends MedusaService({CustomerErasure,Custom
   const db=this.db(context)
   const row=await db("customer_erasure").where({id}).whereNull("deleted_at").forUpdate().first()
   if(!row)throw new LegalError("ERASURE_NOT_FOUND",404)
-  if(row.status==="completed")return {row,email:null,replayed:true}
+  if(row.status==="completed")return {row,emails:[],replayed:true}
   const customer=await db("customer").where({id:row.customer_id}).forUpdate().first()
   if(!customer)throw new LegalError("CUSTOMER_NOT_FOUND",404)
-  const [next]=await db("customer_erasure").where({id}).update({status:"processing",email_hash:customer.email?tokenHash(customer.email.toLowerCase()):null,blocked_until:new Date(Date.now()+900000),confirmed_by:actor,updated_at:new Date()}).returning("*")
-  return {row:next,email:customer.email,replayed:false}
+  const emails=await verifiedCustomerEmails(db,row.customer_id)
+  const [next]=await db("customer_erasure").where({id}).update({status:"processing",email_hash:emails[0]?tokenHash(emails[0]):null,email_hashes:JSON.stringify(emails.map(tokenHash)),blocked_until:new Date(Date.now()+900000),confirmed_by:actor,updated_at:new Date()}).returning("*")
+  return {row:next,emails,replayed:false}
  }
  @InjectTransactionManager()
  async completeErasure(id:string,@MedusaContext() context:Context={}) {

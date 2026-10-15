@@ -14,9 +14,9 @@ export async function POST(req:MedusaRequest,res:MedusaResponse) {
   if(!request)throw new LegalError("ERASURE_NOT_FOUND",404)
   confirmErasure(req.body,request.customer_id)
   const prepared=await service.prepareErasure(request.id,actor)
-  if(!prepared.replayed && prepared.email) {
+  for(const email of (!prepared.replayed ? prepared.emails : [])) {
    // Same public Auth service state API used by magic-link: consuming invalidates the cached token.
-   await (req.scope.resolve(Modules.AUTH) as any).getAuthIdentityProviderService("magic-link").getState(stateKey(prepared.email.toLowerCase()))
+   await (req.scope.resolve(Modules.AUTH) as any).getAuthIdentityProviderService("magic-link").getState(stateKey(email))
   }
   const result=await service.completeErasure(request.id)
   if(!result.replayed)await auditAdminChange(req,"customer.erasure","customer_erasure",request.id,{status:"requested"},{status:"completed",customer_id:request.customer_id})

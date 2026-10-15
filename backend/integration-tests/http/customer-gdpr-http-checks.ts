@@ -1,4 +1,5 @@
 import { ContainerRegistrationKeys,generateJwtToken,Modules } from "@medusajs/framework/utils"
+import { DEFAULT_SETTINGS } from "../../src/modules/gift-voucher/policy"
 import { stateKey } from "../../src/modules/auth-magic-link/policy"
 /** Synthetic only. The integrator invokes this inside the serial CI Medusa/PG runner. */
 export async function verifyCustomerGdpr({api,container,options,newCart,evidence}:any) {
@@ -8,6 +9,11 @@ export async function verifyCustomerGdpr({api,container,options,newCart,evidence
  const [user]=await container.resolve(Modules.USER).createUsers([{email:"privacy-admin@example.test"}])
  const admin={...options,headers:{Authorization:`Bearer ${jwt(user.id,"user")}`}}
  const owner=customers[0],other=customers[1],query=container.resolve(ContainerRegistrationKeys.QUERY),db=container.resolve(ContainerRegistrationKeys.PG_CONNECTION)
+ // Persist real synthetic identities: profile.email alone is not a verified data-subject link.
+ for(const customer of customers) {
+  await db("auth_identity").insert({id:`synthetic-${customer.id}`,app_metadata:JSON.stringify({customer_id:customer.id})})
+  await db("provider_identity").insert({id:`synthetic-provider-${customer.id}`,auth_identity_id:`synthetic-${customer.id}`,provider:"magic-link",entity_id:customer.email})
+ }
  const record=(name:string)=>evidence.push({scenario:`X2_${name}`,status:"PASS"})
  const cart=await newCart(50,false,undefined,{Authorization:`Bearer ${jwt(owner.id)}`})
  const complete=await api.post("/store/nexus-checkout",{cart_id:cart},opts[0]);expect(complete.status).toBe(200)
@@ -22,11 +28,16 @@ export async function verifyCustomerGdpr({api,container,options,newCart,evidence
  const conversation=await container.resolve("chat").createChatConversations({customer_id:owner.id,status:"open",subject:"synthetic private subject"})
  await container.resolve("chat").createChatMessages({conversation_id:conversation.id,customer_id:owner.id,author_type:"customer",author_id:owner.id,body:"synthetic private chat"})
  const foreignConversation=await container.resolve("chat").createChatConversations({customer_id:other.id,status:"open",subject:"foreign marker"})
+ const unverifiedEmail="privacy-unverified-profile@example.test"
+ // A profile changed by an admin/import is not an email ownership proof.
+ await db("customer").where({id:owner.id}).update({email:unverifiedEmail})
+ await container.resolve("legal").subscribe({email:unverifiedEmail,source:"foreign-consent-marker",text_version:process.env.NEWSLETTER_CONSENT_VERSION})
+ const foreignVoucher=(await container.resolve("gift_voucher").issueVoucher({issue_key:"privacy-foreign-voucher",amount_minor:1000,order_id:"synthetic-foreign-privacy-order",variant_id:"synthetic-foreign-privacy-variant",settings:{...DEFAULT_SETTINGS,delivery_method:"buyer_pdf"},recipient:{name:"Other recipient",email:unverifiedEmail,message:"foreign-gift-marker"},purchaser_email:"foreign-purchaser@example.test"})).voucher
  const exported=await api.get("/store/customers/me/export",opts[0])
  expect(exported.status).toBe(200);expect(exported.headers["cache-control"]).toBe("no-store")
  expect(exported.data.customer.id).toBe(owner.id);expect(exported.data.orders.some((o:any)=>o.id===orderId)).toBe(true)
  expect(JSON.stringify(exported.data)).toContain("synthetic private chat")
- expect(JSON.stringify(exported.data)).not.toMatch(/synthetic private admin note|foreign marker|token_hash/)
+ expect(JSON.stringify(exported.data)).not.toMatch(/synthetic private admin note|foreign marker|foreign-consent-marker|foreign-gift-marker|token_hash/)
  expect((await api.get(`/store/customers/me/export?customer_id=${other.id}`,opts[0])).status).toBe(404)
  record("EXPORT_ISOLATION_AND_PRIVATE_NOTES")
  // Complete three allowed attempts; the fourth is rejected by shared database rate state.
@@ -53,5 +64,7 @@ export async function verifyCustomerGdpr({api,container,options,newCart,evidence
  for(const endpoint of ["/store/customers/me","/store/entitlements","/store/customers/me/export"])expect((await api.get(endpoint,opts[0])).status).toBe(401)
  expect((await api.post("/auth/token/refresh",{},opts[0])).status).toBe(401)
  expect((await api.get("/store/customers/me/export",opts[1])).status).toBe(200)
+ expect((await db("newsletter_consent").where({email:unverifiedEmail}).first()).status).toBe("subscribed")
+ expect((await db("gift_voucher").where({id:foreignVoucher.id}).first()).recipient_email).toBe(unverifiedEmail)
  record("ERASURE_REPLAY_REVOKES_AUTH_PRESERVES_TOTALS_AND_OTHER_CUSTOMER")
 }

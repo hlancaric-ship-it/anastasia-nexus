@@ -10,6 +10,6 @@ export function confirmErasure(body:any,id:string) {
  if(body?.confirm!==true || body?.customer_id!==id) throw new LegalError("ERASURE_CONFIRMATION_REQUIRED",422)
 }
 export function safeVoucher(row:any,email:string) {
- const ownRecipient=typeof row.recipient_email==="string" && row.recipient_email.toLowerCase()===email.toLowerCase()
- return {id:row.id,code:ownRecipient?row.code:undefined,code_last4:row.code_last4,source_order_id:row.source_order_id,currency_code:row.currency_code,initial_amount_minor:row.initial_amount,balance_minor:row.balance,status:row.status,issued_at:row.issued_at,expires_at:row.expires_at,...(ownRecipient?{recipient_name:row.recipient_name,recipient_email:row.recipient_email,message:row.message}:{})}
+ const ownRecipient=!!email && typeof row.recipient_email==="string" && row.recipient_email.toLowerCase()===email.toLowerCase()
+ return {id:row.id,code_last4:row.code_last4,source_order_id:row.source_order_id,currency_code:row.currency_code,initial_amount_minor:row.initial_amount,balance_minor:row.balance,status:row.status,issued_at:row.issued_at,expires_at:row.expires_at,...(ownRecipient?{recipient_name:row.recipient_name,recipient_email:row.recipient_email,message:row.message}:{})}
 }

@@ -1,3 +1,4 @@
+import { verifiedCustomerEmails } from "../identity"
 import { confirmErasure,erasedEmail,noteBody,safeVoucher } from "../policy"
 import { denyErasedCustomer } from "../../../api/customer-privacy-middlewares"
 import { POST as execute } from "../../../api/admin/customer-erasures/[id]/execute/route"
@@ -9,6 +10,12 @@ describe("customer privacy",()=>{
   for(const input of [{},{confirm:"true",customer_id:"a"},{confirm:true,customer_id:"b"}])expect(()=>confirmErasure(input,"a")).toThrow()
   expect(()=>confirmErasure({confirm:true,customer_id:"a"},"a")).not.toThrow()
  })
+ it("derives email-linked authority only from persisted customer-bound magic-link identities",async()=>{
+  const q:any={join:jest.fn(()=>q),where:jest.fn(()=>q),whereRaw:jest.fn(()=>q),whereNull:jest.fn(()=>q),select:jest.fn(async()=>[{entity_id:"Owner@EXAMPLE.TEST"},{entity_id:"owner@example.test"},{entity_id:"invalid"}])}
+  expect(await verifiedCustomerEmails(()=>q,"customer_a")).toEqual(["owner@example.test"])
+  expect(q.where).toHaveBeenCalledWith({"p.provider":"magic-link"})
+  expect(q.whereRaw).toHaveBeenCalledWith("a.app_metadata->>'customer_id' = ?",["customer_a"])
+ })
  it("uses stable, non-personal replacement contacts",()=>{
   expect(erasedEmail("a")).toEqual(erasedEmail("a"));expect(erasedEmail("a")).not.toEqual(erasedEmail("b"))
   expect(erasedEmail("a")).toMatch(/^erased-[a-f0-9]{32}@example.invalid$/)
@@ -16,7 +23,7 @@ describe("customer privacy",()=>{
  it("never exposes another recipient's voucher code or personal message",()=>{
   const voucher={id:"v",recipient_email:"other@example.test",recipient_name:"Other",message:"private",code:"bearer-code",balance:5000}
   expect(JSON.stringify(safeVoucher(voucher,"owner@example.test"))).not.toMatch(/bearer-code|private|Other|other@example/)
-  expect(safeVoucher(voucher,"other@example.test").code).toBe("bearer-code")
+  expect((safeVoucher(voucher,"other@example.test") as any).code).toBeUndefined()
  })
  it("validates bounded plain text notes",()=>{
   expect(noteBody("  text  ")).toBe("text")
@@ -41,7 +48,7 @@ describe("customer privacy",()=>{
   await execute(req,response as any);expect(response.status).toHaveBeenCalledWith(422);expect(service.prepareErasure).not.toHaveBeenCalled()
  })
  it("does not claim completion if magic-link invalidation fails",async()=>{
-  const service={listCustomerErasures:async()=>[{id:"e",customer_id:"c"}],prepareErasure:async()=>({row:{},email:"synthetic@example.test",replayed:false}),completeErasure:jest.fn()}
+  const service={listCustomerErasures:async()=>[{id:"e",customer_id:"c"}],prepareErasure:async()=>({row:{},emails:["synthetic@example.test"],replayed:false}),completeErasure:jest.fn()}
   const req:any={params:{id:"e"},body:{confirm:true,customer_id:"c"},auth_context:{actor_type:"user",actor_id:"admin"},scope:{resolve:(k:string)=>k==="auth"?{getAuthIdentityProviderService:()=>({getState:async()=>{throw new Error("cache unavailable")}})}:k==="logger"?{error:jest.fn()}:service}},response=res()
   await execute(req,response as any);expect(response.status).toHaveBeenCalledWith(503);expect(service.completeErasure).not.toHaveBeenCalled()
  })

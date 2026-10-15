@@ -15,7 +15,7 @@ export async function denyErasedCustomer(req:any,res:any,next:any) {
   if(req.path?.startsWith("/auth/customer/")) {
    const email=normalizeEmail(req.body?.email)
    if(email) {
-    const erased=await db("customer_erasure").where({email_hash:tokenHash(email)}).whereNull("deleted_at").whereIn("status",["processing","completed"]).where("blocked_until",">",new Date()).first("id")
+    const erased=await db("customer_erasure").where((q:any)=>q.where({email_hash:tokenHash(email)}).orWhereRaw("email_hashes @> ?::jsonb",[JSON.stringify([tokenHash(email)])])).whereNull("deleted_at").whereIn("status",["processing","completed"]).where("blocked_until",">",new Date()).first("id")
     if(erased)return res.status(401).json({error:"CUSTOMER_ACCESS_REVOKED"})
    }
   }

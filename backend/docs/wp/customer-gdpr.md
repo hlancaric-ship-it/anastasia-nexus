@@ -10,7 +10,11 @@ Větev `codex/customer-gdpr`, vlastní worktree, základ integrace 8cf9c86 + zá
   rezervace, nároky, chat, souhlasy X1, odstoupení, newsletter včetně historie a poukazy.
   Cizí `customer_id` vrací404. Každý zdroj je omezen autoritou actor_id; žádné interní poznámky,
   auth secrets nebo libovolná metadata. Cizímu obdarovanému se nevypisuje plný kód ani osobní zpráva.
-  Poukaz pro vlastní e-mail může obsahovat kód; částky jsou označené jako minor units.
+  Export nikdy nevrací plný kód poukazu; částky jsou označené jako minor units.
+  Vazby přes e-mail se čtou/mažou pouze pro ověřené magic-link identity zákaznice. Editovatelný
+  profilový e-mail není důkaz vlastnictví newsletteru ani poukazu; neověřený kontakt tak neodhalí
+  ani neodstraní cizí údaje. Profil/objednávky zůstávají autorizované výhradně customer ID.
+  Zahrnuje uchované soft-deleted osobní záznamy a text rezervace, ne jen aktivní chat.
   3 požadavky/h/customer sdílené přes PG (X1 rate table), 429 + Retry-After, výpadek503.
   Přes10000 záznamů jednoho zdroje vrací413 místo tichého neúplného exportu. SQL část má
   repeatable-read snapshot; nativní finanční detail objednávek se čte následně přes serverový graph
@@ -45,8 +49,8 @@ Magic-link stav se spotřebuje veřejným Auth service API; auth identity a prov
 zákaznice se zneplatní. Sdílené identity s admin rolí ponechávají admina a odstraní pouze customer vazbu.
 Middleware na **všech store a auth cestách** ověřuje trvalý tombstone, takže dříve vydané stateless
 JWT/session zákaznice nemají přístup ani refresh. Při DB chybě fail-closed. Přítomná session se čistí;
-není nutné plošně mazat session store jiných zákaznic. Krátkodobý hash starého emailu blokuje potvrzení
-rozeslaných magic-linků po dobu jejich15min TTL. Obsah chatu se odstraňuje pod stejným zámkem
+není nutné plošně mazat session store jiných zákaznic. Krátkodobé hashe všech ověřených e-mailů blokují potvrzení
+rozeslaných magic-linků po dobu jejich15min TTL; cleanup je po dokončení odstraní. Obsah chatu se odstraňuje pod stejným zámkem
 zákaznice jako send a zákaznický chat se blokuje; nové interní poznámky po výmazu409.
 
 Toto není potvrzení celkové právní shody GDPR: právní důvody/archivační lhůty musí potvrdit vlastník.
@@ -56,7 +60,7 @@ stavu žádosti a technická ID. Zdravotní obsah nepatří do provozních logů
 
 ## Zapojení integrátorem
 
-1. Do `medusa-config.ts` `{resolve:"./src/modules/customer-privacy"}`; migrace `Migration20261015050000`.
+1. Do `medusa-config.ts` `{resolve:"./src/modules/customer-privacy"}`; migrace `Migration20261015050000` a `Migration20261015051000`.
 2. Import/spread `customerPrivacyMiddlewares` z `./customer-privacy-middlewares` v main middleware
    **před** endpoint-specific middleware. Globální tombstone guard na `/store/*` a `/auth/*` musí být aktivní
    před umožněním execute API; bez něj je zneplatnění stateless JWT neúplné.
