@@ -2,6 +2,7 @@
 
 Technická příručka projektu: [architektura, konfigurace a provoz](docs/TECHNICKA-DOKUMENTACE.md).
 Úplný přehled vlastních HTTP rozhraní: [API katalog](docs/API-KATALOG.md).
+Příprava administrace: [soupis obrazovek, akcí, nastavení a logů](docs/wp/ADMIN-SOUPIS.md).
 Stav funkcí před rozšířením administrace: [mapa schopností](docs/wp/backend-admin-capabilities.md).
 
 Bezpečnostní opravy a jejich ověření: [security-fixes](docs/wp/security-fixes.md).

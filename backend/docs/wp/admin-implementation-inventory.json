@@ -1,0 +1,354 @@
+{
+  "schema_version": 2,
+  "snapshot_commit": "2ebda34",
+  "verified_code_commit": "6433343c630a4aa79365a24cce76f2431ff53d72",
+  "scope": "Backend API inventory for a completely new custom admin. Existing UI files are reference only; no existing admin application is reused.",
+  "backend_evidence": "backend/docs/wp/evidence/security-fixes-ci.json",
+  "features": [
+    {
+      "id": "booking",
+      "label_sk": "Rezervácie",
+      "routes": [
+        {
+          "path": "/admin/booking/availability",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "source": "backend/src/api/admin/booking/availability/route.ts"
+        },
+        {
+          "path": "/admin/booking/types/:id",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "source": "backend/src/api/admin/booking/types/[id]/route.ts"
+        },
+        {
+          "path": "/admin/booking/types",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "source": "backend/src/api/admin/booking/types/route.ts"
+        },
+        {
+          "path": "/admin/bookings/:id/cancel",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/bookings/[id]/cancel/route.ts"
+        },
+        {
+          "path": "/admin/bookings",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/bookings/route.ts"
+        }
+      ],
+      "reference_ui_status": "PARTIAL",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": [
+        "backend/src/admin/routes/booking-availability/page.tsx",
+        "backend/src/admin/routes/booking-types/page.tsx"
+      ]
+    },
+    {
+      "id": "chat",
+      "label_sk": "Správy",
+      "routes": [
+        {
+          "path": "/admin/chat/conversations/:id/messages",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts"
+        },
+        {
+          "path": "/admin/chat/conversations/:id/read",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts"
+        },
+        {
+          "path": "/admin/chat/conversations/:id",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "source": "backend/src/api/admin/chat/conversations/[id]/route.ts"
+        },
+        {
+          "path": "/admin/chat/conversations",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/chat/conversations/route.ts"
+        },
+        {
+          "path": "/admin/chat/customers/:id/block",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts"
+        }
+      ],
+      "reference_ui_status": "IMPLEMENTED_UNVERIFIED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": [
+        "backend/src/admin/routes/chat/page.tsx"
+      ]
+    },
+    {
+      "id": "qr",
+      "label_sk": "QR kupóny",
+      "routes": [
+        {
+          "path": "/admin/coupon-links",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/coupon-links/route.ts"
+        }
+      ],
+      "reference_ui_status": "PARTIAL",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": [
+        "backend/src/admin/routes/coupon-links/page.tsx"
+      ]
+    },
+    {
+      "id": "privacy",
+      "label_sk": "Ochrana údajov",
+      "routes": [
+        {
+          "path": "/admin/customer-erasures/:id/execute",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/customer-erasures/[id]/execute/route.ts"
+        },
+        {
+          "path": "/admin/customer-erasures",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/customer-erasures/route.ts"
+        }
+      ],
+      "reference_ui_status": "NOT_IMPLEMENTED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    },
+    {
+      "id": "notes",
+      "label_sk": "Interné poznámky zákazníčky",
+      "routes": [
+        {
+          "path": "/admin/customers/:id/notes/:note_id",
+          "methods": [
+            "POST",
+            "DELETE"
+          ],
+          "source": "backend/src/api/admin/customers/[id]/notes/[note_id]/route.ts"
+        },
+        {
+          "path": "/admin/customers/:id/notes",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "source": "backend/src/api/admin/customers/[id]/notes/route.ts"
+        }
+      ],
+      "reference_ui_status": "NOT_IMPLEMENTED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    },
+    {
+      "id": "emails",
+      "label_sk": "E-mailové šablóny",
+      "routes": [
+        {
+          "path": "/admin/email-templates/:template/preview",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/email-templates/[template]/preview/route.ts"
+        },
+        {
+          "path": "/admin/email-templates/:template",
+          "methods": [
+            "GET",
+            "POST",
+            "DELETE"
+          ],
+          "source": "backend/src/api/admin/email-templates/[template]/route.ts"
+        },
+        {
+          "path": "/admin/email-templates",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/email-templates/route.ts"
+        }
+      ],
+      "reference_ui_status": "NOT_IMPLEMENTED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    },
+    {
+      "id": "access",
+      "label_sk": "Digitálne prístupy",
+      "routes": [
+        {
+          "path": "/admin/entitlements/:id/revoke",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/entitlements/[id]/revoke/route.ts"
+        },
+        {
+          "path": "/admin/entitlements",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "source": "backend/src/api/admin/entitlements/route.ts"
+        }
+      ],
+      "reference_ui_status": "NOT_IMPLEMENTED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    },
+    {
+      "id": "newsletter",
+      "label_sk": "Newsletter – súhlasy",
+      "routes": [
+        {
+          "path": "/admin/newsletter",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/newsletter/route.ts"
+        }
+      ],
+      "reference_ui_status": "NOT_IMPLEMENTED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    },
+    {
+      "id": "ops",
+      "label_sk": "Prevádzka a audit",
+      "routes": [
+        {
+          "path": "/admin/ops/audit",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/ops/audit/route.ts"
+        },
+        {
+          "path": "/admin/ops/events",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/ops/events/route.ts"
+        }
+      ],
+      "reference_ui_status": "NOT_IMPLEMENTED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    },
+    {
+      "id": "vouchers",
+      "label_sk": "Darčekové poukazy",
+      "routes": [
+        {
+          "path": "/admin/vouchers/:id/transactions",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/vouchers/[id]/transactions/route.ts"
+        },
+        {
+          "path": "/admin/vouchers/:id/void",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/vouchers/[id]/void/route.ts"
+        },
+        {
+          "path": "/admin/vouchers/refund",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/vouchers/refund/route.ts"
+        },
+        {
+          "path": "/admin/vouchers",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/vouchers/route.ts"
+        },
+        {
+          "path": "/admin/vouchers/settings",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "source": "backend/src/api/admin/vouchers/settings/route.ts"
+        }
+      ],
+      "reference_ui_status": "PARTIAL",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": [
+        "backend/src/admin/routes/vouchers/page.tsx"
+      ]
+    },
+    {
+      "id": "withdrawals",
+      "label_sk": "Odstúpenia od zmluvy",
+      "routes": [
+        {
+          "path": "/admin/withdrawals/:id",
+          "methods": [
+            "POST"
+          ],
+          "source": "backend/src/api/admin/withdrawals/[id]/route.ts"
+        },
+        {
+          "path": "/admin/withdrawals",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/withdrawals/route.ts"
+        }
+      ],
+      "reference_ui_status": "NOT_IMPLEMENTED",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    },
+    {
+      "id": "excluded",
+      "label_sk": "Starter – bez položky menu",
+      "routes": [
+        {
+          "path": "/admin/custom",
+          "methods": [
+            "GET"
+          ],
+          "source": "backend/src/api/admin/custom/route.ts"
+        }
+      ],
+      "reference_ui_status": "FUTURE_SCOPE",
+      "target_ui_status": "NOT_IMPLEMENTED",
+      "reference_ui_sources": []
+    }
+  ],
+  "implementation_approach": "new_admin_from_scratch"
+}

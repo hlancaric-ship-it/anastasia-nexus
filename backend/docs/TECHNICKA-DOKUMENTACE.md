@@ -11,6 +11,7 @@ kritické obchodní toky, nastavení, diagnostiku a ověřování. Podrobná tě
 pravidla jsou v odkazovaných dokumentech balíků; konkrétní validátor a route jsou konečnou autoritou.
 
 - [Katalog vlastních API a modulů](API-KATALOG.md): všechny implementované route soubory a jejich HTTP metody.
+- [Aktuální soupis pro implementaci administrace](wp/ADMIN-SOUPIS.md) včetně bezpečnostních změn a chybějících kontraktů.
 - [Mapa funkcí pro administraci](wp/backend-admin-capabilities.md) a [strojový inventář](wp/backend-admin-inventory.json).
 - [Nasazení a infrastruktura](DEPLOY.md), [lokální zálohování a obnova](wp/PRODUCTION_RUNBOOK.md).
 - [Rozdělení backendové práce](wp/ROZDELENI-BACKEND-ZBYTEK.md).
