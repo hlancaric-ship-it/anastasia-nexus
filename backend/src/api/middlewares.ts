@@ -10,6 +10,7 @@ import { opsAdminMiddlewares } from "./admin/ops/middlewares"
 import { emailTemplateAdminMiddlewares } from "./admin/email-templates/middlewares"
 import { legalMiddlewares } from "./legal-middlewares"
 import { customerPrivacyMiddlewares } from "./customer-privacy-middlewares"
+import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 
 export default defineMiddlewares({
@@ -30,5 +31,6 @@ export default defineMiddlewares({
     ...opsAdminMiddlewares,
     ...emailTemplateAdminMiddlewares,
     ...legalMiddlewares,
+    ...orderSelfCancelMiddlewares,
   ],
 })

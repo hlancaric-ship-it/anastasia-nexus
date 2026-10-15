@@ -5,6 +5,7 @@ import { verifyEntitlementIsolation } from "./entitlement-isolation-http-checks"
 import { verifyOpsObservability } from "./ops-observability-checks"
 import { verifyLegalConsents } from "./legal-consents-http-checks"
 import { verifyCustomerGdpr } from "./customer-gdpr-http-checks"
+import { verifyOrderSelfCancel } from "./order-self-cancel-http-checks"
 import { acceptCheckoutConsent } from "./legal-fixtures"
 import { existsSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
@@ -203,6 +204,7 @@ medusaIntegrationTestRunner({
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyEntitlementIsolation({ api, container, options, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyLegalConsents({ api, container, options, newCart, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyCustomerGdpr({ api, container, options, newCart, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyOrderSelfCancel({ api, container, options, channel, region, profile, evidence })
       await verifyOpsObservability({ api, container, options, evidence, bookingRan: !giftVoucherOnly })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
