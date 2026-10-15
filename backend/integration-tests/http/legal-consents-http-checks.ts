@@ -56,9 +56,17 @@ export async function verifyLegalConsents({api,container,options,newCart,evidenc
  expect(subscribed.status).toBe(200);expect(subscribed.data.unsubscribe_token).toMatch(/^[A-Za-z0-9_-]{43}$/)
  const again=await api.post("/store/newsletter",newsletter,options)
  expect(again.data.unsubscribe_token).toBeUndefined()
+ const previousVersion=process.env.NEWSLETTER_CONSENT_VERSION
+ try {
+  process.env.NEWSLETTER_CONSENT_VERSION=`${previousVersion}-revised`
+  const revised=await api.post("/store/newsletter",{...newsletter,text_version:process.env.NEWSLETTER_CONSENT_VERSION},options)
+  expect(revised.status).toBe(200)
+  expect(revised.data.unsubscribe_token).toBeUndefined() // prior unsubscribe link remains valid
+  expect((await legal.listNewsletterConsents({email:newsletter.email}))[0].text_version).toBe(process.env.NEWSLETTER_CONSENT_VERSION)
+ }finally{process.env.NEWSLETTER_CONSENT_VERSION=previousVersion}
  const unsubscribe={token:subscribed.data.unsubscribe_token}
  expect((await api.post("/store/newsletter/unsubscribe",unsubscribe,options)).status).toBe(200)
  expect((await api.post("/store/newsletter/unsubscribe",unsubscribe,options)).status).toBe(200)
- expect((await legal.listNewsletterConsentEvents({consent_id:(await legal.listNewsletterConsents({email:newsletter.email}))[0].id})).length).toBe(2)
+ expect((await legal.listNewsletterConsentEvents({consent_id:(await legal.listNewsletterConsents({email:newsletter.email}))[0].id})).length).toBe(3)
  record("NEWSLETTER_HISTORY_REPLAY_UNSUBSCRIBE")
 }

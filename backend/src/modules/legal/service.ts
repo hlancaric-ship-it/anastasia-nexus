@@ -30,14 +30,14 @@ class LegalModuleService extends MedusaService({ NewsletterConsentEvent, LegalCo
   async subscribe(input: { email: string; source: string; text_version: string }, @MedusaContext() context: Context = {}) {
     const db = this.db(context); await this.lock(db, `newsletter:${tokenHash(input.email)}`)
     const old = await db("newsletter_consent").where({email:input.email}).whereNull("deleted_at").first()
-    if (old?.status === "subscribed") return { accepted: true }
-    const token = randomBytes(32).toString("base64url")
-    const data = {...input,status:"subscribed",token_hash:tokenHash(token),consented_at:new Date(),unsubscribed_at:null,updated_at:new Date()}
+    if (old?.status === "subscribed" && old.text_version === input.text_version) return { accepted: true }
+    const token = old?.status === "subscribed" ? null : randomBytes(32).toString("base64url")
+    const data = {...input,status:"subscribed",token_hash:token ? tokenHash(token) : old.token_hash,consented_at:new Date(),unsubscribed_at:null,updated_at:new Date()}
     const id = old?.id ?? `lgl_${randomUUID()}`
     if (old) await db("newsletter_consent").where({id}).update(data)
     else await db("newsletter_consent").insert({id, ...data})
     await db("newsletter_consent_event").insert({id:`nce_${randomUUID()}`,consent_id:id,status:data.status,source:data.source,text_version:data.text_version,occurred_at:data.consented_at})
-    return { accepted: true, unsubscribe_token: token }
+    return { accepted: true, ...(token ? {unsubscribe_token: token} : {}) }
   }
   @InjectTransactionManager()
   async unsubscribe(token: string, @MedusaContext() context: Context = {}) {

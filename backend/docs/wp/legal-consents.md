@@ -19,7 +19,8 @@ Větev `codex/legal-consents`, základ `claude/backend-integration` 8cf9c86. Bac
   Bez nastavení verzí se nový checkout bezpečně zastaví (503), žádné produkční výchozí znění.
 - `POST /store/newsletter`: `{email, source, text_version, accepted:true}`. Normalizovaný e-mail,
   serverová verze, zdroj max60 alfanumerických znaků/`_-`. Atomický zámek e-mailového hashe,
-  jedna aktuální evidence a historie každé skutečné změny. Opakovaný subscribe historii nezdvojí.
+  jedna aktuální evidence a historie každé skutečné změny. Opakovaný subscribe stejné verze historii nezdvojí. Nový výslovný souhlas s novou verzí
+  uloží další záznam a zachová funkčnost původního odhlašovacího odkazu.
   Žádné rozesílání. Při nové aktivaci odpověď obsahuje jednorázově vydaný `unsubscribe_token`;
   klient musí odkaz bezpečně uchovat. Opakovaná aktivní registrace token neodhalí/neotáčí.
   V DB je pouze SHA-256 tokenu (256 bitů náhody). Toto není double opt-in/ověření vlastnictví e-mailu.
