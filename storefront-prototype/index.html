@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#30392b"><title>ANASTASIA — Light for the Future</title>
+<style>
+:root{color-scheme:dark;--olive:#30392b;--cream:#f4f1e9;--ease:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#eae9e1;color:#20271f;font-family:Arial,Helvetica,sans-serif}
+button,a{font:inherit}button{cursor:pointer}a{color:inherit}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.hero{position:relative;min-height:min(100svh,768px);height:min(100svh,768px);overflow:hidden;background:#293a30;color:white}
+.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 70%,rgba(0,0,0,.6));z-index:1}
+.header{position:absolute;z-index:30;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;padding:26px clamp(20px,4vw,64px);pointer-events:none}
+.brand{pointer-events:auto;display:flex;align-items:center;gap:12px;text-decoration:none;font-size:clamp(18px,2vw,28px);letter-spacing:.22em;font-weight:400}
+.brand-mark{width:36px;height:36px;border:1px solid currentColor;border-radius:50%;display:grid;place-items:center;font-size:23px}
+.menu-trigger,.menu-trigger-close{pointer-events:auto;border:1px solid rgba(255,255,255,.6);border-radius:100px;background:rgba(37,47,34,.65);color:#fff;padding:13px 27px;min-width:110px;position:relative}
+.menu-trigger span:after{content:attr(data-open)}.menu-trigger.active span:after{content:attr(data-close)}
+.menu-trigger:hover,.menu-trigger-close:hover{background:#f4f1e9;color:#30392b}
+.hero-copy{position:absolute;z-index:10;inset:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:clamp(20px,4vw,64px);pointer-events:none}
+.hero-copy p{letter-spacing:.2em;text-transform:uppercase;font-size:12px}.hero-copy h1{font-size:clamp(40px,6.5vw,110px);font-weight:400;line-height:.99;max-width:1000px;margin:12px 0 20px;letter-spacing:-.055em}
+.sound-switcher{position:absolute;right:clamp(20px,4vw,64px);bottom:clamp(20px,4vw,64px);z-index:12;border:1px solid #fff;border-radius:40px;background:transparent;color:white;padding:12px 18px}
+.menu-layer{position:fixed;right:0;top:0;width:min(100%,1000px);height:min(100dvh,768px);overflow-y:auto;background:var(--olive);color:var(--cream);z-index:-1;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .5s,visibility .5s;padding:24px clamp(24px,4vw,64px) 45px}
+.menu-layer.active{z-index:1010;opacity:1;visibility:visible;pointer-events:auto}
+.menu-top{display:flex;align-items:center;justify-content:space-between;gap:20px}.menu-heading{font-size:clamp(35px,5vw,76px);font-weight:400;line-height:1.04;letter-spacing:-.045em;margin:50px 0 42px;max-width:700px}
+.menu-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.menu-column{border-left:1px solid #899083;padding-left:22px}.menu-column h2{font-size:12px;text-transform:uppercase;letter-spacing:.18em;font-weight:400;margin:0 0 24px}
+.menu-column a{display:block;text-decoration:none;margin:0 0 16px;position:relative;width:fit-content;overflow:hidden;line-height:1.2}
+.menu-column a:before{content:attr(data-text);position:absolute;inset:0;transform:translateY(100%);transition:transform .4s var(--ease);white-space:nowrap}
+.menu-column a span{display:block;transition:opacity .3s}.menu-column a:hover:before,.menu-column a:focus-visible:before{transform:translateY(0)}.menu-column a:hover span,.menu-column a:focus-visible span{opacity:0}
+.menu-bottom{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:52px;align-items:end}.menu-feature a{display:block;font-size:clamp(28px,4vw,60px);letter-spacing:-.04em;line-height:1.1;text-decoration:none}.menu-preview{aspect-ratio:1.55;background:#65715b;border-radius:80px 0 0 0;overflow:hidden}.menu-preview img{width:100%;height:100%;object-fit:cover}.menu-preview:not(:has(img[src])){display:none}
+.content{padding:clamp(45px,8vw,120px) clamp(20px,6vw,90px);max-width:1400px;margin:auto}.content h2{font-size:clamp(35px,6vw,86px);font-weight:400;letter-spacing:-.05em;margin:0 0 24px}.content p{font-size:clamp(18px,2vw,25px);max-width:700px;line-height:1.5}
+@media(max-width:700px){.header{padding:18px}.brand{font-size:16px;letter-spacing:.12em}.brand-mark{width:30px;height:30px}.menu-layer{height:100dvh;padding:18px 24px 36px}.menu-heading{margin:48px 0 30px}.menu-columns{grid-template-columns:1fr 1fr;row-gap:32px}.menu-bottom{grid-template-columns:1fr}.menu-preview{display:none}.hero-copy{padding:22px 20px 85px}.sound-switcher{bottom:20px;right:20px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<section class="hero" aria-label="ANASTASIA">
+  <!-- Replace with licensed original river-to-meadow video; no logo/text/menu baked into footage. -->
+  <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="./media/nature-poster.jpg"><source src="./media/nature.webm" type="video/webm"><source src="./media/nature.mp4" type="video/mp4"></video>
+  <header class="header"><a class="brand" href="/" aria-label="ANASTASIA domov"><span class="brand-mark" aria-hidden="true">✳</span><span>ANASTASIA</span></a><button class="menu-trigger" type="button" aria-controls="main-menu" aria-expanded="false"><span data-open="Menu" data-close="Close"></span></button></header>
+  <div class="hero-copy"><p>Light for the Future</p><h1>Cesta k zdraviu začína v prírode.</h1></div>
+  <button class="sound-switcher" type="button" aria-pressed="false">Zapnúť zvuk</button>
+  <audio class="audio" loop preload="none" src="./media/nature-ambient.mp3"></audio>
+</section>
+<nav id="main-menu" class="menu-layer" aria-label="Hlavné menu" aria-hidden="true">
+ <div class="menu-top"><span>ANASTASIA — Light for the Future</span><button class="menu-trigger-close" type="button">Close <span aria-hidden="true">×</span></button></div>
+ <h2 class="menu-heading">Zdravší ľudia.<br>Jasnejšia budúcnosť.</h2>
+ <div class="menu-columns">
+  <div class="menu-column"><h2>Obchod</h2><a href="/obchod" data-text="Všetky produkty"><span>Všetky produkty</span></a><a href="/programy" data-text="Programy"><span>Programy</span></a></div>
+  <div class="menu-column"><h2>Programy</h2><a href="/reset-40" data-text="RESET 40+"><span>RESET 40+</span></a><a href="/akademia" data-text="Akadémia"><span>Akadémia</span></a></div>
+  <div class="menu-column"><h2>Služby</h2><a href="/konzultacie" data-text="Konzultácie"><span>Konzultácie</span></a><a href="/supervizia" data-text="Supervízia"><span>Supervízia</span></a></div>
+ </div>
+ <div class="menu-bottom"><div class="menu-feature"><a href="/zdravy-svet">Zdravý svet</a><a href="/o-lucii">O Lucii</a><a href="/kontakt">Kontakt</a><p>SK / EN / RU</p></div><div class="menu-preview"><img src="./media/menu-preview.jpg" alt="Prírodné wellness prostredie" loading="lazy"></div></div>
+</nav>
+<main><section class="content"><h2>V rovnováhe s prírodou.</h2><p>Priestor pre zdravie, poznanie a vedomý život.</p></section></main>
+<script>
+(()=>{const panel=document.querySelector('.menu-layer'),open=document.querySelector('.menu-trigger'),close=document.querySelector('.menu-trigger-close');let previousFocus=null;
+function toggle(active){panel.classList.toggle('active',active);open.classList.toggle('active',active);open.setAttribute('aria-expanded',String(active));panel.setAttribute('aria-hidden',String(!active));if(active){previousFocus=document.activeElement;close.focus()}else{(previousFocus||open).focus()}}
+open.addEventListener('click',()=>toggle(!panel.classList.contains('active')));close.addEventListener('click',()=>toggle(false));document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('active'))toggle(false);if(e.key==='Tab'&&panel.classList.contains('active')){const items=[...panel.querySelectorAll('a,button')];const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
+const audio=document.querySelector('.audio'),sound=document.querySelector('.sound-switcher');sound.addEventListener('click',async()=>{if(audio.paused){try{await audio.play();sound.textContent='Vypnúť zvuk';sound.setAttribute('aria-pressed','true')}catch{sound.textContent='Zvuk nie je dostupný'}}else{audio.pause();sound.textContent='Zapnúť zvuk';sound.setAttribute('aria-pressed','false')}});
+})();
+</script>
+</body></html>
