@@ -71,6 +71,12 @@ stavu žádosti a technická ID. Zdravotní obsah nepatří do provozních logů
 
 ## Ověření
 
-TypeScript PASS. Fokus unit2 sad/13 testů PASS: potvrzení výmazu, cizí příjemce, poznámky,
-revokace session/JWT, selhání DB/cache a původní legal guard. Plná sada a HTTP čekají na integraci
-v GitHub Actions. Lokální PG ani HTTP nespouštěny. IMPLEMENTED; runtime IMPLEMENTED_UNVERIFIED.
+Lokální TypeScript PASS. Fokus základ2 sad/13 testů PASS; poslední identity hardening11/11 PASS.
+Integraci provedl Claude včetně globálního store/auth guardu a obou migrací.
+Plná sada a skutečný HTTP běžely výhradně v GitHub Actions. Lokální PG ani HTTP nespouštěny.
+
+Integrovaný kód **VERIFIED** na `claude/backend-integration` **4ba87ff**:
+[GitHub Actions 38667772955](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38667772955), oba joby `verify` a `medusa-persistence` PASS.
+Backend TypeScript + **516/516 unit** (53 sad), celý skutečný Medusa/PostgreSQL HTTP běh PASS,
+všech **15/15 scénářů X1–X3** PASS. Dále NEXUS1102/1102 a workerd38/38 PASS.
+Tento důkaz ověřuje syntetické kontrakty; není produkčním nasazením ani právním schválením textů.
