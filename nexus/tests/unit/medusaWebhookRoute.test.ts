@@ -1,80 +1,79 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { handleMedusaWebhook } from '../../workers/api/routes/medusaWebhook.js';
 import type { Env } from '../../workers/api/types.js';
+import { signedMedusaWebhook, webhookTestSecret } from '../helpers/medusaWebhookRequest.js';
 
-describe('handleMedusaWebhook Route Handler', () => {
-    const mockCtx = { waitUntil: () => {} };
-    const receipts = new Set<string>();
-    const makeEnv = (extra: Record<string, unknown> = {}) => ({
-        DB: { prepare: () => ({ bind: (eventId: string) => ({ first: async () => {
-            if (receipts.has(eventId)) return null;
-            receipts.add(eventId);
-            return { event_id: eventId };
-        } }) }) },
-        ...extra,
-    } as unknown as Env);
+const context = { waitUntil: vi.fn() };
+const event = (id = 'evt_test') => ({ id, type: 'order.placed', data: { id: 'ord_synthetic' } });
+function fixture() {
+    const inbox = new Map<string, string>();
+    const prepare = vi.fn((sql: string) => ({ bind: (...values: string[]) => ({ first: async () => {
+        if (sql.includes('medusa_webhook_receipts')) return null;
+        const key = JSON.stringify(values.slice(0, 2));
+        if (sql.startsWith('INSERT')) {
+            if (inbox.has(key)) return null;
+            inbox.set(key, values[4]!);
+            return { event_id: values[1] };
+        }
+        return inbox.has(key) ? { envelope_hash: inbox.get(key) } : null;
+    } }) }));
+    const env = { DB: { prepare }, MEDUSA_PRICING_TENANT_ID: 'synthetic',
+        MEDUSA_WEBHOOK_SECRET: webhookTestSecret, ENVIRONMENT: 'production' } as unknown as Env;
+    return { env, inbox, prepare };
+}
 
-    it('odmietne webhook bez x-medusa-signature v produkcii', async () => {
-        const req = new Request('https://nexus-api.internal/api/webhooks/medusa', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event: 'order.placed', data: { id: 'ord_123' } }),
-        });
-
-        const mockEnv = makeEnv({ ENVIRONMENT: 'production', MEDUSA_WEBHOOK_SECRET: 'supersecret' });
-        await expect(handleMedusaWebhook(req, mockEnv, mockCtx)).rejects.toThrow('Neplatný nebo expirovaný podpis Medusa webhooku.');
+describe('durable Medusa event intake', () => {
+    it('rejects unsigned production requests before database access', async () => {
+        const { env, prepare } = fixture();
+        await expect(handleMedusaWebhook(new Request('https://nexus.test', { method: 'POST', body: JSON.stringify(event()) }), env, context))
+            .rejects.toMatchObject({ status: 401, code: 'REJECT_SIGNATURE' });
+        expect(prepare).not.toHaveBeenCalled();
     });
-
-    it('ověří HMAC podpis nad timestampem a raw body a odmítne replay starší než pět minut', async () => {
-        const secret = 'test-signing-secret';
-        const body = JSON.stringify({ type: 'order.placed', id: `evt_signed_${Date.now()}`, data: { id: 'ord_123' } });
-        const timestamp = String(Math.floor(Date.now() / 1000));
-        const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-        const signature = Array.from(new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${timestamp}.${body}`))), (value) => value.toString(16).padStart(2, '0')).join('');
-        const env = makeEnv({ ENVIRONMENT: 'production', MEDUSA_WEBHOOK_SECRET: secret });
-        const valid = new Request('https://nexus-api.internal/api/webhooks/medusa', { method: 'POST', headers: { 'x-medusa-signature': `t=${timestamp},v1=${signature}` }, body });
-        expect((await handleMedusaWebhook(valid, env, mockCtx)).status).toBe(200);
-
-        const stale = new Request('https://nexus-api.internal/api/webhooks/medusa', { method: 'POST', headers: { 'x-medusa-signature': `t=${Number(timestamp) - 301},v1=${signature}` }, body });
-        await expect(handleMedusaWebhook(stale, env, mockCtx)).rejects.toThrow('Neplatný nebo expirovaný podpis Medusa webhooku.');
+    it('verifies HMAC with the timestamp and rejects a stale signed event', async () => {
+        const { env } = fixture();
+        expect((await handleMedusaWebhook(await signedMedusaWebhook(event()), env, context)).status).toBe(200);
+        await expect(handleMedusaWebhook(await signedMedusaWebhook(event(), Math.floor(Date.now() / 1000) - 301), env, context))
+            .rejects.toMatchObject({ status: 401 });
     });
-
-    it('spracuje platný webhook s podpora eventu a deduplikácie', async () => {
-        const eventId = `evt_test_${Date.now()}`;
-        const req1 = new Request('https://nexus-api.internal/api/webhooks/medusa', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event: 'order.placed', id: eventId, data: { id: 'ord_999' } }),
-        });
-
-        const env = makeEnv();
-        const res1 = await handleMedusaWebhook(req1, env, mockCtx);
-        expect(res1.status).toBe(200);
-        const data1 = await res1.json() as { received: boolean; duplicate?: boolean };
-        expect(data1.received).toBe(true);
-        expect(data1.duplicate).toBeUndefined();
-
-        // Podruhé ten samý webhook -> duplicate skipped
-        const req2 = new Request('https://nexus-api.internal/api/webhooks/medusa', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event: 'order.placed', id: eventId, data: { id: 'ord_999' } }),
-        });
-
-        const res2 = await handleMedusaWebhook(req2, env, mockCtx);
-        expect(res2.status).toBe(200);
-        const data2 = await res2.json() as { received: boolean; duplicate?: boolean };
-        expect(data2.received).toBe(true);
-        expect(data2.duplicate).toBe(true);
+    it('persists before acknowledgement and acknowledges a matching replay', async () => {
+        const { env, inbox } = fixture();
+        context.waitUntil.mockClear();
+        const first = await handleMedusaWebhook(await signedMedusaWebhook(event()), env, context);
+        expect(first.status).toBe(200);
+        expect(inbox.size).toBe(1);
+        expect(context.waitUntil).not.toHaveBeenCalled();
+        const second = await handleMedusaWebhook(await signedMedusaWebhook(event()), env, context);
+        expect(await second.json()).toMatchObject({ received: true, duplicate: true });
+        expect(inbox.size).toBe(1);
     });
-
-    it('vyhodí 422 ak v payload chýba event', async () => {
-        const req = new Request('https://nexus-api.internal/api/webhooks/medusa', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: { id: 'ord_123' } }),
-        });
-
-        await expect(handleMedusaWebhook(req, makeEnv(), mockCtx)).rejects.toThrow('Payload nesmie chýbať pole event.');
+    it('rejects a reused delivery id for a different target', async () => {
+        const { env } = fixture();
+        await handleMedusaWebhook(await signedMedusaWebhook(event()), env, context);
+        await expect(handleMedusaWebhook(await signedMedusaWebhook({ ...event(), data: { id: 'other_order' } }), env, context))
+            .rejects.toMatchObject({ status: 409, code: 'WEBHOOK_CONFLICT' });
+    });
+    it.each([null, [], 1, {}, { ...event(), id: 1 }, { ...event(), data: { id: 'private@example.test' } },
+        { ...event(), event: 'customer.created' }])('rejects malformed envelopes %j', async payload => {
+        const { env, prepare } = fixture();
+        await expect(handleMedusaWebhook(await signedMedusaWebhook(payload), env, context)).rejects.toMatchObject({ status: 422 });
+        expect(prepare).not.toHaveBeenCalled();
+    });
+    it('does not acknowledge an unavailable store', async () => {
+        const { env } = fixture();
+        const broken = { ...env, DB: { prepare: () => { throw new Error('private details'); } } } as unknown as Env;
+        await expect(handleMedusaWebhook(await signedMedusaWebhook(event()), broken, context))
+            .rejects.toMatchObject({ status: 503, code: 'STORAGE_UNAVAILABLE' });
+    });
+    it.each(['MEDUSA_WEBHOOK_SECRET', 'MEDUSA_PRICING_TENANT_ID'] as const)('fails closed without %s', async missing => {
+        const { env, prepare } = fixture();
+        await expect(handleMedusaWebhook(await signedMedusaWebhook(event()), { ...env, [missing]: undefined }, context))
+            .rejects.toMatchObject({ status: 503, code: 'MISSING_BINDING' });
+        expect(prepare).not.toHaveBeenCalled();
+    });
+    it('rejects an oversized body without scheduling work', async () => {
+        const { env, prepare } = fixture();
+        const request = new Request('https://nexus.test', { method: 'POST', body: 'x'.repeat(1024 * 1024 + 1) });
+        await expect(handleMedusaWebhook(request, env, context)).rejects.toMatchObject({ status: 413 });
+        expect(prepare).not.toHaveBeenCalled();
     });
 });

@@ -1,0 +1,23 @@
+{
+  "status": "VERIFIED",
+  "scope": "Bounded reconciliation and atomic snapshot persistence",
+  "source_head": "72c1725b237d4a6f190aa42c9c9a6c2b82b1e220",
+  "tested_merge": "b68beeb6b1dea73ff38f4ab6843652cde8c3beb2",
+  "pull_request": 12,
+  "ci_run": 38818676983,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38818676983",
+  "results": {
+    "backend_unit": 544,
+    "nexus_unit_integration": 1219,
+    "workerd_d1": 97,
+    "http_postgresql_scenarios": 132
+  },
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "nexus.json": "749eff951354eb8fbf82262a915c26daa7c5afd3367297aa0574105c44d3ca2b",
+    "workerd.json": "f6fe65c3e0a9ec3121d967d2621a95001984bfb0cd79b7f080ae5273c2a154d0",
+    "backend-unit.json": "8cb60833730ec94b25dc79119399a4f525000b5de2b1f9366e6f816191a57071",
+    "medusa-persistence-evidence.json": "fcb413cc1686fc2906a5e764abe765ac0a111de8d1573e6e88400f93bb883d9d"
+  }
+}
