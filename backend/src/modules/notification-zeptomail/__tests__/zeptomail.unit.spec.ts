@@ -117,6 +117,14 @@ describe("ZeptoMail – send", () => {
     expect(log).not.toContain(API_KEY)
   })
 
+  it("přečte kód chyby i ve formátu Zoho CPaaS (data.error_code)", async () => {
+    const fetchImpl = makeFetch(400, { message: "error", data: { error_code: "TM_3004", message: `Invalid request for ${RECIPIENT}` } })
+    const { service, lines } = makeService({}, fetchImpl)
+    await expect(service.send({ to: RECIPIENT, channel: "email", template: "chat-admin-digest", data: {} } as any))
+      .rejects.toThrow("ZeptoMail: odeslání odmítnuto (HTTP 400, TM_3004)")
+    expect(lines.join("\n")).not.toContain(RECIPIENT)
+  })
+
   it("síťová chyba i timeout končí chybou bez opakování", async () => {
     const network = jest.fn(async () => { throw new TypeError("fetch failed") }) as unknown as jest.Mock & typeof fetch
     const { service } = makeService({}, network)

@@ -22,6 +22,21 @@ const DEFAULT_TIMEOUT_MS = 15_000
 const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]+$/
 
 const isEmail = (value: unknown): value is string => typeof value === "string" && EMAIL_RE.test(value.trim())
+const SAFE_CODE_RE = /^[A-Za-z0-9_.-]{1,40}$/
+
+/**
+ * Kódy chyb z odpovědi – Zoho CPaaS vrací `data.error_code` (objekt i pole), klasický ZeptoMail
+ * `error.code` + `error.details[].code`. Do zprávy jdou jen kódy, nikdy texty (mohou obsahovat adresu).
+ */
+function errorCodes(body: any): string {
+  const data = Array.isArray(body?.data) ? body.data : body?.data ? [body.data] : []
+  const codes = [
+    body?.error?.code,
+    ...(Array.isArray(body?.error?.details) ? body.error.details.map((d: any) => d?.code) : []),
+    ...data.map((d: any) => d?.error_code),
+  ].filter((c): c is string => typeof c === "string" && SAFE_CODE_RE.test(c))
+  return [...new Set(codes)].join(",") || "unknown"
+}
 
 /**
  * Doručení transakčních e-mailů přes ZeptoMail (HTTP API).
@@ -140,8 +155,7 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
     }
 
     if (status < 200 || status >= 300) {
-      const err = body?.error
-      const code = [err?.code, ...(Array.isArray(err?.details) ? err.details.map((d: any) => d?.code) : [])].filter(Boolean).join(",") || "unknown"
+      const code = errorCodes(body)
       this.log("error", "send_rejected", { template, http_status: status, error_code: code, provider_message_id: typeof body?.request_id === "string" ? body.request_id : undefined })
       throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, `ZeptoMail: odeslání odmítnuto (HTTP ${status}, ${code})`)
     }
