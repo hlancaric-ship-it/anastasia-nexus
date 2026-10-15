@@ -1,4 +1,5 @@
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
+import { acceptCheckoutConsent } from "./legal-fixtures"
 import { capturePaymentWorkflow, cancelOrderWorkflow, createProductsWorkflow, refundPaymentWorkflow } from "@medusajs/medusa/core-flows"
 import { GIFT_VOUCHER_MODULE } from "../../src/modules/gift-voucher"
 import { issueVouchersForOrder } from "../../src/modules/gift-voucher/order-sync"
@@ -60,6 +61,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
     const created = await ok(api.post("/store/carts", { region_id: region.id, email: "gv-buyer@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } }, options))
     const id = created.cart.id
     for (const variant of variants) await ok(api.post(`/store/carts/${id}/line-items`, { variant_id: variant.id, quantity: variant.quantity ?? 1 }, options))
+    await acceptCheckoutConsent(api, id, options)
     return id
   }
   const prepare = async (id: string) => {

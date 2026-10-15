@@ -3,6 +3,9 @@ import { verifyGiftVoucherHttp } from "./gift-voucher-http-checks"
 import { verifyDigitalCheckout } from "./digital-checkout-checks"
 import { verifyEntitlementIsolation } from "./entitlement-isolation-http-checks"
 import { verifyOpsObservability } from "./ops-observability-checks"
+import { verifyLegalConsents } from "./legal-consents-http-checks"
+import { verifyCustomerGdpr } from "./customer-gdpr-http-checks"
+import { acceptCheckoutConsent } from "./legal-fixtures"
 import { existsSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { Server } from "node:net"
@@ -76,6 +79,7 @@ medusaIntegrationTestRunner({
           const assigned = await api.post(`/store/carts/${id}/customer`, {}, { ...options, headers: { ...headers, ...customerHeaders } })
           expect(assigned.status).toBe(200)
         }
+        await acceptCheckoutConsent(api, id, customerHeaders ? { ...options, headers: { ...headers, ...customerHeaders } } : options)
         const product = products.find((p) => p.handle === `synthetic-p0-${amount}`)!
         await success(`/store/carts/${id}/line-items`, { variant_id: product.variants[0].id, quantity: 1 })
         await success("/store/nexus-cart", { cart_id: id, couponCode, unit_price: 0.01, tenantId: "attacker" })
@@ -197,6 +201,8 @@ medusaIntegrationTestRunner({
       if (process.env.WAVE1_BOOKING_ONLY !== "1") await verifyGiftVoucherHttp({ api, container, options, channel, region, profile, countOrders, dbConnection, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyDigitalCheckout({ api, container, options, newCart, product: products[0], evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyEntitlementIsolation({ api, container, options, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyLegalConsents({ api, container, options, newCart, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyCustomerGdpr({ api, container, options, newCart, evidence })
       await verifyOpsObservability({ api, container, options, evidence, bookingRan: !giftVoucherOnly })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })

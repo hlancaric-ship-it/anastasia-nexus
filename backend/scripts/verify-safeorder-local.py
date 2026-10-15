@@ -26,6 +26,8 @@ env = {k: os.environ[k] for k in ('PATH', 'TMPDIR', 'LANG', 'HOME', 'USER', 'LOG
 env.update({'NODE_ENV': 'test', 'MEDUSA_TELEMETRY_DISABLED': 'true', 'NO_COLOR': '1'})
 env['WAVE1_BOOKING_ONLY'] = '1' if args.booking_only else '0'
 env['WAVE1_GIFT_VOUCHER_ONLY'] = '1' if args.gift_voucher_only else '0'
+# X1: syntetické verze právních textů (skutečné schvaluje vlastník textů).
+env.update({'LEGAL_TERMS_VERSION': 'synthetic-terms-v1', 'LEGAL_PRIVACY_VERSION': 'synthetic-privacy-v1', 'NEWSLETTER_CONSENT_VERSION': 'synthetic-newsletter-v1'})
 env.update({'MEDIA_TOKEN_SECRET': 'synthetic-media-signing-secret-for-local-tests-only', 'MEDIA_DELIVERY_BASE_URL': 'https://media.example.test', 'OPS_INGEST_SECRET': 'synthetic-ops-ingest-secret-for-local-tests-only'})
 for name in ('initdb', 'pg_ctl', 'node'):
     if not shutil.which(name, path=env.get('PATH')):

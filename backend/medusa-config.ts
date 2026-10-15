@@ -141,6 +141,8 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/chat" },
   { resolve: "./src/modules/ops-audit" },
   { resolve: "./src/modules/email-template" },
+  { resolve: "./src/modules/legal" },
+  { resolve: "./src/modules/customer-privacy" },
 ]
 
 if (stripeApiKey) {

@@ -8,6 +8,8 @@ import { bookingAdminMiddlewares } from "./admin/booking/middlewares"
 import { chatMiddlewares } from "./chat-middlewares"
 import { opsAdminMiddlewares } from "./admin/ops/middlewares"
 import { emailTemplateAdminMiddlewares } from "./admin/email-templates/middlewares"
+import { legalMiddlewares } from "./legal-middlewares"
+import { customerPrivacyMiddlewares } from "./customer-privacy-middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 
 export default defineMiddlewares({
@@ -16,6 +18,8 @@ export default defineMiddlewares({
     { matcher: "/*", middlewares: [requestIdMiddleware] },
     // Podpis dávky z NEXUS Workeru se ověřuje nad surovým tělem.
     { matcher: "/hooks/ops/edge-events", method: ["POST"], bodyParser: { preserveRawBody: true, sizeLimit: "300kb" } },
+    // Tombstone vymazané zákaznice musí platit dřív než jakýkoli endpoint (X2).
+    ...customerPrivacyMiddlewares,
     ...entitlementStoreMiddlewares,
     ...bookingStoreMiddlewares,
     ...couponLinkMiddlewares,
@@ -25,5 +29,6 @@ export default defineMiddlewares({
     ...chatMiddlewares,
     ...opsAdminMiddlewares,
     ...emailTemplateAdminMiddlewares,
+    ...legalMiddlewares,
   ],
 })
