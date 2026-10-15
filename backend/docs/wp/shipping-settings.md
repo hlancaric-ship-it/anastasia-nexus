@@ -9,13 +9,15 @@
   košíku pod hranici se doprava znovu účtuje. Cena se počítá jen na serveru; klient ji poslat nemůže.
 - Bootstrap je idempotentní podle názvu: u už existujícího kurýra hranici nepřidá – tam se nastaví v adminu
   (Nastavenia → Lokality a doprava → cena s podmínkou „Celková suma položiek“).
-- `item_total` je po přecenění NEXUS (věrnostní/kupónová sleva) – hranice se tedy počítá z ceny, kterou zákaznice
-  skutečně platí za zboží.
+- `item_total` je v Medusa 2 součet položek **s DPH a po slevách** (po přecenění NEXUS – věrnostní/kupónová sleva),
+  bez dopravy. Hranice se tedy porovnává s hrubou cenou zboží, kterou zákaznice skutečně platí. Při cenách zadaných
+  bez DPH (SK region daň přičítá) je 50 € bez DPH = 61,50 € v `item_total`.
 
 ## Testy
 
 - Unit: `src/scripts/__tests__/anastasia-bootstrap.unit.spec.ts` (parsování hranice, ceny s pravidlem).
-- HTTP (Actions, runner nastavuje 100 €): `integration-tests/http/shipping-settings-http-checks.ts` –
+- HTTP (Actions, runner nastavuje 100 €; hranice ověřená na hrubé částce: 81,29 € bez DPH je pod hranicí,
+  +0,02 € bez DPH nad ní): `integration-tests/http/shipping-settings-http-checks.ts` –
   `C3_SHIPPING_COURIER_PRICE_FROM_DB`, `CLIENT_CANNOT_SET_SHIPPING_PRICE`, `FREE_FROM_THRESHOLD_INCLUSIVE`,
   `BELOW_THRESHOLD_PAYS_AGAIN`.
 
