@@ -1,3 +1,4 @@
+import { verifyOperationsStatusHttp } from "./operations-status-http-checks"
 import { syntheticBuyer } from "./customer-fixtures"
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
 import { signEdgeBatch } from "../../src/modules/ops-audit/edge-ingest"
@@ -19,6 +20,7 @@ export async function verifyOpsObservability({ api, container, options, evidence
 
   // Korelace: bezpečné příchozí ID se vrátí, nebezpečné se nahradí novým.
   const buyer = await syntheticBuyer(container, options, "ops-buyer@example.test")
+  await verifyOperationsStatusHttp({ api, admin, customer: buyer.options, anonymous: options, evidence })
   const requestId = `ops-verify-${Date.now()}`
   const failed = await api.post("/store/nexus-checkout", { cart_id: "cart_synthetic_missing" }, { ...buyer.options, headers: { ...buyer.options.headers, "x-request-id": requestId } })
   expect(failed.status).toBe(404)
