@@ -10,14 +10,14 @@ export type ZeptoMailOptions = {
   fromEmail: string
   fromName?: string
   replyTo?: string
-  /** EU datacentrum – účet ANASTASIA je v zeptomail.eu. */
+  /** EU datacentrum – ZeptoMail běží v Zoho CPaaS (cpaas.zoho.eu), účet L-Code Dynamics, agent „Anastasia“. */
   apiUrl?: string
   timeoutMs?: number
 }
 
 type Fetch = typeof fetch
 
-const DEFAULT_API_URL = "https://api.zeptomail.eu/v1.1/email"
+const DEFAULT_API_URL = "https://cpaas.zoho.eu/v1.1/email"
 const DEFAULT_TIMEOUT_MS = 15_000
 const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]+$/
 

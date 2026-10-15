@@ -63,9 +63,9 @@ do logu (šablona a klíče dat, nikdy adresát ani obsah) – vhodné pro loká
 `chat-admin-reply`. Neznámá šablona skončí chybou, e-mail se neodešle naprázdno.
 
 Postup zprovoznění:
-1. V účtu ZeptoMail (zeptomail.eu, účet klienta) přidat doménu odesílatele a v Cloudflare vytvořit záznamy,
+1. V Zoho CPaaS (cpaas.zoho.eu, účet L-Code Dynamics, agent „Anastasia“ – ne sandbox) přidat doménu odesílatele a v Cloudflare vytvořit záznamy,
    které ZeptoMail vypíše: DKIM TXT a bounce CNAME, obojí **DNS only** (bez proxy). Počkat na ověření.
-2. Vytvořit Mail Agent a z něj Send Mail token.
+2. V agentovi vypnout sledování otevření/prokliků a vytvořit Send Mail token (API: `https://cpaas.zoho.eu/v1.1/email`).
 3. Env: `ZEPTOMAIL_API_KEY`, `ZEPTOMAIL_FROM_EMAIL` (adresa z ověřené domény), volitelně `ZEPTOMAIL_FROM_NAME`,
    `ZEPTOMAIL_REPLY_TO`; pro doručování poukazů `GIFT_VOUCHER_DELIVERY=notification`.
 4. Ověřit testovacím přihlášením (magic link) na vlastní adresu.

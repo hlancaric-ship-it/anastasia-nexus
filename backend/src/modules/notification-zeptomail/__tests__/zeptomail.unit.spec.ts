@@ -52,7 +52,7 @@ describe("ZeptoMail – send", () => {
     expect(result).toEqual({ id: "req_123" })
     expect(fetchImpl).toHaveBeenCalledTimes(1)
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe("https://api.zeptomail.eu/v1.1/email")
+    expect(url).toBe("https://cpaas.zoho.eu/v1.1/email")
     expect((init.headers as Record<string, string>).Authorization).toBe(`Zoho-enczapikey ${API_KEY}`)
     const payload = sentPayload(fetchImpl)
     expect(payload.from).toEqual({ address: "noreply@anastasiaoz.eu", name: "ANASTASIA" })
