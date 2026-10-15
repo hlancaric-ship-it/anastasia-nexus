@@ -67,7 +67,7 @@ function playlistUris(text: string): string[] {
     const result: string[] = [];
     for (const line of text.split(/\r?\n/)) {
         if (line.startsWith('#')) {
-            for (const match of line.matchAll(/URI="([^"]+)"/g)) result.push(match[1]);
+            for (const match of line.matchAll(/URI="([^"]+)"/g)) { if (match[1]) result.push(match[1]); }
         } else if (line.trim()) result.push(line.trim());
     }
     return result;
