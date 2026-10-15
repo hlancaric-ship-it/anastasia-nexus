@@ -1,0 +1,164 @@
+name: Red Team 100 isolated parallel checks
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - ".github/workflows/redteam-20.yml"
+      - "nexus/**"
+      - "backend/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  redteam:
+    name: "Isolated scenario ${{ matrix.id }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        include:
+          - { id: "001-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "002-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "003-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "004-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "005-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "006-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "007-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "008-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "009-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "010-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "011-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "012-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "013-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "014-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "015-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "016-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "017-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "018-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "019-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "020-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "021-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "022-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "023-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "024-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "025-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "026-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "027-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "028-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "029-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "030-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "031-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "032-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "033-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "034-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "035-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "036-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "037-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "038-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "039-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "040-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "041-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "042-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "043-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "044-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "045-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "046-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "047-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "048-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "049-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "050-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "051-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "052-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "053-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "054-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "055-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "056-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "057-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "058-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "059-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "060-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "061-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "062-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "063-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "064-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "065-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "066-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "067-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "068-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "069-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "070-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "071-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "072-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "073-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "074-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "075-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "076-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "077-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "078-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "079-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "080-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "081-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "082-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "083-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "084-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "085-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "086-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "087-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "088-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "089-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "090-isolated", filter: "schema.test.ts", suite: "workers" }
+          - { id: "091-isolated", filter: "AuditMoneyBoundaries.test.ts", suite: "unit" }
+          - { id: "092-isolated", filter: "audit-media-schema-range.test.ts", suite: "workers" }
+          - { id: "093-isolated", filter: "audit-hls-sibling-scope.test.ts", suite: "workers" }
+          - { id: "094-isolated", filter: "audit-media-boundary.test.ts", suite: "workers" }
+          - { id: "095-isolated", filter: "audit-post-refund-replay.test.ts", suite: "workers" }
+          - { id: "096-isolated", filter: "voucherConcurrency.test.ts", suite: "workers" }
+          - { id: "097-isolated", filter: "medusaWebhook.test.ts", suite: "workers" }
+          - { id: "098-isolated", filter: "safeOrder.test.ts", suite: "workers" }
+          - { id: "099-isolated", filter: "edgeRedirects.test.ts", suite: "workers" }
+          - { id: "100-isolated", filter: "schema.test.ts", suite: "workers" }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - name: Install pinned dependencies
+        working-directory: nexus
+        run: npm ci --no-audit --no-fund
+      - name: Run independent synthetic scenario with no network
+        if: matrix.suite == 'workers'
+        run: |
+          mkdir -p evidence
+          docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges --read-only \
+            --tmpfs /tmp:rw,exec,nosuid,size=1g \
+            --user "$(id -u):$(id -g)" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/workspace" \
+            --workdir /workspace/nexus \
+            --env HOME=/tmp --env CI=true --env WRANGLER_SEND_METRICS=false \
+            node:24.14.0-bookworm \
+            ./node_modules/.bin/vitest run -c vitest.workers.config.ts "tests/workers/${{ matrix.filter }}" --reporter=verbose \
+            2>&1 | tee "evidence/${{ matrix.id }}.log"
+      - name: Run pricing tests offline
+        if: matrix.suite == 'unit'
+        run: |
+          mkdir -p evidence
+          docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges --read-only \
+            --tmpfs /tmp:rw,exec,nosuid,size=1g \
+            --user "$(id -u):$(id -g)" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/workspace" \
+            --workdir /workspace/nexus \
+            --env HOME=/tmp --env CI=true \
+            node:24.14.0-bookworm \
+            ./node_modules/.bin/vitest run "tests/unit/${{ matrix.filter }}" --reporter=verbose \
+            2>&1 | tee "evidence/${{ matrix.id }}.log"
+      - name: Retain independent evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: "redteam-${{ matrix.id }}"
+          path: evidence/
+          retention-days: 14

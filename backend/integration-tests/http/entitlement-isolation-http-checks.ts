@@ -1,4 +1,5 @@
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
+import { verifyAuditHttp } from "./audit-http-checks"
 
 /**
  * A-02 izolace přístupů (entitlementů) mezi zákaznicemi – skutečné HTTP + PostgreSQL.
@@ -34,7 +35,6 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   const media = (opts: any, product_id: string, media_key: string, extra: Record<string, unknown> = {}) =>
     api.post("/store/media-access", { product_id, media_key, ...extra }, opts)
 
-  // 1) Každá vidí jen svou knihovnu – i když podstrčí customer_id druhé nebo sáhne za konec stránky.
   expect(await library(optA)).toEqual([entA.id])
   expect(await library(optB)).toEqual([entB.id])
   for (const qs of [`?customer_id=${b.id}`, `?customer_id[]=${b.id}`, "?limit=1000", "?offset=1", "?limit=-5&offset=-1"]) {
@@ -42,8 +42,6 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   }
   record("LIBRARY_BIDIRECTIONAL")
 
-  // 2) Média: vlastní produkt projde, cizí produkt / cizí klíč / podstrčený customer_id ne.
-  // runner nastavuje syntetické MEDIA_TOKEN_SECRET + MEDIA_DELIVERY_BASE_URL (bez nich by vše bylo 503)
   expect((await media(optA, productA.id, keyA)).status).toBe(200)
   for (const [product_id, key, extra] of [[productB.id, keyB, {}], [productA.id, keyB, {}], [productB.id, keyA, {}], [productB.id, keyB, { customer_id: b.id }]] as const) {
     expect((await media(optA, product_id, key, extra)).status).toBe(403)
@@ -53,7 +51,6 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   expect(new URL(issued.data.url).searchParams.get("t")).toBeTruthy()
   record("MEDIA_CROSS_CUSTOMER_DENIED")
 
-  // 3) Cizí typ aktéra (admin token, neplatný podpis, žádný token) na zákaznické API neprojde.
   const [user] = await container.resolve(Modules.USER).createUsers([{ email: "isolation-admin@example.test" }])
   const adminOpts = as(jwt(user.id, "user", { app_metadata: { user_id: user.id } }))
   expect((await api.get("/store/entitlements", adminOpts)).status).toBe(401)
@@ -63,7 +60,6 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   expect((await api.get("/store/entitlements", options)).status).toBe(401)
   record("NON_CUSTOMER_ACTORS_REJECTED")
 
-  // 4) Admin API je jen pro správce; zákaznický token ho nepoužije ani na čtení, ani na revoke.
   expect((await api.get(`/admin/entitlements?customer_id=${b.id}`, optA)).status).toBe(401)
   expect((await api.post(`/admin/entitlements/${entB.id}/revoke`, {}, optA)).status).toBe(401)
   expect((await entitlements.retrieveEntitlement(entB.id)).status).toBe("active")
@@ -72,11 +68,11 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   expect(adminList.data.entitlements.every((e: any) => e.customer_id === a.id)).toBe(true)
   record("ADMIN_API_ADMIN_ONLY")
 
-  // 5) Revoke u A nezmění B; B dál vidí a otevře svůj obsah.
   expect((await api.post(`/admin/entitlements/${entA.id}/revoke`, {}, adminOpts)).status).toBe(200)
   expect(await library(optA)).toEqual([])
   expect(await library(optB)).toEqual([entB.id])
   expect((await media(optA, productA.id, keyA)).status).toBe(403)
   expect((await media(optB, productB.id, keyB)).status).toBe(200)
   record("REVOKE_SCOPED_TO_ONE_CUSTOMER")
+  await verifyAuditHttp({ api, container, options, evidence })
 }

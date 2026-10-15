@@ -1,3 +1,4 @@
+import { registerIndependentAuthChecks } from "./audit-independent-auth-checks"
 import { verifyBookingHttp } from "./booking-http-checks"
 import { verifyGiftVoucherHttp } from "./gift-voucher-http-checks"
 import { verifyDigitalCheckout } from "./digital-checkout-checks"
@@ -212,5 +213,6 @@ medusaIntegrationTestRunner({
       await verifyOpsObservability({ api, container, options, evidence, bookingRan: !giftVoucherOnly })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
+    registerIndependentAuthChecks({ api, getContainer })
   },
 })
