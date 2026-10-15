@@ -4,7 +4,7 @@
 // Worker NIKDY nevěří klientovi: ověří podpis, expiraci a že požadovaný objekt patří tokenu.
 // Soubor leží v SOUKROMÉM R2 bucketu bez veřejné adresy; bez platného tokenu se nedá načíst.
 // HLS: playlist (.m3u8) se přepíše tak, aby každý segment nesl tentýž token; segmenty smí ležet
-// jen ve složce playlistu uvedeného v tokenu.
+// jen v explicitně odkazovaném playlistovém stromu, nikoli libovolně ve složce.
 //
 // NEŘEŠÍ (a netvrdí): natáčení obrazovky, limit souběžných přehrávání (zatím jen audit v logu).
 
@@ -36,21 +36,70 @@ export async function verifyMediaToken(secret: string, token: string, nowMs = Da
         const valid = await crypto.subtle.verify('HMAC', key, fromBase64Url(parts[1]), encoder.encode(parts[0]));
         if (!valid) return { ok: false };
         const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(parts[0]))) as MediaTokenPayload;
-        if (payload?.v !== 1 || typeof payload.e !== 'number' || typeof payload.k !== 'string') return { ok: false };
-        if (payload.e * 1000 <= nowMs) return { ok: false };
+        if (payload?.v !== 1 || !Number.isSafeInteger(payload.e) || typeof payload.k !== 'string' || !payload.k ||
+            ![payload.c, payload.p, payload.n].every(value => typeof value === 'string' && value.length > 0)) return { ok: false };
+        if (payload.e * 1000 <= nowMs || payload.e > Math.floor(nowMs / 1000) + 900) return { ok: false };
         return { ok: true, payload };
     } catch {
         return { ok: false };
     }
 }
 
-/** Objekt smí být doručen, pokud je to přesně klíč z tokenu, nebo segment ve složce HLS playlistu z tokenu. */
+/** Exact-object match only. HLS children need explicit playlist membership below. */
 export function isKeyAllowed(requestedKey: string, tokenKey: string): boolean {
-    if (!requestedKey || requestedKey.startsWith('/') || requestedKey.split('/').some((s) => s === '..' || s === '.' || s === '')) return false;
-    if (requestedKey === tokenKey) return true;
-    if (!tokenKey.endsWith('.m3u8')) return false;
-    const dir = tokenKey.slice(0, tokenKey.lastIndexOf('/') + 1);
-    return dir !== '' && requestedKey.startsWith(dir);
+    if (!requestedKey || /[\\\u0000-\u001f\u007f]/.test(requestedKey) || requestedKey.startsWith('/') || requestedKey.split('/').some(s => s === '..' || s === '.' || s === '')) return false;
+    return requestedKey === tokenKey;
+}
+
+/** Resolve only relative storage URIs; never append a bearer token to another origin. */
+function localUri(uri: string, playlistKey: string): URL | null {
+    if (!uri || /^[a-z][a-z0-9+.-]*:/i.test(uri) || uri.startsWith('/') || /[\\\u0000-\u001f\u007f]/.test(uri)) return null;
+    try {
+        const encoded = playlistKey.split('/').map(encodeURIComponent).join('/');
+        const resolved = new URL(uri, `https://hls.invalid/${encoded}`);
+        const key = decodeURIComponent(resolved.pathname.slice(1));
+        if (!isKeyAllowed(key, key)) return null;
+        return resolved;
+    } catch { return null; }
+}
+
+function playlistUris(text: string): string[] {
+    const result: string[] = [];
+    for (const line of text.split(/\r?\n/)) {
+        if (line.startsWith('#')) {
+            for (const match of line.matchAll(/URI="([^"]+)"/g)) result.push(match[1]);
+        } else if (line.trim()) result.push(line.trim());
+    }
+    return result;
+}
+
+/** Bounded traversal of trusted R2 playlists, not a blanket directory grant. */
+async function isPlaylistMember(key: string, root: string, bucket: NonNullable<Env['MEDIA_BUCKET']>): Promise<boolean> {
+    if (!isKeyAllowed(key, key) || !root.endsWith('.m3u8')) return false;
+    const directory = root.slice(0, root.lastIndexOf('/') + 1);
+    const pending = [{ key: root, depth: 0 }];
+    const seen = new Set<string>();
+    let entries = 0;
+    while (pending.length) {
+        const current = pending.pop()!;
+        if (seen.has(current.key)) continue;
+        seen.add(current.key);
+        if (seen.size > 32 || current.depth > 6) return false;
+        const object = await bucket.get(current.key);
+        if (!object) continue;
+        const text = await object.text();
+        if (text.length > 1_048_576 || !text.startsWith('#EXTM3U')) return false;
+        for (const uri of playlistUris(text)) {
+            if (++entries > 10000) return false;
+            const resolved = localUri(uri, current.key);
+            if (!resolved) continue;
+            const child = decodeURIComponent(resolved.pathname.slice(1));
+            if (!child.startsWith(directory)) continue;
+            if (child === key) return true;
+            if (child.endsWith('.m3u8')) pending.push({ key: child, depth: current.depth + 1 });
+        }
+    }
+    return false;
 }
 
 export type ParsedRange = { offset: number; length?: number } | 'invalid' | null;
@@ -95,17 +144,27 @@ function contentType(key: string): string {
     )[ext] ?? 'application/octet-stream';
 }
 
-/** Relativní URI v playlistu dostanou stejný token; absolutní se nepřipouští (zůstávají beze změny). */
-export function rewritePlaylist(text: string, token: string): string {
-    const addToken = (uri: string) => (/^[a-z][a-z0-9+.-]*:/i.test(uri) ? uri : `${uri}${uri.includes('?') ? '&' : '?'}t=${token}`);
-    return text
-        .split(/\r?\n/)
-        .map((line) => {
-            if (line.trim() === '') return line;
-            if (line.startsWith('#')) return line.replace(/URI="([^"]+)"/g, (_m, uri) => `URI="${addToken(uri)}"`);
-            return addToken(line.trim());
-        })
-        .join('\n');
+/** Root-relative delivery URLs also work when the issuer encoded the entire object key. */
+export function rewritePlaylist(text: string, token: string, playlistKey?: string): string {
+    const addToken = (uri: string) => {
+        if (/^[a-z][a-z0-9+.-]*:/i.test(uri) || uri.startsWith('/') || /[\\\u0000-\u001f\u007f]/.test(uri)) return uri;
+        if (playlistKey) {
+            const resolved = localUri(uri, playlistKey);
+            if (!resolved) return uri;
+            resolved.searchParams.set('t', token);
+            return `${MEDIA_PATH_PREFIX}${resolved.pathname.slice(1)}${resolved.search}${resolved.hash}`;
+        }
+        // Kept for callers that only need token rewriting; production always supplies the key.
+        const resolved = new URL(uri, 'https://hls.invalid/');
+        resolved.searchParams.set('t', token);
+        const path = uri.split(/[?#]/)[0];
+        return `${path}${resolved.search}${resolved.hash}`;
+    };
+    return text.split(/\r?\n/).map(line => {
+        if (line.trim() === '') return line;
+        if (line.startsWith('#')) return line.replace(/URI="([^"]+)"/g, (_m, uri) => `URI="${addToken(uri)}"`);
+        return addToken(line.trim());
+    }).join('\n');
 }
 
 export async function handleMediaDelivery(request: Request, env: Env): Promise<Response> {
@@ -125,7 +184,7 @@ export async function handleMediaDelivery(request: Request, env: Env): Promise<R
     const token = url.searchParams.get('t') ?? '';
     const verified = await verifyMediaToken(env.MEDIA_TOKEN_SECRET, token);
     // Stejná odpověď pro neplatný token, cizí objekt i neexistující soubor: nedá se zjišťovat, co existuje.
-    if (!verified.ok || !isKeyAllowed(key, verified.payload.k)) {
+    if (!verified.ok || (!isKeyAllowed(key, verified.payload.k) && !await isPlaylistMember(key, verified.payload.k, env.MEDIA_BUCKET))) {
         log('warn', 'media.denied', { key });
         return denied();
     }
@@ -146,7 +205,7 @@ export async function handleMediaDelivery(request: Request, env: Env): Promise<R
     if (key.endsWith('.m3u8')) {
         const object = await env.MEDIA_BUCKET.get(key);
         if (!object) return denied();
-        const body = rewritePlaylist(await object.text(), token);
+        const body = rewritePlaylist(await object.text(), token, key);
         return new Response(request.method === 'HEAD' ? null : body, { status: 200, headers });
     }
 
