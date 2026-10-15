@@ -18,7 +18,8 @@ Chybný pokus nic nemaže; dva souběžné správné pokusy nemohou oba spotřeb
 Zůstává platný pouze nejnovější odkaz pro danou adresu. TTL zůstává 15 minut.
 Cache tokeny vydané před přechodem se nepřenášejí: zákaznice si musí vyžádat nový odkaz.
 
-Middleware pro nativní GET/POST `/auth/:actor_type/magic-link` povoluje pouze customer aktéra
+Middleware pro nativní GET/POST `/auth/:actor_type/:auth_provider` vyhodnocuje dekódovaný provider,
+ostatní providery ponechává beze změny a u magic-link povoluje pouze customer aktéra
 (jiný aktér vrací 404, takže nemůže obejít limiter) a omezuje:
 
 - klienta na 60 auth pokusů za 15 minut;
@@ -26,7 +27,8 @@ Middleware pro nativní GET/POST `/auth/:actor_type/magic-link` povoluje pouze c
 
 Čítače jsou atomické PostgreSQL UPSERTy, sdílené mezi procesy. Při limitu vrátí 429,
 `Retry-After` a slovenskou hlášku; při nedostupném úložišti 503, bez volání auth handleru.
-IP bere z `req.ip`, nikoli přímo z nedůvěryhodné forwarded hlavičky. Správce proxy musí správně nastavit důvěryhodné proxy.
+Limiter pokrývá také procentně zakódované názvy provideru (např. `%6dagic-link`);
+nejde jen o shodu s doslovnou URL. IP bere z `req.ip`, nikoli přímo z nedůvěryhodné forwarded hlavičky. Správce proxy musí správně nastavit důvěryhodné proxy.
 Hash adresy/IP je pseudonymní údaj. Cleanup každých 10 minut maže expirované stavy a limity,
 nejvýše 10 000 řádků z každé tabulky na běh.
 

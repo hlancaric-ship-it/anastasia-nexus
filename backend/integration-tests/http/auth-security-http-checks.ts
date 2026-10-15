@@ -41,6 +41,8 @@ export async function verifyAuthSecurity({api,container,evidence}: any) {
   expect(burst.filter(r=>r.status===429)).toHaveLength(3)
   expect(links.get(emails[2])).toHaveLength(3)
   expect(burst.filter(r=>r.status===429).every(r=>Number(r.headers['retry-after'])>0)).toBe(true)
+  expect((await api.post('/auth/customer/%6dagic-link',{email:emails[2]},options)).status).toBe(429)
+  expect(links.get(emails[2])).toHaveLength(3)
   record('SHARED_RECIPIENT_RATE_LIMIT')
   const expired=await issue(emails[3])
   await container.resolve(ContainerRegistrationKeys.PG_CONNECTION).raw('update auth_link_state set expires_at = now() - interval \'1 second\' where id = ?',[sha256Hex(emails[3])])
