@@ -52,10 +52,17 @@ async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  */
 async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promise<StoredCoupon | undefined> {
   const promotions = scope.resolve<IPromotionModuleService>(Modules.PROMOTION)
-  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "application_method"], take: 2 })
+  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "rules", "application_method", "application_method.target_rules", "application_method.buy_rules"], take: 2 })
   const promotion = matches[0] as PromotionDTO | undefined
   if (matches.length !== 1 || !promotion || !codeAvailable(promotion, code)) return undefined
   const method = promotion.application_method
+  // NEXUS currently applies a single percentage to every item. Never silently
+  // discard native customer/product/quantity/target restrictions.
+  if (!Array.isArray(promotion.rules) || promotion.rules.length ||
+      !Array.isArray(method?.target_rules) || method.target_rules.length ||
+      !Array.isArray(method?.buy_rules) || method.buy_rules.length ||
+      promotion.type !== "standard" || method.target_type !== "items" ||
+      method.max_quantity != null || method.buy_rules_min_quantity != null || method.apply_to_quantity != null) return undefined
   if (!method || method.type !== "percentage" || typeof method.value !== "number" || method.value <= 0 || method.value > 100) return undefined
   return { code, promotion_id: promotion.id, type: "percentage", value: method.value }
 }

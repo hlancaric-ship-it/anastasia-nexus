@@ -4,6 +4,8 @@ Technická příručka projektu: [architektura, konfigurace a provoz](docs/TECHN
 Úplný přehled vlastních HTTP rozhraní: [API katalog](docs/API-KATALOG.md).
 Stav funkcí před rozšířením administrace: [mapa schopností](docs/wp/backend-admin-capabilities.md).
 
+Bezpečnostní opravy a jejich ověření: [security-fixes](docs/wp/security-fixes.md).
+
 Níže následuje původní README Medusa starteru.
 
 <p align="center">

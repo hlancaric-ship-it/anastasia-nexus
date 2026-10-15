@@ -39,7 +39,8 @@ describe("kupón v /store/nexus-cart", () => {
 
   const activePercentagePromotion = {
     id: "promo_1", code: "SLEVA10", status: "active", is_automatic: false, limit: null, used: 0, campaign_id: null,
-    application_method: { type: "percentage", value: 10 },
+    type: "standard", rules: [],
+    application_method: { type: "percentage", value: 10, target_type: "items", target_rules: [], buy_rules: [] },
   }
 
   beforeEach(() => {
@@ -65,6 +66,19 @@ describe("kupón v /store/nexus-cart", () => {
     expect(result.items[0].unit_price).toBe(90)
     expect(result.coupon).toEqual({ code: "SLEVA10" })
     expect(updateCartWorkflow).toHaveBeenCalled()
+  })
+
+  it.each([
+    { rules: [{ attribute: "customer_id" }] },
+    { application_method: { ...activePercentagePromotion.application_method, target_rules: [{ attribute: "product_id" }] } },
+    { application_method: { ...activePercentagePromotion.application_method, buy_rules: [{ attribute: "quantity" }] } },
+    { application_method: { ...activePercentagePromotion.application_method, target_type: "shipping_methods" } },
+    { application_method: { ...activePercentagePromotion.application_method, max_quantity: 1 } },
+  ])("rejects unsupported native restrictions instead of silently discounting every item", async restriction => {
+    global.fetch = jest.fn()
+    const scope = scopeWith({ promotions: [{ ...activePercentagePromotion, ...restriction }] })
+    await expect(repriceCart("cart_synthetic", scope, false, "SLEVA10")).rejects.toThrow("COUPON_INVALID")
+    expect(global.fetch).not.toHaveBeenCalled()
   })
 
   it("neznámý/neplatný kód vyhodí COUPON_INVALID, žádný reprice se neprovede", async () => {

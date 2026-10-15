@@ -64,8 +64,8 @@ describe('media delivery', () => {
         const t = await makeToken('ep001/list.m3u8');
         const env = makeEnv(files);
         const pl = await (await handleMediaDelivery(req(`ep001%2Flist.m3u8?t=${t}`), env)).text();
-        expect(pl).toContain(`seg1.ts?t=${t}`);
-        expect(pl).toContain(`URI="k.key?t=${t}"`);
+        expect(pl).toContain(`/api/media/v1/ep001/seg1.ts?t=${t}`);
+        expect(pl).toContain(`URI="/api/media/v1/ep001/k.key?t=${t}"`);
         expect(pl).toContain('https://cdn.example/x.ts');
         expect((await handleMediaDelivery(req(`ep001%2Fseg1.ts?t=${t}`), env)).status).toBe(200);
         expect((await handleMediaDelivery(req(`jine%2Ftajne.mp3?t=${t}`), env)).status).toBe(403);
@@ -80,7 +80,7 @@ describe('helpers', () => {
     it('isKeyAllowed blokuje traversal', () => {
         expect(isKeyAllowed('../x', '../x')).toBe(false);
         expect(isKeyAllowed('a//b', 'a//b')).toBe(false);
-        expect(isKeyAllowed('ep/seg.ts', 'ep/list.m3u8')).toBe(true);
+        expect(isKeyAllowed('ep/seg.ts', 'ep/list.m3u8')).toBe(false);
         expect(isKeyAllowed('ep/seg.ts', 'ep/t.mp3')).toBe(false);
     });
     it('parseRange', () => {

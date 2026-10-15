@@ -6,7 +6,9 @@ import type {
   AuthenticationResponse,
   AuthIdentityProviderService,
 } from "@medusajs/framework/types"
-import { generateToken, isValidMagicLinkAttempt, MAGIC_LINK_TTL_SECONDS, normalizeEmail, sha256Hex, stateKey } from "./policy"
+import { generateToken, MAGIC_LINK_TTL_SECONDS, normalizeEmail } from "./policy"
+
+import { storeLink, consumeLink } from "./state"
 
 export const MAGIC_LINK_REQUESTED_EVENT = "auth-magic-link.requested"
 
@@ -23,7 +25,7 @@ type Options = { linkBaseUrl?: string }
 /**
  * Passwordless přihlášení e-mailem (A-01): fáze 1 vyžádá odkaz, fáze 2 ho ověří.
  * Server nikdy neprozradí, jestli e-mail existuje (stejná odpověď v obou případech).
- * Token se v `AuthIdentityProviderService.setState` ukládá jen jako hash (viz policy.ts).
+ * Token se ukládá jen jako hash do PostgreSQL (viz state.ts).
  *
  * Auth providery mají vlastní, izolovaný DI kontejner: dostanou jen logger a to, co
  * Medusa výslovně prosazuje do každého modulu (PG_CONNECTION, EVENT_BUS aj.), NIKDY
@@ -64,7 +66,7 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
   /** Fáze 1: vygeneruje token, uloží jen jeho hash, požádá o odeslání e-mailu eventem. Vždy stejná odpověď. */
   private async requestLink(email: string, authIdentityProviderService: AuthIdentityProviderService): Promise<AuthenticationResponse> {
     const token = generateToken()
-    await authIdentityProviderService.setState(stateKey(email), { email, tokenHash: sha256Hex(token) }, MAGIC_LINK_TTL_SECONDS)
+    await storeLink(this.pg_, email, token)
     const base = this.options_.linkBaseUrl || "http://localhost:8000/prihlasenie/potvrdit"
     const url = `${base.replace(/\/+$/, "")}?email=${encodeURIComponent(email)}&token=${token}`
     try {
@@ -76,10 +78,9 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
     return { success: false, error: "LINK_SENT" }
   }
 
-  /** Fáze 2: ověří token proti uloženému hashi (jednorázově, getState ho po přečtení smaže). */
+  /** Fáze 2: atomicky spotřebuje pouze odpovídající platný token; chybný pokus nic nemaže. */
   private async confirmLink(email: string, token: string, authIdentityProviderService: AuthIdentityProviderService): Promise<AuthenticationResponse> {
-    const state = (await authIdentityProviderService.getState(stateKey(email))) as { email: string; tokenHash: string } | null
-    if (!isValidMagicLinkAttempt(state, email, token)) {
+    if (!await consumeLink(this.pg_, email, token)) {
       return { success: false, error: "INVALID_OR_EXPIRED_TOKEN" }
     }
 

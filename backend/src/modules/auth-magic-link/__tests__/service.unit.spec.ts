@@ -1,6 +1,8 @@
 import { MedusaError, ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import MagicLinkAuthService, { MAGIC_LINK_REQUESTED_EVENT } from "../service"
 import { sha256Hex, stateKey } from "../policy"
+import { storeLink, consumeLink } from "../state"
+jest.mock("../state")
 
 function makeProvider(overrides: { pgRows?: Record<string, any[][]>; emit?: jest.Mock } = {}) {
   const emit = overrides.emit ?? jest.fn(async () => undefined)
@@ -21,6 +23,12 @@ function makeProvider(overrides: { pgRows?: Record<string, any[][]>; emit?: jest
 
 function makeAuthIdentityProviderService(overrides: Partial<Record<string, jest.Mock>> = {}) {
   const store = new Map<string, any>()
+  jest.mocked(storeLink).mockImplementation(async (_db, email, token) => { store.set(stateKey(email), { email, tokenHash: sha256Hex(token) }) })
+  jest.mocked(consumeLink).mockImplementation(async (_db, email, token) => {
+    const value = store.get(stateKey(email))
+    if (!value || value.tokenHash !== sha256Hex(token)) return false
+    store.delete(stateKey(email)); return true
+  })
   return {
     setState: jest.fn(async (key: string, value: any) => { store.set(key, value) }),
     getState: jest.fn(async (key: string) => { const v = store.get(key) ?? null; store.delete(key); return v }),
@@ -39,9 +47,10 @@ describe("MagicLinkAuthService.authenticate", () => {
     const result = await svc.authenticate({ body: { email: "A@B.sk" } }, auth)
     expect(result).toEqual({ success: false, error: "LINK_SENT" })
 
-    const [key, value, ttl] = auth.setState.mock.calls[0] as [string, { tokenHash: string }, number]
-    expect(key).toBe(stateKey("a@b.sk"))
-    expect(ttl).toBe(900)
+    const value = auth.__store.get(stateKey("a@b.sk"))
+    expect(value.email).toBe("a@b.sk")
+    expect(value.tokenHash).toMatch(/^[a-f0-9]{64}$/)
+    expect(auth.setState).not.toHaveBeenCalled()
 
     expect(emit).toHaveBeenCalledTimes(1)
     const emitted = emit.mock.calls[0][0] as { name: string; data: { email: string; url: string } }

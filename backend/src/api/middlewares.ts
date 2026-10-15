@@ -11,6 +11,7 @@ import { emailTemplateAdminMiddlewares } from "./admin/email-templates/middlewar
 import { legalMiddlewares } from "./legal-middlewares"
 import { customerPrivacyMiddlewares } from "./customer-privacy-middlewares"
 import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
+import { authMagicLinkMiddlewares } from "./auth-magic-link-middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 
 export default defineMiddlewares({
@@ -21,6 +22,7 @@ export default defineMiddlewares({
     { matcher: "/hooks/ops/edge-events", method: ["POST"], bodyParser: { preserveRawBody: true, sizeLimit: "300kb" } },
     // Tombstone vymazané zákaznice musí platit dřív než jakýkoli endpoint (X2).
     ...customerPrivacyMiddlewares,
+    ...authMagicLinkMiddlewares,
     ...entitlementStoreMiddlewares,
     ...bookingStoreMiddlewares,
     ...couponLinkMiddlewares,
