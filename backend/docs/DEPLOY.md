@@ -54,11 +54,25 @@ CORS není HTTPS, chybí live Stripe klíč nebo `whsec_`. Chybějící `REDIS_U
 
 ## 4. Notifikace (e-maily)
 
-Výchozí je placeholder provider `notification-local` (zapisuje do logu, kanály `email` a `feed`), aby objednávkové
-workflow fungovalo bez SMTP. Před ostrým provozem je nutné přidat skutečný e-mailový provider
-(Resend nebo SMTP): vytvořit modul provideru v `src/modules/<nazev>` (třída dědící `AbstractNotificationProviderService`,
-`channels: ["email"]`), registrovat v `medusa-config.ts` v poli `providers` modulu notification místo lokálního
-a doplnit klíče do env. Bez toho zákaznice nedostanou potvrzovací e-mail.
+E-maily doručuje provider `src/modules/notification-zeptomail` (ZeptoMail HTTP API, EU datacentrum). Zapne se sám,
+jakmile je nastavený `ZEPTOMAIL_API_KEY`; bez klíče zůstává provider `notification-log`, který e-maily jen zapíše
+do logu (šablona a klíče dat, nikdy adresát ani obsah) – vhodné pro lokální vývoj a CI.
+
+Šablony (SK) jsou v `src/modules/notification-zeptomail/templates.ts`: `magic-link-sk`, `booking-confirmed-sk`,
+`booking-canceled-sk`, `gift-voucher-recipient-sk`, `gift-voucher-buyer-sk` (PDF v příloze), `chat-admin-digest`,
+`chat-admin-reply`. Neznámá šablona skončí chybou, e-mail se neodešle naprázdno.
+
+Postup zprovoznění:
+1. V účtu ZeptoMail (zeptomail.eu, účet klienta) přidat doménu odesílatele a v Cloudflare vytvořit záznamy,
+   které ZeptoMail vypíše: DKIM TXT a bounce CNAME, obojí **DNS only** (bez proxy). Počkat na ověření.
+2. Vytvořit Mail Agent a z něj Send Mail token.
+3. Env: `ZEPTOMAIL_API_KEY`, `ZEPTOMAIL_FROM_EMAIL` (adresa z ověřené domény), volitelně `ZEPTOMAIL_FROM_NAME`,
+   `ZEPTOMAIL_REPLY_TO`; pro doručování poukazů `GIFT_VOUCHER_DELIVERY=notification`.
+4. Ověřit testovacím přihlášením (magic link) na vlastní adresu.
+
+Chování: sledování otevření a prokliků je vypnuté (přepisování odkazů by rozbilo jednorázové přihlašovací odkazy),
+neúspěšné odeslání se neopakuje (ZeptoMail nemá idempotenci, opakování by mohlo poslat e-mail dvakrát) a chyba
+se zaloguje s HTTP stavem a kódem chyby ZeptoMail.
 
 ## 5. Kroky nasazení
 

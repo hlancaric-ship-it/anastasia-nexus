@@ -89,15 +89,26 @@ const fileProvider = s3Configured
       },
     }
 
-// --- Notifikace: lokální log provider (placeholder). Pro SMTP/Resend viz docs/DEPLOY.md ---
-const notificationProvider = {
-  resolve: "./src/modules/notification-log",
-  id: "local",
-  options: {
-    // bez osobních údajů v logu; skutečné doručení = samostatný provider se stejným id
-    channels: ["email", "feed"],
-  },
-}
+// --- Notifikace: e-maily přes ZeptoMail, pokud je nastavený klíč; jinak jen log bez osobních údajů (viz docs/DEPLOY.md) ---
+const zeptoMailEnabled = Boolean(env("ZEPTOMAIL_API_KEY"))
+const notificationProviders: Array<Record<string, unknown>> = zeptoMailEnabled
+  ? [
+      {
+        resolve: "./src/modules/notification-zeptomail",
+        id: "zeptomail",
+        options: {
+          channels: ["email"],
+          apiKey: env("ZEPTOMAIL_API_KEY"),
+          fromEmail: env("ZEPTOMAIL_FROM_EMAIL"),
+          fromName: env("ZEPTOMAIL_FROM_NAME") || "ANASTASIA",
+          replyTo: env("ZEPTOMAIL_REPLY_TO") || undefined,
+          apiUrl: env("ZEPTOMAIL_API_URL") || undefined,
+        },
+      },
+      // kanál feed (in-app) zůstává na log provideru – jeden kanál smí mít jen jeden provider
+      { resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } },
+    ]
+  : [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["email", "feed"] } }]
 
 const modules: Array<Record<string, unknown>> = [
   {
@@ -108,7 +119,7 @@ const modules: Array<Record<string, unknown>> = [
   {
     key: Modules.NOTIFICATION,
     resolve: "@medusajs/medusa/notification",
-    options: { providers: [notificationProvider] },
+    options: { providers: notificationProviders },
   },
   {
     key: Modules.AUTH,

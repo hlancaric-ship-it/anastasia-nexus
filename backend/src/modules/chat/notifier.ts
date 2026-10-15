@@ -37,7 +37,7 @@ export function chatNotifier(container: MedusaContainer): ChatNotifier {
         to,
         channel: "email",
         template: CHAT_TEMPLATES.ADMIN_DIGEST,
-        data: { subject: `Nové zprávy od zákaznic (${messages})`, conversations, messages, url: adminUrl },
+        data: { subject: `Nové správy od zákazníčok (${messages})`, conversations, messages, url: adminUrl },
       })
     },
     async customerReply({ email, conversation_id, first_name }) {
@@ -50,7 +50,7 @@ export function chatNotifier(container: MedusaContainer): ChatNotifier {
         channel: "email",
         template: CHAT_TEMPLATES.ADMIN_REPLY,
         data: {
-          subject: "Lucia vám odpověděla",
+          subject: "Lucia vám odpovedala",
           first_name: first_name ?? null,
           conversation_id,
           url: storefrontUrl ? `${storefrontUrl.replace(/\/$/, "")}/${encodeURIComponent(conversation_id)}` : null,
