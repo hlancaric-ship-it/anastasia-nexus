@@ -1,0 +1,90 @@
+{
+  "status": "VERIFIED",
+  "source_branch": "claude/backend-integration",
+  "source_commit": "4ba87ffc18b48d8f7114e5711ec821a239c1e747",
+  "github_actions_run": 38667772955,
+  "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38667772955",
+  "jobs": {
+    "verify": "PASS",
+    "medusa-persistence": "PASS"
+  },
+  "backend": {
+    "typescript": "PASS",
+    "unit_passed": 516,
+    "unit_total": 516,
+    "suites": 53,
+    "full_http": "PASS"
+  },
+  "nexus": {
+    "tests_passed": 1102,
+    "tests_total": 1102
+  },
+  "workerd": {
+    "tests_passed": 38,
+    "tests_total": 38
+  },
+  "package_http_scenarios": [
+    {
+      "scenario": "X1_BOTH_COMPLETION_PATHS_REQUIRE_CONSENT",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X1_CONSENT_OWNER_VERSION_REPLAY",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X1_WITHDRAWAL_OWNER_AND_IDEMPOTENCY",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X1_WITHDRAWAL_EXPIRED",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X1_NEWSLETTER_HISTORY_REPLAY_UNSUBSCRIBE",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X2_NOTES_ADMIN_ONLY_AND_CUSTOMER_BOUND",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X2_EXPORT_ISOLATION_AND_PRIVATE_NOTES",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X2_EXPORT_RATE_LIMIT",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X2_ERASURE_REPLAY_REVOKES_AUTH_PRESERVES_TOTALS_AND_OTHER_CUSTOMER",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X3_OWNER_AUTH_AND_CONCURRENT_CANCEL",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X3_SHIPPED_ORDER_DENIED",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X3_DIGITAL_ACCESS_DENIED",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X3_BOOKING_TERM_RELEASED",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X3_ISSUED_VOUCHER_MANUAL_REVIEW",
+      "status": "PASS"
+    },
+    {
+      "scenario": "X3_VOUCHER_CREDIT_RESTORED",
+      "status": "PASS"
+    }
+  ],
+  "deployment_performed": false,
+  "local_pg_or_http_tests_run_by_codex": false
+}

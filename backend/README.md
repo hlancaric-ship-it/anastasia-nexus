@@ -1,3 +1,11 @@
+# ANASTASIA backend
+
+Technická příručka projektu: [architektura, konfigurace a provoz](docs/TECHNICKA-DOKUMENTACE.md).
+Úplný přehled vlastních HTTP rozhraní: [API katalog](docs/API-KATALOG.md).
+Stav funkcí před rozšířením administrace: [mapa schopností](docs/wp/backend-admin-capabilities.md).
+
+Níže následuje původní README Medusa starteru.
+
 <p align="center">
   <a href="https://www.medusajs.com">
   <picture>

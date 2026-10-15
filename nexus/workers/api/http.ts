@@ -13,6 +13,8 @@
 //   3. Structured logging (master rule "chyby čitelné bez dolování"):
 //      jeden JSON řádek s `requestId`, ne `console.error("[Worker]", err)`.
 
+import { enqueueOpsEvent } from './ops-ingest.js';
+
 export interface LogFields {
     readonly [key: string]: unknown;
 }
@@ -27,12 +29,15 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
  * Na to je `redactVoucherCode` / `redactToken` níže.
  */
 export function log(level: LogLevel, event: string, fields: LogFields = {}): void {
+    const ts = new Date().toISOString();
     const line = JSON.stringify({
         level,
         event,
-        ts: new Date().toISOString(),
+        ts,
         ...fields,
     });
+    // warn/error se navíc přepošlou do Medusa `ops_event` (viz ops-ingest.ts)
+    enqueueOpsEvent(level, event, ts, fields);
 
     if (level === 'error') {
         console.error(line);
@@ -115,10 +120,10 @@ export function jsonError(code: ErrorCode, message: string, status: number): Res
  * Vrací NOVOU Response, protože hlavičky odpovědi z `Response.json()`
  * jsou v některých runtime immutable.
  */
-export function withCors(response: Response, env: { ALLOWED_ORIGINS?: string }, origin: string | null): Response {
+export function withCors(response: Response, env: { ALLOWED_ORIGINS?: string; ENVIRONMENT?: string }, origin: string | null): Response {
     const headers = new Headers(response.headers);
 
-    headers.set('Access-Control-Allow-Origin', resolveAllowedOrigin(env.ALLOWED_ORIGINS, origin));
+    headers.set('Access-Control-Allow-Origin', resolveAllowedOrigin(env.ALLOWED_ORIGINS, origin, env.ENVIRONMENT === 'production'));
     headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Nexus-Signature');
     headers.set('Access-Control-Max-Age', '86400');
@@ -133,14 +138,13 @@ export function withCors(response: Response, env: { ALLOWED_ORIGINS?: string }, 
 }
 
 /**
- * Bez `ALLOWED_ORIGINS` se chová jako PoC (`*`). S allowlistem vrací
- * konkrétní origin, jen když v seznamu je -- jinak `null`, což prohlížeč
- * odmítne. NIKDY nevrací origin, který v allowlistu není, jen proto, že
- * request nějaký poslal.
+ * Bez `ALLOWED_ORIGINS` v dev/test prostředí vrací `*`.
+ * V produkčním prostředí (`isProduction = true`) NIKDY nevrací `*` implicitně.
+ * Pokud není origin v allowlistu, vrací `null`.
  */
-function resolveAllowedOrigin(allowedOrigins: string | undefined, origin: string | null): string {
+export function resolveAllowedOrigin(allowedOrigins: string | undefined, origin: string | null, isProduction = false): string {
     if (!allowedOrigins || allowedOrigins.trim().length === 0) {
-        return '*';
+        return isProduction ? 'null' : '*';
     }
 
     const allowed = allowedOrigins
@@ -149,7 +153,7 @@ function resolveAllowedOrigin(allowedOrigins: string | undefined, origin: string
         .filter((value) => value.length > 0);
 
     if (allowed.includes('*')) {
-        return '*';
+        return isProduction ? 'null' : '*';
     }
     if (origin !== null && allowed.includes(origin)) {
         return origin;
@@ -158,6 +162,6 @@ function resolveAllowedOrigin(allowedOrigins: string | undefined, origin: string
 }
 
 /** Preflight. 204 bez těla, jako v PoC. */
-export function preflightResponse(env: { ALLOWED_ORIGINS?: string }, origin: string | null): Response {
+export function preflightResponse(env: { ALLOWED_ORIGINS?: string; ENVIRONMENT?: string }, origin: string | null): Response {
     return withCors(new Response(null, { status: 204 }), env, origin);
 }

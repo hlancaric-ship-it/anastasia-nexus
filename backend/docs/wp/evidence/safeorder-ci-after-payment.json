@@ -1,0 +1,41 @@
+{
+  "recordedAtUTC": "2026-10-11 08:39:44 UTC",
+  "repository": "hlancaric-ship-it/anastasia-nexus",
+  "branch": "codex/wave1-security",
+  "sourceSHA": "02e97655121eab2bb4d06b09d50ae707589515c5",
+  "workCommitSHA": "d9087f6d7dbbc60080af555764855075c03e453e",
+  "journalCommitSHA": "02e97655121eab2bb4d06b09d50ae707589515c5",
+  "runID": 38125396491,
+  "runURL": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38125396491",
+  "ownerReportedBillingPaid": true,
+  "attempts": [
+    {
+      "attempt": 1,
+      "verifyJobID": 114428587451,
+      "verifyConclusion": "failure",
+      "stepsExecuted": 0,
+      "testsExecuted": 0,
+      "medusaJobID": 114428594924,
+      "medusaConclusion": "skipped",
+      "annotation": "The job was not started because your account is locked due to a billing issue."
+    },
+    {
+      "attempt": 2,
+      "verifyJobID": 114429013822,
+      "verifyConclusion": "failure",
+      "runnerID": 0,
+      "stepsExecuted": 0,
+      "testsExecuted": 0,
+      "medusaJobID": 114429020948,
+      "medusaConclusion": "skipped",
+      "startedAt": "2026-10-11T08:38:47Z",
+      "completedAt": "2026-10-11T08:38:49Z",
+      "annotation": "The job was not started because your account is locked due to a billing issue."
+    }
+  ],
+  "artifacts": [],
+  "connectorRerun": "403 Resource not accessible by integration; existing owner-authorized GitHub CLI accepted rerun-failed-jobs",
+  "acceptance": "BLOCKED",
+  "newCodeStatus": "IMPLEMENTED_UNVERIFIED",
+  "nextAction": "After GitHub confirms unlock, rerun failed jobs for run 38125396491 and inspect real verify and medusa-persistence outputs."
+}

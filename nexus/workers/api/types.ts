@@ -149,7 +149,21 @@ export interface DurableObjectNamespace {
  * realitě nic neví, takže se stejně validují za běhu
  * (`assertRequiredBindings` v index.ts). Typ je dokumentace, ne obrana.
  */
+/** Minimální tvar R2 API (jen to, co používá doručování médií). */
+export interface R2ObjectBodyLike {
+    readonly body: ReadableStream | null;
+    readonly size: number;
+    readonly httpEtag?: string;
+    readonly range?: { offset?: number; length?: number };
+    text(): Promise<string>;
+}
+export interface R2BucketLike {
+    get(key: string, options?: { range?: { offset?: number; length?: number } }): Promise<R2ObjectBodyLike | null>;
+    head(key: string): Promise<{ size: number; httpEtag?: string } | null>;
+}
+
 export interface Env {
+    readonly ENVIRONMENT?: string;
     /** D1 binding dle wrangler.jsonc (`d1_databases[].binding = "DB"`). */
     readonly DB: D1Database;
     /**
@@ -157,6 +171,14 @@ export interface Env {
      * jen `wrangler secret put HMAC_SECRET` (příp. Secrets Store).
      */
     readonly HMAC_SECRET: string;
+    /** Dedicated server-to-server credential for the Medusa pricing adapter. */
+    readonly MEDUSA_PRICING_API_KEY?: string;
+    /** Tenant bound to the Medusa credential; never selected by a storefront request. */
+    readonly MEDUSA_PRICING_TENANT_ID?: string;
+    /** Full tenant pricing policy JSON; never fall back to another tenant's defaults. */
+    readonly MEDUSA_PRICING_POLICY_JSON?: string;
+    /** Dedicated Medusa Cloud webhook signing secret; do not reuse HMAC_SECRET. */
+    readonly MEDUSA_WEBHOOK_SECRET?: string;
     /**
      * Durable Object pro nonce replay protection (§6.2). Binding dnes
      * v wrangler.jsonc NENÍ -- doplní ho krok, který DO třídu napíše.
@@ -164,6 +186,10 @@ export interface Env {
      * redemption vrátí 503, nepokračuje bez replay ochrany.
      */
     readonly VOUCHER_SECURITY?: DurableObjectNamespace;
+    /** Soukromý R2 bucket s placenými médii (A-07). Bez bucketu doručování vrací 503. */
+    readonly MEDIA_BUCKET?: R2BucketLike;
+    /** Sdílené tajemství s Medusa backendem (min. 32 znaků), `wrangler secret put MEDIA_TOKEN_SECRET`. */
+    readonly MEDIA_TOKEN_SECRET?: string;
     /** Volitelný allowlist originů pro CORS, čárkou oddělený. */
     readonly ALLOWED_ORIGINS?: string;
     /** Sdílené tajemství order webhooku (Shoptet -> NEXUS). */
@@ -209,4 +235,10 @@ export interface Env {
      * konfigurovatelná forma (§11 zakazuje dávat platnost natvrdo do kódu).
      */
     readonly VOUCHER_VALIDITY_MONTHS?: string;
+    /** Volitelně: endpoint Medusa `/hooks/ops/edge-events` pro přeposílání warn/error událostí. */
+    readonly OPS_INGEST_URL?: string;
+    /** Sdílené tajemství s Medusou (`OPS_INGEST_SECRET`, min. 32 znaků) -- jen `wrangler secret put`. */
+    readonly OPS_INGEST_SECRET?: string;
+    /** Tenant, jehož události se přeposílají (= MEDUSA_PRICING_TENANT_ID). Jiné tenanty se neposílají. */
+    readonly OPS_INGEST_TENANT_ID?: string;
 }

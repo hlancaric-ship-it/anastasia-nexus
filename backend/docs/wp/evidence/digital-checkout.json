@@ -1,0 +1,78 @@
+{
+  "status": "PASS",
+  "runtime": "Medusa 2.19 + Node Worker handler (not workerd)",
+  "full_http_scenario_count": 65,
+  "command": "python3 backend/scripts/verify-safeorder-local.py",
+  "scenarios": [
+    {
+      "scenario": "C8_AUTH_REQUIRED",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_NO_PURCHASE_NO_ACCESS",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_UNPAID_ORDER_NO_ACCESS",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_CAPTURE_GRANTS_ONCE",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_OWNER_LIBRARY",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_LIBRARY_CUSTOMER_ISOLATION",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_MEDIA_CUSTOMER_ISOLATION",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_MEDIA_KEY_ISOLATION",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_SIGNED_ACCESS_ISSUED",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_SIGNATURE_AND_EXPIRY",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_GRANT_REPLAY_IDEMPOTENT",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_PARTIAL_REFUND_PRESERVES_ACCESS",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_FULL_REFUND_REVOKES_ACCESS",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    },
+    {
+      "scenario": "C8_STANDARD_CHECKOUT_CANCEL_REVOKES_ACCESS",
+      "status": "PASS",
+      "provider": "pp_system_default"
+    }
+  ]
+}

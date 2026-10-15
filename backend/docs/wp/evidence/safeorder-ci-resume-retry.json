@@ -1,0 +1,22 @@
+{
+  "recordedAtUTC": "2026-10-11 10:26:46 UTC",
+  "repository": "hlancaric-ship-it/anastasia-nexus",
+  "branch": "codex/wave1-security",
+  "sourceSHA": "02e97655121eab2bb4d06b09d50ae707589515c5",
+  "runID": 38125396491,
+  "attempt": 4,
+  "runURL": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38125396491/attempts/4",
+  "verifyJobID": 114447940462,
+  "runnerID": 0,
+  "verifyConclusion": "failure",
+  "startedAt": "2026-10-11T10:26:29Z",
+  "completedAt": "2026-10-11T10:26:32Z",
+  "stepsExecuted": 0,
+  "testsExecuted": 0,
+  "medusaJobID": 114447948647,
+  "medusaConclusion": "skipped",
+  "annotation": "The job was not started because your account is locked due to a billing issue.",
+  "acceptance": "BLOCKED",
+  "localApplicationExecution": false,
+  "nextAction": "Resolve the GitHub scheduler account lock, then rerun38125396491 and inspect actual P0 verification before Auth."
+}

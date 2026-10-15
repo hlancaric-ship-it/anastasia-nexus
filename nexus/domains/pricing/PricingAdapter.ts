@@ -39,6 +39,13 @@ export interface LegacyPricingInput {
     allowLoyaltyDiscount?: boolean;
     manufacturer?: string;
     category?: string;
+    /**
+     * Procentuální sleva z QR/kupón kódu jako ratio (0.10 = 10 %), server-side
+     * vyřešená z Medusa Promotion -- NIKDY klientem dodaná hodnota slevy,
+     * jen ověřený kód. Nepovinné -- bez kupónu se krok v
+     * createNexusPricingCalculator přeskočí (viz CouponDiscountRule.ts).
+     */
+    couponDiscountPercent?: Decimal;
 }
 
 export class PricingAdapter implements Rule<PricingComputationInput, PricingRuleResult> {

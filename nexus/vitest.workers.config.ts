@@ -37,6 +37,12 @@ const migrations = await readD1Migrations(migrationsDir);
 export default defineConfig({
   plugins: [
     cloudflareTest({
+      // `main` je sourozenec `miniflare`/`wrangler` v cloudflareTest() options
+      // (WorkersPoolOptionsSchema), NE test.poolOptions.workers.main -- to je
+      // jen fráze ze starého balíčku, co se objeví v chybové hlášce workerd,
+      // ale v 1.1.4 ten vnořovací tvar neexistuje (ověřeno empiricky: nastavení
+      // pod test.poolOptions chybu nezměnilo, tohle ano).
+      main: "./workers/api/index.ts",
       // Wrangler config se ZÁMĚRNĚ nenačítá přes `wrangler.configPath`.
       // wrangler.jsonc má `main: "workers/api/index.ts"`, což je soubor,
       // který ve Fázi A ještě neexistuje, a `database_id` je placeholder
@@ -49,6 +55,17 @@ export default defineConfig({
         bindings: {
           // Serializovatelný payload -- pole { name, queries[] }.
           TEST_MIGRATIONS: migrations,
+        },
+        // Přidáno 12. 10. 2026 pro souběhový test voucher čerpání (K8):
+        // handleRedeem volá resolveNonceStore(env.VOUCHER_SECURITY), bez
+        // bindingu selže na MISSING_BINDING. Třída je re-exportovaná z
+        // workers/api/index.ts (stejný modul, co testy importují jako
+        // `worker`), takže ji miniflare najde ve stejném skriptu.
+        // Záměrně NEpoužíváme wrangler.configPath (real D1 database_id by
+        // mohlo mířit mimo izolovanou testovací DB) -- jen tenhle jeden
+        // binding navíc k ručnímu nastavení výše.
+        durableObjects: {
+          VOUCHER_SECURITY: { className: "SecurityCoordinator", useSQLite: true },
         },
       },
     }),
