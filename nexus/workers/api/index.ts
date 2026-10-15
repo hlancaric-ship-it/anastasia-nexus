@@ -31,6 +31,8 @@ import { handleIssue } from './routes/issuance.js';
 import { handleRedeem, handleValidate } from './routes/voucher.js';
 import type { Env } from './types.js';
 import { flushOpsEvents } from './ops-ingest.js';
+import { compileEdgeRedirects, resolveEdgeRedirect, type CompiledEdgeRedirects } from './edgeRedirects.js';
+import { EDGE_REDIRECT_MANIFEST } from './edgeRedirectsManifest.js';
 
 /**
  * DO třída MUSÍ být exportovaná z `main` modulu (wrangler.jsonc
@@ -92,6 +94,17 @@ async function handle(request: Request, env: Env, ctx: ExecutionContextLike, req
     }
 
     const url = new URL(request.url);
+
+    // C-2: staré URL webu -> 301 ještě PŘED kontrolou bindingů (přesměrování nepotřebuje DB
+    // a nesmí spadnout na 503 kvůli chybějícímu HMAC). Hosty mimo manifest projdou dál.
+    const redirects = edgeRedirects();
+    const redirect = redirects ? resolveEdgeRedirect(request, redirects) : null;
+    if (redirect) {
+        // Jen cesta, ne query: QR odkaz nese kód kupónu.
+        log('info', 'http.edge_redirect', { requestId, method: request.method, path: url.pathname, status: redirect.status });
+        return redirect;
+    }
+
     // Cesty svázané s Medusou mají tenanta danou credentialem (MEDUSA_PRICING_TENANT_ID);
     // jen jejich události smí jít do Medusa `ops_event` (viz ops-ingest.ts).
     const opsTenant = isMedusaBoundPath(url.pathname) ? env.MEDUSA_PRICING_TENANT_ID?.trim().toLowerCase() : undefined;
@@ -146,6 +159,20 @@ async function handle(request: Request, env: Env, ctx: ExecutionContextLike, req
             origin,
         );
     }
+}
+
+let compiledRedirects: CompiledEdgeRedirects | null | undefined;
+
+/** Manifest se kompiluje jednou na izolát; neplatný = žádné přesměrování + alert do logu, API běží dál. */
+function edgeRedirects(): CompiledEdgeRedirects | null {
+    if (compiledRedirects !== undefined) return compiledRedirects;
+    try {
+        compiledRedirects = compileEdgeRedirects(EDGE_REDIRECT_MANIFEST);
+    } catch (error) {
+        log('error', 'worker.edge_redirects_invalid', { alert: true, code: error instanceof Error ? error.message : String(error) });
+        compiledRedirects = null;
+    }
+    return compiledRedirects;
 }
 
 function isMedusaBoundPath(pathname: string): boolean {
