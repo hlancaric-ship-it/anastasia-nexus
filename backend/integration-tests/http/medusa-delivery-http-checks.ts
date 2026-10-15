@@ -79,8 +79,10 @@ export async function verifyMedusaDelivery({ container, evidence }: any) {
     mode = 'reject'
     const rejected = inputFor(`cus_synthetic_${randomUUID()}`)
     const rejectedId = deliveryId(rejected)
-    await expect(medusaEventDeliveryWorkflow(container).run({ input: rejected, context: { transactionId: rejectedId } })).rejects.toThrow()
+    await medusaEventDeliveryWorkflow(container).run({ input: rejected, context: { transactionId: rejectedId }, throwOnError: false })
+    await waitFor(async () => (await execution(rejectedId))?.state === 'reverted')
     expect(attempts.get(rejectedId)).toBe(1)
+    expect(stored.has(rejectedId)).toBe(false)
     expect((await execution(rejectedId))?.state).toBe('reverted')
     evidence.push({ scenario: 'MEDUSA_DELIVERY_PERMANENT_FAILURE', status: 'PASS', attempts: 1, state: 'reverted' })
 
