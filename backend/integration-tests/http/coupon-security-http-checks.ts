@@ -1,7 +1,10 @@
+import { syntheticBuyer, associateCart } from "./customer-fixtures"
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { createProductsWorkflow } from '@medusajs/medusa/core-flows'
 /** Unsupported native restrictions must be rejected before NEXUS can discount every cart line. */
 export async function verifyCouponSecurity({api,container,options,channel,region,profile,evidence}:any) {
+  const buyer = await syntheticBuyer(container, options, "security-coupon-ineligible@example.test")
+  const buyerOptions = buyer.options
  const {result:products}=await createProductsWorkflow(container).run({input:{products:[{
   title:'Synthetic restricted coupon',handle:'synthetic-security-coupon',status:'published',shipping_profile_id:profile.id,
   sales_channels:[{id:channel.id}],options:[{title:'Default',values:['Default']}],variants:[{title:'Default',sku:'SECURITY-COUPON',manage_inventory:false,options:{Default:'Default'},prices:[{amount:50,currency_code:'eur'}]}],
@@ -19,8 +22,9 @@ export async function verifyCouponSecurity({api,container,options,channel,region
   const created=await api.post('/store/carts',{region_id:region.id,email:'security-coupon-ineligible@example.test'},options)
   expect(created.status).toBe(200)
   const id=created.data.cart.id
+  await associateCart(api,id,buyerOptions)
   expect((await api.post(`/store/carts/${id}/line-items`,{variant_id:products[0].variants[0].id,quantity:1},options)).status).toBe(200)
-  const response=await api.post('/store/nexus-cart',{cart_id:id,couponCode:code},options)
+  const response=await api.post('/store/nexus-cart',{cart_id:id,couponCode:code},buyerOptions)
   expect(response.status).toBe(400)
   expect(response.data.error).toBe('COUPON_INVALID')
   const {data}=await query.graph({entity:'cart',fields:['id','metadata','items.unit_price','completed_at'],filters:{id}})

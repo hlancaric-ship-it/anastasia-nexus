@@ -13,6 +13,7 @@ import { customerPrivacyMiddlewares } from "./customer-privacy-middlewares"
 import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
 import { authMagicLinkMiddlewares } from "./auth-magic-link-middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
+import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -34,5 +35,6 @@ export default defineMiddlewares({
     ...emailTemplateAdminMiddlewares,
     ...legalMiddlewares,
     ...orderSelfCancelMiddlewares,
+    ...nexusCartMiddlewares,
   ],
 })

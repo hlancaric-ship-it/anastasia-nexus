@@ -1,3 +1,4 @@
+import { syntheticBuyer, associateCart } from "./customer-fixtures"
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
 import { acceptCheckoutConsent } from "./legal-fixtures"
 import { capturePaymentWorkflow, cancelOrderWorkflow, createProductsWorkflow, refundPaymentWorkflow } from "@medusajs/medusa/core-flows"
@@ -10,6 +11,8 @@ import { DEFAULT_SETTINGS } from "../../src/modules/gift-voucher/policy"
  * runner (scripts/verify-safeorder-local.py). JWT jsou lokální fixtures, data syntetická.
  */
 export async function verifyGiftVoucherHttp({ api, container, options, channel, region, profile, countOrders, dbConnection, evidence }: any) {
+  const buyer = await syntheticBuyer(container, options, "gv-buyer@example.test")
+  const buyerOptions = buyer.options
   const vouchers = container.resolve(GIFT_VOUCHER_MODULE)
   const query = container.resolve("query")
   const [admin] = await container.resolve(Modules.USER).createUsers([{ email: "gift-voucher-admin@example.test" }])
@@ -60,12 +63,13 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const createCart = async (variants: Array<{ id: string; quantity?: number }>) => {
     const created = await ok(api.post("/store/carts", { region_id: region.id, email: "gv-buyer@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } }, options))
     const id = created.cart.id
+    await associateCart(api, id, buyerOptions)
     for (const variant of variants) await ok(api.post(`/store/carts/${id}/line-items`, { variant_id: variant.id, quantity: variant.quantity ?? 1 }, options))
-    await acceptCheckoutConsent(api, id, options)
+    await acceptCheckoutConsent(api, id, buyerOptions)
     return id
   }
   const prepare = async (id: string) => {
-    await ok(api.post("/store/nexus-cart", { cart_id: id }, options))
+    await ok(api.post("/store/nexus-cart", { cart_id: id }, buyerOptions))
     const shipping = await ok(api.get(`/store/shipping-options?cart_id=${id}`, options))
     const option = shipping.shipping_options.find((item: any) => item.shipping_profile_id === profile.id) || shipping.shipping_options[0]
     await ok(api.post(`/store/carts/${id}/shipping-methods`, { option_id: option.id }, options))
@@ -86,7 +90,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   await prepare(buyId)
   const before = await countOrders()
   await pay(buyId)
-  const missing = await api.post("/store/nexus-checkout", { cart_id: buyId }, options)
+  const missing = await api.post("/store/nexus-checkout", { cart_id: buyId }, buyerOptions)
   expect([missing.status, missing.data.error]).toEqual([400, "GIFT_VOUCHER_RECIPIENT_REQUIRED"])
   expect(await countOrders()).toBe(before)
   const badRecipient = await api.post("/store/gift-vouchers/recipients", { cart_id: buyId, recipients: { [v50]: [{ name: "Jana", email: "zle", delivery_date: today }] } }, options)
@@ -99,7 +103,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   ] } }, options))
   const selfPay = await api.post("/store/gift-vouchers/apply", { cart_id: buyId, code: (await issue(5000)).code }, options)
   expect([selfPay.status, selfPay.data.error]).toEqual([400, "GIFT_VOUCHER_NOT_APPLICABLE"]) // poukaz neplatí poukaz
-  const bought = await ok(api.post("/store/nexus-checkout", { cart_id: buyId }, options))
+  const bought = await ok(api.post("/store/nexus-checkout", { cart_id: buyId }, buyerOptions))
   expect(await countOrders()).toBe(before + 1)
   const orderId = bought.order.id
   const listIssued = async () => (await dbConnection.raw("SELECT id, initial_amount, balance, status, recipient_email, delivery_date, code FROM gift_voucher WHERE source_order_id = ? ORDER BY created_at", [orderId])).rows
@@ -143,7 +147,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   await ok(api.post("/store/gift-vouchers/apply", { cart_id: partialId, code: small.code }, options))
   expect(await cartTotal(partialId)).toBeCloseTo(partialTotal - 10, 2)
   await pay(partialId)
-  const partial = await ok(api.post("/store/nexus-checkout", { cart_id: partialId }, options))
+  const partial = await ok(api.post("/store/nexus-checkout", { cart_id: partialId }, buyerOptions))
   expect(Number(partial.order.total)).toBeCloseTo(partialTotal - 10, 2)
   expect([Number((await voucherRow(small.id)).balance), (await voucherRow(small.id)).status]).toEqual([0, "depleted"])
   evidence.push({ scenario: "K8_PARTIAL_COVER_PAID_REST", status: 200, voucherBalanceAfter: 0 })
@@ -187,7 +191,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const raceBefore = await countOrders()
   let race: any[]
   try {
-    race = await Promise.all([api.post(`/store/carts/${raceIds[0]}/complete`, {}, options), api.post("/store/nexus-checkout", { cart_id: raceIds[1] }, options)])
+    race = await Promise.all([api.post(`/store/carts/${raceIds[0]}/complete`, {}, options), api.post("/store/nexus-checkout", { cart_id: raceIds[1] }, buyerOptions)])
   } finally { barrier.mockRestore() }
   expect(arrivals).toBe(2)
   expect(race!.filter((r) => r.status === 200)).toHaveLength(1)
@@ -222,7 +226,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   await ok(api.post("/store/gift-vouchers/apply", { cart_id: lateId, code: late.code }, options))
   await vouchers.voidVoucher({ id: late.id, reason: "synthetic" })
   const lateBefore = await countOrders()
-  const lateResponse = await api.post("/store/nexus-checkout", { cart_id: lateId }, options)
+  const lateResponse = await api.post("/store/nexus-checkout", { cart_id: lateId }, buyerOptions)
   expect(lateResponse.status).toBeGreaterThanOrEqual(400)
   expect(await countOrders()).toBe(lateBefore)
   expect((await cartRow(lateId)).completed_at).toBeNull()

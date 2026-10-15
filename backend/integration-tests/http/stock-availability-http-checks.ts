@@ -1,3 +1,4 @@
+import { syntheticBuyer, associateCart } from "./customer-fixtures"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import type { IInventoryService, IOrderModuleService } from "@medusajs/framework/types"
 import { cancelOrderWorkflow, createProductsWorkflow, createStockLocationsWorkflow, linkSalesChannelsToStockLocationWorkflow } from "@medusajs/medusa/core-flows"
@@ -5,6 +6,8 @@ import { acceptCheckoutConsent } from "./legal-fixtures"
 
 /** Real Medusa/PostgreSQL checks; called serially by the synthetic CI runner. */
 export async function verifyStockAvailability({ api, container, options, channel, region, profile, evidence }: any) {
+  const buyer = await syntheticBuyer(container, options, "stock-checkout@example.test")
+  const buyerOptions = buyer.options
   const inventory: IInventoryService = container.resolve(Modules.INVENTORY)
   const orders: IOrderModuleService = container.resolve(Modules.ORDER)
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
@@ -52,15 +55,16 @@ export async function verifyStockAvailability({ api, container, options, channel
   }, options))).cart.id
   const prepareCart = async () => {
     const id = await createCart()
+    await associateCart(api, id, buyerOptions)
     await success(api.post(`/store/carts/${id}/line-items`, { variant_id: products[0].variants[0].id, quantity: 1 }, options))
-    await success(api.post("/store/nexus-cart", { cart_id: id }, options))
+    await success(api.post("/store/nexus-cart", { cart_id: id }, buyerOptions))
     const shipping = await success(api.get(`/store/shipping-options?cart_id=${id}`, options))
     const option = shipping.shipping_options.find((entry: any) => entry.shipping_profile_id === profile.id)
     expect(option).toBeDefined()
     await success(api.post(`/store/carts/${id}/shipping-methods`, { option_id: option.id }, options))
     const collection = await success(api.post("/store/payment-collections", { cart_id: id }, options))
     await success(api.post(`/store/payment-collections/${collection.payment_collection.id}/payment-sessions`, { provider_id: "pp_system_default" }, options))
-    await acceptCheckoutConsent(api, id, options)
+    await acceptCheckoutConsent(api, id, buyerOptions)
     return id
   }
   const assertInventoryRejection = (response: any) => {
@@ -92,7 +96,7 @@ export async function verifyStockAvailability({ api, container, options, channel
     const before = await countOrders()
     const responses = await Promise.all(cartIds.map(id => mode === "STANDARD"
       ? api.post(`/store/carts/${id}/complete`, {}, options)
-      : api.post("/store/nexus-checkout", { cart_id: id }, options)))
+      : api.post("/store/nexus-checkout", { cart_id: id }, buyerOptions)))
     const winners = responses.filter(response => response.status === 200 && response.data.order?.id)
     expect(winners).toHaveLength(1)
     const loser = responses.find(response => response !== winners[0])!

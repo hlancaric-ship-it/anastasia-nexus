@@ -1,5 +1,7 @@
 const baseUrl = new URL(process.env.MEDUSA_BASE_URL || "http://127.0.0.1:9000")
 const publishableKey = process.env.MEDUSA_TEST_PUBLISHABLE_KEY
+const customerToken = process.env.MEDUSA_TEST_CUSTOMER_TOKEN
+if (!customerToken) throw new Error("MEDUSA_TEST_CUSTOMER_TOKEN is required for the synthetic customer")
 
 if (!publishableKey) throw new Error("MEDUSA_TEST_PUBLISHABLE_KEY is required")
 if (!["localhost", "127.0.0.1", "::1"].includes(baseUrl.hostname)) {
@@ -12,6 +14,7 @@ async function request(path, { method = "GET", body } = {}) {
     headers: {
       "content-type": "application/json",
       "x-publishable-api-key": publishableKey,
+      Authorization: `Bearer ${customerToken}`,
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
@@ -38,6 +41,7 @@ const variant = productsResponse.products.flatMap((product) => product.variants 
 if (!variant) throw new Error("No EUR product variant with a calculated Medusa price was found")
 
 const { cart } = await request("/store/carts", { method: "POST", body: { region_id: region.id } })
+await request(`/store/carts/${cart.id}/customer`, { method: "POST", body: {} })
 await request(`/store/carts/${cart.id}/line-items`, {
   method: "POST",
   body: { variant_id: variant.id, quantity: 2 },
