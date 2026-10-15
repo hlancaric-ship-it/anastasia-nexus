@@ -5,6 +5,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
 
   "name": "nexus-api",
+  // Účet klientky LUCRAT s.r.o. (Zdravysvet.anastasiaoz@gmail.com), přesunuto 14. 10. 2026.
+  "account_id": "f182cf94c900ecb3465c41cba2f2b530",
   "main": "workers/api/index.ts",
   "compatibility_date": "2026-09-06",
 
@@ -30,8 +32,8 @@
       // binding se může přejmenovat, jméno databáze ne. Chrání to před
       // aplikací migrace na špatný cíl.
       "database_name": "nexus-voucher-dev",
-      "database_id": "9eeca676-5fb8-4d1d-8adf-452ce66836a7",
-      "preview_database_id": "9eeca676-5fb8-4d1d-8adf-452ce66836a7",
+      "database_id": "ab1c1afd-1a17-4a78-973b-7697e9b044c2",
+      "preview_database_id": "ab1c1afd-1a17-4a78-973b-7697e9b044c2",
       "migrations_dir": "migrations"
     }
   ],
@@ -82,7 +84,7 @@
         {
           "binding": "DB",
           "database_name": "nexus-voucher",
-          "database_id": "9089a9fc-abef-46cb-b01b-71e25c27dd52",
+          "database_id": "d946e8e5-2ae8-4139-9776-ad239cba6639",
           "migrations_dir": "migrations"
         }
       ],

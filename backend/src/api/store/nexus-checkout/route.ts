@@ -1,18 +1,21 @@
-import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { MedusaResponse, AuthenticatedMedusaRequest } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../nexus-cart/route"
 import { SafeOrderError } from "./safeorder"
 
 /** Revalidate with NEXUS, then let Medusa's normal workflow create the order. */
-export async function POST(req: MedusaRequest, res: MedusaResponse) {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  const actorId = req.auth_context?.actor_type === "customer" ? req.auth_context.actor_id : undefined
+  if (!actorId) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" })
+
   const { cart_id: cartId } = req.body as { cart_id?: string }
   if (!cartId || typeof cartId !== "string") {
     return res.status(400).json({ ok: false, error: "INVALID_CART_ID" })
   }
 
   try {
-    const pricing = await repriceCart(cartId, req.scope)
+    const pricing = await repriceCart(cartId, req.scope, true, undefined, actorId)
     if (pricing.pricesChanged) {
       return res.status(409).json({
         ok: false,
@@ -61,7 +64,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     if (message === "MEDUSA_PAYMENT_AMOUNT_MISMATCH") {
       return res.status(409).json({ ok: false, error: message, message: "Platební relace neodpovídá aktuální měně a částce košíku. Vytvořte novou platební relaci." })
     }
-    const status = message === "CART_NOT_FOUND" ? 404 : message.startsWith("NEXUS_PRICING") ? 503 : 400
+    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message.startsWith("NEXUS_PRICING") ? 503 : 400
     return res.status(status).json({ ok: false, error: message })
   }
 }
