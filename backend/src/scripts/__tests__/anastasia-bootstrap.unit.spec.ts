@@ -4,6 +4,7 @@ import {
   STRIPE_PROVIDER_ID,
   SYSTEM_PROVIDER_ID,
   buildShippingOptionInputs,
+  parseFreeShippingThreshold,
   parseCountries,
   pickPaymentProviders,
 } from "../anastasia-bootstrap"
@@ -51,5 +52,27 @@ describe("anastasia-bootstrap config", () => {
     expect(digital.shipping_profile_id).toBe("sp_d")
     expect(digital.prices.every((p) => p.amount === 0)).toBe(true)
     expect(digital.prices.some((p) => "currency_code" in p && p.currency_code === "eur")).toBe(true)
+  })
+  it("adds a rule-based free courier price only when a threshold is configured", () => {
+    const args = { regionId: "reg_1", physicalZoneId: "zone_p", digitalZoneId: "zone_d", physicalProfileId: "sp_p", digitalProfileId: "sp_d" }
+    const [plain] = buildShippingOptionInputs({ ...args, freeShippingFromEur: null })
+    expect(plain.prices).toHaveLength(2)
+    const [courier, digital] = buildShippingOptionInputs({ ...args, freeShippingFromEur: 49.9 })
+    const free = courier.prices.filter((p) => p.amount === 0)
+    expect(free).toHaveLength(2)
+    expect(free.every((p: any) => p.rules?.[0]?.attribute === "item_total" && p.rules[0].operator === "gte" && p.rules[0].value === 49.9)).toBe(true)
+    // Base price without rules stays, so carts below the threshold still pay 6 EUR.
+    expect(courier.prices.filter((p: any) => p.amount === 6 && !p.rules)).toHaveLength(2)
+    expect(digital.prices).toHaveLength(2)
+  })
+
+  it("parses the free shipping threshold strictly", () => {
+    expect(parseFreeShippingThreshold(undefined)).toBeNull()
+    expect(parseFreeShippingThreshold("  ")).toBeNull()
+    expect(parseFreeShippingThreshold("50")).toBe(50)
+    expect(parseFreeShippingThreshold("49.90")).toBe(49.9)
+    for (const bad of ["0", "-5", "50,00", "1e3", "50.123", "abc", "1234567"]) {
+      expect(() => parseFreeShippingThreshold(bad)).toThrow("ANASTASIA_FREE_SHIPPING_FROM_EUR")
+    }
   })
 })

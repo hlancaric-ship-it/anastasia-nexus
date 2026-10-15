@@ -74,6 +74,20 @@ export const LOYALTY_GROUPS = [
 /** Doprava z DB starého e-shopu: kurýr 6,00 EUR s DPH. */
 export const COURIER_PRICE_EUR = 6
 
+/**
+ * Doprava zdarma od částky (EUR s DPH, `item_total` košíku) – nativní pravidlo ceny Medusa
+ * shipping option, uložené v DB a upravitelné v adminu. Nevyplněno = bez dopravy zdarma
+ * (hodnotu určí Lucky). Medusa cenu dopravy přepočítá při každé změně košíku.
+ */
+export function parseFreeShippingThreshold(raw: string | undefined): number | null {
+  const value = (raw ?? "").trim()
+  if (!value) return null
+  if (!/^\d{1,6}(\.\d{1,2})?$/.test(value) || Number(value) <= 0) {
+    throw new Error(`Invalid ANASTASIA_FREE_SHIPPING_FROM_EUR: "${value}" (expected positive EUR amount, max 2 decimals)`)
+  }
+  return Number(value)
+}
+
 export function parseCountries(raw: string | undefined): string[] {
   const list = (raw || "sk")
     .split(",")
@@ -112,7 +126,10 @@ export function buildShippingOptionInputs(args: {
   digitalZoneId: string
   physicalProfileId: string
   digitalProfileId: string
+  freeShippingFromEur?: number | null
 }) {
+  const free = args.freeShippingFromEur
+  const freeRules = free ? [{ attribute: "item_total", operator: "gte" as const, value: free }] : null
   return [
     {
       name: "Kuriér (zásielka)",
@@ -124,6 +141,12 @@ export function buildShippingOptionInputs(args: {
       prices: [
         { currency_code: CURRENCY_CODE, amount: COURIER_PRICE_EUR },
         { region_id: args.regionId, amount: COURIER_PRICE_EUR },
+        ...(freeRules
+          ? [
+              { currency_code: CURRENCY_CODE, amount: 0, rules: freeRules },
+              { region_id: args.regionId, amount: 0, rules: freeRules },
+            ]
+          : []),
       ],
       rules: SHIPPING_RULES,
     },
@@ -177,6 +200,7 @@ export default async function anastasiaBootstrap({ container }: { container: Med
   const warehouseCity = (process.env.ANASTASIA_WAREHOUSE_CITY || "Bratislava").trim()
   const warehouseCountry = (process.env.ANASTASIA_WAREHOUSE_COUNTRY || "SK").trim().toUpperCase()
   const warehouseAddress = (process.env.ANASTASIA_WAREHOUSE_ADDRESS || "").trim()
+  const freeShippingFrom = parseFreeShippingThreshold(process.env.ANASTASIA_FREE_SHIPPING_FROM_EUR)
 
   const findFirst = async (entity: string, filters: Record<string, unknown>, fields: string[] = ["id"]) => {
     const { data } = await query.graph({ entity, fields, filters } as any)
@@ -367,6 +391,7 @@ export default async function anastasiaBootstrap({ container }: { container: Med
       digitalZoneId: sets.digital.zoneId,
       physicalProfileId: profiles.physical.id,
       digitalProfileId: profiles.digital.id,
+      freeShippingFromEur: freeShippingFrom,
     })
     const missing: typeof inputs = []
     for (const input of inputs) {
