@@ -6,7 +6,10 @@ export async function verifyAuditHttp({ api, container, options, evidence }: any
   const record = (scenario: string, extra: Record<string, unknown> = {}) => evidence.push({ scenario, status: 'CONFIRMED_BASELINE_BEHAVIOR', ...extra })
   const success = async (path: string, body: unknown) => {
     const response = await api.post(path, body, options)
-    expect(response.status).toBeLessThan(300)
+    if (response.status >= 300) {
+      const code = typeof response.data?.error === 'string' && /^[A-Z0-9_]{2,80}$/.test(response.data.error) ? response.data.error : 'UNCLASSIFIED'
+      throw new Error(`AUDIT_HTTP_REJECTED path=${path} status=${response.status} code=${code}`)
+    }
     return response.data
   }
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
