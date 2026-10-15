@@ -96,6 +96,7 @@ describe('Execution pipeline -- plán → provedení → reconciliace', () => {
             intentId: intent.id,
             nextState: out.nextState,
             confirmationQuality: out.confirmationQuality,
+            expectedAttempt: claim.intent.attempt,
             recordedAt: T2,
         });
 
@@ -137,6 +138,7 @@ describe('Execution pipeline -- plán → provedení → reconciliace', () => {
             intentId: intent.id,
             nextState: 'UNKNOWN',
             failureReason: 'network timeout',
+            expectedAttempt: claim.intent.attempt,
             recordedAt: T2,
         });
 
@@ -173,6 +175,7 @@ describe('Execution pipeline -- plán → provedení → reconciliace', () => {
             intentId: intent.id,
             nextState: 'UNKNOWN',
             failureReason: 'timeout',
+            expectedAttempt: claim.intent.attempt,
             recordedAt: T2,
         });
 
@@ -234,6 +237,7 @@ describe('Execution pipeline -- plán → provedení → reconciliace', () => {
             nextState: 'EXECUTED',
             confirmationQuality: 'LOG_INFERRED',
             executionReference: 'log-line-4821',
+            expectedAttempt: claim.intent.attempt,
             recordedAt: T2,
         });
 
@@ -261,6 +265,7 @@ describe('Execution pipeline -- plán → provedení → reconciliace', () => {
             intentId: intent.id,
             nextState: 'UNKNOWN',
             failureReason: 'timeout',
+            expectedAttempt: claim.intent.attempt,
             recordedAt: T2,
         });
 

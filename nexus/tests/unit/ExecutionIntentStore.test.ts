@@ -112,6 +112,7 @@ describe('claimForExecution -- atomické nárokování', () => {
         await store.claimForExecution(TENANT, 'intent-1', '2026-09-07T04:00:30Z');
         await store.recordOutcome(TENANT, {
             intentId: 'intent-1',
+            expectedAttempt: 1,
             nextState: 'EXECUTED',
             confirmationQuality: 'SYSTEM_CONFIRMED',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -128,6 +129,7 @@ describe('claimForExecution -- atomické nárokování', () => {
         await store.claimForExecution(TENANT, 'intent-1', '2026-09-07T04:00:30Z');
         await store.recordOutcome(TENANT, {
             intentId: 'intent-1',
+            expectedAttempt: 1,
             nextState: 'FAILED',
             failureReason: 'timeout',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -163,6 +165,7 @@ describe('recordOutcome -- fail-closed přechody', () => {
         await expect(
             store.recordOutcome(TENANT, {
                 intentId: 'intent-1',
+                expectedAttempt: 1,
                 nextState: 'EXECUTED',
                 recordedAt: '2026-09-07T04:01:00Z',
             }),
@@ -172,6 +175,7 @@ describe('recordOutcome -- fail-closed přechody', () => {
     it('nedovolený přechod se odmítne', async () => {
         await store.recordOutcome(TENANT, {
             intentId: 'intent-1',
+            expectedAttempt: 1,
             nextState: 'EXECUTED',
             confirmationQuality: 'SYSTEM_CONFIRMED',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -189,6 +193,7 @@ describe('recordOutcome -- fail-closed přechody', () => {
     it('UNKNOWN -> EXECUTED je dovolený (reconciliace dorovná stav)', async () => {
         await store.recordOutcome(TENANT, {
             intentId: 'intent-1',
+            expectedAttempt: 1,
             nextState: 'UNKNOWN',
             failureReason: 'timeout',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -220,6 +225,7 @@ describe('findRequiringReconciliation -- fronta nejistot', () => {
         await seed('i-unknown', 'k1');
         await store.recordOutcome(TENANT, {
             intentId: 'i-unknown',
+            expectedAttempt: 1,
             nextState: 'UNKNOWN',
             failureReason: 'timeout',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -233,6 +239,7 @@ describe('findRequiringReconciliation -- fronta nejistot', () => {
         await seed('i-omega', 'k2');
         await store.recordOutcome(TENANT, {
             intentId: 'i-omega',
+            expectedAttempt: 1,
             nextState: 'EXECUTED',
             confirmationQuality: 'LOG_INFERRED',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -246,6 +253,7 @@ describe('findRequiringReconciliation -- fronta nejistot', () => {
         await seed('i-pohoda', 'k3');
         await store.recordOutcome(TENANT, {
             intentId: 'i-pohoda',
+            expectedAttempt: 1,
             nextState: 'EXECUTED',
             confirmationQuality: 'SYSTEM_CONFIRMED',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -259,6 +267,7 @@ describe('findRequiringReconciliation -- fronta nejistot', () => {
         await seed('i-failed', 'k4');
         await store.recordOutcome(TENANT, {
             intentId: 'i-failed',
+            expectedAttempt: 1,
             nextState: 'FAILED',
             failureReason: 'validation',
             recordedAt: '2026-09-07T04:01:00Z',
@@ -272,6 +281,7 @@ describe('findRequiringReconciliation -- fronta nejistot', () => {
         await seed('i-mine', 'k5');
         await store.recordOutcome(TENANT, {
             intentId: 'i-mine',
+            expectedAttempt: 1,
             nextState: 'UNKNOWN',
             failureReason: 'x',
             recordedAt: '2026-09-07T04:01:00Z',

@@ -36,6 +36,7 @@
 //   - NERETRYUJE a NEROZHODUJE o provedení. To je věc volajícího a
 //     `IntentExecutor`.
 
+import { assertExecutionAttempt, validateRecoveryInput, type RecoverExecutionsInput } from '../../core/canonical/outcomes/ExecutionIntentStore.js';
 import { assertTenantContext, type TenantContext } from '../../core/tenant/types.js';
 import type { EntityId } from '../../core/canonical/entities/base.js';
 import type {
@@ -186,31 +187,22 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
     ): Promise<ClaimIntentOutcome<TPayload, TExpected>> {
         assertTenantContext(context, 'D1ExecutionIntentStore.claimForExecution');
 
-        // JEDNO atomické UPDATE. Dva paralelní běhy: právě jeden dostane
-        // `changes === 1`, druhý nulu. Kdyby se stav četl předem a měnil
-        // potom, oba by prošly a zapsaly dvakrát.
-        const claimed = await this.db
-            .prepare(
-                `UPDATE execution_intents
-                    SET state = 'EXECUTING',
-                        attempt = CASE WHEN state = 'FAILED'
-                                       THEN attempt + 1 ELSE attempt END,
-                        updated_at = ?3
-                  WHERE id = ?1
-                    AND tenant_id = ?2
-                    AND state IN (${CLAIMABLE_STATES.map((s) => `'${s}'`).join(',')})`,
-            )
-            .bind(intentId, context.tenantId, claimedAt)
-            .run();
-
+        // Compare-and-swap the snapshot and return that exact attempt. A second
+        // read after claiming could accidentally return a newer worker's attempt.
+        const snapshot = await this.findById<TPayload, TExpected>(context.tenantId, intentId);
+        if (!snapshot) return { outcome: 'NOT_FOUND' };
+        if (snapshot.state === 'EXECUTING') return { outcome: 'ALREADY_EXECUTING' };
+        if (!canTransitionIntent(snapshot.state, 'EXECUTING')) {
+            return { outcome: 'WRONG_STATE', currentState: snapshot.state };
+        }
+        const attempt = snapshot.attempt + (snapshot.state === 'FAILED' ? 1 : 0);
+        const claimed = await this.db.prepare(
+            `UPDATE execution_intents SET state = 'EXECUTING', attempt = ?3, updated_at = ?4
+             WHERE id = ?1 AND tenant_id = ?2 AND state = ?5 AND attempt = ?6 AND updated_at = ?7
+               AND state IN (${CLAIMABLE_STATES.map((state) => `'${state}'`).join(',')})`,
+        ).bind(intentId, context.tenantId, attempt, claimedAt, snapshot.state, snapshot.attempt, snapshot.updatedAt).run();
         if (claimed.meta.changes === 1) {
-            const intent = await this.findById<TPayload, TExpected>(context.tenantId, intentId);
-            if (intent === undefined) {
-                throw new VoucherIntentStorageError(
-                    `claimForExecution: Intent ${intentId} se nárokoval, ale zmizel.`,
-                );
-            }
-            return { outcome: 'CLAIMED', intent };
+            return { outcome: 'CLAIMED', intent: { ...snapshot, state: 'EXECUTING', attempt, updatedAt: claimedAt } };
         }
 
         // `changes === 0` -- rozliš proč. Bez toho by volající nevěděl,
@@ -246,6 +238,8 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
                 `recordOutcome: Intent ${input.intentId} neexistuje pro tohoto tenanta.`,
             );
         }
+        assertExecutionAttempt(current, input);
+
         if (!canTransitionIntent(current.state, input.nextState)) {
             throw new VoucherIntentStorageError(
                 `recordOutcome: přechod ${current.state} -> ${input.nextState} není dovolený ` +
@@ -264,7 +258,7 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
                         execution_reference = ?5,
                         failure_reason = ?6,
                         updated_at = ?7
-                  WHERE id = ?1 AND tenant_id = ?2 AND state = ?8`,
+                  WHERE id = ?1 AND tenant_id = ?2 AND state = ?8 AND attempt = ?9`,
             )
             .bind(
                 input.intentId,
@@ -275,6 +269,7 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
                 input.failureReason ?? null,
                 input.recordedAt,
                 current.state,
+                current.attempt,
             )
             .run();
 
@@ -284,6 +279,26 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
                     `(očekáván ${current.state}). Výsledek NEBYL zapsán.`,
             );
         }
+    }
+
+    async recoverExpiredExecutions(context: TenantContext, input: RecoverExecutionsInput): Promise<readonly EntityId[]> {
+        assertTenantContext(context, 'D1ExecutionIntentStore.recoverExpiredExecutions');
+        validateRecoveryInput(input);
+        const rows = await this.db.prepare(
+            `SELECT id, attempt, updated_at FROM execution_intents
+             WHERE tenant_id = ?1 AND state = 'EXECUTING' AND julianday(updated_at) <= julianday(?2)
+             ORDER BY julianday(updated_at), id LIMIT ?3`,
+        ).bind(context.tenantId, input.expiredBefore, input.limit).all<Pick<IntentRow, 'id' | 'attempt' | 'updated_at'>>();
+        const recovered: EntityId[] = [];
+        for (const row of rows.results) {
+            const changed = await this.db.prepare(
+                `UPDATE execution_intents SET state = 'UNKNOWN', confirmation_quality = 'UNCONFIRMED',
+                 failure_reason = 'EXECUTION_DEADLINE_EXCEEDED', updated_at = ?3
+                 WHERE id = ?1 AND tenant_id = ?2 AND state = 'EXECUTING' AND attempt = ?4 AND updated_at = ?5`,
+            ).bind(row.id, context.tenantId, input.recoveredAt, row.attempt, row.updated_at).run();
+            if (changed.meta.changes === 1) recovered.push(row.id);
+        }
+        return recovered;
     }
 
     async findById<TPayload, TExpected>(

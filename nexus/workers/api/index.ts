@@ -31,6 +31,7 @@ import { handleIssue } from './routes/issuance.js';
 import { handleRedeem, handleValidate } from './routes/voucher.js';
 import type { Env } from './types.js';
 import { flushOpsEvents } from './ops-ingest.js';
+import { recoverScheduledIntents } from './intent-recovery.js';
 import { compileEdgeRedirects, resolveEdgeRedirect, type CompiledEdgeRedirects } from './edgeRedirects.js';
 import { EDGE_REDIRECT_MANIFEST } from './edgeRedirectsManifest.js';
 
@@ -50,6 +51,13 @@ interface ExecutionContextLike {
 }
 
 export default {
+    async scheduled(controller: { scheduledTime: number }, env: Env, ctx: ExecutionContextLike): Promise<void> {
+        try {
+            await recoverScheduledIntents(env, controller.scheduledTime);
+        } finally {
+            ctx.waitUntil(flushOpsEvents(env));
+        }
+    },
     // `ctx` je potřeba pro `ctx.waitUntil()` -- webhook musí odpovědět do
     // 4 s (§16) a zpracování běží až po odeslání odpovědi.
     async fetch(request: Request, env: Env, ctx: ExecutionContextLike): Promise<Response> {
