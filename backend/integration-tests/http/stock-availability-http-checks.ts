@@ -45,7 +45,7 @@ export async function verifyStockAvailability({ api, container, options, channel
   }
   const stock = () => inventory.retrieveInventoryLevelByItemAndLocation(items[0].id, location.id)
   const reservations = () => inventory.listReservationItems({ inventory_item_id: items[0].id })
-  const countOrders = async () => (await orders.listAndCountOrders({}, { take: 1 }))[1]
+  const countOrders = async () => (await orders.listAndCountOrders({}, { take: 1, select: ["id"], relations: [] }))[1]
   const createCart = async () => (await success(api.post("/store/carts", {
     region_id: region.id, sales_channel_id: channel.id, email: "stock-checkout@example.test",
     shipping_address: { first_name: "Synthetic", last_name: "Stock", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" },

@@ -54,5 +54,8 @@ oba API kontrakty a odpovídající aserci; samotný test nesmí zavádět neexi
 - Lokální `./backend/node_modules/.bin/tsc --noEmit -p backend/tsconfig.json`: PASS.
 - Lokální PG/HTTP ani plná sada nebyly spuštěny (dohoda s Claudem).
 - HTTP/PG: čeká na integraci a GitHub Actions, zatím nejde označit VERIFIED.
+- První Actions `38673392852`: dostupnost a odmítnutí vyprodané položky prošly; kontrola počtu objednávek
+  narazila na nativní implicitní načtení shipping totals (`Shipping method version is required to load adjustments`).
+  Opraveno výslovným `select: ["id"], relations: []` u počítání; obchodní logika se nemění. Nový běh je nutný.
 - Žádný deploy, produkční služby, reálné platby/e-maily nebo klientské údaje.
 - Nastavení dopravy, dopravce, limity dopravy zdarma a hlavní integraci vlastní Claude; tento balík je nemění.
