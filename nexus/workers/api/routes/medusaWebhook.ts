@@ -94,7 +94,7 @@ export async function handleMedusaWebhook(
         opsTenant: tenantId, eventId, event: eventName, targetId, processing_state: state,
     });
     // 200 means durable receipt only. No waitUntil task is mistaken for completed business work.
-    return jsonResponse({ received: true, event: eventName, eventId,
+    return jsonResponse({ received: true, tenantId, event: eventName, eventId,
         ...(duplicate ? { duplicate: true } : {}), timestamp: new Date().toISOString() });
 }
 
