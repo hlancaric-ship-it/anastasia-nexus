@@ -140,6 +140,7 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/gift-voucher" },
   { resolve: "./src/modules/chat" },
   { resolve: "./src/modules/ops-audit" },
+  { resolve: "./src/modules/email-template" },
 ]
 
 if (stripeApiKey) {

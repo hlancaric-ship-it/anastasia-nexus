@@ -1,5 +1,6 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { sendEmail } from "../../lib/email/send"
 
 /**
  * Doručení upozornění chatu. Obsah zpráv se do e-mailů nevkládá (jen počty a odkaz),
@@ -33,24 +34,17 @@ export function chatNotifier(container: MedusaContainer): ChatNotifier {
         logger.info(`[chat] souhrn pro Luciu: ${messages} nepřečtených zpráv v ${conversations} konverzacích (e-mail není nastaven: CHAT_ADMIN_NOTIFY_EMAIL)`)
         return
       }
-      await notification.createNotifications({
-        to,
-        channel: "email",
-        template: CHAT_TEMPLATES.ADMIN_DIGEST,
-        data: { subject: `Nové správy od zákazníčok (${messages})`, conversations, messages, url: adminUrl },
-      })
+      await sendEmail(container, { to, template: CHAT_TEMPLATES.ADMIN_DIGEST, data: { conversations, messages, url: adminUrl } })
     },
     async customerReply({ email, conversation_id, first_name }) {
       if (!notification) {
         logger.info(`[chat] odpověď v konverzaci ${conversation_id}: e-mail zákaznici nelze odeslat (modul notifikací chybí)`)
         return
       }
-      await notification.createNotifications({
+      await sendEmail(container, {
         to: email,
-        channel: "email",
         template: CHAT_TEMPLATES.ADMIN_REPLY,
         data: {
-          subject: "Lucia vám odpovedala",
           first_name: first_name ?? null,
           conversation_id,
           url: storefrontUrl ? `${storefrontUrl.replace(/\/$/, "")}/${encodeURIComponent(conversation_id)}` : null,

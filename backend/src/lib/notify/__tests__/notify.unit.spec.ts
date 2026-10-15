@@ -26,7 +26,7 @@ describe("notify(booking.*)", () => {
     expect(await notify(container, { type: "booking.confirmed", booking_id: "bkg_1", order_id: "order_1" })).toEqual({ status: "sent" })
     const payload = (notifications.createNotifications.mock.calls[0] as any[])[0]
     expect(payload).toMatchObject({ to: EMAIL, channel: "email", template: NOTIFY_TEMPLATES["booking.confirmed"], idempotency_key: "booking.confirmed:bkg_1", resource_type: "booking", resource_id: "bkg_1" })
-    expect(payload.data).toEqual({ subject: expect.any(String), booking_id: "bkg_1", starts_at: "2026-11-02T09:00:00.000Z", ends_at: "2026-11-02T10:00:00.000Z", url: null })
+    expect(payload.data).toEqual({ booking_id: "bkg_1", starts_at: "2026-11-02T09:00:00.000Z", ends_at: "2026-11-02T10:00:00.000Z", url: null })
     expect(JSON.stringify(payload.data)).not.toContain("@")
     expect(logs.join("\n")).not.toContain(EMAIL)
   })

@@ -1,5 +1,6 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
-import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { sendEmail } from "../../lib/email/send"
 import { GIFT_VOUCHER_MODULE } from "./index"
 import { formatEur, isoDateInZone, maskVoucherCode, requiresRecipient } from "./policy"
 import { renderPdf, wrap, type PdfLine } from "./pdf"
@@ -30,11 +31,10 @@ export interface GiftVoucherDeliveryChannel {
 export function resolveDeliveryChannel(container: Container, env: Record<string, string | undefined> = process.env): GiftVoucherDeliveryChannel {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
   if (env.GIFT_VOUCHER_DELIVERY === "notification") {
-    const notification = container.resolve(Modules.NOTIFICATION) as any
     return {
       live: true,
       async send(message) {
-        await notification.createNotifications({ to: message.to, channel: "email", template: message.template, data: message.data,
+        await sendEmail(container, { to: message.to, template: message.template, data: message.data,
           ...(message.attachments ? { attachments: message.attachments } : {}) })
       },
     }
@@ -78,12 +78,12 @@ function baseData(voucher: GiftVoucherRow) {
 
 function recipientMessage(voucher: GiftVoucherRow): DeliveryMessage {
   return { kind: "recipient_email", to: voucher.recipient_email!, template: "gift-voucher-recipient-sk",
-    data: { ...baseData(voucher), subject: "Dostali ste darčekový poukaz ANASTASIA" } }
+    data: baseData(voucher) }
 }
 
 function buyerMessage(voucher: GiftVoucherRow): DeliveryMessage {
   return { kind: "buyer_pdf", to: voucher.purchaser_email!, template: "gift-voucher-buyer-sk",
-    data: { ...baseData(voucher), subject: "Váš darčekový poukaz ANASTASIA (PDF)" },
+    data: baseData(voucher),
     attachments: [{ content: voucherPdf(voucher).toString("base64"), filename: `poukaz-${voucher.code_last4}.pdf`, content_type: "application/pdf" }] }
 }
 

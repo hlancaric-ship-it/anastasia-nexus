@@ -7,6 +7,7 @@ import { giftVoucherStoreMiddlewares } from "./store/gift-vouchers/middlewares"
 import { bookingAdminMiddlewares } from "./admin/booking/middlewares"
 import { chatMiddlewares } from "./chat-middlewares"
 import { opsAdminMiddlewares } from "./admin/ops/middlewares"
+import { emailTemplateAdminMiddlewares } from "./admin/email-templates/middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 
 export default defineMiddlewares({
@@ -23,5 +24,6 @@ export default defineMiddlewares({
     ...bookingAdminMiddlewares,
     ...chatMiddlewares,
     ...opsAdminMiddlewares,
+    ...emailTemplateAdminMiddlewares,
   ],
 })

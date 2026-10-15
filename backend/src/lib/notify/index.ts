@@ -1,6 +1,7 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
-import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { BOOKING_MODULE } from "../../modules/booking"
+import { sendEmail } from "../email/send"
 import { recordEvent } from "../observability/events"
 
 /**
@@ -23,19 +24,10 @@ export const NOTIFY_TEMPLATES = {
   "booking.canceled": "booking-canceled-sk",
 } as const satisfies Record<NotifyEvent["type"], string>
 
-const SUBJECTS: Record<NotifyEvent["type"], string> = {
-  "booking.confirmed": "Vaša konzultácia je potvrdená",
-  "booking.canceled": "Vaša konzultácia bola zrušená",
-}
-
 /** Důvody zrušení, které smí do šablony (technické kódy); volný text adminu se mapuje na "other". */
 const PUBLIC_CANCEL_REASONS = new Set(["order_canceled", "customer_request", "admin_canceled"])
 
 type BookingRow = { id: string; customer_id: string | null; status: string; starts_at: Date | string; ends_at: Date | string; cancel_reason?: string | null }
-type NotificationService = {
-  createNotifications: (data: Record<string, unknown>) => Promise<unknown>
-  listNotifications: (filters: Record<string, unknown>, config?: Record<string, unknown>) => Promise<Array<{ id: string }>>
-}
 
 const env = (name: string) => (process.env[name] || "").trim()
 const iso = (value: Date | string) => (value instanceof Date ? value : new Date(value)).toISOString()
@@ -60,25 +52,15 @@ export async function notify(container: MedusaContainer, event: NotifyEvent): Pr
     const to = data?.[0]?.email?.trim()
     if (!to) return skipped(container, base, "NO_EMAIL")
 
-    const notifications = container.resolve(Modules.NOTIFICATION) as unknown as NotificationService
-    const idempotency_key = notifyIdempotencyKey(event)
-    const existing = await notifications.listNotifications({ idempotency_key }, { take: 1, select: ["id"] })
-    if (existing?.length) {
-      await recordEvent(container, "info", "notification", "duplicate_suppressed", base)
-      return { status: "duplicate" }
-    }
-
     const accountUrl = env("ACCOUNT_BOOKINGS_URL")
     const reason = event.type === "booking.canceled" ? (booking.cancel_reason ?? null) : null
-    await notifications.createNotifications({
+    const sent = await sendEmail(container, {
       to,
-      channel: "email",
       template,
-      idempotency_key,
+      idempotency_key: notifyIdempotencyKey(event),
       resource_id: booking.id,
       resource_type: "booking",
       data: {
-        subject: SUBJECTS[event.type],
         booking_id: booking.id,
         starts_at: iso(booking.starts_at),
         ends_at: iso(booking.ends_at),
@@ -86,6 +68,8 @@ export async function notify(container: MedusaContainer, event: NotifyEvent): Pr
         ...(event.type === "booking.canceled" ? { cancel_kind: reason && PUBLIC_CANCEL_REASONS.has(reason) ? reason : "other" } : {}),
       },
     })
+    if (sent.status === "duplicate") return { status: "duplicate" }
+    if (sent.status === "disabled") return { status: "skipped", reason: "TEMPLATE_DISABLED" }
     await recordEvent(container, "info", "notification", "sent", base)
     return { status: "sent" }
   } catch (error) {
