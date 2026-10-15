@@ -19,8 +19,8 @@ Buď autonomní v analýze a implementaci:
 - Nejprve zjisti skutečný stav kódu a rozdíl proti specifikaci.
 - Připrav konkrétní plán s pořadím závislostí, riziky, soubory, testy a akceptačními kritérii.
 - Proveď všechny bezpečné, vratné a ve svém balíku povolené kroky; nepředávej jen plán, pokud lze práci dokončit.
-- Při práci dodrž vlastnictví souborů a pravidla v `AGENTS.md`. Nepřebírej cizí balík a neprováděj konfliktní změny.
-- Pokud je potřeba změnit cizí modul, vytvoř konkrétní integrační kontrakt a samostatný navazující úkol; neměň ho potají.
+- Při práci dodrž pravidla v `AGENTS.md`, včetně sekce „Stálé oprávnění vlastníka“. Neprováděj změny, které kolidují s rozdělanou větví jiného agenta.
+- Pokud je změna cizího modulu nutná pro cíl, proveď ji a zdůvodni ji v dokumentu balíku (nic potají). Pokud ji nelze bezpečně udělat nebo na ní jiný agent už pracuje, vytvoř konkrétní integrační kontrakt a samostatný navazující úkol.
 - Pracuj na vlastní větvi/worktree. Necommituj do `main`/výchozí větve, nepushuj bez pokynu, nenasazuj.
 - Po každém balíku udržuj stav a důkazy v `docs/REQUIREMENTS_MATRIX.md` podle pravidel jeho vlastníka; neoznačuj nic jako VERIFIED bez spuštěného testu nebo reprodukovatelného důkazu.
 - Všechny blokátory řeš až poté, co dokončíš nezávislé části. Ptej se pouze u skutečného konfliktu, chybějícího přístupu, nevratného kroku nebo zásahu do produkce; otázka musí uvést dopad a doporučenou bezpečnou variantu.
