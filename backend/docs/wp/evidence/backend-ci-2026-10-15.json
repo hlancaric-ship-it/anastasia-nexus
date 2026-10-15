@@ -1,0 +1,72 @@
+{
+  "source_commit": "5066672b391a862077f38f99a182517b301a3f51",
+  "run_id": 38675189204,
+  "run_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38675189204",
+  "jobs": {
+    "verify": "success",
+    "medusa-persistence": "success"
+  },
+  "scope": "Synthetic isolated CI; no production deployment or external payment/email proof",
+  "tests": {
+    "backend_unit": {
+      "passed": 518,
+      "total": 518
+    },
+    "nexus": {
+      "passed": 1179,
+      "total": 1179
+    },
+    "workerd": {
+      "passed": 42,
+      "total": 42
+    }
+  },
+  "http_status": "PASS",
+  "http_scenario_count": 123,
+  "stock_shipping_scenarios": [
+    {
+      "scenario": "C3_STOCK_SERVER_AVAILABILITY_AND_LOCATION_ISOLATION",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_STOCK_SOLD_OUT_ADD_DENIED",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_STOCK_STANDARD_LAST_UNIT_RACE",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_STOCK_STANDARD_CANCEL_RELEASES_RESERVATION",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_STOCK_NEXUS_LAST_UNIT_RACE",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_STOCK_NEXUS_CANCEL_RELEASES_RESERVATION",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_SHIPPING_COURIER_PRICE_FROM_DB",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_SHIPPING_CLIENT_CANNOT_SET_SHIPPING_PRICE",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_SHIPPING_FREE_FROM_THRESHOLD_INCLUSIVE",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_SHIPPING_BELOW_THRESHOLD_PAYS_AGAIN",
+      "status": "PASS"
+    },
+    {
+      "scenario": "C3_SHIPPING_PHYSICAL_CART_CANNOT_COMPLETE_WITH_DIGITAL_OPTION",
+      "status": "PASS"
+    }
+  ]
+}
