@@ -1,0 +1,70 @@
+name: Red Team 20 isolated parallel checks
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - ".github/workflows/redteam-20.yml"
+      - "nexus/**"
+      - "backend/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  redteam:
+    name: "Isolated scenario ${{ matrix.id }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        include:
+          - { id: "01-hls-sibling", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "02-hls-token-boundary", filter: "audit-media-boundary.test.ts" }
+          - { id: "03-post-refund", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "04-voucher-concurrency", filter: "voucherConcurrency.test.ts" }
+          - { id: "05-webhook-replay", filter: "medusaWebhook.test.ts" }
+          - { id: "06-safeorder", filter: "safeOrder.test.ts" }
+          - { id: "07-redirects", filter: "edgeRedirects.test.ts" }
+          - { id: "08-schema", filter: "schema.test.ts" }
+          - { id: "09-voucher-double-spend", filter: "voucherConcurrency.test.ts" }
+          - { id: "10-voucher-replay", filter: "voucherConcurrency.test.ts" }
+          - { id: "11-voucher-fail-closed", filter: "voucherConcurrency.test.ts" }
+          - { id: "12-hls-sibling-recheck", filter: "audit-hls-sibling-scope.test.ts" }
+          - { id: "13-media-boundary-recheck", filter: "audit-media-boundary.test.ts" }
+          - { id: "14-refund-recheck", filter: "audit-post-refund-replay.test.ts" }
+          - { id: "15-webhook-recheck", filter: "medusaWebhook.test.ts" }
+          - { id: "16-safeorder-recheck", filter: "safeOrder.test.ts" }
+          - { id: "17-redirect-recheck", filter: "edgeRedirects.test.ts" }
+          - { id: "18-schema-recheck", filter: "schema.test.ts" }
+          - { id: "19-voucher-race-recheck", filter: "voucherConcurrency.test.ts" }
+          - { id: "20-hls-scope-recheck", filter: "audit-hls-sibling-scope.test.ts" }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - name: Install pinned dependencies
+        working-directory: nexus
+        run: npm ci --no-audit --no-fund
+      - name: Run independent synthetic scenario with no network
+        run: |
+          mkdir -p evidence
+          docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges --read-only \
+            --tmpfs /tmp:rw,exec,nosuid,size=1g \
+            --user "$(id -u):$(id -g)" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/workspace" \
+            --workdir /workspace/nexus \
+            --env HOME=/tmp --env CI=true --env WRANGLER_SEND_METRICS=false \
+            node:24.14.0-bookworm \
+            ./node_modules/.bin/vitest run -c vitest.workers.config.ts "tests/workers/${{ matrix.filter }}" --reporter=verbose \
+            2>&1 | tee "evidence/${{ matrix.id }}.log"
+      - name: Retain independent evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: "redteam-${{ matrix.id }}"
+          path: evidence/
+          retention-days: 14
