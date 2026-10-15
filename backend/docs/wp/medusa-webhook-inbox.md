@@ -1,6 +1,6 @@
 # Trvalý příjem Medusa událostí
 
-Stav: IMPLEMENTED_UNVERIFIED pro skutečnou D1 do dokončení CI. Lokálně 15/15 cílených testů a oba TypeScript projekty PASS. Navazuje na NEXUS_AUTONOMY_SPEC.md: příjem → uložení → následné řízené zpracování. Vlastní větev codex/medusa-inbox. Žádné nasazení.
+Stav: VERIFIED v izolovaném workerd/D1 a úplné regresi, CI 38819618651; PR #13 sloučen do master. Důkaz: docs/evidence/medusa-inbox-20261016.json. Lokálně 15/15 cílených testů a oba TypeScript projekty PASS. Navazuje na NEXUS_AUTONOMY_SPEC.md: příjem → uložení → následné řízené zpracování. Vlastní větev codex/medusa-inbox. Žádné nasazení.
 
 ## Problém a plán
 
@@ -25,3 +25,7 @@ Nejmenší bezpečná změna: zachovat existující podepisování, ukládat jen
 Unit testy ověřují podpis, expiraci, potvrzení po zápisu, duplicitu, konfliktní cíl, chybějící identitu, vadné obálky, výpadek úložiště a limit těla. Workerd testy proti skutečné D1 ověřují trvalý minimální záznam, souběh osmi doručení, izolaci tenantů, nepřepsání konfliktu, neznámý typ a zachování starých receipts. Plný běh včetně backend/PG pouze GitHub Actions.
 
 Tento balík nepředstírá spotřebitele fronty ani konkrétní obchodní efekt. Další krok je zmapovat skutečné události Medusy a propojit jejich bezpečné doručování s konkrétními operacemi a již ověřeným ExecutionIntent/reconciliation. Při zapojení spotřebitele musí být nárokování práce, deadline, aktuální autoritativní read-back a audit; pouhé přejmenování logu není implementace toku.
+
+## Výsledek CI 16. 10. 2026
+
+Běh 38819618651: NEXUS 1230/1230, workerd/D1 102/102, backend 544/544, HTTP/PostgreSQL 132 scénářů PASS. Typové kontroly PASS. Ověřený HEAD 45630ce, testovací merge fc27452. Bez nasazení nebo tvrzení o hotovém spotřebiteli fronty.

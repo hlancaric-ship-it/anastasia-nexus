@@ -24,6 +24,7 @@ import { handleShoptetWebhook } from './routes/shoptetWebhook.js';
 import { handleMedusaWebhook } from './routes/medusaWebhook.js';
 import { handleNexusPricing } from './routes/nexusPricing.js';
 import { handleMediaDelivery, MEDIA_PATH_PREFIX } from './routes/mediaDelivery.js';
+import { handleNexusOperations } from './routes/nexusOperations.js';
 import { handleNexusSafeOrder } from './routes/nexusSafeOrder.js';
 import { handleKlubSubscribe } from './routes/klubSubscribe.js';
 import { handleAIQuery } from './routes/aiGateway.js';
@@ -199,6 +200,10 @@ async function route(request: Request, env: Env, url: URL, ctx: ExecutionContext
         case '/api/nexus/pricing':
             requireMethod(request, 'POST');
             return handleNexusPricing(request, env);
+
+        case '/api/nexus/operations':
+            requireMethod(request, 'GET');
+            return handleNexusOperations(request, env);
 
         case '/api/nexus/safeorder':
             requireMethod(request, 'POST');
