@@ -4,7 +4,7 @@ Větev `codex/security-fixes`, základ `master@232c149`. Zadání Luckyho: oprav
 z kontroly přihlášení, médií a kupónů. Redovy auditní větve a cizí rozpracovaný ownership guard
 v hlavním worktree se nemění. Nic se nenasazuje.
 
-Stav: **IMPLEMENTED_UNVERIFIED** – cílené testy jsou níže; modul, middleware i HTTP skupiny jsou zapojené ve vlastní větvi; plný HTTP/PG důkaz vyžaduje Actions.
+Stav: **VERIFIED** na revizi `6433343c630a4aa79365a24cce76f2431ff53d72`; opravy a jejich zapojení prošly plnou syntetickou regresí na GitHub Actions. Větev není sloučená ani nasazená.
 
 ## Přihlášení
 
@@ -86,5 +86,22 @@ Nové externí závislosti nejsou potřeba.
 
 - Cílená media regrese: 13/13 PASS (původní + nové Node testy).
 - První cílený backend fokus: 30/30 PASS (provider, persistent state, rate middleware, kupóny).
-- Dodatečný backend fokus včetně privacy: **41/41 PASS** (5 sad); následný rozšířený limiter fokus **5/5 PASS**, TypeScript **PASS**.
+- Dodatečný backend fokus včetně privacy: **41/41 PASS** (5 sad); následný rozšířený limiter fokus **6/6 PASS**, TypeScript **PASS**.
 - Lokální PG/HTTP ani plná sada nebyly spuštěny; konečné runtime ověření pouze Actions.
+
+### Konečný důkaz
+
+[Actions 38745406536](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38745406536):
+oba joby SUCCESS. Artefakty byly stažené a jednotlivé výsledky přečtené:
+
+- backend **533/533 PASS**, včetně TypeScriptu;
+- NEXUS **1183/1183 PASS**, striktní TypeScript PASS;
+- skutečný workerd **46/46 PASS**;
+- celý Medusa/PostgreSQL HTTP běh **131 scénářů PASS**;
+- nových pět auth a tři coupon scénáře **8/8 PASS**, včetně zakódované cesty v testu limiteru.
+
+Trvalý souhrn je v [security-fixes-ci.json](evidence/security-fixes-ci.json).
+Poukazy, rezervace, souhlasy, GDPR, storna, sklad a doprava zůstaly součástí společného běhu.
+Předchozí selhání typové kontroly a neplatná testovací kombinace allocation/max_quantity byly
+opravené; zelený výsledek výše platí pro konečný kód, nikoli pro tyto předchozí běhy.
+Lokálně nebyl spuštěn PG/HTTP ani plná unit sada. Žádné nasazení ani merge.

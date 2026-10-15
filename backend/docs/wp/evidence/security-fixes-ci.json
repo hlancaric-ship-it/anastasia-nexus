@@ -1,0 +1,62 @@
+{
+  "source_commit": "6433343c630a4aa79365a24cce76f2431ff53d72",
+  "run_id": 38745406536,
+  "run_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38745406536",
+  "jobs": {
+    "verify": "success",
+    "medusa-persistence": "success"
+  },
+  "scope": "Synthetic isolated CI. No merge, deployment, real payment or external email.",
+  "tests": {
+    "backend_unit": {
+      "passed": 533,
+      "total": 533
+    },
+    "nexus": {
+      "passed": 1183,
+      "total": 1183
+    },
+    "workerd": {
+      "passed": 46,
+      "total": 46
+    }
+  },
+  "http": {
+    "status": "PASS",
+    "scenarios": 131,
+    "security_scenarios": [
+      {
+        "scenario": "SECURITY_AUTH_OTHER_ACTOR_CANNOT_BYPASS_GUARD",
+        "status": "PASS"
+      },
+      {
+        "scenario": "SECURITY_AUTH_INVALID_ATTEMPT_PRESERVES_VALID_LINK_AND_REPLAY_DENIED",
+        "status": "PASS"
+      },
+      {
+        "scenario": "SECURITY_AUTH_ATOMIC_SINGLE_USE_CONCURRENT_CONFIRMATION",
+        "status": "PASS"
+      },
+      {
+        "scenario": "SECURITY_AUTH_SHARED_RECIPIENT_RATE_LIMIT",
+        "status": "PASS"
+      },
+      {
+        "scenario": "SECURITY_AUTH_EXPIRED_LINK_DENIED",
+        "status": "PASS"
+      },
+      {
+        "scenario": "SECURITY_COUPON_CUSTOMER_RESTRICTION_FAILS_CLOSED",
+        "status": "PASS"
+      },
+      {
+        "scenario": "SECURITY_COUPON_PRODUCT_RESTRICTION_FAILS_CLOSED",
+        "status": "PASS"
+      },
+      {
+        "scenario": "SECURITY_COUPON_QUANTITY_RESTRICTION_FAILS_CLOSED",
+        "status": "PASS"
+      }
+    ]
+  }
+}
