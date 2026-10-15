@@ -43,7 +43,7 @@ import type {
     ExecutionIntentState,
     ExecutionConfirmationQuality,
 } from '../../core/canonical/outcomes/ExecutionIntent.js';
-import { canTransitionIntent } from '../../core/canonical/outcomes/ExecutionIntent.js';
+import { canTransitionIntent, EXECUTION_INTENT_TRANSITIONS } from '../../core/canonical/outcomes/ExecutionIntent.js';
 import type {
     ExecutionIntentStore,
     PlanIntentInput,
@@ -102,13 +102,9 @@ const COLUMNS = `id, tenant_id, decision_id, domain, connector_type, operation,
  * dřív nebo později rozešlo, proto se to i tak ověřuje přes
  * `canTransitionIntent` níž.
  */
-const CLAIMABLE_STATES = ['PLANNED', 'APPROVED', 'FAILED', 'UNKNOWN'] as const;
+const CLAIMABLE_STATES = (Object.keys(EXECUTION_INTENT_TRANSITIONS) as ExecutionIntentState[])
+    .filter((state) => canTransitionIntent(state, 'EXECUTING'));
 
-/**
- * Stavy, po kterých se `attempt` inkrementuje. Retry NEZAKLÁDÁ nový Intent --
- * historie pokusů má zůstat na jednom záznamu.
- */
-const RETRY_STATES = new Set<ExecutionIntentState>(['FAILED', 'UNKNOWN']);
 
 export class VoucherIntentStorageError extends Error {
     constructor(message: string) {
@@ -197,7 +193,7 @@ export class D1ExecutionIntentStore implements ExecutionIntentStore {
             .prepare(
                 `UPDATE execution_intents
                     SET state = 'EXECUTING',
-                        attempt = CASE WHEN state IN ('FAILED','UNKNOWN')
+                        attempt = CASE WHEN state = 'FAILED'
                                        THEN attempt + 1 ELSE attempt END,
                         updated_at = ?3
                   WHERE id = ?1

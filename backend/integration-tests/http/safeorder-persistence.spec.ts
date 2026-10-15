@@ -1,3 +1,7 @@
+import { verifyCartOwnership } from "./cart-ownership-http-checks"
+import { syntheticBuyer, associateCart } from "./customer-fixtures"
+import { verifyAuthSecurity } from "./auth-security-http-checks"
+import { verifyCouponSecurity } from "./coupon-security-http-checks"
 import { verifyBookingHttp } from "./booking-http-checks"
 import { verifyGiftVoucherHttp } from "./gift-voucher-http-checks"
 import { verifyDigitalCheckout } from "./digital-checkout-checks"
@@ -68,24 +72,26 @@ medusaIntegrationTestRunner({
       })) } })
       const headers = { "x-publishable-api-key": key.token }
       const options = { headers, validateStatus: () => true }
-      const success = async (path: string, body: unknown) => {
-        const response = await api.post(path, body, options)
+      const success = async (path: string, body: unknown, requestOptions = options) => {
+        const response = await api.post(path, body, requestOptions)
         expect(response.status).toBeLessThan(300)
         return response.data
       }
       const countOrders = async () => Number((await dbConnection.raw('SELECT count(*) AS count FROM "order"')).rows[0].count)
+      const buyer = await syntheticBuyer(container, options, "synthetic@example.test")
+      const disposableBuyer = await syntheticBuyer(container, options, "synthetic@tempmail.com")
+      const cartOptions = new Map<string, typeof options>()
       const newCart = async (amount: 50 | 400, disposable = false, couponCode?: string, customerHeaders?: Record<string, string>) => {
-        const createdResponse = await api.post("/store/carts", { region_id: region.id, email: disposable ? "synthetic@tempmail.com" : "synthetic@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } }, customerHeaders ? { ...options, headers: { ...headers, ...customerHeaders } } : options)
+        const ownedOptions = customerHeaders ? { ...options, headers: { ...headers, ...customerHeaders } } : (disposable ? disposableBuyer : buyer).options
+        const createdResponse = await api.post("/store/carts", { region_id: region.id, email: disposable ? "synthetic@tempmail.com" : "synthetic@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } }, ownedOptions)
         expect(createdResponse.status).toBe(200)
         const id = createdResponse.data.cart.id
-        if (customerHeaders) {
-          const assigned = await api.post(`/store/carts/${id}/customer`, {}, { ...options, headers: { ...headers, ...customerHeaders } })
-          expect(assigned.status).toBe(200)
-        }
-        await acceptCheckoutConsent(api, id, customerHeaders ? { ...options, headers: { ...headers, ...customerHeaders } } : options)
+        cartOptions.set(id, ownedOptions)
+        await associateCart(api, id, ownedOptions)
+        await acceptCheckoutConsent(api, id, ownedOptions)
         const product = products.find((p) => p.handle === `synthetic-p0-${amount}`)!
         await success(`/store/carts/${id}/line-items`, { variant_id: product.variants[0].id, quantity: 1 })
-        await success("/store/nexus-cart", { cart_id: id, couponCode, unit_price: 0.01, tenantId: "attacker" })
+        await success("/store/nexus-cart", { cart_id: id, couponCode, unit_price: 0.01, tenantId: "attacker" }, ownedOptions)
         const shipping = await api.get(`/store/shipping-options?cart_id=${id}`, options)
         expect(shipping.status).toBe(200)
         const option = shipping.data.shipping_options.find((item: any) => item.shipping_profile_id === profile.id) || shipping.data.shipping_options[0]
@@ -100,6 +106,7 @@ medusaIntegrationTestRunner({
         expect(response.status).toBe(200)
       }
       const evidence: any[] = []
+      await verifyCartOwnership({ api, container, options, region, countOrders, evidence })
       const giftVoucherOnly = process.env.WAVE1_GIFT_VOUCHER_ONLY === "1"
       const endpoints = process.env.WAVE1_BOOKING_ONLY === "1" || giftVoucherOnly ? [] : ["standard", "custom"] as const
       for (const endpoint of endpoints) {
@@ -109,7 +116,7 @@ medusaIntegrationTestRunner({
           const id = await newCart(scenario === "BLOCK" ? 400 : 50, ["REVIEW", "BLOCK"].includes(scenario))
           await control(["REVIEW", "BLOCK"].includes(scenario) ? "normal" : scenario)
           const path = endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout"
-          const response = await api.post(path, endpoint === "standard" ? {} : { cart_id: id, orderSum: 0.01, paymentMethod: "stripe", customerEmail: "client-override@example.test" }, options)
+          const response = await api.post(path, endpoint === "standard" ? {} : { cart_id: id, orderSum: 0.01, paymentMethod: "stripe", customerEmail: "client-override@example.test" }, cartOptions.get(id))
           expect(response.status).toBeGreaterThanOrEqual(400)
           if (endpoint === "custom") {
             const expected = scenario === "REVIEW" ? [409, "SAFEORDER_REVIEW_REQUIRED"] : scenario === "BLOCK" ? [403, "SAFEORDER_BLOCKED"] : scenario === "pricing-redirect" ? [503, "NEXUS_PRICING_UNAVAILABLE"] : ["pricing-malformed", "pricing-tenant"].includes(scenario) ? [400, "INVALID_NEXUS_PRICE_RESPONSE"] : scenario === "pricing-change" ? [409, "PRICE_CHANGED_PAYMENT_REINITIALIZATION_REQUIRED"] : [503, "SAFEORDER_UNAVAILABLE"]
@@ -126,7 +133,7 @@ medusaIntegrationTestRunner({
           // change asks the client to reinitialize payment; do not replay that
           // response as a security failure (covered in the later checkout gate).
           if (scenario !== "pricing-change") {
-            const replay = await api.post(path, endpoint === "standard" ? {} : { cart_id: id }, options)
+            const replay = await api.post(path, endpoint === "standard" ? {} : { cart_id: id }, cartOptions.get(id))
             expect(replay.status).toBeGreaterThanOrEqual(400)
             expect(await countOrders()).toBe(before)
             evidence.push({ endpoint, scenario: `${scenario}-REPLAY`, status: replay.status, orderDelta: 0 })
@@ -139,7 +146,7 @@ medusaIntegrationTestRunner({
         const concurrentId = await newCart(400, true)
         const concurrentBefore = await countOrders()
         const concurrentPath = endpoint === "standard" ? `/store/carts/${concurrentId}/complete` : "/store/nexus-checkout"
-        const concurrent = await Promise.all([0, 1].map(() => api.post(concurrentPath, endpoint === "standard" ? {} : { cart_id: concurrentId }, options)))
+        const concurrent = await Promise.all([0, 1].map(() => api.post(concurrentPath, endpoint === "standard" ? {} : { cart_id: concurrentId }, cartOptions.get(concurrentId))))
         expect(concurrent.every((result) => result.status >= 400)).toBe(true)
         expect(await countOrders()).toBe(concurrentBefore)
         expect((await dbConnection.raw('SELECT completed_at FROM cart WHERE id = ?', [concurrentId])).rows[0].completed_at).toBeNull()
@@ -148,7 +155,7 @@ medusaIntegrationTestRunner({
         const id = await newCart(50)
         const before = await countOrders()
         const cart = (await api.get(`/store/carts/${id}`, options)).data.cart
-        const response = await api.post(endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout", endpoint === "standard" ? {} : { cart_id: id }, options)
+        const response = await api.post(endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout", endpoint === "standard" ? {} : { cart_id: id }, cartOptions.get(id))
         expect(response.status).toBe(200)
         expect(response.data.order.id).toBeDefined()
         expect(await countOrders()).toBe(before + 1)
@@ -184,7 +191,7 @@ medusaIntegrationTestRunner({
         })
         let responses: any[]
         try {
-          responses = await Promise.all(ids.map(id => api.post(endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout", endpoint === "standard" ? {} : { cart_id: id }, options)))
+          responses = await Promise.all(ids.map(id => api.post(endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout", endpoint === "standard" ? {} : { cart_id: id }, cartOptions.get(id))))
         } finally { registration.mockRestore() }
         expect(arrivals).toBe(2)
         const winner = responses!.findIndex(response => response.status === 200)
@@ -209,6 +216,10 @@ medusaIntegrationTestRunner({
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyOrderSelfCancel({ api, container, options, channel, region, profile, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyStockAvailability({ api, container, options, channel, region, profile, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyShippingSettings({ api, container, options, channel, region, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") {
+        await verifyAuthSecurity({ api, container, evidence })
+        await verifyCouponSecurity({ api, container, options, channel, region, profile, evidence })
+      }
       await verifyOpsObservability({ api, container, options, evidence, bookingRan: !giftVoucherOnly })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })

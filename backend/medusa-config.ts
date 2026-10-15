@@ -143,6 +143,7 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/email-template" },
   { resolve: "./src/modules/legal" },
   { resolve: "./src/modules/customer-privacy" },
+  { resolve: "./src/modules/auth-security" },
 ]
 
 if (stripeApiKey) {

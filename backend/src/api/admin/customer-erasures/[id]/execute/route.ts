@@ -1,10 +1,10 @@
 import type { MedusaRequest,MedusaResponse } from "@medusajs/framework/http"
-import { Modules } from "@medusajs/framework/utils"
+import { Modules, ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { legalActor,sendLegalError } from "../../../../legal-helpers"
 import { privacyService,erasureDTO } from "../../../../customer-privacy-helpers"
 import { confirmErasure } from "../../../../../modules/customer-privacy/policy"
 import { LegalError } from "../../../../../modules/legal/policy"
-import { stateKey } from "../../../../../modules/auth-magic-link/policy"
+import { stateKey, sha256Hex } from "../../../../../modules/auth-magic-link/policy"
 import { auditAdminChange } from "../../../../../lib/observability/audit"
 export async function POST(req:MedusaRequest,res:MedusaResponse) {
  res.setHeader("Cache-Control","no-store")
@@ -15,6 +15,7 @@ export async function POST(req:MedusaRequest,res:MedusaResponse) {
   confirmErasure(req.body,request.customer_id)
   const prepared=await service.prepareErasure(request.id,actor)
   for(const email of (!prepared.replayed ? prepared.emails : [])) {
+   await (req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION) as any).raw("delete from auth_link_state where id = ?",[sha256Hex(email)])
    // Same public Auth service state API used by magic-link: consuming invalidates the cached token.
    await (req.scope.resolve(Modules.AUTH) as any).getAuthIdentityProviderService("magic-link").getState(stateKey(email))
   }

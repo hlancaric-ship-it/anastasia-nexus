@@ -1,7 +1,7 @@
 import { Client } from "pg"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import MagicLinkAuthService from "../service"
-import { sha256Hex, stateKey } from "../policy"
+import { storeLink } from "../state"
 
 describe("auth-magic-link PostgreSQL integration", () => {
   jest.setTimeout(30_000)
@@ -20,6 +20,7 @@ describe("auth-magic-link PostgreSQL integration", () => {
       // TEMP relations shadow Medusa tables for this session. The test touches no
       // persistent customer, order, entitlement, or auth data and rolls back.
       await client.query(`
+        create temporary table auth_link_state (id text primary key, token_hash text not null, expires_at timestamptz not null, updated_at timestamptz null) on commit drop;
         create temporary table customer (
           id text primary key, email text not null, has_account boolean not null,
           deleted_at timestamptz null, updated_at timestamptz null
@@ -40,7 +41,6 @@ describe("auth-magic-link PostgreSQL integration", () => {
       await client.query("insert into legacy_order values ($1,$2,$3)", ["legacy_order_1", "cus_c2_1", "38.00"])
       await client.query("insert into entitlement values ($1,$2,$3)", ["legacy_access_1", "cus_c2_1", "prod_ep001"])
 
-      const state = new Map<string, unknown>([[stateKey("c2.user@example.test"), { email: "c2.user@example.test", tokenHash: sha256Hex("verified-token") }]])
       // Služba volá knex `.raw()` s pozičními `?`; shim je převede na pg `$n` stejně jako knex.
       const pg = { raw: async (sql: string, bindings: unknown[] = []) => { let i = 0; return client.query(sql.replace(/\?/g, () => `$${++i}`), bindings) } }
       const cradle = {
@@ -50,10 +50,10 @@ describe("auth-magic-link PostgreSQL integration", () => {
       }
       const service = new (MagicLinkAuthService as any)(cradle, {})
       const authProvider = {
-        getState: jest.fn(async (key: string) => { const value = state.get(key) ?? null; state.delete(key); return value }),
         retrieve: jest.fn(async () => ({ id: "auth_c2_1", entity_id: "c2.user@example.test", app_metadata: {} })),
       }
 
+      await storeLink(pg, "c2.user@example.test", "verified-token")
       const result = await service.authenticate({ body: { email: "C2.User@Example.Test", token: "verified-token" } }, authProvider)
       expect(result.success).toBe(true)
       expect(result.authIdentity.app_metadata.customer_id).toBe("cus_c2_1")
@@ -64,22 +64,20 @@ describe("auth-magic-link PostgreSQL integration", () => {
       // A previously committed identity link with a stale flag is repaired only
       // after its customer ID and normalized email have been verified.
       await client.query("update customer set has_account = false where id = $1", ["cus_c2_1"])
-      const relinkState = new Map<string, unknown>([[stateKey("c2.user@example.test"), { email: "c2.user@example.test", tokenHash: sha256Hex("relink-token") }]])
       const linkedProvider = {
-        getState: jest.fn(async (key: string) => { const value = relinkState.get(key) ?? null; relinkState.delete(key); return value }),
         retrieve: jest.fn(async () => ({ id: "auth_c2_1", entity_id: "c2.user@example.test", app_metadata: { customer_id: "cus_c2_1" } })),
       }
+      await storeLink(pg, "c2.user@example.test", "relink-token")
       expect((await service.authenticate({ body: { email: "c2.user@example.test", token: "relink-token" } }, linkedProvider)).success).toBe(true)
       expect((await client.query("select has_account from customer where id = $1", ["cus_c2_1"])).rows[0].has_account).toBe(true)
 
       // Duplicate C2 email must not choose an arbitrary historical customer.
       await client.query("insert into customer (id,email,has_account) values ($1,$2,false),($3,$2,false)", ["cus_dup_a", "duplicate@example.test", "cus_dup_b"])
       await client.query("insert into auth_identity (id,entity_id,app_metadata) values ($1,$2,'{}'::jsonb)", ["auth_dup", "duplicate@example.test"])
-      const duplicateState = new Map<string, unknown>([[stateKey("duplicate@example.test"), { email: "duplicate@example.test", tokenHash: sha256Hex("duplicate-token") }]])
       const duplicateProvider = {
-        getState: jest.fn(async (key: string) => { const value = duplicateState.get(key) ?? null; duplicateState.delete(key); return value }),
         retrieve: jest.fn(async () => ({ id: "auth_dup", entity_id: "duplicate@example.test", app_metadata: {} })),
       }
+      await storeLink(pg, "duplicate@example.test", "duplicate-token")
       const duplicateResult = await service.authenticate({ body: { email: "duplicate@example.test", token: "duplicate-token" } }, duplicateProvider)
       expect(duplicateResult.success).toBe(true)
       expect(duplicateResult.authIdentity.app_metadata).toEqual({})

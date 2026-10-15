@@ -1,3 +1,4 @@
+import { syntheticBuyer, associateCart } from "./customer-fixtures"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
 import { acceptCheckoutConsent } from "./legal-fixtures"
 
@@ -13,6 +14,8 @@ import { acceptCheckoutConsent } from "./legal-fixtures"
  * za 0,02 € bez DPH košík posune těsně nad hranici. Sazbu DPH test neopisuje.
  */
 export async function verifyShippingSettings({ api, container, options, channel, region, evidence }: any) {
+  const buyer = await syntheticBuyer(container, options, "shipping-digital@example.test")
+  const buyerOptions = buyer.options
   const query = container.resolve("query")
   const threshold = Number(process.env.ANASTASIA_FREE_SHIPPING_FROM_EUR)
   expect(threshold).toBe(100)
@@ -99,8 +102,9 @@ export async function verifyShippingSettings({ api, container, options, channel,
     region_id: region.id, sales_channel_id: channel.id, email: "shipping-digital@example.test",
     shipping_address: { first_name: "Synthetic", last_name: "Shipping", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" },
   }, options))
+  await associateCart(api, digitalCart.id, buyerOptions)
   await ok(api.post(`/store/carts/${digitalCart.id}/line-items`, { variant_id: variantId, quantity: 1 }, options))
-  await ok(api.post("/store/nexus-cart", { cart_id: digitalCart.id }, options))
+  await ok(api.post("/store/nexus-cart", { cart_id: digitalCart.id }, buyerOptions))
   const listed = await ok(api.get(`/store/shipping-options?cart_id=${digitalCart.id}`, options))
   const digital = listed.shipping_options.find((option: any) => option.name === "Digitálny produkt (bez dopravy)")
   if (digital) {
@@ -108,10 +112,10 @@ export async function verifyShippingSettings({ api, container, options, channel,
     if (attach.status === 200) {
       const collection = await ok(api.post("/store/payment-collections", { cart_id: digitalCart.id }, options))
       await ok(api.post(`/store/payment-collections/${collection.payment_collection.id}/payment-sessions`, { provider_id: "pp_system_default" }, options))
-      await acceptCheckoutConsent(api, digitalCart.id, options)
+      await acceptCheckoutConsent(api, digitalCart.id, buyerOptions)
       for (const completion of [
         () => api.post(`/store/carts/${digitalCart.id}/complete`, {}, options),
-        () => api.post("/store/nexus-checkout", { cart_id: digitalCart.id }, options),
+        () => api.post("/store/nexus-checkout", { cart_id: digitalCart.id }, buyerOptions),
       ]) {
         const response = await completion()
         expect(response.status).toBe(400)

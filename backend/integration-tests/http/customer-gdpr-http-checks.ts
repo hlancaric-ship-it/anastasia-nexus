@@ -1,6 +1,6 @@
 import { ContainerRegistrationKeys,generateJwtToken,Modules } from "@medusajs/framework/utils"
 import { DEFAULT_SETTINGS } from "../../src/modules/gift-voucher/policy"
-import { stateKey } from "../../src/modules/auth-magic-link/policy"
+import { stateKey, sha256Hex } from "../../src/modules/auth-magic-link/policy"
 /** Synthetic only. The integrator invokes this inside the serial CI Medusa/PG runner. */
 export async function verifyCustomerGdpr({api,container,options,newCart,evidence}:any) {
  const customers=await container.resolve(Modules.CUSTOMER).createCustomers([{email:"privacy-owner@example.test",first_name:"Synthetic",last_name:"Privacy",phone:"synthetic-phone"},{email:"privacy-other@example.test",first_name:"Other"}])
@@ -51,9 +51,11 @@ export async function verifyCustomerGdpr({api,container,options,newCart,evidence
  expect((await api.post(path,{confirm:true,customer_id:owner.id},opts[0])).status).toBe(401)
  const auth=container.resolve(Modules.AUTH).getAuthIdentityProviderService("magic-link")
  await auth.setState(stateKey(owner.email),{email:owner.email,tokenHash:"synthetic-only"},900)
+ await db("auth_link_state").insert({id:sha256Hex(owner.email),token_hash:sha256Hex("synthetic-pending"),expires_at:new Date(Date.now()+900000)})
  const erased=await api.post(path,{confirm:true,customer_id:owner.id},admin)
  expect(erased.status).toBe(200);expect(erased.data.request.status).toBe("completed")
  expect(await auth.getState(stateKey(owner.email))).toBeFalsy()
+ expect(await db("auth_link_state").where({id:sha256Hex(owner.email)}).first()).toBeFalsy()
  const replay=await api.post(path,{confirm:true,customer_id:owner.id},admin)
  expect(replay.status).toBe(200);expect(replay.data.replayed).toBe(true)
  expect(await readOrder()).toEqual(before)

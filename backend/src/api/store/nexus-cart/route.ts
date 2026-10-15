@@ -1,4 +1,4 @@
-import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { MedusaRequest, MedusaResponse, AuthenticatedMedusaRequest } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, Modules, QueryContext } from "@medusajs/framework/utils"
 import type { IPromotionModuleService, PromotionDTO } from "@medusajs/framework/types"
 import { updateLineItemInCartWorkflow, updateCartWorkflow } from "@medusajs/medusa/core-flows"
@@ -52,10 +52,17 @@ async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  */
 async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promise<StoredCoupon | undefined> {
   const promotions = scope.resolve<IPromotionModuleService>(Modules.PROMOTION)
-  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "application_method"], take: 2 })
+  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "rules", "application_method", "application_method.target_rules", "application_method.buy_rules"], take: 2 })
   const promotion = matches[0] as PromotionDTO | undefined
   if (matches.length !== 1 || !promotion || !codeAvailable(promotion, code)) return undefined
   const method = promotion.application_method
+  // NEXUS currently applies a single percentage to every item. Never silently
+  // discard native customer/product/quantity/target restrictions.
+  if (!Array.isArray(promotion.rules) || promotion.rules.length ||
+      !Array.isArray(method?.target_rules) || method.target_rules.length ||
+      !Array.isArray(method?.buy_rules) || method.buy_rules.length ||
+      promotion.type !== "standard" || method.target_type !== "items" ||
+      method.max_quantity != null || method.buy_rules_min_quantity != null || method.apply_to_quantity != null) return undefined
   if (!method || method.type !== "percentage" || typeof method.value !== "number" || method.value <= 0 || method.value > 100) return undefined
   return { code, promotion_id: promotion.id, type: "percentage", value: method.value }
 }
@@ -95,14 +102,21 @@ async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  * `couponCodeInput`: `undefined` = nezasahovat (jen znovu ověřit uložený
  * kupón, pokud nějaký je); `string` = nastavit/vyměnit kupón; `null` =
  * odebrat uložený kupón. Viz `resolveCartCoupon`.
+ *
+ * `expectedCustomerId`: vlastník, který smí s košíkem manipulovat. Pokud je
+ * zadán, cart.customer_id se mu musí PŘESNĚ rovnat (guest košík s
+ * `customer_id === null` je odmítnut) -- jinak CART_ACCESS_DENIED. Vynechání
+ * parametru ownership kontrolu přeskakuje a je určené JEN pro důvěryhodné
+ * interní volající (hooks.ts), NIKDY pro HTTP handlery, kde se vlastník bere
+ * z auth_context.
  */
-export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null) {
+export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null, expectedCustomerId?: string) {
   if (!cartId || typeof cartId !== "string") throw new Error("INVALID_CART_ID")
   const query: any = scope.resolve(ContainerRegistrationKeys.QUERY)
   const { data } = await query.graph({
     entity: "cart",
     fields: [
-      "id", "currency_code", "region_id", "metadata", "customer.metadata", "customer.groups.name", "customer.groups.metadata",
+      "id", "currency_code", "region_id", "metadata", "customer_id", "customer.metadata", "customer.groups.name", "customer.groups.metadata",
       "items.id", "items.quantity", "items.variant_id", "items.unit_price",
       "credit_lines.id", "credit_lines.reference",
     ],
@@ -110,6 +124,9 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   })
   const cart = data?.[0]
   if (!cart) throw new Error("CART_NOT_FOUND")
+  if (expectedCustomerId && cart.customer_id !== expectedCustomerId) {
+    throw new Error("CART_ACCESS_DENIED")
+  }
   const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput)
   const tenantId = process.env.NEXUS_TENANT_ID
   const pricingUrl = process.env.NEXUS_PRICING_URL
@@ -215,13 +232,15 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   return { tenantId, items: pricedItems, pricesChanged, coupon: coupon ? { code: coupon.code } : null, gift_voucher: giftVoucher }
 }
 
-export async function POST(req: MedusaRequest, res: MedusaResponse) {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  const actorId = req.auth_context?.actor_type === "customer" ? req.auth_context.actor_id : undefined
+  if (!actorId) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" })
   try {
     const { cart_id: cartId, couponCode } = req.body as { cart_id?: string; couponCode?: string | null }
     if (couponCode !== undefined && couponCode !== null && typeof couponCode !== "string") {
       return res.status(400).json({ ok: false, error: "VALIDATION_ERROR" })
     }
-    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode)
+    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode, actorId)
     await recordEvent(req.scope, "info", "pricing", "repriced", {
       cart_id: cartId, tenant_id: pricing.tenantId, lines: pricing.items.length, prices_changed: pricing.pricesChanged,
       coupon_applied: Boolean(pricing.coupon), gift_voucher_applied: Boolean(pricing.gift_voucher),
@@ -233,7 +252,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     await recordEvent(req.scope, message.startsWith("NEXUS_PRICING") || message === "INVALID_NEXUS_PRICE_RESPONSE" ? "error" : "warn", message === "COUPON_INVALID" ? "coupon" : "pricing", "reprice_failed", {
       cart_id: typeof cartId === "string" ? cartId : null, error_code: /^[A-Z][A-Z0-9_]{2,63}$/.test(message) ? message : "PRICING_FAILED",
     })
-    const status = message === "CART_NOT_FOUND" ? 404 : message === "COUPON_INVALID" ? 400 : message.startsWith("NEXUS_PRICING") ? 503 : 400
+    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message === "COUPON_INVALID" ? 400 : message.startsWith("NEXUS_PRICING") ? 503 : 400
     return res.status(status).json({ ok: false, error: message })
   }
 }

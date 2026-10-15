@@ -1,0 +1,492 @@
+index,path,kind,bytes,lines,format,readable,exports,imports,flag_lines,flag_locations,intro,sha256_short
+0,.gitignore,repo metadata,57,7,(none),yes,,0,0,,,300670d3e097
+1,README.md,repo metadata,2526,57,.md,yes,,0,0,,ANASTASIA & NEXUS — Centralized E-Commerce Architecture,721a8a8ad6cd
+2,STATUS.md,repo metadata,3638,57,.md,yes,,0,0,,Detailný Prehľad a Stav Projektu ANASTASIA & NEXUS Integration,0c4e580295b3
+3,admin-demo/BRIEF.md,admin demo,3872,34,.md,yes,,0,0,,ANASTASIA — administračné demo,e0d43ee4f6f5
+4,admin-demo/NABIDKA-ANASTASIA-PRO-KLIENTKU-8-10-2026.pdf,admin demo,79562,0,.pdf,binary,,0,0,,,9011f23931e5
+5,admin-demo/STATUS.md,admin demo,3638,57,.md,yes,,0,0,,Detailný Prehľad a Stav Projektu ANASTASIA & NEXUS Integration,0c4e580295b3
+6,admin-demo/index.html,admin demo,241056,1613,.html,yes,,0,20,239;550;635;636;637;649;650;651;657;663;670;675,jemné doplnky nad Anastasia core design systémom — kompaktný luxusný štýl */,a59d71a12655
+7,admin-demo/migrations/0001_create_demo_state.sql,admin demo,150,5,.sql,yes,,0,0,,CREATE TABLE IF NOT EXISTS demo_state (,3fbdfc21fc6a
+8,admin-demo/public/index.html,admin demo,241056,1613,.html,yes,,0,20,239;550;635;636;637;649;650;651;657;663;670;675,jemné doplnky nad Anastasia core design systémom — kompaktný luxusný štýl */,a59d71a12655
+9,admin-demo/public/styles.css,admin demo,61169,2576,.css,yes,,0,4,18;1653;1666;1667,=====================================================,eaf6615d882f
+10,admin-demo/styles.css,admin demo,61169,2576,.css,yes,,0,4,18;1653;1666;1667,=====================================================,eaf6615d882f
+11,admin-demo/worker.js,admin demo,7310,175,.js,yes,,0,0,,"""""""content-type"""": """"application/json; charset=utf-8"""",""",bf616c3eec5d
+12,admin-demo/wrangler.jsonc,admin demo,711,28,.jsonc,yes,,0,0,,"""""""$schema"""": """"https://unpkg.com/wrangler@4.86.0/config-schema.json"""",""",0b2e5503fb37
+13,backend/.env.template,Medusa backend/config,339,8,.template,yes,,0,0,,"""STORE_CORS=http://localhost:8000,https://docs.medusajs.com""",f6cfd42a1da0
+14,backend/.gitignore,Medusa backend/config,227,26,(none),yes,,0,0,,./tsconfig.tsbuildinfo,1a2de662f139
+15,backend/README.md,Medusa backend/config,2970,62,.md,yes,,0,0,,Building blocks for digital commerce,9e4610e4266e
+16,backend/eslint.config.ts,Medusa backend/config,152,4,.ts,yes,,2,0,,,148c2e94315a
+17,backend/instrumentation.ts,Medusa backend/config,781,24,.ts,yes,register,2,0,,Uncomment this file to enable instrumentation and observability using OpenTelemetry,b4881af7951e
+18,backend/integration-tests/setup.js,Medusa backend/config,99,3,.js,yes,,0,0,,MetadataStorage.clear(),1cb61340d393
+19,backend/jest.config.js,Medusa backend/config,842,27,.js,yes,,0,0,,"""loadEnv(""""test"""", process.cwd());""",2ba24c2850e6
+20,backend/medusa-config.ts,Medusa backend/config,461,16,.ts,yes,,1,0,,"""loadEnv(process.env.NODE_ENV || 'development', process.cwd())""",595d52ebc11c
+21,backend/package.json,Medusa backend/config,1833,60,.json,yes,,0,0,,"""""""name"""": """"@dtc/backend"""",""",b8b7754efa85
+22,backend/src/admin/README.md,Medusa backend/config,986,33,.md,yes,config,1,0,,Admin Customizations,199b3fdd429a
+23,backend/src/admin/i18n/README.md,Medusa backend/config,1691,58,.md,yes,config,4,0,,Admin Customizations Translations,7f8996c75944
+24,backend/src/admin/i18n/index.ts,Medusa backend/config,17,1,.ts,yes,,0,0,,,9aeb8d59b4d4
+25,backend/src/admin/tsconfig.json,Medusa backend/config,609,27,.json,yes,,0,0,,"""""""compilerOptions"""": {""",20cef9e3d285
+26,backend/src/admin/vite-env.d.ts,Medusa backend/config,37,1,.ts,yes,,0,0,,,b440b802c2cf
+27,backend/src/api/README.md,Medusa backend/config,3760,135,.md,yes,GET; GET; POST; PUT; GET; GET,6,0,,Custom API Routes,44b7f9ae0c18
+28,backend/src/api/admin/custom/route.ts,Medusa backend/config,175,8,.ts,yes,GET,1,0,,"""req: MedusaRequest,""",b91decad2596
+29,backend/src/api/store/custom/route.ts,Medusa backend/config,175,8,.ts,yes,GET,1,0,,"""req: MedusaRequest,""",b91decad2596
+30,backend/src/jobs/README.md,Medusa backend/config,1386,38,.md,yes,myCustomJob; config,1,0,,Custom scheduled jobs,82e32cc9f193
+31,backend/src/links/README.md,Medusa backend/config,764,26,.md,yes,,3,0,,"""A module link forms an association between two data models of different modules, while maintaining module isolation.""",7a7df0289bda
+32,backend/src/migration-scripts/initial-data-seed.ts,Medusa backend/config,21539,839,.ts,yes,initial_data_seed,3,0,,"""ContainerRegistrationKeys,""",99d039f37214
+33,backend/src/modules/README.md,Medusa backend/config,2820,117,.md,yes,BLOG_MODULE; GET,8,0,,A module is a package of reusable functionalities. It can be integrated into your Medusa application without affecting the overall system. You ca,8db1b8ea5f97
+34,backend/src/subscribers/README.md,Medusa backend/config,1739,61,.md,yes,productCreateHandler; config; productCreateHandler; config,2,0,,Custom subscribers,cf678346723a
+35,backend/src/workflows/README.md,Medusa backend/config,1644,81,.md,yes,GET,3,0,,A workflow is a series of queries and actions that complete a task.,2942b241cfa8
+36,backend/src/workflows/hooks.ts,Medusa backend/config,964,19,.ts,yes,,2,0,,Medusa spike: register the setPricingContext hook so cart line-item,4e4f78540024
+37,backend/tsconfig.json,Medusa backend/config,768,36,.json,yes,,0,0,,"""""""compilerOptions"""": {""",089b08bb77d2
+38,docs/ANASTASIA-technicka-priloha-Dufek.md,documentation,17351,157,.md,yes,,0,1,146,Technická příloha auditu anastasiaoz.eu — pro dodavatele (DUFEKSOFT),b90972a9f909
+39,docs/BRIEF-ciloveho-systemu-a-roadmapa.md,documentation,7156,82,.md,yes,,0,0,,"""Anastasia — cílový systém, postup a náročnost""",a533a6ae1d06
+40,docs/CALLSKRIPT-8-10-FINAL.md,documentation,8668,83,.md,yes,,0,0,,CALL ANASTASIA · čt 8. 10. 10:00 · Meet dsh-kecy-gvg,dc527da62dae
+41,docs/CELKOVY-POHLED-kulaty-stul.md,documentation,8106,72,.md,yes,,0,0,,anastasiaoz.eu — CELKOVÝ POHLED (kulatý stůl),c7c4657f6134
+42,docs/CELKOVY-POHLED-tri-weby.md,documentation,10536,156,.md,yes,,0,0,,ANASTASIA ekosystém — CELKOVÝ POHLED napříč všemi třemi weby (kulatý stůl),ec7fc424b411
+43,docs/INTERNI-callskript.md,documentation,6641,75,.md,yes,,0,0,,"""CALLSKRIPT — videohovor s Lucií (INTERNÍ, L-Code)""",6df2e3cb8825
+44,docs/KULATY-STUL-celkovy.md,documentation,9163,94,.md,yes,,0,0,,KULATÝ STŮL — celkový pohled na ekosystém Anastasia + rozhodnutí,2eb434caf257
+45,docs/MASTER-AUDIT-ANASTASIA.md,documentation,6531,101,.md,yes,,0,0,,MASTER AUDIT — ANASTASIA ekosystém (3 weby),828f7d17cf8a
+46,docs/MASTER-BLUEPRINT-architektura-migrace.md,documentation,16218,182,.md,yes,,0,0,,ANASTASIA — MASTER BLUEPRINT,d5361a736717
+47,docs/POKRYTI-vs-MEZERY.md,documentation,4076,30,.md,yes,,0,0,,"""Co audit reálně pokrývá vs. co chybí — 7bodový rámec, VŠECHNY TŘI WEBY""",d8290f466a38
+48,docs/PRO-KLIENTKU-email-call.md,documentation,1590,26,.md,yes,,0,0,,"""Email klientce — domluvit videohovor (DRAFT, neodesláno)""",d8fb8101f185
+49,docs/PRO-KLIENTKU-prehled-a-hodnoceni.md,documentation,8544,97,.md,yes,,0,0,,ANASTASIA — přehled vašich webů a naše prvotní hodnocení,baf3879d3ec1
+50,docs/PRO-KLIENTKU-rozhodnuti.md,documentation,8722,101,.md,yes,,0,0,,ANASTASIA — proč současné řešení neudržet a kudy dál,4f26e45b84b8
+51,docs/PRO-KLIENTKU-tym-navrhy.md,documentation,4293,64,.md,yes,,0,0,,Váš projekt očima našeho týmu,d84304e7a01e
+52,docs/PRO-KLIENTKU-vize-moderni-system.md,documentation,5582,77,.md,yes,,0,0,,"""ANASTASIA — jak vypadá moderní systém, který pro vás pracuje""",cd786d01087f
+53,docs/ROZPAD-faze1-narocnost.md,documentation,3972,58,.md,yes,,0,0,,"""Rozpad fází, náročnost a model ceny (INTERNÍ)""",ceb2b665b383
+54,docs/ZAVAZNA-PONUKA-ANASTASIA.md,documentation,10726,176,.md,yes,,0,0,,Závazná nabídka — ANASTASIA,57828c122a63
+55,docs/segment-DATA-eshop.md,documentation,4825,62,.md,yes,,0,0,,Data audit e-shopu (anastasiaoz.eu) — z dumpu DB.sql,8f8ef2c766ad
+56,docs/segment-DNS-analyza.md,documentation,4470,54,.md,yes,,0,0,,DNS audit celého ekosystému — 5 zón (BIND export),78e39a50e93b
+57,docs/segment-INFRA-domeny-SEO.md,documentation,22094,279,.md,yes,,0,1,62,"""ANASTASIA ekosystém — INFRA / DOMÉNY / TLS / SEO (segment, pasivní sken)""",efe64123fba5
+58,docs/segment-JARVIS-zabezpeceni.md,documentation,2879,30,.md,yes,,0,0,,Segment JARVIS — zabezpečení (podklad ke kulatému stolu),6e09142987cb
+59,docs/segment-STRUKTURA-architektura.md,documentation,8169,104,.md,yes,,0,0,,ANASTASIA ekosystém — STRUKTURA & ARCHITEKTURA (podklad pro návrh migrace),9ad7bd6f15f9
+60,docs/segment-VYKON-eshop.md,documentation,5273,65,.md,yes,,0,0,,Bod 5 — Výkon e-shopu anastasiaoz.eu (měřeno 7.10.2026),47465fd674c4
+61,docs/segment-WEB-aianastasia.md,documentation,7548,63,.md,yes,,0,1,49,aianastasia.com (AI Pharmacy Assistant) — bezpečnostní audit (segment úrovně B),c779eb71eaab
+62,docs/segment-WEB-anastasia-academy.md,documentation,5805,64,.md,yes,,0,0,,anastasia.academy — bezpečnostní audit (segment úrovně B),78eef9d2cba6
+63,nexus/.github/workflows/test.yml,repo metadata,1574,50,.yml,yes,,0,1,48,"""PROČ CI EXISTUJE (2026-09-06, Fáze A voucheru):""",d015a822a48d
+64,nexus/.gitignore,repo metadata,36,4,(none),yes,,0,0,,,d15f232be465
+65,nexus/CLAUDE.md,repo metadata,683,31,.md,yes,,0,0,,NEXUS — Jarvis kontext produktu,3d667b2d3507
+66,nexus/PROGRESS_LOG.md,repo metadata,28873,566,.md,yes,,0,1,259,NEXUS — Progress Log,4b9c932da9f9
+67,nexus/README.md,repo metadata,10177,180,.md,yes,,0,3,40;162;166,NEXUS — E-commerce Operating System,fbfdc3e82de4
+68,nexus/connectors/Connector.ts,connector,2067,45,.ts,yes,ConnectorType; ConnectorCapabilities; Connector; WritableConnector,0,0,,"""Connector Contract -- Core nesmí vědět, jestli pracuje přes CSV, REST""",e434dd967d7f
+69,nexus/connectors/availability-intelligence/legacy/availability/AvailabilityEngine.ts,connector,3942,93,.ts,yes,AvailabilityEngine,1,0,,Threshold for LOW_STOCK categorization (business decision default: <= 3),6edae603cd93
+70,nexus/connectors/availability-intelligence/legacy/availability/types.ts,connector,1553,52,.ts,yes,AvailabilityStatus; AvailabilityScore; VariantAvailability; ProductAvailabilityInput; AvailabilityResult,0,0,,"""IN_STOCK = 'IN_STOCK',""",ef9b670393a0
+71,nexus/connectors/availability-intelligence/legacy/procurement/ProcurementEngine.ts,connector,2914,46,.ts,yes,ProcurementEngine,2,0,,"""public static plan(demands: CustomerOrderLine[], offers: SupplierOffer[], policy: ProcurementPolicy, eventId: string): ProcurementPlan {""",20e00c1c8534
+72,nexus/connectors/availability-intelligence/legacy/procurement/SupplierMappingService.ts,connector,9636,289,.ts,yes,SupplierConfig; ProductVariantMapping; CatalogProductView; ProcurementSettings; ManualInterventionRecord; SupplierMappingService,0,0,,"""status: """"ACTIVE"""" | """"PAUSED"""" | """"INACTIVE"""";""",a7e810fa6dd0
+73,nexus/connectors/availability-intelligence/legacy/procurement/SupplierSelectionEngine.ts,connector,5447,122,.ts,yes,SelectionResult; SupplierSelectionEngine,1,0,,lines?: ProcurementLine[];,e1bb576f01d8
+74,nexus/connectors/availability-intelligence/legacy/procurement/Workflow.ts,connector,14989,235,.ts,yes,ProcurementWorkflow,3,0,,public constructor(,edecca440777
+75,nexus/connectors/availability-intelligence/legacy/procurement/ports.ts,connector,1887,47,.ts,yes,CommercePlatformPort; SupplierCatalogPort; PurchaseOrderPort; SupplierDispatchPort; FulfillmentReadinessPort; IdempotencyPort; AuditPort; LoggerPort,1,0,,fetchUnfulfilledOrderLines(): Promise<any[]>;,bf8d81117cd0
+76,nexus/connectors/availability-intelligence/legacy/procurement/types.ts,connector,3310,138,.ts,yes,PaymentInfo; ParcelPackage; PackingPhoto; PackingKpiStats; PickupSchedule; CustomerOrderLine; StoreStockAdjustmentPayload; SupplierOffer; PurchaseOrderLine; ProcurementLine; UnfulfilledDemand; PurchaseOrder,0,0,,paymentStatus: 'PAID' | 'UNPAID' | 'COD' | 'PARTIALLY_PAID';,2501a1d924fb
+77,nexus/connectors/availability-intelligence/legacy/ranking/SortingPipeline.ts,connector,1164,32,.ts,yes,SortingPipeline,1,0,,"""Sorts products prioritizing Availability, then Business Sorting, then Relevance.""",14fa0586c924
+78,nexus/connectors/availability-intelligence/legacy/sales-units/ConversionEngine.ts,connector,1656,38,.ts,yes,ConversionEngine,1,0,,"""Deterministic, no-float conversion between sales units and canonical base quantity.""",8c1c651236e0
+79,nexus/connectors/availability-intelligence/legacy/sales-units/OrderQuantityValidator.ts,connector,1953,52,.ts,yes,OrderQuantityValidator,1,0,,Validates that a requested sales-unit quantity satisfies MOQ and orderStep constraints.,8a1efb2ce692
+80,nexus/connectors/availability-intelligence/legacy/sales-units/PackagingDepositEngine.ts,connector,1127,28,.ts,yes,PackagingDepositEngine,1,0,,Calculates deposit charges for a sales unit order.,345ea7fef2b3
+81,nexus/connectors/availability-intelligence/legacy/sales-units/SalesUnitEngine.ts,connector,3307,83,.ts,yes,SalesUnitAvailabilityInput; SalesUnitEngine,2,0,,ownStockBaseQuantity: number;,500dd186abaf
+82,nexus/connectors/availability-intelligence/legacy/sales-units/types.ts,connector,2414,70,.ts,yes,BaseUnit; SalesUnit; SalesUnitPricing; ConversionResult; OrderQuantityValidationResult; PackagingDepositRule; DepositCharge; ProductAvailabilityBySalesUnit,0,0,,Precision-safe integer arithmetic only.,beed0d5be41a
+83,nexus/connectors/d1/D1CreditVoucherStore.ts,connector,45731,1063,.ts,yes,D1MetaLike; D1ResultLike; D1PreparedStatementLike; D1DatabaseLike; VoucherStorageError; D1CreditVoucherStore,6,0,,D1CreditVoucherStore -- produkční D1 implementace `CreditVoucherStore`.,787ebae0c286
+84,nexus/connectors/d1/D1ExecutionIntentStore.ts,connector,16980,399,.ts,yes,D1DatabaseLike; VoucherIntentStorageError; D1ExecutionIntentStore,5,0,,D1ExecutionIntentStore -- produkční D1 implementace `ExecutionIntentStore`,27d38f31cfbf
+85,nexus/connectors/d1/moneyMapper.ts,connector,7109,147,.ts,yes,MoneyConversionError; moneyToMinor; minorToMoney,2,0,,moneyMapper -- převod `Money{Decimal}` <-> INTEGER v HALÉŘÍCH (minor units).,a46f2c8c0a33
+86,nexus/connectors/medusa/MedusaConnector.ts,connector,2079,64,.ts,yes,MedusaProductVariantDTO; CanonicalMedusaPrice; MedusaConnector,1,0,,Medusa.js Connector -- prekada tvar dat medzi Medusa.js (commerce core),35b783234c30
+87,nexus/connectors/omega/legacy/OmegaAdapter.ts,legacy Omega connector,2037,61,.ts,yes,OmegaAdapter,5,0,,mappingVersion = 'OMEGA-MAPPING-V1';,9422b754f40f
+88,nexus/connectors/omega/legacy/OmegaMapper.ts,legacy Omega connector,2830,82,.ts,yes,OmegaMapper,4,1,27,private formatDecimal(d: Decimal): string {,343bb680697b
+89,nexus/connectors/omega/legacy/OmegaOutputValidationGate.ts,legacy Omega connector,3904,94,.ts,yes,OmegaOutputGatePayload; OmegaOutputValidationGate,5,0,,sourceDocuments: CanonicalAccountingDocument[];,35cc0426fbc3
+90,nexus/connectors/omega/legacy/OmegaPayload.ts,legacy Omega connector,145,5,.ts,yes,OmegaImportPayload,1,0,,omegaFormatVersion: string;,e8debb42d3df
+91,nexus/connectors/omega/legacy/TargetAdapter.ts,legacy Omega connector,754,25,.ts,yes,TargetPayload; TargetAdapterResult; ITargetAdapter,1,0,,encoding: string;,623eef78e2d6
+92,nexus/connectors/omega/legacy/agent/AgentEvidence.ts,legacy Omega connector,998,30,.ts,yes,ExecutorResult; AgentEvidence,0,0,,AgentEvidence + ExecutorResult typy -- extrahováno z,19b924e4bfe6
+93,nexus/connectors/omega/legacy/agent/OmegaExecutor.ts,legacy Omega connector,8247,193,.ts,yes,ExecutorResult; OmegaExecutorOptions; OmegaExecutor,3,2,6;8,OmegaExecutor -- reálná implementace nahrazující simulaci z,dd96bcdc116c
+94,nexus/connectors/omega/legacy/core/CanonicalAccountingDocument.ts,legacy Omega connector,900,43,.ts,yes,AccountingParty; AccountingLineItem; CanonicalAccountingDocument,1,0,,quantity: Decimal;,76bf43bacbc3
+95,nexus/connectors/omega/legacy/decisions/DecisionEngine.ts,legacy Omega connector,2180,72,.ts,yes,Decision; DecisionEngine,2,0,,status: DecisionStatus;,f6989fe10379
+96,nexus/connectors/omega/legacy/domain/CanonicalModel.ts,legacy Omega connector,1471,83,.ts,yes,TenantId; ShopId; DocumentId; Money; Tax; Address; Customer; OrderItem; Shipping; Payment; Discount; CanonicalOrder,1,0,,currency: string;,b6e010ae84fb
+97,nexus/connectors/omega/legacy/gate5/OmegaImportLogParser.ts,legacy Omega connector,928,35,.ts,yes,ParsedOmegaLog; OmegaImportLogParser,0,0,,rawLogContent: string;,4b9eef0122d1
+98,nexus/connectors/omega/legacy/gate5/OmegaPostImportValidationGate.ts,legacy Omega connector,3177,87,.ts,yes,Gate5Payload; Gate5Result; OmegaPostImportValidationGate,4,0,,expectedDocumentIds: string[];,2f698c4f110e
+99,nexus/connectors/omega/legacy/policies/PolicyLayer.ts,legacy Omega connector,833,26,.ts,yes,PolicyAction; PolicyLayer,1,0,,decision: DecisionStatus;,8297c03085f8
+100,nexus/connectors/omega/legacy/rules/RuleTypes.ts,legacy Omega connector,623,25,.ts,yes,RuleStatus; DecisionStatus; RuleResult; RuleContext; Rule,1,0,,ruleVersion: string;,33209dad19b3
+101,nexus/connectors/omega/legacy/rules/implementations/IdentityRules.ts,legacy Omega connector,1423,36,.ts,yes,SourceDocumentIdExistsRule; CustomerIdentityValidRule,1,0,,id = 'IDENTITY_001';,d2cc06b40823
+102,nexus/connectors/omega/legacy/rules/implementations/TaxRules.ts,legacy Omega connector,1012,33,.ts,yes,VatDeterminationRule,1,0,,description = 'VAT information must be internally consistent and determinable';,401844f71662
+103,nexus/connectors/omega/legacy/validation/validators/AddressValidator.ts,legacy Omega connector,1251,31,.ts,yes,validateAddress,2,0,,"""addError(result, 'ADDRESS_MISSING', '', 'Address is missing');""",864cbd6fe9f4
+104,nexus/connectors/omega/legacy/validation/validators/CustomerValidator.ts,legacy Omega connector,1654,47,.ts,yes,validateCustomer,3,0,,"""addError(result, 'CUSTOMER_MISSING', '', 'Customer is missing');""",490a99e0e2ae
+105,nexus/connectors/omega/legacy/validation/validators/MoneyValidator.ts,legacy Omega connector,1340,36,.ts,yes,validateMoney,3,0,,"""addError(result, 'MONEY_MISSING', '', 'Money object is missing');""",035715cb9595
+106,nexus/connectors/omega/legacy/validation/validators/OrderItemValidator.ts,legacy Omega connector,2321,52,.ts,yes,validateOrderItem,5,0,,"""addError(result, 'ITEM_MISSING', '', 'Item is missing');""",3ee4a42cf863
+107,nexus/connectors/omega/legacy/validation/validators/OrderValidator.ts,legacy Omega connector,3553,80,.ts,yes,validateOrder,6,0,,"""addError(result, 'ORDER_MISSING', '', 'Order is missing');""",8f36a82e98ef
+108,nexus/connectors/omega/legacy/validation/validators/ServicesValidators.ts,legacy Omega connector,2229,49,.ts,yes,validateShipping; validatePayment; validateDiscount,3,0,,"""addError(result, 'SHIPPING_MISSING', '', 'Shipping is missing');""",8f3fb5897c7d
+109,nexus/connectors/omega/legacy/validation/validators/TaxValidator.ts,legacy Omega connector,763,21,.ts,yes,validateTax,3,0,,"""addError(result, 'TAX_MISSING', '', 'Tax object is missing');""",380b178be48c
+110,nexus/connectors/pricing-engine/FsPricingConfigurationProvider.ts,connector,2838,66,.ts,yes,FsPricingConfigurationProvider,3,0,,Filesystem implementace `PricingConfigurationProvider` -- Node-only.,f231e96c26db
+111,nexus/connectors/pricing-engine/createLegacyPricingCalculator.ts,connector,2320,49,.ts,yes,createLegacyPricingCalculator,3,0,,"""Connector-side factory -- staví reálný legacy PricingEngine (beze změny,""",2d455da513d5
+112,nexus/connectors/pricing-engine/legacy/config/policies/policy-v1.json,connector,1358,58,.json,yes,,0,0,,"""""""version"""": """"1.0"""",""",41a23ba5ec05
+113,nexus/connectors/pricing-engine/legacy/core/EngineBuilder.ts,connector,3442,91,.ts,yes,EngineBuilder,10,0,,"""version: z.string(),""",3418c8f61aa9
+114,nexus/connectors/pricing-engine/legacy/core/PricingContext.ts,connector,1208,34,.ts,yes,PricingContext,2,0,,private _currentPrice: Decimal;,6bccc2ca39b4
+115,nexus/connectors/pricing-engine/legacy/core/PricingEngine.ts,connector,1189,36,.ts,yes,PricingEngine,2,0,,private policies: PricingPolicy[] = [];,a3ef789bfdd7
+116,nexus/connectors/pricing-engine/legacy/core/ValidationEngine.ts,connector,803,20,.ts,yes,ValidationEngine,1,0,,validateInput(input: PricingInput): { valid: boolean; reason?: string } {,6f39b2d6663f
+117,nexus/connectors/pricing-engine/legacy/core/interfaces.ts,connector,1972,80,.ts,yes,CustomerTier; PricingInput; RuleType; SetPriceCommand; WarningCommand; RejectCommand; PricingCommand; ReadonlyPricingContext; PricingPolicy; PricingResult; EngineConfig,1,0,,basePrice: Decimal;,630c192c51ae
+118,nexus/connectors/pricing-engine/legacy/coupon/CouponPolicy.ts,connector,2962,57,.ts,yes,CouponPolicy,2,0,,Standalone coupon-eligibility layer. NOT part of the PricingEngine pipeline —,afc08b4d28c4
+119,nexus/connectors/pricing-engine/legacy/coupon/types.ts,connector,1187,26,.ts,yes,CouponPolicyInput; CouponPolicyResult,1,0,,Input for CouponPolicy — deliberately independent of PricingInput/PricingContext.,189c30c8878f
+120,nexus/connectors/pricing-engine/legacy/csv/reader.ts,connector,1998,53,.ts,yes,readProductsCsv,4,0,,"""return new Promise((resolve, reject) => {""",db018b05a800
+121,nexus/connectors/pricing-engine/legacy/csv/writer.ts,connector,1022,31,.ts,yes,writeProductsCsv,3,0,,"""return new Promise((resolve, reject) => {""",695634a75ddf
+122,nexus/connectors/pricing-engine/legacy/policies/BasePricePolicy.ts,connector,423,14,.ts,yes,BasePricePolicy,1,0,,name = 'BasePrice';,d61be56549d8
+123,nexus/connectors/pricing-engine/legacy/policies/DiscountLimitPolicy.ts,connector,2457,59,.ts,yes,DiscountLimitPolicy,2,0,,name = 'DiscountLimit';,d8bb934afe17
+124,nexus/connectors/pricing-engine/legacy/policies/HighestDiscountPolicy.ts,connector,1391,34,.ts,yes,HighestDiscountPolicy,2,0,,name = 'HighestDiscount';,c5e1a4b8d6b2
+125,nexus/connectors/pricing-engine/legacy/policies/RoundingPolicy.ts,connector,552,17,.ts,yes,RoundingPolicy,1,0,,name = 'Rounding';,fc47a1e21074
+126,nexus/connectors/pricing-engine/legacy/promo/free-units.ts,connector,5257,150,.ts,yes,XPlusXRatio; FreeUnitsRule; FreeUnitsResult; validateFreeUnitsRules; resolveFreeUnits; resolveXPlusXForVariant; effectivePricePerUnit,1,0,,Legacy port 1:1 z ~/hecmania-quantity-pricing/worker/src/promo/,3a07db3789b9
+127,nexus/connectors/pricing-engine/legacy/voucher/VoucherCouponPolicy.ts,connector,3979,98,.ts,yes,CodeType; CodeDefinition; CartItemInput; CouponEvaluationResult; VoucherCouponPolicy,0,0,,"""Legacy port 1:1 z """"L-Code Pricing Engine(API) doplněk Shoptet""""""",fc416fc04287
+128,nexus/connectors/safeorder/legacy/audit/ledger.ts,connector,1241,37,.ts,yes,CreateAuditInput; buildAuditRecord,1,0,,decisionId: string;,3d87251b9818
+129,nexus/connectors/safeorder/legacy/backtest/metrics.ts,connector,3620,125,.ts,yes,EvaluationRecord; MetricSet; calculateMetricSet; calculateRocAuc; calculateBrierScore,0,1,3,1:1 port ze ~/safeorder-3.0/src/backtest/point-in-time-backtest.ts,4b4a56ce81b1
+130,nexus/connectors/safeorder/legacy/calibration/calibration-engine.ts,connector,4133,111,.ts,yes,CalibrationModel; LogisticCalibrationV1; PiecewiseCalibrationV1; REGISTERED_CALIBRATION_MODELS; calibrateRiskProbability; ConfidenceAssessmentInput; computeEvidentiaryConfidence,1,0,,"""createRiskConfidence,""",b6f06d92a016
+131,nexus/connectors/safeorder/legacy/core/types.ts,connector,11366,365,.ts,yes,Platform; TenantLifecycleStatus; TenantStatus; TenantMode; RiskDecisionType; ExecutableActionType; UserRole; PlanTier; PlanStatus; SupportedCurrency; SupportedLanguage; PaymentMethodType,1,0,,==============================================================================,c6dc77a973f2
+132,nexus/connectors/safeorder/legacy/crypto/blind-token.ts,connector,2781,94,.ts,yes,BlindTokenDomain; generateBlindToken; verifyBlindToken,0,0,,SafeOrder Domain-Namespaced Blind Token Generator (Web Crypto API),57616c2022f8
+133,nexus/connectors/safeorder/legacy/economics/decision-economics.ts,connector,6251,162,.ts,yes,ComparativeActionEconomics; DecisionEconomicsEvaluation; evaluateDecisionEconomics; computeMerchantRoi,1,0,,SafeOrder 9.8 — Decision Economics & Comparative Action Optimization Engine,85900b70f181
+134,nexus/connectors/safeorder/legacy/i18n/localization.ts,connector,3924,70,.ts,yes,LocalizedExplanation; localizeReasonCodes; formatCurrencyAmount,1,0,,headline: string;,6055a29fec48
+135,nexus/connectors/safeorder/legacy/learning/outcome-engine.ts,connector,3479,109,.ts,yes,OutcomeRecord; LearningWeights; computeAdaptiveWeights,1,0,,SafeOrder 9.8 — Closed-Loop Outcome Learning Engine with Counterfactual Awareness,239f1ef8a91f
+136,nexus/connectors/safeorder/legacy/normalization/identity.ts,connector,2723,95,.ts,yes,canonicalizePhone; canonicalizeEmail; canonicalizeStreet; canonicalizeZip; canonicalizeIdentity,1,0,,Identity Normalization Module (Version: identity-v1),a0d277e88748
+137,nexus/connectors/safeorder/legacy/policy-engine/adaptive-optimizer.ts,connector,3023,76,.ts,yes,PolicyOptimizationInput; PolicyRecommendation; optimizePolicyThresholds,0,0,,SafeOrder 9.8 — Adaptive Policy Optimizer,c6b5f95ab0f3
+138,nexus/connectors/safeorder/legacy/policy-engine/policies.ts,connector,3474,94,.ts,yes,PolicyEvaluationInput; evaluatePolicy,2,0,,"""RiskDecisionType,""",82862b41dc9c
+139,nexus/connectors/safeorder/legacy/privacy/retention.ts,connector,1285,41,.ts,yes,RetentionPolicy; RETENTION_POLICIES; computeExpiryTimestamp,0,0,,Privacy & Retention Policy Engine,50fc7c3ac8f3
+140,nexus/connectors/safeorder/legacy/risk-engine/engine.ts,connector,4054,121,.ts,yes,RiskEvaluationInput; RiskEvaluationResult; evaluateRisk,2,0,,"""createRawRiskScore,""",7c1003fe688a
+141,nexus/connectors/safeorder/legacy/risk-graph/graph.ts,connector,3145,109,.ts,yes,GraphNodeType; GraphEdgeType; GraphNode; GraphEdge; ContextualOrderParams; ContextualRiskResult; evaluateContextualRisk,1,0,,"""createRawRiskScore,""",f37c9f5d06a5
+142,nexus/connectors/safeorder/legacy/validation/stages/1-input-validator.ts,connector,1499,44,.ts,yes,validateInputStage,2,0,,Stage 1: Input Validation (Input Guard),001a9e2d6c4e
+143,nexus/connectors/safeorder/legacy/validation/stages/2-identity-validator.ts,connector,2695,81,.ts,yes,ValidatedIdentityData; validateIdentityStage,4,0,,canonicalString: string;,75519eaad0d1
+144,nexus/connectors/safeorder/legacy/validation/stages/3-signal-validator.ts,connector,2236,73,.ts,yes,ValidatedSignalSet; validateSignalsStage,2,0,,validPrivateSignals: FraudSignalRecord[];,940d9983c779
+145,nexus/connectors/safeorder/legacy/validation/stages/4-risk-policy-validator.ts,connector,4174,117,.ts,yes,ValidatedRiskPolicyData; validateRiskPolicyStage,8,0,,"""createRawRiskScore,""",8a18a7e2f65b
+146,nexus/connectors/safeorder/legacy/validation/stages/5-decision-action-validator.ts,connector,2894,83,.ts,yes,ValidatedActionData; validateDecisionActionStage,3,0,,finalDecision: RiskDecisionType;,21f38cf89d6f
+147,nexus/connectors/safeorder/legacy/validation/stages/types.ts,connector,623,27,.ts,yes,ValidationStage; StageValidationResult; PipelineAuditTrace,0,0,,"""IDENTITY = 'IDENTITY',""",12a2260e1bfa
+148,nexus/connectors/shoptet/ReadOnlyGuard.ts,connector,5132,135,.ts,yes,ShoptetWriteBlockedError; ShoptetRequestPlan; ShoptetAccessMode; READ_ONLY; assertRequestAllowed; describeRequest,0,6,25;34;85;89;100;104,ReadOnlyGuard -- konstrukční zámek proti zápisu do ŽIVÉHO Shoptetu.,fa2f306fd8ec
+149,nexus/connectors/shoptet/ShoptetApiClient.ts,connector,12619,333,.ts,yes,ShoptetApiError; ShoptetPrice; ShoptetOrderItem; DISCOUNT_ITEM_TYPES; ShoptetOrder; ShoptetApiClient; sumOrderDiscountsMinor; sumVoucherUnits,1,0,,ShoptetApiClient -- HTTP klient pro Shoptet REST API.,35e28f260fe5
+150,nexus/connectors/shoptet/ShoptetPriceConnector.ts,connector,11320,264,.ts,yes,ShoptetPriceRow; CanonicalProductPrice; TierToPricelistMap; SHOPTET_PRICE_SEMANTICS; ShoptetPriceConnector; parsePriceToMinor; minorToPriceString,2,0,,ShoptetPriceConnector -- PRVNÍ skutečná implementace `Connector` kontraktu,4bd71ca42ebf
+151,nexus/connectors/shoptet/legacy/cart/golias.js,connector,3764,108,.js,yes,,0,0,,GOLIÁŠ — adapter pro nativní Shoptet košík,81d903fd2f43
+152,nexus/connectors/shoptet/legacy/csv/CsvInputValidationGate.ts,connector,4345,132,.ts,yes,CsvInputPayload; ValidatedCsvRow; CsvInputValidationResult; CsvInputValidationGate,5,0,,filePath: string;,4f27af5fe08d
+153,nexus/connectors/shoptet/legacy/csv/CsvParserGate2.ts,connector,2700,74,.ts,yes,ParserGate2Payload; ParserValidationResult; CsvParserGate2,3,0,,inputRowsCount: number;,ca3d3f932f23
+154,nexus/connectors/shoptet/legacy/csv/ShoptetExportSchema.ts,connector,4022,138,.ts,yes,ShoptetDataType; ShoptetColumnDefinition; ShoptetExportSchema; ParseString; ParseDecimal; ParseBoolean; ParseDate; ShoptetOrderExportSchemaV1,0,1,57,"""The path in the Canonical Model where this data belongs (e.g. """"customer.email"""")""",4c71916a5b88
+155,nexus/connectors/shoptet/legacy/csv/ShoptetRowParser.ts,connector,2452,76,.ts,yes,ParsedField; ShoptetParsedRow; parseRow,2,0,,sourceColumn: string;,6ca857067967
+156,nexus/connectors/shoptet/legacy/validation/ValidationPipeline.ts,connector,721,24,.ts,yes,ValidationGate; IValidationGate,1,0,,"""INPUT = 'INPUT_VALIDATION',""",2b15e559ea59
+157,nexus/connectors/shoptet/legacy/validation/types.ts,connector,1214,42,.ts,yes,Severity; ValidationIssue; ValidationResult; createResult; addError; addWarning; mergeResults,0,0,,severity: Severity;,74856501f232
+158,nexus/connectors/supplier-csv/legacy/NoApiCsvAdapter.ts,connector,3188,72,.ts,yes,NoApiCsvAdapter,1,0,,"""Resolves the """"NO-API procurement workflow"""" blocker.""",599dec619ab5
+159,nexus/core/audit/AuditRecord.ts,canonical core,7337,159,.ts,yes,AuditStateTransition; AuditHashSet; AuditRecord; AuditLog; createAuditLog; appendAuditRecord; withStateTransition; transitionResultToAuditEntry,1,0,,"""Audit Framework -- core/audit/, Fáze 0 (docs/MIGRATION_PLAN.md).""",88d2bb7d7995
+160,nexus/core/canonical/CANONICAL-MODEL-CONTRACT.md,canonical core,8652,119,.md,yes,,0,0,,CANONICAL MODEL CONTRACT,7e79b3961b71
+161,nexus/core/canonical/DRAFT-v1-types.ts.bak,canonical core,6863,284,.bak,yes,TenantId; EntityId; ISODateTime; CanonicalEntity; Tenant; Store; Money; Product; ProductGroup; Variant; Category; Brand,1,0,,Canonical Model — jediný sdílený jazyk pro všechny domény (master prompt §4).,b4efa6a831a8
+162,nexus/core/canonical/entities/Billing.ts,canonical core,5201,104,.ts,yes,SubscriptionLifecycleState; SUBSCRIPTION_LIFECYCLE_DEFINITION; Subscription; BillingEvent,3,0,,Billing / Subscription -- Fáze 6.1 lifecycle + invariants (Josovo zadání,48abf681b89e
+163,nexus/core/canonical/entities/Campaign.ts,canonical core,9660,201,.ts,yes,PromoGroupDiscountType; PromoGroupDiscount; PromoGroup; CampaignLifecycleState; CAMPAIGN_LIFECYCLE_DEFINITION; Campaign; CampaignPlacement; CreativeLifecycleState; CREATIVE_LIFECYCLE_DEFINITION; INITIAL_PLACEMENT_TYPES; Creative,2,0,,Campaign / PromoGroup / CampaignPlacement / Creative -- Fáze 6.1,431e8fc3dfd7
+164,nexus/core/canonical/entities/CreditVoucher.ts,canonical core,17460,313,.ts,yes,CreditVoucherLifecycleState; CREDIT_VOUCHER_LIFECYCLE_DEFINITION; CreditVoucherTransactionType; CreditVoucher; CreditVoucherTransaction,2,0,,"""CreditVoucher / CreditVoucherTransaction -- Fáze A """"Voucher Core""""""",01a082f117ae
+165,nexus/core/canonical/entities/Customer.ts,canonical core,5990,120,.ts,yes,BusinessProfile; Customer,1,0,,Customer -- podle docs/entity-audit/Customer.md.,12b3fa1082a3
+166,nexus/core/canonical/entities/Invoice.ts,canonical core,3625,73,.ts,yes,InvoiceLifecycleState; INVOICE_LIFECYCLE_DEFINITION; Invoice,2,0,,Invoice -- Fáze 6.1 lifecycle + invariants (Josovo zadání 2026-09-05).,8094cdd3dc77
+167,nexus/core/canonical/entities/Order.ts,canonical core,2865,71,.ts,yes,ExternalOrderStatus; Order; OrderItem; MapExternalToCanonicalStatus,1,0,,Order -- podle docs/entity-audit/Order.md.,94b3c5d6957f
+168,nexus/core/canonical/entities/Price.ts,canonical core,4677,110,.ts,yes,PriceList; PricingComputationInput; PersistedPriceRecord; QuantityTierSourceConfig; QuantityTierGroup; QuantityTierBreakpoint,1,1,86,Price / PriceList / QuantityTier boundary -- podle,117fca5b1216
+169,nexus/core/canonical/entities/Product.ts,canonical core,2612,62,.ts,yes,Product; Variant,1,0,,Product entity -- podle docs/entity-audit/Product.md.,c2275e270e05
+170,nexus/core/canonical/entities/PurchaseOrder.ts,canonical core,3264,82,.ts,yes,PurchaseOrderLifecycle; PurchaseOrderCancellationState; SupplierEcho; PurchaseOrder; PurchaseOrderItem; assertReceivingInvariant,1,1,33,PurchaseOrder -- podle docs/entity-audit/PurchaseOrder.md.,b4fc82924cc2
+171,nexus/core/canonical/entities/Stock.ts,canonical core,3523,85,.ts,yes,StockPosition; DerivedAvailability; AvailabilityClassification; ClassifyAvailability,1,0,,Stock -- podle docs/entity-audit/Stock.md.,9044533a034b
+172,nexus/core/canonical/entities/Warehouse.ts,canonical core,2896,61,.ts,yes,WarehouseLifecycleState; WAREHOUSE_LIFECYCLE_DEFINITION; Warehouse,2,0,,Warehouse -- Fáze 6.1 lifecycle + invariants (Josovo zadání 2026-09-05:,f0e8c44fe410
+173,nexus/core/canonical/entities/base.ts,canonical core,1739,46,.ts,yes,TenantId; EntityId; ISODateTime; Money; CanonicalIdentity; ExternalIdentity; TenantScoped; AuditableTimestamps; CanonicalEntity,1,0,,Entity Contract kostra (CANONICAL-MODEL-CONTRACT.md §5). Společná pro,d8373f12ab58
+174,nexus/core/canonical/identities/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+175,nexus/core/canonical/invariants/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+176,nexus/core/canonical/lifecycle/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+177,nexus/core/canonical/lifecycle/Execution.ts,canonical core,1851,46,.ts,yes,ExecutionStatus; RetryPolicy; Execution; isConfirmedSuccess,0,0,,Execution -- odděluje Decision od skutečného zápisu. Referenční vzor:,4e7e6ed5b274
+178,nexus/core/canonical/outcomes/ExecutionIntent.ts,canonical core,12841,295,.ts,yes,ExecutionIntentState; EXECUTION_INTENT_TRANSITIONS; EXECUTION_INTENT_TERMINAL_STATES; ExecutionConfirmationQuality; ExecutionIntent; ExecutionAttemptResult; canTransitionIntent; isTerminalIntentState; requiresReconciliation,1,0,,ExecutionIntent -- P1 vrstva mezi doménovým rozhodnutím a konektorem,99a04deba79f
+179,nexus/core/canonical/outcomes/ExecutionIntentStore.ts,canonical core,11518,278,.ts,yes,PlanIntentInput; PlanIntentResult; ClaimIntentOutcome; RecordOutcomeInput; ExecutionIntentStore; InMemoryExecutionIntentStore,5,0,,ExecutionIntentStore -- perzistence Execution vrstvy (P1).,b64eb3e0ce98
+180,nexus/core/canonical/outcomes/IntentExecutor.ts,canonical core,11332,279,.ts,yes,RawWriteResult; ConnectorSemantics; interpretWriteResult; nextIntentState; isRetrySafe; IntentExecutionOutcome; executeIntent,1,0,,"""IntentExecutor -- most mezi ExecutionIntent a Connector vrstvou (P1,""",c101b4f28b39
+181,nexus/core/canonical/outcomes/IntentReconciliation.ts,canonical core,10288,258,.ts,yes,IntentReconciliationVerdict; IntentReconciliationResult; StateComparator; ActualStateReader; reconcileIntent; ReconciliationRunSummary; reconcileBatch,2,0,,IntentReconciliation -- uzavření řetězu Execution vrstvy (P1).,6ad8f3155590
+182,nexus/core/canonical/projections/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+183,nexus/core/canonical/reconciliation/Reconciliation.ts,canonical core,1694,45,.ts,yes,ReconciliationOutcome; ReconciliationItemResult; BatchStatus; ReconciliationBatchResult; aggregateBatchStatus,0,0,,Reconciliation -- referenční vzor: Pricing Engine Stage 5,ac02df8e1ffa
+184,nexus/core/canonical/relationships/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+185,nexus/core/canonical/rules/Decision.ts,canonical core,1049,24,.ts,yes,Decision,1,0,,"""Decision -- NENÍ Rule (viz CANONICAL-MODEL-CONTRACT.md, Jan's sign-off""",4fbd23611ae8
+186,nexus/core/canonical/rules/Rule.ts,canonical core,1225,33,.ts,yes,RuleContext; Rule,0,0,,Rule contract -- referenční vzor: Promotion/ClearanceEntry (jediné plně,9600b0859c32
+187,nexus/core/canonical/source-of-truth/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+188,nexus/core/canonical/states/StateModel.ts,canonical core,1467,44,.ts,yes,ExternalState; StatusMapping; CanonicalState; ExpectedExecutionState; ActualExternalState,0,0,,"""State Model -- CANONICAL-MODEL-CONTRACT.md §4, nejsilnější cross-entity""",2cf9fb5c5396
+189,nexus/core/canonical/validation/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+190,nexus/core/canonical/versioning/.gitkeep,canonical core,0,0,(none),yes,,0,0,,,e3b0c44298fc
+191,nexus/core/error-isolation/ErrorIsolation.ts,canonical core,6916,133,.ts,yes,ItemOutcome; ErrorClass; BatchIsolationResult; runBatchWithIsolation,0,0,,"""Error Isolation framework -- core/error-isolation/, Fáze 0""",9b8af9f594b7
+192,nexus/core/idempotency/IdempotencyStore.ts,canonical core,6579,140,.ts,yes,IdempotencyState; IDEMPOTENCY_STATE_DEFINITION; IdempotencyKeyRef; ClaimResult; IdempotencyStore; InMemoryIdempotencyStore,1,0,,"""Idempotency Store -- core/idempotency/, Fáze 0 (docs/MIGRATION_PLAN.md""",32e3743e1347
+193,nexus/core/reconciliation/GenericReconciliation.ts,canonical core,7192,164,.ts,yes,DriftSeverity; classifyDrift; DebouncedMismatch; DebounceState; DebounceDecision; evaluateDebounce; MultiEntityReconciliationItem; MultiEntityBatchResult; aggregateMultiEntityBatch; HistoricalReconciliationCheckpoint; evaluateHistoricalCheckpoint,2,0,,GenericReconciliation -- rozšíření core/canonical/reconciliation/,40eb854d92ff
+194,nexus/core/snapshot/Snapshot.ts,canonical core,8530,172,.ts,yes,SnapshotState; SNAPSHOT_STATE_DEFINITION; Snapshot; SnapshotStore; InMemorySnapshotStore,1,0,,"""Snapshot/Rollback Framework -- core/snapshot/, Fáze 0 (docs/MIGRATION_PLAN.md).""",ecdbf64f1d8f
+195,nexus/core/state-machine/StateMachine.ts,canonical core,4629,105,.ts,yes,StateAxis; StateAxisDefinition; TransitionResult; evaluateTransition; MultiAxisState; evaluateAxisTransition,0,0,,"""State Machine Framework -- core/state-machine/, Fáze 0 (docs/MIGRATION_PLAN.md).""",d7544c183d08
+196,nexus/core/tenant/types.ts,canonical core,9715,235,.ts,yes,TenantStatus; PlanTier; Tenant; TenantIntegrationConfig; TenantPlan; TenantPolicy; TenantPolicyHistoryEntry; TenantScopedTierConfig; TenantContext; assertTenantContext; TenantIsolationViolation; assertTenantOwnership,2,7,155;159;163;164;193;195;197,"""Tenant Core — základ multi-tenant izolace (master prompt §5: """"Tenant izolace""",bc2bc690fcd5
+197,nexus/core/validation/ValidationFramework.md,canonical core,1841,19,.md,yes,,0,0,,Validation Framework Contract,958ee059dfd2
+198,nexus/core/validation/errorIsolation.ts,canonical core,752,16,.ts,yes,aggregateStageStatus,1,0,,Error Isolation -- HARD REQUIREMENT (§7 zadání). Chyba jedné položky,5fe361a81a2e
+199,nexus/core/validation/types.ts,canonical core,1814,50,.ts,yes,StageName; StageStatus; OutcomeStatus; ErrorClass; StageError; StageResult; IdempotencyKey; ManualOverride,0,0,,StageResult<T> -- společný kontrakt pro všech 5 stages. Viz ValidationFramework.md.,8490b09af837
+200,nexus/docs/ARCHITECTURE_MAP.md,documentation,4631,45,.md,yes,,0,1,15,NEXUS — Architecture Map,7d39f6aaf50a
+201,nexus/docs/CANONICAL_MODEL_SYNTHESIS.md,documentation,10735,153,.md,yes,,0,0,,CANONICAL MODEL — SYNTHESIS,984d616bf04d
+202,nexus/docs/MIGRATION_PLAN.md,documentation,36936,260,.md,yes,,0,6,69;100;113;188;235;251,NEXUS — Migration Plan,4e9ffa5ed3b3
+203,nexus/docs/PHASE6_REPO_VERIFICATION_2026-09-05.md,documentation,5231,106,.md,yes,,0,4,16;28;44;98,Příloha k dotazu na Jose — Fáze 6 (Billing/Marketing/B2B/Campaign/Creative),7a3055db1efe
+204,nexus/docs/SHOPTET-PRICING-MODEL.md,documentation,11687,282,.md,yes,,0,0,,Jak se ceny zapisují do Shoptetu (okfish model),aa1739900d45
+205,nexus/docs/design-proposals/Digital-Voucher.md,documentation,46430,1074,.md,yes,TenantVoucherConfig,0,1,1050,Design Proposal: Digital Voucher / Kreditní poukaz,b727cccd622b
+206,nexus/docs/design-proposals/ERP-Generic-Layer.md,documentation,42006,790,.md,yes,CanonicalAccountingDocument; Invoice; AccountingSystemId; AccountingCapabilities; AccountingConnector; AccountingOutcomeStatus; AccountingOutcome; TransportKind; DeliveryTransport; DeliveryReceipt,0,6,96;106;107;517;731;732,Design Proposal: `connectors/erp-generic/` — obecná účetní (ERP) vrstva,1df0fc505297
+207,nexus/docs/design-proposals/Fase6-new-domains-status.md,documentation,2812,54,.md,yes,,0,1,3,Fáze 6: Nové domény — stav a otevřené otázky,dae9a7faaf05
+208,nexus/docs/design-proposals/Pricing-Shadow-Migration.md,documentation,41021,518,.md,yes,CONFIG; ShadowWriteBlockedError,0,8,122;201;229;231;234;337;338;382,Pricing Shadow Migration — návrh shadow režimu pro migraci okfish → NEXUS,c82464fe1b3a
+209,nexus/docs/design-proposals/QuantityTier-Hecmania.md,documentation,17055,339,.md,yes,PricingComputationInput,0,0,,Design Proposal: QuantityTier pro Hecmanii,269d2b16c4a9
+210,nexus/docs/design-proposals/Shoptet-Premium-Template.md,documentation,64500,1089,.md,yes,NEXUS_SLOTS,0,4,80;188;738;1078,Shoptet Premium Template — L-Code Dynamics,6cbe0fb6d14a
+211,nexus/docs/entity-audit/Customer.md,documentation,12964,109,.md,yes,,0,3,43;45;65,"""Pricing Engine (okfish): `ShoptetCustomer` (`cloudflare-worker/src/shoptet-api/client.ts`) — **jediný zdroj s trvalou, identifikovatelnou custome""",7ed2bab90fc3
+212,nexus/docs/entity-audit/Invoice.md,documentation,5050,47,.md,yes,,0,0,,STATUS: NEW BUILD / NO LEGACY CONTRACT,88e8a10b3d54
+213,nexus/docs/entity-audit/Order.md,documentation,3696,77,.md,yes,,0,0,,Shoptet API: `ShoptetOrder` (`~/okfish-pricing-engine/cloudflare-worker/src/shoptet-api/client.ts`),ace5e5b514b5
+214,nexus/docs/entity-audit/Price-PriceList-QuantityTier.md,documentation,7926,100,.md,yes,,0,0,,ENTITIES: Price / PriceList / QuantityTier (audit jako jeden propojený celek),75e015b9246c
+215,nexus/docs/entity-audit/Product.md,documentation,9245,84,.md,yes,,0,2,55;56,"""Pricing Engine: `PricingInput` (`src/core/interfaces.ts`) — výpočetní vstup, NE perzistovaná entita; `ShoptetPricelistItem` (`cloudflare-worker/s""",2d32a55b8257
+216,nexus/docs/entity-audit/Promotion-Campaign-Creative.md,documentation,8029,78,.md,yes,,0,1,22,ENTITIES: Promotion / PromoGroup / Campaign / CampaignPlacement / Creative (audit jako jeden celek),87803e39a4e2
+217,nexus/docs/entity-audit/PurchaseOrder.md,documentation,13512,115,.md,yes,,0,7,66;67;69;70;75;78;80,ENTITY: PurchaseOrder,0408ae21e094
+218,nexus/docs/entity-audit/Stock.md,documentation,12021,147,.md,yes,,0,1,73,"""Shoptet API: `apiProduct.variants[].{stock, purchasable, canPreorder, inTransit}` (čteno přes `apiNormalizer.ts`)""",6d87a8436bd1
+219,nexus/docs/okfish-integration/forwardToNexus.ts,documentation,6854,151,.ts,yes,NexusForwardEnv; forwardToNexus,0,0,,forwardToNexus -- PŘEPOSLÁNÍ Shoptet webhooku z okfish Workeru do NEXUSu.,2afedcfd3eec
+220,nexus/docs/shadow-reports/MISSING-PRICING-LOGIC.md,documentation,12828,267,.md,yes,,0,3,141;164;179,Doplnění chybějící cenové logiky okfish → NEXUS,361644696fe0
+221,nexus/docs/shadow-reports/SHADOW-RUN-2026-09-07.md,documentation,20774,416,.md,yes,,0,0,,"""Shadow run 2026-09-07 — offline replay, P3 + P2""",097040af69fe
+222,nexus/domains/availability/AvailabilityRule.ts,domain rules,4454,101,.ts,yes,AvailabilityRule,3,0,,AvailabilityRule -- migrace legacy AvailabilityEngine (connectors/,25caac67bcea
+223,nexus/domains/availability/ConversionRule.ts,domain rules,2493,56,.ts,yes,ToBaseQuantityInput; FromBaseQuantityInput; ToBaseQuantityRule; FromBaseQuantityRule,2,0,,ConversionRule -- migrace legacy ConversionEngine (connectors/,80deca7996cb
+224,nexus/domains/availability/OrderQuantityValidationRule.ts,domain rules,2640,67,.ts,yes,OrderQuantityValidationInput; OrderQuantityValidationRule,2,0,,OrderQuantityValidationRule -- migrace legacy OrderQuantityValidator,9169af278a97
+225,nexus/domains/availability/PackagingDepositRule.ts,domain rules,1867,42,.ts,yes,PackagingDepositInput; PackagingDepositRule,2,0,,PackagingDepositRule -- migrace legacy PackagingDepositEngine,151cce677c4b
+226,nexus/domains/availability/SalesUnitAvailabilityRule.ts,domain rules,4439,97,.ts,yes,SalesUnitAvailabilityInput; SalesUnitAvailabilityRule; NormaliseToProcurementDemandInput; NormaliseToProcurementDemandResult; NormaliseToProcurementDemandRule,2,0,,SalesUnitAvailabilityRule -- migrace legacy SalesUnitEngine (connectors/,d683721518f9
+227,nexus/domains/availability/SortingRule.ts,domain rules,1571,39,.ts,yes,SortingRuleInput; SortingRuleResult; SortingRule,2,0,,SortingRule -- migrace legacy SortingPipeline (connectors/,466c6af28761
+228,nexus/domains/b2b/BusinessProfileAccessor.ts,domain rules,3361,60,.ts,yes,getBusinessProfile; isBusinessCustomer; getB2BPricingContext,1,0,,BusinessProfileAccessor -- Fáze 6.2 business rule nad Fáze 6.1 kostrou,7814d5322a41
+229,nexus/domains/b2b/BusinessProfileValidationRule.ts,domain rules,3157,63,.ts,yes,BusinessProfileValidationResult; BusinessProfileValidationRule,2,0,,BusinessProfileValidationRule -- Fáze 6.3 rozhodnutí bodu 6 z Fáze 6.2,f4520b2bf213
+230,nexus/domains/b2b/CustomerBusinessContextFlow.ts,domain rules,3607,70,.ts,yes,CustomerBusinessContextResult; resolveCustomerBusinessContext,4,0,,CustomerBusinessContextFlow -- Fáze 6.4 business flow (Josovo zadání,89f527f2211e
+231,nexus/domains/billing/SubscriptionLifecycleRule.ts,domain rules,7152,132,.ts,yes,isConsistentWithTenantPlan; SubscriptionLifecycleRuleInput; SubscriptionLifecycleRuleResult; SubscriptionLifecycleRule,4,0,,SubscriptionLifecycleRule -- Fáze 6.2 business rule nad Fáze 6.1 kostrou,2ae0b7d23fe1
+232,nexus/domains/billing/TenantSubscriptionPlanFlow.ts,domain rules,3931,74,.ts,yes,TenantSubscriptionPlanFlowInput; TenantSubscriptionPlanFlowResult; evaluateTenantSubscriptionPlanFlow,4,0,,TenantSubscriptionPlanFlow -- Fáze 6.4 business flow (Josovo zadání,bee70f6c84e0
+233,nexus/domains/campaign/CampaignFlows.ts,domain rules,9060,201,.ts,yes,CampaignPromoGroupResolution; resolveCampaignPromoGroupForProduct; CampaignEvaluationResult; evaluateCampaignForProduct; CampaignPromoPricingResult; evaluateCampaignPromoPricingForProduct; PublishCreativeResult; publishCreative; ResolvedCreative; resolveCreativesForPlacement,8,0,,CampaignFlows -- Fáze 6.4 business flows (Josovo zadání 2026-09-05:,a3b09fea79b6
+234,nexus/domains/campaign/CampaignLifecycleRule.ts,domain rules,3307,72,.ts,yes,CampaignLifecycleRuleInput; CampaignLifecycleRuleResult; CampaignLifecycleRule; shouldEvaluateCampaign,4,0,,CampaignLifecycleRule -- Fáze 6.2 business rule nad Fáze 6.1 kostrou,d8b667cd93bc
+235,nexus/domains/campaign/CreativeLifecycleRule.ts,domain rules,2797,62,.ts,yes,CreativeLifecycleRuleInput; CreativeLifecycleRuleResult; CreativeLifecycleRule,4,0,,CreativeLifecycleRule -- Fáze 6.2 business rule nad Fáze 6.1 kostrou,9a6562e38f7c
+236,nexus/domains/campaign/CreativeResolutionRule.ts,domain rules,5928,108,.ts,yes,CreativeResolutionRuleInput; CreativeResolutionBlockedReason; CreativeResolutionRuleResult; CreativeResolutionRule,3,2,57;65,"""CreativeResolutionRule -- Fáze 6.5 Domain Rules, Creative doména""",71e8fc5bcc2b
+237,nexus/domains/campaign/PromoGroupDiscountRule.ts,domain rules,8012,140,.ts,yes,PromoGroupDiscountRuleInput; PromoGroupDiscountSource; PromoGroupDiscountRuleResult; PromoGroupDiscountRule,3,0,,"""PromoGroupDiscountRule -- Fáze 6.5 Domain Rules, první konkrétní business""",916f3853dd00
+238,nexus/domains/campaign/PromoGroupPriorityRule.ts,domain rules,4925,108,.ts,yes,PromoGroupPriorityValidationInput; PromoGroupPriorityValidationResult; PromoGroupPriorityValidationRule; PromoGroupConflictResult; resolveConflict,2,0,,PromoGroupPriorityRule -- Fáze 6.2 business rule nad Fáze 6.1 kostrou,9737382abe50
+239,nexus/domains/invoice/InvoiceLifecycleRule.ts,domain rules,5138,101,.ts,yes,InvoiceLifecycleRuleInput; InvoiceLifecycleRuleResult; InvoiceLifecycleRule,4,0,,InvoiceLifecycleRule -- Fáze 6.2 business rule nad Invoice lifecycle,d77b18e0fa16
+240,nexus/domains/invoice/OrderInvoiceOmegaFlow.ts,domain rules,3560,67,.ts,yes,OrderInvoiceOmegaFlowInput; OrderInvoiceOmegaFlowResult; evaluateOrderInvoiceOmegaFlow,3,0,,"""OrderInvoiceOmegaFlow -- Fáze 6.4 business flow, ne nová abstrakce.""",be72b417bac5
+241,nexus/domains/omega/DecisionRules.ts,domain rules,3201,69,.ts,yes,DecisionEngineRuleInput; DecisionEngineRule; SourceDocumentIdExistsRuleAdapter; CustomerIdentityValidRuleAdapter; VatDeterminationRuleAdapter,6,0,,DecisionRules -- migrace legacy DecisionEngine/PolicyLayer/rules,7370b408b54f
+242,nexus/domains/omega/NOT_MIGRATED.md,domain rules,1266,25,.md,yes,,0,1,7,Omega orchestrator a sync — vědomě nemigrováno pod Rule<>,cd63f1aa6931
+243,nexus/domains/omega/OmegaMapperRule.ts,domain rules,1275,27,.ts,yes,OmegaMapperRuleInput; OmegaMapperRule,4,0,,OmegaMapperRule -- migrace legacy OmegaMapper (connectors/omega/legacy/,d4d3066bf4d2
+244,nexus/domains/omega/OmegaValidationRules.ts,domain rules,1983,44,.ts,yes,OmegaOutputValidationRule; OmegaImportLogParserRule; OmegaPostImportValidationRule,5,0,,"""OmegaValidationRules -- migrace legacy OmegaOutputValidationGate,""",1efb025e0712
+245,nexus/domains/omega/ValidatorRules.ts,domain rules,4758,108,.ts,yes,MoneyValidationInput; MoneyValidatorRule; AddressValidatorRule; TaxValidationInput; TaxValidatorRule; CustomerValidatorRule; OrderItemValidationInput; OrderItemValidatorRule; ServiceValidationInput; ShippingValidatorRule; PaymentValidatorRule; DiscountValidatorRule,9,2,10;11,ValidatorRules -- migrace legacy CanonicalOrder validátorů (connectors/,1010db9de6b5
+246,nexus/domains/pricing/BasePriceRule.ts,domain rules,1009,28,.ts,yes,BasePriceRuleInput; BasePriceRuleResult; BasePriceRule,2,0,,BasePriceRule -- migrace legacy BasePricePolicy (connectors/pricing-engine/,1e7d3da96b3a
+247,nexus/domains/pricing/BestCandidatePriceRule.ts,domain rules,4585,91,.ts,yes,CandidateSource; PriceCandidate; BestCandidatePriceRuleInput; BestCandidatePriceRuleResult; BestCandidatePriceRule,2,0,,BestCandidatePriceRule -- Fáze 6.5 pokračování. Finální krok kandidátního,302c5c583b85
+248,nexus/domains/pricing/BrandSaleDiscountRule.ts,domain rules,6815,135,.ts,yes,BrandSaleDiscountRuleInput; BrandSaleDiscountRuleResult; BrandSaleDiscountRule,2,0,,"""BrandSaleDiscountRule -- port okfish """"brandSaleDiscounts"""" (celoroční""",40a4d4daff86
+249,nexus/domains/pricing/ClearanceWindowRule.ts,domain rules,6347,150,.ts,yes,ClearanceEntry; ClearanceWindowRuleInput; ClearanceInactiveReason; ClearanceWindowRuleResult; ClearanceWindowRule,2,1,43,"""ClearanceWindowRule -- port okfish """"clearance datová okna"""".""",18b723329d2d
+250,nexus/domains/pricing/CouponPolicyRule.ts,domain rules,1908,37,.ts,yes,CouponPolicyRuleInput; CouponPolicyRule,4,0,,CouponPolicyRule -- migrace legacy CouponPolicy (connectors/,7318982581aa
+251,nexus/domains/pricing/DiscountLimitRule.ts,domain rules,3881,85,.ts,yes,DiscountLimitSource; DiscountLimitRuleInput; DiscountLimitRuleResult; DiscountLimitRule,2,0,,DiscountLimitRule -- migrace legacy DiscountLimitPolicy (connectors/,3a213546aa88
+252,nexus/domains/pricing/HighestDiscountRule.ts,domain rules,3010,69,.ts,yes,HighestDiscountRuleInput; HighestDiscountRuleResult; HighestDiscountRule,2,0,,HighestDiscountRule -- migrace legacy HighestDiscountPolicy (connectors/,7118b4081c24
+253,nexus/domains/pricing/NoOpActionPriceRule.ts,domain rules,3142,70,.ts,yes,NoOpActionPriceRuleInput; NoOpActionPriceRuleResult; NoOpActionPriceRule,2,0,,"""NoOpActionPriceRule -- port okfish """"no-op actionPrice guard"""".""",3b027f7605d9
+254,nexus/domains/pricing/PricingAdapter.ts,domain rules,3349,84,.ts,yes,PricingRuleResult; LegacyPricingResult; LegacyPricingInput; PricingAdapter,4,0,,"""PricingAdapter -- obaluje legacy Pricing Engine, nepřepisuje ho.""",c60d197f4639
+255,nexus/domains/pricing/PricingConfigurationProvider.ts,domain rules,4283,87,.ts,yes,PolicyConfig; PricingConfigurationProvider; InMemoryPricingConfigurationProvider,1,0,,PricingConfigurationProvider -- explicitní port pro pricing konfiguraci,11116af3e879
+256,nexus/domains/pricing/ProductLimitCompositionRule.ts,domain rules,8366,179,.ts,yes,ProductLimitSourceFile; ProductLimitCompositionRuleInput; ProductLimitConflict; ProductLimitCompositionRuleResult; ProductLimitCompositionRule,2,0,,ProductLimitCompositionRule -- port okfish skládání `PRODUCT_LIMITS`,d762cec7fcc5
+257,nexus/domains/pricing/QuantityTierRule.ts,domain rules,3103,65,.ts,yes,QuantityTierRuleInput; QuantityTierRuleResult; QuantityTierRule,3,1,1,QuantityTierRule -- PLACEHOLDER implementace hypotézy C z,251236e5d2ac
+258,nexus/domains/pricing/RoundingRule.ts,domain rules,1300,33,.ts,yes,RoundingRuleInput; RoundingRuleResult; RoundingRule,2,0,,RoundingRule -- první policy migrovaná pod Nexus Rule contract (viz,b8a079b5d53e
+259,nexus/domains/pricing/StaticPricingConfigurationProvider.ts,domain rules,1337,47,.ts,yes,DEFAULT_ANASTASIA_PRICING_CONFIG; StaticPricingConfigurationProvider,2,0,,Static (In-Memory) implementácia PricingConfigurationProvider pre Cloudflare Workers.,eeede6186727
+260,nexus/domains/pricing/ValidationRule.ts,domain rules,2662,62,.ts,yes,ValidationInputCheck; ValidationResultCheck; ValidationOutcome; ValidationRule,2,0,,ValidationRule -- migrace legacy ValidationEngine (connectors/pricing-engine/,cf0a755135a0
+261,nexus/domains/pricing/VoucherCouponRule.ts,domain rules,2109,42,.ts,yes,VoucherCouponRuleInput; VoucherCouponRule,3,0,,"""VoucherCouponRule -- migrace VoucherCouponPolicy (""""L-Code Pricing""",fafe2c08674b
+262,nexus/domains/pricing/XPlusXRule.ts,domain rules,2631,60,.ts,yes,XPlusXRuleInput; XPlusXRuleResult; XPlusXRule,3,0,,XPlusXRule -- migrace resolveXPlusXForVariant (connectors/pricing-engine/,c1da69168d41
+263,nexus/domains/pricing/createNexusPricingCalculator.ts,domain rules,8761,168,.ts,yes,createNexusPricingCalculator,9,1,59,Nexus-side factory -- staví plný Nexus Rule chain (BasePrice ->,570069f90c22
+264,nexus/domains/procurement/NOT_MIGRATED.md,domain rules,2831,49,.md,yes,,0,2,10;23,SupplierMappingService a Workflow.ts — záměrně nemigrovány pod Rule<>,9240511005d3
+265,nexus/domains/procurement/ProcurementRule.ts,domain rules,2736,54,.ts,yes,ProcurementPlanRuleInput; ProcurementPlanRule; ProcurementReceiveRuleInput; ProcurementReceiveRule,3,0,,ProcurementPlanRule / ProcurementReceiveRule -- migrace legacy,dd81b0041d9c
+266,nexus/domains/procurement/SupplierSelectionRule.ts,domain rules,2830,49,.ts,yes,SupplierSelectionRuleInput; SupplierSelectionRule,3,0,,SupplierSelectionRule -- migrace legacy SupplierSelectionEngine,cf6ab28b47dc
+267,nexus/domains/safeorder/AuditLedgerRule.ts,domain rules,998,20,.ts,yes,AuditLedgerRule,3,0,,AuditLedgerRule -- migrace legacy audit/ledger.ts (connectors/safeorder/,0ed976788ae0
+268,nexus/domains/safeorder/BacktestRule.ts,domain rules,1936,44,.ts,yes,MetricSetRuleInput; MetricSetRule; RocAucRule; BrierScoreRule,2,1,9,BacktestRule -- migrace čistých metrik z legacy backtest/point-in-time-backtest.ts,06af677265d5
+269,nexus/domains/safeorder/BlindToken.ts,domain rules,864,14,.ts,yes,,1,0,,BlindToken -- re-export legacy blind-token.ts (connectors/safeorder/,26a09e7fc09c
+270,nexus/domains/safeorder/CalibrationRule.ts,domain rules,2040,48,.ts,yes,CalibrationRuleInput; CalibrationRuleResult; CalibrationRule; EvidentiaryConfidenceRule,3,0,,CalibrationRule -- migrace legacy calibration-engine.ts (connectors/,0a9d00960339
+271,nexus/domains/safeorder/EconomicsRule.ts,domain rules,1529,30,.ts,yes,EconomicsRuleInput; EconomicsRule,3,0,,EconomicsRule -- migrace legacy decision-economics.ts (connectors/,8482ecba117e
+272,nexus/domains/safeorder/IdentityNormalizationRule.ts,domain rules,1562,30,.ts,yes,IdentityNormalizationRuleInput; IdentityNormalizationRule,3,0,,IdentityNormalizationRule -- migrace legacy normalization/identity.ts,2248f8686a06
+273,nexus/domains/safeorder/LocalizationRule.ts,domain rules,1599,39,.ts,yes,LocalizeReasonCodesInput; LocalizeReasonCodesRule; FormatCurrencyAmountInput; FormatCurrencyAmountRule,3,0,,LocalizationRule -- migrace legacy i18n/localization.ts (connectors/,96037997d57c
+274,nexus/domains/safeorder/NOT_MIGRATED.md,domain rules,4367,88,.md,yes,,0,3,59;77;88,SafeOrder podpůrné moduly — vědomě nemigrovány pod Rule<>,927db47c4bcc
+275,nexus/domains/safeorder/OutcomeEngineRule.ts,domain rules,2039,42,.ts,yes,OutcomeEngineRuleInput; OutcomeEngineRuleResult; OutcomeEngineRule,2,0,,OutcomeEngineRule -- migrace legacy outcome-engine.ts (connectors/,aff2ce558ccf
+276,nexus/domains/safeorder/PolicyRule.ts,domain rules,1924,38,.ts,yes,PolicyRuleInput; PolicyRule; PolicyOptimizationRule,4,0,,PolicyRule -- migrace legacy policies.ts (connectors/safeorder/legacy/,0ce5d562ac96
+277,nexus/domains/safeorder/RetentionRule.ts,domain rules,1182,26,.ts,yes,ComputeExpiryTimestampInput; ComputeExpiryTimestampRule,2,0,,RetentionRule -- migrace legacy privacy/retention.ts (connectors/,b58f58935071
+278,nexus/domains/safeorder/RiskEngineRule.ts,domain rules,1306,24,.ts,yes,RiskEngineRule,2,0,,RiskEngineRule -- migrace legacy risk-engine/engine.ts (connectors/,b5a9635c80ee
+279,nexus/domains/safeorder/RiskGraphRule.ts,domain rules,1394,27,.ts,yes,RiskGraphRuleInput; RiskGraphRule,2,0,,RiskGraphRule -- migrace legacy graph.ts (connectors/safeorder/legacy/,cc67a9b5a883
+280,nexus/domains/safeorder/ValidationStageRules.ts,domain rules,5066,90,.ts,yes,InputValidationStageRule; SignalValidationStageRuleInput; SignalValidationStageRule; RiskPolicyStageRuleInput; RiskPolicyStageRule; DecisionActionStageRuleInput; DecisionActionStageRule,10,0,,ValidationStageRules -- migrace legacy 5-stage validation pipeline,d15a33eb1abd
+281,nexus/domains/shoptet/CsvParserGateRule.ts,domain rules,1151,23,.ts,yes,CsvParserGateRule,2,0,,CsvParserGateRule -- migrace legacy CsvParserGate2 (connectors/shoptet/,79f02532d2a8
+282,nexus/domains/shoptet/ShoptetRowParserRule.ts,domain rules,1345,27,.ts,yes,ShoptetRowParserRuleInput; ShoptetRowParserRule,4,0,,ShoptetRowParserRule -- migrace legacy parseRow (connectors/shoptet/,bfa60d91adfa
+283,nexus/domains/supplier-csv/SupplierCsvRule.ts,domain rules,1872,46,.ts,yes,ExportPurchaseOrderRule; ImportSupplierOffersRuleInput; ImportSupplierOffersRule; ImportGoodsReceiptRule,3,0,,SupplierCsvRule -- migrace legacy NoApiCsvAdapter (connectors/,a27af34ded88
+284,nexus/domains/voucher/CreditVoucherCodeGenerator.ts,domain rules,13910,299,.ts,yes,VOUCHER_CODE_ALPHABET; VOUCHER_CODE_PREFIX; VOUCHER_CODE_GROUP_LENGTH; VOUCHER_CODE_GROUP_COUNT; VOUCHER_CODE_ENTROPY_CHARS; VOUCHER_CODE_PATTERN; RandomBytesSource; webCryptoRandomBytes; VoucherCodeGenerationError; GenerateVoucherCodeInput; generateVoucherCode; isValidVoucherCodeFormat,0,0,,"""CreditVoucherCodeGenerator -- doména `domains/voucher/`, Fáze A """"Voucher Core""""""",56e9beca50f1
+285,nexus/domains/voucher/CreditVoucherLifecycleRule.ts,domain rules,5180,102,.ts,yes,CreditVoucherLifecycleRuleInput; CreditVoucherLifecycleRuleResult; CreditVoucherLifecycleRule; isCreditVoucherTerminal,4,0,,"""CreditVoucherLifecycleRule -- doména `domains/voucher/`, Fáze A""",dae3de3f20de
+286,nexus/domains/voucher/CreditVoucherRedemptionRule.ts,domain rules,10131,220,.ts,yes,CreditVoucherRedemptionRuleInput; CreditVoucherRedemptionRejectionReason; CreditVoucherRedemptionRuleResult; CreditVoucherRedemptionRule,4,0,,"""CreditVoucherRedemptionRule -- doména `domains/voucher/`, Fáze A""",54cacc6d66b1
+287,nexus/domains/voucher/CreditVoucherStore.ts,domain rules,32140,676,.ts,yes,IssueCreditVoucherInput; IssueCreditVoucherResult; RedeemCreditVoucherParams; NotRedeemableReason; RedeemOutcome; RefundCreditVoucherParams; RefundOutcome; CreditVoucherStore; InMemoryCreditVoucherStore,4,0,,"""CreditVoucherStore -- doména `domains/voucher/`, Fáze A """"Voucher Core""""""",2cb0e1e1237e
+288,nexus/domains/voucher/CreditVoucherValidityRule.ts,domain rules,7252,165,.ts,yes,CreditVoucherValidityRuleInput; CreditVoucherInvalidityReason; CreditVoucherValidityRuleResult; CreditVoucherValidityRule,4,0,,"""CreditVoucherValidityRule -- doména `domains/voucher/`, Fáze A""",b67c15431956
+289,nexus/domains/voucher/VoucherRedemptionAudit.ts,domain rules,6881,168,.ts,yes,VoucherAuditOutcome; VoucherAuditInput; auditVoucherRedemption; shouldPersistBurnedAmount; requiresManualReview,0,0,,VoucherRedemptionAudit -- výpočet propadlé částky pro MPV účetnictví.,9a46a7282ca0
+290,nexus/domains/warehouse/WarehouseStockFlow.ts,domain rules,3334,68,.ts,yes,evaluateWarehouseStockLink; WarehouseStockLinkResolution; resolveWarehouseStockLinks,4,0,,"""WarehouseStockFlow -- Fáze 6.4 business flow, ne nová abstrakce.""",d27afc1447ad
+291,nexus/domains/warehouse/WarehouseStockLinkRule.ts,domain rules,4245,86,.ts,yes,WarehouseStockLinkRuleInput; WarehouseStockLinkStatus; WarehouseStockLinkRuleResult; WarehouseStockLinkRule,3,0,,WarehouseStockLinkRule -- Fáze 6.2 business rule nad Warehouse/StockPosition,5ac5fc0742c9
+292,nexus/migrations/0001_credit_voucher.sql,database migration,8209,161,.sql,yes,,0,0,,"""0001_credit_voucher.sql -- Fáze A """"Voucher Core""""""",f3fec94f6a98
+293,nexus/migrations/0002_voucher_audit.sql,database migration,3209,65,.sql,yes,,0,0,,0002_voucher_audit.sql -- auditní stopa operací nad kreditem.,bdac8195bd0e
+294,nexus/migrations/0003_execution_intents.sql,database migration,5466,106,.sql,yes,,0,0,,"""0003_execution_intents.sql -- perzistence Execution vrstvy (P1,""",bf6406a7b6a7
+295,nexus/migrations/0004_voucher_burned_unclaimed.sql,database migration,2558,49,.sql,yes,,0,0,,0004_voucher_burned_unclaimed.sql -- účetní podklad pro MPV režim.,8c51ab67a712
+296,nexus/package-lock.json,repo metadata,91023,2787,.json,yes,,0,3,1576;1578;2582,"""""""version"""": """"0.0.1"""",""",585a0c5aee30
+297,nexus/package.json,repo metadata,705,28,.json,yes,,0,0,,"""""""version"""": """"0.0.1"""",""",4c0b2361b7c1
+298,nexus/tests/integration/ExecutionPipeline.test.ts,test/fixture,12475,306,.ts,yes,,7,0,,Execution pipeline -- integrační test celého řetězu P1.,5614b125796f
+299,nexus/tests/integration/PricingEndToEnd.test.ts,test/fixture,9068,175,.ts,yes,,11,0,,Tenant se do pricingu předává zvenku (P0 2026-09-07) -- test ho dodává stejně jako produkční volající. */,7c6353c162ce
+300,nexus/tests/integration/PromoQuantityBoundaryMatrix.test.ts,test/fixture,14288,276,.ts,yes,,15,0,,Hraniční testovací matice -- Fáze 6.5 pokračování (Josovo zadání,d5cec1e1a428
+301,nexus/tests/regression/availability/availability-sales-units-parity.test.ts,test/fixture,14020,258,.ts,yes,,17,0,,Parity testy: domains/availability/*Rule.ts vs skutečné legacy třídy,8cd3511a4dde
+302,nexus/tests/regression/availability/procurement-rule-parity.test.ts,test/fixture,14305,262,.ts,yes,,6,0,,Parity testy: Nexus ProcurementPlanRule/ProcurementReceiveRule/,82f8e87e885e
+303,nexus/tests/regression/connectors/omega-decision-rules-parity.test.ts,test/fixture,5602,113,.ts,yes,,9,0,,"""DecisionEngineRule,""",6f3edd032670
+304,nexus/tests/regression/connectors/omega-executor-sanity.test.ts,test/fixture,7468,156,.ts,yes,,5,7,2;5;8;19;27;41;76,Sanity testy pro OmegaExecutor (connectors/omega/legacy/agent/,8a1c645aa129
+305,nexus/tests/regression/connectors/omega-legacy-sanity.test.ts,test/fixture,7824,151,.ts,yes,,9,0,,Sanity test proti skutečně portovanému Omega/ERP adapter kódu,c459bafc4047
+306,nexus/tests/regression/connectors/omega-rule-parity.test.ts,test/fixture,6353,111,.ts,yes,,10,0,,function makeDocument(overrides?: Partial<CanonicalAccountingDocument>): CanonicalAccountingDocument {,d46fa275f96a
+307,nexus/tests/regression/connectors/omega-validators-parity.test.ts,test/fixture,7252,128,.ts,yes,,10,0,,"""MoneyValidatorRule, AddressValidatorRule, TaxValidatorRule, CustomerValidatorRule,""",a0a6fccbf652
+308,nexus/tests/regression/connectors/shoptet-csv-sanity.test.ts,test/fixture,4818,101,.ts,yes,,8,0,,Sanity test proti skutečně portovanému Shoptet CSV parsing pipeline,bca3eea40a08
+309,nexus/tests/regression/connectors/shoptet-rule-parity.test.ts,test/fixture,2842,55,.ts,yes,,7,0,,"""describe('ShoptetRowParserRule parity vs legacy parseRow', () => {""",07f74f405882
+310,nexus/tests/regression/connectors/supplier-csv-rule-parity.test.ts,test/fixture,2293,37,.ts,yes,,4,0,,"""describe('SupplierCsvRule parity vs legacy NoApiCsvAdapter', () => {""",798c45856bfb
+311,nexus/tests/regression/connectors/supplier-csv-sanity.test.ts,test/fixture,2953,57,.ts,yes,,3,0,,Sanity test proti skutečně portovanému NoApiCsvAdapter,2e8bea803551
+312,nexus/tests/regression/golden-pricing/base-price-rule-parity.test.ts,test/fixture,1606,35,.ts,yes,,6,0,,Regression parity test: Nexus BasePriceRule vs legacy BasePricePolicy.,e3b0f13255b5
+313,nexus/tests/regression/golden-pricing/brand-sale-discount-rule-parity.test.ts,test/fixture,10793,260,.ts,yes,,7,0,,Parity: Nexus BrandSaleDiscountRule vs okfish brandSaleDiscounts syntéza.,2101fa898fbd
+314,nexus/tests/regression/golden-pricing/brand-sale-vs-loyalty.test.ts,test/fixture,7307,198,.ts,yes,,5,0,,BUSINESS PRAVIDLO: brandSale vs. loyalty tier -- potvrzeno Luckym 2026-09-07.,4396819fadaa
+315,nexus/tests/regression/golden-pricing/clearance-window-rule-parity.test.ts,test/fixture,9025,200,.ts,yes,,5,0,,Parity: Nexus ClearanceWindowRule vs okfish `resolveClearancePct`.,093dfcdf6c47
+316,nexus/tests/regression/golden-pricing/coupon-policy-rule-parity.test.ts,test/fixture,4051,75,.ts,yes,,5,0,,"""describe('CouponPolicyRule parity vs legacy CouponPolicy', () => {""",f91d29d7220b
+317,nexus/tests/regression/golden-pricing/discount-limit-rule-parity.test.ts,test/fixture,10393,212,.ts,yes,,6,0,,Kombinatoricka regression matrix: Nexus DiscountLimitRule vs legacy,3b07ae3c196b
+318,nexus/tests/regression/golden-pricing/fixtures/001-normal-product.csv,test/fixture,144,2,.csv,yes,,0,0,,code;name;price;actionPrice;maxDiscount;manufacturer;categoryText;purchasePrice;percentVat,68750048bef3
+319,nexus/tests/regression/golden-pricing/fixtures/002-sale-overrides-loyalty.csv,test/fixture,155,2,.csv,yes,,0,0,,code;name;price;actionPrice;maxDiscount;manufacturer;categoryText;purchasePrice;percentVat,477a76465f95
+320,nexus/tests/regression/golden-pricing/fixtures/003-brand-limit.csv,test/fixture,148,2,.csv,yes,,0,0,,code;name;price;actionPrice;maxDiscount;manufacturer;categoryText;purchasePrice;percentVat,658aea464394
+321,nexus/tests/regression/golden-pricing/fixtures/004-category-limit.csv,test/fixture,147,2,.csv,yes,,0,0,,code;name;price;actionPrice;maxDiscount;manufacturer;categoryText;purchasePrice;percentVat,a9c656391dae
+322,nexus/tests/regression/golden-pricing/fixtures/005-product-limit.csv,test/fixture,144,2,.csv,yes,,0,0,,code;name;price;actionPrice;maxDiscount;manufacturer;categoryText;purchasePrice;percentVat,c6cb76e2b918
+323,nexus/tests/regression/golden-pricing/fixtures/006-rounding.csv,test/fixture,130,2,.csv,yes,,0,0,,code;name;price;actionPrice;maxDiscount;manufacturer;categoryText;purchasePrice;percentVat,623f9a5b1898
+324,nexus/tests/regression/golden-pricing/fixtures/007-invalid-price.csv,test/fixture,144,2,.csv,yes,,0,0,,code;name;price;actionPrice;maxDiscount;manufacturer;categoryText;purchasePrice;percentVat,f94c4ba807a9
+325,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR10.csv,test/fixture,26,2,.csv,yes,,0,0,,,f17b465a8bd5
+326,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR12.csv,test/fixture,26,2,.csv,yes,,0,0,,,c76de7ed6384
+327,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR14.csv,test/fixture,26,2,.csv,yes,,0,0,,,1dc486ce459b
+328,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR16.csv,test/fixture,26,2,.csv,yes,,0,0,,,f6469bcf9163
+329,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR18.csv,test/fixture,26,2,.csv,yes,,0,0,,,26613bfe1ba2
+330,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR20.csv,test/fixture,26,2,.csv,yes,,0,0,,,2db1d64db122
+331,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR25.csv,test/fixture,26,2,.csv,yes,,0,0,,,d3967caa5cc0
+332,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR4.csv,test/fixture,26,2,.csv,yes,,0,0,,,8f1b0b2b193e
+333,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR6.csv,test/fixture,26,2,.csv,yes,,0,0,,,76f957d6f7ff
+334,nexus/tests/regression/golden-pricing/fixtures/expected/001-normal-product/ZR8.csv,test/fixture,26,2,.csv,yes,,0,0,,,488c666e2777
+335,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR10.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+336,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR12.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+337,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR14.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+338,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR16.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+339,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR18.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+340,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR20.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+341,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR25.csv,test/fixture,26,2,.csv,yes,,0,0,,,efcd1ec482e4
+342,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR4.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+343,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR6.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+344,nexus/tests/regression/golden-pricing/fixtures/expected/002-sale-overrides-loyalty/ZR8.csv,test/fixture,26,2,.csv,yes,,0,0,,,b895db5de5fb
+345,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR10.csv,test/fixture,27,2,.csv,yes,,0,0,,,67c13cd9e19d
+346,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR12.csv,test/fixture,27,2,.csv,yes,,0,0,,,67c13cd9e19d
+347,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR14.csv,test/fixture,27,2,.csv,yes,,0,0,,,67c13cd9e19d
+348,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR16.csv,test/fixture,27,2,.csv,yes,,0,0,,,67c13cd9e19d
+349,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR18.csv,test/fixture,27,2,.csv,yes,,0,0,,,67c13cd9e19d
+350,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR20.csv,test/fixture,27,2,.csv,yes,,0,0,,,67c13cd9e19d
+351,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR25.csv,test/fixture,27,2,.csv,yes,,0,0,,,67c13cd9e19d
+352,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR4.csv,test/fixture,27,2,.csv,yes,,0,0,,,215676fce32d
+353,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR6.csv,test/fixture,27,2,.csv,yes,,0,0,,,aef0319b6cd2
+354,nexus/tests/regression/golden-pricing/fixtures/expected/003-brand-limit/ZR8.csv,test/fixture,27,2,.csv,yes,,0,0,,,a66524c2dbe6
+355,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR10.csv,test/fixture,25,2,.csv,yes,,0,0,,,1d6291a554b0
+356,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR12.csv,test/fixture,25,2,.csv,yes,,0,0,,,cd3f68754b58
+357,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR14.csv,test/fixture,25,2,.csv,yes,,0,0,,,516dc18138b8
+358,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR16.csv,test/fixture,25,2,.csv,yes,,0,0,,,532ef4f6e3c9
+359,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR18.csv,test/fixture,25,2,.csv,yes,,0,0,,,4693210aee0a
+360,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR20.csv,test/fixture,25,2,.csv,yes,,0,0,,,36e3ada79a70
+361,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR25.csv,test/fixture,25,2,.csv,yes,,0,0,,,61b8efd76fe3
+362,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR4.csv,test/fixture,25,2,.csv,yes,,0,0,,,c605b9fc8294
+363,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR6.csv,test/fixture,25,2,.csv,yes,,0,0,,,5d467db1cca8
+364,nexus/tests/regression/golden-pricing/fixtures/expected/004-category-limit/ZR8.csv,test/fixture,25,2,.csv,yes,,0,0,,,41a782060bce
+365,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR10.csv,test/fixture,25,2,.csv,yes,,0,0,,,3a87267000b0
+366,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR12.csv,test/fixture,25,2,.csv,yes,,0,0,,,d7277218a55d
+367,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR14.csv,test/fixture,25,2,.csv,yes,,0,0,,,6bef17ae533a
+368,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR16.csv,test/fixture,25,2,.csv,yes,,0,0,,,5937c64bc32b
+369,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR18.csv,test/fixture,25,2,.csv,yes,,0,0,,,5937c64bc32b
+370,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR20.csv,test/fixture,25,2,.csv,yes,,0,0,,,5937c64bc32b
+371,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR25.csv,test/fixture,25,2,.csv,yes,,0,0,,,5937c64bc32b
+372,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR4.csv,test/fixture,25,2,.csv,yes,,0,0,,,2298619bd489
+373,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR6.csv,test/fixture,25,2,.csv,yes,,0,0,,,bf818f6f791c
+374,nexus/tests/regression/golden-pricing/fixtures/expected/005-product-limit/ZR8.csv,test/fixture,25,2,.csv,yes,,0,0,,,347a607ef686
+375,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR10.csv,test/fixture,26,2,.csv,yes,,0,0,,,c64f2e17ec23
+376,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR12.csv,test/fixture,26,2,.csv,yes,,0,0,,,b7dafd3a2194
+377,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR14.csv,test/fixture,26,2,.csv,yes,,0,0,,,542921443db9
+378,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR16.csv,test/fixture,26,2,.csv,yes,,0,0,,,c00b7ec82366
+379,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR18.csv,test/fixture,26,2,.csv,yes,,0,0,,,ba3a90d33d7a
+380,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR20.csv,test/fixture,26,2,.csv,yes,,0,0,,,c001a222533c
+381,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR25.csv,test/fixture,26,2,.csv,yes,,0,0,,,9581092b0b49
+382,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR4.csv,test/fixture,26,2,.csv,yes,,0,0,,,3e60de3b24e1
+383,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR6.csv,test/fixture,26,2,.csv,yes,,0,0,,,c3d26a1c1251
+384,nexus/tests/regression/golden-pricing/fixtures/expected/006-rounding/ZR8.csv,test/fixture,26,2,.csv,yes,,0,0,,,d3b0a47ec834
+385,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR10.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+386,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR12.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+387,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR14.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+388,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR16.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+389,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR18.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+390,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR20.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+391,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR25.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+392,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR4.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+393,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR6.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+394,nexus/tests/regression/golden-pricing/fixtures/expected/007-invalid-price/ZR8.csv,test/fixture,11,1,.csv,yes,,0,0,,,526470c811ae
+395,nexus/tests/regression/golden-pricing/fixtures/okfish-policy/clearance-sale-products.json,test/fixture,719,46,.json,yes,,0,0,,,404b93c1232e
+396,nexus/tests/regression/golden-pricing/fixtures/okfish-policy/okfish-products-actionprice-sample.csv,test/fixture,2441,29,.csv,yes,,0,0,,code;pairCode;name;price;priceRatio;standardPrice;purchasePrice;purchasePriceVatRate;purchasePriceIncludingVat;actionPrice;maxDiscount;,b42b794b67dd
+397,nexus/tests/regression/golden-pricing/fixtures/okfish-policy/okfish-products-import-snapshot.csv,test/fixture,13872,101,.csv,yes,,0,0,,code;pairCode;name;price;priceRatio;standardPrice;purchasePrice;purchasePriceVatRate;purchasePriceIncludingVat;actionPrice;maxDiscount;pricelist:,20a7b4af897f
+398,nexus/tests/regression/golden-pricing/fixtures/okfish-policy/policy-v1.json,test/fixture,1358,58,.json,yes,,0,0,,"""""""version"""": """"1.0"""",""",41a23ba5ec05
+399,nexus/tests/regression/golden-pricing/fixtures/okfish-policy/product-max-discount-overrides.json,test/fixture,35,4,.json,yes,,0,0,,,6cb556e93712
+400,nexus/tests/regression/golden-pricing/fixtures/okfish-policy/zero-discount-products.json,test/fixture,2277,208,.json,yes,,0,0,,,7e2b62cdfb9e
+401,nexus/tests/regression/golden-pricing/full-chain-parity.test.ts,test/fixture,11112,241,.ts,yes,,14,0,,Plny chain parity test: Nexus Rule chain (BasePrice -> HighestDiscount ->,56affd66fe51
+402,nexus/tests/regression/golden-pricing/golden.test.ts,test/fixture,4074,85,.ts,yes,,10,0,,Portováno z ~/okfish-pricing-engine/tests/golden.test.ts beze změny logiky,2d40c5e6bdb0
+403,nexus/tests/regression/golden-pricing/highest-discount-rule-parity.test.ts,test/fixture,10040,219,.ts,yes,,8,0,,Regression parity test: Nexus HighestDiscountRule vs legacy,ba11d83312a9
+404,nexus/tests/regression/golden-pricing/nexus-calculator-parity.test.ts,test/fixture,5152,98,.ts,yes,,11,0,,"""Parity test pro createNexusPricingCalculator samotnou (produkční factory,""",39a26903625f
+405,nexus/tests/regression/golden-pricing/noop-action-price-rule-parity.test.ts,test/fixture,7306,172,.ts,yes,,6,0,,Parity: Nexus NoOpActionPriceRule vs okfish no-op actionPrice guard.,b98945ff2d83
+406,nexus/tests/regression/golden-pricing/okfish-missing-logic-integration.test.ts,test/fixture,22909,501,.ts,yes,,13,0,,Integrační parita: čtyři DOPLNĚNÁ pravidla (NoOpActionPrice ->,827474216a19
+407,nexus/tests/regression/golden-pricing/product-limit-composition-rule-parity.test.ts,test/fixture,13149,304,.ts,yes,,7,0,,Parity: Nexus ProductLimitCompositionRule vs okfish PRODUCT_LIMITS.,d34ceb0574aa
+408,nexus/tests/regression/golden-pricing/quantity-tier-rule-hypothesis.test.ts,test/fixture,7995,146,.ts,yes,,4,2,4;25,HYPOTHESIS TEST -- ne golden regression parity (žádný legacy oracle,0f07ec3cb779
+409,nexus/tests/regression/golden-pricing/rounding-rule-parity.test.ts,test/fixture,2294,50,.ts,yes,,6,0,,Regression parity test: Nexus RoundingRule vs legacy RoundingPolicy.,df7468de0bde
+410,nexus/tests/regression/golden-pricing/validation-rule-parity.test.ts,test/fixture,4862,81,.ts,yes,,5,0,,Regression parity test: Nexus ValidationRule vs legacy ValidationEngine.,156495cc7d24
+411,nexus/tests/regression/golden-pricing/voucher-coupon-rule-parity.test.ts,test/fixture,6287,146,.ts,yes,,3,0,,Regresní parita VoucherCouponRule vs. legacy VoucherCouponPolicy,ec043b094fc9
+412,nexus/tests/regression/golden-pricing/x-plus-x-rule-parity.test.ts,test/fixture,2285,51,.ts,yes,,3,0,,Regresní parita XPlusXRule vs. legacy resolveXPlusXForVariant,f581b8fee469
+413,nexus/tests/regression/safeorder/backtest-rule-parity.test.ts,test/fixture,4246,90,.ts,yes,,3,0,,function makeEval(overrides?: Partial<EvaluationRecord>): EvaluationRecord {,188972b4f89d
+414,nexus/tests/regression/safeorder/calibration-rule-parity.test.ts,test/fixture,2844,62,.ts,yes,,4,0,,"""describe('CalibrationRule parity vs legacy calibrateRiskProbability', () => {""",f586970b09d4
+415,nexus/tests/regression/safeorder/economics-policy-rule-parity.test.ts,test/fixture,5710,119,.ts,yes,,7,0,,"""tenant_id: 'ten_1',""",7333c1e7c483
+416,nexus/tests/regression/safeorder/legacy-safeorder-sanity.test.ts,test/fixture,9274,205,.ts,yes,,7,0,,Sanity test proti skutečně portovanému legacy SafeOrder kódu,35720e41e33a
+417,nexus/tests/regression/safeorder/localization-retention-rule-parity.test.ts,test/fixture,2791,54,.ts,yes,,5,0,,"""describe('LocalizeReasonCodesRule parity vs legacy localizeReasonCodes', () => {""",63d86020c5b3
+418,nexus/tests/regression/safeorder/risk-engine-rule-parity.test.ts,test/fixture,2656,51,.ts,yes,,4,0,,function makeSignal(overrides?: Partial<FraudSignalRecord>): FraudSignalRecord {,61377e435b79
+419,nexus/tests/regression/safeorder/risk-graph-outcome-rule-parity.test.ts,test/fixture,6912,128,.ts,yes,,5,0,,"""describe('RiskGraphRule parity vs legacy evaluateContextualRisk', () => {""",5e769034418b
+420,nexus/tests/regression/safeorder/validation-stages-parity.test.ts,test/fixture,9793,166,.ts,yes,,14,0,,Parity testy: Nexus ValidationStageRules/IdentityNormalizationRule/,48cd37aa92a6
+421,nexus/tests/regression/shadow/pricing-parity-baseline.test.ts,test/fixture,10704,269,.ts,yes,PRICING_PARITY_BASELINE,5,0,,PRICING PARITY BASELINE -- produkční zámek cenové domény.,4ab1d1187c24
+422,nexus/tests/regression/shadow/shadow-harness.test.ts,test/fixture,9645,212,.ts,yes,,6,1,192,Testy SHADOW HARNESSU samotného -- ne cenové logiky.,7157ec4ed6ce
+423,nexus/tests/tenant-isolation/assertTenantOwnership.test.ts,test/fixture,1347,31,.ts,yes,,2,0,,"""describe('assertTenantOwnership', () => {""",bfe1b83750a0
+424,nexus/tests/unit/AuditRecord.test.ts,test/fixture,10061,255,.ts,yes,,3,0,,"""core/audit framework testy -- append-only invariant, hash konzistence,""",052b0b490465
+425,nexus/tests/unit/B2BFlows.test.ts,test/fixture,4513,102,.ts,yes,,3,0,,Fáze 6.4 business flow -- CustomerBusinessContextFlow,6a26389bb740
+426,nexus/tests/unit/B2BRules.test.ts,test/fixture,7208,158,.ts,yes,,4,0,,Fáze 6.2 business rules -- BusinessProfileAccessor,6238559e20fd
+427,nexus/tests/unit/BestCandidatePriceRule.test.ts,test/fixture,3948,90,.ts,yes,,3,0,,"""BestCandidatePriceRule -- Fáze 6.5 pokračování. Josovo zadání: """"PromoGroup,""",12494e45e5f3
+428,nexus/tests/unit/BillingFlows.test.ts,test/fixture,5983,145,.ts,yes,,2,0,,Fáze 6.4 business flow -- TenantSubscriptionPlanFlow,afc561aa6171
+429,nexus/tests/unit/BillingRules.test.ts,test/fixture,6757,127,.ts,yes,,3,0,,Fáze 6.2 business rules -- SubscriptionLifecycleRule,9cbfbe92e6ef
+430,nexus/tests/unit/CampaignFlows.test.ts,test/fixture,13658,299,.ts,yes,,4,0,,Fáze 6.4 business flows -- domains/campaign/CampaignFlows.ts. Josovo,23407429b9f5
+431,nexus/tests/unit/CampaignRules.test.ts,test/fixture,9058,216,.ts,yes,,5,0,,"""Fáze 6.2 business rules -- domains/campaign/{CampaignLifecycleRule,""",381b3a00ed78
+432,nexus/tests/unit/CreativeResolutionRule.test.ts,test/fixture,5874,150,.ts,yes,,3,0,,CreativeResolutionRule -- Fáze 6.5 Creative resolve logika (Josovo,38dd871d8776
+433,nexus/tests/unit/CreditVoucherRules.test.ts,test/fixture,25846,643,.ts,yes,,7,0,,"""Fáze A voucher domény -- domains/voucher/{CreditVoucherRedemptionRule,""",9f6fba48514c
+434,nexus/tests/unit/CreditVoucherStore.test.ts,test/fixture,35399,917,.ts,yes,,6,0,,InMemoryCreditVoucherStore -- domains/voucher/CreditVoucherStore.ts,cde8ee9417d3
+435,nexus/tests/unit/ErrorIsolation.test.ts,test/fixture,6900,148,.ts,yes,,2,0,,core/error-isolation framework testy. Ověřují obecný batch-izolace,b96f011bdeaf
+436,nexus/tests/unit/Execution.test.ts,test/fixture,1125,31,.ts,yes,,2,0,,function makeExecution(status: Execution['status']): Execution {,5d9eac4d1c49
+437,nexus/tests/unit/ExecutionIntentStore.test.ts,test/fixture,11460,294,.ts,yes,,3,1,70,ExecutionIntentStore -- perzistence Execution vrstvy (P1).,69bfc79b7593
+438,nexus/tests/unit/GenericReconciliation.test.ts,test/fixture,4780,108,.ts,yes,,2,0,,"""evaluateDebounce,""",8472e85d8aee
+439,nexus/tests/unit/IdempotencyStore.test.ts,test/fixture,7507,159,.ts,yes,,2,0,,core/idempotency testy -- ověřují framework proti reálnému AIE vzoru,994f7d2da543
+440,nexus/tests/unit/IntentExecutor.test.ts,test/fixture,12115,310,.ts,yes,,4,0,,IntentExecutor -- P1 Execution vrstva (core/canonical/outcomes/).,7fb4c0423254
+441,nexus/tests/unit/IntentReconciliation.test.ts,test/fixture,9090,248,.ts,yes,,3,0,,IntentReconciliation -- uzavření řetězu Execution vrstvy (P1).,2797932d2363
+442,nexus/tests/unit/InvoiceFlows.test.ts,test/fixture,3700,91,.ts,yes,,2,0,,OrderInvoiceOmegaFlow -- Fáze 6.4 business flow testy. Kompozice nad,2c2086546951
+443,nexus/tests/unit/InvoiceRules.test.ts,test/fixture,4792,98,.ts,yes,,2,0,,InvoiceLifecycleRule -- Fáze 6.2 business rules testy + Fáze 6.3,338c5092d8d6
+444,nexus/tests/unit/MedusaConnector.test.ts,test/fixture,1076,28,.ts,yes,,2,0,,"""describe('MedusaConnector', () => {""",a13dcaff10a0
+445,nexus/tests/unit/Phase6DomainSkeleton.test.ts,test/fixture,15210,361,.ts,yes,,13,0,,"""Fáze 6.1 doménová kostra -- core/canonical/entities/{Campaign,Invoice,""",7b84c581aa02
+446,nexus/tests/unit/PromoGroupDiscountRule.test.ts,test/fixture,5736,105,.ts,yes,,4,0,,Fáze 6.5 Domain Rules -- domains/campaign/PromoGroupDiscountRule.ts.,6fa36dba7d3e
+447,nexus/tests/unit/PurchaseOrder.test.ts,test/fixture,1186,34,.ts,yes,,3,0,,"""function makeItem(quantity: number, receivedQuantity: number): PurchaseOrderItem {""",f0a0131d7379
+448,nexus/tests/unit/ReadOnlyGuard.test.ts,test/fixture,4960,133,.ts,yes,,2,4,11;28;35;43,ReadOnlyGuard -- zámek proti zápisu do živého Shoptetu.,e0974b5005f1
+449,nexus/tests/unit/Reconciliation.test.ts,test/fixture,1529,29,.ts,yes,,2,0,,"""describe('aggregateBatchStatus — error isolation (master prompt §8)', () => {""",0a42d602a26c
+450,nexus/tests/unit/ShoptetPriceConnector.test.ts,test/fixture,8531,229,.ts,yes,,2,0,,ShoptetPriceConnector -- první skutečná implementace Connector kontraktu.,5f0d6b497edb
+451,nexus/tests/unit/Snapshot.test.ts,test/fixture,4915,101,.ts,yes,,2,0,,core/snapshot/Snapshot.ts testy. Reprodukuje legacy kontrakt,062549032966
+452,nexus/tests/unit/StateMachine.test.ts,test/fixture,8322,158,.ts,yes,,2,0,,core/state-machine framework testy -- ověřují obecný kontrakt proti DVĚMA,1878c11d93b1
+453,nexus/tests/unit/TenantConfig.test.ts,test/fixture,3610,86,.ts,yes,,2,0,,core/tenant/types.ts -- TenantPolicy/TenantPlan/TenantScopedTierConfig,832a26ae8b92
+454,nexus/tests/unit/ValidationFramework.test.ts,test/fixture,2280,43,.ts,yes,,3,0,,"""describe('aggregateStageStatus — error isolation (§7)', () => {""",733141d9ed66
+455,nexus/tests/unit/VoucherPurchaseDetection.test.ts,test/fixture,4618,145,.ts,yes,,2,0,,sumVoucherUnits -- detekce NÁKUPU kreditního poukazu v objednávce (§18 krok 3).,a2dbc7d6d4f1
+456,nexus/tests/unit/VoucherRedemptionAudit.test.ts,test/fixture,10540,268,.ts,yes,,3,0,,VoucherRedemptionAudit -- výpočet propadlé částky pro MPV účetnictví.,e32d91709dad
+457,nexus/tests/unit/WarehouseFlows.test.ts,test/fixture,4425,108,.ts,yes,,4,0,,WarehouseStockFlow -- Fáze 6.4 business flow testy. Kompozice nad,ca83fc55b159
+458,nexus/tests/unit/WarehouseRules.test.ts,test/fixture,4684,105,.ts,yes,,4,0,,WarehouseStockLinkRule -- Fáze 6.2 business rules testy + Fáze 6.3,ef66b14e9278
+459,nexus/tests/unit/aiGatewayRoute.test.ts,test/fixture,1418,38,.ts,yes,,3,0,,"""describe('handleAIQuery Route Handler', () => {""",b4311debc559
+460,nexus/tests/unit/klubSubscribeRoute.test.ts,test/fixture,1599,39,.ts,yes,,3,2,33;34,"""describe('handleKlubSubscribe Route Handler', () => {""",3d97eb3ba23a
+461,nexus/tests/unit/nexusPricingRoute.test.ts,test/fixture,1696,43,.ts,yes,,3,0,,"""describe('handleNexusPricing Route Handler', () => {""",270833abde86
+462,nexus/tests/unit/nexusSafeOrderRoute.test.ts,test/fixture,1792,45,.ts,yes,,3,0,,"""describe('handleNexusSafeOrder Route Handler', () => {""",780b713be581
+463,nexus/tests/workers/schema.test.ts,test/fixture,18127,514,.ts,yes,,2,2,9;10,tests/workers/schema.test.ts -- smoke test migrace 0001_credit_voucher.sql.,25936e9d489c
+464,nexus/tests/workers/setup.ts,test/fixture,1302,30,.ts,yes,,3,0,,tests/workers/setup.ts -- setupFile pro Workers testy (běží UVNITŘ workerd).,33e6d41a31e7
+465,nexus/tests/workers/tsconfig.json,test/fixture,1490,35,.json,yes,,0,0,,Samostatný tsconfig pro Workers testy.,cc455b7c1fcf
+466,nexus/tools/shadow/adapters.ts,repo metadata,8266,180,.ts,yes,parsePrice; resolveAllowLoyaltyDiscount; NormalizedProduct; normalizeRow; toRootEngineProduct; NexusInputMode; toNexusInput,3,0,,Shadow harness -- převod jednoho řádku feedu na vstupy obou okfish enginů,b36d901b3432
+467,nexus/tools/shadow/feed.ts,repo metadata,6644,162,.ts,yes,MASTER_FEED_URL; CsvRow; parseCsv; FeedLoadResult; loadFeed; parseArgs,1,0,,Shadow harness -- načtení reálných okfish dat OFFLINE.,fbb80fd8ebbf
+468,nexus/tools/shadow/okfishConfig.ts,repo metadata,5913,131,.ts,yes,OKFISH_ROOT; OkfishConfig; loadOkfishConfig,3,0,,Shadow harness -- načtení okfish policy konfigurace. POUZE ČTENÍ.,2c96d50b78a3
+469,nexus/tools/shadow/okfishEngines.ts,repo metadata,5712,126,.ts,yes,OkfishEngines; assertOkfishCwd; loadOkfishEngines; assertNoWriterModulesLoaded; assertNoShoptetToken,4,2,109;122,Shadow harness -- dynamické načtení OBOU okfish enginů z živého klonu.,dd25af6dda52
+470,nexus/tools/shadow/p2-nexus-vs-okfish.ts,repo metadata,15327,351,.ts,yes,P2Class; P2Diff; P2ModeResult; P2Result; runP2,9,1,38,P2 -- NEXUS chain vs okfish root engine (batch cesta / ceníky).,712891a14e73
+471,nexus/tools/shadow/p3-okfish-selfcheck.ts,repo metadata,10409,243,.ts,yes,P3Class; EXPECTED_P3_CLASSES; P3Diff; P3Result; runP3,6,0,,P3 (priorita 0) -- shoduje se okfish sám se sebou?,fe9f00a9693c
+472,nexus/tools/shadow/run.sh,repo metadata,1602,46,.sh,yes,,0,0,,!/usr/bin/env bash,3dce952af7e2
+473,nexus/tsconfig.json,repo metadata,854,21,.json,yes,,0,0,,"""""""compilerOptions"""": {""",66379c38b1db
+474,nexus/vitest.config.ts,repo metadata,1062,23,.ts,yes,,1,0,,vitest.config.ts -- root config pro NODE testy (`npm test`).,ecf87dc88aa9
+475,nexus/vitest.workers.config.ts,repo metadata,3050,60,.ts,yes,,4,1,42,vitest.workers.config.ts -- PRVNÍ Workers testovací config v NEXUSu,3b17a8ae89eb
+476,nexus/workers/api/SecurityCoordinator.ts,Cloudflare worker,29394,695,.ts,yes,SecurityCoordinator,1,0,,Durable Object `SecurityCoordinator` -- bezpečnostní koordinátor voucher Workeru,6c0f74b28762
+477,nexus/workers/api/hmac.ts,Cloudflare worker,13985,341,.ts,yes,VoucherTokenPayload; buildVoucherCanonicalString; CanonicalizationError; isWellFormedSignature; signVoucherToken; verifyVoucherToken; timingSafeEqualHex; generateNonce; computeCartFingerprint; isTimestampFresh,0,1,224,"""HMAC token pro voucher redemption -- Worker vrstva, Fáze B""",2302725a2059
+478,nexus/workers/api/http.ts,Cloudflare worker,5648,163,.ts,yes,LogFields; LogLevel; log; redactVoucherCode; redactToken; ErrorCode; ApiError; jsonResponse; jsonError; withCors; preflightResponse,0,0,,HTTP helpery + structured logging. Vzor `corsResponse` / `jsonError`,89db279094d3
+479,nexus/workers/api/index.ts,Cloudflare worker,8300,202,.ts,yes,,11,1,11,NEXUS API Worker -- entry point (wrangler.jsonc `main`).,cc7c1b417e9a
+480,nexus/workers/api/routes/aiGateway.ts,Cloudflare worker,5334,165,.ts,yes,handleAIQuery,1,0,,POST /api/ai/query,6d0921f7932b
+481,nexus/workers/api/routes/issuance.ts,Cloudflare worker,35323,834,.ts,yes,handleIssue,3,0,,"""Issuance endpoint -- Worker vrstva, Fáze A """"Voucher Core""""""",813545787702
+482,nexus/workers/api/routes/klubSubscribe.ts,Cloudflare worker,4424,152,.ts,yes,handleKlubSubscribe,1,0,,POST /api/klub/subscribe,d197395fe0f4
+483,nexus/workers/api/routes/medusaWebhook.ts,Cloudflare worker,1618,48,.ts,yes,handleMedusaWebhook,2,0,,Medusa.js Webhook Route Handler pre Cloudflare Workers,800e0d256e06
+484,nexus/workers/api/routes/nexusPricing.ts,Cloudflare worker,2610,58,.ts,yes,handleNexusPricing,6,0,,NEXUS Pricing API Route Handler pre Medusa.js / Cloudflare Workers,72c2cead3e39
+485,nexus/workers/api/routes/nexusSafeOrder.ts,Cloudflare worker,2242,61,.ts,yes,handleNexusSafeOrder,3,0,,NEXUS SafeOrder 3.0 Risk API Route Handler pre Medusa.js / Cloudflare Workers,5a8ff941e1e4
+486,nexus/workers/api/routes/shoptetWebhook.ts,Cloudflare worker,15292,357,.ts,yes,ShoptetWebhookPayload; handleShoptetWebhook,3,0,,"""Shoptet webhook -- PŘIJÍMACÍ STRANA (Fáze B, 7.9.2026).""",16ac31064d34
+487,nexus/workers/api/routes/voucher.ts,Cloudflare worker,53384,1277,.ts,yes,handleValidate; handleRedeem,7,1,417,"""Voucher endpointy -- Worker vrstva, Fáze B""",739083cb18e4
+488,nexus/workers/api/types.ts,Cloudflare worker,9831,212,.ts,yes,D1Meta; D1Result; D1PreparedStatement; D1Database; NonceStore; RateLimitVerdict; DurableObjectId; DurableObjectStub; DurableObjectNamespace; Env,0,1,92,Minimální typy Worker runtime + Env binding kontrakt.,6d82ec1fe038
+489,nexus/workers/tsconfig.json,Cloudflare worker,1508,34,.json,yes,,0,0,,"""Worker vrstva má vlastní tsconfig, protože root tsconfig.json cílí na""",8c79fdc477b5
+490,nexus/wrangler.jsonc,repo metadata,4328,110,.jsonc,yes,,0,0,,"""PRVNÍ Worker config v NEXUSu (Fáze A voucheru, 2026-09-06).""",11cb7e7bdaa5

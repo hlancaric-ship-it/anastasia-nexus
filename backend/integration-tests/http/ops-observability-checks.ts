@@ -1,3 +1,4 @@
+import { syntheticBuyer } from "./customer-fixtures"
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
 import { signEdgeBatch } from "../../src/modules/ops-audit/edge-ingest"
 
@@ -17,9 +18,10 @@ export async function verifyOpsObservability({ api, container, options, evidence
   expect((await api.get("/admin/ops/events?from=2026-01-01&to=2026-10-01", admin)).status).toBe(400)
 
   // Korelace: bezpečné příchozí ID se vrátí, nebezpečné se nahradí novým.
+  const buyer = await syntheticBuyer(container, options, "ops-buyer@example.test")
   const requestId = `ops-verify-${Date.now()}`
-  const failed = await api.post("/store/nexus-checkout", { cart_id: "cart_synthetic_missing" }, { ...options, headers: { ...options.headers, "x-request-id": requestId } })
-  expect(failed.status).toBeGreaterThanOrEqual(400)
+  const failed = await api.post("/store/nexus-checkout", { cart_id: "cart_synthetic_missing" }, { ...buyer.options, headers: { ...buyer.options.headers, "x-request-id": requestId } })
+  expect(failed.status).toBe(404)
   expect(failed.headers["x-request-id"]).toBe(requestId)
   const unsafe = await api.get("/admin/ops/events?limit=1", { ...admin, headers: { ...admin.headers, "x-request-id": "bad id <script>" } })
   expect(unsafe.headers["x-request-id"]).toMatch(/^[0-9a-f-]{36}$/)
