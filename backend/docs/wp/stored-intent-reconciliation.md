@@ -1,6 +1,6 @@
 # Trvalé zpracování fronty nejistých výsledků
 
-Stav: IMPLEMENTED_UNVERIFIED pro skutečnou D1 do dokončení CI. Navazuje na intent-recovery a NEXUS_AUTONOMY_SPEC.md §2–3. Vlastní větev codex/intent-reconciliation; žádný deploy, externí platba nebo dokument.
+Stav: VERIFIED v izolovaném workerd/D1 a úplné regresi; CI 38818676983, PR #12 sloučen do master. Důkaz: docs/evidence/intent-reconciliation-20261016.json. Navazuje na intent-recovery a NEXUS_AUTONOMY_SPEC.md §2–3. Vlastní větev codex/intent-reconciliation; žádný deploy, externí platba nebo dokument.
 
 ## Problém a nejmenší kompatibilní změna
 
@@ -27,3 +27,7 @@ Lokálně 58/58 cílených testů PASS, oba TypeScript projekty PASS. Úplná re
 ## Meze a další krok
 
 Jde o trvalé propojení existujícího porovnání a úložiště, nikoliv nový workflow framework nebo další obchodní databázi. Handlery konkrétních obchodních operací nejsou domyšlené ani předstírané: následuje napojení na konkrétní autoritativní API a jeho testovací prostředí. Do té doby není obecná fronta zapnuta s vymyšlenými konektory a nelze tvrdit úplnou obchodní autonomii.
+
+## Výsledek CI 16. 10. 2026
+
+Běh 38818676983: NEXUS 1219/1219, workerd/D1 97/97, backend 544/544, HTTP/PostgreSQL 132 scénářů PASS. Typové kontroly PASS. Ověřený HEAD 72c1725, testovací merge b68beeb. Bez nasazení a bez tvrzení o hotovém připojení všech obchodních konektorů.

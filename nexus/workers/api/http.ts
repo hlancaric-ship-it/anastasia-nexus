@@ -87,6 +87,7 @@ export type ErrorCode =
     | 'VOUCHER_NOT_APPLICABLE'
     | 'REDEMPTION_CONFLICT'
     | 'HOLD'
+    | 'WEBHOOK_CONFLICT'
     | 'STORAGE_UNAVAILABLE'
     | 'INTERNAL_ERROR';
 

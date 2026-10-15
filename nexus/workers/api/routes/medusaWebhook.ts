@@ -1,85 +1,101 @@
-// Medusa.js Webhook Route Handler pre Cloudflare Workers
+// Durable, tenant-bound Medusa event intake. Business state is reloaded by a consumer, not copied from this body.
 import { ApiError, jsonResponse, log } from '../http.js';
 import type { Env } from '../types.js';
+
+const ID = /^[A-Za-z0-9_-]{1,128}$/;
+const EVENT = /^[a-z][a-z0-9_.-]{0,63}$/;
+const KNOWN_EVENTS = new Set(['order.placed', 'customer.created']);
+
+async function readBody(request: Request): Promise<string> {
+    if (!request.body) return '';
+    const reader = request.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let length = 0;
+    try {
+        for (;;) {
+            const result = await reader.read();
+            if (result.done) break;
+            length += result.value.byteLength;
+            if (length > 1024 * 1024) {
+                await reader.cancel();
+                throw new ApiError('VALIDATION_ERROR', 413, 'Webhook je príliš veľký.');
+            }
+            chunks.push(result.value);
+        }
+    } finally { reader.releaseLock(); }
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    return new TextDecoder().decode(bytes);
+}
 
 export async function handleMedusaWebhook(
     request: Request,
     env: Env,
-    ctx: { waitUntil(promise: Promise<unknown>): void }
+    _ctx: { waitUntil(promise: Promise<unknown>): void },
 ): Promise<Response> {
     const webhookSecret = env.MEDUSA_WEBHOOK_SECRET;
-    if (!webhookSecret && env.ENVIRONMENT === 'production') {
-        throw new ApiError('MISSING_BINDING', 503, 'Chybí secret pro podpis Medusa webhooku.');
+    const tenantId = env.MEDUSA_PRICING_TENANT_ID;
+    if (!webhookSecret || !tenantId || !/^[a-z0-9_-]{2,32}$/.test(tenantId)) {
+        throw new ApiError('MISSING_BINDING', 503, 'Chýba overenie zdroja Medusa webhooku.');
     }
-    const rawBody = await request.text();
-    if (webhookSecret && !(await verifyMedusaSignature(request.headers.get('x-medusa-signature'), rawBody, webhookSecret))) {
+    const rawBody = await readBody(request);
+    if (!(await verifyMedusaSignature(request.headers.get('x-medusa-signature'), rawBody, webhookSecret))) {
         throw new ApiError('REJECT_SIGNATURE', 401, 'Neplatný nebo expirovaný podpis Medusa webhooku.');
     }
-    let body: unknown;
-    try {
-        body = JSON.parse(rawBody);
-    } catch {
-        throw new ApiError('INVALID_JSON', 400, 'Webhook požiadavka musí byť platný JSON.');
+    let parsed: unknown;
+    try { parsed = JSON.parse(rawBody); }
+    catch { throw new ApiError('INVALID_JSON', 400, 'Webhook požiadavka musí byť platný JSON.'); }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new ApiError('VALIDATION_ERROR', 422, 'Webhook musí obsahovať objekt udalosti.');
     }
-
-    const payload = body as { event?: string; type?: string; id?: string; data?: Record<string, unknown> };
-    const eventName = payload.event || payload.type;
-    if (!eventName || typeof eventName !== 'string') {
+    const payload = parsed as Record<string, unknown>;
+    const eventName = payload.event ?? payload.type;
+    if (typeof eventName !== 'string' || !EVENT.test(eventName)) {
         throw new ApiError('VALIDATION_ERROR', 422, 'Payload nesmie chýbať pole event.');
     }
-
-    const eventId = request.headers.get('x-medusa-delivery') || payload.id;
-    if (!eventId) throw new ApiError('VALIDATION_ERROR', 422, 'Webhook payload musí obsahovat id události.');
-
-    if (!env.DB) throw new ApiError('MISSING_BINDING', 503, 'Chýba D1 úložiště idempotence webhooků.');
-    let receipt: { event_id: string } | null;
+    if (payload.event !== undefined && payload.type !== undefined && payload.event !== payload.type) {
+        throw new ApiError('VALIDATION_ERROR', 422, 'Typ udalosti nie je jednoznačný.');
+    }
+    const eventId = request.headers.get('x-medusa-delivery') ?? payload.id;
+    const data = payload.data;
+    const targetId = data && typeof data === 'object' && !Array.isArray(data)
+        ? (data as Record<string, unknown>).id : undefined;
+    if (typeof eventId !== 'string' || !ID.test(eventId) || typeof targetId !== 'string' || !ID.test(targetId)) {
+        throw new ApiError('VALIDATION_ERROR', 422, 'Webhook musí obsahovať platné ID udalosti a záznamu.');
+    }
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256',
+        new TextEncoder().encode(JSON.stringify({ schema: 1, tenantId, eventName, targetId }))));
+    const envelopeHash = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
+    const state = KNOWN_EVENTS.has(eventName) ? 'RECEIVED' : 'NEEDS_REVIEW';
+    let duplicate = false;
     try {
-        receipt = await env.DB.prepare(
-            'INSERT INTO medusa_webhook_receipts (event_id, event_type) VALUES (?, ?) ON CONFLICT(event_id) DO NOTHING RETURNING event_id'
-        ).bind(eventId, eventName).first<{ event_id: string }>();
-    } catch {
-        throw new ApiError('STORAGE_UNAVAILABLE', 503, 'Nelze bezpečně ověřit opakované doručení webhooku.');
-    }
-    if (!receipt) {
-        log('info', 'webhook.medusa.duplicate_skipped', { eventId, event: eventName });
-        return jsonResponse({
-            received: true,
-            duplicate: true,
-            event: eventName,
-            timestamp: new Date().toISOString(),
-        });
-    }
-
-    log('info', 'webhook.medusa.received', {
-        event: eventName,
-        eventId,
-        dataId: payload.data?.id,
-    });
-
-    // Asynchrónne spracovanie po odoslaní HTTP 200 OK (Medusa webhook SLA)
-    ctx.waitUntil(
-        (async () => {
-            try {
-                if (eventName === 'order.placed') {
-                    log('info', 'medusa.order_placed.processed', { orderId: payload.data?.id });
-                } else if (eventName === 'customer.created') {
-                    log('info', 'medusa.customer_created.processed', { customerId: payload.data?.id });
-                }
-            } catch (err) {
-                log('error', 'medusa.webhook_async_failed', {
-                    event: eventName,
-                    error: err instanceof Error ? err.message : String(err),
-                });
+        // Old receipts have no tenant or target; do not silently reactivate them.
+        const legacy = await env.DB.prepare('SELECT event_id FROM medusa_webhook_receipts WHERE event_id = ?')
+            .bind(eventId).first();
+        if (legacy) throw new ApiError('WEBHOOK_CONFLICT', 409, 'Staršia udalosť vyžaduje kontrolu pred opakovaním.');
+        const inserted = await env.DB.prepare(
+            `INSERT INTO medusa_webhook_inbox (tenant_id, event_id, event_type, target_id, envelope_hash, processing_state)
+             VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(tenant_id, event_id) DO NOTHING RETURNING event_id`,
+        ).bind(tenantId, eventId, eventName, targetId, envelopeHash, state).first();
+        if (!inserted) {
+            const prior = await env.DB.prepare('SELECT envelope_hash FROM medusa_webhook_inbox WHERE tenant_id = ? AND event_id = ?')
+                .bind(tenantId, eventId).first<{ envelope_hash: string }>();
+            if (!prior || prior.envelope_hash !== envelopeHash) {
+                throw new ApiError('WEBHOOK_CONFLICT', 409, 'ID udalosti už patrí inému obsahu.');
             }
-        })()
-    );
-
-    return jsonResponse({
-        received: true,
-        event: eventName,
-        eventId,
-        timestamp: new Date().toISOString(),
+            duplicate = true;
+        }
+    } catch (error) {
+        if (error instanceof ApiError) throw error;
+        throw new ApiError('STORAGE_UNAVAILABLE', 503, 'Udalosť sa nepodarilo bezpečne uložiť.');
+    }
+    log(state === 'NEEDS_REVIEW' ? 'warn' : 'info', duplicate ? 'webhook.medusa.duplicate_skipped' : 'webhook.medusa.persisted', {
+        opsTenant: tenantId, eventId, event: eventName, targetId, processing_state: state,
     });
+    // 200 means durable receipt only. No waitUntil task is mistaken for completed business work.
+    return jsonResponse({ received: true, event: eventName, eventId,
+        ...(duplicate ? { duplicate: true } : {}), timestamp: new Date().toISOString() });
 }
 
 async function verifyMedusaSignature(header: string | null, rawBody: string, secret: string): Promise<boolean> {
