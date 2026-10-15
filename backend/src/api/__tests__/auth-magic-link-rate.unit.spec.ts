@@ -1,7 +1,7 @@
 import { limitMagicLink } from '../auth-magic-link-middlewares'
 function fixture(rows: any[] = [{attempts:1,retry_after:900},{attempts:1,retry_after:900}]) {
  const db={raw:jest.fn(async()=>({rows:[rows.shift()]}))}
- const req={scope:{resolve:()=>db},ip:'synthetic-client',body:{email:'a@example.test'}}
+ const req={scope:{resolve:()=>db},ip:'synthetic-client',path:'/auth/customer/magic-link',body:{email:'a@example.test'}}
  const res={setHeader:jest.fn(),status:jest.fn().mockReturnThis(),json:jest.fn()}
  return {db,req,res,next:jest.fn()}
 }
@@ -18,6 +18,10 @@ describe('magic link abuse control',()=>{
  it('limits confirmation traffic by client without consuming issuance quota',async()=>{
   const f=fixture();Object.assign(f.req.body,{token:'synthetic'});await limitMagicLink(f.req,f.res,f.next)
   expect(f.db.raw).toHaveBeenCalledTimes(1);expect(f.next).toHaveBeenCalled()
+ })
+ it('rejects another actor path before any issuance or persistence',async()=>{
+  const f=fixture();f.req.path='/auth/user/magic-link';await limitMagicLink(f.req,f.res,f.next)
+  expect(f.res.status).toHaveBeenCalledWith(404);expect(f.next).not.toHaveBeenCalled();expect(f.db.raw).not.toHaveBeenCalled()
  })
  it('fails closed when persistence is unavailable',async()=>{
   const f=fixture();f.db.raw.mockRejectedValue(new Error('synthetic database failure'));await limitMagicLink(f.req,f.res,f.next)

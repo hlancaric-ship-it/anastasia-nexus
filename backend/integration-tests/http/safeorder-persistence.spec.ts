@@ -1,3 +1,5 @@
+import { verifyAuthSecurity } from "./auth-security-http-checks"
+import { verifyCouponSecurity } from "./coupon-security-http-checks"
 import { verifyBookingHttp } from "./booking-http-checks"
 import { verifyGiftVoucherHttp } from "./gift-voucher-http-checks"
 import { verifyDigitalCheckout } from "./digital-checkout-checks"
@@ -209,6 +211,10 @@ medusaIntegrationTestRunner({
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyOrderSelfCancel({ api, container, options, channel, region, profile, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyStockAvailability({ api, container, options, channel, region, profile, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyShippingSettings({ api, container, options, channel, region, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") {
+        await verifyAuthSecurity({ api, container, evidence })
+        await verifyCouponSecurity({ api, container, options, channel, region, profile, evidence })
+      }
       await verifyOpsObservability({ api, container, options, evidence, bookingRan: !giftVoucherOnly })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })

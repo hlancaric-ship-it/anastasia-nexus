@@ -4,7 +4,7 @@ Větev `codex/security-fixes`, základ `master@232c149`. Zadání Luckyho: oprav
 z kontroly přihlášení, médií a kupónů. Redovy auditní větve a cizí rozpracovaný ownership guard
 v hlavním worktree se nemění. Nic se nenasazuje.
 
-Stav: **IMPLEMENTED_UNVERIFIED** – cílené testy jsou níže; plný HTTP/PG důkaz vyžaduje zapojení integrátorem a Actions.
+Stav: **IMPLEMENTED_UNVERIFIED** – cílené testy jsou níže; modul, middleware i HTTP skupiny jsou zapojené ve vlastní větvi; plný HTTP/PG důkaz vyžaduje Actions.
 
 ## Přihlášení
 
@@ -18,7 +18,8 @@ Chybný pokus nic nemaže; dva souběžné správné pokusy nemohou oba spotřeb
 Zůstává platný pouze nejnovější odkaz pro danou adresu. TTL zůstává 15 minut.
 Cache tokeny vydané před přechodem se nepřenášejí: zákaznice si musí vyžádat nový odkaz.
 
-Middleware pro nativní GET/POST `/auth/customer/magic-link` omezuje:
+Middleware pro nativní GET/POST `/auth/:actor_type/magic-link` povoluje pouze customer aktéra
+(jiný aktér vrací 404, takže nemůže obejít limiter) a omezuje:
 
 - klienta na 60 auth pokusů za 15 minut;
 - adresáta na 3 žádosti o nový odkaz za 15 minut (potvrzení tuto kvótu nečerpá).
@@ -62,7 +63,7 @@ bezpečně odmítnou i u oprávněné zákaznice. Plná podpora těchto typů vy
 nativního vyhodnocení pravidel do NEXUS cen, nikoli další ruční seznam částečně podporovaných operátorů.
 Původní audit neprokázal dokončení neoprávněné objednávky; oprava uzavírá prokázané chybné přecenění.
 
-## Povinné zapojení integrátorem
+## Zapojení ve větvi a integrační podmínky
 
 1. Do seznamu modulů v `medusa-config.ts` přidat `{ resolve: "./src/modules/auth-security" }` a aplikovat migrace.
 2. V `src/api/middlewares.ts` importovat `authMagicLinkMiddlewares` z `./auth-magic-link-middlewares` a rozbalit
@@ -74,13 +75,14 @@ Původní audit neprokázal dokončení neoprávněné objednávky; oprava uzav�
 4. Spustit plný GitHub Actions běh. Ověřit nejen stav jobu, ale jednotlivé `SECURITY_AUTH_*` a `SECURITY_COUPON_*` scénáře.
    Nové media regresní testy se spouštějí v Node i skutečném workerd.
 
-Config, globální middleware a hlavní runner zůstávají dle dohody integrátorovi. Bez těchto kroků
-nelze větev vydávat za zapojenou či ověřenou a nesmí se nasadit pouze provider bez jeho migrace.
+Config, globální middleware a hlavní runner jsou zapojené pouze v této izolované větvi, protože původní
+integrační terminál již nebyl dostupný. Kanonický pracovní strom ani Redova větev se nemění.
+Při převzetí musí zůstat celý tento řetězec zachovaný; provider bez migrace není použitelný.
 Nové externí závislosti nejsou potřeba.
 
 ## Ověření
 
 - Cílená media regrese: 13/13 PASS (původní + nové Node testy).
 - První cílený backend fokus: 30/30 PASS (provider, persistent state, rate middleware, kupóny).
-- Dodatečný backend fokus včetně privacy: **41/41 PASS** (5 sad); TypeScript **PASS**.
+- Dodatečný backend fokus včetně privacy: **41/41 PASS** (5 sad); následný rozšířený limiter fokus **5/5 PASS**, TypeScript **PASS**.
 - Lokální PG/HTTP ani plná sada nebyly spuštěny; konečné runtime ověření pouze Actions.

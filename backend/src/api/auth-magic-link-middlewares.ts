@@ -3,6 +3,10 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { normalizeEmail } from "../modules/auth-magic-link/policy"
 import { claimAuthRate } from "../modules/auth-magic-link/state"
 export async function limitMagicLink(req: any, res: any, next: any) {
+  // The provider is customer-only; another actor path must not bypass the limiter.
+  if (!req.path?.startsWith("/auth/customer/magic-link") && req.params?.actor_type !== "customer") {
+    return res.status(404).json({ error: "AUTH_PROVIDER_UNAVAILABLE" })
+  }
   try {
     const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
     // req.ip follows the server's trusted-proxy configuration; never trust raw forwarded headers.
@@ -20,5 +24,5 @@ export async function limitMagicLink(req: any, res: any, next: any) {
   }
 }
 export const authMagicLinkMiddlewares: MiddlewareRoute[] = [
-  { matcher: "/auth/customer/magic-link", method: ["POST", "GET"], middlewares: [limitMagicLink], bodyParser: { sizeLimit: "4kb" } },
+  { matcher: "/auth/:actor_type/magic-link", method: ["POST", "GET"], middlewares: [limitMagicLink], bodyParser: { sizeLimit: "4kb" } },
 ]

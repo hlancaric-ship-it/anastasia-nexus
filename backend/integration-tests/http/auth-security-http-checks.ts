@@ -25,6 +25,9 @@ export async function verifyAuthSecurity({api,container,evidence}: any) {
   return new URL(links.get(email)![before]).searchParams.get('token')!
  }
  try {
+  expect((await api.post('/auth/user/magic-link',{email:emails[0]},options)).status).toBe(404)
+  expect(links.get(emails[0])).toHaveLength(0)
+  record('OTHER_ACTOR_CANNOT_BYPASS_GUARD')
   const token=await issue(emails[0])
   expect((await api.post(endpoint,{email:emails[0],token:'wrong-synthetic-token'},options)).status).toBe(401)
   expect((await api.post(endpoint,{email:emails[0],token},options)).status).toBe(200)
