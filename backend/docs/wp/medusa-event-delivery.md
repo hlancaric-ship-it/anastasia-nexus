@@ -20,7 +20,7 @@ Worker uměl trvale přijmout podepsanou událost, ale Medusa ji neposílala. No
 
 ## Ověření
 
-Lokální cílené testy: transport 29/29, subscriber 5/5; backend TypeScript PASS. Příjem a tenant v potvrzení se ověřují také ve skutečném workerd/D1 v CI. Plný HTTP/PG runner se lokálně nespouští.
+Lokální cílené testy: transport 30/30, subscriber 5/5; backend TypeScript PASS. Příjem a tenant v potvrzení se ověřují také ve skutečném workerd/D1 v CI. Plný HTTP/PG runner se lokálně nespouští.
 
 Nový scénář izolované Medusy/PostgreSQL používá skutečný `createCustomersWorkflow` → nativní událost → nový subscriber → trvalý workflow → podepsaný HTTP požadavek. Server příjemce je explicitně lokální kontraktový fixture; nezaměňuje se za D1. Ověřuje checkpoint v PostgreSQL před přijetím požadavku, replay dokončeného workflow bez nového HTTP, ztracenou odpověď po přijetí se stejným klíčem, 409 bez retry a vyčerpání 503 po čtyřech pokusech s provozním záznamem. Redis restart není tímto testem ověřen.
 

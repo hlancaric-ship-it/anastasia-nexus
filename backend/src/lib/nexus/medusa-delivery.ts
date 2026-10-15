@@ -37,7 +37,7 @@ export async function deliverMedusaEvent(input: MedusaDelivery, env: NodeJS.Proc
       signal: AbortSignal.timeout(5000), headers: { 'content-type': 'application/json',
         'x-medusa-delivery': eventId, 'x-medusa-signature': `t=${timestamp},v1=${signature}` } })
     if (!response.ok) {
-      await response.body?.cancel()
+      await response.body?.cancel().catch(() => {})
       throw new MedusaDeliveryError(response.status === 408 || response.status === 429 || response.status >= 500)
     }
     // Limit and time-bound the entire acknowledgement, not just response headers.

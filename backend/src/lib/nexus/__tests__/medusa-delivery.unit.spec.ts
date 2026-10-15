@@ -69,3 +69,8 @@ it.each(['{', 'x'.repeat(4097)])('rejects malformed or oversized acknowledgement
 it.each([{ targetId: '../foreign' }, { targetId: '' }, { event: 'payment.captured' }, { tenantId: 'BAD' }])('rejects invalid source reference %j', patch => {
   expect(() => deliveryId({ ...input, ...patch } as any)).toThrow('NEXUS_EVENT_DELIVERY_FAILED')
 })
+
+it('does not turn a permanent rejection into a retry when response cleanup fails', async () => {
+  const response = { ok: false, status: 403, body: { cancel: async () => { throw new Error('private-cleanup-error') } } } as unknown as Response
+  await expect(deliverMedusaEvent(input, env, async () => response)).rejects.toMatchObject({ retryable: false })
+})
