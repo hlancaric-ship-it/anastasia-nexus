@@ -1,6 +1,11 @@
 # Soupis pro přípravu administrace ANASTASIA
 
-Stav dokumentu: **IMPLEMENTED** – příprava rozsahu a podkladů, nikoli implementace nového UI.
+Stav: soupis připravený; **nový admin NOT_IMPLEMENTED**.
+
+**Zadání Luckyho: celý admin se staví od nuly jako nové vlastní rozhraní.**
+Existující Medusa stránky ani `admin-demo` nejsou jeho kódovým nebo vizuálním základem.
+Zachováváme ověřený backend, API a obchodní pravidla. Existující UI slouží jen jako funkční reference.
+Podmínky samostatné obsluhy a Claudeovy nezapomenutelné body: [samoobsluha a UX](ADMIN-UX-SAMOOBSLUHA.md).
 Datum: 15. 10. 2026. Zdrojový základ: `codex/security-fixes@2ebda34`.
 Bezpečnostní kód `6433343` prošel [plnou CI regresí](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38745406536):
 533 backend unit, 1183 NEXUS, 46 workerd a 131 HTTP scénářů; oba TypeScript checky PASS.
@@ -18,28 +23,28 @@ Rezervace jsou v rozsahu. QR generátor patří již do první fáze. Ambasadoř
 ## 1. Navigace a pokrytí
 
 Názvy v menu mají být slovensky. Níže je cílové uspořádání, nikoli tvrzení o již zavedených URL.
-Stávající nativní Medusa agendy rozšířit; nevytvářet druhou správu stejného produktu či objednávky.
-`NOT_IMPLEMENTED` v tabulce znamená chybějící vlastní UI, nikoli automaticky chybějící backend.
-`PARTIAL` označuje konkrétní rozdíl uvedený ve sloupci „Doplnit“.
+Všechny cílové obrazovky vzniknou nově, včetně katalogu, objednávek a zákaznic nad nativními Medusa API.
+Stav nového UI je všude `NOT_IMPLEMENTED`; existující podklad označuje pouze dostupné API/funkční reference.
+Nové UI používá stejné backendové entity a workflows, nevytváří paralelní databázi nebo cenotvorbu.
 
-| Agenda / položka | Existující podklad | Stav vlastního UI | Doplnit |
+| Agenda / položka | Existující backend / reference | Stav nového UI | Postavit |
 |---|---|---|---|
-| Objednávky | Nativní Medusa objednávky, platby, fulfillment | Nativní, v této práci neověřováno v prohlížeči | Vazby na rezervaci, nárok, poukaz, odstoupení a request ID |
-| Katalóg | Nativní produkty, varianty, kategorie, kolekce, ceny, sklad | Nativní, bez nové kopie | Bezpečný editor digitálního obsahu a vazeb; viz mezery níže |
-| Zákazníčky | Nativní zákazníci/skupiny | Nativní + rozšíření NOT_IMPLEMENTED | Interní poznámky a související digitální přístupy |
-| Rezervácie → Prehľad | Booking list/cancel API | NOT_IMPLEMENTED | Přehled, vazba na objednávku, potvrzené storno |
-| Rezervácie → Typy konzultácií | `booking-types/page.tsx` | IMPLEMENTED_UNVERIFIED | Zachovat create/edit/archive; sjednotit české texty do SK a ověřit UI |
-| Rezervácie → Voľné termíny | `booking-availability/page.tsx` | IMPLEMENTED_UNVERIFIED | Zachovat týden, kopírování, kolize; SK a browser acceptance |
-| Digitálne prístupy | Entitlements API | NOT_IMPLEMENTED | Přehled, udělení a odvolání s kontextem zákaznice |
-| Správy | `chat/page.tsx`, chat API | IMPLEMENTED_UNVERIFIED | Zachovat reply/read/close/reopen/mute/block, doplnit SK a ověření |
-| Darčekové poukazy | `vouchers/page.tsx` | PARTIAL | Nastavení/list/void již existují; doplnit pohyby a vratku |
-| QR kupóny | `coupon-links/page.tsx` | PARTIAL | SVG/PNG již existuje; vyřešit pending aktivaci a nepodporované podmínky |
-| Ochrana údajov → Žiadosti o vymazanie | Erasure API | NOT_IMPLEMENTED | Bezpečné potvrzení a stav vyřízení |
-| Odstúpenia od zmluvy | Legal withdrawals API | NOT_IMPLEMENTED | Přehled a povolené změny stavu, oddělit finanční refund |
-| Komunikácia → E-mailové šablóny | Templates API | NOT_IMPLEMENTED | Editace slotů, náhled, reset, povolené vypnutí |
-| Komunikácia → Newsletter – súhlasy | Newsletter API včetně CSV | NOT_IMPLEMENTED | Evidence a export; bez tlačítka pro neexistující rozesílání kampaně |
-| Prevádzka → Udalosti / Audit zmien | Dvě ops read API | NOT_IMPLEMENTED | Filtry, stránkování, detail bezpečných polí, korelace |
-| Nastavenia obchodu | Nativní regiony, daně, doprava, měny, stock locations | Nativní, ověřit konfiguraci konkrétní instance | Obchodní hodnoty potvrdit; neukazovat deployment secrets |
+| Objednávky | Medusa objednávky/platby/fulfillment | NOT_IMPLEMENTED | Nový seznam/detail a související rezervace, nároky, poukazy a odstoupení |
+| Katalóg | Medusa produkty/varianty/kategorie/ceny/sklad | NOT_IMPLEMENTED | Nové formuláře; digitální obsah bez ruční editace JSON |
+| Zákazníčky | Medusa zákazníci/skupiny + notes API | NOT_IMPLEMENTED | Nový přehled/detail, historie a poznámky |
+| Rezervácie → Prehľad | Booking list/cancel API | NOT_IMPLEMENTED | Nový přehled a potvrzené storno |
+| Rezervácie → Typy konzultácií | Booking types API; stará stránka jen reference | NOT_IMPLEMENTED | Nový editor názvu, délky, pauzy, ceny a formy |
+| Rezervácie → Voľné termíny | Availability API; stará stránka jen reference | NOT_IMPLEMENTED | Nový týdenní kalendář s obsazeností a kopírováním |
+| Digitálne prístupy | Entitlements API | NOT_IMPLEMENTED | Nový přehled a řízené grant/revoke |
+| Správy | Chat API; stará stránka jen reference | NOT_IMPLEMENTED | Nové konverzace v kontextu zákaznice/objednávky |
+| Darčekové poukazy | Vouchers API; stará stránka jen reference | NOT_IMPLEMENTED | Nové nastavení, seznam, detail/pohyby, void a vratky |
+| QR kupóny | Coupon-links API; stará stránka jen reference | NOT_IMPLEMENTED | Nový generátor SVG/PNG + ověřený tok aktivace |
+| Ochrana údajov | Erasure API | NOT_IMPLEMENTED | Nová evidence a potvrzení výmazu |
+| Odstúpenia od zmluvy | Legal withdrawals API | NOT_IMPLEMENTED | Nová evidence a povolené změny stavu |
+| Komunikácia → E-mailové šablóny | Templates API | NOT_IMPLEMENTED | Nový editor textů, náhled, reset a povolené vypnutí |
+| Komunikácia → Newsletter | Newsletter consents API | NOT_IMPLEMENTED | Nová evidence/export; rozesílání vyžaduje doplnění backendu |
+| Prevádzka → Udalosti / Audit zmien | Ops read API | NOT_IMPLEMENTED | Nové filtry, korelace a bezpečné detaily |
+| Nastavenia obchodu | Medusa API + chybějící nastavovací kontrakty | NOT_IMPLEMENTED | Nové srozumitelné nastavení; žádné běžné změny přes deploy |
 
 Pět existujících stránek je ve [zdrojovém adresáři](../../src/admin/routes).
 `GET /admin/custom` je starter endpoint; **není položkou menu ani hotovým dashboardem**.
@@ -50,12 +55,12 @@ Přehled NEXUS domén neznamená, že pro ně ANASTASIA má objednané či zapoj
 
 ### Objednávky, zákazníčky a katalog
 
-Použít nativní seznamy a detaily. Ceny, slevy, DPH, dopravu, dostupný kredit i finální stav platby
+Postavit nové seznamy a detaily nad nativními Medusa API. Ceny, slevy, DPH, dopravu, dostupný kredit i finální stav platby
 zobrazovat ze serveru; žádná nová klientská cenotvorba nebo přepínač „zaplaceno“.
 Digitální přístup automaticky vzniká po skutečném capture, nikoli po návratu z platební stránky.
 Nativní refund ani storno neobcházet přímým přepisem metadata.
 
-Na detail objednávky navázat související nároky, rezervace a poukazové pohyby podle jejich ID.
+Na nový detail objednávky navázat související nároky, rezervace a poukazové pohyby podle jejich ID.
 Kde API neumí filtr objednávky, nepředstírat serverový filtr: bookings podporují jen
 `customer_id`, `product_id`, `status`; notes pouze konkrétní zákaznici.
 Nativní refund flow prověřit s payment providerem zvlášť; evidence tohoto soupisu nejsou reálné Stripe E2E.
@@ -102,8 +107,8 @@ Před editorem doplnit serverovou validaci vazby a oddělení veřejných a souk
 
 ### Správy
 
-Stávající UI již načítá seznam a detail, označuje přečtení, odpovídá, zavírá/otevírá,
-ztlumuje a blokuje/odblokovává zákaznici. Přesné cesty jsou ve strojovém inventáři.
+Nové UI musí načítat seznam a detail, označovat přečtení, odpovídat, zavírat/otevírat,
+ztlumovat a blokovat/odblokovávat zákaznici. Staré UI je pouze reference těchto funkcí. Přesné cesty jsou ve strojovém inventáři.
 Zachovat serverový nárok, stav a blokování; nepřesouvat jejich rozhodování do prohlížeče.
 Čistý text: zákaznice nejvýše 2000 znaků, admin 5000, předmět 120; počítadlo a bezpečné vykreslení.
 Zákaznické limity 3 zprávy po sobě / 5 denně nejsou konfigurační formulář v adminu.
@@ -112,8 +117,8 @@ Odpověď správce sama neotevírá uzavřenou konverzaci. Obsah zpráv patří 
 
 ### Darčekové poukazy
 
-Existující UI: seznam/filtry/stránkování, nastavení a zneplatnění s důvodem.
-Nový detail doplní `GET /admin/vouchers/:id/transactions`: typ, částka, zůstatek po pohybu,
+Nové UI zahrne seznam/filtry/stránkování, nastavení a zneplatnění s důvodem.
+Detail použije `GET /admin/vouchers/:id/transactions`: typ, částka, zůstatek po pohybu,
 čas, objednávka/košík, reference, aktér a případné obrácení transakce. Read-only finanční historie.
 API historie záměrně nevrací kódy, příjemce ani poznámky; nevynucovat jejich zobrazení z jiného logu.
 
@@ -132,7 +137,7 @@ ne hlásit automaticky rollback ani slepě opakovat změnu.
 
 ### QR kupóny
 
-Generování QR **přímo v administraci již existuje**: produktový kód, kupón, počet, SVG/PNG a stažení,
+Backend pro generování QR **již existuje**, nové UI postavíme znovu: produktový kód, kupón, počet, SVG/PNG a stažení,
 bez externí QR služby. `POST /admin/coupon-links` ověřuje vstup, produkt a kupón.
 Aktuálně vrací `activation_status: PENDING_PRICING_INTEGRATION`; obrazovka také varuje před tiskem.
 Generování obrázku proto není důkaz celého toku scan → košík → sleva → objednávka.
@@ -206,14 +211,14 @@ nové auth-security změny číst ze [security dodatku](security-fixes.md), ne p
 
 | Nastavení | Autorita dnes | Cílové ovládání / omezení |
 |---|---|---|
-| Produkty, varianty, základní ceny, sklad, daně, regiony, doprava | Nativní Medusa DB/API | Použít nativní admin; server je autoritou výpočtu |
-| Typy konzultací a dostupnost | Vlastní booking API/PG + produkt | Již existující stránky; nerozpojovat cenovou a booking část |
-| Pravidla nových poukazů | `gift_voucher_settings` + settings API | Již existující UI; nenahrazovat klientskými defaulty |
+| Produkty, varianty, základní ceny, sklad, daně, regiony, doprava | Nativní Medusa DB/API | Nové vlastní ovládání nad Medusa API; server je autoritou výpočtu |
+| Typy konzultací a dostupnost | Vlastní booking API/PG + produkt | Nové stránky; nerozpojovat cenovou a booking část |
+| Pravidla nových poukazů | `gift_voucher_settings` + settings API | Nové UI nad settings API; nenahrazovat klientskými defaulty |
 | Texty e-mailů a povolené vypnutí | Email template overrides v PG/API | Nový editor nad sloty; secrets providera zůstanou mimo |
 | Loyalty skupina zákaznice | Medusa group metadata `nexus_tier` | Přiřazování skupiny serverově; názvy/sazby potvrdit před editorem politik |
-| NEXUS cenová politika | Worker `MEDUSA_PRICING_POLICY_JSON` | Deployment; hotový DB write API/editor neexistuje; žádné převzetí OKFISH defaultů |
-| SafeOrder pravidla a limity | Aktuální serverový kód/politika | Samostatný bezpečný config kontrakt chybí; žádný klientský bypass |
-| Chat limity/délky | Konstanty v kódu | Dnes read-only specifikace, nikoli funkční admin přepínače |
+| NEXUS cenová politika | Worker `MEDUSA_PRICING_POLICY_JSON` | Dnes deployment; pro samoobsluhu doplnit validované tenantové settings API a nový editor |
+| SafeOrder pravidla a limity | Aktuální serverový kód/politika | Doplnit bezpečný config kontrakt a nový editor povolených obchodních pravidel; žádný klientský bypass |
+| Chat limity/délky | Konstanty v kódu | Dnes konstanty; pro samoobsluhu doplnit bezpečně omezené settings API |
 | Retence chatu | `CHAT_RETENTION_DAYS` | Deployment, default 365 dní, 30–3650; neplatná hodnota zastaví mazání |
 | Retence ops/auditu | `OPS_EVENT_RETENTION_DAYS` / `OPS_AUDIT_RETENTION_DAYS` | Deployment, default 90/1095 dní, rozsah 7–730 / 365–3650; finanční deník se nemaže tímto jobem |
 | Magic-link limity a TTL | Kód + PG čítače | 60 pokusů/klient/15 min, 3 nové odkazy/adresát/15 min, TTL 15 min; není admin write API |
@@ -247,20 +252,22 @@ cizí změny, dokud ji API nezavede.
 
 | Balík | Obsah | Podmínka dokončení |
 |---|---|---|
-| A1 | Prověřit stávajících 5 stránek, SK texty a navigaci | Každý odkaz má správný cíl; funkce zůstávají; browser scénáře úspěch/chyba/401 |
+| A0 | Schválit vizuální návrh nového adminu a úkoly samoobsluhy | Schválený pracovní přehled a nastavení; všechna běžná nastavení mají vlastníka/API nebo přiznanou mezeru |
+| A1 | Nový základ, přihlášení, navigace, katalog/objednávky/zákaznice | Nové obrazovky nad ověřenými API; jednotné formuláře, SK, klávesnice, skutečné chybové stavy |
 | A2 | Ops události a audit | Reálné filtry, stránkování, korelace, redakce, 401/403; žádný falešný monitoring |
-| A3 | Přístupy, rezervace a poznámky v kontextu nativních detailů | Grant/revoke/cancel/notes, potvrzení, timeout bez duplikace, správné vazby zákaznice |
-| A4 | Poukazové pohyby/vratky a QR dotažení | Serverové částky, replay refundu, nastavení po 502, QR scan až po cenu; nepodporované kupóny odmítnuty |
+| A3 | Přístupy, rezervace a poznámky v nových detailech zákaznice/objednávky | Grant/revoke/cancel/notes, potvrzení, timeout bez duplikace, správné vazby zákaznice |
+| A4 | Nové poukazy včetně nastavení/pohybů/vratek a QR generátor | Serverové částky, replay refundu, nastavení po 502, QR scan až po cenu; nepodporované kupóny odmítnuty |
 | A5 | Šablony, souhlasy, odstoupení a výmazy | Náhled nic neposílá, povinné šablóny, rozsah CSV, status není refund, potvrzení/replay výmazu |
 | A6 | Samostatně doplnit chybějící backendové kontrakty | Privátní média, jemné role, konfigurace cen/rizik a provozní přehledy mají testované API před UI |
 
 Každý balík ve vlastním worktree/větvi. Před editací přečíst konkrétní route, policy a testy.
 Lokálně jen potřebné cílené kontroly; plné HTTP/PG a regresní běhy pouze GitHub Actions,
-ne souběžně s koordinátorovým runnerem. Browser testy adminu doplnit podle skutečného prostředí,
+ne souběžně s koordinátorovým runnerem. Staré obrazovky ani `admin-demo` nepřebírat jako aplikaci. Browser testy nového adminu doplnit podle skutečného prostředí,
 ne označit za hotové podle existence TSX souboru. Nic automaticky neslučovat ani nenasazovat.
 
 **Mimo tento soupis jako hotové menu:** klub/předplatné, ambasadorské provize, obecné NEXUS B2B,
-nákupní objednávky/procurement, Omega fakturace, AI automatizace, univerzální CMS a reklamní kampaně.
+nákupní objednávky/procurement, Omega fakturace, AI automatizace, univerzální CMS. Obchodní akce a kampaně jsou požadavek samoobsluhy; jejich dosud chybějící backend
+se nesmí zaměnit za hotový campaign modul nebo tento požadavek vynechat.
 Samostatný obsahový editor, kurzy/lekce a SK/EN/RU publikace potřebují ověřený datový model/API;
 produktová metadata nejsou důkaz kompletního CMS. Obchodní obsah, oprávnění a provozní přístupy
 jsou vstupy pro příslušný budoucí balík, ne důvod blokovat tuto dokumentační přípravu.
@@ -270,7 +277,7 @@ jsou vstupy pro příslušný budoucí balík, ne důvod blokovat tuto dokumenta
 Provedena strukturální kontrola proti zdrojovému stromu základu `2ebda34`:
 31/31 route souborů přiřazeno právě jedné agendě (včetně výslovně vyřazeného starteru),
 41/41 exportovaných metod odpovídá cestám, 5/5 vlastních stránek má existující zdroj.
-59 místních odkazů v soupisu a navazujících vstupních dokumentech existuje.
+65 místních odkazů v soupisu, UX zadání a navazujících vstupních dokumentech existuje.
 JSON odkazuje na skutečný CI důkaz se shodnou revizí bezpečnostního kódu; `git diff --check` PASS.
 
 Změny jsou pouze dokumentace. Nové unit/HTTP/PG běhy nebyly spouštěny;
