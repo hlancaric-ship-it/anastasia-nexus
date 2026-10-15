@@ -16,6 +16,7 @@ describe('Medusa event intake in real D1', () => {
         ctx.waitUntil.mockClear();
         const first = await handleMedusaWebhook(await signedMedusaWebhook(event(id)), workerEnv, ctx);
         expect(first.status).toBe(200);
+        expect(await first.json()).toMatchObject({ received: true, tenantId: 'synthetic', eventId: id, event: 'order.placed' });
         const persisted = (await rows(id)).results;
         expect(persisted).toHaveLength(1);
         expect(persisted[0]).toMatchObject({ tenant_id: 'synthetic', target_id: 'ord_synthetic', event_type: 'order.placed', processing_state: 'RECEIVED' });
