@@ -79,6 +79,33 @@ export interface RecordOutcomeInput {
     readonly executionReference?: string;
     readonly failureReason?: string;
     readonly recordedAt: string;
+    /** Required for execution results; copied from the successful claim, never reloaded. */
+    readonly expectedAttempt?: number;
+}
+
+export interface RecoverExecutionsInput {
+    readonly expiredBefore: string;
+    readonly recoveredAt: string;
+    readonly limit: number;
+}
+
+export function validateRecoveryInput(input: RecoverExecutionsInput): void {
+    const iso = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
+    if (!iso.test(input.expiredBefore) || !iso.test(input.recoveredAt)) throw new Error('INVALID_EXECUTION_RECOVERY_INPUT');
+    const cutoff = Date.parse(input.expiredBefore);
+    const now = Date.parse(input.recoveredAt);
+    if (!Number.isFinite(cutoff) || !Number.isFinite(now) || cutoff > now ||
+        !Number.isSafeInteger(input.limit) || input.limit < 1 || input.limit > 100) {
+        throw new Error('INVALID_EXECUTION_RECOVERY_INPUT');
+    }
+}
+
+export function assertExecutionAttempt(intent: ExecutionIntent, input: RecordOutcomeInput): void {
+    if (intent.state === 'EXECUTING' || input.expectedAttempt !== undefined) {
+        if (intent.state !== 'EXECUTING' || input.expectedAttempt !== intent.attempt) {
+            throw new Error('STALE_EXECUTION_ATTEMPT');
+        }
+    }
 }
 
 export interface ExecutionIntentStore {
@@ -103,6 +130,9 @@ export interface ExecutionIntentStore {
         /** Čas jako VSTUP, ne `Date.now()` uvnitř -- determinismus a testy. */
         claimedAt: string,
     ): Promise<ClaimIntentOutcome<TPayload, TExpected>>;
+
+    /** Expired executions become UNKNOWN for reconciliation, never automatically retried. */
+    recoverExpiredExecutions(context: TenantContext, input: RecoverExecutionsInput): Promise<readonly EntityId[]>;
 
     /** Zapíše výsledek provedení a přepne stav. */
     recordOutcome(context: TenantContext, input: RecordOutcomeInput): Promise<void>;
@@ -201,7 +231,7 @@ export class InMemoryExecutionIntentStore implements ExecutionIntentStore {
             ...intent,
             state: 'EXECUTING',
             updatedAt: claimedAt,
-            attempt: intent.state === 'FAILED' || intent.state === 'UNKNOWN'
+            attempt: intent.state === 'FAILED'
                 ? intent.attempt + 1
                 : intent.attempt,
         };
@@ -217,6 +247,8 @@ export class InMemoryExecutionIntentStore implements ExecutionIntentStore {
         if (intent === undefined || intent.tenantId !== context.tenantId) {
             throw new Error(`ExecutionIntent ${input.intentId} neexistuje pro tohoto tenanta.`);
         }
+
+        assertExecutionAttempt(intent, input);
 
         if (!canTransitionIntent(intent.state, input.nextState)) {
             throw new Error(
@@ -245,6 +277,21 @@ export class InMemoryExecutionIntentStore implements ExecutionIntentStore {
                 : {}),
             ...(input.failureReason !== undefined ? { failureReason: input.failureReason } : {}),
         });
+    }
+
+    async recoverExpiredExecutions(context: TenantContext, input: RecoverExecutionsInput): Promise<readonly EntityId[]> {
+        assertTenantContext(context, 'InMemoryExecutionIntentStore.recoverExpiredExecutions');
+        validateRecoveryInput(input);
+        const expired = [...this.intents.values()]
+            .filter((intent) => intent.tenantId === context.tenantId && intent.state === 'EXECUTING' &&
+                Date.parse(intent.updatedAt) <= Date.parse(input.expiredBefore))
+            .sort((a, b) => Date.parse(a.updatedAt) - Date.parse(b.updatedAt) || a.id.localeCompare(b.id))
+            .slice(0, input.limit);
+        for (const intent of expired) {
+            this.intents.set(intent.id, { ...intent, state: 'UNKNOWN', updatedAt: input.recoveredAt,
+                confirmationQuality: 'UNCONFIRMED', failureReason: 'EXECUTION_DEADLINE_EXCEEDED' });
+        }
+        return expired.map((intent) => intent.id);
     }
 
     async findById<TPayload, TExpected>(

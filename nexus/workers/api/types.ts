@@ -175,6 +175,8 @@ export interface Env {
     readonly MEDUSA_PRICING_API_KEY?: string;
     /** Tenant bound to the Medusa credential; never selected by a storefront request. */
     readonly MEDUSA_PRICING_TENANT_ID?: string;
+    /** Explicit execution deadline policy (1000..86400000 ms); absent disables scheduled recovery. */
+    readonly NEXUS_EXECUTION_TIMEOUT_MS?: string;
     /** Full tenant pricing policy JSON; never fall back to another tenant's defaults. */
     readonly MEDUSA_PRICING_POLICY_JSON?: string;
     /** Dedicated Medusa Cloud webhook signing secret; do not reuse HMAC_SECRET. */
