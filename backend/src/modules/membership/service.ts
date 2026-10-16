@@ -76,6 +76,15 @@ class MembershipModuleService extends MedusaService({Membership:MembershipRow,Me
   const state=await this.read(id,context)
   return state.renew?this.save(stopRenewal(state),context):state
  }
+ /** Serializes access reconciliation with membership changes. Callback touches native DB only.
+  * Entitlements use their own module transaction; replays and the periodic reconciler recover gaps. */
+ @InjectTransactionManager()
+ async withAccessLock<T>(id:string,check:(state:Membership)=>Promise<{value:T;stop_renewal:boolean}>,@MedusaContext() context:Context={}):Promise<T>{
+  await this.lock(id,context)
+  const state=await this.read(id,context),result=await check(state)
+  if(result.stop_renewal&&state.renew)await this.save(stopRenewal(state),context)
+  return result.value
+ }
  /** Future authenticated routes must pass the actor ID, never a customer ID from the body. */
  async findForCustomer(id:string,customerId:string){
   const [row]=await this.listMemberships({id,customer_id:customerId},{take:1})

@@ -1,6 +1,11 @@
 import { Server } from 'node:net'
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
+import reconcileMembershipAccessJob from '../../src/jobs/membership-access-reconcile'
+import { reconcileMembershipAccess } from '../../src/lib/membership/access'
+import { ENTITLEMENT_MODULE } from '../../src/modules/entitlement'
+import type EntitlementModuleService from '../../src/modules/entitlement/service'
+import { orderDedupeKey } from '../../src/modules/entitlement/policy'
 import { loadNativeMembershipReceipt } from '../../src/lib/membership/native-receipt'
 import { MEMBERSHIP_MODULE } from '../../src/modules/membership'
 import type MembershipModuleService from '../../src/modules/membership/service'
@@ -88,10 +93,27 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_ci',hooks:{beforeServe
   expect(native).toMatchObject({order_id:order.id,customer_id:customer.id,captured_minor:5000,amount_minor:5000,checkout_key:binding.checkout_key})
   const enrolled=await service().activate({...terms,customer_id:customer.id},native,{version:'v1',auto_renew:true},new Date().toISOString())
   expect(enrolled.state.last_order_id).toBe(order.id)
+  const rights=container.resolve<EntitlementModuleService>(ENTITLEMENT_MODULE)
+  const [access]=await Promise.all([reconcileMembershipAccess(container,enrolled.state.id),reconcileMembershipAccessJob(container)])
+  const repeated=await reconcileMembershipAccess(container,enrolled.state.id)
+  expect(access.status).toBe('ACTIVE')
+  expect(repeated.entitlement_id).toBe(access.entitlement_id)
+  const right=await rights.findByDedupeKey(orderDedupeKey(order.id,terms.product_id))
+  expect(right?.customer_id).toBe(customer.id)
+  expect(new Date(right!.expires_at!).toISOString()).toBe(enrolled.state.period_end)
+  expect((await reconcileMembershipAccess(container,enrolled.state.id,new Date(Date.parse(enrolled.state.period_end)+1000))).status).toBe('EXPIRED')
+  // A partial refund stops automatic renewal but preserves the existing paid-period right.
+  await payment.refundPayment({payment_id:authorized.id,amount:5})
+  expect((await reconcileMembershipAccess(container,enrolled.state.id)).status).toBe('NEEDS_REVIEW')
+  expect((await rights.retrieveEntitlement(right!.id)).status).toBe('active')
+  expect((await service().findForCustomer(enrolled.state.id,customer.id))?.renew).toBe(false)
   await expect(loadNativeMembershipReceipt(container,order.id,{...binding,customer_id:'cus_other'})).rejects.toThrow('OWNER_MISMATCH')
   await expect(loadNativeMembershipReceipt(container,order.id,{...binding,cart_id:'cart_other'})).rejects.toThrow('CART_MISMATCH')
-  await payment.refundPayment({payment_id:authorized.id,amount:50})
+  await payment.refundPayment({payment_id:authorized.id,amount:45})
   await expect(loadNativeMembershipReceipt(container,order.id,binding)).rejects.toThrow('NATIVE_PAYMENT_NOT_VERIFIED')
+  expect((await reconcileMembershipAccess(container,enrolled.state.id)).status).toBe('REVOKED')
+  expect((await rights.retrieveEntitlement(right!.id)).status).toBe('revoked')
+  expect((await reconcileMembershipAccess(container,enrolled.state.id)).status).toBe('REVOKED')
  })
 
 }})

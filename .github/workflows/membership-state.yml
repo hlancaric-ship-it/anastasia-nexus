@@ -6,6 +6,8 @@ on:
     paths:
       - 'backend/src/lib/membership/**'
       - 'backend/src/modules/membership/**'
+      - 'backend/src/jobs/membership-access-reconcile.ts'
+      - 'backend/src/subscribers/membership-access.ts'
       - 'backend/integration-tests/http/membership-state.spec.ts'
       - '.github/workflows/membership-state.yml'
 permissions:
@@ -42,7 +44,7 @@ jobs:
           NODE_OPTIONS: --experimental-vm-modules
         run: |
           ./node_modules/.bin/tsc --noEmit
-          ./node_modules/.bin/jest --runTestsByPath src/lib/membership/__tests__/policy.unit.spec.ts src/lib/membership/__tests__/native-receipt.unit.spec.ts --runInBand --forceExit
+          ./node_modules/.bin/jest --runTestsByPath src/lib/membership/__tests__/policy.unit.spec.ts src/lib/membership/__tests__/native-receipt.unit.spec.ts src/lib/membership/__tests__/access.unit.spec.ts --runInBand --forceExit
       - name: Actual Medusa module and PostgreSQL concurrency
         working-directory: backend
         env:
