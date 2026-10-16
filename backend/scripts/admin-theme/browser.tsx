@@ -29,7 +29,7 @@ function fill(id:string,value:string){const el=document.getElementById(id) as HT
 const frame=()=>document.querySelector<HTMLElement>('.anastasia-admin')!
 const report=(value:unknown)=>{document.getElementById('result')!.textContent=JSON.stringify(value)}
 void(async()=>{
- await wait(()=>document.querySelectorAll('input[name=admin-scheme]').length===5&&!document.querySelector<HTMLInputElement>('input[name=admin-scheme]')!.disabled)
+ await wait(()=>document.querySelectorAll('input[name=admin-scheme]').length===5&&!document.querySelector<HTMLInputElement>('input[name=admin-scheme]')!.matches(':disabled'))
  assert(frame().dataset.theme==='original','original site palette is initial theme')
  assert(document.querySelector('input[value=original]')?.getAttribute('name')==='admin-scheme','five labeled theme choices')
  for(const value of ['forest','wine','night','original']){radio(value);await tick();assert(frame().dataset.theme===value,'live preview '+value)}
@@ -42,7 +42,7 @@ void(async()=>{
  assert(frame().dataset.density==='compact','compact layout preview')
  button('Uložiť môj vzhľad').click();await wait(()=>document.querySelector('[role=status]')?.textContent?.includes('uložený'))
  assert(writes===1&&stored.selection.scheme==='custom','one save persists current selection')
- render();await wait(()=>frame().dataset.theme==='custom'&&!document.querySelector<HTMLInputElement>('input[name=admin-scheme]')!.disabled)
+ render();await wait(()=>frame().dataset.theme==='custom'&&!document.querySelector<HTMLInputElement>('input[name=admin-scheme]')!.matches(':disabled'))
  assert(frame().dataset.density==='compact','preference reload survives screen remount')
  radio('night');await tick();conflict=true;button('Uložiť môj vzhľad').click();await wait(()=>document.querySelector('[role=alert]'))
  assert(frame().dataset.theme==='night'&&button('Uložiť môj vzhľad').disabled,'conflict preserves preview and requires reload')

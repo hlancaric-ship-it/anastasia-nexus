@@ -41,6 +41,7 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --prefix backend --no-audit --no-fund
       - name: Check types and focused policy/API tests
+        id: checks
         working-directory: backend
         env:
           TEST_TYPE: unit
@@ -55,6 +56,7 @@ jobs:
           mkdir -p ci-evidence/admin-theme
           ADMIN_THEME_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-evidence/admin-theme" node backend/scripts/check-admin-theme-browser.mjs
       - name: Verify actual Medusa HTTP and PostgreSQL persistence
+        if: ${{ !cancelled() && steps.checks.outcome == 'success' }}
         working-directory: backend
         env:
           NODE_ENV: test
