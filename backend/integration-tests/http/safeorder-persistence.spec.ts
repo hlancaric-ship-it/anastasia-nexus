@@ -1,4 +1,5 @@
 import { verifyMedusaDelivery } from "./medusa-delivery-http-checks"
+import { verifyNotificationReceipts } from "./notification-receipts-http-checks"
 import { verifyCartOwnership } from "./cart-ownership-http-checks"
 import { syntheticBuyer, associateCart } from "./customer-fixtures"
 import { verifyAuthSecurity } from "./auth-security-http-checks"
@@ -223,6 +224,7 @@ medusaIntegrationTestRunner({
       }
       await verifyOpsObservability({ api, container, options, evidence, bookingRan: !giftVoucherOnly })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyMedusaDelivery({ container, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyNotificationReceipts({ container, dbConnection, evidence })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
   },

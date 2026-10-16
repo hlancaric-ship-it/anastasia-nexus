@@ -7,9 +7,10 @@ function makeContainer(opts: { booking?: any; email?: string | null; existing?: 
   const booking = "booking" in opts ? opts.booking : { id: "bkg_1", customer_id: "cus_1", status: "confirmed", starts_at: new Date("2026-11-02T09:00:00Z"), ends_at: "2026-11-02T10:00:00.000Z", cancel_reason: null }
   const bookings = { listBookings: jest.fn(async () => (booking ? [booking] : [])) }
   const query = { graph: jest.fn(async () => ({ data: opts.email === null ? [] : [{ id: "cus_1", email: opts.email ?? EMAIL }] })) }
+  const created: any[] = []
   const notifications = {
-    listNotifications: jest.fn(async () => opts.existing ?? []),
-    createNotifications: jest.fn(async () => { if (opts.createError) throw opts.createError; return [{ id: "noti_1" }] }),
+    listNotifications: jest.fn(async (filters: any) => [...(opts.existing ?? []), ...created].filter(n => filters.id ? n.id === filters.id : n.idempotency_key === filters.idempotency_key)),
+    createNotifications: jest.fn(async (input: any) => { if (opts.createError) throw opts.createError; const row = { ...input, id: "noti_" + created.length, status: "success" }; created.push(row); return row }),
   }
   const logs: string[] = []
   const logger = { info: (m: string) => logs.push(m), warn: (m: string) => logs.push(m), error: (m: string) => logs.push(m) }
@@ -32,7 +33,7 @@ describe("notify(booking.*)", () => {
   })
 
   it("druhé doručení stejné události je potlačeno", async () => {
-    const { container, notifications } = makeContainer({ existing: [{ id: "noti_1" }] })
+    const { container, notifications } = makeContainer({ existing: [{ id: "noti_1", status: "success", to: EMAIL, channel: "email", template: "booking-confirmed-sk", idempotency_key: "booking.confirmed:bkg_1", resource_id: "bkg_1", resource_type: "booking" }] })
     expect(await notify(container, { type: "booking.confirmed", booking_id: "bkg_1" })).toEqual({ status: "duplicate" })
     expect(notifications.listNotifications).toHaveBeenCalledWith({ idempotency_key: notifyIdempotencyKey({ type: "booking.confirmed", booking_id: "bkg_1" }) }, expect.anything())
     expect(notifications.createNotifications).not.toHaveBeenCalled()
