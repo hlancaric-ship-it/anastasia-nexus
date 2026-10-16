@@ -1,12 +1,12 @@
 # Úplná mapa funkcí pro nový admin ANASTASIA
 
-Stav mapování: **VERIFIED jako zdrojový soupis**. Stav nového adminu: **PARTIAL**; osobní theming je implementovaný, šest agend C5 ještě ne. Celé řešení: **PARTIAL**.
+Stav mapování: **VERIFIED jako zdrojový soupis**. Stav nového adminu: **PARTIAL**; osobní theming je implementovaný, první obchodní obrazovky C5 čekají na dokončení CI. Celé řešení: **PARTIAL**.
 
 Datum: 16. 10. 2026. Základ `master@891297d15d31ff244d155743da37b7e83355e60b` ověřený přes fetch. Tato mapa doplňuje [původní soupis](ADMIN-SOUPIS.md), neprohlašuje existující prototyp za nové hotové rozhraní. Nový admin se staví od nuly, nad existujícími obchodními vlastníky a API.
 
 ## Co je skutečně zmapované
 
-Zahrnuto všech **50 agend** z Luckyho požadavků, Claudeových poznámek a backendu. [Strojový soupis](admin-function-map.json) obsahuje **61 vlastních route souborů / 74 metod**, **259 nativních admin route souborů / 405 metod** instalované Medusy **2.19.0**, Worker router a prefix chráněných médií. Dále 8 jobů, 23 subscriberů, 5 workflow souborů, 20 modelů, 12 modulových vstupů, 68 souborů NEXUS domén, 95 konektorových souborů a odkazy na testové zdroje. Počet souborů není počet hotových obchodních funkcí.
+Zahrnuto všech **50 agend** z Luckyho požadavků, Claudeových poznámek a backendu. [Strojový soupis](admin-function-map.json) obsahuje **62 vlastních route souborů / 74 metod**, **259 nativních admin route souborů / 405 metod** instalované Medusy **2.19.0**, Worker router a prefix chráněných médií. Dále 8 jobů, 23 subscriberů, 5 workflow souborů, 20 modelů, 12 modulových vstupů, 68 souborů NEXUS domén, 95 konektorových souborů a odkazy na testové zdroje. Počet souborů není počet hotových obchodních funkcí.
 
 Nativní routy jsou zdrojový povrch instalované verze, nikoli tvrzení, že jsou všechny moduly/feature flagy/role zapnuté v konkrétní instanci. Existence testového souboru není jeho úspěšný běh. Pomocné knihovny/skripty jsou uvedené u agend, nikoli vydávané za samostatné API.
 
@@ -229,3 +229,5 @@ První implementační PR po této mapě: nový vlastní shell a šest agend C5 
 ### Podmínka dokončení samoobslužné správy obsahu
 
 Klientka musí bez programátora a bez kódu sama zakládat a upravovat kategorie, sekce a stránky. Vizuálně upraví texty, obrázky, barvy, pořadí a rozložení, zobrazí náhled a publikuje na vybraném webu z jednoho adminu. Koncept nesmí změnit živou stránku ani jiný web; menu musí mít platné cíle a předchozí verzi musí jít obnovit. Akceptace zahrnuje skutečné uložení a opětovné načtení celé této cesty; osobní motiv adminu ani klikací prototyp ji nenahrazují. **Stav CMS: NOT_IMPLEMENTED.**
+
+První vlastní obchodní obrazovky: [C5 rozsah a ověření](admin-c5.md). Zahrnují základní vytvoření/úpravu produktů, kategorií, běžných procentuálních kupónů a zákaznic, editaci jednoduché základní EUR ceny a kontaktu/poznámky objednávky. Nezastupují všechny širší funkce agend uvedených v mapě.
