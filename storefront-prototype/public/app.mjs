@@ -314,3 +314,7 @@ for(const track of document.querySelectorAll('[data-carousel]')){
   track.addEventListener('touchstart',pause,{passive:true});track.addEventListener('touchend',later,{passive:true});
   new IntersectionObserver(([en])=>{if(en.isIntersecting)start();else clearInterval(timer);},{threshold:.3}).observe(track);
 }
+
+// Picker vzhledu pro Luciu: na vyžádání (?vzhlad-editor=1) nebo window.anaOpenThemePicker() z adminu.
+window.anaOpenThemePicker=()=>import('/theme-picker.mjs').then(m=>m.openThemePicker());
+if(new URLSearchParams(location.search).has('vzhlad-editor'))window.anaOpenThemePicker().catch(()=>{});
