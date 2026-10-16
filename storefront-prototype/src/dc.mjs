@@ -187,7 +187,7 @@ export function chrome(page) {
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
   const side=src.side.replace(/<div style="display:flex;align-items:center;gap:14px"><img src="\.\/assets\/logo-mark\.png"[^>]*><div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div><\/div>/,'');
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
-  const menuBrand=html=>html.replace(/(<a\b[^>]*>Všetky produkty<\/a>)/, '$1<a href="/darcekovy-poukaz" style="font-size:14px;color:#EFE5C7;padding:4px 0">Darčekový poukaz</a>').replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
+  const menuBrand=html=>html.replace(/(<a\b[^>]*>Všetky produkty<\/a>)/, '$1<a href="/darcekovy-poukaz" style="font-size:12px;color:#EFE5C7;padding:4px 0">Darčekový poukaz</a>').replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   return {
     header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>'),
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
