@@ -1,0 +1,25 @@
+{
+  "status": "VERIFIED",
+  "scope": "Native receipt loader and consumption by membership; not complete recurring checkout or access grant",
+  "source_head": "68255ecbd3d4a8472f80f2202ada5cff43f27499",
+  "tested_merge": "1f021c083a2022022b1ed810dae1a2fbfce06210",
+  "focused_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38970279318",
+  "focused_unit_pass": 71,
+  "loader_unit_pass": 38,
+  "actual_medusa_postgres_pass": 3,
+  "backend_typescript": "PASS",
+  "full_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38970279345",
+  "full_regression": {
+    "backend_pass": 743,
+    "nexus_pass": 1230,
+    "workerd_pass": 139,
+    "medusa_http_pass": 151,
+    "failures": 0
+  },
+  "limits": [
+    "Native system payment provider is synthetic; no live Stripe calls",
+    "Loader is an internal boundary, not HTTP accepting client binding facts",
+    "Separate native reads are not an atomic cross-module snapshot; later refunds need lifecycle reconciliation",
+    "No complete billing, automatic renewal, access/UI or production module integration"
+  ]
+}

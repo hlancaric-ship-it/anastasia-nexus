@@ -1,6 +1,6 @@
 # Klub: ověřená fakta z nativní objednávky
 
-Stav: IMPLEMENTED_UNVERIFIED do skutečné integrační CI. Závisí na PR #33/#34; stále nejde o kompletní předplatné.
+Stav: VERIFIED pro čtení skutečných nativních platebních dokladů a předání do členského stavu. Závisí na PR #33/#34; stále nejde o kompletní předplatné.
 
 `loadNativeMembershipReceipt` načte skutečný `order_cart` link a nativní objednávku přes OrderModule.retrieveOrder (včetně verze, skutečného množství a serverových totals), jednu členskou položku s množstvím 1, customer/product/variant, EUR celkovou cenu a platební kolekce s platbami. Potvrdí jen přesně zachycenou celkovou částku, bez refundu/storna a s platným časem capture. Součet nativních plateb se musí shodovat se souhrnem kolekcí i objednávkou; duplicita, chybějící částka, částečné/nesouladné capture nebo čas v budoucnu končí odmítnutím.
 
@@ -13,3 +13,5 @@ Ověření: 38 cílených loader testů + 33 pravidel. Integrační CI přidáv�
 Zbývá: trvalý pokus navázaný na checkout, souhlas/uložená metoda, native checkout/reconciliation adaptér a joby, skutečné grant/revoke, admin a storefront HTTP kontrakt. Modul se v produkční konfiguraci nepřipojuje tímto PR; integraci má Claude až po ověření celého toku. Nic nenasazovat ani automaticky neslučovat.
 
 Nativní modul může vracet množství jako BigNumber, i když jej JSON/HTTP serializuje jako číslo. Loader proto přesně rozbaluje nativní číselný wrapper a stále vyžaduje množství přesně1. Chybějící množství není výchozí jednička; rekurze wrapperů je omezená.
+
+Finální [důkaz](evidence/membership-receipts-ci.json): cílenáCI38970279318 unit71/71(loader38+policy33),backendtsc,actualMedusa/PG3/3 PASS. PlnáCI38970279345 backend743/743,NEXUS1230/1230,workerd139/139,HTTP151/151 PASS. Oddělená nativní čtení nejsou atomický snapshot napříč moduly; pozdější refund vyžaduje lifecycle/reconciliation před skutečným přístupem.
