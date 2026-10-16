@@ -1,5 +1,6 @@
 import { verifyMedusaDelivery } from "./medusa-delivery-http-checks"
 import { verifyNotificationReceipts } from "./notification-receipts-http-checks"
+import { verifyOrderEmailSource, verifyOrderEmailRecovery } from "./order-email-recovery-http-checks"
 import { verifyCartOwnership } from "./cart-ownership-http-checks"
 import { syntheticBuyer, associateCart } from "./customer-fixtures"
 import { verifyAuthSecurity } from "./auth-security-http-checks"
@@ -167,6 +168,7 @@ medusaIntegrationTestRunner({
         expect(Number(persisted.items[0].unit_price)).toBe(50)
         expect(Number(persisted.items[0].quantity)).toBe(1)
         evidence.push({ endpoint, scenario: "ALLOW", status: 200, orderDelta: 1, currency: "eur", total: Number(persisted.total), unitPrice: 50 })
+        if (endpoint === "custom") await verifyOrderEmailSource({ container, orderId: persisted.id, evidence })
       }
       // C3: real HTTP checkouts, real PromotionModuleService and PostgreSQL.
       // Barrier only aligns arrival; no usage counters or row locks are mocked.
@@ -225,6 +227,7 @@ medusaIntegrationTestRunner({
       await verifyOpsObservability({ api, container, options, evidence, bookingRan: !giftVoucherOnly })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyMedusaDelivery({ container, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyNotificationReceipts({ container, dbConnection, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyOrderEmailRecovery({ container, dbConnection, evidence })
       writeFileSync(resolve(root!, "medusa-persistence-evidence.json"), JSON.stringify({ status: "PASS", runtime: "Medusa 2.19 + Node Worker handler (not workerd)", scenarios: evidence }, null, 2))
     })
   },
