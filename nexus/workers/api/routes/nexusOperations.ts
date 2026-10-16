@@ -32,8 +32,8 @@ export async function handleNexusOperations(request: Request, env: Env): Promise
     const table = kind === 'executions' ? 'execution_intents' : 'medusa_webhook_inbox';
     const fields = kind === 'executions'
         ? 'id, operation AS type, state, attempt, updated_at, confirmation_quality'
-        : 'event_id AS id, event_type AS type, processing_state AS state, 0 AS attempt, received_at AS updated_at, NULL AS confirmation_quality';
-    const order = kind === 'executions' ? 'julianday(updated_at) DESC, id' : 'julianday(received_at) DESC, event_id';
+        : 'event_id AS id, event_type AS type, processing_state AS state, COALESCE((SELECT i.attempt FROM execution_intents i WHERE i.id = medusa_webhook_inbox.operation_id AND i.tenant_id = medusa_webhook_inbox.tenant_id), 0) AS attempt, COALESCE(processing_updated_at, received_at) AS updated_at, NULL AS confirmation_quality';
+    const order = kind === 'executions' ? 'julianday(updated_at) DESC, id' : 'julianday(COALESCE(processing_updated_at, received_at)) DESC, event_id';
     try {
         const result = await env.DB.batch([
             env.DB.prepare(`SELECT count(*) AS count FROM ${table} WHERE tenant_id = ?`).bind(tenantId),

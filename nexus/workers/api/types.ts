@@ -181,6 +181,9 @@ export interface Env {
     readonly MEDUSA_PRICING_POLICY_JSON?: string;
     /** Dedicated Medusa Cloud webhook signing secret; do not reuse HMAC_SECRET. */
     readonly MEDUSA_WEBHOOK_SECRET?: string;
+    /** Explicit Medusa booking synchronization capability; absent URL disables the consumer. */
+    readonly MEDUSA_BOOKING_SYNC_URL?: string;
+    readonly MEDUSA_BOOKING_SYNC_SECRET?: string;
     /**
      * Durable Object pro nonce replay protection (§6.2). Binding dnes
      * v wrangler.jsonc NENÍ -- doplní ho krok, který DO třídu napíše.
