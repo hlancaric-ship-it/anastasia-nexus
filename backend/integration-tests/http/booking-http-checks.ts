@@ -1,3 +1,4 @@
+import { verifyBookingInboxHttp } from "./booking-inbox-http-checks"
 import { ContainerRegistrationKeys, generateJwtToken, Modules } from "@medusajs/framework/utils"
 import { capturePaymentWorkflow, cancelOrderWorkflow } from "@medusajs/medusa/core-flows"
 import { confirmBookingForOrder } from "../../src/modules/booking/order-sync"
@@ -108,14 +109,17 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
   const pending = await waitFor(b => b.order_id === orderId)
   expect(pending.status).toBe("held")
   expect(pending.held_until).toBeNull()
+  await verifyBookingInboxHttp({ api, options, container, orderId, bookingId: booking.id, stage: "unpaid", evidence })
   expect((await api.post(`/store/bookings/${booking.id}/cancel`, {}, opts[winner])).status).toBe(409)
   const { data } = await query.graph({ entity: "order", fields: ["id", "metadata", "payment_collections.payments.id"], filters: { id: orderId } })
   expect(data[0].metadata.booking_id).toBe(booking.id)
   await capturePaymentWorkflow(container).run({ input: { payment_id: data[0].payment_collections[0].payments[0].id } })
   await waitFor(b => b.status === "confirmed")
   expect((await confirmBookingForOrder(container, orderId)).confirmed).toBe(true)
+  await verifyBookingInboxHttp({ api, options, container, orderId, bookingId: booking.id, stage: "paid", evidence })
   await cancelOrderWorkflow(container).run({ input: { order_id: orderId } })
   await waitFor(b => b.status === "canceled")
+  await verifyBookingInboxHttp({ api, options, container, orderId, bookingId: booking.id, stage: "canceled", evidence })
   const notificationEvidence = await verifyBookingNotifications(container, booking.id)
   evidence.push({ scenario: "K9_BOOKING_NOTIFICATIONS", ...notificationEvidence })
   expect((await api.post("/store/bookings", body, opts[other])).status).toBe(201)

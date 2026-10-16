@@ -32,6 +32,7 @@ import { handleIssue } from './routes/issuance.js';
 import { handleRedeem, handleValidate } from './routes/voucher.js';
 import type { Env } from './types.js';
 import { flushOpsEvents } from './ops-ingest.js';
+import { consumeBookingInbox } from './booking-inbox.js';
 import { recoverScheduledIntents } from './intent-recovery.js';
 import { compileEdgeRedirects, resolveEdgeRedirect, type CompiledEdgeRedirects } from './edgeRedirects.js';
 import { EDGE_REDIRECT_MANIFEST } from './edgeRedirectsManifest.js';
@@ -55,6 +56,7 @@ export default {
     async scheduled(controller: { scheduledTime: number }, env: Env, ctx: ExecutionContextLike): Promise<void> {
         try {
             await recoverScheduledIntents(env, controller.scheduledTime);
+            await consumeBookingInbox(env, controller.scheduledTime);
         } finally {
             ctx.waitUntil(flushOpsEvents(env));
         }
