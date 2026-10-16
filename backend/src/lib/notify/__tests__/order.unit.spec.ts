@@ -54,6 +54,11 @@ describe("orderPlacedData", () => {
 })
 
 describe("e-maily k objednávke", () => {
+  it("potvrzení respektuje nativní zákaz oznámení po anonymizaci/importu", async () => {
+    const { container, notifications } = makeContainer({ order: baseOrder({ no_notification: true }) })
+    expect(await notifyOrderPlaced(container, "order_1")).toEqual({ status: "skipped", reason: "NO_NOTIFICATION" })
+    expect(notifications.createNotifications).not.toHaveBeenCalled()
+  })
   it("potvrdenie objednávky: adresát z objednávky, idempotentný kľúč", async () => {
     const { container, notifications } = makeContainer()
     expect(await notifyOrderPlaced(container, "order_1")).toEqual({ status: "sent" })
