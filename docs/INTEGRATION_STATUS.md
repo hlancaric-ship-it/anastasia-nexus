@@ -1,6 +1,6 @@
 # Ověřený integrační balík — 15. 10. 2026
 
-Aktualizace 16. 10. 2026: [osm navazujících ověřených backendových balíků a zbývající kroky plánu](AUTONOMY_PROGRESS.md). Následující součty jsou historický integrační běh z 15. 10.
+Aktualizace 16. 10. 2026: [devět navazujících ověřených backendových balíků a zbývající kroky plánu](AUTONOMY_PROGRESS.md). Následující součty jsou historický integrační běh z 15. 10.
 
 Stav: VERIFIED pro sjednocení větví a popsané opravy. PR #9 sloučen do master, commit 78214ae. Backend, NEXUS i storefront mají stejný git tree jako ověřený kandidát 62395d3. Bez nasazení.
 
