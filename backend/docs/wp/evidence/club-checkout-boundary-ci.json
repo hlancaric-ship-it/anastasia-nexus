@@ -1,0 +1,20 @@
+{
+  "status": "VERIFIED",
+  "scope": "Retire direct Worker Stripe subscription endpoint only; not native membership billing",
+  "source_head": "c2dda7a7c81038526eaa25d7952cff1079387c46",
+  "tested_merge": "6b0d1357b7e8064df289e31f5ed71094c1e7f62d",
+  "ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38965584015",
+  "focused_unit_pass": 5,
+  "actual_workerd_boundary_pass": 3,
+  "full_regression": {
+    "backend_pass": 672,
+    "nexus_pass": 1233,
+    "workerd_pass": 142,
+    "medusa_http_pass": 151,
+    "failures": 0
+  },
+  "limits": [
+    "No automatic subscription implementation",
+    "No live Stripe calls, migration, cancellation, deployment or merge"
+  ]
+}

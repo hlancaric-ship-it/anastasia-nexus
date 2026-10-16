@@ -17,3 +17,7 @@ Před napojením storefront CTA je nutné doplnit a ověřit: členství/periodu
 ## Ověření
 
 Pět cílených unit kontrol žádné sítě pro platný/starý, neplatný i prázdný požadavek a přítomný/chybějící klíč; plná Node/workerd/Medusa regrese jen CI. Tento balík není tvrzení hotového předplatného.
+
+## Finální důkaz prvního balíku
+
+VERIFIED pro vyřazení staré platební cesty: [CI38965584015](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38965584015), [trvalý důkaz](evidence/club-checkout-boundary-ci.json). Backend672/672, NEXUS1233/1233, workerd142/142 včetně3nových boundary kontrol, MedusaHTTP151/151 PASS. NEXUS TypeScript a cílené unit5/5 PASS. Automatické předplatné tím není implementované.
