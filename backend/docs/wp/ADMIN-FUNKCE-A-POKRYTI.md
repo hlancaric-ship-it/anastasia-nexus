@@ -225,3 +225,7 @@ První implementační PR po této mapě: nový vlastní shell a šest agend C5 
 ## Navazující implementace osobního vzhledu
 
 [Theming adminu](admin-theming.md) přidává původní vzhled ANASTASIA, osobní ukládání, kontrast a sdílené tokeny pro všechny nově stavěné obrazovky. Nemění vzhled zákaznických webů ani neprohlašuje hotový vizuální CMS. Lucky doplnil správu sekcí/stránek graficky bez programátora a samostatné tier ceníky se starou/novou cenou a % úspory ze serveru; oba požadavky zůstávají v úplné mapě, neoznačené za hotové.
+
+### Podmínka dokončení samoobslužné správy obsahu
+
+Klientka musí bez programátora a bez kódu sama zakládat a upravovat kategorie, sekce a stránky. Vizuálně upraví texty, obrázky, barvy, pořadí a rozložení, zobrazí náhled a publikuje na vybraném webu z jednoho adminu. Koncept nesmí změnit živou stránku ani jiný web; menu musí mít platné cíle a předchozí verzi musí jít obnovit. Akceptace zahrnuje skutečné uložení a opětovné načtení celé této cesty; osobní motiv adminu ani klikací prototyp ji nenahrazují. **Stav CMS: NOT_IMPLEMENTED.**

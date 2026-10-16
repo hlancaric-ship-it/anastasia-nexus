@@ -336,7 +336,7 @@
         "backend/docs/wp/INVENTAR-A-AKCEPTACE.md"
       ],
       "remaining": "Není vlastní CMS API/model s koncepty, verzemi, publikací a vazbami domén; produktová metadata nejsou CMS.",
-      "acceptance": "Uložení konceptu nemění živý web; publikace mění správnou stránku; odkaz menu má existující cíl."
+      "acceptance": "Klientka bez programátora a bez kódu založí kategorii, stránku a sekci, vizuálně změní text, obrázek, barvy, pořadí a rozložení, zobrazí náhled a publikuje na zvoleném webu. Koncept nemění živý web; publikace nemění jiné weby; menu vede na existující cíl; lze obnovit předchozí verzi. Ověřit celou cestu skutečným uložením a opětovným načtením, ne pouze klikacím náhledem."
     },
     {
       "id": "multi-site",
