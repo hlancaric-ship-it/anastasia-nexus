@@ -1,0 +1,32 @@
+{
+  "status": "VERIFIED",
+  "scope": "C5 basic six-agenda demo flows only; not all capabilities of each agenda or full admin",
+  "source_head": "f38a0ebbe87f8098cfef4fad05a67f02f47b92b5",
+  "tested_merge": "2f7cf97f53fe3857c03d1ba793c0c9c3b5327216",
+  "focused_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38964116296",
+  "unit_pass": 43,
+  "browser_pass": 38,
+  "browser_viewports": [
+    1440,
+    390
+  ],
+  "native_medusa_postgres_scenarios_pass": 1,
+  "typescript": [
+    "backend PASS",
+    "admin PASS"
+  ],
+  "full_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38964116531",
+  "full_regression": {
+    "backend_pass": 739,
+    "nexus_pass": 1230,
+    "workerd_pass": 139,
+    "medusa_http_pass": 151,
+    "failures": 0
+  },
+  "limits": [
+    "No full CMS, tier pricing, fulfillment/refund, variant/gallery or access-right editor",
+    "Native entity freshness check is not an atomic lock against all native writers",
+    "Price-set lock coordinates this endpoint; arbitrary direct writes can use other locks",
+    "Audit is best effort; ambiguous native writes require readback, not automatic retries"
+  ]
+}

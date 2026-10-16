@@ -16,14 +16,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Klikací informační karty vedou přesně na zobrazené objednávky, zprávy nebo termíny.",
       "sources": [
         "backend/src/api/admin/ops/nexus/route.ts",
         "backend/src/api/admin/chat/conversations/route.ts",
-        "backend/docs/wp/admin-c5.md"
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "První vlastní C5 obrazovka implementovaná, CI ověření probíhá; širší rozsah této agendy zůstává podle mapy. Agregace skutečných počtů a konkrétních cílů; nenahrazovat chybu nulou.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Agregace skutečných počtů a konkrétních cílů; nenahrazovat chybu nulou.",
       "acceptance": "Klik na kartu otevře správný filtrovaný seznam; změna dat aktualizuje počet."
     },
     {
@@ -32,13 +33,14 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Vytvoření, úprava, archivace, varianty, značky, obrázky, fyzické a digitální zboží.",
       "sources": [
         "backend/src/scripts/import-anastasia-catalog.ts",
-        "backend/docs/wp/admin-c5.md"
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "První vlastní C5 obrazovka implementovaná, CI ověření probíhá; širší rozsah této agendy zůstává podle mapy. Nové formuláře nad Medusou; zachovat prodejní kanál, profil dopravy, varianty a digitální pravidla.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nové formuláře nad Medusou; zachovat prodejní kanál, profil dopravy, varianty a digitální pravidla.",
       "acceptance": "Uložený produkt se znovu načte z API; běžné zboží nemá povinnou rezervaci."
     },
     {
@@ -47,14 +49,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Bezpečné zadání cen a zobrazení konečné ceny ze serveru.",
       "sources": [
         "backend/src/api/store/nexus-cart/route.ts",
         "backend/src/workflows/hooks.ts",
-        "backend/docs/wp/admin-c5.md"
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "První vlastní C5 obrazovka implementovaná, CI ověření probíhá; širší rozsah této agendy zůstává podle mapy. Editor základní ceny nesmí smazat ostatní měny/pravidla; publikovaná cena musí projít NEXUSem.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Editor základní ceny nesmí smazat ostatní měny/pravidla; publikovaná cena musí projít NEXUSem.",
       "acceptance": "Server odmítne neplatnou částku/měnu; změna ceny vyžádá novou platební relaci; zachová se ostatní ceník."
     },
     {
@@ -63,13 +66,14 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Přidat, upravit a řadit kategorie; správa značek a vazeb produktů.",
       "sources": [
         "backend/src/scripts/import-anastasia-catalog.ts",
-        "backend/docs/wp/admin-c5.md"
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "První vlastní C5 obrazovka implementovaná, CI ověření probíhá; širší rozsah této agendy zůstává podle mapy. Nový strom kategorií; značka nemá automaticky samostatný ANASTASIA model jen tím, že existuje product-type/tag.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nový strom kategorií; značka nemá automaticky samostatný ANASTASIA model jen tím, že existuje product-type/tag.",
       "acceptance": "Vnořená kategorie se uloží, má správné produkty a nemůže obsahovat sama sebe."
     },
     {
@@ -78,14 +82,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Správa kupónu, platnosti, použití a kombinací s další slevou.",
       "sources": [
         "backend/src/api/store/nexus-cart/route.ts",
         "backend/src/api/admin/coupon-links/validation.ts",
-        "backend/docs/wp/admin-c5.md"
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "První vlastní C5 obrazovka implementovaná, CI ověření probíhá; širší rozsah této agendy zůstává podle mapy. Nativní promotion není automaticky podporovaný kupón NEXUSu; sjednotit capability/preflight a ukázat omezení.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nativní promotion není automaticky podporovaný kupón NEXUSu; sjednotit capability/preflight a ukázat omezení.",
       "acceptance": "Podporovaný kupón změní serverovou cenu; nepodporovaná podmínka se odmítne před zveřejněním, nikdy se neignoruje."
     },
     {
@@ -94,14 +99,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Seznam, detail, historie, kontakt, položky, platba, doprava, vazby a vyřízení.",
       "sources": [
         "backend/src/api/store/nexus-checkout/route.ts",
         "backend/src/workflows/hooks.ts",
-        "backend/docs/wp/admin-c5.md"
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "První vlastní C5 obrazovka implementovaná, CI ověření probíhá; širší rozsah této agendy zůstává podle mapy. Nové seznamy/detail; skutečné návaznosti na platbu, rezervaci, přístup, zásilku a poukaz.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nové seznamy/detail; skutečné návaznosti na platbu, rezervaci, přístup, zásilku a poukaz.",
       "acceptance": "Uživatelka najde objednávku, upraví dovolený kontakt a načte serverový stav; žádný ruční přepínač zaplaceno."
     },
     {
@@ -110,14 +116,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Profil, historie, adresy, skupiny, přístupy, rezervace a poznámky.",
       "sources": [
         "backend/src/api/admin/customers/[id]/notes/route.ts",
         "backend/src/api/admin/entitlements/route.ts",
-        "backend/docs/wp/admin-c5.md"
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "První vlastní C5 obrazovka implementovaná, CI ověření probíhá; širší rozsah této agendy zůstává podle mapy. Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API.",
       "acceptance": "Správná zákaznice má pouze vlastní vazby; poznámky se neobjeví v provozním logu."
     },
     {

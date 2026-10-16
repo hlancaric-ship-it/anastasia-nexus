@@ -1,6 +1,6 @@
 # C5: vlastní správa obchodu
 
-Stav: IMPLEMENTED_UNVERIFIED do dokončení browser a skutečné Medusa/PostgreSQL CI. Nejde o kompletní admin ani kompletní rozsah všech agend.
+Stav: VERIFIED pro níže popsané základní demonstrační cesty šesti agend. Nejde o kompletní admin ani kompletní rozsah všech agend.
 
 ## Rozsah
 
@@ -21,3 +21,7 @@ Před běžnou editací je záznam znovu načten; tato kontrola zjistí dřívě
 Lokálně fokus unit 43/43 PASS, backend/admin TypeScript PASS. Testy ověřují skutečná schémata nainstalované Medusy 2.19.0, ne vymyšlený kontrakt. Samostatný Linux browser fixture kontroluje skutečnou React obrazovku s umělým HTTP transportem při přesných 1440/390 px. CI-only admin-c5.spec má oddělenou syntetickou PostgreSQL a skutečnou Medusu, provádí vytvoření/úpravy a kontroluje zachování osobního ceníku. Plná regrese jen na CI, žádné lokální PG/HTTP běhy, žádný merge/deploy.
 
 Mimo tento balík: vizuální CMS a správa všech webů, komplet sklad/fulfillment, refundace, osobní tier ceníky a jejich zobrazení stará/nová cena/%, klientské přístupy, galerie/variantový editor a rozšířené funkce [mapy agend](ADMIN-FUNKCE-A-POKRYTI.md). Nic z toho není označené hotové pouze existencí těchto základních formulářů. Další pořadí dle Claude: audit čtyř větví, Klub přes jedno jádro, překlady.
+
+## Finální CI důkaz
+
+[Důkaz](evidence/admin-c5-ci.json), [cílená CI](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38964116296): unit43/43, browser38/38 při přesných1440/390px, skutečná Medusa/PostgreSQL1/1, oba TypeScript checky PASS. [Plná regrese](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38964116531): backend739/739, NEXUS1230/1230, workerd139/139, HTTP151/151 PASS. Snímky obou velikostí vizuálně zkontrolované. Rozsah neznamená kompletní hotový admin.

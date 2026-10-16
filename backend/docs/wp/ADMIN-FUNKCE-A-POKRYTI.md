@@ -1,6 +1,6 @@
 # Úplná mapa funkcí pro nový admin ANASTASIA
 
-Stav mapování: **VERIFIED jako zdrojový soupis**. Stav nového adminu: **PARTIAL**; osobní theming je implementovaný, první obchodní obrazovky C5 čekají na dokončení CI. Celé řešení: **PARTIAL**.
+Stav mapování: **VERIFIED jako zdrojový soupis**. Stav nového adminu: **PARTIAL**; osobní theming je implementovaný, základní cesty šesti agend C5 jsou ověřené, jejich širší rozsah zůstává částečný. Celé řešení: **PARTIAL**.
 
 Datum: 16. 10. 2026. Základ `master@891297d15d31ff244d155743da37b7e83355e60b` ověřený přes fetch. Tato mapa doplňuje [původní soupis](ADMIN-SOUPIS.md), neprohlašuje existující prototyp za nové hotové rozhraní. Nový admin se staví od nuly, nad existujícími obchodními vlastníky a API.
 
@@ -43,7 +43,7 @@ Toto je cílová informační architektura, nikoli hotové menu. V první C5 ver
 
 ## Matice funkcí, podkladu a mezery
 
-Nové vlastní UI je `NOT_IMPLEMENTED`, kromě osobního vzhledu adminu (`VERIFIED` v rozsahu osobních preferencí, viz [důkaz](evidence/admin-theming-ci.json)). Backendový status celých agend je `PARTIAL`, u chybějícího kontraktu `NOT_IMPLEMENTED`; stav jednotlivých ověřených podtoků viz jejich CI důkazy. Nativní API se znovu neimplementují. Sloupec testu je **akceptační kritérium pro budoucí implementaci**, ne právě provedený test.
+Nové vlastní UI je `NOT_IMPLEMENTED`, kromě základních cest C5 (`PARTIAL` pro širší agendy, [důkaz](evidence/admin-c5-ci.json)) a osobního vzhledu adminu (`VERIFIED` v rozsahu osobních preferencí, viz [důkaz](evidence/admin-theming-ci.json)). Backendový status celých agend je `PARTIAL`, u chybějícího kontraktu `NOT_IMPLEMENTED`; stav jednotlivých ověřených podtoků viz jejich CI důkazy. Nativní API se znovu neimplementují. Sloupec testu je **akceptační kritérium pro budoucí implementaci**, ne právě provedený test.
 
 | ID / obrazovka | Pořadí / podklad | Požadavek | Co zbývá |
 |---|---|---|---|
