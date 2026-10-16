@@ -42,7 +42,7 @@ jobs:
           NODE_OPTIONS: --experimental-vm-modules
         run: |
           ./node_modules/.bin/tsc --noEmit
-          ./node_modules/.bin/jest --runTestsByPath src/lib/membership/__tests__/policy.unit.spec.ts --runInBand --forceExit
+          ./node_modules/.bin/jest --runTestsByPath src/lib/membership/__tests__/policy.unit.spec.ts src/lib/membership/__tests__/native-receipt.unit.spec.ts --runInBand --forceExit
       - name: Actual Medusa module and PostgreSQL concurrency
         working-directory: backend
         env:

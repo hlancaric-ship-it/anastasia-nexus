@@ -1,6 +1,7 @@
 import { Server } from 'node:net'
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
-import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
+import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
+import { loadNativeMembershipReceipt } from '../../src/lib/membership/native-receipt'
 import { MEMBERSHIP_MODULE } from '../../src/modules/membership'
 import type MembershipModuleService from '../../src/modules/membership/service'
 import type { Terms, Receipt } from '../../src/lib/membership/policy'
@@ -65,4 +66,30 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_ci',hooks:{beforeServe
   await expect(s.activate(terms,receipt,{version:'v1',auto_renew:true},now)).rejects.toThrow()
   expect(await dbConnection('membership').count('* as n').first()).toMatchObject({n:'2'})
  })
+ it('loads receipts only from a linked native order and actual captured payment records',async()=>{
+  const container=getContainer(),payment=container.resolve(Modules.PAYMENT),link=container.resolve(ContainerRegistrationKeys.LINK)
+  const customer=await container.resolve(Modules.CUSTOMER).createCustomers({email:'membership-receipt@example.test'})
+  const cart=await container.resolve(Modules.CART).createCarts({currency_code:'eur',customer_id:customer.id})
+  const order=await container.resolve(Modules.ORDER).createOrders({currency_code:'eur',customer_id:customer.id,items:[{title:'Synthetic membership',quantity:1,unit_price:50,product_id:'prod_synthetic',variant_id:'var_synthetic'}]})
+  const collection=await payment.createPaymentCollections({currency_code:'eur',amount:50})
+  await link.create([
+   {[Modules.CART]:{cart_id:cart.id},[Modules.ORDER]:{order_id:order.id}},
+   {[Modules.ORDER]:{order_id:order.id},[Modules.PAYMENT]:{payment_collection_id:collection.id}},
+  ])
+  const binding={cart_id:cart.id,customer_id:customer.id,product_id:'prod_synthetic',variant_id:'var_synthetic',checkout_key:`initial:${order.id}`}
+  await expect(loadNativeMembershipReceipt(container,order.id,binding)).rejects.toThrow('NATIVE_PAYMENT_NOT_VERIFIED')
+  const session=await payment.createPaymentSession(collection.id,{provider_id:'pp_system_default',currency_code:'eur',amount:50,data:{}})
+  const authorized=await payment.authorizePaymentSession(session.id,{})
+  if(!authorized)throw new Error('Synthetic system provider did not authorize')
+  await payment.capturePayment({payment_id:authorized.id})
+  const native=await loadNativeMembershipReceipt(container,order.id,binding)
+  expect(native).toMatchObject({order_id:order.id,customer_id:customer.id,captured_minor:5000,amount_minor:5000,checkout_key:binding.checkout_key})
+  const enrolled=await service().activate({...terms,customer_id:customer.id},native,{version:'v1',auto_renew:true},new Date().toISOString())
+  expect(enrolled.state.last_order_id).toBe(order.id)
+  await expect(loadNativeMembershipReceipt(container,order.id,{...binding,customer_id:'cus_other'})).rejects.toThrow('OWNER_MISMATCH')
+  await expect(loadNativeMembershipReceipt(container,order.id,{...binding,cart_id:'cart_other'})).rejects.toThrow('CART_MISMATCH')
+  await payment.refundPayment({payment_id:authorized.id,amount:50})
+  await expect(loadNativeMembershipReceipt(container,order.id,binding)).rejects.toThrow('NATIVE_PAYMENT_NOT_VERIFIED')
+ })
+
 }})
