@@ -25,7 +25,7 @@ function timestamp(value:unknown):string{
  if(!Number.isFinite(n)||new Date(n).toISOString()!==canonical)return fail('INVALID_NATIVE_CAPTURE_TIME')
  return canonical
 }
-const orderFields=['id','customer_id','status','currency_code','total','items.id','items.product_id','items.variant_id','items.quantity','payment_collections.id','payment_collections.captured_amount','payment_collections.refunded_amount','payment_collections.payments.id','payment_collections.payments.amount','payment_collections.payments.currency_code','payment_collections.payments.captured_at','payment_collections.payments.canceled_at']
+const orderFields=['id','customer_id','status','currency_code','total','items.id','items.product_id','items.variant_id','items.quantity','*items.detail','payment_collections.id','payment_collections.captured_amount','payment_collections.refunded_amount','payment_collections.payments.id','payment_collections.payments.amount','payment_collections.payments.currency_code','payment_collections.payments.captured_at','payment_collections.payments.canceled_at']
 /** Loads native order/cart links and ledger facts; no Stripe calls or grant. */
 export async function loadNativeMembershipReceipt(scope:Scope,orderId:string,binding:CheckoutBinding,now=new Date()):Promise<Receipt>{
  if(![orderId,binding.cart_id,binding.customer_id,binding.product_id,binding.variant_id].every(id=>typeof id==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(id))||typeof binding.checkout_key!=='string'||!binding.checkout_key||binding.checkout_key.length>256)return fail('INVALID_CHECKOUT_BINDING')

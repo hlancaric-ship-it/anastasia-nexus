@@ -16,6 +16,7 @@ describe('native membership receipt authority',()=>{
   const f=fixture(),receipt=await loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)
   expect(receipt).toMatchObject({order_id:'ord_a',captured_minor:5000,paid_at:f.payment.captured_at,checkout_key:binding.checkout_key})
   expect(f.query.graph.mock.calls[0][0].entity).toBe('order_cart')
+  expect(f.query.graph.mock.calls[1][0].fields).toContain('*items.detail')
   expect(receipt.checkout_key).not.toBe(f.order.metadata.membership_key)
  })
  it('does not trust matching client metadata when the native cart link differs',async()=>{const f=fixture();f.links[0].cart_id='cart_other';f.order.metadata.membership_key=binding.checkout_key;await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow('ORDER_CART_MISMATCH');expect(f.query.graph).toHaveBeenCalledTimes(1)})
