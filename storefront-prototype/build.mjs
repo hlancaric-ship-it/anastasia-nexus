@@ -79,6 +79,7 @@ await writeFile(join(out,'center-theme.js'),centerThemeBoot());
 await writeFile(join(out,'site-theme.js'),siteThemeBoot());
 await writeFile(join(out,'404.html'),document('/404',{title:'Stránka nenájdená',body:views.notFound()}));
 await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
-await writeFile(join(out,'_headers'),'/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src \'self\'; script-src \'self\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\'; media-src \'self\'; font-src \'self\'; connect-src \'self\'; frame-ancestors \'none\'; base-uri \'none\'; form-action \'self\'\n');
+const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
+await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.stripe.com data:; media-src 'self'; font-src 'self'; connect-src 'self' ${apiOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\n`);
 await writeFile(join(out,'routes.json'),JSON.stringify([...routes.keys()],null,2));
 console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). No backend calls.`);

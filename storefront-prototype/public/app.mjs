@@ -1,3 +1,4 @@
+import '/config.mjs';
 import {createApi} from '/lib/api/index.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
@@ -256,11 +257,28 @@ if(checkoutForm){
   if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
   else{
     const step=n=>{$$('fieldset[data-step]',checkoutForm).forEach(el=>{el.hidden=Number(el.dataset.step)!==n;el.disabled=el.hidden;});$$('[data-step-label]').forEach(el=>el.classList.toggle('current',Number(el.dataset.stepLabel)===n));const first=$(`fieldset[data-step="${n}"] input`,checkoutForm);first?.focus();};
-    $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity())step(Number(btn.dataset.next));}));
+    // Stripe Payment Element: reálná karetní platba (Apple/Google Pay přes Payment Element). Jen v http režimu.
+    const cfg=(()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}})();
+    let stripe,elements,paymentReady=false;
+    const loadStripe=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
+    const initPayment=async()=>{
+      if(paymentReady||typeof api.createPaymentSession!=='function'||!cfg?.stripePublishableKey)return;
+      const fs=$('fieldset[data-step="3"]',checkoutForm);if(!fs)return;
+      let host=$('#stripe-payment-element',checkoutForm);
+      if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.margin='16px 0';fs.insertBefore(host,fs.querySelector('[type=submit]')||null);}
+      host.textContent='Načítavam platbu…';
+      const session=await api.createPaymentSession();
+      if(!session.ok){host.textContent=session.message||'Platba nie je dostupná.';return;}
+      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:session.clientSecret});host.textContent='';elements.create('payment').mount(host);paymentReady=true;}
+      catch{host.textContent='Platobnú bránu sa nepodarilo načítať.';}
+    };
+    $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity()){const n=Number(btn.dataset.next);step(n);if(n===3)initPayment();}}));
     $$('[data-back]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>step(Number(btn.dataset.back))));
     $$('[name=delivery]',checkoutForm).forEach(el=>el.addEventListener('change',()=>{const shipping=checkoutForm.elements.delivery.value==='shipping';$('#address-fields').hidden=!shipping;$$('#address-fields input').forEach(input=>{input.required=shipping;input.disabled=!shipping;});}));
-    checkoutForm.addEventListener('submit',async event=>{event.preventDefault();const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity())step(Number(current.dataset.step)+1);return;}
-      const result=await api.checkout();const output=$('#checkout-result');output.dataset.state=result.status;output.textContent=result.messages;output.focus();
+    checkoutForm.addEventListener('submit',async event=>{event.preventDefault();const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity()){step(Number(current.dataset.step)+1);if(Number(current.dataset.step)+1===3)initPayment();}return;}
+      const output=$('#checkout-result');
+      if(stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
+      const result=await api.checkout();output.dataset.state=result.status;output.textContent=result.messages;output.focus();
     });
   }
 }

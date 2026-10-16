@@ -8,7 +8,8 @@ const port=Number(process.argv[2]||4173);
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css','.mjs':'text/javascript','.js':'text/javascript','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.jpg':'image/jpeg','.ttf':'font/ttf','.mp4':'video/mp4','.webm':'video/webm','.mp3':'audio/mpeg','.txt':'text/plain'};
 const server=http.createServer(async(req,res)=>{
   res.setHeader('X-Robots-Tag','noindex, nofollow');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');
-  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+  const api=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
+  res.setHeader('Content-Security-Policy',`default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.stripe.com data:; media-src 'self'; font-src 'self'; connect-src 'self' ${api} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
   if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return;}
   try{
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
