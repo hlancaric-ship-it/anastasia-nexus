@@ -2,6 +2,7 @@ import '/config.mjs';
 import {createApi} from '/lib/api/index.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
+import {init as i18nInit} from '/i18n.mjs';
 let storage;try{storage=window.sessionStorage;}catch{}
 const api=createApi(storage);
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
@@ -318,3 +319,25 @@ for(const track of document.querySelectorAll('[data-carousel]')){
 // Picker vzhledu pro Luciu: na vyžádání (?vzhlad-editor=1) nebo window.anaOpenThemePicker() z adminu.
 window.anaOpenThemePicker=()=>import('/theme-picker.mjs').then(m=>m.openThemePicker());
 if(new URLSearchParams(location.search).has('vzhlad-editor'))window.anaOpenThemePicker().catch(()=>{});
+
+// Menu Obchod: doplní za běhu kategorie z jádra, které nejsou ve statickém buildu (např. nově
+// přidané v adminu). Jen přidává, nic neodebírá; odkaz na /eshop, aby na prototypu nevznikl 404.
+async function syncCategories(){
+  try{
+    const cats=await api.getCategories?.();
+    if(!Array.isArray(cats)||!cats.length)return;
+    const existing=[...document.querySelectorAll('a[href^="/eshop/kategoria/"]')];
+    if(!existing.length)return;
+    const have=new Set(existing.map(a=>a.textContent.trim().toLowerCase()));
+    const anchor=existing[existing.length-1];
+    for(const name of cats){
+      const label=String(name||'').trim();
+      if(!label||have.has(label.toLowerCase()))continue;
+      const a=anchor.cloneNode(false);a.setAttribute('href','/eshop');a.removeAttribute('data-menu-close');a.setAttribute('data-menu-close','');a.textContent=label;
+      anchor.parentNode.insertBefore(a,anchor.nextSibling);have.add(label.toLowerCase());
+    }
+  }catch{}
+}
+
+// Jazyky SK/EN/RU: zapojí přepínače a aplikuje uloženou volbu (EN/RU zatím náhled, viz i18n.mjs).
+syncCategories().finally(()=>i18nInit());
