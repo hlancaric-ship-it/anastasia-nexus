@@ -21,11 +21,13 @@ Backend sám načte platbu a link order_payment_collection pomocí existujícíh
 
 Částečné zachycení nemusí stačit na potvrzení termínu: stávající nativní platební politika rozhoduje podle celé objednávky. Pozdější capture má nový trvalý podnět. Zrušení může být uznané pouze při aktuálním výsledku CANCELED nebo NO_BOOKING; stále aktivní rezervace/objednávka není dokončené storno.
 
+Ztracené booking_id metadata se nepovažuje za NO_BOOKING, pokud stále existuje aktivní rezervace dané objednávky; vyžaduje kontrolu místo tichého vynechání.
+
 Dříve uložené order.placed intenty zachovávají původní payload a idempotency klíč. Nové životní události ukládají typ a ID původního zdroje. Zůstává původní claim před zápisem, limit dávky/deadline, samostatný inspect, UNKNOWN bez slepého retry a obnova po pádu. Starší NEEDS_REVIEW události se pouhým přidáním podpory samy neaktivují.
 
 ## Ověření
 
-Lokálně: 51/51 cílených backend testů před plným CI; typové kontroly backend/NEXUS/workerd. Nové negativní testy zahrnují chybějící korelaci capture, dva různé captures jedné platby, caller-selected order, neexistující platební vazbu, falešné potvrzení storna a cizí source target v odpovědi.
+Lokálně: 70/70 cílených backend testů před plným CI; typové kontroly backend/NEXUS/workerd. Nové negativní testy zahrnují chybějící korelaci capture, dva různé captures jedné platby, caller-selected order, neexistující platební vazbu, falešné potvrzení storna a cizí source target v odpovědi.
 
 Workerd/D1 ověřuje příjem a zpracování obou životních událostí, kontrakt verze 2 a odmítnutí neplatného read-backu. HTTP/PG scénář po skutečném capture opraví held přes skutečný platební link a stejný modul rezervace; zamítne chybějící link a objednávku vybranou volajícím. Doručovací scénář používá skutečné nativní skupiny event busu pro dva syntetické captures jedné platby a skutečné uložené workflow; příjemce zůstává explicitně lokálním HTTP fixture. To se neoznačuje za poskytovatelem provedené dva captures ani za produkční cross-platform E2E.
 
