@@ -2,6 +2,8 @@
 
 Stav: soupis připravený; **nový admin NOT_IMPLEMENTED**.
 
+Aktuální úplná mapa k `master@891297d` (16. 10.): [50 agend, všechna API a mezery](ADMIN-FUNKCE-A-POKRYTI.md). Níže zůstává historický snapshot z 15. 10.; aktuální počet rout a stav automatického zpracování přebírejte z nové mapy.
+
 **Zadání Luckyho: celý admin se staví od nuly jako nové vlastní rozhraní.**
 Existující Medusa stránky ani `admin-demo` nejsou jeho kódovým nebo vizuálním základem.
 Zachováváme ověřený backend, API a obchodní pravidla. Existující UI slouží jen jako funkční reference.

@@ -1,0 +1,4253 @@
+{
+  "schema_version": 1,
+  "source_commit": "891297d15d31ff244d155743da37b7e83355e60b",
+  "date": "2026-10-16",
+  "verification": "SOURCE_REVIEW_ONLY",
+  "runtime_claim": "This map verifies source coverage, not implemented UI or live provider acceptance.",
+  "baseline_ci_evidence": "docs/evidence/order-email-recovery-20261016.json",
+  "original_nexus": {
+    "commit": "bbb2a7d",
+    "note": "Original /Users/lucky/nexus architecture and migration plan read as historical reference; working tree is dirty and was not changed."
+  },
+  "features": [
+    {
+      "id": "overview",
+      "label_sk": "Prehľad",
+      "delivery_lane": "C5",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Klikací informační karty vedou přesně na zobrazené objednávky, zprávy nebo termíny.",
+      "sources": [
+        "backend/src/api/admin/ops/nexus/route.ts",
+        "backend/src/api/admin/chat/conversations/route.ts"
+      ],
+      "remaining": "Agregace skutečných počtů a konkrétních cílů; nenahrazovat chybu nulou.",
+      "acceptance": "Klik na kartu otevře správný filtrovaný seznam; změna dat aktualizuje počet."
+    },
+    {
+      "id": "products",
+      "label_sk": "Produkty a varianty",
+      "delivery_lane": "C5",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Vytvoření, úprava, archivace, varianty, značky, obrázky, fyzické a digitální zboží.",
+      "sources": [
+        "backend/src/scripts/import-anastasia-catalog.ts"
+      ],
+      "remaining": "Nové formuláře nad Medusou; zachovat prodejní kanál, profil dopravy, varianty a digitální pravidla.",
+      "acceptance": "Uložený produkt se znovu načte z API; běžné zboží nemá povinnou rezervaci."
+    },
+    {
+      "id": "prices",
+      "label_sk": "Ceny a zľavy",
+      "delivery_lane": "C5",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Bezpečné zadání cen a zobrazení konečné ceny ze serveru.",
+      "sources": [
+        "backend/src/api/store/nexus-cart/route.ts",
+        "backend/src/workflows/hooks.ts"
+      ],
+      "remaining": "Editor základní ceny nesmí smazat ostatní měny/pravidla; publikovaná cena musí projít NEXUSem.",
+      "acceptance": "Server odmítne neplatnou částku/měnu; změna ceny vyžádá novou platební relaci; zachová se ostatní ceník."
+    },
+    {
+      "id": "categories",
+      "label_sk": "Kategórie a značky",
+      "delivery_lane": "C5",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Přidat, upravit a řadit kategorie; správa značek a vazeb produktů.",
+      "sources": [
+        "backend/src/scripts/import-anastasia-catalog.ts"
+      ],
+      "remaining": "Nový strom kategorií; značka nemá automaticky samostatný ANASTASIA model jen tím, že existuje product-type/tag.",
+      "acceptance": "Vnořená kategorie se uloží, má správné produkty a nemůže obsahovat sama sebe."
+    },
+    {
+      "id": "coupons",
+      "label_sk": "Kupóny",
+      "delivery_lane": "C5",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Správa kupónu, platnosti, použití a kombinací s další slevou.",
+      "sources": [
+        "backend/src/api/store/nexus-cart/route.ts",
+        "backend/src/api/admin/coupon-links/validation.ts"
+      ],
+      "remaining": "Nativní promotion není automaticky podporovaný kupón NEXUSu; sjednotit capability/preflight a ukázat omezení.",
+      "acceptance": "Podporovaný kupón změní serverovou cenu; nepodporovaná podmínka se odmítne před zveřejněním, nikdy se neignoruje."
+    },
+    {
+      "id": "orders",
+      "label_sk": "Objednávky",
+      "delivery_lane": "C5",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Seznam, detail, historie, kontakt, položky, platba, doprava, vazby a vyřízení.",
+      "sources": [
+        "backend/src/api/store/nexus-checkout/route.ts",
+        "backend/src/workflows/hooks.ts"
+      ],
+      "remaining": "Nové seznamy/detail; skutečné návaznosti na platbu, rezervaci, přístup, zásilku a poukaz.",
+      "acceptance": "Uživatelka najde objednávku, upraví dovolený kontakt a načte serverový stav; žádný ruční přepínač zaplaceno."
+    },
+    {
+      "id": "customers",
+      "label_sk": "Zákazníčky",
+      "delivery_lane": "C5",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Profil, historie, adresy, skupiny, přístupy, rezervace a poznámky.",
+      "sources": [
+        "backend/src/api/admin/customers/[id]/notes/route.ts",
+        "backend/src/api/admin/entitlements/route.ts"
+      ],
+      "remaining": "Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API.",
+      "acceptance": "Správná zákaznice má pouze vlastní vazby; poznámky se neobjeví v provozním logu."
+    },
+    {
+      "id": "stock",
+      "label_sk": "Sklad a rezervovaný tovar",
+      "delivery_lane": "NEXT",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Sklad lékárny, zásoby po variantách, rezervace posledního kusu, příjem a pohyby.",
+      "sources": [
+        "backend/integration-tests/http/stock-availability-http-checks.ts",
+        "nexus/domains/warehouse/WarehouseStockFlow.ts"
+      ],
+      "remaining": "Medusa inventory je autorita; doplnit obsluhu skladu a trvalý přehled pohybů; NEXUS wrapper neprovádí přesuny.",
+      "acceptance": "Souběžné objednávky posledního kusu nevydají dva kusy; storno uvolní rezervaci; úprava má aktéra/důvod."
+    },
+    {
+      "id": "flags",
+      "label_sk": "Štítky a zobrazenie produktov",
+      "delivery_lane": "NEXT",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Novinka, bestseller, doporučujeme a obchodní přepínače; produktové flagy.",
+      "sources": [
+        "backend/src/api/store/nexus-cart/route.ts"
+      ],
+      "remaining": "Product-tags existují, ale vazbu štítku na skutečné zobrazení webu je třeba definovat; framework flags jsou jiné.",
+      "acceptance": "Uložený štítek ovlivní správný produkt; uživatelka nemůže vypnout cenovou či platební ochranu."
+    },
+    {
+      "id": "loyalty",
+      "label_sk": "Vernostné úrovne a osobné ceny",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Zákaznice po přihlášení uvidí ceny pro svou úroveň; obsluha nastaví názvy, slevy a členství.",
+      "sources": [
+        "backend/src/api/store/nexus-cart/customer-tier.ts",
+        "nexus/workers/api/routes/nexusPricing.ts"
+      ],
+      "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu.",
+      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika."
+    },
+    {
+      "id": "booking",
+      "label_sk": "Konzultácie a voľné termíny",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Typy, délka, cena, forma, pauza, týden, kopírování, obsazení a storno.",
+      "sources": [
+        "backend/src/api/admin/booking/types/route.ts",
+        "backend/src/api/admin/booking/availability/route.ts",
+        "backend/src/api/admin/bookings/[id]/cancel/route.ts"
+      ],
+      "remaining": "Nový společný kalendář; vlastní ruční vytvoření/přebookování nemá dokázaný write kontrakt.",
+      "acceptance": "Souběh a změna obsazeného času se odmítnou; Bratislava/DST; změna typu zachová ceny a budoucí rezervace."
+    },
+    {
+      "id": "access",
+      "label_sk": "Programy a prístupy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "RESET 40+, Nič nemusíš, platnost přístupů, ruční přidání/odebrání s důvodem.",
+      "sources": [
+        "backend/src/api/admin/entitlements/route.ts",
+        "backend/src/modules/entitlement/order-sync.ts"
+      ],
+      "remaining": "Editor obsahu/lekcí a bezpečný upload nejsou totožné s existujícím oprávněním.",
+      "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu."
+    },
+    {
+      "id": "media",
+      "label_sk": "Súbory a chránený obsah",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Správa obrázků, videa/audio, přiřazení k produktu bez JSON, oddělení veřejných a placených souborů.",
+      "sources": [
+        "backend/src/api/store/media-access/route.ts",
+        "nexus/workers/api/routes/mediaDelivery.ts"
+      ],
+      "remaining": "Chybí vlastní validovaný privátní upload/přiřazení; veřejné Medusa uploads nestačí pro placený obsah.",
+      "acceptance": "Placený soubor není veřejný; cizí/sousední soubor je odmítnut; UI přizná platnost vydaného odkazu do expirace."
+    },
+    {
+      "id": "chat",
+      "label_sk": "Správy zákazníčok",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Inbox, odpověď, přečtení, zavření/otevření, ztlumení a blokace.",
+      "sources": [
+        "backend/src/api/admin/chat/conversations/route.ts",
+        "backend/src/modules/chat/policy.ts"
+      ],
+      "remaining": "Nové UI; limity dnes v kódu, žádný neexistující konfigurační přepínač.",
+      "acceptance": "Čistý text; 2000 znaků zákaznice/5000 admin; 403/409/429 slovensky; počítadlo a zachování rozepsané odpovědi."
+    },
+    {
+      "id": "vouchers",
+      "label_sk": "Darčekové poukazy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Hodnoty, platnost, prodej, použití, doručení, zůstatky, pohyby, zneplatnění a vratky.",
+      "sources": [
+        "backend/src/api/admin/vouchers/settings/route.ts",
+        "backend/src/api/admin/vouchers/[id]/transactions/route.ts",
+        "backend/src/api/admin/vouchers/refund/route.ts"
+      ],
+      "remaining": "Nové UI nad skutečnými settings a deníkem; částky i dostupná vratka pochází ze serveru.",
+      "acceptance": "Hodnoty z API; vydané poukazy zachovají pravidla; refund replay nezvýší zůstatek dvakrát; po 502 znovu ověřit uložení."
+    },
+    {
+      "id": "qr",
+      "label_sk": "QR kupóny a staré odkazy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Generování SVG/PNG v adminu v první fázi; evidence již vydaných QR i z původního obchodu.",
+      "sources": [
+        "backend/src/api/admin/coupon-links/route.ts",
+        "backend/src/scripts/export-edge-redirects.ts",
+        "nexus/workers/api/edgeRedirects.ts"
+      ],
+      "remaining": "Generátor nemá registr vydaných QR; stále vrací PENDING_PRICING_INTEGRATION. Redirect mapa není evidence držitelů a uplatnění.",
+      "acceptance": "Naskenování nového i starého QR otevře správný cíl a server uplatní správnou slevu; výstup se stáhne bez externí QR služby."
+    },
+    {
+      "id": "lost-code",
+      "label_sk": "Stratený QR alebo poukaz",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Dohledat vydání a obnovit přístup k zakoupenému kódu, případně bezpečně nahradit ukradený kód.",
+      "sources": [
+        "backend/src/modules/gift-voucher/delivery.ts",
+        "backend/src/api/admin/vouchers/route.ts"
+      ],
+      "remaining": "Chybí chráněný admin resend/download/replace a registr starých QR; maskovaný seznam nesmí být obcházen logy.",
+      "acceptance": "Ověří se držitel a oprávnění; opětovné doručení nevydá další kredit; případná náhrada zneplatní starý kód atomicky a auditovaně."
+    },
+    {
+      "id": "campaigns",
+      "label_sk": "Kampane a plánované akcie",
+      "delivery_lane": "NEXT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Naplánovat akci od/do, produkty/kategorie, rozpočet, slevy, priority, spuštění/pozastavení/ukončení.",
+      "sources": [
+        "nexus/domains/campaign/CampaignFlows.ts",
+        "nexus/domains/campaign/CampaignLifecycleRule.ts"
+      ],
+      "remaining": "Existuje NEXUS kompozice a nativní Medusa campaigns; chybí doložené propojení konfigurace, plánovače a NEXUS ceny.",
+      "acceptance": "Akce začne i skončí serverovým časem; konflikt slev má jednoznačné pravidlo; restart nezopakuje účinek."
+    },
+    {
+      "id": "email-text",
+      "label_sk": "Texty e-mailov",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Editace předmětu a textů, proměnné, náhled, reset a povolené vypnutí.",
+      "sources": [
+        "backend/src/api/admin/email-templates/[template]/route.ts",
+        "backend/src/api/admin/email-templates/[template]/preview/route.ts"
+      ],
+      "remaining": "Nový editor slotů; reset mění i enabled; texts nahrazuje celý set přepisů.",
+      "acceptance": "Povinný e-mail nelze vypnout; chybná proměnná je odmítnuta; náhled izolovaný a nic neodesílá."
+    },
+    {
+      "id": "email-design",
+      "label_sk": "Vzhľad e-mailov: tri návrhy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "missing",
+      "backend_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Uživatelka vybírá ze tří vizuálních návrhů e-mailů.",
+      "sources": [
+        "backend/src/modules/notification-zeptomail/templates.ts"
+      ],
+      "remaining": "Textové sloty nejsou volba layoutu; doplnit tři šablony, persistovanou volbu, náhled a použít ji při odeslání.",
+      "acceptance": "Tři odlišitelné náhledy; uložený vzhled používá skutečný renderer; funkční mobilní i prostý textový e-mail."
+    },
+    {
+      "id": "newsletter",
+      "label_sk": "Newsletter a súhlasy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Kontakty, souhlasy, odhlášení, segmenty, rozesílka a přehled výsledků.",
+      "sources": [
+        "backend/src/api/admin/newsletter/route.ts",
+        "backend/src/api/store/newsletter/unsubscribe/route.ts"
+      ],
+      "remaining": "Existuje evidence a stránkovaný CSV export; hromadné kampaně/segmentace/rozesílka nejsou hotové.",
+      "acceptance": "Žádné odeslání bez souhlasu; odhlášení platí pro další dávku; UI správně označí rozsah exportu."
+    },
+    {
+      "id": "cms",
+      "label_sk": "Stránky, texty a menu webu",
+      "delivery_lane": "NEXT",
+      "backend_layer": "missing",
+      "backend_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Upravit všechny stránky, texty, menu, patičku, kontakty, SEO a náhled před publikací.",
+      "sources": [
+        "backend/docs/wp/INVENTAR-A-AKCEPTACE.md"
+      ],
+      "remaining": "Není vlastní CMS API/model s koncepty, verzemi, publikací a vazbami domén; produktová metadata nejsou CMS.",
+      "acceptance": "Uložení konceptu nemění živý web; publikace mění správnou stránku; odkaz menu má existující cíl."
+    },
+    {
+      "id": "multi-site",
+      "label_sk": "Ďalšie weby",
+      "delivery_lane": "PHASE2",
+      "backend_layer": "missing",
+      "backend_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Společná správa anastasia.academy a aianastasia.com bez druhé databáze zákaznic.",
+      "sources": [
+        "docs/NEXUS_AUTONOMY_SPEC.md"
+      ],
+      "remaining": "Doplnit registr webů, oprávnění, obsah a přepnutí kontextu; sjednané ve fázi 2.",
+      "acceptance": "Přepnutí webu nemíchá obsah; zákaznice/platby/přístupy zůstávají u jednoho vlastníka."
+    },
+    {
+      "id": "translations",
+      "label_sk": "Jazyky a preklady",
+      "delivery_lane": "PHASE2",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "SK/EN/RU, ruční oprava překladů a stav úplnosti, žádné prázdné povinné texty.",
+      "sources": [
+        "backend/docs/wp/INVENTAR-A-AKCEPTACE.md"
+      ],
+      "remaining": "Medusa locales/translations neřeší automaticky celý web, CMS a média; doplnit publikaci a překlady obsahu.",
+      "acceptance": "Prázdný překlad se odliší od chybějícího; náhled i publikace ukáží vybraný jazyk."
+    },
+    {
+      "id": "branding",
+      "label_sk": "Farby a vzhľad webov",
+      "delivery_lane": "NEXT",
+      "backend_layer": "missing",
+      "backend_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Sama změnit barvy, loga a texty jednotlivých webů; jednotná konzistentní pole bez modrého autofillu.",
+      "sources": [
+        "backend/docs/wp/ADMIN-UX-SAMOOBSLUHA.md"
+      ],
+      "remaining": "Bezpečné tokeny vzhledu a uložení po webech nejsou implementované; žádný libovolný script/CSS editor.",
+      "acceptance": "Kontrast zůstane čitelný; náhled před uložením; změna přetrvá a projeví se pouze na správném webu."
+    },
+    {
+      "id": "admin-preferences",
+      "label_sk": "Môj vzhľad administrácie",
+      "delivery_lane": "NEXT",
+      "backend_layer": "missing",
+      "backend_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Barva adminu a osobní nastavení; kompaktní karty/záložky, minimum scrollování.",
+      "sources": [
+        "backend/docs/wp/ADMIN-UX-SAMOOBSLUHA.md"
+      ],
+      "remaining": "Definovat uživatelské preference a napojit je na nový shell; native layouts/views nejsou důkaz hotového tématu.",
+      "acceptance": "Nastavení přežije přihlášení; kontrast i fokus čitelné; při 200% zoomu a malé obrazovce lze scrollovat k obsahu."
+    },
+    {
+      "id": "admin-account",
+      "label_sk": "Môj účet a heslo",
+      "delivery_lane": "NEXT",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Změnit vlastní heslo, odhlásit se, ztracené heslo a bezpečný přístup obsluhy.",
+      "sources": [
+        "backend/medusa-config.ts"
+      ],
+      "remaining": "Native emailpass reset/update existuje; chybí doložené vlastní UI a doručení reset-password události.",
+      "acceptance": "Původní přístup nelze převzít; reset je časově omezený; ověření backendu a skutečného doručení v testu."
+    },
+    {
+      "id": "customer-recovery",
+      "label_sk": "Pomoc s prihlásením zákazníčky",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Admin pomůže zákaznici obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo.",
+      "sources": [
+        "backend/src/modules/auth-magic-link/service.ts",
+        "backend/src/modules/auth-security/index.ts"
+      ],
+      "remaining": "Rozlišit passwordless a emailpass; chybí chráněný admin postup obnovy se souhlasem a auditem.",
+      "acceptance": "Obnova nepřepne identitu, nevytvoří druhý účet, neodhalí heslo; rate-limit a jedna spotřeba odkazu."
+    },
+    {
+      "id": "roles",
+      "label_sk": "Prístupy spolupracovníkov",
+      "delivery_lane": "NEXT",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Pozvánky a role pro obsluhu, podporu, finance a provoz; nejmenší potřebná práva.",
+      "sources": [
+        "backend/src/api/middlewares.ts"
+      ],
+      "remaining": "Nativní rbac/invites existují, ale zapnutí a vynucení na vlastních routách není doloženo; skrytí tlačítka nestačí.",
+      "acceptance": "Zakázaná role nedokáže číst ani zapsat agendu přímým HTTP požadavkem."
+    },
+    {
+      "id": "payments",
+      "label_sk": "Platby a pripojenie brán",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Nastavení Stripe, karty/Apple Pay/Google Pay, stav spojení, bezpečně ComGate.",
+      "sources": [
+        "backend/medusa-config.ts",
+        "backend/src/scripts/anastasia-bootstrap.ts"
+      ],
+      "remaining": "Stripe provider je podmíněn konfigurací; chybí samoobslužný průvodce credentials/test/webhook. ComGate je fáze 2 a provider chybí.",
+      "acceptance": "Zapnutá metoda skutečně funguje v regionu; neověřený webhook neoznačí platbu za přijatou; klíč není vrácen do prohlížeče."
+    },
+    {
+      "id": "cod-risk",
+      "label_sk": "Dobierka a rizikové objednávky",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Dobírka, nepřebírači, historie výsledků, limity a vysvětlení rozhodnutí SafeOrderu.",
+      "sources": [
+        "nexus/workers/api/routes/nexusSafeOrder.ts",
+        "nexus/domains/safeorder/OutcomeEngineRule.ts"
+      ],
+      "remaining": "Živá route má základní scoring a limit 120 EUR; není propojená s historií dopravce/nepřevzetím. Chybí COD provider a bezpečný settings kontrakt.",
+      "acceptance": "Nepřevzetí vytvoří ověřený výsledek, další hodnocení jej použije; neznámý výsledek nic nevymyslí; admin nemůže obejít platbu."
+    },
+    {
+      "id": "shipping",
+      "label_sk": "Doprava a osobný odber",
+      "delivery_lane": "NEXT",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Ceníky, oblasti, hranice zdarma, osobní odběr v lékárně, adresa a výdejní doba.",
+      "sources": [
+        "backend/src/scripts/anastasia-bootstrap.ts",
+        "backend/integration-tests/http/shipping-settings-http-checks.ts"
+      ],
+      "remaining": "Existuje manual courier/digital bootstrap; chybí plný pickup proces a samoobslužné nastavení.",
+      "acceptance": "Fyzický košík nelze dokončit s digitální dopravou; osobní odběr ukáže správnou lékárnu; pravidla dopravy počítá server."
+    },
+    {
+      "id": "carriers",
+      "label_sk": "Dopravcovia a štítky zásielok",
+      "delivery_lane": "NEXT",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "API dopravců, vytvoření/tisk štítku, tracking, svoz, předání, doručení a nepřevzetí.",
+      "sources": [
+        "backend/src/subscribers/email-shipment-created.ts",
+        "backend/src/scripts/anastasia-bootstrap.ts"
+      ],
+      "remaining": "Nativní fulfillment není smlouva s dopravcem; chybí konkrétní konektory, credentials, tisk a callback/reconciliation.",
+      "acceptance": "Dvojklik/timeout nevytvoří dvě zásilky; štítek patří správné objednávce; doručení a nepřevzetí vychází z poskytovatele."
+    },
+    {
+      "id": "returns",
+      "label_sk": "Storná, vratky a reklamácie",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Zákaznické i admin storno, kartová/poukazová vratka, odstoupení, reklamace a výměny.",
+      "sources": [
+        "backend/src/lib/order-self-cancel/cancel.ts",
+        "backend/src/api/admin/withdrawals/[id]/route.ts",
+        "backend/src/subscribers/compensation-payment-refunded.ts"
+      ],
+      "remaining": "Native returns/claims/exchanges existují; vlastní workflow musí propojit stav, skutečné peníze, sklad, nároky a oznámení.",
+      "acceptance": "Změna statusu odstoupení neposílá peníze; duplicitní refund nic nezdvojí; rozlišit kartu a kredit poukazu."
+    },
+    {
+      "id": "invoices",
+      "label_sk": "Faktúry a dobropisy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Doklady k objednávkám, číselné řady, PDF, dobropisy a opravy bez změny historického dokladu.",
+      "sources": [
+        "nexus/domains/invoice/OrderInvoiceOmegaFlow.ts",
+        "nexus/connectors/accounting/README.md"
+      ],
+      "remaining": "Chybí obchodní fakturační služba s pravidly, perzistencí, PDF a číslováním; confirmation e-mail není faktura.",
+      "acceptance": "Souběh nevydá stejné číslo; opakování nevystaví druhý doklad; peněžní hodnoty a DPH odsouhlasí autoritativní data."
+    },
+    {
+      "id": "accounting",
+      "label_sk": "Účtovný systém",
+      "delivery_lane": "NEXT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Napojení účetnictví a viditelný stav předání dokladů, chyby a bezpečné opakování.",
+      "sources": [
+        "nexus/connectors/accounting/README.md",
+        "nexus/connectors/accounting/registry.ts",
+        "nexus/connectors/omega/legacy/agent/OmegaExecutor.ts"
+      ],
+      "remaining": "POHODA/Money S3 mají injektované transporty a kontrakty; Omega legacy je oddělená. Chybí ověřené tenantové připojení a příjem účetním programem.",
+      "acceptance": "Doklad je předán až po ověřeném cílovém potvrzení; timeout jde do kontroly, ne slepého opakování."
+    },
+    {
+      "id": "feeds",
+      "label_sk": "Feedy a dovoz dát",
+      "delivery_lane": "NEXT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Připojit dodavatelský feed/API, mapovat sloupce, ceny, dostupnost, pravidelnou obnovu a chyby.",
+      "sources": [
+        "nexus/domains/supplier-csv/SupplierCsvRule.ts",
+        "nexus/tools/shadow/feed.ts",
+        "backend/src/scripts/import-anastasia-catalog.ts"
+      ],
+      "remaining": "Legacy parser/import CLI a shadow feed nejsou samoobslužná importní služba; chybí URL/file jobs, mapování, náhled změn a historie.",
+      "acceptance": "Náhled nic nepřepíše; chybná měna/cena/množství zastaví řádek; feed nemůže volat interní síť; replay nezduplikuje produkty."
+    },
+    {
+      "id": "buyer",
+      "label_sk": "Chytrý nákupca a dodávatelia",
+      "delivery_lane": "NEXT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Hlídání zásob, nabídky dodavatelů, návrh/nákup zboží, příjem, výjimky a pravidla automatické objednávky.",
+      "sources": [
+        "nexus/domains/procurement/ProcurementRule.ts",
+        "nexus/domains/procurement/SupplierSelectionRule.ts"
+      ],
+      "remaining": "Deterministické plan/receive jádro existuje; chybí runtime nabídky, trvalé nákupní objednávky, autorizovaný executor a Medusa skladový příjem.",
+      "acceptance": "Stejný vstup dává stejný plán; limit/rozpočet určí pravidla; dvojí běh neobjedná podruhé; nejasný výsledek vyžádá ověření."
+    },
+    {
+      "id": "availability",
+      "label_sk": "Dostupnosť a nákupné balenia",
+      "delivery_lane": "NEXT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Skladová dostupnost, dodavatelská dostupnost, dodací lhůty, balení a množstevní omezení.",
+      "sources": [
+        "nexus/domains/availability/AvailabilityRule.ts",
+        "nexus/domains/availability/OrderQuantityValidationRule.ts"
+      ],
+      "remaining": "Medusa vlastní zásobu; širší NEXUS dostupnost/dodavatelé/balení nejsou jednotně napojené do runtime.",
+      "acceptance": "Dostupnost vychází z platného zdroje; balení nemůže vytvořit záporné/necelé nepovolené množství; checkout stav ověří znovu."
+    },
+    {
+      "id": "privacy",
+      "label_sk": "Osobné údaje a súhlasy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Souhlasy, export, výmaz, interní poznámky, historie požadavků a účetní výjimky.",
+      "sources": [
+        "backend/src/api/admin/customer-erasures/[id]/execute/route.ts",
+        "backend/src/api/admin/withdrawals/route.ts",
+        "backend/src/api/store/customers/me/export/route.ts"
+      ],
+      "remaining": "Nové UI a kontrola identity/dopadu; pouze povolené přechody a zachování zákonné evidence.",
+      "acceptance": "Výmaz vyžaduje confirm a stejné ID; nevratné kroky s potvrzením; audit bez citlivého obsahu; replay bezpečný."
+    },
+    {
+      "id": "operations",
+      "label_sk": "Automatické spracovanie",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "NEXUS nahrazuje rutinní obchodní práci deterministicky; člověk řeší výjimky, ne ručně každý krok.",
+      "sources": [
+        "backend/src/api/admin/ops/nexus/route.ts",
+        "nexus/workers/api/intent-recovery.ts",
+        "nexus/workers/api/booking-inbox.ts"
+      ],
+      "remaining": "Read-only přehled existuje; ne všechny domény mají consumer a celý ověřovaný cyklus; bezpečné admin retry/cancel API chybí.",
+      "acceptance": "Vstup → uložený záměr → provedení → nezávislé ověření → výsledek; nejistota se neoznačí za úspěch ani slepě neopakuje."
+    },
+    {
+      "id": "logs",
+      "label_sk": "Udalosti a história zmien",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Veškeré potřebné logy, kdo co změnil, bezpečný detail a dohledání související objednávky.",
+      "sources": [
+        "backend/src/api/admin/ops/events/route.ts",
+        "backend/src/api/admin/ops/audit/route.ts",
+        "backend/src/modules/ops-audit/edge-ingest.ts"
+      ],
+      "remaining": "Ne každý stdout se ukládá do PG; best-effort audit není všude transakční; doplnit chybějící zdroje, role a filtry.",
+      "acceptance": "Request/operation/objednávka se propojí bez tokenů, zpráv, hesel a raw payloadů; prázdný log není zelený healthcheck."
+    },
+    {
+      "id": "notifications",
+      "label_sk": "Doručovanie e-mailov",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Vidět skutečný stav odeslání, důvod selhání a bezpečnou obnovu.",
+      "sources": [
+        "backend/src/lib/email/send.ts",
+        "backend/src/workflows/order-email-recovery.ts",
+        "backend/src/subscribers/email-payment-captured.ts"
+      ],
+      "remaining": "Potvrzení objednávky má uloženou obnovu; ostatní oznámení ještě nemají shodný cyklus. Native notifications není plný dashboard doručení do schránky.",
+      "acceptance": "Pending/failed není sent; provider acceptance není mailbox delivery; nejasný výsledek se automaticky neposílá znovu."
+    },
+    {
+      "id": "jobs-backups",
+      "label_sk": "Kontroly, zálohy a obnova",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Historie běhů, chyby, expirace, zálohy, datum poslední úspěšné obnovy a alarmy.",
+      "sources": [
+        "backend/src/scripts/backup-local.mjs",
+        "backend/src/scripts/restore-local.mjs",
+        "backend/src/jobs/ops-retention.ts"
+      ],
+      "remaining": "Lokální runbook není produkční backup služba; chybí jednotné job/backup status API a řízená obnova s oprávněním.",
+      "acceptance": "Neúspěšný job není hotový; záloha přijata až po restore testu; žádné neomezené restore/retry tlačítko."
+    },
+    {
+      "id": "connections",
+      "label_sk": "Pripojenia a prístupové údaje",
+      "delivery_lane": "NEXT",
+      "backend_layer": "native",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Přehled všech API/služeb, připojení, kontrola spojení, odpojení a chyby bez programátora.",
+      "sources": [
+        "backend/medusa-config.ts",
+        "nexus/connectors/Connector.ts"
+      ],
+      "remaining": "Nativní API keys nejsou univerzální úložiště credentials dopravců/ERP; chybí secret-store a ověřené konektory.",
+      "acceptance": "Prohlížeč nečte uložený secret; test spojení není změna obchodu; vypnutí respektuje rozpracované operace."
+    },
+    {
+      "id": "migration",
+      "label_sk": "Prenos starých údajov",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Staré zákaznice, objednávky, přístupy, QR a odkazy dohledatelné v novém systému.",
+      "sources": [
+        "backend/src/scripts/migrate-legacy-customers-orders.ts",
+        "backend/src/scripts/export-edge-redirects.ts"
+      ],
+      "remaining": "CLI pro migraci existuje; chybí obslužný report s vazbami, doplnění registru QR a schválená migrační akce.",
+      "acceptance": "Dry-run bez změny; součty a počty se shodují; druhý běh nic nezdvojí; žádná skutečná zákaznická data v repu/logu."
+    },
+    {
+      "id": "ambassadors",
+      "label_sk": "Ambasádorky a provízie",
+      "delivery_lane": "PHASE2",
+      "backend_layer": "missing",
+      "backend_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Osobní QR/odkazy, atribuce objednávek a přehled provizí.",
+      "sources": [
+        "backend/src/api/admin/coupon-links/route.ts"
+      ],
+      "remaining": "Generátor kupónu není atribuce ani provizní účetnictví; doplnit doménu a pravidla ve fázi 2.",
+      "acceptance": "Objednávka má jedno doložené přiřazení; storno/refund upraví nárok dle schválené politiky; replay bez dvojí provize."
+    },
+    {
+      "id": "club",
+      "label_sk": "Klub a predplatné",
+      "delivery_lane": "OUTSIDE_CONTRACT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Nezaměnit věrnostní skupinu za placené předplatné; zapsat existenci, nikoli vydávat za dodané.",
+      "sources": [
+        "nexus/workers/api/routes/klubSubscribe.ts",
+        "nexus/domains/billing/TenantSubscriptionPlanFlow.ts"
+      ],
+      "remaining": "Worker route obsahuje prototyp Stripe subscription s placeholder price ID, bez doloženého úplného autorizačního/idempotentního toku; SaaS billing je jiná agenda.",
+      "acceptance": "Do běžného menu nevystavit neakceptovaný prototyp; placené členství pouze po samostatné objednávce a celém testu."
+    },
+    {
+      "id": "ai",
+      "label_sk": "Poradca v chate",
+      "delivery_lane": "PHASE2",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "AI není autorita ceny, platby, přístupu ani rozhodnutí o automatickém obchodním kroku.",
+      "sources": [
+        "nexus/workers/api/routes/aiGateway.ts",
+        "docs/NEXUS_AUTONOMY_SPEC.md"
+      ],
+      "remaining": "Existuje prototyp gateway; nikoli ověřený znalostní/konverzní/rezervační tok podle smlouvy.",
+      "acceptance": "Bezpečný obsah a souhlasy; rezervace/platba přes deterministické API, žádné neomezené shell/DB oprávnění."
+    },
+    {
+      "id": "b2b",
+      "label_sk": "Firemní zákazníci a obchodné údaje",
+      "delivery_lane": "NEXT",
+      "backend_layer": "core-only",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "NOT_IMPLEMENTED",
+      "request": "Správné firemní/fakturační údaje a případné obchodní podmínky bez míchání se soukromou osobou.",
+      "sources": [
+        "nexus/domains/b2b/CustomerBusinessContextFlow.ts"
+      ],
+      "remaining": "NEXUS kontext/validace nejsou celé B2B nabídky, schvalování ani speciální ceníky ANASTASIA.",
+      "acceptance": "Fakturační identita je ověřená a promítne se do správného dokladu; cizí zákazník nic nezmění."
+    }
+  ],
+  "custom_routes": [
+    {
+      "path": "/admin/booking/availability",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/booking/availability/route.ts",
+      "sha256": "e5663fb316ed24a28eafca0d2ea305a8507ffc396a5045709bb88dcea30568da"
+    },
+    {
+      "path": "/admin/booking/types/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/booking/types/[id]/route.ts",
+      "sha256": "1b60d5250337989bf14472e5eb2f279e6a7cc0f18194fa790c6a9b943030593c"
+    },
+    {
+      "path": "/admin/booking/types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/booking/types/route.ts",
+      "sha256": "7bc84d555f10b19a980cf6d496b750aaad67973ff50f80dac3381dd9fcc18498"
+    },
+    {
+      "path": "/admin/bookings/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/bookings/[id]/cancel/route.ts",
+      "sha256": "b735953b7648a59ebcfd53765931d2ac0b54885628b3886768380d99767d3e97"
+    },
+    {
+      "path": "/admin/bookings",
+      "methods": [
+        "GET"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/bookings/route.ts",
+      "sha256": "96ac7c0216582df6b508741dc8d3c77f886fb49572aa0e17308c461656e34bd9"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
+      "sha256": "c24915aa0d648ea334aadd015a1d7fcd67306fc34a10ce4a512337695e2195d3"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
+      "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
+    },
+    {
+      "path": "/admin/chat/conversations/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
+      "sha256": "f4f2e8cf5e3d9e89e18de467180d5e997e397eadda043807d2f2059ab57f7663"
+    },
+    {
+      "path": "/admin/chat/conversations",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/route.ts",
+      "sha256": "7fa3cf85cceaf0b560b4bdd66de8e64cd5202720dbd446d5b06d77068f067447"
+    },
+    {
+      "path": "/admin/chat/customers/:id/block",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
+      "sha256": "5abbd64540840c170d89e8706be2470048081b2a1cc6fa58eb650d9b25ef1c4f"
+    },
+    {
+      "path": "/admin/coupon-links",
+      "methods": [
+        "POST"
+      ],
+      "feature": "qr",
+      "source": "backend/src/api/admin/coupon-links/route.ts",
+      "sha256": "efe9ce37d0074804bfdef07159483debf28a6162f4ebd7531c99efc5e44a8f08"
+    },
+    {
+      "path": "/admin/custom",
+      "methods": [
+        "GET"
+      ],
+      "feature": "connections",
+      "source": "backend/src/api/admin/custom/route.ts",
+      "sha256": "b91decad25963549edaf66214e2427bd67feab9fb0f45c98bdb494960851ad9b"
+    },
+    {
+      "path": "/admin/customer-erasures/:id/execute",
+      "methods": [
+        "POST"
+      ],
+      "feature": "privacy",
+      "source": "backend/src/api/admin/customer-erasures/[id]/execute/route.ts",
+      "sha256": "de2e8829c1428db1f7bd6e6d2f13cc96bc5e1ed10e6a2190fb6bba0d7a6f4188"
+    },
+    {
+      "path": "/admin/customer-erasures",
+      "methods": [
+        "GET"
+      ],
+      "feature": "privacy",
+      "source": "backend/src/api/admin/customer-erasures/route.ts",
+      "sha256": "8a74ed4d35ee9126b4aaf8ae206ae0fcbadd114a2a48cd322975cdb0fdbe27a4"
+    },
+    {
+      "path": "/admin/customers/:id/notes/:note_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "customers",
+      "source": "backend/src/api/admin/customers/[id]/notes/[note_id]/route.ts",
+      "sha256": "5d6c63f2673b88b8a8bfef2ad523e73e40c2cb5f346aeaea2c13c384235f97c2"
+    },
+    {
+      "path": "/admin/customers/:id/notes",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "customers",
+      "source": "backend/src/api/admin/customers/[id]/notes/route.ts",
+      "sha256": "b6f2c8e1ebe79cd4eb29a3c47b5150cbebbdae9514b53dc8ee047563cefd33eb"
+    },
+    {
+      "path": "/admin/email-templates/:template/preview",
+      "methods": [
+        "POST"
+      ],
+      "feature": "email-text",
+      "source": "backend/src/api/admin/email-templates/[template]/preview/route.ts",
+      "sha256": "ae0d04d06cc9c9afe23ac01363a446d53301e4b20807b4b8cfd8a7165f1a7221"
+    },
+    {
+      "path": "/admin/email-templates/:template",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "email-text",
+      "source": "backend/src/api/admin/email-templates/[template]/route.ts",
+      "sha256": "daa0497657e63dfcb51c46855e56cc69c2b0959b8b3c1b030486566754d7df26"
+    },
+    {
+      "path": "/admin/email-templates",
+      "methods": [
+        "GET"
+      ],
+      "feature": "email-text",
+      "source": "backend/src/api/admin/email-templates/route.ts",
+      "sha256": "493f45446826c476982b80f1b20855407d82e01f967f462f9992ff41e7765bd8"
+    },
+    {
+      "path": "/admin/entitlements/:id/revoke",
+      "methods": [
+        "POST"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/admin/entitlements/[id]/revoke/route.ts",
+      "sha256": "58a6b4825a5240aa1bfbd2280c0554418511faf018a9e4434ee1249b7a72be66"
+    },
+    {
+      "path": "/admin/entitlements",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/admin/entitlements/route.ts",
+      "sha256": "c072cdaff41b14051e2bb66955735f810fe71768d71c2c1d24962e8f7e3fbe47"
+    },
+    {
+      "path": "/admin/newsletter",
+      "methods": [
+        "GET"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/admin/newsletter/route.ts",
+      "sha256": "e22afcc625ac17c430db9bd9c684004226f8766cff350a8b49b95cb77ac1b6a6"
+    },
+    {
+      "path": "/admin/ops/audit",
+      "methods": [
+        "GET"
+      ],
+      "feature": "logs",
+      "source": "backend/src/api/admin/ops/audit/route.ts",
+      "sha256": "c436fb429736bd769a280906cbbb8c6abbc34d2432591304188c173bd5026d0d"
+    },
+    {
+      "path": "/admin/ops/events",
+      "methods": [
+        "GET"
+      ],
+      "feature": "logs",
+      "source": "backend/src/api/admin/ops/events/route.ts",
+      "sha256": "e3b621b9e748030202256bb745a0ef13de3023235090ca8e27a72653bc00b678"
+    },
+    {
+      "path": "/admin/ops/nexus",
+      "methods": [
+        "GET"
+      ],
+      "feature": "operations",
+      "source": "backend/src/api/admin/ops/nexus/route.ts",
+      "sha256": "7d8a70e17020f193373cefa12ed54ec6b61a7f217e00b8a9b67e8adb6cf98792"
+    },
+    {
+      "path": "/admin/vouchers/:id/transactions",
+      "methods": [
+        "GET"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/admin/vouchers/[id]/transactions/route.ts",
+      "sha256": "d773f12c8ca214eb65834a6f2d2860197425db685a99dd220502d0f1593c6595"
+    },
+    {
+      "path": "/admin/vouchers/:id/void",
+      "methods": [
+        "POST"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/admin/vouchers/[id]/void/route.ts",
+      "sha256": "13f6671d75f806fd2d957c87740606de8527b03e07d62b82bb4454ff1164dcc9"
+    },
+    {
+      "path": "/admin/vouchers/refund",
+      "methods": [
+        "POST"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/admin/vouchers/refund/route.ts",
+      "sha256": "2f269b0a000f35a8988f614bd52c33543d87b73fb27981cd1e7f0c6f24987bf6"
+    },
+    {
+      "path": "/admin/vouchers",
+      "methods": [
+        "GET"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/admin/vouchers/route.ts",
+      "sha256": "467fb5d21219efc77ad2629da0cdc4f279316aa99568383534f6305146b0632e"
+    },
+    {
+      "path": "/admin/vouchers/settings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/admin/vouchers/settings/route.ts",
+      "sha256": "575a06bffff03eb4475b3cd2a667d63d22c7dd8efe30f6fa442d34e362732662"
+    },
+    {
+      "path": "/admin/withdrawals/:id",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/admin/withdrawals/[id]/route.ts",
+      "sha256": "fde8fe7b6b802fa6bf84397c047f692cabf3b1816f6a2821f4d5366af9be8f16"
+    },
+    {
+      "path": "/admin/withdrawals",
+      "methods": [
+        "GET"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/admin/withdrawals/route.ts",
+      "sha256": "bf1e9b20789d39091f68e2f1690fa676a94f3385306050a9ad6c237bc367ebfa"
+    },
+    {
+      "path": "/hooks/nexus/booking-order",
+      "methods": [
+        "POST"
+      ],
+      "feature": "operations",
+      "source": "backend/src/api/hooks/nexus/booking-order/route.ts",
+      "sha256": "1b8980431a05df449dc4149bddfa762d407058ab5fb167f5bfe35166acf3a129"
+    },
+    {
+      "path": "/hooks/ops/edge-events",
+      "methods": [
+        "POST"
+      ],
+      "feature": "logs",
+      "source": "backend/src/api/hooks/ops/edge-events/route.ts",
+      "sha256": "48af0bfd27043eedf076aa49501a0380894d457b21799b7b493890f255d6909c"
+    },
+    {
+      "path": "/store/booking-slots",
+      "methods": [
+        "GET"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/booking-slots/route.ts",
+      "sha256": "13d3bda2070ad75b057543cd3e86a85b1a126e3237cd546857ec9cd2b003c2e3"
+    },
+    {
+      "path": "/store/bookings/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/bookings/[id]/cancel/route.ts",
+      "sha256": "b64e4b82aed9f565cd83e144b2963b3aeefaa1e0d83e46371c1824a3c610bbd0"
+    },
+    {
+      "path": "/store/bookings/:id/cart",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/bookings/[id]/cart/route.ts",
+      "sha256": "b214e4e9278a3f3c7ca9185eefb2652f832f0a819b0a478132af2bad768a4ff3"
+    },
+    {
+      "path": "/store/bookings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/bookings/route.ts",
+      "sha256": "44788ee742c9010d2b7b800ae8eef0cd94e175bd7281894e5ec0da073a59c014"
+    },
+    {
+      "path": "/store/carts/:id/consents",
+      "methods": [
+        "POST"
+      ],
+      "feature": "privacy",
+      "source": "backend/src/api/store/carts/[id]/consents/route.ts",
+      "sha256": "e536a23436c98486ac5dc2bb35f5d650ff88ef39e86577120ec0fa6d5fffcc06"
+    },
+    {
+      "path": "/store/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
+      "sha256": "5e56d3086e8276a6ae52159eea94e6ea643b65821a8f1434dc5ae2c8902c5617"
+    },
+    {
+      "path": "/store/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
+      "sha256": "955cb381122a69de33c940010fb5f9c551bcb175366a7bbdd0cfac76da63b904"
+    },
+    {
+      "path": "/store/chat/conversations/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
+      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
+    },
+    {
+      "path": "/store/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/route.ts",
+      "sha256": "f188bf32480acab346ac804213e2fc9fcc91638dfc1042e96123427d942ce30e"
+    },
+    {
+      "path": "/store/chat/status",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/status/route.ts",
+      "sha256": "5543d0db72e470f1a2967368b025fdd6fd90c09b569a5d1ba93aed687392418e"
+    },
+    {
+      "path": "/store/coupon-links",
+      "methods": [
+        "POST"
+      ],
+      "feature": "qr",
+      "source": "backend/src/api/store/coupon-links/route.ts",
+      "sha256": "7f35162e7eec738dbbd09599f02cf9a7c4c518a73a10961aa8de61dc1a340233"
+    },
+    {
+      "path": "/store/custom",
+      "methods": [
+        "GET"
+      ],
+      "feature": "connections",
+      "source": "backend/src/api/store/custom/route.ts",
+      "sha256": "b91decad25963549edaf66214e2427bd67feab9fb0f45c98bdb494960851ad9b"
+    },
+    {
+      "path": "/store/customers/me/erasure-request",
+      "methods": [
+        "POST"
+      ],
+      "feature": "privacy",
+      "source": "backend/src/api/store/customers/me/erasure-request/route.ts",
+      "sha256": "96750523ace51f5d4b0d9da5acffd6694d4c35cc85b9a685cf54902ce754d45a"
+    },
+    {
+      "path": "/store/customers/me/export",
+      "methods": [
+        "GET"
+      ],
+      "feature": "privacy",
+      "source": "backend/src/api/store/customers/me/export/route.ts",
+      "sha256": "bb629eb6a4920d7ad218c31d1bcd7f90ec6dc65470f8e0c25c2f10aeaf6f6960"
+    },
+    {
+      "path": "/store/entitlements",
+      "methods": [
+        "GET"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/store/entitlements/route.ts",
+      "sha256": "271b04550be1cbc0daf666746d912eef6bb5063e680b7d17f8871a639626c8e8"
+    },
+    {
+      "path": "/store/gift-vouchers/apply",
+      "methods": [
+        "POST"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/store/gift-vouchers/apply/route.ts",
+      "sha256": "d029cbb7061794af1bc1965b48f8369a3d3b787540627575b660e5756e815257"
+    },
+    {
+      "path": "/store/gift-vouchers/recipients",
+      "methods": [
+        "POST"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/store/gift-vouchers/recipients/route.ts",
+      "sha256": "767edba6701cb8577f3ef4f3f7c357f7d6995b5d44e9a0f653a0664e88528e77"
+    },
+    {
+      "path": "/store/gift-vouchers/remove",
+      "methods": [
+        "POST"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/store/gift-vouchers/remove/route.ts",
+      "sha256": "4450ff2df0337f48d4e379679d7931ede71e7b31a4d53e6a87e21b163ae3adf4"
+    },
+    {
+      "path": "/store/legal/versions",
+      "methods": [
+        "GET"
+      ],
+      "feature": "privacy",
+      "source": "backend/src/api/store/legal/versions/route.ts",
+      "sha256": "e00c508e62af22d346baa8ceac6f3bc3275f954308a820992c1d2cb8b4018b0b"
+    },
+    {
+      "path": "/store/media-access",
+      "methods": [
+        "POST"
+      ],
+      "feature": "media",
+      "source": "backend/src/api/store/media-access/route.ts",
+      "sha256": "47f9fed3369d89dc8be66d4fb9228f9313d98dd74c467ca645c0bcb6be99748a"
+    },
+    {
+      "path": "/store/newsletter",
+      "methods": [
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/store/newsletter/route.ts",
+      "sha256": "c92ae0978383a9ae52e7ee7a1113e979a12aa82ba4a0926220893a0a3b0f5461"
+    },
+    {
+      "path": "/store/newsletter/unsubscribe",
+      "methods": [
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/store/newsletter/unsubscribe/route.ts",
+      "sha256": "efe9279ae2c7606bddbba930eef714bf00a456738e71c9214568a06e2167e258"
+    },
+    {
+      "path": "/store/nexus-cart",
+      "methods": [
+        "POST"
+      ],
+      "feature": "prices",
+      "source": "backend/src/api/store/nexus-cart/route.ts",
+      "sha256": "9c4ffd315c5462efc88496704b0aed1b2eb1dce60d9bcfa3ca19a0269d81c527"
+    },
+    {
+      "path": "/store/nexus-checkout",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/store/nexus-checkout/route.ts",
+      "sha256": "35df396755c37b183d3a41bfed0381c7cad537761e93f4d18089deca9783ea38"
+    },
+    {
+      "path": "/store/orders/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/store/orders/[id]/cancel/route.ts",
+      "sha256": "6b90b5d01827b7ef422abb5e0e4512fd365e61e018354811a11adfd45a0ae4f7"
+    },
+    {
+      "path": "/store/withdrawals",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/store/withdrawals/route.ts",
+      "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    }
+  ],
+  "native_medusa_version": "2.19.0",
+  "native_admin_routes": [
+    {
+      "path": "/admin/api-keys/:id/revoke",
+      "methods": [
+        "POST"
+      ],
+      "feature": "connections",
+      "family": "api-keys",
+      "installed_source": "@medusajs/medusa/dist/api/admin/api-keys/[id]/revoke/route.js"
+    },
+    {
+      "path": "/admin/api-keys/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "connections",
+      "family": "api-keys",
+      "installed_source": "@medusajs/medusa/dist/api/admin/api-keys/[id]/route.js"
+    },
+    {
+      "path": "/admin/api-keys/:id/sales-channels",
+      "methods": [
+        "POST"
+      ],
+      "feature": "connections",
+      "family": "api-keys",
+      "installed_source": "@medusajs/medusa/dist/api/admin/api-keys/[id]/sales-channels/route.js"
+    },
+    {
+      "path": "/admin/api-keys",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "connections",
+      "family": "api-keys",
+      "installed_source": "@medusajs/medusa/dist/api/admin/api-keys/route.js"
+    },
+    {
+      "path": "/admin/campaigns/:id/promotions",
+      "methods": [
+        "POST"
+      ],
+      "feature": "campaigns",
+      "family": "campaigns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/campaigns/[id]/promotions/route.js"
+    },
+    {
+      "path": "/admin/campaigns/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "campaigns",
+      "family": "campaigns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/campaigns/[id]/route.js"
+    },
+    {
+      "path": "/admin/campaigns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "campaigns",
+      "family": "campaigns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/campaigns/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/cancel/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/claim-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/claim-items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/claim-items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/claim-items/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/inbound/items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/inbound/items/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/inbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/inbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/inbound/shipping-method/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/outbound/items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/outbound/items/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/outbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/outbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/outbound/shipping-method/route.js"
+    },
+    {
+      "path": "/admin/claims/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/request/route.js"
+    },
+    {
+      "path": "/admin/claims/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/[id]/route.js"
+    },
+    {
+      "path": "/admin/claims",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "claims",
+      "installed_source": "@medusajs/medusa/dist/api/admin/claims/route.js"
+    },
+    {
+      "path": "/admin/collections/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "collections",
+      "installed_source": "@medusajs/medusa/dist/api/admin/collections/[id]/products/route.js"
+    },
+    {
+      "path": "/admin/collections/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "collections",
+      "installed_source": "@medusajs/medusa/dist/api/admin/collections/[id]/route.js"
+    },
+    {
+      "path": "/admin/collections",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "collections",
+      "installed_source": "@medusajs/medusa/dist/api/admin/collections/route.js"
+    },
+    {
+      "path": "/admin/currencies/:code",
+      "methods": [
+        "GET"
+      ],
+      "feature": "prices",
+      "family": "currencies",
+      "installed_source": "@medusajs/medusa/dist/api/admin/currencies/[code]/route.js"
+    },
+    {
+      "path": "/admin/currencies",
+      "methods": [
+        "GET"
+      ],
+      "feature": "prices",
+      "family": "currencies",
+      "installed_source": "@medusajs/medusa/dist/api/admin/currencies/route.js"
+    },
+    {
+      "path": "/admin/customer-groups/:id/customers",
+      "methods": [
+        "POST"
+      ],
+      "feature": "loyalty",
+      "family": "customer-groups",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customer-groups/[id]/customers/route.js"
+    },
+    {
+      "path": "/admin/customer-groups/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "loyalty",
+      "family": "customer-groups",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customer-groups/[id]/route.js"
+    },
+    {
+      "path": "/admin/customer-groups",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "loyalty",
+      "family": "customer-groups",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customer-groups/route.js"
+    },
+    {
+      "path": "/admin/customers/:id/addresses/:address_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "customers",
+      "family": "customers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customers/[id]/addresses/[address_id]/route.js"
+    },
+    {
+      "path": "/admin/customers/:id/addresses",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "customers",
+      "family": "customers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customers/[id]/addresses/route.js"
+    },
+    {
+      "path": "/admin/customers/:id/customer-groups",
+      "methods": [
+        "POST"
+      ],
+      "feature": "customers",
+      "family": "customers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customers/[id]/customer-groups/route.js"
+    },
+    {
+      "path": "/admin/customers/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "customers",
+      "family": "customers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customers/[id]/route.js"
+    },
+    {
+      "path": "/admin/customers",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "customers",
+      "family": "customers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/customers/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/convert-to-order",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/convert-to-order/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/confirm",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/confirm/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/items/item/:item_id",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/items/item/[item_id]/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/items/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/promotions",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/promotions/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/request",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/request/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/shipping-methods/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/shipping-methods/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/shipping-methods/method/:method_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/shipping-methods/method/[method_id]/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id/edit/shipping-methods",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/shipping-methods/route.js"
+    },
+    {
+      "path": "/admin/draft-orders/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/[id]/route.js"
+    },
+    {
+      "path": "/admin/draft-orders",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "draft-orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/draft-orders/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/cancel/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/items/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/inbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/shipping-method/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/items/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/outbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/shipping-method/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/request/route.js"
+    },
+    {
+      "path": "/admin/exchanges/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/[id]/route.js"
+    },
+    {
+      "path": "/admin/exchanges",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "exchanges",
+      "installed_source": "@medusajs/medusa/dist/api/admin/exchanges/route.js"
+    },
+    {
+      "path": "/admin/feature-flags",
+      "methods": [
+        "GET"
+      ],
+      "feature": "flags",
+      "family": "feature-flags",
+      "installed_source": "@medusajs/medusa/dist/api/admin/feature-flags/route.js"
+    },
+    {
+      "path": "/admin/fulfillment-providers/:id/options",
+      "methods": [
+        "GET"
+      ],
+      "feature": "carriers",
+      "family": "fulfillment-providers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillment-providers/[id]/options/route.js"
+    },
+    {
+      "path": "/admin/fulfillment-providers",
+      "methods": [
+        "GET"
+      ],
+      "feature": "carriers",
+      "family": "fulfillment-providers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillment-providers/route.js"
+    },
+    {
+      "path": "/admin/fulfillment-sets/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "shipping",
+      "family": "fulfillment-sets",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillment-sets/[id]/route.js"
+    },
+    {
+      "path": "/admin/fulfillment-sets/:id/service-zones/:zone_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "fulfillment-sets",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillment-sets/[id]/service-zones/[zone_id]/route.js"
+    },
+    {
+      "path": "/admin/fulfillment-sets/:id/service-zones",
+      "methods": [
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "fulfillment-sets",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillment-sets/[id]/service-zones/route.js"
+    },
+    {
+      "path": "/admin/fulfillments/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "carriers",
+      "family": "fulfillments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillments/[id]/cancel/route.js"
+    },
+    {
+      "path": "/admin/fulfillments/:id/shipment",
+      "methods": [
+        "POST"
+      ],
+      "feature": "carriers",
+      "family": "fulfillments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillments/[id]/shipment/route.js"
+    },
+    {
+      "path": "/admin/fulfillments",
+      "methods": [
+        "POST"
+      ],
+      "feature": "carriers",
+      "family": "fulfillments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/fulfillments/route.js"
+    },
+    {
+      "path": "/admin/index/details",
+      "methods": [
+        "GET"
+      ],
+      "feature": "connections",
+      "family": "index",
+      "installed_source": "@medusajs/medusa/dist/api/admin/index/details/route.js"
+    },
+    {
+      "path": "/admin/index/sync",
+      "methods": [
+        "POST"
+      ],
+      "feature": "connections",
+      "family": "index",
+      "installed_source": "@medusajs/medusa/dist/api/admin/index/sync/route.js"
+    },
+    {
+      "path": "/admin/inventory-items/:id/location-levels/:location_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "inventory-items",
+      "installed_source": "@medusajs/medusa/dist/api/admin/inventory-items/[id]/location-levels/[location_id]/route.js"
+    },
+    {
+      "path": "/admin/inventory-items/:id/location-levels/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "inventory-items",
+      "installed_source": "@medusajs/medusa/dist/api/admin/inventory-items/[id]/location-levels/batch/route.js"
+    },
+    {
+      "path": "/admin/inventory-items/:id/location-levels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "inventory-items",
+      "installed_source": "@medusajs/medusa/dist/api/admin/inventory-items/[id]/location-levels/route.js"
+    },
+    {
+      "path": "/admin/inventory-items/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "inventory-items",
+      "installed_source": "@medusajs/medusa/dist/api/admin/inventory-items/[id]/route.js"
+    },
+    {
+      "path": "/admin/inventory-items/export",
+      "methods": [
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "inventory-items",
+      "installed_source": "@medusajs/medusa/dist/api/admin/inventory-items/export/route.js"
+    },
+    {
+      "path": "/admin/inventory-items/location-levels/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "inventory-items",
+      "installed_source": "@medusajs/medusa/dist/api/admin/inventory-items/location-levels/batch/route.js"
+    },
+    {
+      "path": "/admin/inventory-items",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "inventory-items",
+      "installed_source": "@medusajs/medusa/dist/api/admin/inventory-items/route.js"
+    },
+    {
+      "path": "/admin/invites/:id/resend",
+      "methods": [
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "invites",
+      "installed_source": "@medusajs/medusa/dist/api/admin/invites/[id]/resend/route.js"
+    },
+    {
+      "path": "/admin/invites/:id",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "feature": "roles",
+      "family": "invites",
+      "installed_source": "@medusajs/medusa/dist/api/admin/invites/[id]/route.js"
+    },
+    {
+      "path": "/admin/invites/accept",
+      "methods": [
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "invites",
+      "installed_source": "@medusajs/medusa/dist/api/admin/invites/accept/route.js"
+    },
+    {
+      "path": "/admin/invites",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "invites",
+      "installed_source": "@medusajs/medusa/dist/api/admin/invites/route.js"
+    },
+    {
+      "path": "/admin/layouts/:zone/configuration",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "admin-preferences",
+      "family": "layouts",
+      "installed_source": "@medusajs/medusa/dist/api/admin/layouts/[zone]/configuration/route.js"
+    },
+    {
+      "path": "/admin/layouts/configurations",
+      "methods": [
+        "GET"
+      ],
+      "feature": "admin-preferences",
+      "family": "layouts",
+      "installed_source": "@medusajs/medusa/dist/api/admin/layouts/configurations/route.js"
+    },
+    {
+      "path": "/admin/locales/:code",
+      "methods": [
+        "GET"
+      ],
+      "feature": "translations",
+      "family": "locales",
+      "installed_source": "@medusajs/medusa/dist/api/admin/locales/[code]/route.js"
+    },
+    {
+      "path": "/admin/locales",
+      "methods": [
+        "GET"
+      ],
+      "feature": "translations",
+      "family": "locales",
+      "installed_source": "@medusajs/medusa/dist/api/admin/locales/route.js"
+    },
+    {
+      "path": "/admin/notifications/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "notifications",
+      "family": "notifications",
+      "installed_source": "@medusajs/medusa/dist/api/admin/notifications/[id]/route.js"
+    },
+    {
+      "path": "/admin/notifications",
+      "methods": [
+        "GET"
+      ],
+      "feature": "notifications",
+      "family": "notifications",
+      "installed_source": "@medusajs/medusa/dist/api/admin/notifications/route.js"
+    },
+    {
+      "path": "/admin/order-changes/:id",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-changes",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-changes/[id]/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/confirm/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id/items/item/:item_id",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/items/item/[item_id]/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id/items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/items/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id/request",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/request/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/shipping-method/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/order-edits/:id/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/[id]/shipping-method/route.js"
+    },
+    {
+      "path": "/admin/order-edits",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "order-edits",
+      "installed_source": "@medusajs/medusa/dist/api/admin/order-edits/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/archive",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/archive/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/cancel/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/changes",
+      "methods": [
+        "GET"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/changes/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/complete",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/complete/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/credit-lines",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/credit-lines/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/[fulfillment_id]/cancel/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/mark-as-delivered",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/[fulfillment_id]/mark-as-delivered/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/shipments",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/[fulfillment_id]/shipments/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/fulfillments",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/line-items",
+      "methods": [
+        "GET"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/line-items/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/payment-sessions/authorize",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/payment-sessions/authorize/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/preview",
+      "methods": [
+        "GET"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/preview/route.js"
+    },
+    {
+      "path": "/admin/orders/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/shipping-options",
+      "methods": [
+        "GET"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/shipping-options/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/transfer/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/transfer/cancel/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/transfer/guest",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/transfer/guest/route.js"
+    },
+    {
+      "path": "/admin/orders/:id/transfer",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/[id]/transfer/route.js"
+    },
+    {
+      "path": "/admin/orders/export",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/export/route.js"
+    },
+    {
+      "path": "/admin/orders",
+      "methods": [
+        "GET"
+      ],
+      "feature": "orders",
+      "family": "orders",
+      "installed_source": "@medusajs/medusa/dist/api/admin/orders/route.js"
+    },
+    {
+      "path": "/admin/payment-collections/:id/mark-as-paid",
+      "methods": [
+        "POST"
+      ],
+      "feature": "payments",
+      "family": "payment-collections",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payment-collections/[id]/mark-as-paid/route.js"
+    },
+    {
+      "path": "/admin/payment-collections/:id/payment-sessions",
+      "methods": [
+        "POST"
+      ],
+      "feature": "payments",
+      "family": "payment-collections",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payment-collections/[id]/payment-sessions/route.js"
+    },
+    {
+      "path": "/admin/payment-collections/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "payments",
+      "family": "payment-collections",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payment-collections/[id]/route.js"
+    },
+    {
+      "path": "/admin/payment-collections",
+      "methods": [
+        "POST"
+      ],
+      "feature": "payments",
+      "family": "payment-collections",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payment-collections/route.js"
+    },
+    {
+      "path": "/admin/payments/:id/capture",
+      "methods": [
+        "POST"
+      ],
+      "feature": "payments",
+      "family": "payments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payments/[id]/capture/route.js"
+    },
+    {
+      "path": "/admin/payments/:id/refund",
+      "methods": [
+        "POST"
+      ],
+      "feature": "payments",
+      "family": "payments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payments/[id]/refund/route.js"
+    },
+    {
+      "path": "/admin/payments/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "payments",
+      "family": "payments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payments/[id]/route.js"
+    },
+    {
+      "path": "/admin/payments/payment-providers",
+      "methods": [
+        "GET"
+      ],
+      "feature": "payments",
+      "family": "payments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payments/payment-providers/route.js"
+    },
+    {
+      "path": "/admin/payments",
+      "methods": [
+        "GET"
+      ],
+      "feature": "payments",
+      "family": "payments",
+      "installed_source": "@medusajs/medusa/dist/api/admin/payments/route.js"
+    },
+    {
+      "path": "/admin/plugins",
+      "methods": [
+        "GET"
+      ],
+      "feature": "connections",
+      "family": "plugins",
+      "installed_source": "@medusajs/medusa/dist/api/admin/plugins/route.js"
+    },
+    {
+      "path": "/admin/price-lists/:id/prices/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "price-lists",
+      "installed_source": "@medusajs/medusa/dist/api/admin/price-lists/[id]/prices/batch/route.js"
+    },
+    {
+      "path": "/admin/price-lists/:id/prices",
+      "methods": [
+        "GET"
+      ],
+      "feature": "prices",
+      "family": "price-lists",
+      "installed_source": "@medusajs/medusa/dist/api/admin/price-lists/[id]/prices/route.js"
+    },
+    {
+      "path": "/admin/price-lists/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "price-lists",
+      "installed_source": "@medusajs/medusa/dist/api/admin/price-lists/[id]/products/route.js"
+    },
+    {
+      "path": "/admin/price-lists/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "price-lists",
+      "installed_source": "@medusajs/medusa/dist/api/admin/price-lists/[id]/route.js"
+    },
+    {
+      "path": "/admin/price-lists",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "price-lists",
+      "installed_source": "@medusajs/medusa/dist/api/admin/price-lists/route.js"
+    },
+    {
+      "path": "/admin/price-preferences/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "price-preferences",
+      "installed_source": "@medusajs/medusa/dist/api/admin/price-preferences/[id]/route.js"
+    },
+    {
+      "path": "/admin/price-preferences",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "price-preferences",
+      "installed_source": "@medusajs/medusa/dist/api/admin/price-preferences/route.js"
+    },
+    {
+      "path": "/admin/product-categories/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "product-categories",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-categories/[id]/products/route.js"
+    },
+    {
+      "path": "/admin/product-categories/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "product-categories",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-categories/[id]/route.js"
+    },
+    {
+      "path": "/admin/product-categories",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "product-categories",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-categories/route.js"
+    },
+    {
+      "path": "/admin/product-options/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "product-options",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-options/[id]/route.js"
+    },
+    {
+      "path": "/admin/product-options/:id/values/:value_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "product-options",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-options/[id]/values/[value_id]/route.js"
+    },
+    {
+      "path": "/admin/product-options/:id/values",
+      "methods": [
+        "GET"
+      ],
+      "feature": "products",
+      "family": "product-options",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-options/[id]/values/route.js"
+    },
+    {
+      "path": "/admin/product-options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "product-options",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-options/route.js"
+    },
+    {
+      "path": "/admin/product-tags/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "flags",
+      "family": "product-tags",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-tags/[id]/route.js"
+    },
+    {
+      "path": "/admin/product-tags",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "flags",
+      "family": "product-tags",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-tags/route.js"
+    },
+    {
+      "path": "/admin/product-types/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "product-types",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-types/[id]/route.js"
+    },
+    {
+      "path": "/admin/product-types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "categories",
+      "family": "product-types",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-types/route.js"
+    },
+    {
+      "path": "/admin/product-variants",
+      "methods": [
+        "GET"
+      ],
+      "feature": "products",
+      "family": "product-variants",
+      "installed_source": "@medusajs/medusa/dist/api/admin/product-variants/route.js"
+    },
+    {
+      "path": "/admin/products/:id/images/:image_id/variants/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/images/[image_id]/variants/batch/route.js"
+    },
+    {
+      "path": "/admin/products/:id/options/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/options/batch/route.js"
+    },
+    {
+      "path": "/admin/products/:id/options",
+      "methods": [
+        "GET"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/options/route.js"
+    },
+    {
+      "path": "/admin/products/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/route.js"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id/images/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/images/batch/route.js"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id/inventory-items/:inventory_item_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/inventory-items/[inventory_item_id]/route.js"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id/inventory-items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/inventory-items/route.js"
+    },
+    {
+      "path": "/admin/products/:id/variants/:variant_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/route.js"
+    },
+    {
+      "path": "/admin/products/:id/variants/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/variants/batch/route.js"
+    },
+    {
+      "path": "/admin/products/:id/variants/inventory-items/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/variants/inventory-items/batch/route.js"
+    },
+    {
+      "path": "/admin/products/:id/variants",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/[id]/variants/route.js"
+    },
+    {
+      "path": "/admin/products/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/batch/route.js"
+    },
+    {
+      "path": "/admin/products/export",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/export/route.js"
+    },
+    {
+      "path": "/admin/products/import/:transaction_id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/import/[transaction_id]/confirm/route.js"
+    },
+    {
+      "path": "/admin/products/import",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/import/route.js"
+    },
+    {
+      "path": "/admin/products/imports/:transaction_id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/imports/[transaction_id]/confirm/route.js"
+    },
+    {
+      "path": "/admin/products/imports",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/imports/route.js"
+    },
+    {
+      "path": "/admin/products",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "products",
+      "installed_source": "@medusajs/medusa/dist/api/admin/products/route.js"
+    },
+    {
+      "path": "/admin/promotions/:id/:rule_type",
+      "methods": [
+        "GET"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/[id]/[rule_type]/route.js"
+    },
+    {
+      "path": "/admin/promotions/:id/buy-rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/[id]/buy-rules/batch/route.js"
+    },
+    {
+      "path": "/admin/promotions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/[id]/route.js"
+    },
+    {
+      "path": "/admin/promotions/:id/rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/[id]/rules/batch/route.js"
+    },
+    {
+      "path": "/admin/promotions/:id/target-rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/[id]/target-rules/batch/route.js"
+    },
+    {
+      "path": "/admin/promotions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/route.js"
+    },
+    {
+      "path": "/admin/promotions/rule-attribute-options/:rule_type",
+      "methods": [
+        "GET"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/rule-attribute-options/[rule_type]/route.js"
+    },
+    {
+      "path": "/admin/promotions/rule-value-options/:rule_type/:rule_attribute_id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "coupons",
+      "family": "promotions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/promotions/rule-value-options/[rule_type]/[rule_attribute_id]/route.js"
+    },
+    {
+      "path": "/admin/property-labels/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "property-labels",
+      "installed_source": "@medusajs/medusa/dist/api/admin/property-labels/[id]/route.js"
+    },
+    {
+      "path": "/admin/property-labels/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "property-labels",
+      "installed_source": "@medusajs/medusa/dist/api/admin/property-labels/batch/route.js"
+    },
+    {
+      "path": "/admin/property-labels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "property-labels",
+      "installed_source": "@medusajs/medusa/dist/api/admin/property-labels/route.js"
+    },
+    {
+      "path": "/admin/rbac/me/permissions",
+      "methods": [
+        "GET"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/me/permissions/route.js"
+    },
+    {
+      "path": "/admin/rbac/policies/:id/roles",
+      "methods": [
+        "GET"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/policies/[id]/roles/route.js"
+    },
+    {
+      "path": "/admin/rbac/policies/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/policies/[id]/route.js"
+    },
+    {
+      "path": "/admin/rbac/policies/assignable",
+      "methods": [
+        "GET"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/policies/assignable/route.js"
+    },
+    {
+      "path": "/admin/rbac/policies",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/policies/route.js"
+    },
+    {
+      "path": "/admin/rbac/roles/:id/policies/:policy_id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/roles/[id]/policies/[policy_id]/route.js"
+    },
+    {
+      "path": "/admin/rbac/roles/:id/policies",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/roles/[id]/policies/route.js"
+    },
+    {
+      "path": "/admin/rbac/roles/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/roles/[id]/route.js"
+    },
+    {
+      "path": "/admin/rbac/roles/:id/users",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/roles/[id]/users/route.js"
+    },
+    {
+      "path": "/admin/rbac/roles/assignable",
+      "methods": [
+        "GET"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/roles/assignable/route.js"
+    },
+    {
+      "path": "/admin/rbac/roles",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "roles",
+      "family": "rbac",
+      "installed_source": "@medusajs/medusa/dist/api/admin/rbac/roles/route.js"
+    },
+    {
+      "path": "/admin/refund-reasons/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "refund-reasons",
+      "installed_source": "@medusajs/medusa/dist/api/admin/refund-reasons/[id]/route.js"
+    },
+    {
+      "path": "/admin/refund-reasons",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "refund-reasons",
+      "installed_source": "@medusajs/medusa/dist/api/admin/refund-reasons/route.js"
+    },
+    {
+      "path": "/admin/regions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "payments",
+      "family": "regions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/regions/[id]/route.js"
+    },
+    {
+      "path": "/admin/regions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "payments",
+      "family": "regions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/regions/route.js"
+    },
+    {
+      "path": "/admin/reservations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "reservations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/reservations/[id]/route.js"
+    },
+    {
+      "path": "/admin/reservations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "reservations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/reservations/route.js"
+    },
+    {
+      "path": "/admin/return-reasons/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "return-reasons",
+      "installed_source": "@medusajs/medusa/dist/api/admin/return-reasons/[id]/route.js"
+    },
+    {
+      "path": "/admin/return-reasons",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "return-reasons",
+      "installed_source": "@medusajs/medusa/dist/api/admin/return-reasons/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/cancel/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/dismiss-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/dismiss-items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/dismiss-items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/dismiss-items/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/receive/confirm",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/receive/confirm/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/receive",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/receive/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/receive-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/receive-items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/receive-items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/receive-items/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/request/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/request-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/request-items/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/request-items",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/request-items/route.js"
+    },
+    {
+      "path": "/admin/returns/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/shipping-method/[action_id]/route.js"
+    },
+    {
+      "path": "/admin/returns/:id/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/[id]/shipping-method/route.js"
+    },
+    {
+      "path": "/admin/returns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "family": "returns",
+      "installed_source": "@medusajs/medusa/dist/api/admin/returns/route.js"
+    },
+    {
+      "path": "/admin/sales-channels/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "feature": "products",
+      "family": "sales-channels",
+      "installed_source": "@medusajs/medusa/dist/api/admin/sales-channels/[id]/products/route.js"
+    },
+    {
+      "path": "/admin/sales-channels/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "sales-channels",
+      "installed_source": "@medusajs/medusa/dist/api/admin/sales-channels/[id]/route.js"
+    },
+    {
+      "path": "/admin/sales-channels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "products",
+      "family": "sales-channels",
+      "installed_source": "@medusajs/medusa/dist/api/admin/sales-channels/route.js"
+    },
+    {
+      "path": "/admin/search",
+      "methods": [
+        "GET"
+      ],
+      "feature": "overview",
+      "family": "search",
+      "installed_source": "@medusajs/medusa/dist/api/admin/search/route.js"
+    },
+    {
+      "path": "/admin/shipping-option-types/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "shipping-option-types",
+      "installed_source": "@medusajs/medusa/dist/api/admin/shipping-option-types/[id]/route.js"
+    },
+    {
+      "path": "/admin/shipping-option-types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "shipping-option-types",
+      "installed_source": "@medusajs/medusa/dist/api/admin/shipping-option-types/route.js"
+    },
+    {
+      "path": "/admin/shipping-options/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "shipping-options",
+      "installed_source": "@medusajs/medusa/dist/api/admin/shipping-options/[id]/route.js"
+    },
+    {
+      "path": "/admin/shipping-options/:id/rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "shipping-options",
+      "installed_source": "@medusajs/medusa/dist/api/admin/shipping-options/[id]/rules/batch/route.js"
+    },
+    {
+      "path": "/admin/shipping-options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "shipping-options",
+      "installed_source": "@medusajs/medusa/dist/api/admin/shipping-options/route.js"
+    },
+    {
+      "path": "/admin/shipping-profiles/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "shipping-profiles",
+      "installed_source": "@medusajs/medusa/dist/api/admin/shipping-profiles/[id]/route.js"
+    },
+    {
+      "path": "/admin/shipping-profiles",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "shipping",
+      "family": "shipping-profiles",
+      "installed_source": "@medusajs/medusa/dist/api/admin/shipping-profiles/route.js"
+    },
+    {
+      "path": "/admin/stock-locations/:id/fulfillment-providers",
+      "methods": [
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "stock-locations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/stock-locations/[id]/fulfillment-providers/route.js"
+    },
+    {
+      "path": "/admin/stock-locations/:id/fulfillment-sets",
+      "methods": [
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "stock-locations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/stock-locations/[id]/fulfillment-sets/route.js"
+    },
+    {
+      "path": "/admin/stock-locations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "stock-locations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/stock-locations/[id]/route.js"
+    },
+    {
+      "path": "/admin/stock-locations/:id/sales-channels",
+      "methods": [
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "stock-locations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/stock-locations/[id]/sales-channels/route.js"
+    },
+    {
+      "path": "/admin/stock-locations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "stock",
+      "family": "stock-locations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/stock-locations/route.js"
+    },
+    {
+      "path": "/admin/stores/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "connections",
+      "family": "stores",
+      "installed_source": "@medusajs/medusa/dist/api/admin/stores/[id]/route.js"
+    },
+    {
+      "path": "/admin/stores",
+      "methods": [
+        "GET"
+      ],
+      "feature": "connections",
+      "family": "stores",
+      "installed_source": "@medusajs/medusa/dist/api/admin/stores/route.js"
+    },
+    {
+      "path": "/admin/tax-providers",
+      "methods": [
+        "GET"
+      ],
+      "feature": "prices",
+      "family": "tax-providers",
+      "installed_source": "@medusajs/medusa/dist/api/admin/tax-providers/route.js"
+    },
+    {
+      "path": "/admin/tax-rates/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "tax-rates",
+      "installed_source": "@medusajs/medusa/dist/api/admin/tax-rates/[id]/route.js"
+    },
+    {
+      "path": "/admin/tax-rates/:id/rules/:rule_id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "prices",
+      "family": "tax-rates",
+      "installed_source": "@medusajs/medusa/dist/api/admin/tax-rates/[id]/rules/[rule_id]/route.js"
+    },
+    {
+      "path": "/admin/tax-rates/:id/rules",
+      "methods": [
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "tax-rates",
+      "installed_source": "@medusajs/medusa/dist/api/admin/tax-rates/[id]/rules/route.js"
+    },
+    {
+      "path": "/admin/tax-rates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "tax-rates",
+      "installed_source": "@medusajs/medusa/dist/api/admin/tax-rates/route.js"
+    },
+    {
+      "path": "/admin/tax-regions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "tax-regions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/tax-regions/[id]/route.js"
+    },
+    {
+      "path": "/admin/tax-regions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "prices",
+      "family": "tax-regions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/tax-regions/route.js"
+    },
+    {
+      "path": "/admin/translations/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "translations",
+      "family": "translations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/translations/batch/route.js"
+    },
+    {
+      "path": "/admin/translations/entities",
+      "methods": [
+        "GET"
+      ],
+      "feature": "translations",
+      "family": "translations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/translations/entities/route.js"
+    },
+    {
+      "path": "/admin/translations",
+      "methods": [
+        "GET"
+      ],
+      "feature": "translations",
+      "family": "translations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/translations/route.js"
+    },
+    {
+      "path": "/admin/translations/settings/batch",
+      "methods": [
+        "POST"
+      ],
+      "feature": "translations",
+      "family": "translations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/translations/settings/batch/route.js"
+    },
+    {
+      "path": "/admin/translations/settings",
+      "methods": [
+        "GET"
+      ],
+      "feature": "translations",
+      "family": "translations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/translations/settings/route.js"
+    },
+    {
+      "path": "/admin/translations/statistics",
+      "methods": [
+        "GET"
+      ],
+      "feature": "translations",
+      "family": "translations",
+      "installed_source": "@medusajs/medusa/dist/api/admin/translations/statistics/route.js"
+    },
+    {
+      "path": "/admin/uploads/:id",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "feature": "media",
+      "family": "uploads",
+      "installed_source": "@medusajs/medusa/dist/api/admin/uploads/[id]/route.js"
+    },
+    {
+      "path": "/admin/uploads/presigned-urls",
+      "methods": [
+        "POST"
+      ],
+      "feature": "media",
+      "family": "uploads",
+      "installed_source": "@medusajs/medusa/dist/api/admin/uploads/presigned-urls/route.js"
+    },
+    {
+      "path": "/admin/uploads",
+      "methods": [
+        "POST"
+      ],
+      "feature": "media",
+      "family": "uploads",
+      "installed_source": "@medusajs/medusa/dist/api/admin/uploads/route.js"
+    },
+    {
+      "path": "/admin/users/:id/roles/:role_id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "admin-account",
+      "family": "users",
+      "installed_source": "@medusajs/medusa/dist/api/admin/users/[id]/roles/[role_id]/route.js"
+    },
+    {
+      "path": "/admin/users/:id/roles",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "admin-account",
+      "family": "users",
+      "installed_source": "@medusajs/medusa/dist/api/admin/users/[id]/roles/route.js"
+    },
+    {
+      "path": "/admin/users/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "admin-account",
+      "family": "users",
+      "installed_source": "@medusajs/medusa/dist/api/admin/users/[id]/route.js"
+    },
+    {
+      "path": "/admin/users/me",
+      "methods": [
+        "GET"
+      ],
+      "feature": "admin-account",
+      "family": "users",
+      "installed_source": "@medusajs/medusa/dist/api/admin/users/me/route.js"
+    },
+    {
+      "path": "/admin/users",
+      "methods": [
+        "GET"
+      ],
+      "feature": "admin-account",
+      "family": "users",
+      "installed_source": "@medusajs/medusa/dist/api/admin/users/route.js"
+    },
+    {
+      "path": "/admin/views/:entity/columns",
+      "methods": [
+        "GET"
+      ],
+      "feature": "admin-preferences",
+      "family": "views",
+      "installed_source": "@medusajs/medusa/dist/api/admin/views/[entity]/columns/route.js"
+    },
+    {
+      "path": "/admin/views/:entity/configurations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "admin-preferences",
+      "family": "views",
+      "installed_source": "@medusajs/medusa/dist/api/admin/views/[entity]/configurations/[id]/route.js"
+    },
+    {
+      "path": "/admin/views/:entity/configurations/active",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "admin-preferences",
+      "family": "views",
+      "installed_source": "@medusajs/medusa/dist/api/admin/views/[entity]/configurations/active/route.js"
+    },
+    {
+      "path": "/admin/views/:entity/configurations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "admin-preferences",
+      "family": "views",
+      "installed_source": "@medusajs/medusa/dist/api/admin/views/[entity]/configurations/route.js"
+    },
+    {
+      "path": "/admin/views/entities",
+      "methods": [
+        "GET"
+      ],
+      "feature": "admin-preferences",
+      "family": "views",
+      "installed_source": "@medusajs/medusa/dist/api/admin/views/entities/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/[id]/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/:transaction_id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/[transaction_id]/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/:transaction_id/subscribe",
+      "methods": [
+        "GET"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/[transaction_id]/subscribe/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/run",
+      "methods": [
+        "POST"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/run/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/steps/failure",
+      "methods": [
+        "POST"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/steps/failure/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/steps/success",
+      "methods": [
+        "POST"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/steps/success/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions/:workflow_id/subscribe",
+      "methods": [
+        "GET"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/subscribe/route.js"
+    },
+    {
+      "path": "/admin/workflows-executions",
+      "methods": [
+        "GET"
+      ],
+      "feature": "operations",
+      "family": "workflows-executions",
+      "installed_source": "@medusajs/medusa/dist/api/admin/workflows-executions/route.js"
+    }
+  ],
+  "worker_router_cases": [
+    "/api/nexus/pricing",
+    "/api/nexus/operations",
+    "/api/nexus/safeorder",
+    "/api/vouchers/validate",
+    "/api/vouchers/redeem",
+    "/api/vouchers/issue",
+    "/api/klub/subscribe",
+    "/api/ai/query",
+    "/api/webhooks/medusa",
+    "/api/webhooks/shoptet"
+  ],
+  "worker_prefix_route": {
+    "prefix": "/api/media/v1/",
+    "source": "nexus/workers/api/routes/mediaDelivery.ts"
+  },
+  "source_units": {
+    "jobs": [
+      "backend/src/jobs/auth-link-cleanup.ts",
+      "backend/src/jobs/chat-admin-digest.ts",
+      "backend/src/jobs/chat-retention.ts",
+      "backend/src/jobs/customer-privacy-token-cleanup.ts",
+      "backend/src/jobs/gift-voucher-maintenance.ts",
+      "backend/src/jobs/gift-voucher-rate-limit-cleanup.ts",
+      "backend/src/jobs/legal-rate-cleanup.ts",
+      "backend/src/jobs/ops-retention.ts"
+    ],
+    "subscribers": [
+      "backend/src/subscribers/auth-magic-link-requested.ts",
+      "backend/src/subscribers/booking-order-canceled.ts",
+      "backend/src/subscribers/booking-order-placed.ts",
+      "backend/src/subscribers/booking-payment-captured.ts",
+      "backend/src/subscribers/chat-admin-reply.ts",
+      "backend/src/subscribers/chat-customer-message.ts",
+      "backend/src/subscribers/compensation-payment-refunded.ts",
+      "backend/src/subscribers/email-customer-welcome.ts",
+      "backend/src/subscribers/email-order-canceled.ts",
+      "backend/src/subscribers/email-order-placed.ts",
+      "backend/src/subscribers/email-payment-captured.ts",
+      "backend/src/subscribers/email-payment-refunded.ts",
+      "backend/src/subscribers/email-shipment-created.ts",
+      "backend/src/subscribers/entitlement-order-canceled.ts",
+      "backend/src/subscribers/entitlement-order-placed.ts",
+      "backend/src/subscribers/entitlement-payment-captured.ts",
+      "backend/src/subscribers/entitlement-payment-refunded.ts",
+      "backend/src/subscribers/gift-voucher-issued.ts",
+      "backend/src/subscribers/gift-voucher-order-canceled.ts",
+      "backend/src/subscribers/gift-voucher-order-placed.ts",
+      "backend/src/subscribers/gift-voucher-payment-captured.ts",
+      "backend/src/subscribers/legal-order-placed.ts",
+      "backend/src/subscribers/nexus-medusa-events.ts"
+    ],
+    "workflows": [
+      "backend/src/workflows/booking-checkout.ts",
+      "backend/src/workflows/gift-voucher-checkout.ts",
+      "backend/src/workflows/hooks.ts",
+      "backend/src/workflows/medusa-event-delivery.ts",
+      "backend/src/workflows/order-email-recovery.ts"
+    ],
+    "models": [
+      "backend/src/modules/auth-security/models/state.ts",
+      "backend/src/modules/booking/models/booking-availability.ts",
+      "backend/src/modules/booking/models/booking.ts",
+      "backend/src/modules/chat/models/chat-conversation.ts",
+      "backend/src/modules/chat/models/chat-customer-block.ts",
+      "backend/src/modules/chat/models/chat-message.ts",
+      "backend/src/modules/chat/models/chat-notification-state.ts",
+      "backend/src/modules/customer-privacy/models/customer-erasure.ts",
+      "backend/src/modules/customer-privacy/models/customer-note.ts",
+      "backend/src/modules/email-template/models/email-template-override.ts",
+      "backend/src/modules/entitlement/models/entitlement.ts",
+      "backend/src/modules/gift-voucher/models/gift-voucher-settings.ts",
+      "backend/src/modules/gift-voucher/models/gift-voucher-transaction.ts",
+      "backend/src/modules/gift-voucher/models/gift-voucher.ts",
+      "backend/src/modules/legal/models/legal-consent.ts",
+      "backend/src/modules/legal/models/legal-withdrawal.ts",
+      "backend/src/modules/legal/models/newsletter-consent-event.ts",
+      "backend/src/modules/legal/models/newsletter-consent.ts",
+      "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
+      "backend/src/modules/ops-audit/models/ops-event.ts"
+    ],
+    "modules": [
+      "backend/src/modules/auth-magic-link/index.ts",
+      "backend/src/modules/auth-security/index.ts",
+      "backend/src/modules/booking/index.ts",
+      "backend/src/modules/chat/index.ts",
+      "backend/src/modules/customer-privacy/index.ts",
+      "backend/src/modules/email-template/index.ts",
+      "backend/src/modules/entitlement/index.ts",
+      "backend/src/modules/gift-voucher/index.ts",
+      "backend/src/modules/legal/index.ts",
+      "backend/src/modules/notification-log/index.ts",
+      "backend/src/modules/notification-zeptomail/index.ts",
+      "backend/src/modules/ops-audit/index.ts"
+    ],
+    "nexus_domains": [
+      "nexus/domains/availability/AvailabilityRule.ts",
+      "nexus/domains/availability/ConversionRule.ts",
+      "nexus/domains/availability/OrderQuantityValidationRule.ts",
+      "nexus/domains/availability/PackagingDepositRule.ts",
+      "nexus/domains/availability/SalesUnitAvailabilityRule.ts",
+      "nexus/domains/availability/SortingRule.ts",
+      "nexus/domains/b2b/BusinessProfileAccessor.ts",
+      "nexus/domains/b2b/BusinessProfileValidationRule.ts",
+      "nexus/domains/b2b/CustomerBusinessContextFlow.ts",
+      "nexus/domains/billing/SubscriptionLifecycleRule.ts",
+      "nexus/domains/billing/TenantSubscriptionPlanFlow.ts",
+      "nexus/domains/campaign/CampaignFlows.ts",
+      "nexus/domains/campaign/CampaignLifecycleRule.ts",
+      "nexus/domains/campaign/CreativeLifecycleRule.ts",
+      "nexus/domains/campaign/CreativeResolutionRule.ts",
+      "nexus/domains/campaign/PromoGroupDiscountRule.ts",
+      "nexus/domains/campaign/PromoGroupPriorityRule.ts",
+      "nexus/domains/invoice/InvoiceLifecycleRule.ts",
+      "nexus/domains/invoice/OrderInvoiceOmegaFlow.ts",
+      "nexus/domains/omega/DecisionRules.ts",
+      "nexus/domains/omega/OmegaMapperRule.ts",
+      "nexus/domains/omega/OmegaValidationRules.ts",
+      "nexus/domains/omega/ValidatorRules.ts",
+      "nexus/domains/pricing/BasePriceRule.ts",
+      "nexus/domains/pricing/BestCandidatePriceRule.ts",
+      "nexus/domains/pricing/BrandSaleDiscountRule.ts",
+      "nexus/domains/pricing/ClearanceWindowRule.ts",
+      "nexus/domains/pricing/CouponDiscountRule.ts",
+      "nexus/domains/pricing/CouponPolicyRule.ts",
+      "nexus/domains/pricing/DiscountLimitRule.ts",
+      "nexus/domains/pricing/HighestDiscountRule.ts",
+      "nexus/domains/pricing/NoOpActionPriceRule.ts",
+      "nexus/domains/pricing/PricingAdapter.ts",
+      "nexus/domains/pricing/PricingConfigurationProvider.ts",
+      "nexus/domains/pricing/ProductLimitCompositionRule.ts",
+      "nexus/domains/pricing/QuantityTierRule.ts",
+      "nexus/domains/pricing/RoundingRule.ts",
+      "nexus/domains/pricing/StaticPricingConfigurationProvider.ts",
+      "nexus/domains/pricing/ValidationRule.ts",
+      "nexus/domains/pricing/VoucherCouponRule.ts",
+      "nexus/domains/pricing/XPlusXRule.ts",
+      "nexus/domains/pricing/createNexusPricingCalculator.ts",
+      "nexus/domains/procurement/ProcurementRule.ts",
+      "nexus/domains/procurement/SupplierSelectionRule.ts",
+      "nexus/domains/safeorder/AuditLedgerRule.ts",
+      "nexus/domains/safeorder/BacktestRule.ts",
+      "nexus/domains/safeorder/BlindToken.ts",
+      "nexus/domains/safeorder/CalibrationRule.ts",
+      "nexus/domains/safeorder/EconomicsRule.ts",
+      "nexus/domains/safeorder/IdentityNormalizationRule.ts",
+      "nexus/domains/safeorder/LocalizationRule.ts",
+      "nexus/domains/safeorder/OutcomeEngineRule.ts",
+      "nexus/domains/safeorder/PolicyRule.ts",
+      "nexus/domains/safeorder/RetentionRule.ts",
+      "nexus/domains/safeorder/RiskEngineRule.ts",
+      "nexus/domains/safeorder/RiskGraphRule.ts",
+      "nexus/domains/safeorder/ValidationStageRules.ts",
+      "nexus/domains/shoptet/CsvParserGateRule.ts",
+      "nexus/domains/shoptet/ShoptetRowParserRule.ts",
+      "nexus/domains/supplier-csv/SupplierCsvRule.ts",
+      "nexus/domains/voucher/CreditVoucherCodeGenerator.ts",
+      "nexus/domains/voucher/CreditVoucherLifecycleRule.ts",
+      "nexus/domains/voucher/CreditVoucherRedemptionRule.ts",
+      "nexus/domains/voucher/CreditVoucherStore.ts",
+      "nexus/domains/voucher/CreditVoucherValidityRule.ts",
+      "nexus/domains/voucher/VoucherRedemptionAudit.ts",
+      "nexus/domains/warehouse/WarehouseStockFlow.ts",
+      "nexus/domains/warehouse/WarehouseStockLinkRule.ts"
+    ],
+    "nexus_connectors": [
+      "nexus/connectors/Connector.ts",
+      "nexus/connectors/accounting/configuration.ts",
+      "nexus/connectors/accounting/http-transport.ts",
+      "nexus/connectors/accounting/money-s3.ts",
+      "nexus/connectors/accounting/pohoda.ts",
+      "nexus/connectors/accounting/registry.ts",
+      "nexus/connectors/accounting/types.ts",
+      "nexus/connectors/availability-intelligence/legacy/availability/AvailabilityEngine.ts",
+      "nexus/connectors/availability-intelligence/legacy/availability/types.ts",
+      "nexus/connectors/availability-intelligence/legacy/procurement/ProcurementEngine.ts",
+      "nexus/connectors/availability-intelligence/legacy/procurement/SupplierMappingService.ts",
+      "nexus/connectors/availability-intelligence/legacy/procurement/SupplierSelectionEngine.ts",
+      "nexus/connectors/availability-intelligence/legacy/procurement/Workflow.ts",
+      "nexus/connectors/availability-intelligence/legacy/procurement/ports.ts",
+      "nexus/connectors/availability-intelligence/legacy/procurement/types.ts",
+      "nexus/connectors/availability-intelligence/legacy/ranking/SortingPipeline.ts",
+      "nexus/connectors/availability-intelligence/legacy/sales-units/ConversionEngine.ts",
+      "nexus/connectors/availability-intelligence/legacy/sales-units/OrderQuantityValidator.ts",
+      "nexus/connectors/availability-intelligence/legacy/sales-units/PackagingDepositEngine.ts",
+      "nexus/connectors/availability-intelligence/legacy/sales-units/SalesUnitEngine.ts",
+      "nexus/connectors/availability-intelligence/legacy/sales-units/types.ts",
+      "nexus/connectors/d1/D1CreditVoucherStore.ts",
+      "nexus/connectors/d1/D1ExecutionIntentStore.ts",
+      "nexus/connectors/d1/moneyMapper.ts",
+      "nexus/connectors/medusa/MedusaConnector.ts",
+      "nexus/connectors/omega/legacy/OmegaAdapter.ts",
+      "nexus/connectors/omega/legacy/OmegaMapper.ts",
+      "nexus/connectors/omega/legacy/OmegaOutputValidationGate.ts",
+      "nexus/connectors/omega/legacy/OmegaPayload.ts",
+      "nexus/connectors/omega/legacy/TargetAdapter.ts",
+      "nexus/connectors/omega/legacy/agent/AgentEvidence.ts",
+      "nexus/connectors/omega/legacy/agent/OmegaExecutor.ts",
+      "nexus/connectors/omega/legacy/core/CanonicalAccountingDocument.ts",
+      "nexus/connectors/omega/legacy/decisions/DecisionEngine.ts",
+      "nexus/connectors/omega/legacy/domain/CanonicalModel.ts",
+      "nexus/connectors/omega/legacy/gate5/OmegaImportLogParser.ts",
+      "nexus/connectors/omega/legacy/gate5/OmegaPostImportValidationGate.ts",
+      "nexus/connectors/omega/legacy/policies/PolicyLayer.ts",
+      "nexus/connectors/omega/legacy/rules/RuleTypes.ts",
+      "nexus/connectors/omega/legacy/rules/implementations/IdentityRules.ts",
+      "nexus/connectors/omega/legacy/rules/implementations/TaxRules.ts",
+      "nexus/connectors/omega/legacy/validation/validators/AddressValidator.ts",
+      "nexus/connectors/omega/legacy/validation/validators/CustomerValidator.ts",
+      "nexus/connectors/omega/legacy/validation/validators/MoneyValidator.ts",
+      "nexus/connectors/omega/legacy/validation/validators/OrderItemValidator.ts",
+      "nexus/connectors/omega/legacy/validation/validators/OrderValidator.ts",
+      "nexus/connectors/omega/legacy/validation/validators/ServicesValidators.ts",
+      "nexus/connectors/omega/legacy/validation/validators/TaxValidator.ts",
+      "nexus/connectors/pricing-engine/FsPricingConfigurationProvider.ts",
+      "nexus/connectors/pricing-engine/createLegacyPricingCalculator.ts",
+      "nexus/connectors/pricing-engine/legacy/core/EngineBuilder.ts",
+      "nexus/connectors/pricing-engine/legacy/core/PricingContext.ts",
+      "nexus/connectors/pricing-engine/legacy/core/PricingEngine.ts",
+      "nexus/connectors/pricing-engine/legacy/core/ValidationEngine.ts",
+      "nexus/connectors/pricing-engine/legacy/core/interfaces.ts",
+      "nexus/connectors/pricing-engine/legacy/coupon/CouponPolicy.ts",
+      "nexus/connectors/pricing-engine/legacy/coupon/types.ts",
+      "nexus/connectors/pricing-engine/legacy/csv/reader.ts",
+      "nexus/connectors/pricing-engine/legacy/csv/writer.ts",
+      "nexus/connectors/pricing-engine/legacy/policies/BasePricePolicy.ts",
+      "nexus/connectors/pricing-engine/legacy/policies/DiscountLimitPolicy.ts",
+      "nexus/connectors/pricing-engine/legacy/policies/HighestDiscountPolicy.ts",
+      "nexus/connectors/pricing-engine/legacy/policies/RoundingPolicy.ts",
+      "nexus/connectors/pricing-engine/legacy/promo/free-units.ts",
+      "nexus/connectors/pricing-engine/legacy/voucher/VoucherCouponPolicy.ts",
+      "nexus/connectors/safeorder/legacy/audit/ledger.ts",
+      "nexus/connectors/safeorder/legacy/backtest/metrics.ts",
+      "nexus/connectors/safeorder/legacy/calibration/calibration-engine.ts",
+      "nexus/connectors/safeorder/legacy/core/types.ts",
+      "nexus/connectors/safeorder/legacy/crypto/blind-token.ts",
+      "nexus/connectors/safeorder/legacy/economics/decision-economics.ts",
+      "nexus/connectors/safeorder/legacy/i18n/localization.ts",
+      "nexus/connectors/safeorder/legacy/learning/outcome-engine.ts",
+      "nexus/connectors/safeorder/legacy/normalization/identity.ts",
+      "nexus/connectors/safeorder/legacy/policy-engine/adaptive-optimizer.ts",
+      "nexus/connectors/safeorder/legacy/policy-engine/policies.ts",
+      "nexus/connectors/safeorder/legacy/privacy/retention.ts",
+      "nexus/connectors/safeorder/legacy/risk-engine/engine.ts",
+      "nexus/connectors/safeorder/legacy/risk-graph/graph.ts",
+      "nexus/connectors/safeorder/legacy/validation/stages/1-input-validator.ts",
+      "nexus/connectors/safeorder/legacy/validation/stages/2-identity-validator.ts",
+      "nexus/connectors/safeorder/legacy/validation/stages/3-signal-validator.ts",
+      "nexus/connectors/safeorder/legacy/validation/stages/4-risk-policy-validator.ts",
+      "nexus/connectors/safeorder/legacy/validation/stages/5-decision-action-validator.ts",
+      "nexus/connectors/safeorder/legacy/validation/stages/types.ts",
+      "nexus/connectors/shoptet/ReadOnlyGuard.ts",
+      "nexus/connectors/shoptet/ShoptetApiClient.ts",
+      "nexus/connectors/shoptet/ShoptetPriceConnector.ts",
+      "nexus/connectors/shoptet/legacy/csv/CsvInputValidationGate.ts",
+      "nexus/connectors/shoptet/legacy/csv/CsvParserGate2.ts",
+      "nexus/connectors/shoptet/legacy/csv/ShoptetExportSchema.ts",
+      "nexus/connectors/shoptet/legacy/csv/ShoptetRowParser.ts",
+      "nexus/connectors/shoptet/legacy/validation/ValidationPipeline.ts",
+      "nexus/connectors/shoptet/legacy/validation/types.ts",
+      "nexus/connectors/supplier-csv/legacy/NoApiCsvAdapter.ts"
+    ]
+  },
+  "test_sources": [
+    "backend/src/api/__tests__/auth-magic-link-rate.unit.spec.ts",
+    "backend/src/api/admin/coupon-links/__tests__/links.unit.spec.ts",
+    "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
+    "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
+    "backend/src/api/admin/vouchers/__tests__/write-audit.unit.spec.ts",
+    "backend/src/api/store/gift-vouchers/__tests__/rate-limit.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/coupon.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/customer-tier.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/nexus-contract.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/ownership.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/pricing-transport.unit.spec.ts",
+    "backend/src/api/store/nexus-checkout/__tests__/route-errors.unit.spec.ts",
+    "backend/src/api/store/nexus-checkout/__tests__/safeorder.unit.spec.ts",
+    "backend/src/lib/__tests__/admin-function-map.unit.spec.ts",
+    "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
+    "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
+    "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
+    "backend/src/lib/email/__tests__/send.unit.spec.ts",
+    "backend/src/lib/nexus/__tests__/booking-hook.unit.spec.ts",
+    "backend/src/lib/nexus/__tests__/booking-order.unit.spec.ts",
+    "backend/src/lib/nexus/__tests__/medusa-delivery.unit.spec.ts",
+    "backend/src/lib/nexus/__tests__/medusa-subscriber.unit.spec.ts",
+    "backend/src/lib/nexus/__tests__/operations.unit.spec.ts",
+    "backend/src/lib/notify/__tests__/notify.unit.spec.ts",
+    "backend/src/lib/notify/__tests__/order.unit.spec.ts",
+    "backend/src/lib/observability/__tests__/audit.unit.spec.ts",
+    "backend/src/lib/observability/__tests__/events.unit.spec.ts",
+    "backend/src/lib/observability/__tests__/log.unit.spec.ts",
+    "backend/src/lib/order-self-cancel/__tests__/cancel.unit.spec.ts",
+    "backend/src/modules/auth-magic-link/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/auth-magic-link/__tests__/service.integration.spec.ts",
+    "backend/src/modules/auth-magic-link/__tests__/service.unit.spec.ts",
+    "backend/src/modules/auth-magic-link/__tests__/state.unit.spec.ts",
+    "backend/src/modules/booking/__tests__/availability.unit.spec.ts",
+    "backend/src/modules/booking/__tests__/calendar.unit.spec.ts",
+    "backend/src/modules/booking/__tests__/order-sync.unit.spec.ts",
+    "backend/src/modules/booking/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/booking/__tests__/service.unit.spec.ts",
+    "backend/src/modules/booking/__tests__/slots.unit.spec.ts",
+    "backend/src/modules/chat/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/chat/__tests__/retention.unit.spec.ts",
+    "backend/src/modules/chat/__tests__/service.unit.spec.ts",
+    "backend/src/modules/customer-privacy/__tests__/privacy.unit.spec.ts",
+    "backend/src/modules/entitlement/__tests__/order-sync.unit.spec.ts",
+    "backend/src/modules/entitlement/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/entitlement/media/__tests__/media.unit.spec.ts",
+    "backend/src/modules/gift-voucher/__tests__/issuance-delivery.unit.spec.ts",
+    "backend/src/modules/gift-voucher/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/legal/__tests__/checkout.unit.spec.ts",
+    "backend/src/modules/legal/__tests__/newsletter.unit.spec.ts",
+    "backend/src/modules/legal/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/legal/__tests__/routes.unit.spec.ts",
+    "backend/src/modules/notification-zeptomail/__tests__/template-texts.unit.spec.ts",
+    "backend/src/modules/notification-zeptomail/__tests__/zeptomail.unit.spec.ts",
+    "backend/src/modules/ops-audit/__tests__/edge-ingest.unit.spec.ts",
+    "backend/src/modules/ops-audit/__tests__/events-policy.unit.spec.ts",
+    "backend/src/modules/ops-audit/__tests__/policy.unit.spec.ts",
+    "backend/src/scripts/__tests__/anastasia-bootstrap.unit.spec.ts",
+    "backend/src/scripts/__tests__/catalog-import.unit.spec.ts",
+    "backend/src/scripts/__tests__/customer-migration.unit.spec.ts",
+    "backend/src/scripts/__tests__/db-recovery.unit.spec.ts",
+    "backend/src/scripts/__tests__/edge-redirects.unit.spec.ts",
+    "backend/src/workflows/__tests__/booking-checkout.unit.spec.ts",
+    "backend/src/workflows/__tests__/gift-voucher-checkout.unit.spec.ts",
+    "backend/src/workflows/__tests__/safeorder-completion.unit.spec.ts",
+    "backend/integration-tests/http/auth-security-http-checks.ts",
+    "backend/integration-tests/http/booking-http-checks.ts",
+    "backend/integration-tests/http/booking-inbox-http-checks.ts",
+    "backend/integration-tests/http/cart-ownership-http-checks.ts",
+    "backend/integration-tests/http/chat-http-checks.ts",
+    "backend/integration-tests/http/coupon-security-http-checks.ts",
+    "backend/integration-tests/http/customer-gdpr-http-checks.ts",
+    "backend/integration-tests/http/digital-checkout-checks.ts",
+    "backend/integration-tests/http/entitlement-isolation-http-checks.ts",
+    "backend/integration-tests/http/gift-voucher-http-checks.ts",
+    "backend/integration-tests/http/legal-consents-http-checks.ts",
+    "backend/integration-tests/http/medusa-delivery-http-checks.ts",
+    "backend/integration-tests/http/notification-receipts-http-checks.ts",
+    "backend/integration-tests/http/operations-status-http-checks.ts",
+    "backend/integration-tests/http/ops-observability-checks.ts",
+    "backend/integration-tests/http/order-email-recovery-http-checks.ts",
+    "backend/integration-tests/http/order-self-cancel-http-checks.ts",
+    "backend/integration-tests/http/safeorder-persistence.spec.ts",
+    "backend/integration-tests/http/shipping-settings-http-checks.ts",
+    "backend/integration-tests/http/stock-availability-http-checks.ts",
+    "nexus/tests/integration/ExecutionPipeline.test.ts",
+    "nexus/tests/integration/MedusaNexusE2E.test.ts",
+    "nexus/tests/integration/PricingEndToEnd.test.ts",
+    "nexus/tests/integration/PromoQuantityBoundaryMatrix.test.ts",
+    "nexus/tests/integration/SafeOrderHttp.test.ts",
+    "nexus/tests/regression/availability/availability-sales-units-parity.test.ts",
+    "nexus/tests/regression/availability/procurement-rule-parity.test.ts",
+    "nexus/tests/regression/connectors/accounting-gateway.test.ts",
+    "nexus/tests/regression/connectors/accounting-selection.test.ts",
+    "nexus/tests/regression/connectors/omega-decision-rules-parity.test.ts",
+    "nexus/tests/regression/connectors/omega-executor-sanity.test.ts",
+    "nexus/tests/regression/connectors/omega-legacy-sanity.test.ts",
+    "nexus/tests/regression/connectors/omega-rule-parity.test.ts",
+    "nexus/tests/regression/connectors/omega-validators-parity.test.ts",
+    "nexus/tests/regression/connectors/shoptet-csv-sanity.test.ts",
+    "nexus/tests/regression/connectors/shoptet-rule-parity.test.ts",
+    "nexus/tests/regression/connectors/supplier-csv-rule-parity.test.ts",
+    "nexus/tests/regression/connectors/supplier-csv-sanity.test.ts",
+    "nexus/tests/regression/golden-pricing/base-price-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/brand-sale-discount-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/brand-sale-vs-loyalty.test.ts",
+    "nexus/tests/regression/golden-pricing/clearance-window-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/coupon-policy-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/discount-limit-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/full-chain-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/golden.test.ts",
+    "nexus/tests/regression/golden-pricing/highest-discount-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/nexus-calculator-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/noop-action-price-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/okfish-missing-logic-integration.test.ts",
+    "nexus/tests/regression/golden-pricing/product-limit-composition-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/quantity-tier-rule-hypothesis.test.ts",
+    "nexus/tests/regression/golden-pricing/rounding-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/validation-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/voucher-coupon-rule-parity.test.ts",
+    "nexus/tests/regression/golden-pricing/x-plus-x-rule-parity.test.ts",
+    "nexus/tests/regression/safeorder/backtest-rule-parity.test.ts",
+    "nexus/tests/regression/safeorder/calibration-rule-parity.test.ts",
+    "nexus/tests/regression/safeorder/economics-policy-rule-parity.test.ts",
+    "nexus/tests/regression/safeorder/legacy-safeorder-sanity.test.ts",
+    "nexus/tests/regression/safeorder/localization-retention-rule-parity.test.ts",
+    "nexus/tests/regression/safeorder/risk-engine-rule-parity.test.ts",
+    "nexus/tests/regression/safeorder/risk-graph-outcome-rule-parity.test.ts",
+    "nexus/tests/regression/safeorder/validation-stages-parity.test.ts",
+    "nexus/tests/regression/shadow/pricing-parity-baseline.test.ts",
+    "nexus/tests/regression/shadow/shadow-harness.test.ts",
+    "nexus/tests/tenant-isolation/assertTenantOwnership.test.ts",
+    "nexus/tests/unit/AuditRecord.test.ts",
+    "nexus/tests/unit/B2BFlows.test.ts",
+    "nexus/tests/unit/B2BRules.test.ts",
+    "nexus/tests/unit/BestCandidatePriceRule.test.ts",
+    "nexus/tests/unit/BillingFlows.test.ts",
+    "nexus/tests/unit/BillingRules.test.ts",
+    "nexus/tests/unit/CampaignFlows.test.ts",
+    "nexus/tests/unit/CampaignRules.test.ts",
+    "nexus/tests/unit/CouponDiscountRule.test.ts",
+    "nexus/tests/unit/CreativeResolutionRule.test.ts",
+    "nexus/tests/unit/CreditVoucherRules.test.ts",
+    "nexus/tests/unit/CreditVoucherStore.test.ts",
+    "nexus/tests/unit/EdgeRedirects.test.ts",
+    "nexus/tests/unit/ErrorIsolation.test.ts",
+    "nexus/tests/unit/Execution.test.ts",
+    "nexus/tests/unit/ExecutionIntentStore.test.ts",
+    "nexus/tests/unit/GenericReconciliation.test.ts",
+    "nexus/tests/unit/IdempotencyStore.test.ts",
+    "nexus/tests/unit/IntentExecutor.test.ts",
+    "nexus/tests/unit/IntentReconciliation.test.ts",
+    "nexus/tests/unit/IntentRecovery.test.ts",
+    "nexus/tests/unit/InvoiceFlows.test.ts",
+    "nexus/tests/unit/InvoiceRules.test.ts",
+    "nexus/tests/unit/MediaDelivery.test.ts",
+    "nexus/tests/unit/MediaSecurityRegression.test.ts",
+    "nexus/tests/unit/MedusaConnector.test.ts",
+    "nexus/tests/unit/OpsIngest.test.ts",
+    "nexus/tests/unit/Phase6DomainSkeleton.test.ts",
+    "nexus/tests/unit/PromoGroupDiscountRule.test.ts",
+    "nexus/tests/unit/PurchaseOrder.test.ts",
+    "nexus/tests/unit/ReadOnlyGuard.test.ts",
+    "nexus/tests/unit/Reconciliation.test.ts",
+    "nexus/tests/unit/ShoptetPriceConnector.test.ts",
+    "nexus/tests/unit/Snapshot.test.ts",
+    "nexus/tests/unit/StateMachine.test.ts",
+    "nexus/tests/unit/StoredIntentReconciliation.test.ts",
+    "nexus/tests/unit/TenantConfig.test.ts",
+    "nexus/tests/unit/ValidationFramework.test.ts",
+    "nexus/tests/unit/VoucherPurchaseDetection.test.ts",
+    "nexus/tests/unit/VoucherRedemptionAudit.test.ts",
+    "nexus/tests/unit/WarehouseFlows.test.ts",
+    "nexus/tests/unit/WarehouseRules.test.ts",
+    "nexus/tests/unit/aiGatewayRoute.test.ts",
+    "nexus/tests/unit/klubSubscribeRoute.test.ts",
+    "nexus/tests/unit/medusaWebhookRoute.test.ts",
+    "nexus/tests/unit/nexusPricingRoute.test.ts",
+    "nexus/tests/unit/nexusSafeOrderRoute.test.ts",
+    "nexus/tests/workers/bookingInbox.test.ts",
+    "nexus/tests/workers/edgeRedirects.test.ts",
+    "nexus/tests/workers/intentClaim.test.ts",
+    "nexus/tests/workers/intentRecovery.test.ts",
+    "nexus/tests/workers/media-security-regression.test.ts",
+    "nexus/tests/workers/medusaWebhook.test.ts",
+    "nexus/tests/workers/operationsStatus.test.ts",
+    "nexus/tests/workers/safeOrder.test.ts",
+    "nexus/tests/workers/scheduledRecovery.test.ts",
+    "nexus/tests/workers/schema.test.ts",
+    "nexus/tests/workers/storedReconciliation.test.ts",
+    "nexus/tests/workers/voucherConcurrency.test.ts"
+  ]
+}
