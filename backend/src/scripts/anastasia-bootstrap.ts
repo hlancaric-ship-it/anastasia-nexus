@@ -11,6 +11,7 @@ import {
   createTaxRegionsWorkflow,
   linkSalesChannelsToApiKeyWorkflow,
   linkSalesChannelsToStockLocationWorkflow,
+  updateRegionsWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows"
 
@@ -250,15 +251,27 @@ export default async function anastasiaBootstrap({ container }: { container: Med
 
   // 4) Region Slovensko (EUR, ceny včetně DPH)
   const region = await step(logger, "region", async () => {
-    const existing = await findFirst("region", { name: REGION_NAME })
-    if (existing) {
-      logger.info(`[anastasia-bootstrap] region "${REGION_NAME}" already exists (${existing.id}), skipping`)
-      return existing
-    }
     const providers = (await paymentService.listPaymentProviders({}, { take: 100 })) as Array<{ id: string }>
     const paymentProviders = pickPaymentProviders(providers.map((p) => p.id), isProduction)
     if (paymentProviders[0] === SYSTEM_PROVIDER_ID) {
       logger.warn(`[anastasia-bootstrap] Stripe provider not registered (missing STRIPE_API_KEY); region uses ${SYSTEM_PROVIDER_ID} - local development only`)
+    }
+    const existing = await findFirst("region", { name: REGION_NAME }, ["id", "payment_providers.id"])
+    if (existing) {
+      // Idempotence s dorovnáním: starší region mohl vzniknout bez Stripe (dřív nebyl klíč).
+      // Když je teď Stripe registrovaný, ale na regionu chybí, napojíme ho (jinak storefront
+      // Stripe nenabídne). Jen přidáváme, nikdy neodebíráme ručně nastavené providery.
+      const current = new Set(((existing.payment_providers ?? []) as Array<{ id: string }>).map((p) => p.id))
+      const missing = paymentProviders.filter((id) => !current.has(id))
+      if (missing.length === 0) {
+        logger.info(`[anastasia-bootstrap] region "${REGION_NAME}" already exists (${existing.id}) with payment providers, skipping`)
+        return existing
+      }
+      await updateRegionsWorkflow(container).run({
+        input: { selector: { id: existing.id }, update: { payment_providers: [...current, ...missing] } },
+      })
+      logger.info(`[anastasia-bootstrap] region "${REGION_NAME}" (${existing.id}): doplněn platební provider ${missing.join(", ")}`)
+      return existing
     }
     const { result } = await createRegionsWorkflow(container).run({
       input: {
