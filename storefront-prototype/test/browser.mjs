@@ -44,7 +44,9 @@ try{
    const response=await goto('/');
    const csp=response.headers()['content-security-policy']||'';
    for(const directive of ["default-src 'self'","script-src 'self'","img-src 'self'","media-src 'self'","font-src 'self'","connect-src 'self'"])assert.ok(csp.includes(directive),'CSP '+directive);
-   assert.equal(/https?:\/\//.test(csp),false,'CSP bez externích hostů');
+   // CSP smí odkazovat jen na náš backend a Stripe (platba); nic jiného externího.
+   const cspAllowed=[(process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100'),'https://js.stripe.com','https://api.stripe.com','https://hooks.stripe.com','https://*.stripe.com'];
+   for(const host of csp.match(/https?:\/\/[^\s;]+/g)||[])assert.ok(cspAllowed.includes(host),'CSP neočekávaný host: '+host);
    const external=await page.evaluate(()=>[...document.querySelectorAll('script[src],link[href],img[src],video source[src],video[poster],audio[src],iframe')].map(el=>el.getAttribute('src')||el.getAttribute('href')||el.getAttribute('poster')).filter(u=>/^(https?:)?\/\//.test(u)));
    assert.deepEqual(external,[],'všechny skripty, styly a média jsou lokální');
    const hero=page.locator('[data-screen-label="01 Hero"]'),video=hero.locator('video[data-video="hero"]');
