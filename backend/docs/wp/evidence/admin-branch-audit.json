@@ -84,7 +84,7 @@
         "backend/src/api/admin/customer-erasures/[id]/execute/route.ts",
         "backend/src/modules/customer-privacy/__tests__/privacy.unit.spec.ts"
       ],
-      "closure": "local archive tag preserves tip; active local branch removed after audit"
+      "closure": "Original tip preserved in local archive tag; active local branch removed."
     },
     {
       "branch": "codex/legal-consents",
@@ -136,7 +136,7 @@
       "later_changes": [
         "backend/src/modules/legal/__tests__/routes.unit.spec.ts"
       ],
-      "closure": "local archive tag preserves tip; active local branch removed after audit"
+      "closure": "Original tip preserved in local archive tag; active local branch removed."
     },
     {
       "branch": "codex/order-self-cancel",
@@ -180,7 +180,7 @@
         }
       ],
       "later_changes": [],
-      "closure": "local archive tag preserves tip; active local branch removed after audit"
+      "closure": "Original tip preserved in local archive tag; active local branch removed."
     },
     {
       "branch": "codex/backend-admin-readiness",
@@ -208,7 +208,7 @@
         }
       ],
       "later_changes": [],
-      "closure": "local archive tag preserves tip; active local branch removed after audit"
+      "closure": "Archive tag preserves tip; active branch retained because its existing worktree contains private data. No need to reintegrate changes."
     }
   ],
   "focused_tests": {
