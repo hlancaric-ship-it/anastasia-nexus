@@ -73,7 +73,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_ci',hooks:{beforeServe
   const order=await container.resolve(Modules.ORDER).createOrders({currency_code:'eur',customer_id:customer.id,items:[{title:'Synthetic membership',quantity:1,unit_price:50,product_id:'prod_synthetic',variant_id:'var_synthetic'}]})
   const collection=await payment.createPaymentCollections({currency_code:'eur',amount:50})
   await link.create([
-   {[Modules.CART]:{cart_id:cart.id},[Modules.ORDER]:{order_id:order.id}},
+   {[Modules.ORDER]:{order_id:order.id},[Modules.CART]:{cart_id:cart.id}},
    {[Modules.ORDER]:{order_id:order.id},[Modules.PAYMENT]:{payment_collection_id:collection.id}},
   ])
   const binding={cart_id:cart.id,customer_id:customer.id,product_id:'prod_synthetic',variant_id:'var_synthetic',checkout_key:`initial:${order.id}`}
