@@ -1,6 +1,6 @@
 # Postup backendu podle plánu — 16. 10. 2026
 
-Stav celého cíle: PARTIAL vůči NEXUS_AUTONOMY_SPEC.md. Všech pět navazujících backendových balíků má stav VERIFIED a je commitnutých, pushnutých a sloučených do master. Nic se nenasadilo; konfigurace produkčního cronu ani obchodní hodnoty se neměnily. Vlastní admin UI se v těchto balících nestavěl.
+Stav celého cíle: PARTIAL vůči NEXUS_AUTONOMY_SPEC.md. Všech šest navazujících backendových balíků má stav VERIFIED a je commitnutých, pushnutých a sloučených do master. Nic se nenasadilo; konfigurace produkčního cronu ani obchodní hodnoty se neměnily. Vlastní admin UI se v těchto balících nestavěl.
 
 ## Dokončené balíky
 
@@ -11,24 +11,27 @@ Stav celého cíle: PARTIAL vůči NEXUS_AUTONOMY_SPEC.md. Všech pět navazují
 | 3 | medusa-inbox, #13, 45630ce | Trvalý příjem ověřené události s tenantem a odkazem na záznam před HTTP 200. Souběh, konflikt, historické receipts a neznámé typy mají bezpečné chování. | [CI 38819618651](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38819618651), [záznam](evidence/medusa-inbox-20261016.json) |
 | 4 | operations-status, #14, 5672898 | Chráněné API provozních stavů pro správce. Lidské slovenské popisy, tenant izolace, žádné payloady/klíče/raw chyby; neplatné spojení není falešný zdravý přehled. | [CI 38820524945](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38820524945), [záznam](evidence/operations-status-20261016.json) |
 | 5 | medusa-delivery, #16, 606e1d5 | Skutečné události Medusy spouští uložený workflow, který podepisuje minimální odkaz a doručuje jej do inboxu. Omezené retry, ověřené potvrzení, replay a chyba k dohledání. | [CI 38825594461](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38825594461), [záznam](evidence/medusa-event-delivery-20261016.json) |
+| 6 | booking-inbox, #18, 8112f27 | Spotřebitel order.placed nativně synchronizuje rezervaci a vyžaduje samostatný autoritativní read-back. Trvalý claim, izolace tenantů, obnova UNKNOWN bez slepého zápisu, souběh a pád před potvrzením inboxu. | [CI 38882048007](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38882048007), [záznam](evidence/booking-inbox-20261016.json) |
 
 ## Poslední plná regrese
 
-Ověřený HEAD 606e1d5, testovací merge 70dad44. Stromy backend/NEXUS/storefront na master po sloučení odpovídají ověřenému kandidátovi; hashe jsou v posledním důkazu.
+Ověřený HEAD 8112f27, testovací merge d90ccab. Stromy backend/NEXUS/storefront na master po sloučení odpovídají ověřenému kandidátovi; hashe jsou v posledním důkazu.
 
-- Backend: 602/602 unit testů PASS, TypeScript PASS.
+- Backend: 629/629 unit testů PASS, TypeScript PASS.
 - NEXUS: 1230/1230 unit/integration testů PASS, TypeScript PASS.
-- Skutečný workerd/D1: 111/111 PASS, TypeScript PASS.
-- Izolovaná Medusa + PostgreSQL: 137 HTTP scénářů PASS.
+- Skutečný workerd/D1: 130/130 PASS, TypeScript PASS.
+- Izolovaná Medusa + PostgreSQL: 140 HTTP scénářů PASS.
 - Storefront se v těchto balících neměnil. Jeho dřívější ověření zůstává v INTEGRATION_STATUS.md; nové běhy storefrontu se bez změny neopakovaly.
+
+Nový spotřebitel rezervací prošel 19 skutečnými D1 testy a třemi HTTP/PG scénáři včetně opravy vynechaného potvrzení po capture, replay a zákazu oživení zrušené rezervace. Nová migrace 0007 je nutná před budoucím nasazením Workeru; nasazení se neprovádělo.
 
 HTTP scénář admin proxy používá pravou Medusa autentizaci a lokální HTTP zdroj. Nový scénář doručení používá pravou Medusa událost, uložený workflow a PostgreSQL; příjemce je lokální HTTP fixture. Obnova po ztracené odpovědi, 409 bez opakování a 503 s vyčerpáním čtyř pokusů prošly. Vlastní příjem a read model se zvlášť ověřují proti skutečné D1. Nezaměňuje se to za důkaz živého produkčního spojení.
 
-Tento souhrn a příslušné důkazy aktualizují předběžné IMPLEMENTED_UNVERIFIED v backend/docs/wp/operations-status.md a backend/docs/wp/medusa-event-delivery.md. Ostatní balíky mají finální důkaz doplněný v dokumentech intent-recovery.md, stored-intent-reconciliation.md a medusa-webhook-inbox.md. Starší integrační záznam z 15. 10. zůstává historií svého běhu.
+Tento souhrn a příslušné důkazy aktualizují předběžné IMPLEMENTED_UNVERIFIED v backend/docs/wp/operations-status.md, backend/docs/wp/medusa-event-delivery.md a backend/docs/wp/booking-inbox.md. Ostatní balíky mají finální důkaz doplněný v dokumentech intent-recovery.md, stored-intent-reconciliation.md a medusa-webhook-inbox.md. Starší integrační záznam z 15. 10. zůstává historií svého běhu.
 
 ## Co následuje podle stejného plánu
 
-1. Napojit spotřebitele inboxu na konkrétní obchodní operaci a autoritativní ověření výsledku. Nativní doručování skutečných událostí Medusy je nyní ověřené, ale příjem není provedení operace. Nezapínat podruhé již existující Medusa efekty ani předstírané registry ERP/dopravců.
+1. Rozšířit ověřený tok rezervací na události zachycení platby a zrušení objednávky, potom na další domény. Spotřebitel order.placed pro rezervace je ověřený; ostatní obchodní efekty a customer.created ještě vlastní spotřebitele nemají. Nezapínat podruhé existující Medusa efekty ani předstírané registry ERP/dopravců.
 2. Pro každou operaci určit autoritativní čtení, potvrzení, idempotenci, deadline a bezpečnou reakci na nejistotu. Navázat na již hotové nativní Medusa workflows/subscribery; nevytvářet další obchodní databázi ani univerzální framework.
 3. Prověřit a nastavit řízené opakování nativních událostí. Produkční konfigurace již vyžaduje Redis/event bus/workflow engine. Instalovaný @medusajs/event-bus-redis 2.19 používá bez override attempts: 1; globální retry se nezapíná bez důkazu idempotence všech příslušných efektů. Nové doručování má vlastní uložený workflow se 3 retry a nepřepíná globální politiku; okno selhání před prvním checkpointem a restart Redis ještě vyžadují vlastní ověření. Některá zákaznická upozornění chybu potlačují; log odeslání není důkaz doručení.
 4. Doplnit bezpečné obslužné akce a audit po napojení konkrétních toků. Provozní přehled je nyní pouze pro čtení; správce nemůže tlačítkem označit neověřenou platbu za úspěšnou.
