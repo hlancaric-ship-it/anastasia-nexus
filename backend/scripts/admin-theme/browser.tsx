@@ -28,7 +28,7 @@ function button(label:string){const b=[...document.querySelectorAll('button')].f
 function radio(value:string){const el=document.querySelector<HTMLInputElement>(`input[name=admin-scheme][value=${value}]`)!;el.click()}
 function fill(id:string,value:string){const el=document.getElementById(id) as HTMLInputElement;Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(el,value);el.dispatchEvent(new Event('input',{bubbles:true}))}
 const frame=()=>document.querySelector<HTMLElement>('.anastasia-admin')!
-const report=(value:unknown)=>{document.getElementById('result')!.textContent=JSON.stringify(value)}
+const report=(value:unknown)=>{document.getElementById('result')!.textContent=JSON.stringify(value);if(window.parent!==window)window.parent.postMessage(value,window.location.origin)}
 void(async()=>{
  await wait(()=>document.querySelectorAll('input[name=admin-scheme]').length===5&&!document.querySelector<HTMLInputElement>('input[name=admin-scheme]')!.matches(':disabled'))
  assert(frame().dataset.theme==='original','original site palette is initial theme')
