@@ -1,0 +1,50 @@
+{
+  "status": "VERIFIED",
+  "scope": "Native capture/cancellation events -> durable inbox -> existing booking module and separate authoritative read-back; not full platform autonomy",
+  "source_head": "d2163da7ca0a6d09222c85af43dc9fc6c16b24a6",
+  "tested_merge": "61fb18313d979e526823e35fa5d23d98c8b841df",
+  "merged_master": "e75cb59c59721601fa38da922f4b8ff0715946ce",
+  "pull_request": 20,
+  "ci_run": 38884189589,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38884189589",
+  "results": {
+    "backend_unit": 637,
+    "nexus_unit_integration": 1230,
+    "workerd_d1": 139,
+    "http_postgresql_scenarios": 142
+  },
+  "new_scenarios": [
+    {
+      "scenario": "BOOKING_PAYMENT_EVENT_NATIVE_LINK",
+      "status": "PASS",
+      "paymentToOrderResolvedByServer": true,
+      "callerOrderRejected": 400,
+      "missingLink": 409
+    },
+    {
+      "scenario": "MEDUSA_CAPTURE_OCCURRENCE_DELIVERY",
+      "status": "PASS",
+      "nativeBusGroups": 2,
+      "distinctDeliveries": 2
+    }
+  ],
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "backend-unit.json": "dfccf5f5583ab6683389fe0ee59fc717a666db7e05a944cbd3c14b888e4f53b6",
+    "nexus.json": "8e7a508b00c26b91f60d91db1ae331a977a62f8c6819ad5b3144c82198a5b09b",
+    "workerd.json": "a19b917074df4474fd77312ed356915132d077ed74fd434b3d52ddd82d9d4eeb",
+    "medusa-persistence-evidence.json": "03650ca4fcdb711fc1b29e96ff7d2f06cc4d3e5868281f183c9171da669db88a"
+  },
+  "trees": {
+    "backend": "7e35a8475cd9ea63ec4cd2cd16639a9848f211d9",
+    "nexus": "799bb889edbd506799eac76e5d6279a0733574d3",
+    "storefront-prototype": "cd1ba7c4458c6361914d6b7a0179b21d27299c95"
+  },
+  "migration": "No new migration; requires previous 0007",
+  "limits": [
+    "Actual native event-bus groups and stored Medusa workflows deliver to an explicit local HTTP fixture; actual D1 tests use a separate connector fixture.",
+    "Production URLs/secrets/cron and Redis restart are not configured, deployed or verified.",
+    "Only booking consistency is consumed; customer.created, email reliability, other business effects and the window before the first workflow checkpoint remain pending."
+  ]
+}
