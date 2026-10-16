@@ -1,6 +1,6 @@
 # Klub: trvalý stav v Meduse
 
-Stav: IMPLEMENTED_UNVERIFIED do CI. Závisí na pravidlech z PR #33; není hotové automatické předplatné ani veřejný API kontrakt.
+Stav: VERIFIED pro transakční ukládání a deduplikaci dokladů. Závisí na pravidlech z PR #33; není hotové automatické předplatné ani veřejný API kontrakt.
 
 Modul `membership` ukládá členství a globálně unikátní spotřebu objednávky do PostgreSQL. Každá změna běží v nativní transakci s PostgreSQL advisory lockem; zápis stavu a potvrzení platby patří do stejné transakce. Inicializace je deduplikovaná první objednávkou, obnova spotřebuje jen objednávku vázanou na aktuální klíč. Unikátní indexy zůstávají účinné i při soft-delete; tentýž platební doklad nesmí založit druhé členství.
 
@@ -17,3 +17,5 @@ Chybí: loader ověřených faktů z Medusy, trvalý checkout/reconciliation ada
 ## Ověření
 
 Cílené pravidlové testy a TypeScript lokálně; skutečné Medusa/PostgreSQL testy pouze v izolované CI. Dvě integrační cesty ověřují souběžnou inicializaci a obnovu, replay, trvalý unknown, cizí zákaznici, globální spotřebu objednávky včetně soft-delete, rollback neplatné změny a zastavení obnovy. Plná regrese jen CI. Nic se neslučuje ani nenasazuje.
+
+Finální [důkaz](evidence/membership-state-ci.json): cílenáCI38967357782 unit33/33,backendtsc,skutečnáMedusa/PG2/2 PASS. PlnáCI38967357651 backend705/705,NEXUS1230/1230,workerd139/139,HTTP151/151 PASS. První pokus odhalil chybnou práci testu s runnerovým dbConnection proxy; opraveno čtením skutečného native Knexu. Runtime produkční kód se při této opravě neměnil.
