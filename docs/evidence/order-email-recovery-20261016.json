@@ -1,0 +1,77 @@
+{
+  "status": "VERIFIED",
+  "scope": "Native order.placed -> stored bounded Medusa workflow -> existing native notification receipt; not full notification lifecycle autonomy",
+  "source_head": "e3fac14777afc016d364d0cf438214cc2aec7805",
+  "tested_merge": "9e4295b2f719e0b9a99af68be766f8478246b57c",
+  "merged_master": "5dc20005ba8c38548d61dfd1ce2bc891a3ca1fd2",
+  "pull_request": 24,
+  "ci_run": 38891377081,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38891377081",
+  "results": {
+    "backend_unit": 672,
+    "nexus_unit_integration": 1230,
+    "workerd_d1": 139,
+    "http_postgresql_scenarios": 151
+  },
+  "new_scenarios": [
+    {
+      "scenario": "ORDER_EMAIL_NATIVE_SOURCE_AND_REPLAY",
+      "status": "PASS",
+      "storedWorkflow": true,
+      "nativeNotificationRows": 1
+    },
+    {
+      "scenario": "ORDER_EMAIL_RECOVERY_BEFORE_NATIVE_WRITE",
+      "status": "PASS",
+      "calls": 2,
+      "nativeWrites": 1,
+      "checkpointBeforeEffect": true
+    },
+    {
+      "scenario": "ORDER_EMAIL_RECOVERY_AFTER_NATIVE_SUCCESS",
+      "status": "PASS",
+      "calls": 1,
+      "nativeWrites": 1,
+      "checkpointBeforeEffect": true
+    },
+    {
+      "scenario": "ORDER_EMAIL_RECOVERY_EXHAUSTED",
+      "status": "PASS",
+      "calls": 4,
+      "nativeWrites": 0,
+      "checkpointBeforeEffect": true
+    },
+    {
+      "scenario": "ORDER_EMAIL_UNKNOWN_NO_RESEND",
+      "status": "PASS",
+      "failedNativeRowUnchanged": true,
+      "escalated": true
+    },
+    {
+      "scenario": "ORDER_EMAIL_NATIVE_SUPPRESSION",
+      "status": "PASS",
+      "nativeOptOutHonored": true,
+      "notificationRows": 0
+    }
+  ],
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "backend-unit.json": "2861dc4aa5c952106a2d126a348a5a787c8b1277f35f7a9f6bc7ac7c4cb187de",
+    "nexus.json": "c0f73eb6408b17af02d642448aa765a28b8cfa3d030bbcb073eed9ab23af685c",
+    "workerd.json": "3da729dd9d27837fbc723bc2395530f0e0d61f03318bfed45c3569bfdb2f49c8",
+    "medusa-persistence-evidence.json": "a929168f2b302106338f9ae1a0bcf291c0e855f0b2ffce73768c74637ff9bedb"
+  },
+  "trees": {
+    "backend": "c43f0952621c458ff63e8357d00bb0f5671c828e",
+    "nexus": "799bb889edbd506799eac76e5d6279a0733574d3",
+    "storefront-prototype": "cd1ba7c4458c6361914d6b7a0179b21d27299c95"
+  },
+  "migration": "None",
+  "limits": [
+    "Native source and stored workflow/PostgreSQL were verified with the synthetic log notification provider; no external email was sent.",
+    "Failure injection decorates the matching native method before write or after success; it does not model real provider network behavior or prove mailbox delivery.",
+    "Redis/process restart and the window before the first stored workflow checkpoint are not verified. Existing NEXUS_TENANT_ID must be configured; absent or mismatched tenant is rejected.",
+    "Only order.placed confirmations are recovered; other notification types and historical event backfill remain pending. No deployment or global bus retry change."
+  ]
+}
