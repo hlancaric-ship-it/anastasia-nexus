@@ -38,6 +38,7 @@ type OrderRow = OrderPaymentView & {
   id: string
   display_id?: number | string | null
   email?: string | null
+  no_notification?: boolean
   currency_code?: string | null
   item_total?: unknown
   shipping_total?: unknown
@@ -49,7 +50,7 @@ type OrderRow = OrderPaymentView & {
 }
 
 const ORDER_FIELDS = [
-  "id", "display_id", "email", "currency_code", "status", "total", "item_total", "shipping_total", "discount_total",
+  "id", "display_id", "email", "no_notification", "currency_code", "status", "total", "item_total", "shipping_total", "discount_total",
   "customer.first_name", "shipping_address.first_name", "billing_address.first_name",
   "items.title", "items.product_title", "items.quantity", "items.total",
   "payment_collections.captured_amount", "payment_collections.refunded_amount", "payment_collections.payments.captured_at",
@@ -133,6 +134,7 @@ export async function notifyOrderPlaced(container: Container, orderId: string): 
   return result(container, fields, async () => {
     const order = await loadOrder(container, orderId)
     if (!order) return skip("ORDER_NOT_FOUND")
+    if (order.no_notification === true) return skip("NO_NOTIFICATION")
     const to = clean(order.email)
     if (!to) return skip("NO_EMAIL")
     return send(container, {

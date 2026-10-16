@@ -19,7 +19,7 @@ export async function recoverOrderEmail(container: MedusaContainer, input: Order
   orderEmailOperationId(input)
   if (input.tenantId !== process.env.NEXUS_TENANT_ID) throw new OrderEmailRecoveryError(false, 'TENANT_MISMATCH')
   const result = await notifyOrderPlaced(container, input.orderId)
-  if (result.status === 'sent' || result.status === 'duplicate' || result.reason === 'TEMPLATE_DISABLED') return result
+  if (result.status === 'sent' || result.status === 'duplicate' || ['TEMPLATE_DISABLED', 'NO_NOTIFICATION'].includes(result.reason ?? '')) return result
   if (result.reason !== 'SEND_FAILED') throw new OrderEmailRecoveryError(false, 'BUSINESS_CONTEXT_UNAVAILABLE')
 
   // Medusa commits the unique native notification before invoking its provider.

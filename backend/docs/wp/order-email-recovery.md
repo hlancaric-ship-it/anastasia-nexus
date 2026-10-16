@@ -25,7 +25,8 @@ ani produkční Redis konfigurace se nepřepínají.
 ## Pravidla obnovy
 
 - `sent/duplicate` vyžadují předchozí nezávislé čtení nativního SUCCESS
-  v centrální cestě. Vypnutá nepovinná šablona skončí jako úmyslně přeskočená.
+  v centrální cestě. Vypnutá nepovinná šablona či nativní `no_notification`
+  skončí jako úmyslně přeskočené, nikoliv odeslané.
 - Při SEND_FAILED se samostatně načte nativní notification stejného klíče.
   Není-li záznam, je možný další omezený pokus: instalovaný Medusa 2.19
   nejprve commitne notification s unikátním klíčem, až potom volá provider.
@@ -39,11 +40,14 @@ ani produkční Redis konfigurace se nepřepínají.
 
 Předchozí objednávka, platba nebo rezervace se při chybě oznámení neruší.
 Handler je nativní background subscriber, nikoliv checkout hook.
+Kontrola zdroje anonymizace ukázala, že nastavuje order.no_notification,
+ale potvrzení objednávky jej dosud nečetlo. `notifyOrderPlaced` nyní tento
+existující nativní zákaz načítá a respektuje i při obnoveném pokusu.
 
 ## Ověření
 
 Lokálně `npm run test:unit -- --runInBand src/lib/email/__tests__
-src/lib/notify/__tests__`: **54/54 PASS**; `npx tsc --noEmit`: PASS.
+src/lib/notify/__tests__`: **56/56 PASS**; `npx tsc --noEmit`: PASS.
 Plné backend/HTTP/PG běhy pouze GitHub Actions.
 
 Unit testy pokrývají stabilitu identity, izolaci tenantů, neplatné reference,

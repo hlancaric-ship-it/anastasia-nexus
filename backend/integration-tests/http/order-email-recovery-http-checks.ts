@@ -75,5 +75,13 @@ export async function verifyOrderEmailRecovery({ container, dbConnection, eviden
     expect(audit.length).toBeGreaterThan(0)
     expect(JSON.stringify(audit)).not.toContain(order.email)
     evidence.push({ scenario: 'ORDER_EMAIL_UNKNOWN_NO_RESEND', status: 'PASS', failedNativeRowUnchanged: true, escalated: true })
+
+    const suppressed = await newOrder(), suppressedInput = reference(suppressed.id)
+    // Existing erasure code sets this authoritative native flag as well.
+    await dbConnection.raw('UPDATE "order" SET no_notification = true WHERE id = ?', [suppressed.id])
+    await run(suppressedInput)
+    await waitFor(async () => (await execution(container, orderEmailOperationId(suppressedInput)))?.state === 'done')
+    expect(await notifications.listNotifications({ idempotency_key: `order.placed:${suppressed.id}` })).toHaveLength(0)
+    evidence.push({ scenario: 'ORDER_EMAIL_NATIVE_SUPPRESSION', status: 'PASS', nativeOptOutHonored: true, notificationRows: 0 })
   } finally { notifications.createNotifications = original }
 }

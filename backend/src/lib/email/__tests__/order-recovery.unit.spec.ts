@@ -19,7 +19,7 @@ it('rejects foreign tenant before reading or sending', async () => {
   await expect(recoverOrderEmail({} as any, { ...reference, tenantId: 'foreign' })).rejects.toMatchObject({ retryable: false, reason: 'TENANT_MISMATCH' })
   expect(sender).not.toHaveBeenCalled()
 })
-it.each([{ status: 'sent' }, { status: 'duplicate' }, { status: 'skipped', reason: 'TEMPLATE_DISABLED' }])('preserves proven or intentionally disabled result %j', async result => {
+it.each([{ status: 'sent' }, { status: 'duplicate' }, { status: 'skipped', reason: 'TEMPLATE_DISABLED' }, { status: 'skipped', reason: 'NO_NOTIFICATION' }])('preserves proven or intentionally disabled result %j', async result => {
   sender.mockResolvedValueOnce(result)
   const resolve = jest.fn()
   expect(await recoverOrderEmail({ resolve } as any, reference)).toEqual(result)
