@@ -385,15 +385,16 @@
       "label_sk": "Môj vzhľad administrácie",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
-      "backend_status": "IMPLEMENTED_UNVERIFIED",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "backend_status": "VERIFIED",
+      "new_admin_status": "VERIFIED",
       "request": "Osobní motiv adminu včetně původní fialkové/modré ze starého webu, lesního/vínového/nočního a vlastních barev, serverové uložení podle uživatelky a kompaktní rozložení.",
       "sources": [
         "backend/src/api/admin/my-theme/route.ts",
         "backend/src/lib/admin-theme/policy.ts",
-        "backend/src/admin/routes/vzhlad-administracie/Appearance.tsx"
+        "backend/src/admin/routes/vzhlad-administracie/Appearance.tsx",
+        "backend/docs/wp/evidence/admin-theming-ci.json"
       ],
-      "remaining": "Osobní motiv a sdílené komponenty nového adminu implementované; plná browser/HTTP-PG CI právě následuje. Zapojení do dalších nových agend proběhne s jejich implementací; nativní referenční Medusa obrazovky se nepřebarvují.",
+      "remaining": "Osobní motiv ověřený v cílené i plné CI; zapojení sdíleného základu do dalších vlastních agend proběhne s jejich implementací. Nativní referenční Medusa obrazovky se nepřebarvují.",
       "acceptance": "Nastavení přežije přihlášení; kontrast i fokus čitelné; při 200% zoomu a malé obrazovce lze scrollovat k obsahu."
     },
     {

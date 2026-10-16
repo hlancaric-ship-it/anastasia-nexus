@@ -43,7 +43,7 @@ Toto je cílová informační architektura, nikoli hotové menu. V první C5 ver
 
 ## Matice funkcí, podkladu a mezery
 
-Nové vlastní UI je `NOT_IMPLEMENTED`, kromě osobního vzhledu adminu (`IMPLEMENTED_UNVERIFIED` před novým CI důkazem). Backendový status celých agend je `PARTIAL`, u chybějícího kontraktu `NOT_IMPLEMENTED`; stav jednotlivých ověřených podtoků viz jejich CI důkazy. Nativní API se znovu neimplementují. Sloupec testu je **akceptační kritérium pro budoucí implementaci**, ne právě provedený test.
+Nové vlastní UI je `NOT_IMPLEMENTED`, kromě osobního vzhledu adminu (`VERIFIED` v rozsahu osobních preferencí, viz [důkaz](evidence/admin-theming-ci.json)). Backendový status celých agend je `PARTIAL`, u chybějícího kontraktu `NOT_IMPLEMENTED`; stav jednotlivých ověřených podtoků viz jejich CI důkazy. Nativní API se znovu neimplementují. Sloupec testu je **akceptační kritérium pro budoucí implementaci**, ne právě provedený test.
 
 | ID / obrazovka | Pořadí / podklad | Požadavek | Co zbývá |
 |---|---|---|---|
@@ -72,7 +72,7 @@ Nové vlastní UI je `NOT_IMPLEMENTED`, kromě osobního vzhledu adminu (`IMPLEM
 | multi-site — **Ďalšie weby** | PHASE2; Chybí vlastní kontrakt | Společná správa anastasia.academy a aianastasia.com bez druhé databáze zákaznic. | Doplnit registr webů, oprávnění, obsah a přepnutí kontextu; sjednané ve fázi 2. |
 | translations — **Jazyky a preklady** | PHASE2; Nativní Medusa; nové UI a vazby chybí | SK/EN/RU, ruční oprava překladů a stav úplnosti, žádné prázdné povinné texty. | Medusa locales/translations neřeší automaticky celý web, CMS a média; doplnit publikaci a překlady obsahu. |
 | branding — **Farby a vzhľad webov** | NEXT; Chybí vlastní kontrakt | Sama změnit barvy, loga a texty jednotlivých webů; jednotná konzistentní pole bez modrého autofillu. | Bezpečné tokeny vzhledu a uložení po webech nejsou implementované; žádný libovolný script/CSS editor. |
-| admin-preferences — **Môj vzhľad administrácie** | NEXT; Chybí vlastní kontrakt | Barva adminu a osobní nastavení; kompaktní karty/záložky, minimum scrollování. | Definovat uživatelské preference a napojit je na nový shell; native layouts/views nejsou důkaz hotového tématu. |
+| admin-preferences — **Môj vzhľad administrácie** | VERIFIED; vlastní `/admin/my-theme` | Pět motivů, vlastní barvy a hustota; serverové ukládání podle obsluhy. | Ověřeno browser i Medusa/PostgreSQL CI; sdílený základ se zapojí do dalších nových obrazovek při jejich implementaci. |
 | admin-account — **Môj účet a heslo** | NEXT; Nativní Medusa; nové UI a vazby chybí | Změnit vlastní heslo, odhlásit se, ztracené heslo a bezpečný přístup obsluhy. | Native emailpass reset/update existuje; chybí doložené vlastní UI a doručení reset-password události. |
 | customer-recovery — **Pomoc s prihlásením zákazníčky** | NEXT; Vlastní backend; úplná agenda částečná | Admin pomůže zákaznici obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo. | Rozlišit passwordless a emailpass; chybí chráněný admin postup obnovy se souhlasem a auditem. |
 | roles — **Prístupy spolupracovníkov** | NEXT; Nativní Medusa; nové UI a vazby chybí | Pozvánky a role pro obsluhu, podporu, finance a provoz; nejmenší potřebná práva. | Nativní rbac/invites existují, ale zapnutí a vynucení na vlastních routách není doloženo; skrytí tlačítka nestačí. |

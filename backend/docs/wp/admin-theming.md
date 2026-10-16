@@ -1,6 +1,6 @@
 # Osobní vzhled nového adminu
 
-Stav: IMPLEMENTED_UNVERIFIED do dokončení nového browser/HTTP CI. C5 obchodní obrazovky nejsou tímto balíkem dokončené. Nový vlastní admin nepřebírá admin-demo ani nativní Medusa editory.
+Stav: VERIFIED pro osobní vzhled obsluhy a sdílený základ nových obrazovek. C5 obchodní obrazovky nejsou tímto balíkem dokončené. Nový vlastní admin nepřebírá admin-demo ani nativní Medusa editory.
 
 ## Výsledek a ovládání
 
@@ -26,8 +26,6 @@ Jeden admin musí spravovat e-shop, anastasia.academy a aianastasia.com s kontex
 
 ## Ověření
 
-Lokální cílené policy/API testy: 23/23 PASS před finální typovou opravou testu; finální opakování a oba TypeScript checky následují. Mimo jiné kontrast všech textových párů min. 4,5:1, všech 256 odstínů šedi pro vlastní barvy, odmítnutí CSS injection, vlastní účet, zachování metadata, replay a konflikt revize.
+[Důkaz CI](evidence/admin-theming-ci.json): cílené testy 23/23 PASS a oba TypeScript checky PASS. Skutečný Chrome na Linuxu: 42/42 kontrol při přesných viewportech 1440 a 390 px (iframe, šířka ověřena proti window.innerWidth). Browser používá syntetický transport; persistenci samostatně ověřil skutečný Medusa server s PostgreSQL, 1/1 scénář včetně vlastní identity, read-back, replay, odmítnutí cizího ID a souběhu změn. [Cílený běh](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38956783862).
 
-Browser fixture spouští skutečnou React obrazovku v Chrome se syntetickým HTTP transportem, ve StrictMode a při 1440/390 px. Není důkazem DB persistence. Lokální headless Chrome na tomto Macu dvakrát nedoběhl (`CVDisplayLinkCreateWithCGDisplay failed`, po 60 s ukončen). Browser výsledek není označen PASS; workflow jej ověří na Linuxu a uloží snímky. Proces a dočasný profil fixture se uklízejí.
-
-Samostatný `admin-theme.yml` používá syntetickou PostgreSQL service a skutečný Medusa server/auth/users API pro test vlastního profilu, odmítnutí cizího ID, persistenci, read-back, replay a souběh dvou různých revizních změn. Vstup suite je CI-only a vyžaduje specifického syntetického DB uživatele a název DB. Nesahá do Claudova HTTP runneru/middleware. Lokální PG/HTTP ani plné testy se nespouštějí; širší regrese jen existující CI. Nic se nenasazuje ani neslučuje automaticky.
+[Plná regrese](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38955830769): backend 696/696, NEXUS 1230/1230, workerd 139/139, Medusa HTTP 151/151 PASS. Následná změna zpřesnila pouze browser harness na přesnou mobilní šířku; runtime zdroje jsou stejné. Lokální Mac Chrome nedoběhl; browser byl proto ověřen na Linux CI. Plné testy a PostgreSQL/HTTP pouze CI, bez zásahu do Claudova runneru/middleware, bez merge a deploye.

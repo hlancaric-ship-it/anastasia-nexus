@@ -1,0 +1,36 @@
+{
+  "status": "VERIFIED",
+  "scope": "Osobní vzhled obsluhy a sdílený základ nových vlastních admin obrazovek; nikoli celý admin nebo CMS.",
+  "focused_ci": {
+    "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38956783862",
+    "source": "0628c87303fa80838031025cabea94915d3b7c13",
+    "tested_merge": "978a4ddee3612ba2c79188c7e414c13a1188044d",
+    "unit_pass": 23,
+    "typescript": [
+      "backend PASS",
+      "admin PASS"
+    ],
+    "browser_pass": 42,
+    "browser_viewports": [
+      1440,
+      390
+    ],
+    "viewport_method": "Exact iframe viewport, asserted against window.innerWidth",
+    "native_medusa_postgres_scenarios_pass": 1
+  },
+  "regression_ci": {
+    "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38955830769",
+    "source": "fea9659b045c564be293550e024c7f0b507426fe",
+    "tested_merge": "5c99d458caadc487b152be964dde77931f1940a7",
+    "backend_pass": 696,
+    "nexus_pass": 1230,
+    "workerd_pass": 139,
+    "medusa_http_pass": 151
+  },
+  "limits": [
+    "Native Medusa reference screens are not globally themed",
+    "CMS and public-site branding are separate unimplemented agendas",
+    "Distributed provider restart not verified; audit is best effort"
+  ],
+  "runtime_code_unchanged_since_regression": true
+}
