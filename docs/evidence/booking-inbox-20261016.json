@@ -1,0 +1,55 @@
+{
+  "status": "VERIFIED",
+  "scope": "order.placed inbox -> existing Medusa booking synchronization -> authoritative read-back; not full platform autonomy",
+  "source_head": "8112f27075c130159bb950bbb3a91a83e242b4a1",
+  "tested_merge": "d90ccabc4e165452ac72940d035ca950e173495b",
+  "merged_master": "9b10df67773349a9cb9440368947ddd2779b2888",
+  "pull_request": 18,
+  "ci_run": 38882048007,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38882048007",
+  "results": {
+    "backend_unit": 629,
+    "nexus_unit_integration": 1230,
+    "workerd_d1": 130,
+    "http_postgresql_scenarios": 140
+  },
+  "new_scenarios": [
+    {
+      "scenario": "BOOKING_INBOX_SIGNED_UNPAID_AND_AUTH",
+      "status": "PASS",
+      "unpaidRemainsHeld": true,
+      "foreignTenant": 403,
+      "unsigned": 401,
+      "clientPaid": 400
+    },
+    {
+      "scenario": "BOOKING_INBOX_PAID_REPAIR_READBACK_REPLAY",
+      "status": "PASS",
+      "nativeRepair": true,
+      "authoritativeReadback": true
+    },
+    {
+      "scenario": "BOOKING_INBOX_CANCELED_NOT_REVIVED",
+      "status": "PASS"
+    }
+  ],
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "backend-unit.json": "61822417cbb8e500599b063c1f5151b9efc27201f1b597d21d2c684f10acf52a",
+    "nexus.json": "04a33a9b5078a3a76b37c3000b740f003b372b4098299a9e646b5cbb9d5d86e0",
+    "workerd.json": "477f04c134a2dbfe2261fbf7fc064dfe46b3fcb33e682bf9b773adf6dbfced2f",
+    "medusa-persistence-evidence.json": "c4a98ba13ec3f86aa2473a55e2566d83af8a8bade4513fbe04621c06be5188c9"
+  },
+  "trees": {
+    "backend": "d9c34d018895bb33e824a201f033e7e56954ae4e",
+    "nexus": "9fd735c21017affa6ec921f4c91c41e68d6dc307",
+    "storefront-prototype": "cd1ba7c4458c6361914d6b7a0179b21d27299c95"
+  },
+  "migration": "nexus/migrations/0007_medusa_booking_consumer.sql",
+  "limits": [
+    "Actual D1 tests use a connector fixture; actual Medusa/PG HTTP tests verify the native booking service separately.",
+    "Production URL/secrets/cron are not configured or deployed. Redis restart and a live cross-platform E2E are not verified.",
+    "Only order.placed is consumed; payment/cancellation source event delivery, customer.created, email reliability and other domains remain pending."
+  ]
+}
