@@ -16,7 +16,8 @@ export async function inspectOrderBooking(container: Container, orderId: string)
     'items.product_id', 'payment_collections.captured_amount', 'payment_collections.refunded_amount', 'payment_collections.payments.captured_at'] })
   const order = data?.[0]
   if (!order || order.id !== orderId) throw new BookingSyncError(404)
-  if (order.total == null || !order.status || !Array.isArray(order.items)) throw new BookingSyncError(409)
+  if (order.total == null || typeof order.total === 'boolean' || (typeof order.total === 'string' && !order.total.trim()) ||
+      !Number.isFinite(Number(order.total)) || Number(order.total) < 0 || !order.status || !Array.isArray(order.items)) throw new BookingSyncError(409)
   const bookingId = order.metadata?.booking_id
   const mismatch: Inspection = { synchronized: false, result: 'MISMATCH', canSynchronize: false }
   if (!bookingId) {

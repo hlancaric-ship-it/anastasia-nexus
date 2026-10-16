@@ -56,3 +56,9 @@ it('accepts no booking only after checking the actual product requirements', asy
   f.graph.mockImplementation(async ({ entity }: any) => ({ data: entity === 'order' ? [f.order] : [{ id: 'prod_synthetic', metadata: { booking: {} } }] }))
   expect(await inspectOrderBooking(f.container, f.order.id)).toMatchObject({ synchronized: false })
 })
+
+it.each([NaN, Infinity, -1, '', 'invalid', true, null])('rejects invalid authoritative monetary data before synchronization: %s', async total => {
+  const f = fixture(); f.order.total = total; f.booking.status = 'held'
+  await expect(synchronizeOrderBooking(f.container, f.order.id)).rejects.toMatchObject({ status: 409 })
+  expect(confirmBookingForOrder).not.toHaveBeenCalled()
+})
