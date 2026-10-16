@@ -16,7 +16,9 @@ export async function bookingOperationId(tenantId: string, eventId: string, orde
 
 function configuration(env: Env) {
     if (!env.MEDUSA_BOOKING_SYNC_URL) return null;
-    const url = new URL(env.MEDUSA_BOOKING_SYNC_URL);
+    let url: URL;
+    try { url = new URL(env.MEDUSA_BOOKING_SYNC_URL); }
+    catch { throw new Error('BOOKING_INBOX_CONFIGURATION_INVALID'); }
     const tenantId = env.MEDUSA_PRICING_TENANT_ID;
     const secret = env.MEDUSA_BOOKING_SYNC_SECRET;
     if (!tenantId || !/^[a-z0-9_-]{2,32}$/.test(tenantId) || !secret || secret.length < 32 ||
