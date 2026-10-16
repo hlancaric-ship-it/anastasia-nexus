@@ -74,3 +74,16 @@ it('does not turn a permanent rejection into a retry when response cleanup fails
   const response = { ok: false, status: 403, body: { cancel: async () => { throw new Error('private-cleanup-error') } } } as unknown as Response
   await expect(deliverMedusaEvent(input, env, async () => response)).rejects.toMatchObject({ retryable: false })
 })
+it('keeps retries of one capture stable while separating later partial captures of the same payment', () => {
+  const capture = { ...input, event: 'payment.captured' as const, targetId: 'pay_synthetic', occurrenceId: 'native_group_a' }
+  expect(deliveryId(capture)).toBe(deliveryId({ ...capture }))
+  expect(deliveryId(capture)).not.toBe(deliveryId({ ...capture, occurrenceId: 'native_group_b' }))
+  expect(deliveryId(capture)).not.toBe(deliveryId({ ...capture, targetId: 'pay_other' }))
+  expect(() => deliveryId({ ...capture, occurrenceId: undefined })).toThrow()
+  expect(() => deliveryId({ ...input, occurrenceId: 'unexpected' })).toThrow()
+})
+it('gives terminal cancellation a distinct stable identity from order creation', () => {
+  const canceled = { ...input, event: 'order.canceled' as const }
+  expect(deliveryId(canceled)).not.toBe(deliveryId(input))
+  expect(deliveryId(canceled)).toBe(deliveryId({ ...canceled }))
+})

@@ -51,7 +51,7 @@ it('does not conceal a missing order', async () => {
   await expect(inspectOrderBooking(f.container, f.order.id)).rejects.toMatchObject({ status: 404 })
 })
 it('accepts no booking only after checking the actual product requirements', async () => {
-  const f = fixture(); f.order.metadata = {}
+  const f = fixture(); f.order.metadata = {}; f.listBookings.mockResolvedValueOnce([])
   expect(await inspectOrderBooking(f.container, f.order.id)).toMatchObject({ synchronized: true, result: 'NO_BOOKING' })
   f.graph.mockImplementation(async ({ entity }: any) => ({ data: entity === 'order' ? [f.order] : [{ id: 'prod_synthetic', metadata: { booking: {} } }] }))
   expect(await inspectOrderBooking(f.container, f.order.id)).toMatchObject({ synchronized: false })
@@ -60,5 +60,12 @@ it('accepts no booking only after checking the actual product requirements', asy
 it.each([NaN, Infinity, -1, '', 'invalid', true, null])('rejects invalid authoritative monetary data before synchronization: %s', async total => {
   const f = fixture(); f.order.total = total; f.booking.status = 'held'
   await expect(synchronizeOrderBooking(f.container, f.order.id)).rejects.toMatchObject({ status: 409 })
+  expect(confirmBookingForOrder).not.toHaveBeenCalled()
+})
+
+it('does not mistake a lost metadata link for the absence of an active reservation', async () => {
+  const f = fixture(); f.order.metadata = {}
+  expect(await synchronizeOrderBooking(f.container, f.order.id)).toMatchObject({ synchronized: false, canSynchronize: false })
+  expect(f.listBookings).toHaveBeenCalledWith({ order_id: f.order.id, status: ['held', 'confirmed'] }, { take: 1, select: ['id'] })
   expect(confirmBookingForOrder).not.toHaveBeenCalled()
 })

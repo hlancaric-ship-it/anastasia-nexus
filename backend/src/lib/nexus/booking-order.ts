@@ -25,6 +25,8 @@ export async function inspectOrderBooking(container: Container, orderId: string)
     if (!ids.length) return mismatch
     const { data: products } = await query.graph({ entity: 'product', fields: ['id', 'metadata'], filters: { id: ids } })
     if (products.length !== ids.length || products.some((p: any) => p.metadata?.booking)) return mismatch
+    const active = await (container.resolve('booking') as any).listBookings({ order_id: orderId, status: ['held', 'confirmed'] }, { take: 1, select: ['id'] })
+    if (active.length) return mismatch // Missing metadata cannot hide an existing active reservation.
     return { synchronized: true, result: 'NO_BOOKING', canSynchronize: false }
   }
   if (typeof bookingId !== 'string' || !order.customer_id) return mismatch

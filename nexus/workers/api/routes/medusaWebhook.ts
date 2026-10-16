@@ -4,7 +4,7 @@ import type { Env } from '../types.js';
 
 const ID = /^[A-Za-z0-9_-]{1,128}$/;
 const EVENT = /^[a-z][a-z0-9_.-]{0,63}$/;
-const KNOWN_EVENTS = new Set(['order.placed', 'customer.created']);
+const KNOWN_EVENTS = new Set(['order.placed', 'customer.created', 'order.canceled', 'payment.captured']);
 
 async function readBody(request: Request): Promise<string> {
     if (!request.body) return '';

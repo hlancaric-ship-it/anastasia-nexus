@@ -5,25 +5,28 @@ import { D1ExecutionIntentStore } from '../../connectors/d1/D1ExecutionIntentSto
 import type { Env } from '../../workers/api/types.js';
 const T0 = '2026-10-16T10:00:00.000Z';
 const now = Date.parse(T0);
-async function fixture() {
+async function fixture(eventType = 'order.placed') {
     const tenant = `bkt_${crypto.randomUUID().replaceAll('-', '').slice(0, 16)}`;
     const event = `evt_${crypto.randomUUID()}`;
-    const order = `order_${crypto.randomUUID()}`;
+    const order = `${eventType === 'payment.captured' ? 'pay' : 'order'}_${crypto.randomUUID()}`;
     const config = { DB: env.DB, HMAC_SECRET: 'synthetic-hmac', MEDUSA_PRICING_TENANT_ID: tenant,
         MEDUSA_BOOKING_SYNC_URL: 'https://medusa.example.test/hooks/nexus/booking-order',
         MEDUSA_BOOKING_SYNC_SECRET: 'synthetic-booking-sync-secret-32-characters' } as Env;
     await env.DB.prepare(`INSERT INTO medusa_webhook_inbox(tenant_id,event_id,event_type,target_id,envelope_hash,processing_state,received_at)
-        VALUES (?,?,'order.placed',?,?,'RECEIVED',?)`).bind(tenant,event,order,'a'.repeat(64),T0).run();
+        VALUES (?,?,?,?,?,'RECEIVED',?)`).bind(tenant,event,eventType,order,'a'.repeat(64),T0).run();
     const id = await bookingOperationId(tenant,event,order);
     const store = new D1ExecutionIntentStore(env.DB);
     const inbox = () => env.DB.prepare('SELECT processing_state, operation_id FROM medusa_webhook_inbox WHERE tenant_id = ? AND event_id = ?').bind(tenant,event).first();
-    const reply = (body: Record<string, unknown>, synchronized = true) => new Response(JSON.stringify({ ok: true, version: 1,
-        tenantId: tenant, operationId: id, orderId: order, synchronized, result: synchronized ? 'CONFIRMED' : 'MISMATCH', ...body }));
+    const reply = (body: Record<string, unknown>, synchronized = true) => new Response(JSON.stringify({ ok: true,
+        ...(eventType === 'payment.captured' ? { version: 2, eventType, targetId: order, orderId: 'order_resolved' } : { version: 1, orderId: order }),
+        tenantId: tenant, operationId: id, synchronized, result: synchronized ? eventType === 'order.canceled' ? 'CANCELED' : 'CONFIRMED' : 'MISMATCH', ...body }));
     const request = vi.fn(async (_url: unknown, options: RequestInit) => {
         expect(options.redirect).toBe('error'); expect(options.signal).toBeDefined();
         const body = JSON.parse(options.body as string);
-        expect(body).toMatchObject({ version: 1, tenantId: tenant, operationId: id, orderId: order });
-        expect(Object.keys(body).sort()).toEqual(['mode','operationId','orderId','tenantId','version']);
+        expect(body).toMatchObject({ tenantId: tenant, operationId: id,
+            ...(eventType === 'payment.captured' ? { version: 2, eventType, targetId: order } : { version: 1, orderId: order }) });
+        expect(Object.keys(body).sort()).toEqual(eventType === 'payment.captured'
+            ? ['eventType','mode','operationId','targetId','tenantId','version'] : ['mode','operationId','orderId','tenantId','version']);
         return reply({});
     });
     return { tenant,event,order,id,config,store,inbox,reply,request,context: { tenantId: tenant, platform: 'medusa' as const } };
@@ -151,4 +154,24 @@ it('keeps identical event and order IDs isolated between configured tenants', as
     const foreign=await env.DB.prepare('SELECT processing_state,operation_id FROM medusa_webhook_inbox WHERE tenant_id=? AND event_id=?').bind(other,f.event).first();
     expect(foreign).toMatchObject({processing_state:'RECEIVED',operation_id:null});
     expect(await f.store.findById(other,f.id)).toBeUndefined();
+});
+
+it.each(['order.canceled', 'payment.captured'])('processes a native lifecycle source with a stable intent and read-back: %s', async type => {
+    const f = await fixture(type);
+    await consumeBookingInbox(f.config,now,f.request as typeof fetch);
+    expect(f.request.mock.calls.map(([,o])=>JSON.parse(o.body as string).mode)).toEqual(['synchronize','inspect']);
+    expect(await f.inbox()).toMatchObject({processing_state:'PROCESSED'});
+    expect(await f.store.findById(f.tenant,f.id)).toMatchObject({state:'EXECUTED',payload:{eventType:type,targetId:f.order}});
+});
+it('does not confirm cancellation against a still-active authoritative order', async () => {
+    const f=await fixture('order.canceled');
+    f.request.mockImplementation(async ()=>f.reply({result:'CONFIRMED'}));
+    await consumeBookingInbox(f.config,now,f.request as typeof fetch);
+    expect(await f.store.findById(f.tenant,f.id)).toMatchObject({state:'UNKNOWN'});
+    expect(await f.inbox()).toMatchObject({processing_state:'PROCESSING'});
+});
+it.each([{targetId:'pay_other'},{eventType:'order.placed'},{orderId:null},{version:1}])('rejects mismatched payment-source read-back %j', async patch=>{
+    const f=await fixture('payment.captured'); f.request.mockImplementation(async ()=>f.reply(patch));
+    await consumeBookingInbox(f.config,now,f.request as typeof fetch);
+    expect(await f.store.findById(f.tenant,f.id)).toMatchObject({state:'UNKNOWN'});
 });

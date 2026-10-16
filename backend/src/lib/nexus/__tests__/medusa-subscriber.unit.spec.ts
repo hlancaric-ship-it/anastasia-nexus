@@ -36,3 +36,16 @@ it.each(['bad-config', 'storage-failure'])('surfaces and audits %s before acknow
   expect(recordEvent).toHaveBeenCalledWith({}, 'error', 'webhook', 'nexus_event_needs_review', { entity_id: 'order_synthetic', source_event: 'order.placed' })
   expect(JSON.stringify((recordEvent as jest.Mock).mock.calls)).not.toContain('private')
 })
+it('retains native event-group identity for captured payments without copying provider data', async () => {
+  const event = { name: 'payment.captured', data: { id: 'pay_synthetic', amount: 999 }, metadata: { eventGroupId: 'native_group_a' } }
+  await subscriber({ event, container: {} } as any)
+  expect(run).toHaveBeenCalledWith({ input: { tenantId: 'synthetic', event: 'payment.captured', targetId: 'pay_synthetic', occurrenceId: 'native_group_a' },
+    context: { transactionId: expect.any(String) } })
+  expect(JSON.stringify(run.mock.calls)).not.toContain('amount')
+})
+it('does not invent a random capture identity when native correlation is missing', async () => {
+  await expect(subscriber({ event: { name: 'payment.captured', data: { id: 'pay_synthetic' } }, container: {} } as any))
+    .rejects.toThrow('NEXUS_EVENT_DELIVERY_FAILED')
+  expect(run).not.toHaveBeenCalled()
+  expect(recordEvent).toHaveBeenCalled()
+})

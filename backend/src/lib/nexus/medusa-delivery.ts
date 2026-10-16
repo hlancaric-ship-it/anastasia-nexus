@@ -1,6 +1,6 @@
 import { createHash, createHmac } from 'node:crypto'
 
-export type MedusaDelivery = { tenantId: string; event: 'order.placed' | 'customer.created'; targetId: string }
+export type MedusaDelivery = { tenantId: string; event: 'order.placed' | 'customer.created' | 'order.canceled' | 'payment.captured'; targetId: string; occurrenceId?: string }
 export class MedusaDeliveryError extends Error {
   constructor(readonly retryable: boolean) { super('NEXUS_EVENT_DELIVERY_FAILED') }
 }
@@ -18,9 +18,15 @@ export function deliveryConfig(env: NodeJS.ProcessEnv = process.env) {
 }
 
 export function deliveryId(input: MedusaDelivery): string {
-  if (!/^[a-z0-9_-]{2,32}$/.test(input.tenantId) || !['order.placed', 'customer.created'].includes(input.event) ||
+  if (!/^[a-z0-9_-]{2,32}$/.test(input.tenantId) || !['order.placed', 'customer.created', 'order.canceled', 'payment.captured'].includes(input.event) ||
       !/^[A-Za-z0-9_-]{1,128}$/.test(input.targetId)) throw new MedusaDeliveryError(false)
-  // Creation events happen once per entity. Re-emission and process restart keep the same key.
+  if (input.event === 'payment.captured') {
+    // One payment can have multiple captures. Native workflow event groups survive bus retries.
+    if (typeof input.occurrenceId !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.occurrenceId)) throw new MedusaDeliveryError(false)
+    return 'mdlv_' + createHash('sha256').update(JSON.stringify([2, input.tenantId, input.event, input.targetId, input.occurrenceId])).digest('hex')
+  }
+  if (input.occurrenceId !== undefined) throw new MedusaDeliveryError(false)
+  // Creation and terminal cancellation happen once per entity; preserve their original keys.
   return 'mdlv_' + createHash('sha256').update(JSON.stringify([1, input.tenantId, input.event, input.targetId])).digest('hex')
 }
 
