@@ -2,7 +2,7 @@ import { createServer } from 'node:http'
 import { createHmac, randomUUID } from 'node:crypto'
 import { Modules } from '@medusajs/framework/utils'
 import { createCustomersWorkflow } from '@medusajs/medusa/core-flows'
-import type { IWorkflowEngineService } from '@medusajs/framework/types'
+import type { IEventBusModuleService, IWorkflowEngineService } from '@medusajs/framework/types'
 import { deliveryId } from '../../src/lib/nexus/medusa-delivery'
 import { MEDUSA_DELIVERY_WORKFLOW, medusaEventDeliveryWorkflow } from '../../src/workflows/medusa-event-delivery'
 
@@ -66,6 +66,21 @@ export async function verifyMedusaDelivery({ container, evidence }: any) {
     await medusaEventDeliveryWorkflow(container).run({ input, context: { transactionId: id } })
     expect(attempts.get(id)).toBe(1)
     evidence.push({ scenario: 'MEDUSA_NATIVE_EVENT_DURABLE_DELIVERY', status: 'PASS', checkpointBeforeSend, signed, replayRequests: 0 })
+
+    const bus = container.resolve(Modules.EVENT_BUS) as IEventBusModuleService
+    const paymentId = `pay_synthetic_${randomUUID()}`
+    const occurrenceIds = [`capture_${randomUUID()}`, `capture_${randomUUID()}`]
+    const captureDeliveryIds: string[] = []
+    for (const group of occurrenceIds) {
+      await bus.emit({ name: 'payment.captured', data: { id: paymentId }, metadata: { eventGroupId: group } })
+      await bus.releaseGroupedEvents(group)
+      const captureId = deliveryId({ tenantId: process.env.NEXUS_TENANT_ID!, event: 'payment.captured', targetId: paymentId, occurrenceId: group })
+      captureDeliveryIds.push(captureId)
+      await waitFor(async () => (await execution(captureId))?.state === 'done')
+      expect(attempts.get(captureId)).toBe(1)
+    }
+    expect(new Set(captureDeliveryIds).size).toBe(2)
+    evidence.push({ scenario: 'MEDUSA_CAPTURE_OCCURRENCE_DELIVERY', status: 'PASS', nativeBusGroups: 2, distinctDeliveries: 2 })
 
     mode = 'lost-reply'
     const uncertain = inputFor(`cus_synthetic_${randomUUID()}`)

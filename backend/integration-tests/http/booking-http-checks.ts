@@ -116,7 +116,7 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
   await capturePaymentWorkflow(container).run({ input: { payment_id: data[0].payment_collections[0].payments[0].id } })
   await waitFor(b => b.status === "confirmed")
   expect((await confirmBookingForOrder(container, orderId)).confirmed).toBe(true)
-  await verifyBookingInboxHttp({ api, options, container, orderId, bookingId: booking.id, stage: "paid", evidence })
+  await verifyBookingInboxHttp({ api, options, container, orderId, bookingId: booking.id, stage: "paid", paymentId: data[0].payment_collections[0].payments[0].id, evidence })
   await cancelOrderWorkflow(container).run({ input: { order_id: orderId } })
   await waitFor(b => b.status === "canceled")
   await verifyBookingInboxHttp({ api, options, container, orderId, bookingId: booking.id, stage: "canceled", evidence })

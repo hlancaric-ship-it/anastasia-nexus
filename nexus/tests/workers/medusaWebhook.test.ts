@@ -66,3 +66,10 @@ describe('Medusa event intake in real D1', () => {
         expect((await rows(id)).results).toHaveLength(0);
     });
 });
+
+it.each(['payment.captured', 'order.canceled'])('durably accepts the supported lifecycle event %s', async type => {
+    const id = `evt_${crypto.randomUUID()}`;
+    const response = await handleMedusaWebhook(await signedMedusaWebhook({ id, type, data: { id: 'entity_synthetic' } }), workerEnv, ctx);
+    expect(response.status).toBe(200);
+    expect((await rows(id)).results[0]).toMatchObject({ event_type: type, processing_state: 'RECEIVED' });
+});

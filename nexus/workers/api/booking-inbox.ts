@@ -7,11 +7,11 @@ const OPERATION = 'SYNC_ORDER_BOOKING';
 const encoder = new TextEncoder();
 const hex = (bytes: ArrayBuffer) => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
 const ID = /^[A-Za-z0-9_-]{1,128}$/;
-type Row = { event_id: string; target_id: string; operation_id: string | null };
+type Row = { event_type: string; event_id: string; target_id: string; operation_id: string | null };
 type Receipt = { synchronized: boolean; result: string };
 
-export async function bookingOperationId(tenantId: string, eventId: string, orderId: string) {
-    return 'bksync_' + hex(await crypto.subtle.digest('SHA-256', encoder.encode(JSON.stringify([1, tenantId, eventId, orderId]))));
+export async function bookingOperationId(tenantId: string, eventId: string, targetId: string) {
+    return 'bksync_' + hex(await crypto.subtle.digest('SHA-256', encoder.encode(JSON.stringify([1, tenantId, eventId, targetId]))));
 }
 
 function configuration(env: Env) {
@@ -31,7 +31,10 @@ function configuration(env: Env) {
 
 async function requestState(config: NonNullable<ReturnType<typeof configuration>>, row: Row, operationId: string,
     mode: 'inspect' | 'synchronize', fetchImpl: typeof fetch): Promise<Receipt> {
-    const body = JSON.stringify({ version: 1, tenantId: config.tenantId, operationId, orderId: row.target_id, mode });
+    const source = row.event_type === 'payment.captured'
+        ? { version: 2, eventType: row.event_type, targetId: row.target_id }
+        : { version: 1, orderId: row.target_id };
+    const body = JSON.stringify({ ...source, tenantId: config.tenantId, operationId, mode });
     const timestamp = String(Math.floor(Date.now() / 1000));
     const key = await crypto.subtle.importKey('raw', encoder.encode(config.secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const signature = hex(await crypto.subtle.sign('HMAC', key, encoder.encode(`${timestamp}.${body}`)));
@@ -54,10 +57,16 @@ async function requestState(config: NonNullable<ReturnType<typeof configuration>
         raw += decoder.decode();
     } finally { reader.releaseLock(); }
     const value = JSON.parse(raw) as Record<string, unknown>;
-    if (value?.ok !== true || value.version !== 1 || value.tenantId !== config.tenantId || value.orderId !== row.target_id ||
+    const sourceMatches = source.version === 2
+        ? value?.eventType === row.event_type && value.targetId === row.target_id && typeof value.orderId === 'string' && ID.test(value.orderId)
+        : value?.orderId === row.target_id;
+    if (value?.ok !== true || value.version !== source.version || value.tenantId !== config.tenantId || !sourceMatches ||
         value.operationId !== operationId || typeof value.synchronized !== 'boolean' ||
         !['NO_BOOKING', 'HELD', 'CONFIRMED', 'CANCELED', 'MISMATCH'].includes(String(value.result)) ||
         value.synchronized !== (value.result !== 'MISMATCH')) throw new Error('BOOKING_SOURCE_UNVERIFIED');
+    if (row.event_type === 'order.canceled' && value.synchronized && !['CANCELED', 'NO_BOOKING'].includes(String(value.result))) {
+        throw new Error('BOOKING_CANCELLATION_UNVERIFIED');
+    }
     return { synchronized: value.synchronized, result: String(value.result) };
 }
 
@@ -69,8 +78,8 @@ export async function consumeBookingInbox(env: Env, scheduledTime: number, fetch
     const at = new Date(scheduledTime).toISOString();
     const context = { tenantId: config.tenantId, platform: 'medusa' as const };
     const store = new D1ExecutionIntentStore(env.DB);
-    const rows = await env.DB.prepare(`SELECT event_id, target_id, operation_id FROM medusa_webhook_inbox
-        WHERE tenant_id = ? AND event_type = 'order.placed' AND processing_state IN ('RECEIVED', 'PROCESSING')
+    const rows = await env.DB.prepare(`SELECT event_type, event_id, target_id, operation_id FROM medusa_webhook_inbox
+        WHERE tenant_id = ? AND event_type IN ('order.placed', 'order.canceled', 'payment.captured') AND processing_state IN ('RECEIVED', 'PROCESSING')
         AND julianday(received_at) <= julianday(?)
         ORDER BY julianday(COALESCE(processing_updated_at, received_at)), event_id LIMIT 2`).bind(config.tenantId, at).all<Row>();
     for (const row of rows.results) {
@@ -78,12 +87,14 @@ export async function consumeBookingInbox(env: Env, scheduledTime: number, fetch
             if (!ID.test(row.event_id) || !ID.test(row.target_id)) throw new Error('INVALID_BOOKING_EVENT');
             const id = await bookingOperationId(config.tenantId, row.event_id, row.target_id);
             if (row.operation_id && row.operation_id !== id) throw new Error('BOOKING_OPERATION_CONFLICT');
+            const plannedPayload = row.event_type === 'order.placed' ? { eventId: row.event_id, orderId: row.target_id }
+                : { eventId: row.event_id, eventType: row.event_type, targetId: row.target_id };
             const { intent: planned } = await store.plan(context, { id, decisionId: row.event_id, domain: 'booking', connectorType: 'medusa',
-                operation: OPERATION, targetRef: row.target_id, payload: { eventId: row.event_id, orderId: row.target_id },
+                operation: OPERATION, targetRef: row.target_id, payload: plannedPayload,
                 expectedState: { synchronized: true }, idempotencyKey: id, plannedAt: at });
-            const payload = planned.payload as { eventId?: string; orderId?: string };
+            const payloadMatches = JSON.stringify(planned.payload) === JSON.stringify(plannedPayload);
             if (planned.id !== id || planned.domain !== 'booking' || planned.connectorType !== 'medusa' || planned.operation !== OPERATION ||
-                planned.targetRef !== row.target_id || payload.eventId !== row.event_id || payload.orderId !== row.target_id ||
+                planned.targetRef !== row.target_id || !payloadMatches ||
                 JSON.stringify(planned.expectedState) !== JSON.stringify({ synchronized: true })) throw new Error('BOOKING_OPERATION_CONFLICT');
             const updated = await env.DB.prepare(`UPDATE medusa_webhook_inbox SET processing_state = 'PROCESSING', operation_id = ?, processing_updated_at = ?
                 WHERE tenant_id = ? AND event_id = ? AND processing_state IN ('RECEIVED', 'PROCESSING') AND (operation_id IS NULL OR operation_id = ?)`)

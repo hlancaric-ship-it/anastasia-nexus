@@ -2,11 +2,15 @@ import type { MedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { z } from 'zod'
 import { EdgeIngestError, verifyEdgeSignature } from '../../../../modules/ops-audit/edge-ingest'
 import { BookingSyncError, inspectOrderBooking, synchronizeOrderBooking } from '../../../../lib/nexus/booking-order'
+import { resolveOrderIdByPayment } from '../../../../modules/entitlement/order-sync'
 import { recordEvent } from '../../../../lib/observability/events'
 
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/)
-const bodySchema = z.object({ version: z.literal(1), tenantId: z.string(), operationId: id, orderId: id,
-  mode: z.enum(['inspect', 'synchronize']) }).strict()
+const bodySchema = z.discriminatedUnion('version', [
+  z.object({ version: z.literal(1), tenantId: z.string(), operationId: id, orderId: id, mode: z.enum(['inspect', 'synchronize']) }).strict(),
+  z.object({ version: z.literal(2), tenantId: z.string(), operationId: id, eventType: z.literal('payment.captured'), targetId: id,
+    mode: z.enum(['inspect', 'synchronize']) }).strict(),
+])
 
 /** Dedicated machine capability: only synchronize a booking from its authoritative order. */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
@@ -24,10 +28,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     if (!result.success) return res.status(400).json({ error: 'BOOKING_SYNC_INVALID' })
     const input = result.data
     if (input.tenantId !== tenantId) return res.status(403).json({ error: 'BOOKING_SYNC_UNAUTHORIZED' })
-    const actual = await (input.mode === 'inspect' ? inspectOrderBooking : synchronizeOrderBooking)(req.scope, input.orderId)
+    const orderId = input.version === 1 ? input.orderId : await resolveOrderIdByPayment(req.scope, input.targetId)
+    if (!orderId) throw new BookingSyncError(409)
+    const actual = await (input.mode === 'inspect' ? inspectOrderBooking : synchronizeOrderBooking)(req.scope, orderId)
     await recordEvent(req.scope, actual.synchronized ? 'info' : 'warn', 'booking', actual.synchronized ? 'nexus_sync_verified' : 'nexus_sync_needs_review',
-      { order_id: input.orderId, entity_id: input.operationId, mode: input.mode })
-    return res.json({ ok: true, version: 1, tenantId, operationId: input.operationId, orderId: input.orderId,
+      { order_id: orderId, entity_id: input.operationId, mode: input.mode })
+    return res.json({ ok: true, version: input.version, tenantId, operationId: input.operationId, orderId,
+      ...(input.version === 2 ? { eventType: input.eventType, targetId: input.targetId } : {}),
       synchronized: actual.synchronized, result: actual.result })
   } catch (error) {
     const status = error instanceof EdgeIngestError || error instanceof BookingSyncError ? error.status : 503

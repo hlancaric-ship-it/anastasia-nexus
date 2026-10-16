@@ -7,7 +7,8 @@ export default async function nexusMedusaEvents({ event, container }: Subscriber
   try {
     const config = deliveryConfig()
     if (!config) return // Explicitly unconfigured; no successful receipt is fabricated.
-    const input: MedusaDelivery = { tenantId: config.tenantId, event: event.name as MedusaDelivery['event'], targetId: event.data.id }
+    const input: MedusaDelivery = { tenantId: config.tenantId, event: event.name as MedusaDelivery['event'], targetId: event.data.id,
+      ...(event.name === 'payment.captured' ? { occurrenceId: event.metadata?.eventGroupId } : {}) }
     await medusaEventDeliveryWorkflow(container).run({ input, context: { transactionId: deliveryId(input) } })
   } catch {
     await recordEvent(container, 'error', 'webhook', 'nexus_event_needs_review', { entity_id: event.data?.id, source_event: event.name })
@@ -15,4 +16,4 @@ export default async function nexusMedusaEvents({ event, container }: Subscriber
   }
 }
 
-export const config: SubscriberConfig = { event: ['order.placed', 'customer.created'], context: { subscriberId: 'nexus-medusa-events-v1' } }
+export const config: SubscriberConfig = { event: ['order.placed', 'customer.created', 'order.canceled', 'payment.captured'], context: { subscriberId: 'nexus-medusa-events-v1' } }

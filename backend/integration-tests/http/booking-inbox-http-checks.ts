@@ -1,7 +1,7 @@
 import { createHmac } from 'node:crypto'
 
 /** Real signed HTTP route + native booking service/PostgreSQL; no Worker or booking writes are mocked. */
-export async function verifyBookingInboxHttp({ api, options, container, orderId, bookingId, stage, evidence }: any) {
+export async function verifyBookingInboxHttp({ api, options, container, orderId, bookingId, paymentId, stage, evidence }: any) {
   const previous = process.env.NEXUS_BOOKING_SYNC_SECRET
   const secret = 'synthetic-booking-sync-secret-for-http-only'
   process.env.NEXUS_BOOKING_SYNC_SECRET = secret
@@ -32,14 +32,18 @@ export async function verifyBookingInboxHttp({ api, options, container, orderId,
       // Simulate a missed native subscriber after authoritative payment capture.
       await bookings.updateBookings({id:bookingId,status:'held'})
       expect((await send()).data).toMatchObject({synchronized:false,result:'MISMATCH'})
-      const repaired = await send({mode:'synchronize'})
+      const paymentSource = {version:2,eventType:'payment.captured',targetId:paymentId,orderId:undefined}
+      expect((await send({...paymentSource,targetId:'pay_synthetic_missing'})).status).toBe(409)
+      expect((await send({...paymentSource,orderId:'order_caller_selected'})).status).toBe(400)
+      const repaired = await send({...paymentSource,mode:'synchronize'})
       expect(repaired.status).toBe(200)
-      expect(repaired.data).toMatchObject({synchronized:true,result:'CONFIRMED',orderId})
+      expect(repaired.data).toMatchObject({version:2,synchronized:true,result:'CONFIRMED',orderId,targetId:paymentId,eventType:'payment.captured'})
       expect((await bookings.retrieveBooking(bookingId)).status).toBe('confirmed')
       expect((await send({mode:'synchronize'})).data).toMatchObject({synchronized:true,result:'CONFIRMED'})
       expect((await send()).data).toMatchObject({synchronized:true,result:'CONFIRMED'})
       expect(JSON.stringify(repaired.data)).not.toContain('customer_id')
       expect(JSON.stringify(repaired.data)).not.toContain('captured_amount')
+      evidence.push({scenario:'BOOKING_PAYMENT_EVENT_NATIVE_LINK',status:'PASS',paymentToOrderResolvedByServer:true,callerOrderRejected:400,missingLink:409})
       evidence.push({scenario:'BOOKING_INBOX_PAID_REPAIR_READBACK_REPLAY',status:'PASS',nativeRepair:true,authoritativeReadback:true})
     } else {
       const synced = await send({mode:'synchronize'})

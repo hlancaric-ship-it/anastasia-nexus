@@ -1,7 +1,9 @@
 import { createHmac } from 'node:crypto'
+import { resolveOrderIdByPayment } from '../../../modules/entitlement/order-sync'
+jest.mock('../../../modules/entitlement/order-sync', () => ({ resolveOrderIdByPayment: jest.fn() }))
 import { POST } from '../../../api/hooks/nexus/booking-order/route'
 import { inspectOrderBooking, synchronizeOrderBooking } from '../booking-order'
-jest.mock('../booking-order', () => ({ BookingSyncError: class extends Error {}, inspectOrderBooking: jest.fn(), synchronizeOrderBooking: jest.fn() }))
+jest.mock('../booking-order', () => ({ BookingSyncError: class extends Error { constructor(readonly status: number) { super() } }, inspectOrderBooking: jest.fn(), synchronizeOrderBooking: jest.fn() }))
 jest.mock('../../observability/events', () => ({ recordEvent: jest.fn() }))
 const original = { ...process.env }
 const secret = 'synthetic-booking-sync-secret-32-characters'
@@ -14,6 +16,7 @@ function req(patch: Record<string, unknown> = {}, headers: Record<string, string
 function res() { const r: any = { setHeader: jest.fn(), status: jest.fn(), json: jest.fn() }; r.status.mockReturnValue(r); r.json.mockReturnValue(r); return r }
 beforeEach(() => {
   jest.clearAllMocks(); process.env.NEXUS_TENANT_ID = 'synthetic'; process.env.NEXUS_BOOKING_SYNC_SECRET = secret
+  ;(resolveOrderIdByPayment as jest.Mock).mockResolvedValue('order_from_payment')
   ;(inspectOrderBooking as jest.Mock).mockResolvedValue({ synchronized: true, result: 'CONFIRMED' })
   ;(synchronizeOrderBooking as jest.Mock).mockResolvedValue({ synchronized: true, result: 'CONFIRMED' })
 })
@@ -38,4 +41,28 @@ it('fails closed without a dedicated machine secret', async () => {
   const response = res(); await POST(req(), response)
   expect(response.status).toHaveBeenCalledWith(503)
   expect(inspectOrderBooking).not.toHaveBeenCalled()
+})
+
+it('resolves a captured payment through the authoritative Medusa link instead of a caller order ID', async () => {
+  const response = res()
+  await POST(req({ version: 2, orderId: undefined, eventType: 'payment.captured', targetId: 'pay_synthetic', mode: 'synchronize' }), response)
+  expect(resolveOrderIdByPayment).toHaveBeenCalledWith({}, 'pay_synthetic')
+  expect(synchronizeOrderBooking).toHaveBeenCalledWith({}, 'order_from_payment')
+  expect(response.json).toHaveBeenCalledWith(expect.objectContaining({ version: 2, orderId: 'order_from_payment', targetId: 'pay_synthetic', eventType: 'payment.captured' }))
+})
+it('rejects caller-selected orders in the payment contract', async () => {
+  const response = res()
+  await POST(req({ version: 2, eventType: 'payment.captured', targetId: 'pay_synthetic' }), response)
+  expect(response.status).toHaveBeenCalledWith(400)
+  expect(resolveOrderIdByPayment).not.toHaveBeenCalled()
+  expect(synchronizeOrderBooking).not.toHaveBeenCalled()
+})
+it('does not confirm an unlinked payment', async () => {
+  ;(resolveOrderIdByPayment as jest.Mock).mockResolvedValueOnce(null)
+  const response = res()
+  await POST(req({ version: 2, orderId: undefined, eventType: 'payment.captured', targetId: 'pay_synthetic' }), response)
+  expect(response.status).toHaveBeenCalledWith(409)
+  expect(inspectOrderBooking).not.toHaveBeenCalled()
+  expect(synchronizeOrderBooking).not.toHaveBeenCalled()
+  expect(response.json).not.toHaveBeenCalledWith(expect.objectContaining({ synchronized: true }))
 })
