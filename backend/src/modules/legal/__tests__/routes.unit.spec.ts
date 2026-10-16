@@ -6,7 +6,7 @@ jest.mock("../../../lib/observability/audit",()=>({auditAdminChange:jest.fn(asyn
 import { auditAdminChange } from "../../../lib/observability/audit"
 const response=()=>({setHeader:jest.fn(),status:jest.fn().mockReturnThis(),json:jest.fn(),send:jest.fn()})
 function request(service:any,order:any={},body:any={}) {
- const notification={listNotifications:jest.fn(async()=>[{id:"sent"}]),createNotifications:jest.fn()}
+ const notification={listNotifications:jest.fn(async()=>[{id:"sent",status:"success",to:order.email,channel:"email",template:"withdrawal-received-sk",idempotency_key:"withdrawal.received:w",resource_id:"w",resource_type:"withdrawal"}]),createNotifications:jest.fn()}
  const req:any={params:{id:"cart"},body,query:{},auth_context:{actor_id:"owner",actor_type:"customer"},scope:{resolve:(key:string)=>key==="query"?{graph:async()=>({data:[order]})}:key==="notification"?notification:key==="logger"?{error:jest.fn()}:service}}
  return {req,notification}
 }

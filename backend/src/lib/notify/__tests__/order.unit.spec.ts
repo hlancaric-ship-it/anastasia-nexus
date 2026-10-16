@@ -25,9 +25,10 @@ function makeContainer(opts: { order?: any; notifications?: any[]; customer?: an
       default: return { data: [] }
     }
   })
+  const created: any[] = []
   const notifications = {
-    listNotifications: jest.fn(async (filters: any) => (opts.notifications ?? []).filter(n => n.idempotency_key === filters.idempotency_key)),
-    createNotifications: jest.fn(async () => { if (opts.createError) throw opts.createError; return [{ id: "noti_1" }] }),
+    listNotifications: jest.fn(async (filters: any) => [...(opts.notifications ?? []), ...created].filter(n => filters.id ? n.id === filters.id : n.idempotency_key === filters.idempotency_key)),
+    createNotifications: jest.fn(async (input: any) => { if (opts.createError) throw opts.createError; const row = { ...input, id: "noti_" + created.length, status: "success" }; created.push(row); return row }),
   }
   const logs: string[] = []
   const logger = { info: (m: string) => logs.push(m), warn: (m: string) => logs.push(m), error: (m: string) => logs.push(m) }
@@ -87,7 +88,7 @@ describe("e-maily k objednávke", () => {
 
   it("refund: jeden e-mail na každý refund, opakovanie neposiela znova", async () => {
     const refunds = [{ id: "ref_1", amount: 30 }, { id: "ref_2", amount: 10 }]
-    const { container, notifications } = makeContainer({ refunds, notifications: [{ id: "n", idempotency_key: "order.refunded:ref_1" }] })
+    const { container, notifications } = makeContainer({ refunds, notifications: [{ id: "n", status: "success", to: EMAIL, channel: "email", template: "order-refunded-sk", idempotency_key: "order.refunded:ref_1", resource_id: "order_1", resource_type: "order" }] })
     expect(await notifyRefunds(container, "pay_1")).toEqual([{ status: "duplicate" }, { status: "sent" }])
     expect(notifications.createNotifications).toHaveBeenCalledTimes(1)
     expect(sent(notifications)).toMatchObject({ template: "order-refunded-sk", idempotency_key: "order.refunded:ref_2" })
