@@ -192,7 +192,7 @@ export function chrome(page) {
     header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>'),
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
-    rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${['home','world'].includes(page)?mediaControls:''}</aside>`),
+    rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
   };
 }
