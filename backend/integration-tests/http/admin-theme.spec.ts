@@ -16,9 +16,9 @@ medusaIntegrationTestRunner({dbName:'anastasia_theme_ci',testSuite:({api,getCont
     const users=getContainer().resolve(Modules.USER)
     const created=await users.createUsers([{email:'theme-self@example.test',metadata:{unrelated:'keep'}},{email:'theme-other@example.test',metadata:{unrelated:'other'}}])
     const user=created[0],other=created[1]
-    const auth=(id:string,actor='user')=>({headers:{Authorization:`Bearer ${generateJwtToken({actor_id:id,actor_type:actor,auth_identity_id:`synthetic-${id}`,app_metadata:{user_id:id}},{secret:process.env.JWT_SECRET!,expiresIn:'1h'})}`}})
+    const auth=(id:string,actor='user')=>({validateStatus:()=>true,headers:{Authorization:`Bearer ${generateJwtToken({actor_id:id,actor_type:actor,auth_identity_id:`synthetic-${id}`,app_metadata:{user_id:id}},{secret:process.env.JWT_SECRET!,expiresIn:'1h'})}`}})
     const admin=auth(user.id)
-    expect((await api.get('/admin/my-theme')).status).toBe(401)
+    expect((await api.get('/admin/my-theme',{validateStatus:()=>true})).status).toBe(401)
     expect((await api.post('/admin/my-theme',{selection:DEFAULT_THEME,revision:0},auth(other.id,'customer'))).status).toBe(401)
     const original=await api.get('/admin/my-theme',admin)
     expect(original.status).toBe(200);expect(original.data.selection).toEqual(DEFAULT_THEME)

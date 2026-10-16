@@ -1,6 +1,7 @@
 /** Browser behavior fixture. Synthetic transport only; not a real persistence/identity test. */
 import React from 'react'
 import { createRoot } from 'react-dom/client'
+import { flushSync } from 'react-dom'
 import Appearance from '../../src/admin/routes/vzhlad-administracie/Appearance'
 import { DEFAULT_THEME } from '../../src/lib/admin-theme/policy'
 let stored={selection:{...DEFAULT_THEME},revision:0}, writes=0, loseResponse=false, conflict=false, denyRead=false
@@ -17,7 +18,7 @@ window.fetch=(async(_url:string,init:RequestInit={})=>{
 }) as typeof fetch
 const root=createRoot(document.getElementById('root')!)
 let instance=0
-const render=()=>root.render(<React.StrictMode><Appearance key={instance++}/></React.StrictMode>)
+const render=()=>flushSync(()=>root.render(<React.StrictMode><Appearance key={instance++}/></React.StrictMode>))
 render()
 const checks:string[]=[]
 const assert=(condition:unknown,label:string)=>{if(!condition)throw new Error(label);checks.push(label)}
