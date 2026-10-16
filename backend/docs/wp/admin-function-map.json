@@ -677,13 +677,13 @@
       "backend_layer": "native",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Přehled všech API/služeb, připojení, kontrola spojení, odpojení a chyby bez programátora.",
+      "request": "Přímo v adminu vložit API/přístupové údaje Stripe, ComGate, dopravců, účetnictví, feedů a dalších podporovaných služeb; ověřit, aktivovat, měnit a odpojit bez programátora.",
       "sources": [
         "backend/medusa-config.ts",
         "nexus/connectors/Connector.ts"
       ],
-      "remaining": "Nativní API keys nejsou univerzální úložiště credentials dopravců/ERP; chybí secret-store a ověřené konektory.",
-      "acceptance": "Prohlížeč nečte uložený secret; test spojení není změna obchodu; vypnutí respektuje rozpracované operace."
+      "remaining": "Vlastní formulář každého skutečně podporovaného konektoru, bezpečné serverové úložiště, oprávnění/audit, test spojení, případný testovací/ostrý režim a vazba na provozní workflow; libovolný API klíč sám nevytvoří chybějící konektor.",
+      "acceptance": "Správné údaje umožní ověřené připojení a syntetickou testovací operaci; chybné údaje nic neaktivují. Uložený secret se nikdy nevrací do prohlížeče/logu; test nevolá libovolnou URL ani nevytváří ostrou platbu/zásilku; odpojení řeší rozpracované operace."
     },
     {
       "id": "migration",

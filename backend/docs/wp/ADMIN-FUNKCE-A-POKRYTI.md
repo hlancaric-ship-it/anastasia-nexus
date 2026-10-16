@@ -171,6 +171,18 @@ Každá běžná obchodní změna potřebuje serverové čtení/zápis, validaci
 | Weby, obsah, barvy, překlady | Chybí plný obslužný CMS kontrakt | Koncept/publikace/verze, oddělení domén a přístupových práv |
 | Vzhled adminu | Chybí nový shell a preference | Uživatelská preference bez změny webu/obchodních pravidel; přístupné motivy |
 
+## Připojení služeb: zadání API přímo v adminu
+
+Výslovný požadavek Luckyho: v **Nastavenia → Pripojenia** musí být možné připojit **Stripe, ComGate, dopravce, účetnictví, dodavatelské feedy a další zavedené funkce s externí službou**. Běžné připojení nesmí vyžadovat programátora, terminál ani nové nasazení. ComGate zůstává zaznamenaná ve smluvní fázi 2; požadavek na její ovládání se nevynechává.
+
+Každý podporovaný konektor má vlastní formulář podle skutečného kontraktu poskytovatele: požadované API klíče/přístupové údaje, identifikátor účtu či provozovny, případně povolenou adresu služby a webhook/podpisový údaj. Ne všechny služby mají stejná pole. Nový poskytovatel potřebuje implementovaný konektor; libovolně vložená URL a klíč samy nepřidají funkci do systému.
+
+Povinné ovládání: **Pripojiť, Overiť spojenie, Testovací / ostrý režim** tam, kde je poskytovatel podporuje, **Aktivovať, Zmeniť prístupové údaje, Odpojiť**; stav „Nepripojené / Treba doplniť údaje / Spojenie overené / Chyba spojenia“, datum posledního ověření a srozumitelný další krok. U plateb také správná vazba na region/metodu a ověřené příchozí události; u dopravce smluvní účet, podporované služby, štítky a sledování. Ověřené připojení není důkaz dokončené platby, zásilky ani importu.
+
+Citlivé údaje se zadávají přímo do chráněného formuláře a ukládají serverově do spravovaného bezpečného úložiště. Při dalším načtení pouze maskovaná informace „Nastavené“, nikdy celý uložený klíč. Žádný secret v URL, localStorage, logu, exportu nebo běžném auditu. Změna a odpojení vyžaduje oprávnění, audit bez tajných hodnot a kontrolu dopadu na rozpracované operace. Server ověřuje povolené cíle spojení; test připojení nesmí umožnit volání libovolné interní adresy ani provést ostrou platbu/objednávku zásilky.
+
+Akceptace: uživatelka bez zásahu programátora vloží údaje podporované služby, ověří spojení, aktivuje správný způsob platby/dopravy a projde syntetickou testovací operací; chybné údaje zobrazí opravitelnou chybu a nic falešně neaktivují. **Dnes tento jednotný samoobslužný tok není implementovaný**; samotná současná konfigurace Stripe v env nebo existence Medusa API-key endpointu jej nenahrazuje.
+
 ## Automatické návaznosti a výjimky
 
 1. **Objednávka:** server načte katalog a zákaznickou úroveň → přepočítá cenu → zkontroluje sklad/termín/poukaz/souhlasy/riziko → sváže platbu a objednávku. Admin čte skutečný výsledek. SafeOrder ALLOW není platba.
