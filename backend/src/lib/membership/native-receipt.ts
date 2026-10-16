@@ -1,4 +1,4 @@
-import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
+import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import type { Receipt } from './policy'
 /** Supplied by the server's persisted checkout attempt, NEVER customer JSON or cart metadata. */
 export type CheckoutBinding={cart_id:string;customer_id:string;product_id:string;variant_id:string;checkout_key:string}
@@ -25,7 +25,7 @@ function timestamp(value:unknown):string{
  if(!Number.isFinite(n)||new Date(n).toISOString()!==canonical)return fail('INVALID_NATIVE_CAPTURE_TIME')
  return canonical
 }
-const orderFields=['id','customer_id','status','currency_code','total','items.id','items.product_id','items.variant_id','items.quantity','*items.detail','payment_collections.id','payment_collections.captured_amount','payment_collections.refunded_amount','payment_collections.payments.id','payment_collections.payments.amount','payment_collections.payments.currency_code','payment_collections.payments.captured_at','payment_collections.payments.canceled_at']
+const orderFields=['id','customer_id','status','currency_code','payment_collections.id','payment_collections.captured_amount','payment_collections.refunded_amount','payment_collections.payments.id','payment_collections.payments.amount','payment_collections.payments.currency_code','payment_collections.payments.captured_at','payment_collections.payments.canceled_at']
 /** Loads native order/cart links and ledger facts; no Stripe calls or grant. */
 export async function loadNativeMembershipReceipt(scope:Scope,orderId:string,binding:CheckoutBinding,now=new Date()):Promise<Receipt>{
  if(![orderId,binding.cart_id,binding.customer_id,binding.product_id,binding.variant_id].every(id=>typeof id==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(id))||typeof binding.checkout_key!=='string'||!binding.checkout_key||binding.checkout_key.length>256)return fail('INVALID_CHECKOUT_BINDING')
@@ -34,7 +34,10 @@ export async function loadNativeMembershipReceipt(scope:Scope,orderId:string,bin
  if(!Array.isArray(links)||links.length!==1||links[0].order_id!==orderId||links[0].cart_id!==binding.cart_id)return fail('NATIVE_ORDER_CART_MISMATCH')
  const {data}=await query.graph({entity:'order',fields:orderFields,filters:{id:orderId}})
  if(!Array.isArray(data)||data.length!==1)return fail('NATIVE_ORDER_NOT_FOUND')
- const order=data[0]
+ const nativeOrder=await scope.resolve(Modules.ORDER).retrieveOrder(orderId,{select:['id','version','customer_id','status','currency_code','total'],relations:['items']})
+ const ledger=data[0]
+ if(ledger.id!==nativeOrder.id||ledger.customer_id!==nativeOrder.customer_id||ledger.status!==nativeOrder.status||ledger.currency_code!==nativeOrder.currency_code)return fail('NATIVE_ORDER_CHANGED')
+ const order={...nativeOrder,payment_collections:ledger.payment_collections}
  if(order.id!==orderId||order.customer_id!==binding.customer_id)return fail('NATIVE_ORDER_OWNER_MISMATCH')
  if(typeof order.status!=='string'||order.status==='canceled'||order.currency_code!=='eur')return fail('NATIVE_ORDER_NOT_ELIGIBLE')
  const items=order.items

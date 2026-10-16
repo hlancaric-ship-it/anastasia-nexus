@@ -7,7 +7,8 @@ function fixture(){
  const order={id:'ord_a',customer_id:'cus_a',status:'pending',currency_code:'eur',total:50,items:[{id:'item_a',product_id:'prod_a',variant_id:'var_a',quantity:1}],payment_collections:[collection],metadata:{membership_key:'client-forged-key'}}
  const links=[{cart_id:'cart_a',order_id:'ord_a'}]
  const query={graph:jest.fn(async({entity}:any)=>({data:entity==='order_cart'?links:[order]}))}
- return {payment,collection,order,links,query,scope:{resolve:()=>query}}
+ const orders={retrieveOrder:jest.fn(async()=>order)}
+ return {payment,collection,order,links,query,orders,scope:{resolve:(key:string)=>key==='order'?orders:query}}
 }
 describe('native membership receipt authority',()=>{
  it.each([undefined,null,NaN,Infinity,-1,'-1','1e2','50.001','050','',{},true])('refuses missing/ambiguous amount %j',value=>expect(()=>euroMinor(value)).toThrow('INVALID_NATIVE_AMOUNT'))
@@ -16,7 +17,7 @@ describe('native membership receipt authority',()=>{
   const f=fixture(),receipt=await loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)
   expect(receipt).toMatchObject({order_id:'ord_a',captured_minor:5000,paid_at:f.payment.captured_at,checkout_key:binding.checkout_key})
   expect(f.query.graph.mock.calls[0][0].entity).toBe('order_cart')
-  expect(f.query.graph.mock.calls[1][0].fields).toContain('*items.detail')
+  expect(f.orders.retrieveOrder).toHaveBeenCalledWith('ord_a',expect.objectContaining({select:expect.arrayContaining(['version','total']),relations:['items']}))
   expect(receipt.checkout_key).not.toBe(f.order.metadata.membership_key)
  })
  it('does not trust matching client metadata when the native cart link differs',async()=>{const f=fixture();f.links[0].cart_id='cart_other';f.order.metadata.membership_key=binding.checkout_key;await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow('ORDER_CART_MISMATCH');expect(f.query.graph).toHaveBeenCalledTimes(1)})
@@ -46,4 +47,7 @@ describe('native membership receipt authority',()=>{
   if(kind==='missing-summary')(f.collection as any).captured_amount=undefined
   await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow()
  })
+ it('rejects a native order that changed between ledger and item reads',async()=>{const f=fixture();f.orders.retrieveOrder.mockImplementation(async()=>({...f.order,status:'canceled'}));await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow('NATIVE_ORDER_CHANGED')})
+ it('never assumes a missing native quantity means one',async()=>{const f=fixture();delete (f.order.items[0] as any).quantity;await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow('ITEMS_MISMATCH')})
+
 })
