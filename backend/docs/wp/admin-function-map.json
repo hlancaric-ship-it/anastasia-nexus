@@ -149,7 +149,7 @@
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Zákaznice po přihlášení uvidí ceny pro svou úroveň; obsluha nastaví názvy, slevy a členství.",
+      "request": "Samostatné ceníky pro jednotlivé cenové úrovně; po přihlášení vlastní cena; nastavitelné zobrazení původní a nové ceny i % úspory, všechny částky/procenta vrací server.",
       "sources": [
         "backend/src/api/store/nexus-cart/customer-tier.ts",
         "nexus/workers/api/routes/nexusPricing.ts"
@@ -331,7 +331,7 @@
       "backend_layer": "missing",
       "backend_status": "NOT_IMPLEMENTED",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Upravit všechny stránky, texty, menu, patičku, kontakty, SEO a náhled před publikací.",
+      "request": "Sama přidat/upravit kategorie, stránky a sekce všech webů; vizuálně měnit texty, obrázky, pořadí a rozložení, menu/SEO, koncept/náhled/verze/publikace, bez programátora nebo editace kódu.",
       "sources": [
         "backend/docs/wp/INVENTAR-A-AKCEPTACE.md"
       ],
@@ -384,14 +384,16 @@
       "id": "admin-preferences",
       "label_sk": "Môj vzhľad administrácie",
       "delivery_lane": "NEXT",
-      "backend_layer": "missing",
-      "backend_status": "NOT_IMPLEMENTED",
-      "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Barva adminu a osobní nastavení; kompaktní karty/záložky, minimum scrollování.",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Osobní motiv adminu včetně původní fialkové/modré ze starého webu, lesního/vínového/nočního a vlastních barev, serverové uložení podle uživatelky a kompaktní rozložení.",
       "sources": [
-        "backend/docs/wp/ADMIN-UX-SAMOOBSLUHA.md"
+        "backend/src/api/admin/my-theme/route.ts",
+        "backend/src/lib/admin-theme/policy.ts",
+        "backend/src/admin/routes/vzhlad-administracie/Appearance.tsx"
       ],
-      "remaining": "Definovat uživatelské preference a napojit je na nový shell; native layouts/views nejsou důkaz hotového tématu.",
+      "remaining": "Osobní motiv a sdílené komponenty nového adminu implementované; plná browser/HTTP-PG CI právě následuje. Zapojení do dalších nových agend proběhne s jejich implementací; nativní referenční Medusa obrazovky se nepřebarvují.",
       "acceptance": "Nastavení přežije přihlášení; kontrast i fokus čitelné; při 200% zoomu a malé obrazovce lze scrollovat k obsahu."
     },
     {
@@ -957,6 +959,16 @@
       "feature": "access",
       "source": "backend/src/api/admin/entitlements/route.ts",
       "sha256": "c072cdaff41b14051e2bb66955735f810fe71768d71c2c1d24962e8f7e3fbe47"
+    },
+    {
+      "path": "/admin/my-theme",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "admin-preferences",
+      "source": "backend/src/api/admin/my-theme/route.ts",
+      "sha256": "0c8829458f47556691e73d3c5a3d724a4586b48bc7b98442a8cabfd6e8174166"
     },
     {
       "path": "/admin/newsletter",
@@ -4057,9 +4069,31 @@
     ]
   },
   "test_sources": [
+    "backend/integration-tests/http/admin-theme.spec.ts",
+    "backend/integration-tests/http/auth-security-http-checks.ts",
+    "backend/integration-tests/http/booking-http-checks.ts",
+    "backend/integration-tests/http/booking-inbox-http-checks.ts",
+    "backend/integration-tests/http/cart-ownership-http-checks.ts",
+    "backend/integration-tests/http/chat-http-checks.ts",
+    "backend/integration-tests/http/coupon-security-http-checks.ts",
+    "backend/integration-tests/http/customer-gdpr-http-checks.ts",
+    "backend/integration-tests/http/digital-checkout-checks.ts",
+    "backend/integration-tests/http/entitlement-isolation-http-checks.ts",
+    "backend/integration-tests/http/gift-voucher-http-checks.ts",
+    "backend/integration-tests/http/legal-consents-http-checks.ts",
+    "backend/integration-tests/http/medusa-delivery-http-checks.ts",
+    "backend/integration-tests/http/notification-receipts-http-checks.ts",
+    "backend/integration-tests/http/operations-status-http-checks.ts",
+    "backend/integration-tests/http/ops-observability-checks.ts",
+    "backend/integration-tests/http/order-email-recovery-http-checks.ts",
+    "backend/integration-tests/http/order-self-cancel-http-checks.ts",
+    "backend/integration-tests/http/safeorder-persistence.spec.ts",
+    "backend/integration-tests/http/shipping-settings-http-checks.ts",
+    "backend/integration-tests/http/stock-availability-http-checks.ts",
     "backend/src/api/__tests__/auth-magic-link-rate.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/links.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
+    "backend/src/api/admin/my-theme/__tests__/theme.unit.spec.ts",
     "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/write-audit.unit.spec.ts",
@@ -4072,6 +4106,7 @@
     "backend/src/api/store/nexus-checkout/__tests__/route-errors.unit.spec.ts",
     "backend/src/api/store/nexus-checkout/__tests__/safeorder.unit.spec.ts",
     "backend/src/lib/__tests__/admin-function-map.unit.spec.ts",
+    "backend/src/lib/admin-theme/__tests__/policy.unit.spec.ts",
     "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
@@ -4123,26 +4158,6 @@
     "backend/src/workflows/__tests__/booking-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/gift-voucher-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/safeorder-completion.unit.spec.ts",
-    "backend/integration-tests/http/auth-security-http-checks.ts",
-    "backend/integration-tests/http/booking-http-checks.ts",
-    "backend/integration-tests/http/booking-inbox-http-checks.ts",
-    "backend/integration-tests/http/cart-ownership-http-checks.ts",
-    "backend/integration-tests/http/chat-http-checks.ts",
-    "backend/integration-tests/http/coupon-security-http-checks.ts",
-    "backend/integration-tests/http/customer-gdpr-http-checks.ts",
-    "backend/integration-tests/http/digital-checkout-checks.ts",
-    "backend/integration-tests/http/entitlement-isolation-http-checks.ts",
-    "backend/integration-tests/http/gift-voucher-http-checks.ts",
-    "backend/integration-tests/http/legal-consents-http-checks.ts",
-    "backend/integration-tests/http/medusa-delivery-http-checks.ts",
-    "backend/integration-tests/http/notification-receipts-http-checks.ts",
-    "backend/integration-tests/http/operations-status-http-checks.ts",
-    "backend/integration-tests/http/ops-observability-checks.ts",
-    "backend/integration-tests/http/order-email-recovery-http-checks.ts",
-    "backend/integration-tests/http/order-self-cancel-http-checks.ts",
-    "backend/integration-tests/http/safeorder-persistence.spec.ts",
-    "backend/integration-tests/http/shipping-settings-http-checks.ts",
-    "backend/integration-tests/http/stock-availability-http-checks.ts",
     "nexus/tests/integration/ExecutionPipeline.test.ts",
     "nexus/tests/integration/MedusaNexusE2E.test.ts",
     "nexus/tests/integration/PricingEndToEnd.test.ts",
@@ -4249,5 +4264,6 @@
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
     "nexus/tests/workers/voucherConcurrency.test.ts"
-  ]
+  ],
+  "candidate_branch": "codex/admin-theming"
 }

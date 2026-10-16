@@ -1,12 +1,12 @@
 # Úplná mapa funkcí pro nový admin ANASTASIA
 
-Stav mapování: **VERIFIED jako zdrojový soupis**. Stav nového adminu: **NOT_IMPLEMENTED**. Celé řešení: **PARTIAL**.
+Stav mapování: **VERIFIED jako zdrojový soupis**. Stav nového adminu: **PARTIAL**; osobní theming je implementovaný, šest agend C5 ještě ne. Celé řešení: **PARTIAL**.
 
 Datum: 16. 10. 2026. Základ `master@891297d15d31ff244d155743da37b7e83355e60b` ověřený přes fetch. Tato mapa doplňuje [původní soupis](ADMIN-SOUPIS.md), neprohlašuje existující prototyp za nové hotové rozhraní. Nový admin se staví od nuly, nad existujícími obchodními vlastníky a API.
 
 ## Co je skutečně zmapované
 
-Zahrnuto všech **50 agend** z Luckyho požadavků, Claudeových poznámek a backendu. [Strojový soupis](admin-function-map.json) obsahuje **60 vlastních route souborů / 72 metod**, **259 nativních admin route souborů / 405 metod** instalované Medusy **2.19.0**, Worker router a prefix chráněných médií. Dále 8 jobů, 23 subscriberů, 5 workflow souborů, 20 modelů, 12 modulových vstupů, 68 souborů NEXUS domén, 95 konektorových souborů a odkazy na testové zdroje. Počet souborů není počet hotových obchodních funkcí.
+Zahrnuto všech **50 agend** z Luckyho požadavků, Claudeových poznámek a backendu. [Strojový soupis](admin-function-map.json) obsahuje **61 vlastních route souborů / 74 metod**, **259 nativních admin route souborů / 405 metod** instalované Medusy **2.19.0**, Worker router a prefix chráněných médií. Dále 8 jobů, 23 subscriberů, 5 workflow souborů, 20 modelů, 12 modulových vstupů, 68 souborů NEXUS domén, 95 konektorových souborů a odkazy na testové zdroje. Počet souborů není počet hotových obchodních funkcí.
 
 Nativní routy jsou zdrojový povrch instalované verze, nikoli tvrzení, že jsou všechny moduly/feature flagy/role zapnuté v konkrétní instanci. Existence testového souboru není jeho úspěšný běh. Pomocné knihovny/skripty jsou uvedené u agend, nikoli vydávané za samostatné API.
 
@@ -43,7 +43,7 @@ Toto je cílová informační architektura, nikoli hotové menu. V první C5 ver
 
 ## Matice funkcí, podkladu a mezery
 
-Ve všech řádcích je nové vlastní UI `NOT_IMPLEMENTED`. Backendový status celých agend je `PARTIAL`, u chybějícího kontraktu `NOT_IMPLEMENTED`; stav jednotlivých ověřených podtoků viz jejich CI důkazy. Nativní API se znovu neimplementují. Sloupec testu je **akceptační kritérium pro budoucí implementaci**, ne právě provedený test.
+Nové vlastní UI je `NOT_IMPLEMENTED`, kromě osobního vzhledu adminu (`IMPLEMENTED_UNVERIFIED` před novým CI důkazem). Backendový status celých agend je `PARTIAL`, u chybějícího kontraktu `NOT_IMPLEMENTED`; stav jednotlivých ověřených podtoků viz jejich CI důkazy. Nativní API se znovu neimplementují. Sloupec testu je **akceptační kritérium pro budoucí implementaci**, ne právě provedený test.
 
 | ID / obrazovka | Pořadí / podklad | Požadavek | Co zbývá |
 |---|---|---|---|
@@ -169,7 +169,7 @@ Každá běžná obchodní změna potřebuje serverové čtení/zápis, validaci
 | Doprava a osobní odběr | Nativní shipping options / bootstrap | Skutečný poskytovatel, adresa/výdejní hodiny, pravidla a vazba na region/sklad |
 | Platby, dopravci, účetnictví, feedy | Deployment a jednotlivé konektory | Samoobslužné bezpečné připojení a doložený provider round-trip; ne univerzální editor secrets |
 | Weby, obsah, barvy, překlady | Chybí plný obslužný CMS kontrakt | Koncept/publikace/verze, oddělení domén a přístupových práv |
-| Vzhled adminu | Chybí nový shell a preference | Uživatelská preference bez změny webu/obchodních pravidel; přístupné motivy |
+| Vzhled adminu | Vlastní `/admin/my-theme`, user metadata, sdílený nový theme frame | Osobní preference bez změny webu/obchodních pravidel; aktuální stav viz [theming](admin-theming.md) |
 
 ## Připojení služeb: zadání API přímo v adminu
 
@@ -221,3 +221,7 @@ Každý úkol musí uživatelka zvládnout bez navigování programátorem. Ulo�
 Provedené kontroly této mapy: zdrojové pokrytí PASS; 105/105 místních odkazů PASS; cílený Jest `src/lib/__tests__/admin-function-map.unit.spec.ts` 1/1 PASS; `git diff --check` PASS. Plný HTTP/PG ani úplná unit sada nebyly lokálně spuštěny.
 
 První implementační PR po této mapě: nový vlastní shell a šest agend C5 nad existujícími API, se slovenskými formuláři, bezpečnými validacemi a browser/API testem. Žádné převzetí admin-demo jako hotového systému. Následně ostatní agendy v pořadí závislostí backend → API → UI → celý tok; chybějící konektor nemá falešné funkční tlačítko. Claude dál vlastní storefront/integraci, Jose merge.
+
+## Navazující implementace osobního vzhledu
+
+[Theming adminu](admin-theming.md) přidává původní vzhled ANASTASIA, osobní ukládání, kontrast a sdílené tokeny pro všechny nově stavěné obrazovky. Nemění vzhled zákaznických webů ani neprohlašuje hotový vizuální CMS. Lucky doplnil správu sekcí/stránek graficky bez programátora a samostatné tier ceníky se starou/novou cenou a % úspory ze serveru; oba požadavky zůstávají v úplné mapě, neoznačené za hotové.
