@@ -1,0 +1,56 @@
+{
+  "status": "VERIFIED",
+  "scope": "Truthful persisted native email receipt and idempotency handling; not a complete delivery/outbox system",
+  "source_head": "20bce48d2b25a7912ea88213cdcf755e9e2a56c1",
+  "tested_merge": "240915ac8db8410957a42d064ebab61ce62e0729",
+  "merged_master": "5bdcab0427a71eaa10244e0f04e64388c5ce40a8",
+  "pull_request": 22,
+  "ci_run": 38888723601,
+  "ci_url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38888723601",
+  "results": {
+    "backend_unit": 649,
+    "nexus_unit_integration": 1230,
+    "workerd_d1": 139,
+    "http_postgresql_scenarios": 145
+  },
+  "new_scenarios": [
+    {
+      "scenario": "NOTIFICATION_RECEIPT_NATIVE_READBACK",
+      "status": "PASS",
+      "nativeSuccess": true,
+      "replayRows": 1
+    },
+    {
+      "scenario": "NOTIFICATION_UNCERTAIN_NOT_RESENT",
+      "status": "PASS",
+      "pendingBlocked": true,
+      "failureBlocked": true,
+      "foreignResourceBlocked": true
+    },
+    {
+      "scenario": "NOTIFICATION_CONCURRENT_NATIVE_KEY",
+      "status": "PASS",
+      "rows": 1,
+      "sentResults": 1
+    }
+  ],
+  "failures": 0,
+  "deployment": false,
+  "artifact_hashes": {
+    "backend-unit.json": "6b3999f9629164d092e3a47fb6eaa7ccd7e29a868a9b39f2b84741d24444c113",
+    "nexus.json": "ee2598d3e9d14df40b56e0ef2fdd1ed9d46f2cabd4cd7c6de18be700260c4202",
+    "workerd.json": "3c1e3470cda9445225284cce4dbc9d190a990ea71a84b68e6ab0cbd93afbbf3f",
+    "medusa-persistence-evidence.json": "f051782f1334f41129259be6bf624b4a5f55f0f1c7796777f3b95a2ad4576463"
+  },
+  "trees": {
+    "backend": "32d82bf80db6c06c500234a4a5429964a3f124db",
+    "nexus": "799bb889edbd506799eac76e5d6279a0733574d3",
+    "storefront-prototype": "cd1ba7c4458c6361914d6b7a0179b21d27299c95"
+  },
+  "migration": "None",
+  "limits": [
+    "SUCCESS proves native persisted provider acknowledgement, not mailbox delivery or reading. Real PostgreSQL scenarios use the synthetic log provider only.",
+    "No outbox, delivery callback, automatic FAILURE retry, or change to native global event-bus retries. Calls without an idempotency key retain their separate application claims.",
+    "No production configuration, external email, provider API or deployment was used. recordEvent retains its existing best-effort database audit semantics."
+  ]
+}
