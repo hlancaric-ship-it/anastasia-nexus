@@ -1,6 +1,6 @@
 # Klub: deterministická pravidla členských období
 
-Stav: IMPLEMENTED_UNVERIFIED před plnou CI; pouze interní pravidla. Není to hotové předplatné, API, trvalý model ani napojení plateb. Bez vedlejších účinků, bez sítě, bez přidělení skutečného přístupu.
+Stav: VERIFIED pouze pro interní čistá pravidla. Není to hotové předplatné, API, trvalý model ani napojení plateb. Bez vedlejších účinků, bez sítě, bez přidělení skutečného přístupu.
 
 Pravidla představují časově omezené členství na přesně sjednaný počet dnů v UTC, nikoli neurčitý kalendářní „měsíc“. Cenu a délku určuje schválená konfigurace; nejsou napevno zakódované obchodní částky. Částka v integer EUR centech znamená schválený CELKOVÝ výsledek autoritativního checkoutu včetně daní/slev, nikoli klientský přepočet produktové ceny. Více měn, smíšená objednávka a kalendářní měsíce zatím nejsou podporované.
 
@@ -15,3 +15,5 @@ DŮLEŽITÁ hranice: `Receipt` je interní vstup budoucího serverového adapté
 Následuje persistovaný membership model, explicitní předplatitelský souhlas a uložená platební metoda, nativní checkout/reconciliation adaptér, joby a admin obsluha. Žádný Worker Stripe Subscription bypass ani druhá účetní kniha. Nesmí se zatím napojit storefront subscription CTA. Refund/storno a dunning nejsou tímto balíkem vyřešené. Překlady zůstávají další balík dle rozhodnutí vedení.
 
 Ověření: 32 cílených unit kontrol (vlastník, částky, částečná/vrácená platba, souhlas, UTC bez nejednoznačných dat, splatnost, změna ceny, stabilní klíč, unknown, souběhové předpoklady a replay). Plná regrese pouze CI. Žádná skutečná platba se tímto kódem neprovádí.
+
+Finální [CI38966524123](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38966524123): backend704/704, NEXUS1230/1230, workerd139/139, MedusaHTTP151/151 PASS. [Důkaz](evidence/membership-policy-ci.json). Lokálně32/32 a backend TypeScript PASS. Rozsah ověření nenahrazuje chybějící integraci předplatného.

@@ -1,0 +1,20 @@
+{
+  "status": "VERIFIED",
+  "scope": "Pure policy only; no persisted membership, billing or access integration",
+  "source_head": "472f42fbddf9935578cd06f799851c9e7b93b4a8",
+  "tested_merge": "82a34a65178a0fcad1bd73182fff89ccf1dc7024",
+  "ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38966524123",
+  "focused_unit_pass": 32,
+  "full_regression": {
+    "backend_pass": 704,
+    "nexus_pass": 1230,
+    "workerd_pass": 139,
+    "medusa_http_pass": 151,
+    "failures": 0
+  },
+  "limits": [
+    "Not an implemented subscription or HTTP contract",
+    "Receipt facts require a trusted native adapter",
+    "Persistence, concurrency, billing, grant/revoke and admin remain separate work"
+  ]
+}
