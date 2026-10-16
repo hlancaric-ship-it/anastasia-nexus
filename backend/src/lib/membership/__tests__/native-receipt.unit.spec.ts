@@ -50,4 +50,8 @@ describe('native membership receipt authority',()=>{
  it('rejects a native order that changed between ledger and item reads',async()=>{const f=fixture();f.orders.retrieveOrder.mockImplementation(async()=>({...f.order,status:'canceled'}));await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow('NATIVE_ORDER_CHANGED')})
  it('never assumes a missing native quantity means one',async()=>{const f=fixture();delete (f.order.items[0] as any).quantity;await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow('ITEMS_MISMATCH')})
 
+ it('accepts the native BigNumber quantity wrapper while preserving exact one-unit semantics',async()=>{const f=fixture();(f.order.items[0] as any).quantity={numeric:1};expect((await loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).exclusive_member_order).toBe(true);(f.order.items[0] as any).quantity={numeric:2};await expect(loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).rejects.toThrow('ITEMS_MISMATCH')})
+ it('accepts native Date captures and serializes their exact UTC instant',async()=>{const f=fixture();(f.payment as any).captured_at=new Date(f.payment.captured_at);expect((await loadNativeMembershipReceipt(f.scope,'ord_a',binding,now)).paid_at).toBe('2026-10-16T11:00:00.000Z')})
+ it('rejects cyclic native amount data rather than recursing without a bound',()=>{const v:any={};v.value=v;expect(()=>euroMinor(v)).toThrow('INVALID_NATIVE_AMOUNT')})
+
 })

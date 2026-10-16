@@ -5,13 +5,19 @@ export type CheckoutBinding={cart_id:string;customer_id:string;product_id:string
 type Scope={resolve:(key:string)=>any}
 const fail=(code:string):never=>{throw new Error(code)}
 /** Exact EUR conversion on the server; missing/invalid facts never become zero. */
-export function euroMinor(value:unknown):number{
- if(typeof value==='object'&&value!==null){
+function nativeScalar(value:unknown,depth=0):string|number{
+ if(typeof value==='string'||typeof value==='number')return value
+ if(typeof value==='object'&&value!==null&&depth<3){
   const object=value as Record<string,unknown>
-  for(const key of ['numeric','numeric_','value'])if(object[key]!==undefined)return euroMinor(object[key])
-  return fail('INVALID_NATIVE_AMOUNT')
+  for(const key of ['numeric','numeric_','value'])if(object[key]!==undefined)return nativeScalar(object[key],depth+1)
  }
- if(typeof value!=='number'&&typeof value!=='string')return fail('INVALID_NATIVE_AMOUNT')
+ return fail('INVALID_NATIVE_AMOUNT')
+}
+function oneUnit(value:unknown):boolean{
+ try{return /^1(?:\.0+)?$/.test(String(nativeScalar(value)))}catch{return false}
+}
+export function euroMinor(input:unknown):number{
+ const value=nativeScalar(input)
  const raw=String(value)
  if(!/^(?:0|[1-9]\d{0,8})(?:\.\d{1,2})?$/.test(raw))return fail('INVALID_NATIVE_AMOUNT')
  const [whole,fraction='']=raw.split('.'),minor=Number(whole)*100+Number(fraction.padEnd(2,'0'))
@@ -19,7 +25,7 @@ export function euroMinor(value:unknown):number{
  return minor
 }
 function timestamp(value:unknown):string{
- const text=value instanceof Date?value.toISOString():value
+ const text=Object.prototype.toString.call(value)==='[object Date]'?Date.prototype.toISOString.call(value):value
  if(typeof text!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(text))return fail('INVALID_NATIVE_CAPTURE_TIME')
  const n=Date.parse(text),canonical=text.length===20?text.replace('Z','.000Z'):text
  if(!Number.isFinite(n)||new Date(n).toISOString()!==canonical)return fail('INVALID_NATIVE_CAPTURE_TIME')
@@ -41,7 +47,7 @@ export async function loadNativeMembershipReceipt(scope:Scope,orderId:string,bin
  if(order.id!==orderId||order.customer_id!==binding.customer_id)return fail('NATIVE_ORDER_OWNER_MISMATCH')
  if(typeof order.status!=='string'||order.status==='canceled'||order.currency_code!=='eur')return fail('NATIVE_ORDER_NOT_ELIGIBLE')
  const items=order.items
- if(!Array.isArray(items)||items.length!==1||items[0].quantity!==1||items[0].product_id!==binding.product_id||items[0].variant_id!==binding.variant_id)return fail('NATIVE_MEMBERSHIP_ITEMS_MISMATCH')
+ if(!Array.isArray(items)||items.length!==1||!oneUnit(items[0].quantity)||items[0].product_id!==binding.product_id||items[0].variant_id!==binding.variant_id)return fail('NATIVE_MEMBERSHIP_ITEMS_MISMATCH')
  const total=euroMinor(order.total)
  if(total<=0)return fail('NATIVE_MEMBERSHIP_PAYMENT_REQUIRED')
  const collections=order.payment_collections

@@ -78,7 +78,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_ci',hooks:{beforeServe
   ])
   const binding={cart_id:cart.id,customer_id:customer.id,product_id:'prod_synthetic',variant_id:'var_synthetic',checkout_key:`initial:${order.id}`}
   const nativeShape=await container.resolve(Modules.ORDER).retrieveOrder(order.id,{select:['id','version','customer_id','status','currency_code','total'],relations:['items']})
-  expect(nativeShape.items).toEqual([expect.objectContaining({product_id:'prod_synthetic',variant_id:'var_synthetic',quantity:1})])
+  expect(JSON.parse(JSON.stringify(nativeShape.items))).toEqual([expect.objectContaining({product_id:'prod_synthetic',variant_id:'var_synthetic',quantity:1})])
   await expect(loadNativeMembershipReceipt(container,order.id,binding)).rejects.toThrow()
   const session=await payment.createPaymentSession(collection.id,{provider_id:'pp_system_default',currency_code:'eur',amount:50,data:{}})
   const authorized=await payment.authorizePaymentSession(session.id,{})
