@@ -40,4 +40,6 @@ describe('fixed-day membership policy, no financial side effects',()=>{
   expect(()=>planRenewal({...pending,renewal_key:'another-membership'},now,current)).toThrow('INVALID_RENEWAL_KEY')
  })
 
+ it('never enrolls a renewal order as a second initial membership',()=>expect(()=>activateMembership('mem_b',terms,{...receipt,checkout_key:'membership:mem_a:period'},consent,now)).toThrow('INITIAL_BINDING_MISMATCH'))
+
 })

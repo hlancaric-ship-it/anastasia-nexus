@@ -1,0 +1,61 @@
+name: Membership persistence
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'backend/src/lib/membership/**'
+      - 'backend/src/modules/membership/**'
+      - 'backend/integration-tests/http/membership-state.spec.ts'
+      - '.github/workflows/membership-state.yml'
+permissions:
+  contents: read
+jobs:
+  persistence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.6-bookworm
+        env:
+          POSTGRES_USER: membership_synthetic
+          POSTGRES_PASSWORD: membership_synthetic_only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U membership_synthetic -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - run: npm ci --prefix backend --no-audit --no-fund
+      - name: Types and focused policy tests
+        working-directory: backend
+        env:
+          TEST_TYPE: unit
+          MEDUSA_TELEMETRY_DISABLED: 'true'
+          NODE_OPTIONS: --experimental-vm-modules
+        run: |
+          ./node_modules/.bin/tsc --noEmit
+          ./node_modules/.bin/jest --runTestsByPath src/lib/membership/__tests__/policy.unit.spec.ts --runInBand --forceExit
+      - name: Actual Medusa module and PostgreSQL concurrency
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          MEDUSA_TELEMETRY_DISABLED: 'true'
+          NODE_OPTIONS: --experimental-vm-modules --dns-result-order=ipv4first
+          TEST_TYPE: integration:http
+          DB_HOST: localhost
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+          DB_USERNAME: membership_synthetic
+          DB_PASSWORD: membership_synthetic_only
+          DB_TEMP_NAME: anastasia_membership_ci
+          DATABASE_URL: postgres://membership_synthetic:membership_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_membership_ci
+          JWT_SECRET: synthetic-membership-jwt-only
+          COOKIE_SECRET: synthetic-membership-cookie-only
+        run: ./node_modules/.bin/jest --runTestsByPath integration-tests/http/membership-state.spec.ts --runInBand --forceExit
