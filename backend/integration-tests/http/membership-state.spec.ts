@@ -16,8 +16,9 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_ci',hooks:{beforeServe
  // Test-only module registration. Integrator owns the actual application configuration.
  const config=container.resolve(ContainerRegistrationKeys.CONFIG_MODULE) as any
  config.modules[MEMBERSHIP_MODULE]={resolve:'./src/modules/membership'}
-}},testSuite:({getContainer,dbConnection})=>{
+}},testSuite:({getContainer})=>{
  afterAll(()=>{Server.prototype.listen=listen})
+ const dbConnection=(table:string)=>(getContainer().resolve(ContainerRegistrationKeys.PG_CONNECTION) as any)(table)
  const service=()=>getContainer().resolve<MembershipModuleService>(MEMBERSHIP_MODULE)
  it('atomically deduplicates activation and renewal with persistent receipt claims under concurrent calls',async()=>{
   const s=service(),created=await Promise.all([s.activate(terms,receipt,{version:'v1',auto_renew:true},now),s.activate(terms,receipt,{version:'v1',auto_renew:true},now)])
