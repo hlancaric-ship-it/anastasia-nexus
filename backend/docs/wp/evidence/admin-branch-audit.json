@@ -1,0 +1,223 @@
+{
+  "status": "VERIFIED",
+  "master": "891297d15d31ff244d155743da37b7e83355e60b",
+  "method": "git cherry patch equivalence plus content review of every later changed touched file; not branch name/ancestry alone",
+  "branches": [
+    {
+      "branch": "codex/customer-gdpr",
+      "tip": "7383eb2de847732587a5eb8e564cee678d2c3cc0",
+      "status": "ALREADY_IN_MASTER",
+      "missing_commits": 0,
+      "equivalent_commits": [
+        "b00ce4ed48fdbb5be1c6c4475a3c9a0894bd76d1",
+        "7383eb2de847732587a5eb8e564cee678d2c3cc0"
+      ],
+      "reviewed_paths": [
+        {
+          "path": "backend/docs/wp/customer-gdpr.md",
+          "master_sha256": "12d026ebf66bb66b74dc2ff35a6ee77c97448e37a0e435c7698eebd3ba34814f",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/integration-tests/http/customer-gdpr-http-checks.ts",
+          "master_sha256": "e17123c1f8d24b29e724d00be9ac4bfe7dd04bc7f124ce20054a714234c0e97e",
+          "identical_to_branch_tip": false
+        },
+        {
+          "path": "backend/src/api/admin/customer-erasures/[id]/execute/route.ts",
+          "master_sha256": "de2e8829c1428db1f7bd6e6d2f13cc96bc5e1ed10e6a2190fb6bba0d7a6f4188",
+          "identical_to_branch_tip": false
+        },
+        {
+          "path": "backend/src/api/customer-privacy-middlewares.ts",
+          "master_sha256": "bff150789157c7b263aa6b035b64c226c8aa2dc9c98e19b49dd3e6f31f89201d",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/jobs/customer-privacy-token-cleanup.ts",
+          "master_sha256": "e25f188a254ebd46834048919d89e2628e2d99c98e55b1834d5faaad53054db4",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/lib/customer-privacy/export.ts",
+          "master_sha256": "1bffcf7248746198567262d4e3ec20927dc8e0431660caac3f581206190de04b",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/customer-privacy/__tests__/privacy.unit.spec.ts",
+          "master_sha256": "e64ef6bb9fd7770cf5a787c94750e7b8e3be8de813e4339ee72cc7c52114b025",
+          "identical_to_branch_tip": false
+        },
+        {
+          "path": "backend/src/modules/customer-privacy/erase.ts",
+          "master_sha256": "7974679877685910221ab0122c7d821ffc4020c1efc002936db12e962e415c00",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/customer-privacy/identity.ts",
+          "master_sha256": "1f576099878a2c52a0a5b648a203b010dfd59615f69c402c9f20d59e63614939",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/customer-privacy/migrations/Migration20261015051000.ts",
+          "master_sha256": "cfed564f44d7c07126d1c71ec1c9a2a20f670667afc5daf9b4e0ffc59ea5106f",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/customer-privacy/models/customer-erasure.ts",
+          "master_sha256": "33e66d104c4ab105ada2ab9f20dd393d52beabdbf45e22f89b5049a5a0ed42eb",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/customer-privacy/policy.ts",
+          "master_sha256": "f89b6c983aa73fee917855b791f9ee05abab99d38fd08cbb7dab35b2cd98f8b0",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/customer-privacy/service.ts",
+          "master_sha256": "5652bbb3b2721b873bae153fdeb940c384052ddc6d50d1c76b3ea997c1a10043",
+          "identical_to_branch_tip": true
+        }
+      ],
+      "later_changes": [
+        "backend/integration-tests/http/customer-gdpr-http-checks.ts",
+        "backend/src/api/admin/customer-erasures/[id]/execute/route.ts",
+        "backend/src/modules/customer-privacy/__tests__/privacy.unit.spec.ts"
+      ],
+      "closure": "local archive tag preserves tip; active local branch removed after audit"
+    },
+    {
+      "branch": "codex/legal-consents",
+      "tip": "78a9a3b74cbd18ee8feba9fd5a19ad06b9a4ecbc",
+      "status": "ALREADY_IN_MASTER",
+      "missing_commits": 0,
+      "equivalent_commits": [
+        "d30372cc4f540c013a6c9fbd96c224e2180d7783",
+        "31863b7be43d54dce853492577c560c3ea1462a8",
+        "78a9a3b74cbd18ee8feba9fd5a19ad06b9a4ecbc"
+      ],
+      "reviewed_paths": [
+        {
+          "path": "backend/docs/wp/legal-consents.md",
+          "master_sha256": "87b09f4dc692480afc9cec6137beed18d5aa36da9dece0707e9dff92f547e4f4",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/integration-tests/http/legal-consents-http-checks.ts",
+          "master_sha256": "f7aedf79cdccaac4ee4bdd8e68b1425b3865371b8d66c5e8601ac18fbe39e667",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/api/store/carts/[id]/consents/route.ts",
+          "master_sha256": "e536a23436c98486ac5dc2bb35f5d650ff88ef39e86577120ec0fa6d5fffcc06",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/lib/legal/checkout.ts",
+          "master_sha256": "90acee80fc169fb6968e2d5a2edfab875cc9e8fbe5fe9163c593404cd9c8ad74",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/legal/__tests__/newsletter.unit.spec.ts",
+          "master_sha256": "9c795677796045e43f9c92df92bbbf75381f7fac4f796604cd3e01ae989b6a56",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/modules/legal/__tests__/routes.unit.spec.ts",
+          "master_sha256": "c7df3e6e063f1fd85406de60a83f9f464065766ac605a194e3fe2402dfd0c3b4",
+          "identical_to_branch_tip": false
+        },
+        {
+          "path": "backend/src/modules/legal/service.ts",
+          "master_sha256": "3588afa7de4884eeb95845db28fa8ba6c9e082ccac81fe18c157885f4a2f32f2",
+          "identical_to_branch_tip": true
+        }
+      ],
+      "later_changes": [
+        "backend/src/modules/legal/__tests__/routes.unit.spec.ts"
+      ],
+      "closure": "local archive tag preserves tip; active local branch removed after audit"
+    },
+    {
+      "branch": "codex/order-self-cancel",
+      "tip": "782b735e4af28da37a3a7ab342b733bcf0f860f1",
+      "status": "ALREADY_IN_MASTER",
+      "missing_commits": 0,
+      "equivalent_commits": [
+        "40abeedf716d4ec9e930740407798489db4204f2",
+        "782b735e4af28da37a3a7ab342b733bcf0f860f1"
+      ],
+      "reviewed_paths": [
+        {
+          "path": "backend/docs/wp/evidence/x1-x2-x3-ci.json",
+          "master_sha256": "dc0f798946dfeef4c5eaa3a94db32d039e177056e1092ff17cba8dce9f7ef720",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/docs/wp/order-self-cancel.md",
+          "master_sha256": "be61f8b0e8e5a92e5500ad26a61873a33487b0acbb53d2a92c69e7ee6c936620",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/integration-tests/http/order-self-cancel-http-checks.ts",
+          "master_sha256": "90fdb3a6e8b4a9265c001252e2269174bca5d623e7678ab07d1ddf8d42a51422",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/api/store/orders/[id]/cancel/route.ts",
+          "master_sha256": "6b90b5d01827b7ef422abb5e0e4512fd365e61e018354811a11adfd45a0ae4f7",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/lib/order-self-cancel/__tests__/cancel.unit.spec.ts",
+          "master_sha256": "17115b18dd6cf6701e68eee89e9651f3985388e99c73d2bf258d3c0bc58a24d1",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/src/lib/order-self-cancel/policy.ts",
+          "master_sha256": "041dc8e17316c33e36fcbc55acd22ddf5a8d1976d56722b08c2da8164bc1aed9",
+          "identical_to_branch_tip": true
+        }
+      ],
+      "later_changes": [],
+      "closure": "local archive tag preserves tip; active local branch removed after audit"
+    },
+    {
+      "branch": "codex/backend-admin-readiness",
+      "tip": "156fd95ce77cdb658af028c0466808fcc9172aaa",
+      "status": "ALREADY_IN_MASTER",
+      "missing_commits": 0,
+      "equivalent_commits": [
+        "156fd95ce77cdb658af028c0466808fcc9172aaa"
+      ],
+      "reviewed_paths": [
+        {
+          "path": "backend/docs/wp/backend-admin-capabilities.md",
+          "master_sha256": "a2da0b081c5fae5ddd0f159030e36697f97a1c42a09b8ed8cfd7aab11ac9e4e8",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/docs/wp/backend-admin-inventory.json",
+          "master_sha256": "e91b49b2d83ba7a9ca7db041d5e090a3c46682a45f058054e19c354eddd2f5be",
+          "identical_to_branch_tip": true
+        },
+        {
+          "path": "backend/docs/wp/backend-completion.md",
+          "master_sha256": "36f4804d869f00a7f900d9f31d97b1c1885aec362f3d28e7e2524f3e50284567",
+          "identical_to_branch_tip": true
+        }
+      ],
+      "later_changes": [],
+      "closure": "local archive tag preserves tip; active local branch removed after audit"
+    }
+  ],
+  "focused_tests": {
+    "status": "PASS",
+    "suites": 6,
+    "passed": 43,
+    "failed": 0,
+    "scope": "Existing privacy, legal, self-cancel regression suites on exact master worktree",
+    "command": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules ./node_modules/.bin/jest --runTestsByPath src/modules/customer-privacy/__tests__/privacy.unit.spec.ts src/modules/legal/__tests__/checkout.unit.spec.ts src/modules/legal/__tests__/newsletter.unit.spec.ts src/modules/legal/__tests__/policy.unit.spec.ts src/modules/legal/__tests__/routes.unit.spec.ts src/lib/order-self-cancel/__tests__/cancel.unit.spec.ts --runInBand --forceExit"
+  },
+  "limits": "Audit confirms integration of these branches only; it does not mark all admin/CMS functionality complete."
+}
