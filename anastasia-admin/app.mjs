@@ -74,6 +74,7 @@ function listView(view, { endpoint, cols, rows, title, onRow, empty }) {
   if (onRow) view.querySelectorAll('tbody tr[data-i]').forEach(tr => tr.onclick = () => onRow(rows[+tr.dataset.i]));
 }
 
+function setActions(html) { const a = document.querySelector('#actions'); if (a) a.innerHTML = html || ''; }
 async function vProducts(view) {
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   const { products } = await api('/admin/products?limit=100&fields=id,title,status,handle,*variants.prices');
@@ -90,53 +91,164 @@ async function vProducts(view) {
 }
 async function vProductDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,*variants.prices`);
+  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,*variants.prices,*categories`);
   const variant = p.variants?.[0]; const price = variant?.prices?.find(x => x.currency_code === 'eur');
-  view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<a class="btn ghost" href="#/produkty">Späť</a></div><div class="card-b">
+  let cats = []; try { cats = (await api('/admin/product-categories?limit=200&fields=id,name')).product_categories || []; } catch {}
+  const inC = new Set((p.categories || []).map(c => c.id));
+  view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<button class="btn ghost" id="p-back">Späť</button></div><div class="card-b">
     <div id="pmsg"></div>
     <label>Názov</label><input id="p-title" value="${esc(p.title)}">
     <div class="row"><div><label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>published</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select></div>
     <div><label>Cena (EUR)${variant ? '' : ' — produkt nemá variant'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div></div>
     <label>Popis</label><textarea id="p-desc" rows="4">${esc(p.description || '')}</textarea>
+    <label style="margin-top:12px">Kategórie</label>
+    <div>${cats.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-c="${c.id}" ${inC.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}</label>`).join('') || '<span class="muted">Žiadne kategórie.</span>'}</div>
     <div style="margin-top:16px;display:flex;gap:10px"><button class="btn gold" id="p-save">Uložiť</button></div>
   </div></div>`;
+  view.querySelector('#p-back').onclick = () => vProducts(view);
   view.querySelector('#p-save').onclick = async () => {
     const msg = view.querySelector('#pmsg'); msg.innerHTML = '';
     try {
-      await api(`/admin/products/${id}`, { method: 'POST', body: { title: view.querySelector('#p-title').value, status: view.querySelector('#p-status').value, description: view.querySelector('#p-desc').value } });
+      const chosen = [...view.querySelectorAll('[data-c]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.c }));
+      await api(`/admin/products/${id}`, { method: 'POST', body: { title: view.querySelector('#p-title').value, status: view.querySelector('#p-status').value, description: view.querySelector('#p-desc').value, categories: chosen } });
       const np = view.querySelector('#p-price').value;
       if (variant && np !== '' && Number(np) !== price?.amount) {
         await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { prices: [{ amount: Number(np), currency_code: 'eur' }] } });
       }
-      msg.innerHTML = '<div class="notice">Uložené. <a href="#/produkty">Späť na zoznam</a></div>';
+      msg.innerHTML = '<div class="notice">Uložené.</div>';
     } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   };
 }
 async function vCategories(view) {
-  const { product_categories } = await api('/admin/product-categories?limit=100&fields=id,name,handle,is_active');
-  listView(view, { title: 'Kategórie', rows: product_categories, cols: [
+  const { product_categories } = await api('/admin/product-categories?limit=200&fields=id,name,handle,is_active,parent_category_id');
+  setActions('<button class="btn gold" id="cat-new">+ Nová kategória</button>');
+  const nb = document.querySelector('#cat-new'); if (nb) nb.onclick = () => vCategoryDetail(view, null);
+  listView(view, { title: 'Kategórie', rows: product_categories, onRow: c => vCategoryDetail(view, c.id), cols: [
     { h: 'Názov', v: c => esc(c.name) }, { h: 'Handle', v: c => `<span class="muted">${esc(c.handle)}</span>` },
+    { h: 'Nadradená', v: c => c.parent_category_id ? '<span class="muted">áno</span>' : '—' },
     { h: 'Aktívna', v: c => c.is_active ? '<span class="pill ok">áno</span>' : '<span class="pill off">nie</span>' }] });
 }
+async function vCategoryDetail(view, id) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  let c = { name: '', handle: '', is_active: true };
+  if (id) { const r = await api(`/admin/product-categories/${id}?fields=id,name,handle,is_active`); c = r.product_category; }
+  view.innerHTML = `<div class="card"><div class="card-h">${id ? 'Úprava kategórie' : 'Nová kategória'}<button class="btn ghost" id="c-back">Späť</button></div><div class="card-b">
+    <div id="cmsg"></div>
+    <label>Názov</label><input id="c-name" value="${esc(c.name)}">
+    <label>Handle (URL)</label><input id="c-handle" value="${esc(c.handle || '')}" placeholder="napr. bio-kozmetika">
+    <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="c-active" ${c.is_active !== false ? 'checked' : ''} style="width:auto"> Aktívna</label>
+    <div style="margin-top:16px"><button class="btn gold" id="c-save">Uložiť</button></div>
+  </div></div>`;
+  view.querySelector('#c-back').onclick = () => vCategories(view);
+  view.querySelector('#c-save').onclick = async () => {
+    const msg = view.querySelector('#cmsg'); msg.innerHTML = '';
+    const body = { name: view.querySelector('#c-name').value, is_active: view.querySelector('#c-active').checked };
+    const h = view.querySelector('#c-handle').value.trim(); if (h) body.handle = h;
+    try { await api(id ? `/admin/product-categories/${id}` : '/admin/product-categories', { method: 'POST', body }); await vCategories(view); }
+    catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
 async function vOrders(view) {
-  const { orders } = await api('/admin/orders?limit=50&fields=id,display_id,email,status,total,currency_code,created_at');
-  listView(view, { title: 'Objednávky', rows: orders, cols: [
+  const { orders } = await api('/admin/orders?limit=50&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status');
+  listView(view, { title: 'Objednávky', rows: orders, onRow: o => vOrderDetail(view, o.id), cols: [
     { h: 'Č.', v: o => '#' + (o.display_id ?? '') }, { h: 'E-mail', v: o => esc(o.email) },
-    { h: 'Stav', v: o => `<span class="pill">${esc(o.status)}</span>` }, { h: 'Suma', v: o => fmtEur(o.total) },
+    { h: 'Stav', v: o => `<span class="pill">${esc(o.status)}</span>` },
+    { h: 'Platba', v: o => `<span class="pill">${esc(o.payment_status || '—')}</span>` },
+    { h: 'Suma', v: o => fmtEur(o.total) },
     { h: 'Dátum', v: o => fmtDate(o.created_at) }] });
+}
+async function vOrderDetail(view, id) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  const { order: o } = await api(`/admin/orders/${id}?fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,*items`);
+  view.innerHTML = `<div class="card"><div class="card-h">Objednávka #${o.display_id ?? ''}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
+    <div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(o.created_at)}</div></div></div>
+    <div class="row"><div><label>Stav</label><div><span class="pill">${esc(o.status)}</span></div></div>
+    <div><label>Platba</label><div><span class="pill">${esc(o.payment_status || '—')}</span></div></div>
+    <div><label>Doručenie</label><div><span class="pill">${esc(o.fulfillment_status || '—')}</span></div></div></div>
+    <label style="margin-top:12px">Položky</label>
+    <table><thead><tr><th>Produkt</th><th>Ks</th><th>Suma</th></tr></thead><tbody>
+    ${(o.items || []).map(it => `<tr><td>${esc(it.title || it.product_title || '')}</td><td>${it.quantity}</td><td>${fmtEur(it.total)}</td></tr>`).join('')}
+    </tbody></table>
+    <div style="margin-top:14px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>
+    <p class="muted" style="margin-top:10px">Fulfillment a refundy prebiehajú cez jadro (bezpečné serverové operácie); tu je bezpečný náhľad objednávky.</p>
+  </div></div>`;
+  view.querySelector('#o-back').onclick = () => vOrders(view);
 }
 async function vCustomers(view) {
   const { customers } = await api('/admin/customers?limit=100&fields=id,email,first_name,last_name,has_account,created_at');
-  listView(view, { title: 'Zákazníčky', rows: customers, cols: [
+  listView(view, { title: 'Zákazníčky', rows: customers, onRow: c => vCustomerDetail(view, c.id), cols: [
     { h: 'E-mail', v: c => esc(c.email) }, { h: 'Meno', v: c => esc([c.first_name, c.last_name].filter(Boolean).join(' ')) },
     { h: 'Účet', v: c => c.has_account ? '<span class="pill ok">áno</span>' : '<span class="pill warn">hosť</span>' },
     { h: 'Registrácia', v: c => fmtDate(c.created_at) }] });
 }
+async function vCustomerDetail(view, id) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  const { customer: c } = await api(`/admin/customers/${id}?fields=id,email,first_name,last_name,has_account,created_at,*groups`);
+  let groups = []; try { groups = (await api('/admin/customer-groups?limit=50&fields=id,name')).customer_groups || []; } catch {}
+  const inG = new Set((c.groups || []).map(g => g.id));
+  view.innerHTML = `<div class="card"><div class="card-h">Zákazníčka<button class="btn ghost" id="cu-back">Späť</button></div><div class="card-b">
+    <div id="custmsg"></div>
+    <div class="row"><div><label>E-mail</label><div>${esc(c.email)}</div></div><div><label>Účet</label><div>${c.has_account ? 'áno' : 'hosť'}</div></div></div>
+    <div class="row"><div><label>Meno</label><input id="cu-first" value="${esc(c.first_name || '')}"></div><div><label>Priezvisko</label><input id="cu-last" value="${esc(c.last_name || '')}"></div></div>
+    <label style="margin-top:12px">Skupiny (vernostný tier)</label>
+    <div>${groups.map(g => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-g="${g.id}" ${inG.has(g.id) ? 'checked' : ''} style="width:auto"> ${esc(g.name)}</label>`).join('') || '<span class="muted">Žiadne skupiny.</span>'}</div>
+    <div style="margin-top:16px"><button class="btn gold" id="cu-save">Uložiť</button></div>
+  </div></div>`;
+  view.querySelector('#cu-back').onclick = () => vCustomers(view);
+  view.querySelector('#cu-save').onclick = async () => {
+    const msg = view.querySelector('#custmsg'); msg.innerHTML = '';
+    try {
+      await api(`/admin/customers/${id}`, { method: 'POST', body: { first_name: view.querySelector('#cu-first').value, last_name: view.querySelector('#cu-last').value } });
+      for (const cb of view.querySelectorAll('[data-g]')) { const gid = cb.dataset.g, was = inG.has(gid);
+        if (cb.checked && !was) await api(`/admin/customer-groups/${gid}/customers`, { method: 'POST', body: { add: [id] } });
+        if (!cb.checked && was) await api(`/admin/customer-groups/${gid}/customers`, { method: 'POST', body: { remove: [id] } }); }
+      msg.innerHTML = '<div class="notice">Uložené.</div>';
+    } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
 async function vCoupons(view) {
   const { promotions } = await api('/admin/promotions?limit=100&fields=id,code,status,*application_method');
-  listView(view, { title: 'Kupóny & QR', rows: promotions, empty: 'Zatiaľ žiadne kupóny. QR generátor pridáva kupóny cez jadro.', cols: [
+  setActions('<button class="btn gold" id="promo-new">+ Nový kupón</button>');
+  const nb = document.querySelector('#promo-new'); if (nb) nb.onclick = () => vCouponNew(view);
+  listView(view, { title: 'Kupóny & QR', rows: promotions, onRow: p => vCouponDetail(view, p.id), empty: 'Zatiaľ žiadne kupóny. QR generátor pridáva kupóny cez jadro.', cols: [
     { h: 'Kód', v: p => `<b>${esc(p.code)}</b>` }, { h: 'Stav', v: p => `<span class="pill ${p.status === 'active' ? 'ok' : 'warn'}">${esc(p.status)}</span>` },
     { h: 'Zľava', v: p => { const m = p.application_method; return m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'; } }] });
+}
+async function vCouponNew(view) {
+  view.innerHTML = `<div class="card"><div class="card-h">Nový kupón<button class="btn ghost" id="pn-back">Späť</button></div><div class="card-b">
+    <div id="pnmsg"></div>
+    <label>Kód</label><input id="pn-code" placeholder="napr. JAR26">
+    <div class="row"><div><label>Typ zľavy</label><select id="pn-type"><option value="percentage">percentá %</option><option value="fixed">pevná suma €</option></select></div>
+    <div><label>Hodnota</label><input id="pn-val" type="number" step="0.01" value="10"></div></div>
+    <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť</button></div>
+    <p class="muted" style="margin-top:10px">Kupón vznikne v jadre (promotions). Väzba na QR a limit sa dolaďuje cez jadro.</p>
+  </div></div>`;
+  view.querySelector('#pn-back').onclick = () => vCoupons(view);
+  view.querySelector('#pn-save').onclick = async () => {
+    const msg = view.querySelector('#pnmsg'); msg.innerHTML = '';
+    const code = view.querySelector('#pn-code').value.trim(), type = view.querySelector('#pn-type').value, val = Number(view.querySelector('#pn-val').value);
+    if (!code) { msg.innerHTML = '<div class="err">Zadaj kód.</div>'; return; }
+    const am = { type, value: val, target_type: 'order', allocation: 'across' }; if (type === 'fixed') am.currency_code = 'eur';
+    try { await api('/admin/promotions', { method: 'POST', body: { code, type: 'standard', status: 'active', application_method: am } }); await vCoupons(view); }
+    catch (e) { msg.innerHTML = `<div class="err">Jadro odmietlo: ${esc(e.message)}</div>`; }
+  };
+}
+async function vCouponDetail(view, id) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  const { promotion: p } = await api(`/admin/promotions/${id}?fields=id,code,status,*application_method`);
+  const m = p.application_method;
+  view.innerHTML = `<div class="card"><div class="card-h">Kupón ${esc(p.code)}<button class="btn ghost" id="pd-back">Späť</button></div><div class="card-b">
+    <div id="pdmsg"></div>
+    <label>Stav</label><select id="pd-status"><option value="active"${p.status === 'active' ? ' selected' : ''}>active</option><option value="inactive"${p.status === 'inactive' ? ' selected' : ''}>inactive</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select>
+    <div class="muted" style="margin-top:10px">Zľava: ${m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'}</div>
+    <div style="margin-top:16px"><button class="btn gold" id="pd-save">Uložiť</button></div>
+  </div></div>`;
+  view.querySelector('#pd-back').onclick = () => vCoupons(view);
+  view.querySelector('#pd-save').onclick = async () => {
+    const msg = view.querySelector('#pdmsg'); msg.innerHTML = '';
+    try { await api(`/admin/promotions/${id}`, { method: 'POST', body: { status: view.querySelector('#pd-status').value } }); await vCoupons(view); }
+    catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
 }
 // agendy skúšajúce endpoint, inak „čaká na backend"
 async function tryList(view, { title, endpoint, key, cols, note }) {
