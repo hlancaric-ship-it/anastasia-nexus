@@ -1,0 +1,32 @@
+{
+  "status": "VERIFIED",
+  "scope": "Membership access reconciliation, recovery job and refund lifecycle only; not complete subscription checkout/billing",
+  "source_head": "a583756a359f9f5f2f61868c6dddcdd3ccbd9bb9",
+  "tested_merge": "ce2e7420b4d99512fc11168140491853b772b2db",
+  "focused_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38971550923",
+  "focused_unit_pass": 80,
+  "access_unit_pass": 9,
+  "actual_medusa_postgres_pass": 3,
+  "backend_typescript": "PASS",
+  "full_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38971550924",
+  "full_regression": {
+    "backend_pass": 752,
+    "nexus_pass": 1230,
+    "workerd_pass": 139,
+    "medusa_http_pass": 151,
+    "failures": 0
+  },
+  "verified_native_behaviors": [
+    "concurrent access grant and recovery job",
+    "canonical native entitlement deduplication and read-back",
+    "fixed expiry without replay extension",
+    "partial refund preserves current right and stops renewal",
+    "full refund revokes and never reactivates on replay"
+  ],
+  "limits": [
+    "Membership registered only by CI hook; production integration belongs to Claude",
+    "No completed initial/recurring checkout, saved-method/consent flow, HTTP/admin/storefront contract",
+    "Separate module transactions use replay/reconciliation; no instant global revocation guarantee across outages or issued tokens",
+    "Operational audit writes are best effort; no live payment calls or deployment"
+  ]
+}
