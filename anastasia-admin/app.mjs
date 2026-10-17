@@ -46,10 +46,10 @@ function shell(active, title, sub) {
       ${nav}
       <div class="sidebar-bottom">Prihlásená obsluha<button id="logout">Odhlásiť sa</button></div>
     </aside>
-    <main class="main">
+    <main class="main"><div class="wrap">
       <div class="topbar"><div><h1>${esc(title)}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div><div id="actions"></div></div>
       <div id="view"></div>
-    </main>
+    </div></main>
   </div>`;
 }
 
@@ -75,6 +75,50 @@ function listView(view, { endpoint, cols, rows, title, onRow, empty }) {
 }
 
 function setActions(html) { const a = document.querySelector('#actions'); if (a) a.innerHTML = html || ''; }
+
+// --- záložky (kompaktne na jednu stránku) ---
+function tabsHtml(tabs) {
+  return `<div class="tabs">${tabs.map((t, i) => `<button class="tab ${i === 0 ? 'active' : ''}" data-tab="${t.id}">${esc(t.label)}</button>`).join('')}</div>
+    <div>${tabs.map((t, i) => `<div class="tabpane ${i === 0 ? 'active' : ''}" data-pane="${t.id}">${t.html}</div>`).join('')}</div>`;
+}
+function wireTabs(scope) {
+  scope.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+    scope.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === b));
+    scope.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('active', p.dataset.pane === b.dataset.tab));
+  });
+}
+// --- jednoduchý WYSIWYG (bez surových HTML tagov) ---
+function wysiwygHtml(id, html) {
+  return `<div class="wysi-tb"><button type="button" data-cmd="bold"><b>B</b></button><button type="button" data-cmd="italic"><i>I</i></button><button type="button" data-cmd="insertUnorderedList">• zoznam</button><button type="button" data-cmd="insertOrderedList">1. zoznam</button></div>
+    <div class="wysi" id="${id}" contenteditable="true">${html || ''}</div>`;
+}
+function wireWysiwyg(scope) {
+  scope.querySelectorAll('.wysi-tb button').forEach(b => b.onmousedown = (e) => { e.preventDefault(); const el = scope.querySelector('.wysi'); if (el) el.focus(); document.execCommand(b.dataset.cmd, false); });
+}
+// --- akcia/výpredaj cez sale price list (engine číta calculated vs original) ---
+const SALE_LIST_TITLE = 'ANASTASIA výpredaj';
+async function getSaleListId() {
+  const { price_lists } = await api('/admin/price-lists?limit=100&fields=id,title');
+  const ex = (price_lists || []).find(p => p.title === SALE_LIST_TITLE);
+  if (ex) return ex.id;
+  const { price_list } = await api('/admin/price-lists', { method: 'POST', body: { title: SALE_LIST_TITLE, description: 'Akčné/výpredajové ceny spravované z administrácie ANASTASIA', type: 'sale', status: 'active' } });
+  return price_list.id;
+}
+async function applyVariantSale(variantId, amount, ref) {
+  const listId = (ref && ref.price_list_id) || await getSaleListId();
+  if (ref && ref.price_id) {
+    await api(`/admin/price-lists/${listId}/prices/batch`, { method: 'POST', body: { update: [{ id: ref.price_id, amount: Number(amount), currency_code: 'eur' }] } });
+    return { price_list_id: listId, price_id: ref.price_id };
+  }
+  const r = await api(`/admin/price-lists/${listId}/prices/batch`, { method: 'POST', body: { create: [{ variant_id: variantId, amount: Number(amount), currency_code: 'eur' }] } });
+  const created = (r.created || r.prices || [])[0] || {};
+  return { price_list_id: listId, price_id: created.id };
+}
+async function clearVariantSale(ref) {
+  if (ref && ref.price_list_id && ref.price_id) {
+    try { await api(`/admin/price-lists/${ref.price_list_id}/prices/batch`, { method: 'POST', body: { delete: [ref.price_id] } }); } catch {}
+  }
+}
 async function vProducts(view) {
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   const { products } = await api('/admin/products?limit=100&fields=id,title,status,handle,*variants.prices');
@@ -91,32 +135,50 @@ async function vProducts(view) {
 }
 async function vProductDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,*variants.prices,*categories`);
+  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,metadata,*variants.prices,*categories`);
   const variant = p.variants?.[0]; const price = variant?.prices?.find(x => x.currency_code === 'eur');
   let cats = []; try { cats = (await api('/admin/product-categories?limit=200&fields=id,name')).product_categories || []; } catch {}
   const inC = new Set((p.categories || []).map(c => c.id));
+  const sale = (p.metadata && p.metadata.vyprodej) || {};
+  const saleOn = !!sale.active;
+  const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
+    <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>`;
+  const cena = `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
+    <div><label>Akcia</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:auto"> Vo výpredaji / akcia</label></div></div>
+    <div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">
+      <div class="row"><div><label>Akčná cena (EUR)</label><input id="p-sale-price" type="number" step="0.01" value="${sale.akcna_cena ?? ''}"></div>
+      <div><label>Platí do (voliteľné)</label><input id="p-sale-to" type="date" value="${esc(sale.do || '')}"></div></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">Akčná cena sa prejaví ako zľava oproti bežnej cene (číta ju cenový engine jadra).</div>
+    </div>`;
+  const kategorie = `<div>${cats.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-c="${c.id}" ${inC.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}</label>`).join('') || '<span class="muted">Žiadne kategórie.</span>'}</div>`;
+  const popis = wysiwygHtml('p-desc', p.description || '');
   view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<button class="btn ghost" id="p-back">Späť</button></div><div class="card-b">
     <div id="pmsg"></div>
-    <label>Názov</label><input id="p-title" value="${esc(p.title)}">
-    <div class="row"><div><label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>published</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select></div>
-    <div><label>Cena (EUR)${variant ? '' : ' — produkt nemá variant'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div></div>
-    <label>Popis</label><textarea id="p-desc" rows="4">${esc(p.description || '')}</textarea>
-    <label style="margin-top:12px">Kategórie</label>
-    <div>${cats.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-c="${c.id}" ${inC.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}</label>`).join('') || '<span class="muted">Žiadne kategórie.</span>'}</div>
+    ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 'c', label: 'Cena a akcia', html: cena }, { id: 'k', label: 'Kategórie', html: kategorie }, { id: 'd', label: 'Popis', html: popis }])}
     <div style="margin-top:16px;display:flex;gap:10px"><button class="btn gold" id="p-save">Uložiť</button></div>
   </div></div>`;
+  wireTabs(view); wireWysiwyg(view);
   view.querySelector('#p-back').onclick = () => vProducts(view);
+  const box = view.querySelector('#p-sale-box');
+  view.querySelector('#p-sale-on').onchange = (e) => box.classList.toggle('hidden', !e.target.checked);
   view.querySelector('#p-save').onclick = async () => {
-    const msg = view.querySelector('#pmsg'); msg.innerHTML = '';
+    const msg = view.querySelector('#pmsg'); msg.innerHTML = ''; const btn = view.querySelector('#p-save'); btn.disabled = true;
     try {
       const chosen = [...view.querySelectorAll('[data-c]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.c }));
-      await api(`/admin/products/${id}`, { method: 'POST', body: { title: view.querySelector('#p-title').value, status: view.querySelector('#p-status').value, description: view.querySelector('#p-desc').value, categories: chosen } });
+      const desc = view.querySelector('#p-desc').innerHTML.trim();
       const np = view.querySelector('#p-price').value;
-      if (variant && np !== '' && Number(np) !== price?.amount) {
-        await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { prices: [{ amount: Number(np), currency_code: 'eur' }] } });
-      }
+      if (variant && np !== '' && Number(np) !== price?.amount) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { prices: [{ amount: Number(np), currency_code: 'eur' }] } });
+      let ref = { price_list_id: sale.price_list_id, price_id: sale.price_id };
+      const wantSale = view.querySelector('#p-sale-on').checked, sp = view.querySelector('#p-sale-price').value;
+      let saleMeta;
+      if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
+      else { await clearVariantSale(ref); saleMeta = { active: false }; }
+      const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
+      await api(`/admin/products/${id}`, { method: 'POST', body: { title: view.querySelector('#p-title').value, status: view.querySelector('#p-status').value, description: desc, categories: chosen, metadata } });
       msg.innerHTML = '<div class="notice">Uložené.</div>';
+      setTimeout(() => vProductDetail(view, id), 700);
     } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    finally { btn.disabled = false; }
   };
 }
 async function vCategories(view) {
@@ -160,18 +222,19 @@ async function vOrders(view) {
 async function vOrderDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { order: o } = await api(`/admin/orders/${id}?fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,*items`);
-  view.innerHTML = `<div class="card"><div class="card-h">Objednávka #${o.display_id ?? ''}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
-    <div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(o.created_at)}</div></div></div>
+  const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(o.created_at)}</div></div></div>
     <div class="row"><div><label>Stav</label><div><span class="pill">${esc(o.status)}</span></div></div>
-    <div><label>Platba</label><div><span class="pill">${esc(o.payment_status || '—')}</span></div></div>
-    <div><label>Doručenie</label><div><span class="pill">${esc(o.fulfillment_status || '—')}</span></div></div></div>
-    <label style="margin-top:12px">Položky</label>
-    <table><thead><tr><th>Produkt</th><th>Ks</th><th>Suma</th></tr></thead><tbody>
+    <div><label>Platba</label><div><span class="pill">${esc(o.payment_status || '—')}</span></div></div></div>
+    <div class="row"><div><label>Doručenie</label><div><span class="pill">${esc(o.fulfillment_status || '—')}</span></div></div>
+    <div><label>Celkom</label><div style="font-weight:600">${fmtEur(o.total)}</div></div></div>
+    <p class="muted" style="margin-top:10px">Fulfillment a refundy prebiehajú cez jadro (bezpečné serverové operácie); tu je bezpečný náhľad.</p>`;
+  const polozky = `<table><thead><tr><th>Produkt</th><th>Ks</th><th>Suma</th></tr></thead><tbody>
     ${(o.items || []).map(it => `<tr><td>${esc(it.title || it.product_title || '')}</td><td>${it.quantity}</td><td>${fmtEur(it.total)}</td></tr>`).join('')}
-    </tbody></table>
-    <div style="margin-top:14px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>
-    <p class="muted" style="margin-top:10px">Fulfillment a refundy prebiehajú cez jadro (bezpečné serverové operácie); tu je bezpečný náhľad objednávky.</p>
+    </tbody></table><div style="margin-top:14px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>`;
+  view.innerHTML = `<div class="card"><div class="card-h">Objednávka #${o.display_id ?? ''}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
+    ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }])}
   </div></div>`;
+  wireTabs(view);
   view.querySelector('#o-back').onclick = () => vOrders(view);
 }
 async function vCustomers(view) {
@@ -186,14 +249,15 @@ async function vCustomerDetail(view, id) {
   const { customer: c } = await api(`/admin/customers/${id}?fields=id,email,first_name,last_name,has_account,created_at,*groups`);
   let groups = []; try { groups = (await api('/admin/customer-groups?limit=50&fields=id,name')).customer_groups || []; } catch {}
   const inG = new Set((c.groups || []).map(g => g.id));
+  const zakladne = `<div class="row"><div><label>E-mail</label><div>${esc(c.email)}</div></div><div><label>Účet</label><div>${c.has_account ? 'áno' : 'hosť'}</div></div></div>
+    <div class="row"><div><label>Meno</label><input id="cu-first" value="${esc(c.first_name || '')}"></div><div><label>Priezvisko</label><input id="cu-last" value="${esc(c.last_name || '')}"></div></div>`;
+  const skupiny = `<div>${groups.map(g => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-g="${g.id}" ${inG.has(g.id) ? 'checked' : ''} style="width:auto"> ${esc(g.name)}</label>`).join('') || '<span class="muted">Žiadne skupiny.</span>'}</div>`;
   view.innerHTML = `<div class="card"><div class="card-h">Zákazníčka<button class="btn ghost" id="cu-back">Späť</button></div><div class="card-b">
     <div id="custmsg"></div>
-    <div class="row"><div><label>E-mail</label><div>${esc(c.email)}</div></div><div><label>Účet</label><div>${c.has_account ? 'áno' : 'hosť'}</div></div></div>
-    <div class="row"><div><label>Meno</label><input id="cu-first" value="${esc(c.first_name || '')}"></div><div><label>Priezvisko</label><input id="cu-last" value="${esc(c.last_name || '')}"></div></div>
-    <label style="margin-top:12px">Skupiny (vernostný tier)</label>
-    <div>${groups.map(g => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-g="${g.id}" ${inG.has(g.id) ? 'checked' : ''} style="width:auto"> ${esc(g.name)}</label>`).join('') || '<span class="muted">Žiadne skupiny.</span>'}</div>
+    ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 's', label: 'Skupiny / tier', html: skupiny }])}
     <div style="margin-top:16px"><button class="btn gold" id="cu-save">Uložiť</button></div>
   </div></div>`;
+  wireTabs(view);
   view.querySelector('#cu-back').onclick = () => vCustomers(view);
   view.querySelector('#cu-save').onclick = async () => {
     const msg = view.querySelector('#custmsg'); msg.innerHTML = '';
