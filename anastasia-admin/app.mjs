@@ -863,9 +863,39 @@ const vObsah = (view) => subnav(view, [
   { label: 'Médiá', run: (v) => stub(v, 'Médiá', 'Chránené videá a audio (R2).') },
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', 'SK zdroj, EN/RU — z jedného admina.') },
 ]);
+// --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
+const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_stripe_stripe: 'Platobná karta (Stripe)', pp_membership_stripe_membership: 'Platobná karta – Klub', manual_manual: 'Vlastná doprava' };
+const provLabel = (id) => PROVIDER_LABEL[id] || id || '—';
+async function vDopravaPlatby(view) {
+  view.innerHTML = '<div class="muted">Načítavam dopravu a platby…</div>';
+  const soft = (e) => { if (e.message === '401') throw e; return null; };
+  const [rg, so, sl] = await Promise.all([
+    api('/admin/regions?limit=50&fields=id,name,currency_code,automatic_taxes,*countries,*payment_providers').catch(soft),
+    api('/admin/shipping-options?limit=100&fields=id,name,price_type,provider_id,*prices,*service_zone,*type,*rules').catch(soft),
+    api('/admin/stock-locations?limit=50&fields=id,name,*address').catch(soft),
+  ]);
+  const blk = (title, body) => `<div class="card" style="margin-bottom:16px"><div class="card-h">${esc(title)}</div><div class="card-b">${body}</div></div>`;
+  const unread = '<div class="err">Údaje sa teraz nedajú načítať. Skúste obnoviť stránku.</div>';
+  const regions = rg?.regions || [], options = so?.shipping_options || [], locs = sl?.stock_locations || [];
+  const regionsHtml = !rg ? unread : `<div class="rc-grid">${regions.map(r => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(r.name)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Mena</em>${esc((r.currency_code || '').toUpperCase())}</span>
+      <span class="rc-f"><em>Krajiny</em>${esc((r.countries || []).map(c => (c.iso_2 || '').toUpperCase()).join(', ') || '—')}</span>
+      <span class="rc-f"><em>Platby</em>${(r.payment_providers || []).map(pp => `<span class="pill ${pp.is_enabled === false ? 'off' : 'ok'}">${esc(provLabel(pp.id))}</span>`).join(' ') || '<span class="pill off">žiadna platobná metóda</span>'}</span></div></div></div>`).join('') || '<div class="empty">Žiadny predajný región. Bez neho sa nedá nakupovať.</div>'}</div>`;
+  const eurPrice = (o) => (o.prices || []).find(x => x.currency_code === 'eur' && !(x.price_rules?.length || x.rules_count > 0));
+  const optionsHtml = !so ? unread : `<div class="rc-grid">${options.map(o => { const pr = eurPrice(o), ret = (o.rules || []).some(x => x.attribute === 'is_return' && String(x.value) === 'true');
+    return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(o.name)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Cena</em>${o.price_type === 'calculated' ? 'počíta dopravca' : pr ? (Number(pr.amount) === 0 ? 'zadarmo' : fmtEur(pr.amount)) : '<span class="pill warn">bez ceny v EUR</span>'}</span>
+      <span class="rc-f"><em>Dopravca</em>${esc(provLabel(o.provider_id))}</span>
+      <span class="rc-f"><em>Oblasť</em>${esc(o.service_zone?.name || '—')}</span>
+      ${ret ? '<span class="pill off">len pre vrátenie</span>' : ''}</div></div></div>`; }).join('') || '<div class="empty">Žiadny spôsob dopravy. Fyzický tovar sa nedá odoslať.</div>'}</div>`;
+  const locsHtml = !sl ? unread : `<div class="rc-grid">${locs.map(l => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(l.name)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Adresa</em>${esc([l.address?.address_1, l.address?.city, (l.address?.country_code || '').toUpperCase()].filter(Boolean).join(', ') || '—')}</span></div></div></div>`).join('') || '<div class="empty">Žiadny sklad.</div>'}</div>`;
+  view.innerHTML = blk('Predajné regióny a platby', regionsHtml) + blk('Spôsoby dopravy', optionsHtml) + blk('Sklady', locsHtml)
+    + `<p class="muted" style="font-size:12px">Prehľad je len na čítanie. Platobné brány a dopravcov s prístupovými kľúčmi zapája náš tím bezpečne na serveri — kľúče sa v administrácii nikdy nezobrazujú. Ak potrebujete zmenu, napíšte na <a href="mailto:podpora@l-code-dynamics.com">podpora@l-code-dynamics.com</a>.</p>`;
+}
 const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
-  { label: 'Pripojenia', run: (v) => stub(v, 'Pripojenia', 'Vloženie/overenie API kľúčov služieb (Stripe, ComGate, dopravcovia) bez programátora.') },
+  { label: 'Doprava a platby', run: vDopravaPlatby },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', 'Napojenie fakturácie (POHODA / Money S3).') },
 ]);
 function vPomoc(view) {
@@ -1051,7 +1081,7 @@ const ROUTES = {
   'klub': ['Klub ANASTASIA', 'Členky, nákupy členstva, podmienky a obnovy platieb', vKlub],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
   'obsah': ['Obsah a e-maily', 'Stránky, texty, médiá a preklady', vObsah],
-  'nastavenia': ['Nastavenia', 'Vzhľad, pripojenia a fakturácia', vNastavenia],
+  'nastavenia': ['Nastavenia', 'Vzhľad, doprava, platby a fakturácia', vNastavenia],
   'pomoc': ['Pomoc', 'Podpora a vysvetlenia', vPomoc],
 };
 
