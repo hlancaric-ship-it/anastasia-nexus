@@ -893,9 +893,76 @@ async function vDopravaPlatby(view) {
   view.innerHTML = blk('Predajné regióny a platby', regionsHtml) + blk('Spôsoby dopravy', optionsHtml) + blk('Sklady', locsHtml)
     + `<p class="muted" style="font-size:12px">Prehľad je len na čítanie. Platobné brány a dopravcov s prístupovými kľúčmi zapája náš tím bezpečne na serveri — kľúče sa v administrácii nikdy nezobrazujú. Ak potrebujete zmenu, napíšte na <a href="mailto:podpora@l-code-dynamics.com">podpora@l-code-dynamics.com</a>.</p>`;
 }
+// --- Používatelia a pozvánky (natívne /admin/users, /admin/invites). Roly (RBAC) zatiaľ nie sú zapnuté: každý správca má plný prístup. ---
+const inviteLink = (t) => `${location.origin}${location.pathname}#/pozvanka/${encodeURIComponent(t)}`;
+async function vPouzivatelia(view, notice) {
+  view.innerHTML = '<div class="muted">Načítavam používateľov…</div>';
+  let us, inv;
+  try { [us, inv] = await Promise.all([api('/admin/users?limit=100&fields=id,email,first_name,last_name,created_at'), api('/admin/invites?limit=100&fields=id,email,accepted,expires_at,token,created_at')]); }
+  catch (e) { return loadError(view, e, () => vPouzivatelia(view)); }
+  const users = us.users || [], invites = (inv.invites || []).filter(i => !i.accepted);
+  view.innerHTML = `<div id="umsg">${notice || ''}</div>
+    <div class="card" style="margin-bottom:16px"><div class="card-h">Správcovia</div><div class="card-b"><div class="rc-grid">${users.map(u => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc([u.first_name, u.last_name].filter(Boolean).join(' ') || u.email)}</div><div class="rc-fields">
+      <span class="rc-f"><em>E-mail</em>${esc(u.email)}</span><span class="rc-f"><em>Od</em>${fmtDate(u.created_at)}</span>${ME && ME.id === u.id ? '<span class="pill ok">vy</span>' : ''}</div></div></div>`).join('')}</div>
+      <p class="muted" style="font-size:12px;margin-top:10px">Každý správca má zatiaľ plný prístup do administrácie. Pozývajte len ľudí, ktorým dôverujete.</p></div></div>
+    <div class="card"><div class="card-h">Pozvať ďalšieho správcu</div><div class="card-b">
+      <form id="u-inv" class="row"><div><label>E-mail</label><input id="u-email" type="email" required></div><div style="align-self:end"><button class="btn gold" type="submit">Vytvoriť pozvánku</button></div></form>
+      ${invites.length ? `<label style="margin-top:14px">Čakajúce pozvánky</label><div class="rc-grid">${invites.map(i => { const exp = i.expires_at && new Date(i.expires_at) < new Date();
+        return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(i.email)}</div><div class="rc-fields">
+        <span class="rc-f"><em>Platí do</em>${fmtDate(i.expires_at)}${exp ? ' <span class="pill off">vypršala</span>' : ''}</span></div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${!exp && i.token ? `<button type="button" class="btn ghost" data-copy="${esc(i.id)}">Kopírovať odkaz</button>` : ''}<button type="button" class="btn ghost" data-resend="${esc(i.id)}">Obnoviť pozvánku</button><button type="button" class="btn ghost" data-del="${esc(i.id)}">Zrušiť</button></div></div></div>`; }).join('')}</div>` : ''}
+      <p class="muted" style="font-size:12px;margin-top:10px">Odkaz pozvánky pošlite novému správcovi sami (e-mailom alebo správou). Odkaz je jednorazový a má obmedzenú platnosť.</p>
+    </div></div>`;
+  const msg = (h) => { view.querySelector('#umsg').innerHTML = h; };
+  const copy = async (t) => { const l = inviteLink(t); try { await navigator.clipboard.writeText(l); msg('<div class="notice">Odkaz pozvánky je skopírovaný.</div>'); } catch { msg(`<div class="notice">Odkaz pozvánky: <input readonly value="${esc(l)}" onclick="this.select()"></div>`); } };
+  const fail = (b, e) => { if (e.message === '401') return; if (b) b.disabled = false; msg(`<div class="err">${esc(e.message)}</div>`); };
+  view.querySelector('#u-inv').onsubmit = async (e) => {
+    e.preventDefault(); const b = e.target.querySelector('button'), email = view.querySelector('#u-email').value.trim();
+    if (!confirm(`Pozvať ${email} ako správcu s plným prístupom?`)) return;
+    b.disabled = true;
+    try { const { invite } = await api('/admin/invites', { method: 'POST', body: { email } }); await vPouzivatelia(view); if (invite?.token) await copy(invite.token); }
+    catch (err) { fail(b, err); }
+  };
+  view.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copy(invites.find(i => i.id === b.dataset.copy).token));
+  view.querySelectorAll('[data-resend]').forEach(b => b.onclick = async () => { b.disabled = true;
+    try { const { invite } = await api(`/admin/invites/${encodeURIComponent(b.dataset.resend)}/resend`, { method: 'POST', body: {} }); await vPouzivatelia(view); if (invite?.token) await copy(invite.token); }
+    catch (err) { fail(b, err); } });
+  view.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('Zrušiť túto pozvánku? Odkaz prestane fungovať.')) return; b.disabled = true;
+    try { await api(`/admin/invites/${encodeURIComponent(b.dataset.del)}`, { method: 'DELETE' }); await vPouzivatelia(view, '<div class="notice">Pozvánka je zrušená.</div>'); }
+    catch (err) { fail(b, err); } });
+}
+// Prijatie pozvánky (bez prihlásenia): registrácia identity → prijatie pozvánky → prihlásenie.
+function renderInviteAccept(invToken, msg) {
+  root.innerHTML = `<div class="login"><form class="box" id="ia">
+    <h1>ANASTASIA</h1><p>Pozvánka do administrácie</p>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
+    <label>E-mail (ten, na ktorý prišla pozvánka)</label><input id="ia-email" type="email" required autocomplete="username">
+    <div class="row"><div><label>Meno</label><input id="ia-first" required></div><div><label>Priezvisko</label><input id="ia-last" required></div></div>
+    <label>Heslo (aspoň 12 znakov)</label><input id="ia-pass" type="password" minlength="12" required autocomplete="new-password">
+    <button class="btn gold" type="submit">Vytvoriť účet</button>
+  </form></div>`;
+  root.querySelector('#ia').onsubmit = async (e) => {
+    e.preventDefault();
+    const email = root.querySelector('#ia-email').value.trim(), password = root.querySelector('#ia-pass').value;
+    const first_name = root.querySelector('#ia-first').value.trim(), last_name = root.querySelector('#ia-last').value.trim();
+    if (password.length < 12) return renderInviteAccept(invToken, 'Heslo musí mať aspoň 12 znakov.');
+    const btn = e.target.querySelector('button'); btn.disabled = true;
+    try {
+      const reg = await fetch(API + '/auth/user/emailpass/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      const rd = await reg.json().catch(() => ({}));
+      if (!reg.ok || !rd.token) throw new Error(rd?.message || 'Účet sa nepodarilo vytvoriť.');
+      const acc = await fetch(API + '/admin/invites/accept?token=' + encodeURIComponent(invToken), { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + rd.token }, body: JSON.stringify({ email, first_name, last_name }) });
+      const ad = await acc.json().catch(() => ({}));
+      if (!acc.ok) throw new Error(ad?.message || 'Pozvánka je neplatná alebo vypršala. Požiadajte o novú.');
+      await login(email, password);
+      location.hash = '#/';
+    } catch (err) { renderInviteAccept(invToken, err.message); }
+  };
+}
 const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
   { label: 'Doprava a platby', run: vDopravaPlatby },
+  { label: 'Používatelia', run: (v) => vPouzivatelia(v) },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', 'Napojenie fakturácie (POHODA / Money S3).') },
 ]);
 function vPomoc(view) {
@@ -1081,7 +1148,7 @@ const ROUTES = {
   'klub': ['Klub ANASTASIA', 'Členky, nákupy členstva, podmienky a obnovy platieb', vKlub],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
   'obsah': ['Obsah a e-maily', 'Stránky, texty, médiá a preklady', vObsah],
-  'nastavenia': ['Nastavenia', 'Vzhľad, doprava, platby a fakturácia', vNastavenia],
+  'nastavenia': ['Nastavenia', 'Vzhľad, doprava, platby, používatelia a fakturácia', vNastavenia],
   'pomoc': ['Pomoc', 'Podpora a vysvetlenia', vPomoc],
 };
 
@@ -1132,8 +1199,10 @@ async function refreshBadges() {
 
 // --- router ---
 async function route() {
+  const parts = (location.hash.replace(/^#\/?/, '') || '').split('/');
+  if (parts[0] === 'pozvanka' && parts[1]) return renderInviteAccept(decodeURIComponent(parts[1]));
   if (!token) return renderLogin();
-  const key = (location.hash.replace(/^#\/?/, '') || '').split('/')[0];
+  const key = parts[0];
   const r = ROUTES[key] || ROUTES[''];
   root.innerHTML = shell(key in ROUTES ? key : '', r[0], r[1]);
   loadTheme().then(applyTheme);
