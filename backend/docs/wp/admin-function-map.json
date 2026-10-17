@@ -826,7 +826,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/bookings/[id]/cancel/route.ts",
-      "sha256": "b735953b7648a59ebcfd53765931d2ac0b54885628b3886768380d99767d3e97"
+      "sha256": "53b126b07f40b5bb3189dd0c583c3a51d481753093a62a343459b027ce079c8d"
     },
     {
       "path": "/admin/chat/conversations",
@@ -1023,6 +1023,15 @@
       "feature": "operations",
       "source": "backend/src/api/admin/ops/nexus/route.ts",
       "sha256": "7d8a70e17020f193373cefa12ed54ec6b61a7f217e00b8a9b67e8adb6cf98792"
+    },
+    {
+      "path": "/admin/readiness",
+      "methods": [
+        "GET"
+      ],
+      "feature": "overview",
+      "source": "backend/src/api/admin/readiness/route.ts",
+      "sha256": "112a43dbb0a8b0c00ead4e17edf5fa191bbbf0248e5f248094efdd8ff3db2244"
     },
     {
       "path": "/admin/shop-prices/:id",
@@ -3857,6 +3866,7 @@
       "backend/src/jobs/gift-voucher-maintenance.ts",
       "backend/src/jobs/gift-voucher-rate-limit-cleanup.ts",
       "backend/src/jobs/legal-rate-cleanup.ts",
+      "backend/src/jobs/membership-access-reconcile.ts",
       "backend/src/jobs/ops-retention.ts"
     ],
     "subscribers": [
@@ -3882,6 +3892,7 @@
       "backend/src/subscribers/gift-voucher-order-placed.ts",
       "backend/src/subscribers/gift-voucher-payment-captured.ts",
       "backend/src/subscribers/legal-order-placed.ts",
+      "backend/src/subscribers/membership-access.ts",
       "backend/src/subscribers/nexus-medusa-events.ts"
     ],
     "workflows": [
@@ -3910,6 +3921,8 @@
       "backend/src/modules/legal/models/legal-withdrawal.ts",
       "backend/src/modules/legal/models/newsletter-consent-event.ts",
       "backend/src/modules/legal/models/newsletter-consent.ts",
+      "backend/src/modules/membership/models/membership-receipt.ts",
+      "backend/src/modules/membership/models/membership.ts",
       "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
       "backend/src/modules/ops-audit/models/ops-event.ts"
     ],
@@ -3923,6 +3936,7 @@
       "backend/src/modules/entitlement/index.ts",
       "backend/src/modules/gift-voucher/index.ts",
       "backend/src/modules/legal/index.ts",
+      "backend/src/modules/membership/index.ts",
       "backend/src/modules/notification-log/index.ts",
       "backend/src/modules/notification-zeptomail/index.ts",
       "backend/src/modules/ops-audit/index.ts"
