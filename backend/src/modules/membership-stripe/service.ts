@@ -1,11 +1,23 @@
 import StripeProvider from '@medusajs/payment-stripe/dist/services/stripe-provider'
-import type { InitiatePaymentInput, AuthorizePaymentInput, AuthorizePaymentOutput } from '@medusajs/framework/types'
+import type { InitiatePaymentInput, AuthorizePaymentInput, AuthorizePaymentOutput, GetPaymentStatusInput, UpdatePaymentInput } from '@medusajs/framework/types'
 /** Native Stripe provider with deferred off-session confirmation. No Subscription API.
  * Membership checkout guard MUST verify the persisted native session before this authorization.
  * Native initiation never charges: validation/SafeOrder/legal run before authorizePayment.
  */
 export default class MembershipStripe extends StripeProvider {
  static identifier='membership_stripe'
+ /** Medusa replaces session.data on authorization/update; retain only our validated operation flag.
+  * All authoritative PI fields (including setup_future_usage and native metadata) come fresh from Stripe.
+  */
+ private operationData<T extends {data?:Record<string,unknown>}>(input:Record<string,unknown>|undefined,result:T):T{
+  return {...result,data:{...(input?.membership_renewal===true?{membership_renewal:true}:{}),...result.data}}
+ }
+ async getPaymentStatus(input:GetPaymentStatusInput){
+  return this.operationData(input.data,await super.getPaymentStatus(input))
+ }
+ async updatePayment(input:UpdatePaymentInput){
+  return this.operationData(input.data,await super.updatePayment(input))
+ }
  async initiatePayment(input:InitiatePaymentInput){
   if(input.data?.confirm||input.data?.off_session)throw new Error('MEMBERSHIP_EARLY_CHARGE_FORBIDDEN')
   return super.initiatePayment({...input,data:{...input.data,confirm:false,capture_method:'manual',payment_method_types:['card'],automatic_payment_methods:{enabled:false}}})
