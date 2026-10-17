@@ -99,7 +99,9 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_e2e_ci',hooks:{beforeS
   expect((await runMembershipBilling(container,memberId)).status).toBe('NOT_DUE')
   expect(stripe.stats()).toMatchObject({intents:2,captures:2});expect(await orderCount()).toBe(2)
   // The bank asks for 3DS on an existing third intent; continuation must not create another intent.
-  await service.updateMemberships({id:memberId,period_end:new Date(due),snapshot:{...current,period_end:due}})
+  // A new cycle needs its own period end: renewal keys are idempotent per period, so reusing `due` replays cycle 2.
+  const due3=new Date(Date.now()-30_000).toISOString()
+  await service.updateMemberships({id:memberId,period_end:new Date(due3),snapshot:{...current,period_end:due3}})
   stripe.requireNextAction()
   expect((await runMembershipBilling(container,memberId)).status).toBe('NEEDS_ACTION')
   expect(stripe.stats()).toMatchObject({intents:3,captures:2})
@@ -117,7 +119,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_e2e_ci',hooks:{beforeS
   const stopped=await service.findForCustomer(memberId,buyer.customer.id)
   await service.updateMemberships({id:memberId,period_end:new Date(due),snapshot:{...stopped,period_end:due}})
   expect((await runMembershipBilling(container,memberId)).status).toBe('NOT_DUE')
-  expect(stripe.stats()).toMatchObject({intents:3,captures:3});expect(await orderCount()).toBe(2)
+  expect(stripe.stats()).toMatchObject({intents:3,captures:3});expect(await orderCount()).toBe(3)
   // Restore paid-period projection for native refund lifecycle checks; no new charge is initiated.
   await service.updateMemberships({id:memberId,period_end:new Date(current.period_end),snapshot:{...current,renew:false}})
   const latest=await one('order',{id:current.last_order_id},['id','payment_collections.payments.id'])
@@ -130,7 +132,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_e2e_ci',hooks:{beforeS
   await payment.refundPayment({payment_id:paymentId,amount:45})
   expect((await reconcileMembershipAccess(container,memberId)).status).toBe('REVOKED')
   expect((await entitlement.retrieveEntitlement(right.id)).status).toBe('revoked')
-  expect(stripe.stats()).toEqual({intents:2,captures:2,refunds:2})
-  expect(await orderCount()).toBe(2)
+  expect(stripe.stats()).toEqual({intents:3,captures:3,refunds:2})
+  expect(await orderCount()).toBe(3)
  })
 }})
