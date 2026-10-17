@@ -135,6 +135,15 @@ export function createMockApi(storage=memoryStorage()) {
     getEntitlements:({preview='locked'}={})=>({mode:'mock',active:preview==='unlocked',weeks:Array.from({length:16},(_,i)=>({number:i+1,title:`Tematický týždeň ${String(i+1).padStart(2,'0')}`,description:'Priestor pre schválený obsah programu.'}))}),
     checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Platba nie je aktívna. Objednávka sa neodoslala.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy stav.'}),
     sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),
+    // Klub: bez backendu žiadne vymyslené ceny ani členstvá, len poctivý prázdny stav.
+    getMembershipProducts:()=>[],
+    prepareMembership:()=>({ok:false,message:'Členstvo zatiaľ nie je v ponuke.'}),
+    startMembershipCheckout:()=>({ok:false,message:'Členstvo zatiaľ nie je v ponuke.'}),
+    completeMembership:()=>({ok:false,status:'ERROR',message:'Členstvo zatiaľ nie je v ponuke.'}),
+    listMemberships:()=>({ok:true,memberships:[],count:0,offset:0,limit:20}),
+    stopMembership:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
+    getMembershipPayment:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
+    reconcileMembership:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
   };
 }
 export const api=createMockApi();

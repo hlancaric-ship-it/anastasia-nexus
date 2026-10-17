@@ -52,6 +52,19 @@ export function createHttpApi(storage, config) {
     return { status: res.status, ok: res.ok, data };
   }
   const loggedIn = () => Boolean(get(JWT));
+  // Klub: výpadok siete sa vracia ako 503, nie ako výnimka do UI.
+  const MCART = 'anastasia.membership.cart', MCHECKOUT = 'anastasia.membership.checkout', MOFFER = 'anastasia.membership.offer';
+  const MEMBERSHIP_MSG = {
+    401: 'Pre členstvo sa prihláste.',
+    404: 'Členstvo alebo nákup sa nenašli.',
+    409: 'Podmienky sa medzičasom zmenili. Načítajte ponuku znova; platbu neopakujte.',
+    422: 'Skontrolujte vybrané členstvo a údaje.',
+    503: 'Členstvo sa teraz nedá overiť. Skúste to neskôr.',
+  };
+  async function mcall(path, opts) {
+    try { return await call(path, opts); } catch { return { status: 503, ok: false, data: null }; }
+  }
+  const mfail = (r, fallback) => ({ ok: false, status: r.status, error: r.data?.error || 'MEMBERSHIP_ERROR', message: r.data?.message || MEMBERSHIP_MSG[r.status] || fallback });
 
   const productCache = new Map();
   async function variantFor(code) {
@@ -204,6 +217,92 @@ export function createHttpApi(storage, config) {
       if (r.status === 409) return { mode: 'http', status: 'REVIEW', messages: M.REVIEW };
       if (r.status === 403) return { mode: 'http', status: 'BLOCK', messages: M.BLOCK };
       return { mode: 'http', status: 'ERROR', messages: M.ERROR };
+    },
+
+    // Klub ANASTASIA: samostatný košík s jedinou členskou variantou. Cenu, verziu a dĺžku určuje
+    // výhradne server (offer); klient ich len potvrdzuje späť a nikdy neposiela provider/metódu.
+    async getMembershipProducts() {
+      const r = await mcall(`/store/products?region_id=${config.regionId}&limit=50&fields=${PRODUCT_FIELDS},+metadata`);
+      return (r.data?.products || []).filter(p => p.metadata?.membership).map(p => ({
+        id: p.id, handle: p.handle, title: p.title, description: p.subtitle || '', image: p.thumbnail || '',
+        period_days: Number(p.metadata.membership.period_days) || null,
+        variants: (p.variants || []).map(v => ({ id: v.id, label: v.title, priceLabel: v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : 'Cena sa doplní' })),
+      }));
+    },
+    async prepareMembership(variantId) {
+      if (!loggedIn()) return { ok: false, status: 401, message: MEMBERSHIP_MSG[401] };
+      if (typeof variantId !== 'string' || !variantId) return { ok: false, message: 'Vyberte členstvo.' };
+      del(MCHECKOUT); del(MOFFER);
+      const c = await mcall('/store/carts', { method: 'POST', body: { region_id: config.regionId } });
+      const cartId = c.data?.cart?.id;
+      if (!cartId) return mfail(c, 'Nákup sa nepodarilo pripraviť.');
+      set(MCART, cartId);
+      const li = await mcall(`/store/carts/${cartId}/line-items`, { method: 'POST', body: { variant_id: variantId, quantity: 1 } });
+      if (!li.ok) return mfail(li, 'Členstvo sa nepodarilo pridať.');
+      const nx = await mcall('/store/nexus-cart', { method: 'POST', body: { cart_id: cartId } });
+      if (!nx.ok) return mfail(nx, 'Ponuku sa nepodarilo prepočítať.');
+      const of = await mcall(`/store/memberships/offer?cart_id=${encodeURIComponent(cartId)}`);
+      if (!of.ok || !of.data?.offer) return mfail(of, 'Ponuku sa nepodarilo načítať.');
+      set(MOFFER, JSON.stringify(of.data.offer));
+      return { ok: true, offer: of.data.offer };
+    },
+    // Súhlas s podmienkami → príprava nákupu → platobná session (vždy serverový membership provider).
+    async startMembershipCheckout({ auto_renew = false, terms_accepted = false, privacy_acknowledged = false } = {}) {
+      const cartId = get(MCART); let offer = null;
+      try { offer = JSON.parse(get(MOFFER) || 'null'); } catch { offer = null; }
+      if (!cartId || !offer || offer.cart_id !== cartId) return { ok: false, status: 409, message: 'Ponuka vypršala. Načítajte ju znova.' };
+      if (terms_accepted !== true || privacy_acknowledged !== true) return { ok: false, status: 422, message: 'Na pokračovanie potvrďte obchodné podmienky a ochranu osobných údajov.' };
+      const v = await mcall('/store/legal/versions');
+      if (!v.ok || !v.data?.terms_version) return mfail(v, 'Podmienky sa nepodarilo načítať.');
+      const cs = await mcall(`/store/carts/${cartId}/consents`, { method: 'POST', body: { terms_accepted: true, privacy_acknowledged: true, terms_version: v.data.terms_version, privacy_version: v.data.privacy_version } });
+      if (!cs.ok) return mfail(cs, 'Súhlas sa nepodarilo uložiť.');
+      const ck = await mcall('/store/memberships/checkout', { method: 'POST', body: { cart_id: cartId, version: offer.version, amount_minor: offer.amount_minor, auto_renew: auto_renew === true } });
+      const checkout = ck.data?.checkout;
+      if (!ck.ok || !checkout?.id) return mfail(ck, 'Nákup sa nepodarilo pripraviť.');
+      set(MCHECKOUT, checkout.id);
+      const ps = await mcall(`/store/memberships/checkouts/${encodeURIComponent(checkout.id)}/payment-session`, { method: 'POST', body: {} });
+      const clientSecret = ps.data?.payment_session?.client_secret;
+      if (!ps.ok || typeof clientSecret !== 'string') return mfail(ps, 'Platobná brána nie je dostupná.');
+      return { ok: true, checkout, clientSecret };
+    },
+    // Po potvrdení karty: rovnaké NEXUS/SafeOrder dokončenie, potom vyrovnanie členstva (krátky poll pri PENDING).
+    async completeMembership({ attempts = 5, delayMs = 1500 } = {}) {
+      const cartId = get(MCART), checkoutId = get(MCHECKOUT);
+      if (!cartId || !checkoutId) return { ok: false, status: 'ERROR', message: 'Nákup sa nenašiel. Pozrite stav v účte.' };
+      const nx = await mcall('/store/nexus-checkout', { method: 'POST', body: { cart_id: cartId } });
+      if (nx.status === 409) return { ok: false, status: 'REVIEW', message: 'Nákup ešte overujeme. Platbu neopakujte, stav uvidíte v účte.' };
+      if (nx.status === 403) return { ok: false, status: 'BLOCK', message: 'Nákup teraz nemožno dokončiť. Kontaktujte nás, prosím.' };
+      if (!nx.ok) return { ...mfail(nx, 'Nákup sa nepodarilo dokončiť. Platbu neopakujte, stav uvidíte v účte.'), status: 'ERROR' };
+      for (let i = 0; i < attempts; i++) {
+        const st = await mcall(`/store/memberships/checkouts/${encodeURIComponent(checkoutId)}/settle`, { method: 'POST', body: {} });
+        if (st.ok && st.data?.status === 'SETTLED') {
+          del(MCART); del(MCHECKOUT); del(MOFFER);
+          return { ok: true, status: 'SETTLED', membership_id: st.data.membership_id, access: st.data.access, mandate: st.data.mandate, message: 'Vitajte v Klube ANASTASIA. Členstvo je aktívne.' };
+        }
+        if (!st.ok) return { ...mfail(st, 'Stav členstva sa nepodarilo overiť.'), status: 'ERROR' };
+        if (i < attempts - 1) await new Promise(res => setTimeout(res, delayMs));
+      }
+      return { ok: true, status: 'PENDING', message: 'Platbu sme prijali, členstvo ešte aktivujeme. Stav uvidíte v účte o chvíľu.' };
+    },
+    async listMemberships(offset = 0) {
+      if (!loggedIn()) return { ok: false, status: 401, memberships: [], count: 0, offset: 0, limit: 20, message: MEMBERSHIP_MSG[401] };
+      const o = Number.isSafeInteger(offset) && offset >= 0 ? offset : 0;
+      const r = await mcall(`/store/memberships?offset=${o}`);
+      if (!r.ok) return { ...mfail(r, 'Členstvá sa nepodarilo načítať.'), memberships: [], count: 0, offset: o, limit: 20 };
+      return { ok: true, memberships: r.data?.memberships || [], count: r.data?.count || 0, offset: r.data?.offset || 0, limit: r.data?.limit || 20 };
+    },
+    async stopMembership(id) {
+      const r = await mcall(`/store/memberships/${encodeURIComponent(String(id || ''))}/stop`, { method: 'POST', body: {} });
+      return r.ok ? { ok: true, membership: r.data?.membership, message: r.data?.message || 'Automatická obnova je zastavená.' } : mfail(r, 'Obnovu sa nepodarilo zastaviť.');
+    },
+    // 3DS obnova: vráti len EXISTUJÚCI pokus; reconcile ho dokončí, nové stŕženie nevzniká.
+    async getMembershipPayment(id) {
+      const r = await mcall(`/store/memberships/${encodeURIComponent(String(id || ''))}/payment`);
+      return r.ok && typeof r.data?.client_secret === 'string' ? { ok: true, attempt_id: r.data.attempt_id, clientSecret: r.data.client_secret } : mfail(r, 'Platbu teraz nie je potrebné potvrdiť.');
+    },
+    async reconcileMembership(id) {
+      const r = await mcall(`/store/memberships/${encodeURIComponent(String(id || ''))}/reconcile`, { method: 'POST', body: {} });
+      return r.ok ? { ok: true, status: r.data?.status || null, message: 'Stav platby sme overili.' } : mfail(r, 'Stav platby sa nepodarilo overiť.');
     },
 
     async requestMagicLink(email) {

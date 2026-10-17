@@ -19,7 +19,7 @@ if(customerCenter){
   const setTheme=id=>{if(!themeIds.includes(id))id=themeIds[0];if(id===themeIds[0])delete document.documentElement.dataset.centerTheme;else document.documentElement.dataset.centerTheme=id;markTheme(id);try{if(id===themeIds[0])localStorage.removeItem('ana-center-theme');else localStorage.setItem('ana-center-theme',id);}catch{}};
   markTheme(document.documentElement.dataset.centerTheme||themeIds[0]);
   $$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.centerThemePick)));
-  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
+  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',klub:'Klub ANASTASIA.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
   const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];requestAnimationFrame(()=>{const active=$('.center-sidebar [aria-current=page]',customerCenter),nav=active?.parentElement;if(active&&nav&&nav.scrollWidth>nav.clientWidth){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect(),style=getComputedStyle(nav),left=n.left+parseFloat(style.paddingLeft),right=n.right-parseFloat(style.paddingRight);if(a.left<left)nav.scrollLeft+=a.left-left;else if(a.right>right)nav.scrollLeft+=a.right-right;}});return id;};
   show(location.hash.slice(1));
   $$('[data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);$('#account-title').focus({preventScroll:true});}));
@@ -286,6 +286,86 @@ if(checkoutForm){
 $('#login-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;$('.form-status',form).textContent=(await api.requestMagicLink(form.elements.email.value)).message;});
 if($('#magic-confirm')){$('#magic-confirm').textContent=(await api.confirmMagicLink()).message;history.replaceState(null,'',location.pathname);}
 $('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;$('.form-status',form).textContent=(await api.sendContact(Object.fromEntries(new FormData(form)))).message;});
+// Klub ANASTASIA: ponuka a cena len zo servera; Payment Element iba autorizuje, zachytenie robí backend po SafeOrder.
+const runtimeConfig=()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}};
+const loadStripeJs=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
+const loggedInNow=async()=>typeof api.isLoggedIn==='function'&&Boolean(await api.isLoggedIn());
+const loginPrompt=text=>`<div class="empty-state"><h2>${e(text)}</h2>${button('/prihlasenie','Prihlásiť sa')}</div>`;
+if($('#klub-view')){
+  const view=$('#klub-view'),form=$('#klub-form'),offerBox=$('#klub-offer'),payBox=$('#klub-payment'),result=$('#klub-result'),submit=$('#klub-submit');
+  let stripe=null,elements=null,paying=false;
+  const say=(text,state='')=>{result.dataset.state=state;result.textContent=text;result.focus();};
+  const choose=async variantId=>{
+    form.hidden=true;view.innerHTML='<p class="form-status">Pripravujem ponuku…</p>';
+    const r=await api.prepareMembership(variantId);
+    if(!r.ok){view.innerHTML=r.status===401?loginPrompt('Pre členstvo sa prihláste.'):`<p class="form-status" data-state="ERROR">${e(r.message)}</p>`;return;}
+    const o=r.offer;view.innerHTML='';
+    offerBox.innerHTML=`<article class="center-card"><p class="eyebrow">Vaše členstvo</p><h2>${e(o.title)}</h2><p><strong>${e(o.amount_label)}</strong> · ${e(String(o.period_days))} dní prístupu</p></article>`;
+    payBox.hidden=true;payBox.textContent='';stripe=null;elements=null;submit.textContent='Pokračovať na platbu';form.hidden=false;
+  };
+  const render=async()=>{
+    if(!(await loggedInNow())){view.innerHTML=loginPrompt('Pre členstvo v Klube sa najprv prihláste.');return;}
+    const products=await api.getMembershipProducts();
+    const offers=products.flatMap(p=>p.variants.map(v=>({p,v})));
+    if(!offers.length){view.innerHTML='<div class="empty-state"><h2>Členstvo pripravujeme.</h2><p>Ponuku Klubu zverejníme čoskoro.</p></div>';return;}
+    view.innerHTML=`<div class="library-grid">${offers.map(({p,v})=>`<article class="lesson"><span class="eyebrow">${p.period_days?`${e(String(p.period_days))} DNÍ`:'ČLENSTVO'}</span><h2>${e(p.title)}</h2><p>${e(p.variants.length>1?v.label:p.description)}</p><p><strong>${e(v.priceLabel)}</strong></p><button type="button" class="button" data-klub-variant="${e(v.id)}">Vybrať ${arrow}</button></article>`).join('')}</div>`;
+    $$('[data-klub-variant]',view).forEach(btn=>btn.addEventListener('click',()=>choose(btn.dataset.klubVariant)));
+  };
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();if(paying||!form.reportValidity())return;paying=true;submit.disabled=true;
+    try{
+      if(!elements){
+        const cfg=runtimeConfig();if(!cfg?.stripePublishableKey){say('Platobná brána nie je dostupná.','ERROR');return;}
+        say('Pripravujem platbu…','REVIEW');
+        const r=await api.startMembershipCheckout({terms_accepted:form.elements.terms.checked,privacy_acknowledged:form.elements.privacy.checked,auto_renew:form.elements.auto_renew.checked});
+        if(!r.ok){say(r.message,'ERROR');return;}
+        try{const Stripe=await loadStripeJs();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:r.clientSecret});payBox.hidden=false;payBox.textContent='';elements.create('payment').mount(payBox);}
+        catch{say('Platobnú bránu sa nepodarilo načítať.','ERROR');return;}
+        $$('input[type=checkbox]',form).forEach(input=>{input.disabled=true;});
+        submit.textContent='Zaplatiť a aktivovať';say('Zadajte platobné údaje.','');return;
+      }
+      say('Overujem platbu…','REVIEW');
+      const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});
+      if(error){say(error.message||'Platba zlyhala. Skontrolujte údaje karty.','ERROR');return;}
+      say('Aktivujem členstvo…','REVIEW');
+      const done=await api.completeMembership();
+      say(done.message,done.status==='SETTLED'?'ALLOW':done.status);
+      if(done.ok){payBox.hidden=true;submit.hidden=true;result.insertAdjacentHTML('afterend',`<div class="actions">${button('/ucet#klub','Moje členstvo')}</div>`);}
+    }finally{paying=false;submit.disabled=false;}
+  });
+  render();
+}
+if($('#membership-view')){
+  const view=$('#membership-view');
+  const STATUS={active:'Aktívne',renewing:'Obnovuje sa',unknown:'Overujeme platbu',needs_review:'Overujeme'};
+  const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString('sk-SK');};
+  const render=async(note='')=>{
+    if(!(await loggedInNow())){view.innerHTML=loginPrompt('Pre prehľad členstva sa prihláste.');return;}
+    const [list,products]=await Promise.all([api.listMemberships(0),api.getMembershipProducts()]);
+    if(!list.ok){view.innerHTML=`<p class="form-status" data-state="ERROR">${e(list.message)}</p>`;return;}
+    const titles=new Map(products.map(p=>[p.id,p.title]));
+    view.innerHTML=(note?`<p class="form-status" role="status">${e(note)}</p>`:'')+(list.memberships.length?list.memberships.map(m=>`<article class="center-card" data-membership="${e(m.id)}"><p class="eyebrow">${e(STATUS[m.status]||'Overujeme')}</p><h2>${e(titles.get(m.product_id)||'Klub ANASTASIA')}</h2><p>Prístup do ${e(date(m.period_end))} · ${m.renew?'automatická obnova zapnutá':'bez automatickej obnovy'}</p><div class="actions">${m.status==='renewing'?`<button type="button" class="button" data-membership-confirm="${e(m.id)}">Potvrdiť platbu v banke</button>`:''}${m.renew?`<button type="button" class="button outline" data-membership-stop="${e(m.id)}">Zastaviť obnovu</button>`:''}</div><div class="form-status" role="status"></div></article>`).join(''):`<div class="empty-state"><h2>Zatiaľ nemáte členstvo.</h2>${button('/klub','Pozrieť Klub')}</div>`);
+    $$('[data-membership-stop]',view).forEach(btn=>btn.addEventListener('click',async()=>{
+      if(!confirm('Zastaviť automatickú obnovu? Prístup vám zostane do konca zaplateného obdobia.'))return;
+      btn.disabled=true;const r=await api.stopMembership(btn.dataset.membershipStop);
+      if(r.ok)render(r.message);else{btn.disabled=false;$('.form-status',btn.closest('article')).textContent=r.message;}
+    }));
+    $$('[data-membership-confirm]',view).forEach(btn=>btn.addEventListener('click',async()=>{
+      const id=btn.dataset.membershipConfirm,status=$('.form-status',btn.closest('article'));btn.disabled=true;
+      try{
+        const cfg=runtimeConfig();if(!cfg?.stripePublishableKey){status.textContent='Platobná brána nie je dostupná.';return;}
+        const pay=await api.getMembershipPayment(id);if(!pay.ok){status.textContent=pay.message;return;}
+        status.textContent='Otváram overenie v banke…';
+        const Stripe=await loadStripeJs();const {error}=await Stripe(cfg.stripePublishableKey).handleNextAction({clientSecret:pay.clientSecret});
+        if(error){status.textContent=error.message||'Overenie sa nepodarilo. Skúste to znova.';return;}
+        const r=await api.reconcileMembership(id);
+        if(r.ok)render(r.status==='SETTLED'||r.status==='ACTIVE'?'Platba je potvrdená. Ďakujeme.':'Platbu ešte overujeme. Stav sa čoskoro aktualizuje.');else status.textContent=r.message;
+      }catch{status.textContent='Overenie sa nepodarilo. Skúste to znova.';}
+      finally{btn.disabled=false;}
+    }));
+  };
+  render();
+}
 if($('#library-view')){const render=async()=>{const access=await api.getEntitlements();$('#library-view').innerHTML=access.active?`<div class="library-grid">${access.weeks.map(w=>`<article class="lesson"><span class="eyebrow">TÝŽDEŇ ${String(w.number).padStart(2,'0')}</span><h2>${w.title}</h2><p>${w.description}</p><button class="button outline" data-lesson="${w.number}">Otvoriť lekciu ${arrow}</button></article>`).join('')}</div><div id="lesson-content" class="form-status" tabindex="-1" hidden></div>`:`<div class="empty-state locked-library"><p class="eyebrow">ZAMKNUTÁ KNIŽNICA</p><h2>Tento priestor čaká na vás.</h2><p>Program je dostupný s aktívnym prístupom.</p>${button('/prihlasenie','Prihlásiť sa')}${button('/reset-40','O programe','outline')}</div>`;
     $$('[data-lesson]').forEach(btn=>btn.addEventListener('click',()=>{const content=$('#lesson-content');content.hidden=false;content.textContent=`Obsah lekcie sa pripravuje.`;content.focus();}));};render();}
 
