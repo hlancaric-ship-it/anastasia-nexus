@@ -10,7 +10,7 @@ function fixture(){
  const pc:any={payment_sessions:[],payments:[]}
  const links:any[]=[]
  const query={graph:jest.fn(async({entity}:any)=>({data:entity==='order_cart'?links:[{id:'cart_a',payment_collection:pc}]}))}
- const membership={reserveCheckout:jest.fn(async(c:any)=>({id:'mck_a',contract:c,status:'prepared'})),checkoutForCustomer:jest.fn(async()=>({contract:{cart_id:'cart_a',terms:{product_id:'prod_a',variant_id:'var_a'}}})),settleCheckout:jest.fn(async()=>({state:{id:'mbr_a'}}))}
+ const membership={reserveCheckout:jest.fn(async(c:any)=>({id:'mck_a',contract:c,status:'prepared'})),checkoutForCustomer:jest.fn(async()=>({contract:{cart_id:'cart_a',terms:{product_id:'prod_a',variant_id:'var_a'},consent:{auto_renew:false}}})),settleCheckout:jest.fn(async()=>({state:{id:'mbr_a'}}))}
  const locking={execute:jest.fn(async(_key:string,fn:any)=>fn())}
  const scope:any={resolve:(key:string)=>({query,cart:{retrieveCart:async()=>cart},product:{retrieveProduct:async()=>product},locking,membership} as any)[key]}
  return {cart,product,pc,links,query,membership,locking,scope}

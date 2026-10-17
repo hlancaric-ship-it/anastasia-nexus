@@ -1,0 +1,88 @@
+name: Membership complete integration
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths: ['backend/**', '.github/workflows/membership-integration.yml']
+permissions:
+  contents: read
+jobs:
+  membership:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16.6-bookworm
+        env:
+          POSTGRES_USER: membership_synthetic
+          POSTGRES_PASSWORD: membership_synthetic_only
+          POSTGRES_DB: postgres
+        ports: ['5432/tcp']
+        options: >-
+          --health-cmd "pg_isready -U membership_synthetic -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      CI: 'true'
+      MEDUSA_TELEMETRY_DISABLED: 'true'
+      NODE_OPTIONS: --experimental-vm-modules --dns-result-order=ipv4first
+      TEST_TYPE: integration:http
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_PORT: ${{ job.services.postgres.ports[5432] }}
+      DB_USERNAME: membership_synthetic
+      DB_PASSWORD: membership_synthetic_only
+      DB_TEMP_NAME: anastasia_membership_e2e_ci
+      DATABASE_URL: postgres://membership_synthetic:membership_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_membership_e2e_ci
+      JWT_SECRET: synthetic-membership-jwt-only
+      COOKIE_SECRET: synthetic-membership-cookie-only
+      LEGAL_TERMS_VERSION: synthetic-terms-v1
+      LEGAL_PRIVACY_VERSION: synthetic-privacy-v1
+      NEWSLETTER_CONSENT_VERSION: synthetic-newsletter-v1
+      MEDIA_TOKEN_SECRET: synthetic-membership-media-signing-secret-only
+      ANASTASIA_FREE_SHIPPING_FROM_EUR: '100'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - run: npm ci --prefix backend --no-audit --no-fund
+      - run: npm ci --prefix nexus --no-audit --no-fund
+      - name: Types and exact focused membership suites
+        run: |
+          backend/node_modules/.bin/tsc --noEmit --project backend/tsconfig.json
+          python3 backend/scripts/check-admin-function-map.py
+          python3 - <<'PYTEST'
+          from pathlib import Path
+          import os,subprocess
+          tests=sorted(str(p) for root in ['backend/src/lib/membership','backend/src/modules/membership-stripe'] for p in Path(root).rglob('*.unit.spec.ts'))
+          assert tests
+          subprocess.run(['backend/node_modules/.bin/jest','--config','backend/jest.config.js','--rootDir','backend','--runTestsByPath',*tests,'--runInBand','--forceExit'],env={**os.environ,'TEST_TYPE':'unit'},check=True)
+          PYTEST
+      - name: Actual admin browser interaction at desktop and mobile widths
+        run: node backend/scripts/check-membership-admin-browser.mjs
+      - name: Start actual NEXUS Worker in synthetic loopback bridge
+        run: |
+          mkdir -p "$RUNNER_TEMP/membership-worker"
+          nexus/node_modules/.bin/esbuild nexus/workers/api/index.ts --bundle --platform=node --format=esm --outfile="$RUNNER_TEMP/membership-worker/worker.mjs"
+          node backend/scripts/membership-e2e-worker.mjs "$RUNNER_TEMP/membership-worker" > "$RUNNER_TEMP/membership-worker/worker.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/membership-worker/pid"
+          python3 - <<'PYWORKER'
+          from pathlib import Path
+          import os,time,json
+          path=Path(os.environ['RUNNER_TEMP'])/'membership-worker/ready.json'
+          for _ in range(100):
+            if path.exists():break
+            time.sleep(.1)
+          data=json.loads(path.read_text());base='http://127.0.0.1:'+str(data['port'])
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+            f.write('NEXUS_PRICING_URL='+base+'/api/nexus/pricing\nNEXUS_SAFEORDER_URL='+base+'/api/nexus/safeorder\nNEXUS_PRICING_API_KEY=synthetic-membership-service\nNEXUS_TENANT_ID=anastasia\n')
+          PYWORKER
+      - name: Actual native checkout, access, renewal, stop, refunds and replay
+        working-directory: backend
+        run: ./node_modules/.bin/jest --runTestsByPath integration-tests/http/membership-checkout-e2e.spec.ts --runInBand --forceExit
+      - name: Stop synthetic Worker
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/membership-worker/pid"; then kill "$(cat "$RUNNER_TEMP/membership-worker/pid")" || true; fi
