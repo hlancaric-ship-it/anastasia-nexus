@@ -237,7 +237,7 @@ async function vProductNew(view) {
     <div class="row"><div><label>Cena (EUR)</label><input id="pn-price" type="number" step="0.01" placeholder="0.00"></div>
     <div><label>Stav</label><select id="pn-status"><option value="draft">Koncept</option><option value="published">Zverejnený</option></select></div></div>
     <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť produkt</button></div>
-    <p class="muted" style="margin-top:10px;font-size:12px">Produkt vznikne s jedným variantom a cenou v EUR. Ďalšie detaily (popis, kategórie, akcia) doplníte v úprave.</p>
+    <p class="muted" style="margin-top:10px;font-size:12px">Produkt vznikne s jedným variantom a cenou v EUR. Obrázky, sklad, predajné kanály, popis a kategórie doplníte v úprave.</p>
   </div></div>`;
   view.querySelector('#pn-back').onclick = () => vProducts(view);
   view.querySelector('#pn-save').onclick = async () => {
@@ -246,9 +246,11 @@ async function vProductNew(view) {
     const amount = Number(view.querySelector('#pn-price').value);
     const status = view.querySelector('#pn-status').value;
     if (!title) { msg.innerHTML = '<div class="err">Zadajte názov produktu.</div>'; return; }
+    if (status === 'published' && !(amount > 0)) { msg.innerHTML = '<div class="err">Zverejniť sa dá len produkt s cenou. Zadajte cenu alebo ho uložte ako koncept.</div>'; return; }
     const btn = view.querySelector('#pn-save'); btn.disabled = true;
     try {
-      const body = { title, status, options: [{ title: 'Variant', values: ['Štandard'] }],
+      let channels = []; try { channels = (await api('/admin/sales-channels?limit=50&fields=id')).sales_channels || []; } catch (e) { if (e.message === '401') throw e; }
+      const body = { title, status, ...(channels.length === 1 ? { sales_channels: [{ id: channels[0].id }] } : {}), options: [{ title: 'Variant', values: ['Štandard'] }],
         variants: [{ title: 'Štandard', options: { Variant: 'Štandard' }, prices: amount > 0 ? [{ amount, currency_code: 'eur' }] : [] }] };
       const { product } = await api('/admin/products', { method: 'POST', body });
       vProductDetail(view, product.id);
@@ -257,10 +259,20 @@ async function vProductNew(view) {
 }
 async function vProductDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,metadata,*variants.prices,*categories`);
+  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,thumbnail,metadata,*images,*sales_channels,*variants.prices,*categories,variants.manage_inventory,variants.sku,*variants.inventory_items`);
   const variant = p.variants?.[0]; const price = basePrice(variant);
-  let cats = []; try { cats = (await api('/admin/product-categories?limit=200&fields=id,name')).product_categories || []; } catch {}
-  const inC = new Set((p.categories || []).map(c => c.id));
+  const soft = (e) => { if (e.message === '401') throw e; return null; };
+  const [catsR, chR, locR] = await Promise.all([
+    api('/admin/product-categories?limit=200&fields=id,name').catch(soft),
+    api('/admin/sales-channels?limit=50&fields=id,name,is_disabled').catch(soft),
+    api('/admin/stock-locations?limit=50&fields=id,name').catch(soft),
+  ]);
+  const cats = catsR?.product_categories || [], channels = chR?.sales_channels || [], locations = locR?.stock_locations || [];
+  const inC = new Set((p.categories || []).map(c => c.id)), inCh = new Set((p.sales_channels || []).map(c => c.id));
+  const invItemId = variant?.inventory_items?.[0]?.inventory_item_id || null;
+  let levels = [];
+  if (variant?.manage_inventory && invItemId) { try { levels = (await api(`/admin/inventory-items/${invItemId}/location-levels?limit=50`)).inventory_levels || []; } catch (e) { soft(e); } }
+  let images = (p.images || []).map(i => i.url).filter(Boolean), thumb = p.thumbnail || images[0] || null;
   const sale = (p.metadata && p.metadata.vyprodej) || {};
   const saleOn = !!sale.active;
   const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
@@ -274,17 +286,73 @@ async function vProductDetail(view, id) {
     </div>`;
   const kategorie = `<div>${cats.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-c="${c.id}" ${inC.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}</label>`).join('') || '<span class="muted">Žiadne kategórie.</span>'}</div>`;
   const popis = wysiwygHtml('p-desc', p.description || '');
+  const obrazky = `<div id="p-imgs" class="rc-grid"></div>
+    <label style="margin-top:12px">Pridať obrázky (JPG, PNG, WebP do 5 MB)</label><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple>
+    <p class="muted" style="font-size:12px">Hlavný obrázok sa zobrazuje v zozname produktov a vo výsledkoch vyhľadávania. Zmeny sa uložia tlačidlom Uložiť.</p>`;
+  const predaj = `<p class="muted">Produkt sa v obchode zobrazí len v označených predajných kanáloch.</p>
+    <div>${channels.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}</label>`).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`;
+  const sklad = !variant ? '<p class="muted">Produkt nemá variant.</p>' : `<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="p-inv" ${variant.manage_inventory ? 'checked' : ''} style="width:auto"> Sledovať počet kusov na sklade</label>
+    <p class="muted" style="font-size:12px">Digitálne produkty, konzultácie a členstvo sklad nesledujú. Pri fyzickom tovare jadro nepustí predať viac kusov, než je na sklade.</p>
+    ${!variant.manage_inventory ? '<p class="muted" style="font-size:12px">Po zapnutí a uložení sa tu zobrazia počty kusov po skladoch.</p>' : ''}
+    ${variant.manage_inventory ? (!locations.length ? '<div class="notice">Najprv v Nastaveniach založte sklad.</div>' : `<div class="rc-grid">${locations.map(l => { const lv = levels.find(x => x.location_id === l.id);
+      return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(l.name)}</div><div class="rc-fields">
+        <span class="rc-f"><em>Na sklade</em><input type="number" min="0" step="1" data-loc="${esc(l.id)}" data-has="${lv ? 1 : 0}" value="${lv ? lv.stocked_quantity : ''}" placeholder="0" style="max-width:110px"></span>
+        ${lv ? `<span class="rc-f"><em>Rezervované</em>${lv.reserved_quantity ?? 0}</span>` : ''}</div></div></div>`; }).join('')}</div>`) : ''}`;
+  const completeness = () => {
+    const np = Number(view.querySelector('#p-price')?.value);
+    const chosenCh = [...view.querySelectorAll('[data-ch]')].some(cb => cb.checked), chosenCat = [...view.querySelectorAll('[data-c]')].some(cb => cb.checked);
+    return [
+      { ok: !!variant && np > 0, block: true, t: 'Cena v EUR' },
+      { ok: chosenCh || !channels.length && inCh.size > 0, block: true, t: 'Predajný kanál' },
+      { ok: images.length > 0, block: false, t: 'Obrázok' },
+      { ok: chosenCat, block: false, t: 'Kategória' },
+    ];
+  };
+  const renderChecks = () => { const box = view.querySelector('#p-checks'); if (!box) return;
+    box.innerHTML = completeness().map(c => `<span class="pill ${c.ok ? 'ok' : c.block ? 'off' : 'warn'}" style="margin:0 6px 6px 0">${c.ok ? '✓' : c.block ? '✕' : '!'} ${esc(c.t)}</span>`).join(''); };
   view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<button class="btn ghost" id="p-back">Späť</button></div><div class="card-b">
     <div id="pmsg"></div>
-    ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 'c', label: 'Cena a akcia', html: cena }, { id: 'k', label: 'Kategórie', html: kategorie }, { id: 'd', label: 'Popis', html: popis }])}
+    <div id="p-checks" style="margin-bottom:10px"></div>
+    ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 'c', label: 'Cena a akcia', html: cena }, { id: 'o', label: 'Obrázky', html: obrazky }, { id: 'k', label: 'Kategórie', html: kategorie }, { id: 's', label: 'Predaj', html: predaj }, { id: 'sk', label: 'Sklad', html: sklad }, { id: 'd', label: 'Popis', html: popis }])}
     <div style="margin-top:16px;display:flex;gap:10px"><button class="btn gold" id="p-save">Uložiť</button></div>
   </div></div>`;
   wireTabs(view); wireWysiwyg(view);
   view.querySelector('#p-back').onclick = () => vProducts(view);
+  const drawImgs = () => {
+    view.querySelector('#p-imgs').innerHTML = images.map((u, i) => `<div class="rc"><div class="rc-body"><img src="${esc(u)}" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${u === thumb ? '<span class="pill ok">hlavný</span>' : `<button type="button" class="btn ghost" data-main="${i}">Hlavný</button>`}<button type="button" class="btn ghost" data-rm="${i}">Odstrániť</button></div></div></div>`).join('') || '<div class="empty">Produkt zatiaľ nemá obrázok.</div>';
+    view.querySelectorAll('[data-main]').forEach(b => b.onclick = () => { thumb = images[+b.dataset.main]; drawImgs(); });
+    view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const u = images.splice(+b.dataset.rm, 1)[0]; if (thumb === u) thumb = images[0] || null; drawImgs(); renderChecks(); });
+  };
+  drawImgs(); renderChecks();
+  view.querySelectorAll('#p-price,[data-ch],[data-c]').forEach(el => el.addEventListener('change', renderChecks));
+  view.querySelector('#p-file').onchange = async (e) => {
+    const msg = view.querySelector('#pmsg'), files = [...e.target.files]; msg.innerHTML = '';
+    const bad = files.find(f => !/^image\/(jpeg|png|webp)$/.test(f.type) || f.size > 5 * 1024 * 1024);
+    if (bad) { msg.innerHTML = `<div class="err">${esc(bad.name)}: povolené sú JPG, PNG a WebP do 5 MB.</div>`; e.target.value = ''; return; }
+    if (!files.length) return;
+    const fd = new FormData(); files.forEach(f => fd.append('files', f));
+    e.target.disabled = true; msg.innerHTML = '<div class="muted">Nahrávam…</div>';
+    try {
+      const res = await fetch(API + '/admin/uploads', { method: 'POST', headers: token ? { authorization: 'Bearer ' + token } : {}, body: fd });
+      if (res.status === 401) { token = ''; localStorage.removeItem('ana_token'); renderLogin('Prihlásenie vypršalo.'); return; }
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d?.message || 'Nahratie zlyhalo.');
+      const urls = (d.files || []).map(f => f.url).filter(Boolean);
+      images.push(...urls); if (!thumb) thumb = images[0] || null;
+      drawImgs(); renderChecks(); msg.innerHTML = '<div class="notice">Obrázky sú nahraté. Nezabudnite Uložiť.</div>';
+    } catch (err) { msg.innerHTML = `<div class="err">${esc(err.message)}</div>`; }
+    finally { e.target.disabled = false; e.target.value = ''; }
+  };
   const box = view.querySelector('#p-sale-box');
   view.querySelector('#p-sale-on').onchange = (e) => box.classList.toggle('hidden', !e.target.checked);
   view.querySelector('#p-save').onclick = async () => {
-    const msg = view.querySelector('#pmsg'); msg.innerHTML = ''; const btn = view.querySelector('#p-save'); btn.disabled = true;
+    const msg = view.querySelector('#pmsg'); msg.innerHTML = ''; const btn = view.querySelector('#p-save');
+    const wantStatus = view.querySelector('#p-status').value;
+    const missing = completeness().filter(c => c.block && !c.ok).map(c => c.t);
+    if (wantStatus === 'published' && missing.length) { msg.innerHTML = `<div class="err">Produkt sa nedá zverejniť, chýba: ${esc(missing.join(', '))}. Uložte ho ako koncept alebo údaje doplňte.</div>`; return; }
+    if ([...view.querySelectorAll('[data-loc]')].some(i => i.value !== '' && !(Number.isInteger(Number(i.value)) && Number(i.value) >= 0))) { msg.innerHTML = '<div class="err">Počet kusov na sklade musí byť celé číslo 0 alebo viac.</div>'; return; }
+    btn.disabled = true;
     try {
       const chosen = [...view.querySelectorAll('[data-c]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.c }));
       const desc = view.querySelector('#p-desc').innerHTML.trim();
@@ -301,12 +369,36 @@ async function vProductDetail(view, id) {
       if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
       else { await clearVariantSale(ref); saleMeta = { active: false }; }
       const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
-      await api(`/admin/products/${id}`, { method: 'POST', body: { title: view.querySelector('#p-title').value, status: view.querySelector('#p-status').value, description: desc, categories: chosen, metadata } });
+      const body = { title: view.querySelector('#p-title').value, status: wantStatus, description: desc, categories: chosen, metadata, images: images.map(url => ({ url })), thumbnail: thumb };
+      if (channels.length) body.sales_channels = [...view.querySelectorAll('[data-ch]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.ch }));
+      await api(`/admin/products/${id}`, { method: 'POST', body });
+      if (variant) await saveStock();
       msg.innerHTML = '<div class="notice">Uložené.</div>';
       setTimeout(() => vProductDetail(view, id), 700);
-    } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    } catch (e) { if (e.message === '401') return; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
     finally { btn.disabled = false; }
   };
+  // Sklad cez natívne inventory API: zapnutie sledovania, prepojenie skladovej položky, počty po skladoch.
+  async function saveStock() {
+    const want = !!view.querySelector('#p-inv')?.checked;
+    if (want !== !!variant.manage_inventory) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { manage_inventory: want } });
+    if (!want) return;
+    let itemId = invItemId;
+    if (!itemId) {
+      const { inventory_item } = await api('/admin/inventory-items', { method: 'POST', body: { title: p.title, ...(variant.sku ? { sku: variant.sku } : {}) } });
+      itemId = inventory_item.id;
+      await api(`/admin/products/${id}/variants/inventory-items/batch`, { method: 'POST', body: { create: [{ variant_id: variant.id, inventory_item_id: itemId, required_quantity: 1 }] } });
+    }
+    for (const inp of view.querySelectorAll('[data-loc]')) {
+      if (inp.value === '') continue;
+      const q = Number(inp.value);
+      if (!Number.isInteger(q) || q < 0) throw new Error('Počet kusov musí byť celé číslo 0 alebo viac.');
+      const lv = levels.find(x => x.location_id === inp.dataset.loc);
+      if (lv && Number(lv.stocked_quantity) === q) continue;
+      if (lv && itemId === invItemId) await api(`/admin/inventory-items/${itemId}/location-levels/${inp.dataset.loc}`, { method: 'POST', body: { stocked_quantity: q } });
+      else await api(`/admin/inventory-items/${itemId}/location-levels`, { method: 'POST', body: { location_id: inp.dataset.loc, stocked_quantity: q } });
+    }
+  }
 }
 async function vCategories(view) {
   const { product_categories } = await api('/admin/product-categories?limit=200&fields=id,name,handle,is_active,parent_category_id');
