@@ -523,10 +523,215 @@ function subnav(view, items, idx = 0) {
   if (a) a.querySelectorAll('.pill').forEach(b => b.onclick = () => { if (+b.dataset.i !== idx) { items[+b.dataset.i].run(view); } });
   items[idx].run(view);
 }
-const vVouchers = (v) => tryList(v, { title: 'Darčekové poukazy', endpoint: '/admin/vouchers', key: 'vouchers', cols: [{ h: 'Kód', v: x => esc(x.code || x.id) }, { h: 'Zostatok', v: x => fmtEur((x.current_balance_minor ?? 0) / 100) }, { h: 'Stav', v: x => esc(x.status || '') }], note: 'Darčekové poukazy beria z NEXUS jadra (D1).' });
+// --- spoločné: stránkovaný zoznam kariet so záložkami stavu ---
+const PAGE_LIMIT = 12;
+function pagedHtml({ tabs, active, items, count, offset, card, empty }) {
+  const from = count ? offset + 1 : 0, to = Math.min(offset + items.length, count);
+  return `${tabs ? `<div class="tabs">${tabs.map(t => `<button class="tab ${t.id === active ? 'active' : ''}" data-st="${esc(t.id)}">${esc(t.label)}</button>`).join('')}</div>` : ''}
+    <div class="rc-grid">${items.length ? items.map(r => `<button class="rc" data-id="${esc(r.id)}">${card(r)}</button>`).join('') : `<div class="empty">${esc(empty)}</div>`}</div>
+    <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
+      <span class="muted">${count ? `${from}–${to} z ${count}` : ''}</span>
+      <div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev" ${offset > 0 ? '' : 'disabled'}>← Predchádzajúce</button><button class="btn ghost" data-pg="next" ${offset + PAGE_LIMIT < count ? '' : 'disabled'}>Ďalšie →</button></div>
+    </div>`;
+}
+function wirePaged(view, { items, offset, go, open }) {
+  view.querySelectorAll('[data-st]').forEach(b => b.onclick = () => go({ status: b.dataset.st, offset: 0 }));
+  view.querySelector('[data-pg="prev"]').onclick = () => go({ offset: Math.max(0, offset - PAGE_LIMIT) });
+  view.querySelector('[data-pg="next"]').onclick = () => go({ offset: offset + PAGE_LIMIT });
+  view.querySelectorAll('.rc[data-id]').forEach(el => el.onclick = () => open(items.find(x => x.id === el.dataset.id)));
+}
+async function loadError(view, e, retry) {
+  if (e.message === '401') throw e;
+  view.innerHTML = `<div class="err">${esc(e.message)}</div><div style="margin-top:12px"><button class="btn ghost" id="x-retry">Obnoviť</button></div>`;
+  view.querySelector('#x-retry').onclick = retry;
+}
+// mená zákazníčok a produktov pre karty (natívne Admin API, len na čítanie)
+async function namesFor(customerIds, productIds) {
+  const q = (ids) => [...new Set(ids.filter(Boolean))].map(id => 'id[]=' + encodeURIComponent(id)).join('&');
+  const [cs, ps] = await Promise.all([
+    customerIds.length ? api(`/admin/customers?${q(customerIds)}&fields=id,email,first_name,last_name&limit=100`).catch(e => { if (e.message === '401') throw e; return {}; }) : {},
+    productIds.length ? api(`/admin/products?${q(productIds)}&fields=id,title&limit=100`).catch(e => { if (e.message === '401') throw e; return {}; }) : {},
+  ]);
+  const cust = new Map((cs.customers || []).map(c => [c.id, [c.first_name, c.last_name].filter(Boolean).join(' ') || c.email || c.id]));
+  const prod = new Map((ps.products || []).map(x => [x.id, x.title]));
+  return { cust: id => cust.get(id) || id || '—', prod: id => prod.get(id) || id || '—' };
+}
+
+// --- Darčekové poukazy (/admin/vouchers*) — kód je vždy maskovaný, zostatky počíta jadro ---
+const V_STATUS = { active: ['aktívny', 'ok'], depleted: ['vyčerpaný', 'off'], expired: ['po platnosti', 'off'], void: ['zneplatnený', 'off'] };
+const V_TX = { issued: 'vydaný', redeemed: 'použitý v objednávke', forfeited: 'prepadnutý', reversed: 'stornované použitie', refunded: 'vrátené na poukaz', voided: 'zneplatnený', expired: 'vypršal' };
+const V_TABS = [{ id: '', label: 'Všetky' }, { id: 'active', label: 'Aktívne' }, { id: 'depleted', label: 'Vyčerpané' }, { id: 'expired', label: 'Po platnosti' }, { id: 'void', label: 'Zneplatnené' }];
+async function vVouchers(view, st = {}) {
+  const status = st.status || '', offset = Math.max(0, st.offset | 0);
+  const go = (patch) => vVouchers(view, { status, offset, ...patch });
+  view.innerHTML = '<div class="muted">Načítavam poukazy…</div>';
+  let d;
+  try { d = await api(`/admin/vouchers?limit=${PAGE_LIMIT}&offset=${offset}${status ? '&status=' + status : ''}`); }
+  catch (e) { return loadError(view, e, () => go({})); }
+  const items = d.vouchers || [];
+  view.innerHTML = pagedHtml({ tabs: V_TABS, active: status, items, count: d.count || 0, offset, empty: 'Žiadne poukazy.',
+    card: v => `<div class="rc-body"><div class="rc-title">${esc(v.code)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Zostatok</em>${fmtEur(v.balance)} z ${fmtEur(v.initial_amount)}</span>
+      <span class="rc-f"><em>Stav</em>${klubPill(V_STATUS, v.status)}</span>
+      <span class="rc-f"><em>Platí do</em>${v.expires_at ? fmtDate(v.expires_at) : '—'}</span></div></div>` })
+    + `<div class="card" style="margin-top:20px"><div class="card-h">Vrátiť peniaze na poukaz</div><div class="card-b">
+      <p class="muted">Ak zákazníčka zaplatila objednávku poukazom, vrátite sumu späť na jej poukaz. Jadro nepustí viac, než bolo poukazom zaplatené.</p>
+      <div id="vrmsg"></div>
+      <form id="vr" class="row"><div><label>ID objednávky</label><input id="vr-o" placeholder="order_…" required></div>
+      <div><label>Suma (EUR)</label><input id="vr-a" type="number" step="0.01" min="0.01" required></div>
+      <div><label>Poznámka (voliteľné)</label><input id="vr-n" maxlength="300"></div>
+      <div style="align-self:end"><button class="btn gold" type="submit">Vrátiť na poukaz</button></div></form></div></div>`;
+  wirePaged(view, { items, offset, go, open: v => vVoucherDetail(view, v, () => go({})) });
+  const key = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)).replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+  view.querySelector('#vr').onsubmit = async (e) => {
+    e.preventDefault();
+    const msg = view.querySelector('#vrmsg'), btn = e.target.querySelector('button');
+    const order_id = view.querySelector('#vr-o').value.trim(), amount = Math.round(Number(view.querySelector('#vr-a').value) * 100) / 100, note = view.querySelector('#vr-n').value.trim();
+    if (!/^order_[A-Za-z0-9]{1,64}$/.test(order_id)) { msg.innerHTML = '<div class="err">ID objednávky má tvar order_…</div>'; return; }
+    if (!(amount > 0)) { msg.innerHTML = '<div class="err">Zadajte kladnú sumu v eurách.</div>'; return; }
+    if (!confirm(`Vrátiť ${fmtEur(amount)} na poukaz z objednávky ${order_id}?`)) return;
+    msg.innerHTML = ''; btn.disabled = true;
+    try {
+      const r = await api('/admin/vouchers/refund', { method: 'POST', body: { order_id, amount, idempotency_key: key, ...(note ? { note } : {}) } });
+      msg.innerHTML = `<div class="notice">${r.replayed ? 'Toto vrátenie už bolo spracované.' : `Vrátené: ${r.refunds.map(x => `${fmtEur(x.amount)} (nový zostatok ${fmtEur(x.balance)})`).join(', ')}`}</div>`;
+    } catch (err) { if (err.message === '401') return; btn.disabled = false; msg.innerHTML = `<div class="err">${esc(err.message)}</div>`; }
+  };
+}
+async function vVoucherDetail(view, v, back) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  let tx = [];
+  try { tx = (await api(`/admin/vouchers/${encodeURIComponent(v.id)}/transactions?limit=50`)).transactions || []; }
+  catch (e) { if (e.message === '401') return; }
+  view.innerHTML = `<div class="card"><div class="card-h">Poukaz ${esc(v.code)}<button class="btn ghost" id="v-back">Späť</button></div><div class="card-b">
+    <div id="vmsg"></div>
+    <div class="row"><div><label>Zostatok</label><div>${fmtEur(v.balance)} z ${fmtEur(v.initial_amount)}</div></div><div><label>Stav</label><div>${klubPill(V_STATUS, v.status)}</div></div></div>
+    <div class="row"><div><label>Vydaný</label><div>${fmtDate(v.issued_at)}</div></div><div><label>Platí do</label><div>${v.expires_at ? fmtDate(v.expires_at) : '—'}</div></div></div>
+    <div class="row"><div><label>Objednávka nákupu</label><div>${esc(v.source_order_id || '—')}</div></div><div><label>Doručenie</label><div>${esc(v.delivery_method || '—')} · ${esc(v.delivery_status || '—')}</div></div></div>
+    ${v.voided_at ? `<p class="muted">Zneplatnený ${fmtDate(v.voided_at)}: ${esc(v.void_reason || '')}</p>` : ''}
+    <label style="margin-top:14px">História</label>
+    <div class="rc-grid">${tx.map(t => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(V_TX[t.type] || t.type)} · ${fmtEur(t.amount)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Kedy</em>${fmtDate(t.created_at)}</span><span class="rc-f"><em>Zostatok po</em>${fmtEur(t.balance_after)}</span>
+      ${t.order_id ? `<span class="rc-f"><em>Objednávka</em>${esc(t.order_id)}</span>` : ''}${t.reversed_at ? '<span class="pill off">stornované</span>' : ''}</div></div></div>`).join('') || '<div class="empty">Bez záznamov.</div>'}</div>
+    ${v.status === 'active' ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><label>Dôvod zneplatnenia</label><input id="v-reason" maxlength="300" placeholder="napr. podvodná objednávka">
+      <div style="margin-top:10px"><button class="btn ghost" id="v-void">Zneplatniť poukaz</button></div></div>` : ''}
+  </div></div>`;
+  view.querySelector('#v-back').onclick = back;
+  const vb = view.querySelector('#v-void');
+  if (vb) vb.onclick = async () => {
+    const reason = view.querySelector('#v-reason').value.trim(), msg = view.querySelector('#vmsg');
+    if (!reason) { msg.innerHTML = '<div class="err">Uveďte dôvod zneplatnenia.</div>'; return; }
+    if (!confirm(`Naozaj zneplatniť poukaz? Zostatok ${fmtEur(v.balance)} prepadne a nedá sa to vrátiť.`)) return;
+    msg.innerHTML = ''; vb.disabled = true;
+    try { const r = await api(`/admin/vouchers/${encodeURIComponent(v.id)}/void`, { method: 'POST', body: { reason } }); await vVoucherDetail(view, r.voucher, back); view.querySelector('#vmsg').innerHTML = '<div class="notice">Poukaz je zneplatnený.</div>'; }
+    catch (e) { if (e.message === '401') return; vb.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
 const vPoukazy = (view) => subnav(view, [{ label: 'Kupóny a zľavy', run: vCoupons }, { label: 'Darčekové poukazy', run: vVouchers }]);
-const vKonzultacie = (v) => tryList(v, { title: 'Konzultácie', endpoint: '/admin/bookings', key: 'bookings', cols: [{ h: 'Zákazníčka', v: x => esc(x.customer_id || '') }, { h: 'Od', v: x => fmtDate(x.starts_at) }, { h: 'Stav', v: x => esc(x.status || '') }], note: 'Rezervačné jadro existuje; admin napojenie dolaďujeme.' });
-const vSpravy = (v) => tryList(v, { title: 'Správy', endpoint: '/admin/chat/conversations', key: 'conversations', cols: [{ h: 'ID', v: x => esc(x.id) }, { h: 'Stav', v: x => esc(x.status || '') }], note: 'Chat modul je v jadre; admin výpis napojíme.' });
+// --- Konzultácie (/admin/bookings*) — termíny drží rezervačné jadro, tu prehľad a zrušenie ---
+const B_STATUS = { held: ['čaká na platbu', 'warn'], confirmed: ['potvrdená', 'ok'], canceled: ['zrušená', 'off'], completed: ['prebehla', 'ok'] };
+const B_TABS = [{ id: '', label: 'Všetky' }, { id: 'confirmed', label: 'Potvrdené' }, { id: 'held', label: 'Čakajú na platbu' }, { id: 'completed', label: 'Prebehli' }, { id: 'canceled', label: 'Zrušené' }];
+async function vKonzultacie(view, st = {}) {
+  const status = st.status || '', offset = Math.max(0, st.offset | 0);
+  const go = (patch) => vKonzultacie(view, { status, offset, ...patch });
+  view.innerHTML = '<div class="muted">Načítavam konzultácie…</div>';
+  let d, n;
+  try {
+    d = await api(`/admin/bookings?limit=${PAGE_LIMIT}&offset=${offset}${status ? '&status=' + status : ''}`);
+    n = await namesFor((d.bookings || []).map(b => b.customer_id), (d.bookings || []).map(b => b.product_id));
+  } catch (e) { return loadError(view, e, () => go({})); }
+  const items = (d.bookings || []).map(b => ({ ...b, customer_label: n.cust(b.customer_id), product_label: n.prod(b.product_id) }));
+  view.innerHTML = pagedHtml({ tabs: B_TABS, active: status, items, count: d.count || 0, offset, empty: 'Žiadne konzultácie.',
+    card: b => `<div class="rc-body"><div class="rc-title">${esc(b.customer_label)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Termín</em>${fmtDate(b.starts_at)}</span><span class="rc-f"><em>Konzultácia</em>${esc(b.product_label)}</span>
+      <span class="rc-f"><em>Stav</em>${klubPill(B_STATUS, b.status)}</span></div></div>` });
+  wirePaged(view, { items, offset, go, open: b => vBookingDetail(view, b, () => go({})) });
+}
+function vBookingDetail(view, b, back) {
+  const active = b.status === 'held' || b.status === 'confirmed';
+  view.innerHTML = `<div class="card"><div class="card-h">Konzultácia · ${esc(b.customer_label)}<button class="btn ghost" id="b-back">Späť</button></div><div class="card-b">
+    <div id="bmsg"></div>
+    <div class="row"><div><label>Termín</label><div>${fmtDate(b.starts_at)} – ${fmtDate(b.ends_at)}</div></div><div><label>Stav</label><div>${klubPill(B_STATUS, b.status)}</div></div></div>
+    <div class="row"><div><label>Konzultácia</label><div>${esc(b.product_label)}</div></div><div><label>Objednávka</label><div>${b.order_id ? `<a href="#/objednavky" data-ord="${esc(b.order_id)}">${esc(b.order_id)}</a>` : '—'}</div></div></div>
+    ${b.status === 'held' && b.held_until ? `<p class="muted">Termín je držaný do ${fmtDate(b.held_until)}; potom sa sám uvoľní.</p>` : ''}
+    ${b.canceled_at ? `<p class="muted">Zrušená ${fmtDate(b.canceled_at)}${b.cancel_reason ? ': ' + esc(b.cancel_reason) : ''}</p>` : ''}
+    ${active ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><label>Dôvod zrušenia (voliteľné)</label><input id="b-reason" maxlength="500">
+      <div style="margin-top:10px"><button class="btn ghost" id="b-cancel">Zrušiť termín</button></div>
+      <p class="muted" style="font-size:12px;margin-top:8px">${b.status === 'confirmed' ? 'Zákazníčke odíde e-mail o zrušení. Peniaze vrátite v detaile objednávky.' : 'Termín sa uvoľní pre ostatné zákazníčky.'}</p></div>` : ''}
+  </div></div>`;
+  view.querySelector('#b-back').onclick = back;
+  const ol = view.querySelector('[data-ord]'); if (ol) ol.onclick = (e) => { e.preventDefault(); vOrderDetail(view, b.order_id); };
+  const cb = view.querySelector('#b-cancel');
+  if (cb) cb.onclick = async () => {
+    if (!confirm('Naozaj zrušiť tento termín?')) return;
+    const msg = view.querySelector('#bmsg'), reason = view.querySelector('#b-reason').value.trim(); msg.innerHTML = ''; cb.disabled = true;
+    try { const r = await api(`/admin/bookings/${encodeURIComponent(b.id)}/cancel`, { method: 'POST', body: reason ? { reason } : {} }); vBookingDetail(view, { ...b, ...r.booking }, back); view.querySelector('#bmsg').innerHTML = '<div class="notice">Termín je zrušený.</div>'; }
+    catch (e) { if (e.message === '401') return; cb.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
+
+// --- Správy (/admin/chat/*) — odpoveď odíde zákazníčke aj e-mailom ---
+const C_TABS = [{ id: 'open', label: 'Otvorené' }, { id: 'closed', label: 'Uzavreté' }, { id: 'all', label: 'Všetky' }];
+async function vSpravy(view, st = {}) {
+  const status = st.status || 'open', offset = Math.max(0, st.offset | 0);
+  const go = (patch) => vSpravy(view, { status, offset, ...patch });
+  view.innerHTML = '<div class="muted">Načítavam správy…</div>';
+  let d;
+  try { d = await api(`/admin/chat/conversations?status=${status}&limit=${PAGE_LIMIT}&offset=${offset}`); }
+  catch (e) { return loadError(view, e, () => go({})); }
+  const items = d.conversations || [];
+  view.innerHTML = (d.unread ? `<div class="notice">Neprečítané konverzácie: ${d.unread}</div>` : '') + pagedHtml({ tabs: C_TABS, active: status, items, count: d.count || 0, offset, empty: 'Žiadne konverzácie.',
+    card: c => `<div class="rc-body"><div class="rc-title">${c.unread ? '● ' : ''}${esc(c.customer?.name || c.customer?.email || 'Zákazníčka')}</div><div class="rc-fields">
+      <span class="rc-f"><em>Téma</em>${esc(c.subject || '—')}</span><span class="rc-f"><em>Posledná správa</em>${fmtDate(c.last_message_at)}</span>
+      <span class="rc-f">${c.unread ? '<span class="pill warn">neprečítaná</span>' : ''}${c.status === 'closed' ? '<span class="pill off">uzavretá</span>' : ''}${c.muted ? ' <span class="pill off">stlmená</span>' : ''}${c.customer?.chat_blocked ? ' <span class="pill off">chat zablokovaný</span>' : ''}</span></div></div>` });
+  wirePaged(view, { items, offset, go, open: c => vConversation(view, c.id, () => go({})) });
+}
+async function vConversation(view, id, back, notice) {
+  view.innerHTML = '<div class="muted">Načítavam konverzáciu…</div>';
+  let d;
+  try { d = await api(`/admin/chat/conversations/${encodeURIComponent(id)}`); }
+  catch (e) { return loadError(view, e, () => vConversation(view, id, back)); }
+  const c = d.conversation, cu = c.customer || {};
+  if (c.unread) api(`/admin/chat/conversations/${encodeURIComponent(id)}/read`, { method: 'POST', body: {} }).catch(() => {});
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(cu.name || cu.email || 'Zákazníčka')}${c.subject ? ' · ' + esc(c.subject) : ''}<button class="btn ghost" id="c-back">Späť</button></div><div class="card-b">
+    <div id="cmsg">${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
+    <p class="muted">${esc(cu.email || '')}${c.order_id ? ' · objednávka ' + esc(c.order_id) : ''}${c.booking_id ? ' · konzultácia ' + esc(c.booking_id) : ''}</p>
+    <div style="display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding:4px 0" id="c-thread">
+      ${(d.messages || []).map(m => `<div style="max-width:80%;align-self:${m.author === 'lucia' ? 'flex-end' : 'flex-start'};background:${m.author === 'lucia' ? 'var(--soft)' : '#fff'};border:1px solid var(--line);border-radius:12px;padding:10px 12px">
+        <div style="white-space:pre-wrap">${esc(m.body)}</div><div class="muted" style="font-size:11px;margin-top:4px">${m.author === 'lucia' ? 'Vy' : 'Zákazníčka'} · ${fmtDate(m.created_at)}</div></div>`).join('') || '<div class="empty">Zatiaľ bez správ.</div>'}
+    </div>
+    ${cu.chat_blocked ? '<p class="muted">Zákazníčka má chat zablokovaný — nemôže písať nové správy.</p>' : ''}
+    <form id="c-reply" style="margin-top:12px"><label>Odpoveď</label><textarea id="c-body" rows="4" maxlength="5000" required></textarea>
+      <div style="margin-top:8px"><button class="btn gold" type="submit">Odoslať</button> <span class="muted" style="font-size:12px">Zákazníčke príde aj e-mail.</span></div></form>
+    <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" data-act="${c.status === 'closed' ? 'reopen' : 'close'}">${c.status === 'closed' ? 'Znovu otvoriť' : 'Uzavrieť konverzáciu'}</button>
+      <button class="btn ghost" data-act="${c.muted ? 'unmute' : 'mute'}">${c.muted ? 'Zrušiť stlmenie' : 'Stlmiť upozornenia'}</button>
+      <button class="btn ghost" id="c-block">${cu.chat_blocked ? 'Odblokovať chat zákazníčky' : 'Zablokovať chat zákazníčky'}</button>
+    </div>
+  </div></div>`;
+  const th = view.querySelector('#c-thread'); th.scrollTop = th.scrollHeight;
+  view.querySelector('#c-back').onclick = back;
+  const fail = (btn, e) => { if (e.message === '401') return; btn.disabled = false; view.querySelector('#cmsg').innerHTML = `<div class="err">${esc(e.message)}</div>`; };
+  view.querySelector('#c-reply').onsubmit = async (e) => {
+    e.preventDefault(); const btn = e.target.querySelector('button'), body = view.querySelector('#c-body').value.trim();
+    if (!body) return; btn.disabled = true;
+    try { await api(`/admin/chat/conversations/${encodeURIComponent(id)}/messages`, { method: 'POST', body: { body } }); await vConversation(view, id, back, 'Odpoveď je odoslaná.'); }
+    catch (err) { fail(btn, err); }
+  };
+  const ACT = { close: 'Konverzácia je uzavretá.', reopen: 'Konverzácia je znovu otvorená.', mute: 'Upozornenia sú stlmené.', unmute: 'Upozornenia sú zapnuté.' };
+  view.querySelectorAll('[data-act]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { await api(`/admin/chat/conversations/${encodeURIComponent(id)}`, { method: 'POST', body: { action: b.dataset.act } }); await vConversation(view, id, back, ACT[b.dataset.act]); }
+    catch (err) { fail(b, err); }
+  });
+  const bb = view.querySelector('#c-block');
+  bb.onclick = async () => {
+    const blocked = !cu.chat_blocked;
+    if (!confirm(blocked ? 'Zablokovať zákazníčke písanie do chatu? Dá sa to kedykoľvek vrátiť.' : 'Odblokovať zákazníčke chat?')) return;
+    bb.disabled = true;
+    try { await api(`/admin/chat/customers/${encodeURIComponent(cu.id)}/block`, { method: 'POST', body: { blocked } }); await vConversation(view, id, back, blocked ? 'Chat zákazníčky je zablokovaný.' : 'Chat zákazníčky je odblokovaný.'); }
+    catch (err) { fail(bb, err); }
+  };
+}
 async function vEmaily(view) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { templates } = await api('/admin/email-templates');
