@@ -1,0 +1,31 @@
+import StripeProvider from '@medusajs/payment-stripe/dist/services/stripe-provider'
+import type { InitiatePaymentInput, AuthorizePaymentInput, AuthorizePaymentOutput } from '@medusajs/framework/types'
+/** Native Stripe provider with deferred off-session confirmation. No Subscription API.
+ * Membership checkout guard MUST verify the persisted native session before this authorization.
+ * Native initiation never charges: validation/SafeOrder/legal run before authorizePayment.
+ */
+export default class MembershipStripe extends StripeProvider {
+ static identifier='membership_stripe'
+ async initiatePayment(input:InitiatePaymentInput){
+  if(input.data?.confirm||input.data?.off_session)throw new Error('MEMBERSHIP_EARLY_CHARGE_FORBIDDEN')
+  return super.initiatePayment({...input,data:{...input.data,confirm:false,capture_method:'manual',payment_method_types:['card'],automatic_payment_methods:{enabled:false}}})
+ }
+ async authorizePayment(input:AuthorizePaymentInput):Promise<AuthorizePaymentOutput>{
+  const id=input.data?.id,sessionId=input.data?.metadata&&typeof input.data.metadata==='object'?(input.data.metadata as Record<string,unknown>).session_id:undefined
+  if(typeof id!=='string'||!/^pi_[A-Za-z0-9]+$/.test(id)||typeof sessionId!=='string'||input.context?.idempotency_key!==sessionId)throw new Error('MEMBERSHIP_NATIVE_SESSION_REQUIRED')
+  const intent=await this.stripe_.paymentIntents.retrieve(id)
+  if(input.data?.membership_renewal===true&&intent.status==='requires_confirmation'){
+   try{await this.stripe_.paymentIntents.confirm(id,{off_session:true},{idempotencyKey:`membership-confirm:${sessionId}`})}
+   catch(error:any){
+    // Card/3DS errors retain the same intent. Network errors remain unknown, never create another PI.
+    if(error?.type!=='StripeCardError')throw new Error('MEMBERSHIP_CONFIRMATION_UNKNOWN')
+   }
+  }
+  const current=await this.stripe_.paymentIntents.retrieve(id)
+  if(current.status==='requires_capture'){
+   try{await this.stripe_.paymentIntents.capture(id,{},{idempotencyKey:`membership-capture:${sessionId}`})}
+   catch{throw new Error('MEMBERSHIP_CAPTURE_UNKNOWN')}
+  }
+  return this.getPaymentStatus(input)
+ }
+}
