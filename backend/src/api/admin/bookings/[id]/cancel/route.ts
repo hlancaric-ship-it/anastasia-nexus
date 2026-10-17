@@ -23,6 +23,9 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (error instanceof MedusaError && error.type === MedusaError.Types.NOT_FOUND) {
       return res.status(404).json({ type: "not_found", message: "Rezervace neexistuje" })
     }
+    if (error instanceof MedusaError && error.message === "BOOKING_CANCEL_ORDER_FIRST") {
+      return res.status(409).json({ type: "not_allowed", message: "Termín patrí k objednávke v pokladni. Najprv zrušte objednávku." })
+    }
     req.scope.resolve(ContainerRegistrationKeys.LOGGER).error("POST /admin/bookings/:id/cancel selhalo", error as Error)
     return res.status(500).json({ type: "unexpected_state", message: "Zrušení selhalo" })
   }
