@@ -10,8 +10,8 @@ window.fetch=(async(url:string,init:RequestInit={})=>{
  const u=new URL(url,location.origin),body=init.body?JSON.parse(String(init.body)):undefined
  const reply=(value:any)=>new Response(JSON.stringify(value),{headers:{'Content-Type':'application/json'}})
  if(u.pathname==='/admin/my-theme')return reply({selection:DEFAULT_THEME,revision:0})
- if(body){writes.push({path:u.pathname,body});if(uncertain)throw new Error('offline');if(u.pathname.endsWith('/stop')){member.renew=false;return reply({membership:member})}product.configuration=body.configuration;return reply({product})}
- const tab=u.searchParams.get('tab'),items=tab==='products'?[product]:tab==='checkouts'?[{id:'mck_synthetic',customer_id:'cus_synthetic',status:'prepared'}]:[member]
+ if(body){writes.push({path:u.pathname,body});if(uncertain)throw new Error('offline');if(u.pathname.endsWith('/reconcile'))return reply({status:'RECONCILIATION_REQUIRED'});if(u.pathname.endsWith('/stop')){member.renew=false;return reply({membership:member})}product.configuration=body.configuration;return reply({product})}
+ const tab=u.searchParams.get('tab'),items=tab==='billing'?[{id:'mba_synthetic',membership_id:'mbr_synthetic',status:'needs_action',title:'Obnova členstva',order_id:'order_synthetic'}]:tab==='products'?[product]:tab==='checkouts'?[{id:'mck_synthetic',customer_id:'cus_synthetic',status:'prepared'}]:[member]
  return reply({items,count:1,offset:0,limit:12})
 }) as typeof fetch
 createRoot(document.getElementById('root')!).render(<Memberships/>);
@@ -38,6 +38,7 @@ void(async()=>{try{
  assert(!('amount' in writes[1].body.configuration),'no client pricing calculation')
  await click('Nedokončené nákupy');await wait(()=>document.body.textContent?.includes('Nákup čaká na dokončenie'))
  assert(document.body.textContent?.includes('Nákup tu znovu nespúšťame'),'pending purchase never blindly retried')
+ await click('Platby a obnovy');await wait(()=>document.body.textContent?.includes('Zákazníčka musí potvrdiť platbu'));await click('Dohľadať výsledok');await wait(()=>document.querySelector('dialog[open]'));assert(document.querySelector('dialog')?.textContent?.includes('nestrhneme ďalšie peniaze'),'reconciliation action never advertises a new charge');await click('Potvrdiť dohľadanie');await wait(()=>!document.querySelector('dialog'));assert(writes[writes.length-1].path==='/admin/memberships/billing/mba_synthetic/reconcile','only safe reconciliation endpoint is called')
  await click('Členské produkty');await wait(()=>document.body.textContent?.includes('Ukážkové členstvo'))
  await click('Upraviť podmienky');await wait(()=>document.querySelector('dialog[open]'));uncertain=true
  fill('member-version','v3');await tick();await click('Uložiť podmienky');await wait(()=>document.querySelector('[role=alert]'))

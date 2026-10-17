@@ -33,3 +33,11 @@ node scripts/check-membership-admin-browser.mjs
 Browser harness má pouze syntetické odpovědi fetch, skutečný React/DOM, formuláře, dialogy, klikání, nativní odkazy, readback a zákaz opakování nejisté mutace. Neprohlašuje to za PostgreSQL/Stripe E2E. Mac Chrome potřeboval v testovacím headless režimu vypnout frame-rate limit/vsync kvůli CVDisplayLink; produkční animace se neměnily. Integrační CI má spustit stejný browser skript na Linux Chrome.
 
 Potřebná integrace: membership module musí zapojit vlastník medusa-config až s kompletním tokem. Source inventory aktualizovat o nové admin route a test; globální middleware, config, entitlement source, package/lock a NEXUS se neměnily.
+
+## Platby a obnovy — integrační doplnění
+
+Čtvrtá záložka zobrazuje skutečné MembershipBillingAttempt přes `listAndCountMembershipBillingAttempts`: pouze id, membership_id, stage jako bezpečný lidský popis, order_id, created_at/updated_at. Nikdy snapshot, platební session/metoda, Stripe zákazník nebo secret. `needs_action` vysvětluje požadavek potvrzení zákaznicí, unknown/review neoznačuje jako zaplaceno.
+
+`POST /admin/memberships/billing/:id/reconcile {}` vyžaduje admina, dohledá existující pokus a volá výhradně `reconcileMembershipBilling(scope,id)` z billing balíku (závislost54fa339). Tato funkce pouze čte existující order_cart/capture a aplikuje již ověřený doklad+přístup. Žádný nový košík, platba ani checkout retry. UI předem potvrdí účel akce. `RECONCILIATION_REQUIRED` zůstává otevřeným výsledkem a nesmí se zobrazit jako úspěšně zaplacené; SETTLED je pouze ověřená objednávka/platba, skutečný přístup zůstává samostatně zobrazený u členství. Akce se audituje bez citlivých platebních identifikátorů.
+
+Rozšířené unit:31/31 PASS a tsc PASS. Browser přidal potvrzení reconciliation-only akce (15 kontrol na viewport); konečné prověření celé kombinace a PostgreSQL musí potvrdit integrační CI. macOS headless Chrome může náhodně skončit allocator/CVDisplayLink timeoutem i po úspěšném1440 běhu; diagnosticky lze zvolit jediný viewport `MEMBERSHIP_ADMIN_VIEWPORT=390`, výchozí CI spouští oba.
