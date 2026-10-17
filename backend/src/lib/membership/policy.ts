@@ -25,7 +25,7 @@ function date(value: string) {
   return n
 }
 const validId = (value: string) => typeof value === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(value)
-function validateState(state: Membership) {
+export function assertMembership(state: Membership) {
   validateTerms(state.terms); date(state.period_end)
   if (!validId(state.id) || !validId(state.last_order_id) || typeof state.renew !== 'boolean' || !['active','renewing','unknown','needs_review'].includes(state.status)) reject('INVALID_MEMBERSHIP')
   if (['renewing','unknown'].includes(state.status)) {
@@ -47,13 +47,14 @@ function verifyReceipt(t: Terms, r: Receipt, now: string) {
 function end(start: number, days: number) { return new Date(start + days * 86400000).toISOString() }
 export function activateMembership(id: string, terms: Terms, receipt: Receipt, consent: { version: string; auto_renew: boolean }, now: string): Membership {
   verifyReceipt(terms,receipt,now)
+  if (receipt.checkout_key !== `initial:${receipt.order_id}`) reject('INITIAL_BINDING_MISMATCH')
   if (!validId(id) || consent.version !== terms.version || typeof consent.auto_renew !== 'boolean') reject('CONSENT_REQUIRED')
   return { id,terms:{...terms},renew:consent.auto_renew,status:'active',period_end:end(date(receipt.paid_at),terms.period_days),last_order_id:receipt.order_id,last_checkout_key:receipt.checkout_key,renewal_key:null }
 }
 export type RenewalDecision = { state: Membership; action: 'NONE' | 'ENQUEUE_NATIVE_CHECKOUT' | 'RECONCILE_NATIVE_CHECKOUT' | 'REVIEW'; key?: string }
 /** Caller must atomically persist decision/key under the membership lock before enqueueing. */
 export function planRenewal(state: Membership, now: string, current: { version: string; amount_minor: number; currency: string }): RenewalDecision {
-  validateState(state)
+  assertMembership(state)
   if (state.status === 'renewing' || state.status === 'unknown') {
     if (!state.renewal_key) reject('MISSING_RENEWAL_KEY')
     return {state,action:'RECONCILE_NATIVE_CHECKOUT',key:state.renewal_key}
@@ -65,12 +66,12 @@ export function planRenewal(state: Membership, now: string, current: { version: 
   return {state:{...state,status:'renewing',renewal_key:key},action:'ENQUEUE_NATIVE_CHECKOUT',key}
 }
 export function markRenewalUnknown(state: Membership): Membership {
-  validateState(state)
+  assertMembership(state)
   if (state.status !== 'renewing' || !state.renewal_key) reject('NO_PENDING_RENEWAL')
   return {...state,status:'unknown'}
 }
 export function applyRenewalReceipt(state: Membership, receipt: Receipt, now: string): Membership {
-  validateState(state)
+  assertMembership(state)
   verifyReceipt(state.terms,receipt,now)
   // Duplicates must not add another period, including a delayed prior receipt during a new renewal.
   if (receipt.order_id === state.last_order_id && receipt.checkout_key === state.last_checkout_key) return state
@@ -80,4 +81,4 @@ export function applyRenewalReceipt(state: Membership, receipt: Receipt, now: st
   return {...state,status:'active',period_end:end(Math.max(date(state.period_end),date(receipt.paid_at)),state.terms.period_days),last_order_id:receipt.order_id,last_checkout_key:receipt.checkout_key,renewal_key:null}
 }
 /** Stops future renewals; does not pretend to cancel a native payment already in progress. */
-export function stopRenewal(state: Membership): Membership { validateState(state); return {...state,renew:false} }
+export function stopRenewal(state: Membership): Membership { assertMembership(state); return {...state,renew:false} }

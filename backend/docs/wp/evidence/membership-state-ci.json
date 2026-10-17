@@ -1,0 +1,23 @@
+{
+  "status": "VERIFIED",
+  "scope": "Membership persistence and receipt-claim atomicity only, module registered by test hook; not native billing integration",
+  "source_head": "6343df4924167958b60cc287b5338d6cad550184",
+  "focused_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38967357782",
+  "tested_merge": "bae27c2d6a3e0d011e0e89d5699be206f680a74e",
+  "unit_pass": 33,
+  "actual_medusa_postgres_pass": 2,
+  "backend_typescript": "PASS",
+  "full_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/38967357651",
+  "full_regression": {
+    "backend_pass": 705,
+    "nexus_pass": 1230,
+    "workerd_pass": 139,
+    "medusa_http_pass": 151,
+    "failures": 0
+  },
+  "limits": [
+    "Not registered in production configuration; Claude owns integration",
+    "No real billing, grant/revoke, admin or storefront endpoint",
+    "Native receipt and checkout adapter remain required"
+  ]
+}
