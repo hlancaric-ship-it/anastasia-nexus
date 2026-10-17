@@ -14,10 +14,10 @@ Přihlášení (lokální dev): `admin@anastasia.local` / `Anastasia2026!`.
 Jiné jádro: v konzoli `localStorage.setItem('ana_api','https://…')` a refresh.
 
 ## Stav agend
-**Funkční proti Admin API:** Prehľad, Produkty (výpis + úprava názvu/stavu/ceny), Kategórie, Objednávky, Zákazníčky, Kupóny (promotions).
+**Funkční proti Admin API:** Prehľad, Produkty (výpis + úprava názvu/stavu; cena přes `POST /admin/shop-prices/:variantId` se zámkem a kontrolou `expected_amount`, jen základní EUR cena bez pravidel), Kategórie, Objednávky, Zákazníčky, Kupóny (promotions).
 **Skúša endpoint, inak „čaká na backend“:** Vouchery, Klub/Členstvo, Rezervácie, Chat.
 **UI pripravené, „čaká na backend“:** Médiá, CMS/Stránky, Preklady, Feed/Nákupčí, Účtovníctvo/Faktúry, Nastavenia/Pripojenia.
-**Vzhľad administrácie:** osobní motiv obsluhy (vlastní barvy, uloženo lokálně), default = ANASTASIA zelená.
+**Vzhľad administrácie:** osobní motiv obsluhy přes `GET/POST /admin/my-theme` (uložen k účtu na backendu, s revizí – při souběžné změně 409), default = ANASTASIA zelená.
 
 Seznam agend vychází z `../backend/docs/wp/ADMIN-FUNKCE-A-POKRYTI.md`.
 

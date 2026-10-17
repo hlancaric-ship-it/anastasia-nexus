@@ -194,6 +194,8 @@ async function clearVariantSale(ref) {
     try { await api(`/admin/price-lists/${ref.price_list_id}/prices/batch`, { method: 'POST', body: { delete: [ref.price_id] } }); } catch {}
   }
 }
+// Základná EUR cena bez cenníka a pravidiel (akciový cenník má vlastnú cenu na tom istom variante).
+const basePrice = (v) => (v?.prices || []).find(x => x.currency_code === 'eur' && !x.price_list_id && !(x.rules_count > 0));
 async function vProducts(view) {
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
@@ -205,7 +207,7 @@ async function vProducts(view) {
       { h: '', v: p => p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>' },
       { h: 'Názov', v: p => esc(p.title) },
       { h: 'Stav', v: p => `<span class="pill ${p.status === 'published' ? 'ok' : 'warn'}">${p.status === 'published' ? 'zverejnený' : 'koncept'}</span>` },
-      { h: 'Cena', v: p => { const pr = p.variants?.[0]?.prices?.find(x => x.currency_code === 'eur'); return fmtEur(pr?.amount); } },
+      { h: 'Cena', v: p => { const pr = basePrice(p.variants?.[0]); return fmtEur(pr?.amount); } },
       { h: 'Akcia', v: p => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; } },
     ],
     onRow: p => vProductDetail(view, p.id),
@@ -239,7 +241,7 @@ async function vProductNew(view) {
 async function vProductDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,metadata,*variants.prices,*categories`);
-  const variant = p.variants?.[0]; const price = variant?.prices?.find(x => x.currency_code === 'eur');
+  const variant = p.variants?.[0]; const price = basePrice(variant);
   let cats = []; try { cats = (await api('/admin/product-categories?limit=200&fields=id,name')).product_categories || []; } catch {}
   const inC = new Set((p.categories || []).map(c => c.id));
   const sale = (p.metadata && p.metadata.vyprodej) || {};
@@ -270,7 +272,12 @@ async function vProductDetail(view, id) {
       const chosen = [...view.querySelectorAll('[data-c]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.c }));
       const desc = view.querySelector('#p-desc').innerHTML.trim();
       const np = view.querySelector('#p-price').value;
-      if (variant && np !== '' && Number(np) !== price?.amount) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { prices: [{ amount: Number(np), currency_code: 'eur' }] } });
+      // Základná cena len cez /admin/shop-prices (zámok, kontrola pôvodnej sumy, audit) – nikdy natívne prices[],
+      // ktoré by prepísalo celý price set (iné meny, pravidlá).
+      if (variant && np !== '' && Number(np) !== price?.amount) {
+        if (!price?.id) throw new Error('Variant zatiaľ nemá základnú cenu v EUR. Obnovte údaje alebo kontaktujte podporu.');
+        await api(`/admin/shop-prices/${variant.id}`, { method: 'POST', body: { price_id: price.id, amount: Number(np), expected_amount: Number(price.amount) } });
+      }
       let ref = { price_list_id: sale.price_list_id, price_id: sale.price_id };
       const wantSale = view.querySelector('#p-sale-on').checked, sp = view.querySelector('#p-sale-price').value;
       let saleMeta;
@@ -543,26 +550,50 @@ const ROUTES = {
   'pomoc': ['Pomoc', 'Podpora a vysvetlenia', vPomoc],
 };
 
-function vAppearance(view) {
-  const saved = JSON.parse(localStorage.getItem('ana_admin_theme') || '{}');
+// Osobný vzhľad obsluhy na backende (/admin/my-theme): rovnaký na každom zariadení, s revíziou a auditom.
+const THEME_DEFAULT = { forest: '#203b32', gold: '#d5ba81' };
+let THEME = null;
+function applyTheme(t) {
+  const st = document.documentElement.style;
+  if (t && t.selection && t.selection.scheme === 'custom') { st.setProperty('--forest', t.selection.navigation); st.setProperty('--gold', t.selection.accent); }
+  else { st.removeProperty('--forest'); st.removeProperty('--gold'); }
+}
+async function loadTheme(force) {
+  if (THEME && !force) return THEME;
+  try { THEME = await api('/admin/my-theme'); } catch { THEME = null; }
+  try { localStorage.removeItem('ana_admin_theme'); } catch {}
+  return THEME;
+}
+async function vAppearance(view) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  const t = await loadTheme(true);
+  if (!t) { view.innerHTML = '<div class="err">Vzhľad sa teraz nedá načítať. Skúste to znova.</div>'; return; }
+  const custom = t.selection.scheme === 'custom';
+  const forest = custom ? t.selection.navigation : THEME_DEFAULT.forest, gold = custom ? t.selection.accent : THEME_DEFAULT.gold;
   view.innerHTML = `<div class="card"><div class="card-h">Vzhľad administrácie</div><div class="card-b">
-    <p class="muted">Výchozí je zelený motív ANASTASIA. Tu si obsluha môže zvoliť vlastné farby (uloží sa len jej, v tomto prehliadači).</p>
+    <div id="tmsg"></div>
+    <p class="muted">Východzí je zelený motív ANASTASIA. Vlastné farby sa uložia k vášmu účtu, takže ich uvidíte na každom zariadení.</p>
     <div class="row">
-      <div><label>Hlavná (sidebar)</label><input type="color" id="t-forest" value="${saved.forest || '#203b32'}"></div>
-      <div><label>Akcent (zlatá)</label><input type="color" id="t-gold" value="${saved.gold || '#d5ba81'}"></div>
+      <div><label>Hlavná (bočný panel)</label><input type="color" id="t-forest" value="${esc(forest)}"></div>
+      <div><label>Akcent (zlatá)</label><input type="color" id="t-gold" value="${esc(gold)}"></div>
     </div>
-    <div style="margin-top:16px;display:flex;gap:10px"><button class="btn gold" id="t-save">Uložiť motív</button><button class="btn ghost" id="t-reset">Obnoviť ANASTASIA</button></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn gold" id="t-save">Uložiť motív</button><button class="btn ghost" id="t-reset">Obnoviť ANASTASIA</button></div>
   </div></div>`;
-  const apply = (f, g) => { document.documentElement.style.setProperty('--forest', f); document.documentElement.style.setProperty('--gold', g); };
-  view.querySelector('#t-save').onclick = () => { const f = view.querySelector('#t-forest').value, g = view.querySelector('#t-gold').value; localStorage.setItem('ana_admin_theme', JSON.stringify({ forest: f, gold: g })); apply(f, g); };
-  view.querySelector('#t-reset').onclick = () => { localStorage.removeItem('ana_admin_theme'); document.documentElement.style.removeProperty('--forest'); document.documentElement.style.removeProperty('--gold'); view.querySelector('#t-forest').value = '#203b32'; view.querySelector('#t-gold').value = '#d5ba81'; };
+  const save = async (selection) => {
+    const msg = view.querySelector('#tmsg'); msg.innerHTML = '';
+    view.querySelectorAll('button').forEach(b => b.disabled = true);
+    try { THEME = await api('/admin/my-theme', { method: 'POST', body: { selection, revision: THEME.revision } }); applyTheme(THEME); msg.innerHTML = '<div class="notice">Uložené.</div>'; }
+    catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; await loadTheme(true); }
+    finally { view.querySelectorAll('button').forEach(b => b.disabled = false); }
+  };
+  view.querySelector('#t-save').onclick = () => save({ ...THEME.selection, scheme: 'custom', navigation: view.querySelector('#t-forest').value.toLowerCase(), accent: view.querySelector('#t-gold').value.toLowerCase() });
+  view.querySelector('#t-reset').onclick = async () => { await save({ ...THEME.selection, scheme: 'forest' }); view.querySelector('#t-forest').value = THEME_DEFAULT.forest; view.querySelector('#t-gold').value = THEME_DEFAULT.gold; };
 }
 async function refreshBadges() {
   try { const c = (await api('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1')).count; BADGES.orders = c || 0; } catch { return; }
   const el = document.querySelector('[data-badge="orders"]');
   if (el) { if (BADGES.orders > 0) { el.textContent = BADGES.orders; el.hidden = false; } else el.hidden = true; }
 }
-function applySavedTheme() { try { const t = JSON.parse(localStorage.getItem('ana_admin_theme') || '{}'); if (t.forest) document.documentElement.style.setProperty('--forest', t.forest); if (t.gold) document.documentElement.style.setProperty('--gold', t.gold); } catch {} }
 
 // --- router ---
 async function route() {
@@ -570,7 +601,7 @@ async function route() {
   const key = (location.hash.replace(/^#\/?/, '') || '').split('/')[0];
   const r = ROUTES[key] || ROUTES[''];
   root.innerHTML = shell(key in ROUTES ? key : '', r[0], r[1]);
-  applySavedTheme();
+  loadTheme().then(applyTheme);
   root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); renderLogin(); };
   loadMe().then(setUserChip);
   refreshBadges();
