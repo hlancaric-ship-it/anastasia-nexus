@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_commit": "891297d15d31ff244d155743da37b7e83355e60b",
-  "date": "2026-10-16",
+  "source_commit": "c96a200",
+  "date": "2026-10-17",
   "verification": "SOURCE_REVIEW_ONLY",
   "runtime_claim": "This map verifies source coverage, not implemented UI or live provider acceptance.",
   "baseline_ci_evidence": "docs/evidence/order-email-recovery-20261016.json",
@@ -744,9 +744,16 @@
       "sources": [
         "nexus/workers/api/routes/klubSubscribe.ts",
         "nexus/domains/billing/TenantSubscriptionPlanFlow.ts",
-        "backend/docs/wp/admin-phase1-scope.md"
+        "backend/docs/wp/admin-phase1-scope.md",
+        "backend/src/lib/membership/access.ts",
+        "backend/src/lib/membership/native-receipt.ts",
+        "backend/src/modules/membership/service.ts",
+        "backend/docs/wp/evidence/membership-access-ci.json",
+        "backend/src/lib/membership/checkout.ts",
+        "backend/src/lib/membership/checkout-policy.ts",
+        "backend/docs/wp/membership-checkout.md"
       ],
-      "remaining": "Rozhodnutí Claude/Jose 16.10. přesunulo Klub do fáze1. Samostatný Worker Stripe subscription endpoint je nepřípustný. Dílčí PR#32–#35 jsou oddělené, neznamenají hotový checkout/renewal/grant/admin; zdejší strom jejich integraci ještě neobsahuje.",
+      "remaining": "Ověřeny dílčí policy/persistence/native receipt/grant/refund/recovery. Implementována trvalá smlouva před platbou a native settlement; ověření nové části viz membership-checkout.md. Chybí ověřená uložená platební metoda, veřejný subscribe/renewal workflow a opakované účtování, admin. Celý Klub zůstává PARTIAL.",
       "acceptance": "Do běžného menu nevystavit neakceptovaný prototyp; placené členství pouze po samostatné objednávce a celém testu."
     },
     {
@@ -3857,6 +3864,7 @@
       "backend/src/jobs/gift-voucher-maintenance.ts",
       "backend/src/jobs/gift-voucher-rate-limit-cleanup.ts",
       "backend/src/jobs/legal-rate-cleanup.ts",
+      "backend/src/jobs/membership-access-reconcile.ts",
       "backend/src/jobs/ops-retention.ts"
     ],
     "subscribers": [
@@ -3882,6 +3890,7 @@
       "backend/src/subscribers/gift-voucher-order-placed.ts",
       "backend/src/subscribers/gift-voucher-payment-captured.ts",
       "backend/src/subscribers/legal-order-placed.ts",
+      "backend/src/subscribers/membership-access.ts",
       "backend/src/subscribers/nexus-medusa-events.ts"
     ],
     "workflows": [
@@ -3910,6 +3919,9 @@
       "backend/src/modules/legal/models/legal-withdrawal.ts",
       "backend/src/modules/legal/models/newsletter-consent-event.ts",
       "backend/src/modules/legal/models/newsletter-consent.ts",
+      "backend/src/modules/membership/models/membership-checkout.ts",
+      "backend/src/modules/membership/models/membership-receipt.ts",
+      "backend/src/modules/membership/models/membership.ts",
       "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
       "backend/src/modules/ops-audit/models/ops-event.ts"
     ],
@@ -3923,6 +3935,7 @@
       "backend/src/modules/entitlement/index.ts",
       "backend/src/modules/gift-voucher/index.ts",
       "backend/src/modules/legal/index.ts",
+      "backend/src/modules/membership/index.ts",
       "backend/src/modules/notification-log/index.ts",
       "backend/src/modules/notification-zeptomail/index.ts",
       "backend/src/modules/ops-audit/index.ts"
@@ -4117,11 +4130,13 @@
     "backend/integration-tests/http/safeorder-persistence.spec.ts",
     "backend/integration-tests/http/shipping-settings-http-checks.ts",
     "backend/integration-tests/http/stock-availability-http-checks.ts",
+    "backend/src/admin/lib/__tests__/shop.unit.spec.ts",
     "backend/src/api/__tests__/auth-magic-link-rate.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/links.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
     "backend/src/api/admin/my-theme/__tests__/theme.unit.spec.ts",
     "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/write-audit.unit.spec.ts",
     "backend/src/api/store/gift-vouchers/__tests__/rate-limit.unit.spec.ts",
@@ -4138,6 +4153,12 @@
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
     "backend/src/lib/email/__tests__/send.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/access.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout-policy.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout-recovery.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/native-receipt.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/policy.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-hook.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-order.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/medusa-delivery.unit.spec.ts",
@@ -4290,9 +4311,7 @@
     "nexus/tests/workers/scheduledRecovery.test.ts",
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
-    "nexus/tests/workers/voucherConcurrency.test.ts",
-    "backend/src/admin/lib/__tests__/shop.unit.spec.ts",
-    "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts"
+    "nexus/tests/workers/voucherConcurrency.test.ts"
   ],
   "candidate_branch": "codex/admin-theming"
 }
