@@ -1,0 +1,39 @@
+{
+  "status": "VERIFIED",
+  "scope": "Klub ANASTASIA: actual native checkout -> NEXUS cart/offer -> SafeOrder -> manual-capture membership payment -> settle -> access; renewal (off-session), 3DS needs_action and resume on the same PaymentIntent, NOT_DUE replay, stop, refunds. Synthetic data, CI only; not production.",
+  "source_head": "f52787ebc12baadee691ae996bda30ed387b244f",
+  "branch": "claude/klub-integration",
+  "integration_branch": "codex/membership-integration",
+  "pull_request": 42,
+  "integration_pull_request": 41,
+  "commits": {
+    "235b896": "Worker allows the Klub card provider as online payment (SafeOrder allowlist)",
+    "06224fa": "membership line item really does not require shipping (updateLineItems)",
+    "f52787e": "E2E third cycle uses its own period end (renewal keys are idempotent per period; guard unchanged)"
+  },
+  "ci_runs": {
+    "membership_complete_integration": { "run": 39063014117, "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39063014117", "conclusion": "success", "focused_unit": 254, "e2e_http_worker": 1 },
+    "membership_persistence": { "run": 39063014233, "conclusion": "success", "unit": 118, "postgresql": 4 },
+    "backend_nexus_regression": { "run": 39063014189, "conclusion": "success", "backend_unit": 993, "nexus": 1235, "workerd_d1": 142, "http_postgresql": 1 },
+    "admin_c5_workspace": { "run": 39063014137, "conclusion": "success" }
+  },
+  "e2e_assertions": {
+    "stripe_fixture": { "intents": 3, "captures": 3, "refunds": 2 },
+    "native_orders": 3,
+    "renewal_3ds": "NEEDS_ACTION then resumed on the same PaymentIntent, no second charge",
+    "not_due_replay": "no new attempt, no new charge"
+  },
+  "trees": {
+    "root": "f1ed91ab203d11ab912f52ede7f31a364f350f68",
+    "backend": "948f889002d8152840e9499fbd71e06ebee45973",
+    "nexus": "0b1f755187b750faa47efeae17fddc6e75bf2c58"
+  },
+  "failures": 0,
+  "deployment": false,
+  "merged": false,
+  "limits": [
+    "Stripe is a synthetic loopback fixture in CI; live Stripe test-mode webhooks and production keys are not part of this evidence.",
+    "Merge to master is Jose's decision; nothing deployed.",
+    "Admin SPA agenda Klub lives on feat/anastasia-admin (PR #40) and is verified there separately."
+  ]
+}
