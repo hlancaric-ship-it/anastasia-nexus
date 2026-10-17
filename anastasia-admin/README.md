@@ -14,10 +14,19 @@ Přihlášení (lokální dev): `admin@anastasia.local` / `Anastasia2026!`.
 Jiné jádro: v konzoli `localStorage.setItem('ana_api','https://…')` a refresh.
 
 ## Stav agend
-**Funkční proti Admin API:** Prehľad, Produkty (výpis + úprava názvu/stavu; cena přes `POST /admin/shop-prices/:variantId` se zámkem a kontrolou `expected_amount`, jen základní EUR cena bez pravidel), Kategórie, Objednávky, Zákazníčky, Kupóny (promotions).
-**Skúša endpoint, inak „čaká na backend“:** Vouchery, Klub/Členstvo, Rezervácie, Chat.
-**UI pripravené, „čaká na backend“:** Médiá, CMS/Stránky, Preklady, Feed/Nákupčí, Účtovníctvo/Faktúry, Nastavenia/Pripojenia.
-**Vzhľad administrácie:** osobní motiv obsluhy přes `GET/POST /admin/my-theme` (uložen k účtu na backendu, s revizí – při souběžné změně 409), default = ANASTASIA zelená.
+**Funkční proti Admin API (vše přes existující routy jádra, citlivé výpočty jen na backendu):**
+- **Prehľad** – čísla + karta *Pripravenosť obchodu* z `GET /admin/readiness` (blokery, doporučení, „nedá sa overiť“ – nikdy falešné OK).
+- **Produkty** – výpis, nový produkt (jediný predajný kanál automaticky), úprava: cena přes `POST /admin/shop-prices/:variantId` s `expected_amount`, akcia, obrázky (`/admin/uploads`, hlavný obrázok), kategórie, predajné kanály, sklad (inventory items + počty po skladoch), kontrola úplnosti – bez ceny a kanála sa produkt nedá zverejniť. Kategórie.
+- **Objednávky** – detail v záložkách; pripraviť na odoslanie, odoslať s číslom zásielky, prijať platbu, vrátiť peniaze (aj čiastočne), zrušiť. Každá akcia s potvrdením.
+- **Zákazníčky** + prístupy ku knižnici.
+- **Konzultácie** – stavy, detail, zrušenie termínu (`/admin/bookings*`).
+- **Správy** – konverzácie, odpoveď, uzavrieť/otvoriť, stlmiť, blokovať chat (`/admin/chat/*`).
+- **Klub** – členky, nákupy členstva, produkty Klubu, obnovy platieb (`/admin/memberships*`, zatiaľ len v integračnej vetve Klubu).
+- **Poukazy a zľavy** – kupóny (promotions); darčekové poukazy s históriou, zneplatnením a vrátením na poukaz (`/admin/vouchers*`).
+- **Obsah a e-maily** – šablóny s náhľadom, newsletter.
+- **Nastavenia** – vzhľad (`/admin/my-theme` s revíziou, 409 pri súbežnej zmene), doprava/platby/sklady (len na čítanie, bez kľúčov), používatelia a pozvánky (`/admin/invites`; prijatie na `#/pozvanka/<token>`).
+
+**UI pripravené, „pripravujeme“:** Médiá, Stránky a texty (CMS), Preklady, Účtovníctvo. RBAC (roly) je v jadre vypnutý – každý správca má plný prístup.
 
 Seznam agend vychází z `../backend/docs/wp/ADMIN-FUNKCE-A-POKRYTI.md`.
 
