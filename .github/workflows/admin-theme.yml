@@ -1,0 +1,82 @@
+name: Admin appearance
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'backend/src/lib/admin-theme/**'
+      - 'backend/src/api/admin/my-theme/**'
+      - 'backend/src/admin/components/AdminTheme.tsx'
+      - 'backend/src/admin/components/admin-theme.css'
+      - 'backend/src/admin/routes/vzhlad-administracie/**'
+      - 'backend/scripts/admin-theme/**'
+      - 'backend/scripts/check-admin-theme-browser.mjs'
+      - 'backend/integration-tests/http/admin-theme.spec.ts'
+      - '.github/workflows/admin-theme.yml'
+permissions:
+  contents: read
+jobs:
+  appearance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.6-bookworm
+        env:
+          POSTGRES_USER: theme_synthetic
+          POSTGRES_PASSWORD: theme_synthetic_only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U theme_synthetic -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - name: Install locked dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
+      - name: Check types and focused policy/API tests
+        id: checks
+        working-directory: backend
+        env:
+          TEST_TYPE: unit
+          MEDUSA_TELEMETRY_DISABLED: 'true'
+          NODE_OPTIONS: --experimental-vm-modules
+        run: |
+          ./node_modules/.bin/tsc --noEmit
+          ./node_modules/.bin/tsc --noEmit -p src/admin/tsconfig.json
+          ./node_modules/.bin/jest --runTestsByPath src/lib/admin-theme/__tests__/policy.unit.spec.ts src/api/admin/my-theme/__tests__/theme.unit.spec.ts --runInBand --forceExit
+      - name: Verify real-browser appearance and save behavior
+        run: |
+          mkdir -p ci-evidence/admin-theme
+          ADMIN_THEME_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-evidence/admin-theme" node backend/scripts/check-admin-theme-browser.mjs
+      - name: Verify actual Medusa HTTP and PostgreSQL persistence
+        if: ${{ !cancelled() && steps.checks.outcome == 'success' }}
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          MEDUSA_TELEMETRY_DISABLED: 'true'
+          NODE_OPTIONS: --experimental-vm-modules --dns-result-order=ipv4first
+          TEST_TYPE: integration:http
+          DB_HOST: localhost
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+          DB_USERNAME: theme_synthetic
+          DB_PASSWORD: theme_synthetic_only
+          DB_TEMP_NAME: anastasia_theme_ci
+          DATABASE_URL: postgres://theme_synthetic:theme_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_theme_ci
+          JWT_SECRET: synthetic-admin-theme-jwt-only
+          COOKIE_SECRET: synthetic-admin-theme-cookie-only
+        run: ./node_modules/.bin/jest --runTestsByPath integration-tests/http/admin-theme.spec.ts --runInBand --forceExit
+      - name: Retain appearance screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: admin-appearance-${{ github.sha }}
+          path: ci-evidence/admin-theme/
+          if-no-files-found: warn
+          retention-days: 7

@@ -16,13 +16,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Klikací informační karty vedou přesně na zobrazené objednávky, zprávy nebo termíny.",
       "sources": [
         "backend/src/api/admin/ops/nexus/route.ts",
-        "backend/src/api/admin/chat/conversations/route.ts"
+        "backend/src/api/admin/chat/conversations/route.ts",
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "Agregace skutečných počtů a konkrétních cílů; nenahrazovat chybu nulou.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Agregace skutečných počtů a konkrétních cílů; nenahrazovat chybu nulou.",
       "acceptance": "Klik na kartu otevře správný filtrovaný seznam; změna dat aktualizuje počet."
     },
     {
@@ -31,12 +33,14 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Vytvoření, úprava, archivace, varianty, značky, obrázky, fyzické a digitální zboží.",
       "sources": [
-        "backend/src/scripts/import-anastasia-catalog.ts"
+        "backend/src/scripts/import-anastasia-catalog.ts",
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "Nové formuláře nad Medusou; zachovat prodejní kanál, profil dopravy, varianty a digitální pravidla.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nové formuláře nad Medusou; zachovat prodejní kanál, profil dopravy, varianty a digitální pravidla.",
       "acceptance": "Uložený produkt se znovu načte z API; běžné zboží nemá povinnou rezervaci."
     },
     {
@@ -45,13 +49,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Bezpečné zadání cen a zobrazení konečné ceny ze serveru.",
       "sources": [
         "backend/src/api/store/nexus-cart/route.ts",
-        "backend/src/workflows/hooks.ts"
+        "backend/src/workflows/hooks.ts",
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "Editor základní ceny nesmí smazat ostatní měny/pravidla; publikovaná cena musí projít NEXUSem.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Editor základní ceny nesmí smazat ostatní měny/pravidla; publikovaná cena musí projít NEXUSem.",
       "acceptance": "Server odmítne neplatnou částku/měnu; změna ceny vyžádá novou platební relaci; zachová se ostatní ceník."
     },
     {
@@ -60,12 +66,14 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Přidat, upravit a řadit kategorie; správa značek a vazeb produktů.",
       "sources": [
-        "backend/src/scripts/import-anastasia-catalog.ts"
+        "backend/src/scripts/import-anastasia-catalog.ts",
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "Nový strom kategorií; značka nemá automaticky samostatný ANASTASIA model jen tím, že existuje product-type/tag.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nový strom kategorií; značka nemá automaticky samostatný ANASTASIA model jen tím, že existuje product-type/tag.",
       "acceptance": "Vnořená kategorie se uloží, má správné produkty a nemůže obsahovat sama sebe."
     },
     {
@@ -74,13 +82,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Správa kupónu, platnosti, použití a kombinací s další slevou.",
       "sources": [
         "backend/src/api/store/nexus-cart/route.ts",
-        "backend/src/api/admin/coupon-links/validation.ts"
+        "backend/src/api/admin/coupon-links/validation.ts",
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "Nativní promotion není automaticky podporovaný kupón NEXUSu; sjednotit capability/preflight a ukázat omezení.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nativní promotion není automaticky podporovaný kupón NEXUSu; sjednotit capability/preflight a ukázat omezení.",
       "acceptance": "Podporovaný kupón změní serverovou cenu; nepodporovaná podmínka se odmítne před zveřejněním, nikdy se neignoruje."
     },
     {
@@ -89,13 +99,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Seznam, detail, historie, kontakt, položky, platba, doprava, vazby a vyřízení.",
       "sources": [
         "backend/src/api/store/nexus-checkout/route.ts",
-        "backend/src/workflows/hooks.ts"
+        "backend/src/workflows/hooks.ts",
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "Nové seznamy/detail; skutečné návaznosti na platbu, rezervaci, přístup, zásilku a poukaz.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Nové seznamy/detail; skutečné návaznosti na platbu, rezervaci, přístup, zásilku a poukaz.",
       "acceptance": "Uživatelka najde objednávku, upraví dovolený kontakt a načte serverový stav; žádný ruční přepínač zaplaceno."
     },
     {
@@ -104,13 +116,15 @@
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Profil, historie, adresy, skupiny, přístupy, rezervace a poznámky.",
       "sources": [
         "backend/src/api/admin/customers/[id]/notes/route.ts",
-        "backend/src/api/admin/entitlements/route.ts"
+        "backend/src/api/admin/entitlements/route.ts",
+        "backend/docs/wp/admin-c5.md",
+        "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
-      "remaining": "Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API.",
+      "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API.",
       "acceptance": "Správná zákaznice má pouze vlastní vazby; poznámky se neobjeví v provozním logu."
     },
     {
@@ -149,7 +163,7 @@
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Zákaznice po přihlášení uvidí ceny pro svou úroveň; obsluha nastaví názvy, slevy a členství.",
+      "request": "Samostatné ceníky pro jednotlivé cenové úrovně; po přihlášení vlastní cena; nastavitelné zobrazení původní a nové ceny i % úspory, všechny částky/procenta vrací server.",
       "sources": [
         "backend/src/api/store/nexus-cart/customer-tier.ts",
         "nexus/workers/api/routes/nexusPricing.ts"
@@ -331,12 +345,12 @@
       "backend_layer": "missing",
       "backend_status": "NOT_IMPLEMENTED",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Upravit všechny stránky, texty, menu, patičku, kontakty, SEO a náhled před publikací.",
+      "request": "Sama přidat/upravit kategorie, stránky a sekce všech webů; vizuálně měnit texty, obrázky, pořadí a rozložení, menu/SEO, koncept/náhled/verze/publikace, bez programátora nebo editace kódu.",
       "sources": [
         "backend/docs/wp/INVENTAR-A-AKCEPTACE.md"
       ],
       "remaining": "Není vlastní CMS API/model s koncepty, verzemi, publikací a vazbami domén; produktová metadata nejsou CMS.",
-      "acceptance": "Uložení konceptu nemění živý web; publikace mění správnou stránku; odkaz menu má existující cíl."
+      "acceptance": "Klientka bez programátora a bez kódu založí kategorii, stránku a sekci, vizuálně změní text, obrázek, barvy, pořadí a rozložení, zobrazí náhled a publikuje na zvoleném webu. Koncept nemění živý web; publikace nemění jiné weby; menu vede na existující cíl; lze obnovit předchozí verzi. Ověřit celou cestu skutečným uložením a opětovným načtením, ne pouze klikacím náhledem."
     },
     {
       "id": "multi-site",
@@ -384,14 +398,17 @@
       "id": "admin-preferences",
       "label_sk": "Môj vzhľad administrácie",
       "delivery_lane": "NEXT",
-      "backend_layer": "missing",
-      "backend_status": "NOT_IMPLEMENTED",
-      "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Barva adminu a osobní nastavení; kompaktní karty/záložky, minimum scrollování.",
+      "backend_layer": "custom",
+      "backend_status": "VERIFIED",
+      "new_admin_status": "VERIFIED",
+      "request": "Osobní motiv adminu včetně původní fialkové/modré ze starého webu, lesního/vínového/nočního a vlastních barev, serverové uložení podle uživatelky a kompaktní rozložení.",
       "sources": [
-        "backend/docs/wp/ADMIN-UX-SAMOOBSLUHA.md"
+        "backend/src/api/admin/my-theme/route.ts",
+        "backend/src/lib/admin-theme/policy.ts",
+        "backend/src/admin/routes/vzhlad-administracie/Appearance.tsx",
+        "backend/docs/wp/evidence/admin-theming-ci.json"
       ],
-      "remaining": "Definovat uživatelské preference a napojit je na nový shell; native layouts/views nejsou důkaz hotového tématu.",
+      "remaining": "Osobní motiv ověřený v cílené i plné CI; zapojení sdíleného základu do dalších vlastních agend proběhne s jejich implementací. Nativní referenční Medusa obrazovky se nepřebarvují.",
       "acceptance": "Nastavení přežije přihlášení; kontrast i fokus čitelné; při 200% zoomu a malé obrazovce lze scrollovat k obsahu."
     },
     {
@@ -771,6 +788,16 @@
       "sha256": "e5663fb316ed24a28eafca0d2ea305a8507ffc396a5045709bb88dcea30568da"
     },
     {
+      "path": "/admin/booking/types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/booking/types/route.ts",
+      "sha256": "7bc84d555f10b19a980cf6d496b750aaad67973ff50f80dac3381dd9fcc18498"
+    },
+    {
       "path": "/admin/booking/types/:id",
       "methods": [
         "GET",
@@ -781,14 +808,13 @@
       "sha256": "1b60d5250337989bf14472e5eb2f279e6a7cc0f18194fa790c6a9b943030593c"
     },
     {
-      "path": "/admin/booking/types",
+      "path": "/admin/bookings",
       "methods": [
-        "GET",
-        "POST"
+        "GET"
       ],
       "feature": "booking",
-      "source": "backend/src/api/admin/booking/types/route.ts",
-      "sha256": "7bc84d555f10b19a980cf6d496b750aaad67973ff50f80dac3381dd9fcc18498"
+      "source": "backend/src/api/admin/bookings/route.ts",
+      "sha256": "96ac7c0216582df6b508741dc8d3c77f886fb49572aa0e17308c461656e34bd9"
     },
     {
       "path": "/admin/bookings/:id/cancel",
@@ -800,13 +826,23 @@
       "sha256": "b735953b7648a59ebcfd53765931d2ac0b54885628b3886768380d99767d3e97"
     },
     {
-      "path": "/admin/bookings",
+      "path": "/admin/chat/conversations",
       "methods": [
         "GET"
       ],
-      "feature": "booking",
-      "source": "backend/src/api/admin/bookings/route.ts",
-      "sha256": "96ac7c0216582df6b508741dc8d3c77f886fb49572aa0e17308c461656e34bd9"
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/route.ts",
+      "sha256": "7fa3cf85cceaf0b560b4bdd66de8e64cd5202720dbd446d5b06d77068f067447"
+    },
+    {
+      "path": "/admin/chat/conversations/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
+      "sha256": "f4f2e8cf5e3d9e89e18de467180d5e997e397eadda043807d2f2059ab57f7663"
     },
     {
       "path": "/admin/chat/conversations/:id/messages",
@@ -825,25 +861,6 @@
       "feature": "chat",
       "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
       "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
-    },
-    {
-      "path": "/admin/chat/conversations/:id",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
-      "sha256": "f4f2e8cf5e3d9e89e18de467180d5e997e397eadda043807d2f2059ab57f7663"
-    },
-    {
-      "path": "/admin/chat/conversations",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/route.ts",
-      "sha256": "7fa3cf85cceaf0b560b4bdd66de8e64cd5202720dbd446d5b06d77068f067447"
     },
     {
       "path": "/admin/chat/customers/:id/block",
@@ -873,15 +890,6 @@
       "sha256": "b91decad25963549edaf66214e2427bd67feab9fb0f45c98bdb494960851ad9b"
     },
     {
-      "path": "/admin/customer-erasures/:id/execute",
-      "methods": [
-        "POST"
-      ],
-      "feature": "privacy",
-      "source": "backend/src/api/admin/customer-erasures/[id]/execute/route.ts",
-      "sha256": "de2e8829c1428db1f7bd6e6d2f13cc96bc5e1ed10e6a2190fb6bba0d7a6f4188"
-    },
-    {
       "path": "/admin/customer-erasures",
       "methods": [
         "GET"
@@ -891,14 +899,13 @@
       "sha256": "8a74ed4d35ee9126b4aaf8ae206ae0fcbadd114a2a48cd322975cdb0fdbe27a4"
     },
     {
-      "path": "/admin/customers/:id/notes/:note_id",
+      "path": "/admin/customer-erasures/:id/execute",
       "methods": [
-        "DELETE",
         "POST"
       ],
-      "feature": "customers",
-      "source": "backend/src/api/admin/customers/[id]/notes/[note_id]/route.ts",
-      "sha256": "5d6c63f2673b88b8a8bfef2ad523e73e40c2cb5f346aeaea2c13c384235f97c2"
+      "feature": "privacy",
+      "source": "backend/src/api/admin/customer-erasures/[id]/execute/route.ts",
+      "sha256": "de2e8829c1428db1f7bd6e6d2f13cc96bc5e1ed10e6a2190fb6bba0d7a6f4188"
     },
     {
       "path": "/admin/customers/:id/notes",
@@ -911,13 +918,23 @@
       "sha256": "b6f2c8e1ebe79cd4eb29a3c47b5150cbebbdae9514b53dc8ee047563cefd33eb"
     },
     {
-      "path": "/admin/email-templates/:template/preview",
+      "path": "/admin/customers/:id/notes/:note_id",
       "methods": [
+        "DELETE",
         "POST"
       ],
+      "feature": "customers",
+      "source": "backend/src/api/admin/customers/[id]/notes/[note_id]/route.ts",
+      "sha256": "5d6c63f2673b88b8a8bfef2ad523e73e40c2cb5f346aeaea2c13c384235f97c2"
+    },
+    {
+      "path": "/admin/email-templates",
+      "methods": [
+        "GET"
+      ],
       "feature": "email-text",
-      "source": "backend/src/api/admin/email-templates/[template]/preview/route.ts",
-      "sha256": "ae0d04d06cc9c9afe23ac01363a446d53301e4b20807b4b8cfd8a7165f1a7221"
+      "source": "backend/src/api/admin/email-templates/route.ts",
+      "sha256": "493f45446826c476982b80f1b20855407d82e01f967f462f9992ff41e7765bd8"
     },
     {
       "path": "/admin/email-templates/:template",
@@ -931,13 +948,23 @@
       "sha256": "daa0497657e63dfcb51c46855e56cc69c2b0959b8b3c1b030486566754d7df26"
     },
     {
-      "path": "/admin/email-templates",
+      "path": "/admin/email-templates/:template/preview",
       "methods": [
-        "GET"
+        "POST"
       ],
       "feature": "email-text",
-      "source": "backend/src/api/admin/email-templates/route.ts",
-      "sha256": "493f45446826c476982b80f1b20855407d82e01f967f462f9992ff41e7765bd8"
+      "source": "backend/src/api/admin/email-templates/[template]/preview/route.ts",
+      "sha256": "ae0d04d06cc9c9afe23ac01363a446d53301e4b20807b4b8cfd8a7165f1a7221"
+    },
+    {
+      "path": "/admin/entitlements",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/admin/entitlements/route.ts",
+      "sha256": "c072cdaff41b14051e2bb66955735f810fe71768d71c2c1d24962e8f7e3fbe47"
     },
     {
       "path": "/admin/entitlements/:id/revoke",
@@ -949,14 +976,14 @@
       "sha256": "58a6b4825a5240aa1bfbd2280c0554418511faf018a9e4434ee1249b7a72be66"
     },
     {
-      "path": "/admin/entitlements",
+      "path": "/admin/my-theme",
       "methods": [
         "GET",
         "POST"
       ],
-      "feature": "access",
-      "source": "backend/src/api/admin/entitlements/route.ts",
-      "sha256": "c072cdaff41b14051e2bb66955735f810fe71768d71c2c1d24962e8f7e3fbe47"
+      "feature": "admin-preferences",
+      "source": "backend/src/api/admin/my-theme/route.ts",
+      "sha256": "0c8829458f47556691e73d3c5a3d724a4586b48bc7b98442a8cabfd6e8174166"
     },
     {
       "path": "/admin/newsletter",
@@ -995,6 +1022,24 @@
       "sha256": "7d8a70e17020f193373cefa12ed54ec6b61a7f217e00b8a9b67e8adb6cf98792"
     },
     {
+      "path": "/admin/shop-prices/:id",
+      "methods": [
+        "POST"
+      ],
+      "feature": "prices",
+      "source": "backend/src/api/admin/shop-prices/[id]/route.ts",
+      "sha256": "445463417620c933ee7f5d1afe336552d0930ff2a61a48306852ee2b5919202a"
+    },
+    {
+      "path": "/admin/vouchers",
+      "methods": [
+        "GET"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/admin/vouchers/route.ts",
+      "sha256": "467fb5d21219efc77ad2629da0cdc4f279316aa99568383534f6305146b0632e"
+    },
+    {
       "path": "/admin/vouchers/:id/transactions",
       "methods": [
         "GET"
@@ -1022,15 +1067,6 @@
       "sha256": "2f269b0a000f35a8988f614bd52c33543d87b73fb27981cd1e7f0c6f24987bf6"
     },
     {
-      "path": "/admin/vouchers",
-      "methods": [
-        "GET"
-      ],
-      "feature": "vouchers",
-      "source": "backend/src/api/admin/vouchers/route.ts",
-      "sha256": "467fb5d21219efc77ad2629da0cdc4f279316aa99568383534f6305146b0632e"
-    },
-    {
       "path": "/admin/vouchers/settings",
       "methods": [
         "GET",
@@ -1041,15 +1077,6 @@
       "sha256": "575a06bffff03eb4475b3cd2a667d63d22c7dd8efe30f6fa442d34e362732662"
     },
     {
-      "path": "/admin/withdrawals/:id",
-      "methods": [
-        "POST"
-      ],
-      "feature": "returns",
-      "source": "backend/src/api/admin/withdrawals/[id]/route.ts",
-      "sha256": "fde8fe7b6b802fa6bf84397c047f692cabf3b1816f6a2821f4d5366af9be8f16"
-    },
-    {
       "path": "/admin/withdrawals",
       "methods": [
         "GET"
@@ -1057,6 +1084,15 @@
       "feature": "returns",
       "source": "backend/src/api/admin/withdrawals/route.ts",
       "sha256": "bf1e9b20789d39091f68e2f1690fa676a94f3385306050a9ad6c237bc367ebfa"
+    },
+    {
+      "path": "/admin/withdrawals/:id",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/admin/withdrawals/[id]/route.ts",
+      "sha256": "fde8fe7b6b802fa6bf84397c047f692cabf3b1816f6a2821f4d5366af9be8f16"
     },
     {
       "path": "/hooks/nexus/booking-order",
@@ -1086,6 +1122,16 @@
       "sha256": "13d3bda2070ad75b057543cd3e86a85b1a126e3237cd546857ec9cd2b003c2e3"
     },
     {
+      "path": "/store/bookings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/bookings/route.ts",
+      "sha256": "44788ee742c9010d2b7b800ae8eef0cd94e175bd7281894e5ec0da073a59c014"
+    },
+    {
       "path": "/store/bookings/:id/cancel",
       "methods": [
         "POST"
@@ -1104,16 +1150,6 @@
       "sha256": "b214e4e9278a3f3c7ca9185eefb2652f832f0a819b0a478132af2bad768a4ff3"
     },
     {
-      "path": "/store/bookings",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "booking",
-      "source": "backend/src/api/store/bookings/route.ts",
-      "sha256": "44788ee742c9010d2b7b800ae8eef0cd94e175bd7281894e5ec0da073a59c014"
-    },
-    {
       "path": "/store/carts/:id/consents",
       "methods": [
         "POST"
@@ -1121,6 +1157,25 @@
       "feature": "privacy",
       "source": "backend/src/api/store/carts/[id]/consents/route.ts",
       "sha256": "e536a23436c98486ac5dc2bb35f5d650ff88ef39e86577120ec0fa6d5fffcc06"
+    },
+    {
+      "path": "/store/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/route.ts",
+      "sha256": "f188bf32480acab346ac804213e2fc9fcc91638dfc1042e96123427d942ce30e"
+    },
+    {
+      "path": "/store/chat/conversations/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
+      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
     },
     {
       "path": "/store/chat/conversations/:id/messages",
@@ -1139,25 +1194,6 @@
       "feature": "chat",
       "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
       "sha256": "955cb381122a69de33c940010fb5f9c551bcb175366a7bbdd0cfac76da63b904"
-    },
-    {
-      "path": "/store/chat/conversations/:id",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
-      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
-    },
-    {
-      "path": "/store/chat/conversations",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/route.ts",
-      "sha256": "f188bf32480acab346ac804213e2fc9fcc91638dfc1042e96123427d942ce30e"
     },
     {
       "path": "/store/chat/status",
@@ -4057,9 +4093,31 @@
     ]
   },
   "test_sources": [
+    "backend/integration-tests/http/admin-theme.spec.ts",
+    "backend/integration-tests/http/auth-security-http-checks.ts",
+    "backend/integration-tests/http/booking-http-checks.ts",
+    "backend/integration-tests/http/booking-inbox-http-checks.ts",
+    "backend/integration-tests/http/cart-ownership-http-checks.ts",
+    "backend/integration-tests/http/chat-http-checks.ts",
+    "backend/integration-tests/http/coupon-security-http-checks.ts",
+    "backend/integration-tests/http/customer-gdpr-http-checks.ts",
+    "backend/integration-tests/http/digital-checkout-checks.ts",
+    "backend/integration-tests/http/entitlement-isolation-http-checks.ts",
+    "backend/integration-tests/http/gift-voucher-http-checks.ts",
+    "backend/integration-tests/http/legal-consents-http-checks.ts",
+    "backend/integration-tests/http/medusa-delivery-http-checks.ts",
+    "backend/integration-tests/http/notification-receipts-http-checks.ts",
+    "backend/integration-tests/http/operations-status-http-checks.ts",
+    "backend/integration-tests/http/ops-observability-checks.ts",
+    "backend/integration-tests/http/order-email-recovery-http-checks.ts",
+    "backend/integration-tests/http/order-self-cancel-http-checks.ts",
+    "backend/integration-tests/http/safeorder-persistence.spec.ts",
+    "backend/integration-tests/http/shipping-settings-http-checks.ts",
+    "backend/integration-tests/http/stock-availability-http-checks.ts",
     "backend/src/api/__tests__/auth-magic-link-rate.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/links.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
+    "backend/src/api/admin/my-theme/__tests__/theme.unit.spec.ts",
     "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/write-audit.unit.spec.ts",
@@ -4072,6 +4130,7 @@
     "backend/src/api/store/nexus-checkout/__tests__/route-errors.unit.spec.ts",
     "backend/src/api/store/nexus-checkout/__tests__/safeorder.unit.spec.ts",
     "backend/src/lib/__tests__/admin-function-map.unit.spec.ts",
+    "backend/src/lib/admin-theme/__tests__/policy.unit.spec.ts",
     "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
@@ -4123,26 +4182,6 @@
     "backend/src/workflows/__tests__/booking-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/gift-voucher-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/safeorder-completion.unit.spec.ts",
-    "backend/integration-tests/http/auth-security-http-checks.ts",
-    "backend/integration-tests/http/booking-http-checks.ts",
-    "backend/integration-tests/http/booking-inbox-http-checks.ts",
-    "backend/integration-tests/http/cart-ownership-http-checks.ts",
-    "backend/integration-tests/http/chat-http-checks.ts",
-    "backend/integration-tests/http/coupon-security-http-checks.ts",
-    "backend/integration-tests/http/customer-gdpr-http-checks.ts",
-    "backend/integration-tests/http/digital-checkout-checks.ts",
-    "backend/integration-tests/http/entitlement-isolation-http-checks.ts",
-    "backend/integration-tests/http/gift-voucher-http-checks.ts",
-    "backend/integration-tests/http/legal-consents-http-checks.ts",
-    "backend/integration-tests/http/medusa-delivery-http-checks.ts",
-    "backend/integration-tests/http/notification-receipts-http-checks.ts",
-    "backend/integration-tests/http/operations-status-http-checks.ts",
-    "backend/integration-tests/http/ops-observability-checks.ts",
-    "backend/integration-tests/http/order-email-recovery-http-checks.ts",
-    "backend/integration-tests/http/order-self-cancel-http-checks.ts",
-    "backend/integration-tests/http/safeorder-persistence.spec.ts",
-    "backend/integration-tests/http/shipping-settings-http-checks.ts",
-    "backend/integration-tests/http/stock-availability-http-checks.ts",
     "nexus/tests/integration/ExecutionPipeline.test.ts",
     "nexus/tests/integration/MedusaNexusE2E.test.ts",
     "nexus/tests/integration/PricingEndToEnd.test.ts",
@@ -4248,6 +4287,9 @@
     "nexus/tests/workers/scheduledRecovery.test.ts",
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
-    "nexus/tests/workers/voucherConcurrency.test.ts"
-  ]
+    "nexus/tests/workers/voucherConcurrency.test.ts",
+    "backend/src/admin/lib/__tests__/shop.unit.spec.ts",
+    "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts"
+  ],
+  "candidate_branch": "codex/admin-theming"
 }
