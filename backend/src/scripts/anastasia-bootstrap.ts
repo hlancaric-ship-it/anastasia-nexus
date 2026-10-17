@@ -44,6 +44,8 @@ export const DIGITAL_FULFILLMENT_SET_NAME = "Digitálne produkty"
 export const DIGITAL_PROFILE_NAME = "Digitálne produkty"
 export const STRIPE_PROVIDER_ID = "pp_stripe_stripe"
 export const SYSTEM_PROVIDER_ID = "pp_system_default"
+/** Klub ANASTASIA: samostatný Stripe provider pro členství (první platba i obnova). */
+export const MEMBERSHIP_PROVIDER_ID = "pp_membership_stripe_membership"
 export const TAX_PROVIDER_ID = "tp_system"
 
 /**
@@ -108,7 +110,7 @@ export function parseCountries(raw: string | undefined): string[] {
 
 export function pickPaymentProviders(availableIds: string[], isProduction: boolean): string[] {
   if (availableIds.includes(STRIPE_PROVIDER_ID)) {
-    return [STRIPE_PROVIDER_ID]
+    return availableIds.includes(MEMBERSHIP_PROVIDER_ID) ? [STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID] : [STRIPE_PROVIDER_ID]
   }
   if (isProduction) {
     throw new Error(`Payment provider ${STRIPE_PROVIDER_ID} is not registered; set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET`)

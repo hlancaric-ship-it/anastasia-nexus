@@ -144,6 +144,8 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/legal" },
   { resolve: "./src/modules/customer-privacy" },
   { resolve: "./src/modules/auth-security" },
+  // Klub ANASTASIA: členství, smlouvy, obnovy a přístup (vlastní Codex, viz docs/wp/membership-checkout.md)
+  { resolve: "./src/modules/membership" },
 ]
 
 if (stripeApiKey) {
@@ -165,6 +167,13 @@ if (stripeApiKey) {
             automaticPaymentMethods: true,
             ...(env("STRIPE_PAYMENT_METHOD_CONFIGURATION") ? { paymentMethodConfiguration: env("STRIPE_PAYMENT_METHOD_CONFIGURATION") } : {}),
           },
+        },
+        {
+          // Klub: první platba i obnova (pp_membership_stripe_membership). initiate nepotvrzuje,
+          // off-session potvrzení až v authorize po validaci jádra a SafeOrder. Běžný provider výše zůstává.
+          resolve: "./src/modules/membership-stripe",
+          id: "membership",
+          options: { apiKey: stripeApiKey, webhookSecret: stripeWebhookSecret, capture: true },
         },
       ],
     },
