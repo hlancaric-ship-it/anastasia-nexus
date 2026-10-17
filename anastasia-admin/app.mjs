@@ -500,12 +500,41 @@ function vPomoc(view) {
   </div></div>`;
 }
 
+async function vEntitlements(view) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  const { entitlements } = await api('/admin/entitlements?limit=200');
+  listView(view, {
+    title: 'Prístupy a knižnica', rows: (entitlements || []), onRow: e => vEntitlementDetail(view, e),
+    empty: 'Zatiaľ žiadne priradené prístupy. Pridelia sa automaticky po nákupe (jedna identita – všetky nákupy).',
+    card: e => `<div class="rc-body"><div class="rc-title">${esc(e.product_title || e.product_id || 'Prístup')}</div><div class="rc-fields">
+      <span class="rc-f"><em>Zákazníčka</em>${esc(e.customer_email || e.customer_id || '—')}</span>
+      <span class="rc-f"><em>Stav</em><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status || '—')}</span></span>
+      ${e.expires_at ? `<span class="rc-f"><em>Platí do</em>${fmtDate(e.expires_at)}</span>` : ''}</div></div>`,
+  });
+}
+async function vEntitlementDetail(view, e) {
+  view.innerHTML = `<div class="card"><div class="card-h">Prístup<button class="btn ghost" id="e-back">Späť</button></div><div class="card-b">
+    <div id="emsg"></div>
+    <div class="row"><div><label>Produkt</label><div>${esc(e.product_title || e.product_id || '—')}</div></div>
+    <div><label>Zákazníčka</label><div>${esc(e.customer_email || e.customer_id || '—')}</div></div></div>
+    <div class="row"><div><label>Stav</label><div><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status || '—')}</span></div></div>
+    <div><label>Platí do</label><div>${e.expires_at ? fmtDate(e.expires_at) : 'trvalý'}</div></div></div>
+    ${e.status === 'active' ? '<div style="margin-top:16px"><button class="btn ghost" id="e-revoke">Odobrať prístup</button></div>' : ''}
+  </div></div>`;
+  view.querySelector('#e-back').onclick = () => vEntitlements(view);
+  const rb = view.querySelector('#e-revoke');
+  if (rb) rb.onclick = async () => { const msg = view.querySelector('#emsg'); msg.innerHTML = '';
+    try { await api(`/admin/entitlements/${e.id}/revoke`, { method: 'POST' }); vEntitlements(view); }
+    catch (err) { msg.innerHTML = `<div class="err">${esc(err.message)}</div>`; } };
+}
+const vZakaznicky = (view) => subnav(view, [{ label: 'Zákazníčky', run: vCustomers }, { label: 'Prístupy a knižnica', run: vEntitlements }]);
+
 const ROUTES = {
   '': ['', '', vDashboard],
   'objednavky': ['Objednávky', 'Prehľad a vybavenie objednávok', vOrders],
   'produkty': ['Produkty', 'Katalóg, ceny a akcie', vProducts],
   'kategorie': ['Kategórie', 'Stromy a zaradenie', vCategories],
-  'zakaznicky': ['Zákazníčky', 'Účty a história', vCustomers],
+  'zakaznicky': ['Zákazníčky', 'Účty, história a prístupy', vZakaznicky],
   'konzultacie': ['Konzultácie', 'Rezervácie a termíny', vKonzultacie],
   'spravy': ['Správy', 'Konverzácie so zákazníčkami', vSpravy],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
