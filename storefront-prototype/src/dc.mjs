@@ -18,12 +18,13 @@ const ROUTES = {
   'ANASTASIA': '/', 'SK': '/', 'LIGHT FOR THE FUTURE': '/', '← Na úvod': '/',
   'Všetky produkty': '/eshop', 'Kategórie': '/eshop/kategorie', 'Novinky': '/eshop?filter=novinky', 'Bestsellery': '/eshop?filter=bestsellery',
   'Celý obchod': '/eshop', 'Obchod': '/eshop',
-  'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Všetky programy': '/programy', 'Programy': '/programy',
-  'Pre firmy': '/programy/pre-firmy', 'Individuálne programy': '/programy/individualne',
+  'Kozmetika': '/eshop/kategoria/kozmetika', 'Výživa': '/eshop/kategoria/vyziva', 'Domov': '/eshop/kategoria/domov', 'Ľan': '/eshop/kategoria/lan',
+  'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/reset-40',
+  'Klub': '/klub', 'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
   'Konzultácie': '/konzultacie', 'Všetky konzultácie': '/konzultacie', 'Služby': '/konzultacie',
   'Online konzultácia': '/konzultacie/online-zdravotna-konzultacia', 'Supervízia': '/konzultacie/supervizia',
-  'Astrologický profil': '/konzultacie/astrologicky-profil-zdravia-a-vitality',
-  'AI ANASTASIA': '/ai-anastasia', 'AI ANASTASIA ACADEMY': '/ai-anastasia-academy', 'Pre odborníkov': '/pre-odbornikov',
+  'Astrologický profil': '/konzultacie/astrologicky-profil-zdravia-a-vitality', 'Astrológia': '/konzultacie/astrologicky-profil-zdravia-a-vitality',
+  'AI ANASTASIA': '/ai-anastasia', 'AI ANASTASIA ACADEMY': '/ai-anastasia-academy',
   'Zdravý svet': '/zdravy-svet', 'O Lucii': '/o-lucii', 'Príbeh Lucie': '/o-lucii', 'Kontakt': '/kontakt',
   'Pharmanews': '/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny', 'Zdravé lekárne': '/zdrava-lekaren',
   'Obchodné podmienky': '/vop', 'Súkromie a GDPR': '/gdpr', 'Reklamácie': '/reklamacie',
@@ -166,8 +167,8 @@ const ids = html => html
 
 // Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
 const FOOTER_GROUPS = {
-  'Svet': [['Obchod', '/eshop'], ['Programy', '/programy'], ['Pre firmy', '/programy/pre-firmy'], ['Zdravý svet', '/zdravy-svet']],
-  'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Pre odborníkov', '/pre-odbornikov']],
+  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Klub', '/klub'], ['Zdravý svet', '/zdravy-svet']],
+  'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Supervízia', '/konzultacie/supervizia'], ['Astrológia', '/konzultacie/astrologicky-profil-zdravia-a-vitality']],
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravé lekárne', '/zdrava-lekaren'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
 const FOOTER_BRANDS = {'ANASTASIA.ACADEMY': '/ai-anastasia-academy', 'AI ANASTASIA': '/ai-anastasia'};
@@ -187,12 +188,26 @@ export function chrome(page) {
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
   const side=src.side.replace(/<div style="display:flex;align-items:center;gap:14px"><img src="\.\/assets\/logo-mark\.png"[^>]*><div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div><\/div>/,'');
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
-  const menuBrand=html=>html.replace(/(<a\b[^>]*>Všetky produkty<\/a>)/, '$1<a href="/darcekovy-poukaz" style="font-size:14px;color:#EFE5C7;padding:4px 0">Darčekový poukaz</a>').replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
+  // Položka menu ve stylu návrhu (href="#" + text → skutečná cesta přes LINKS mapu, jako nativní položky).
+  const mi=t=>`<a href="#" onClick="{{ closeMenu }}" style="font-size:12px;color:#EFE5C7;padding:3px 0" style-hover="color:#C9A355">${t}</a>`;
+  const menuBrand=html=>html
+    // Pryč vymyšlené položky bez obsahu (rozhodnutí Jose 16.10): Všetky programy, Pre firmy, Individuálne programy, Pre odborníkov.
+    .replace(/<a\b[^>]*>\s*(?:Všetky programy|Pre firmy|Individuálne programy|Pre odborníkov)\s*<\/a>/g,'')
+    .replace(/(<a\b[^>]*>Všetky produkty<\/a>)/, '$1<a href="/darcekovy-poukaz" style="font-size:12px;color:#EFE5C7;padding:4px 0">Darčekový poukaz</a>')
+    // Obchod: reálné kategorie z katalogu pod „Kategórie".
+    .replace(/(<a\b[^>]*>\s*Kategórie\s*<\/a>)/, '$1'+['Kozmetika','Výživa','Domov','Ľan'].map(mi).join(''))
+    // Programy: k RESET 40+ přidat Výuku a Klub (členstvo + knižnica) — Fáze 1.
+    .replace(/(<a\b[^>]*>\s*RESET 40\+\s*<\/a>)/, '$1'+['Výuka','Klub','Moja knižnica'].map(mi).join(''))
+    // Služby: doplnit Astrológiu (reálna konzultácia zo starého webu).
+    .replace(/(<a\b[^>]*>\s*Supervízia\s*<\/a>)/, '$1'+mi('Astrológia'))
+    // Spodní blok: Aktuality (Zdravá lekáreň – aktuality zo starého webu).
+    .replace(/(<a\b[^>]*>\s*Zdravý svet\s*<\/a>)/, '$1'+mi('Aktuality'))
+    .replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   return {
     header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>'),
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
-    rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${['home','world'].includes(page)?mediaControls:''}</aside>`),
+    rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
   };
 }

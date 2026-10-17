@@ -5,10 +5,11 @@ const dist=new URL('../dist/',import.meta.url);
 const routes=JSON.parse(await readFile(new URL('routes.json',dist),'utf8'));
 const expected=new Map(Object.entries({
  'Obchod':'/eshop','Všetky produkty':'/eshop','Darčekový poukaz':'/darcekovy-poukaz','Kategórie':'/eshop/kategorie',
+ 'Kozmetika':'/eshop/kategoria/kozmetika','Výživa':'/eshop/kategoria/vyziva','Domov':'/eshop/kategoria/domov','Ľan':'/eshop/kategoria/lan',
  'Novinky':'/eshop?filter=novinky','Bestsellery':'/eshop?filter=bestsellery',
- 'Programy':'/programy','RESET 40+':'/reset-40','Všetky programy':'/programy','Pre firmy':'/programy/pre-firmy','Individuálne programy':'/programy/individualne',
- 'Služby':'/konzultacie','Konzultácie':'/konzultacie','Supervízia':'/konzultacie/supervizia','AI ANASTASIA':'/ai-anastasia','Pre odborníkov':'/pre-odbornikov',
- 'Zdravý svet':'/zdravy-svet','O Lucii':'/o-lucii','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
+ 'Programy':'/reset-40','RESET 40+':'/reset-40','Výuka':'/eshop/produkt/vyuka-vedomeho-vnimania','Klub':'/klub','Moja knižnica':'/ucet',
+ 'Služby':'/konzultacie','Konzultácie':'/konzultacie','Supervízia':'/konzultacie/supervizia','Astrológia':'/konzultacie/astrologicky-profil-zdravia-a-vitality','AI ANASTASIA':'/ai-anastasia',
+ 'Zdravý svet':'/zdravy-svet','Aktuality':'/zdrava-lekaren','O Lucii':'/o-lucii','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
 }));
 const htmlFor=path=>readFile(new URL((path==='/'?'':path.slice(1)+'/')+'index.html',dist),'utf8');
 const attribute=(text,name)=>text.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
