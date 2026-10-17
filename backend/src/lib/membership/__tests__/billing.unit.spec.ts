@@ -8,6 +8,7 @@ import {assertMembershipCustomerAvailable} from '../customer-guard'
 import {runMembershipBilling,reconcileMembershipBilling,resumeMembershipPayment,continueMembershipPayment} from '../billing'
 import {createCartWorkflow,createPaymentCollectionForCartWorkflow,completeCartWorkflow} from '@medusajs/medusa/core-flows'
 import {MEMBERSHIP_STRIPE_PROVIDER} from '../billing-guard'
+import {loadNativeMembershipReceipt} from '../native-receipt'
 function fixture(stage='planned'){
  const terms={customer_id:'cus_a',product_id:'prod_a',variant_id:'var_a',version:'v1',period_days:30,amount_minor:5000,currency:'eur'}
  let attempt:any={id:'mba_a',membership_id:'mbr_a',renewal_key:'renewal_stable',stage,cart_id:stage==='planned'?null:'cart_new',collection_id:'paycol_a',session_id:'payses_a',snapshot:{terms,mandate_id:'mmd_a'}}
@@ -41,3 +42,5 @@ test('privacy storage outage fails closed',async()=>{const f=fixture();jest.mock
 test('3DS continuation completes only the existing native intent',async()=>{const f=fixture('needs_action');expect(await continueMembershipPayment(f.scope,'mbr_a','cus_a')).toMatchObject({status:'SETTLED'});expect(f.payment.createPaymentSession).not.toHaveBeenCalled();expect(createCartWorkflow).not.toHaveBeenCalled();expect(completeCartWorkflow).toHaveBeenCalledTimes(1)})
 
 test('native completed 3DS order can be reconciled without reauthorization',async()=>{const f=fixture('needs_action');f.orders.push({cart_id:'cart_new',order_id:'ord_new'});expect(await reconcileMembershipBilling(f.scope,'mba_a')).toMatchObject({status:'SETTLED'});expect(f.service.advanceBilling).toHaveBeenCalledWith('mba_a','needs_action','settled',{order_id:'ord_new'});expect(completeCartWorkflow).not.toHaveBeenCalled()})
+
+test('settlement checks a fresh clock after native payment, not entry-time',async()=>{const f=fixture();const began=new Date(Date.now()-60_000);await runMembershipBilling(f.scope,'mbr_a',began);const args=jest.mocked(loadNativeMembershipReceipt).mock.calls[0] as any[];expect((args[3] as Date).getTime()).toBeGreaterThan(began.getTime());expect(f.service.applyReceipt.mock.calls[0][2]).not.toEqual(began.toISOString())})

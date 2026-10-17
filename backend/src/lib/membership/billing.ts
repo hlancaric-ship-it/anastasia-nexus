@@ -23,11 +23,11 @@ export async function runMembershipBilling(scope:any,membershipId:string,now=new
   const {data:orders}=await query.graph({entity:'order_cart',fields:['cart_id','order_id'],filters:{cart_id:attempt!.cart_id}})
   if(orders.length>1)throw new Error('MEMBERSHIP_NATIVE_ORDER_AMBIGUOUS')
   if(!orders.length)return null
-  const orderId=orders[0].order_id
-  const receipt=await loadNativeMembershipReceipt(scope,orderId,{cart_id:attempt!.cart_id!,customer_id:terms.customer_id,product_id:terms.product_id,variant_id:terms.variant_id,checkout_key:attempt!.renewal_key},now)
-  await service.applyReceipt(membershipId,receipt,now.toISOString())
+  const orderId=orders[0].order_id,verifiedAt=new Date()
+  const receipt=await loadNativeMembershipReceipt(scope,orderId,{cart_id:attempt!.cart_id!,customer_id:terms.customer_id,product_id:terms.product_id,variant_id:terms.variant_id,checkout_key:attempt!.renewal_key},verifiedAt)
+  await service.applyReceipt(membershipId,receipt,verifiedAt.toISOString())
   attempt=await service.advanceBilling(attempt!.id,attempt!.stage,'settled',{order_id:orderId})
-  return {status:'SETTLED',membership_id:membershipId,access:await reconcileMembershipAccess(scope,membershipId,now)}
+  return {status:'SETTLED',membership_id:membershipId,access:await reconcileMembershipAccess(scope,membershipId,verifiedAt)}
  }
  if(['unknown','completing'].includes(attempt.stage)){
   // Native order already created: never create a second order or charge while its ledger is pending.
