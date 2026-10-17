@@ -748,9 +748,12 @@
         "backend/src/lib/membership/access.ts",
         "backend/src/lib/membership/native-receipt.ts",
         "backend/src/modules/membership/service.ts",
-        "backend/docs/wp/evidence/membership-access-ci.json"
+        "backend/docs/wp/evidence/membership-access-ci.json",
+        "backend/src/lib/membership/checkout.ts",
+        "backend/src/lib/membership/checkout-policy.ts",
+        "backend/docs/wp/membership-checkout.md"
       ],
-      "remaining": "Ověřeny dílčí policy/persistence/native receipt/grant/refund/recovery (membership-access-ci.json). Chybí předplatitelský checkout, trvalý souhlas a platební metoda, opakované účtování, veřejné HTTP a admin. Celý Klub zůstává PARTIAL.",
+      "remaining": "Ověřeny dílčí policy/persistence/native receipt/grant/refund/recovery. Implementována trvalá smlouva před platbou a native settlement; ověření nové části viz membership-checkout.md. Chybí ověřená uložená platební metoda, veřejný subscribe/renewal workflow a opakované účtování, admin. Celý Klub zůstává PARTIAL.",
       "acceptance": "Do běžného menu nevystavit neakceptovaný prototyp; placené členství pouze po samostatné objednávce a celém testu."
     },
     {
@@ -3916,6 +3919,7 @@
       "backend/src/modules/legal/models/legal-withdrawal.ts",
       "backend/src/modules/legal/models/newsletter-consent-event.ts",
       "backend/src/modules/legal/models/newsletter-consent.ts",
+      "backend/src/modules/membership/models/membership-checkout.ts",
       "backend/src/modules/membership/models/membership-receipt.ts",
       "backend/src/modules/membership/models/membership.ts",
       "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
@@ -4150,6 +4154,9 @@
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
     "backend/src/lib/email/__tests__/send.unit.spec.ts",
     "backend/src/lib/membership/__tests__/access.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout-policy.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout-recovery.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout.unit.spec.ts",
     "backend/src/lib/membership/__tests__/native-receipt.unit.spec.ts",
     "backend/src/lib/membership/__tests__/policy.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-hook.unit.spec.ts",

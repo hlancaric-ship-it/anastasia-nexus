@@ -33,7 +33,7 @@ export function assertMembership(state: Membership) {
   } else if (state.renewal_key !== null) reject('INVALID_RENEWAL_KEY')
 }
 function minor(n: number) { return Number.isSafeInteger(n) && n > 0 && n <= 99999999999 }
-function validateTerms(t: Terms) {
+export function validateTerms(t: Terms) {
   if (![t.customer_id,t.product_id,t.variant_id,t.version].every(validId) ||
       t.currency !== 'eur' || !minor(t.amount_minor) || !Number.isSafeInteger(t.period_days) || t.period_days < 1 || t.period_days > 3650) reject('INVALID_TERMS')
 }

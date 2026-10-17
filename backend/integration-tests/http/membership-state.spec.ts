@@ -6,6 +6,7 @@ import { reconcileMembershipAccess } from '../../src/lib/membership/access'
 import { ENTITLEMENT_MODULE } from '../../src/modules/entitlement'
 import type EntitlementModuleService from '../../src/modules/entitlement/service'
 import { orderDedupeKey } from '../../src/modules/entitlement/policy'
+import { settleMembershipCheckout } from '../../src/lib/membership/checkout'
 import { loadNativeMembershipReceipt } from '../../src/lib/membership/native-receipt'
 import { MEMBERSHIP_MODULE } from '../../src/modules/membership'
 import type MembershipModuleService from '../../src/modules/membership/service'
@@ -114,6 +115,51 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_ci',hooks:{beforeServe
   expect((await reconcileMembershipAccess(container,enrolled.state.id)).status).toBe('REVOKED')
   expect((await rights.retrieveEntitlement(right!.id)).status).toBe('revoked')
   expect((await reconcileMembershipAccess(container,enrolled.state.id)).status).toBe('REVOKED')
+ })
+
+ it('persists pre-payment agreements and recovers exactly once from an interrupted checkout',async()=>{
+  const container=getContainer(),s=service(),payment=container.resolve(Modules.PAYMENT),link=container.resolve(ContainerRegistrationKeys.LINK)
+  const customer=await container.resolve(Modules.CUSTOMER).createCustomers({email:'membership-checkout@example.test'})
+  const cart=await container.resolve(Modules.CART).createCarts({currency_code:'eur',customer_id:customer.id})
+  const contract={cart_id:cart.id,terms:{...terms,customer_id:customer.id},consent:{version:'v1',auto_renew:true},accepted_at:new Date().toISOString()}
+  const [first,retry]=await Promise.all([s.reserveCheckout(contract),s.reserveCheckout({...contract,accepted_at:new Date().toISOString()})])
+  expect(first.id).toBe(retry.id)
+  expect((await dbConnection('membership_checkout').count('* as n').first()).n).toBe('1')
+  await expect(s.reserveCheckout({...contract,terms:{...contract.terms,amount_minor:4000}})).rejects.toThrow('CONTRACT_CHANGED')
+  await expect(s.reserveCheckout({...contract,terms:{...contract.terms,period_days:365}})).rejects.toThrow('CONTRACT_CHANGED')
+  await expect(s.reserveCheckout({...contract,consent:{version:'v1',auto_renew:false}})).rejects.toThrow('CONTRACT_CHANGED')
+  await expect(settleMembershipCheckout(container,first.id,'cus_other')).rejects.toThrow('NOT_FOUND')
+  expect(await settleMembershipCheckout(container,first.id,customer.id)).toEqual({status:'PENDING'})
+  const order=await container.resolve(Modules.ORDER).createOrders({currency_code:'eur',customer_id:customer.id,items:[{title:'Synthetic agreed membership',quantity:1,unit_price:50,product_id:terms.product_id,variant_id:terms.variant_id}]})
+  const collection=await payment.createPaymentCollections({currency_code:'eur',amount:50})
+  await link.create([
+   {[Modules.ORDER]:{order_id:order.id},[Modules.CART]:{cart_id:cart.id}},
+   {[Modules.ORDER]:{order_id:order.id},[Modules.PAYMENT]:{payment_collection_id:collection.id}},
+  ])
+  await expect(settleMembershipCheckout(container,first.id,customer.id)).rejects.toThrow()
+  await expect(s.settleCheckout(first.id,customer.id,{...receipt,order_id:order.id,customer_id:customer.id,checkout_key:`initial:${order.id}`},new Date().toISOString())).rejects.toThrow('PAYMENT_BEFORE_CONSENT')
+  expect((await dbConnection('membership').count('* as n').first()).n).toBe('0')
+  const session=await payment.createPaymentSession(collection.id,{provider_id:'pp_system_default',currency_code:'eur',amount:50,data:{}})
+  const authorized=await payment.authorizePaymentSession(session.id,{})
+  if(!authorized)throw new Error('Synthetic system provider did not authorize')
+  await payment.capturePayment({payment_id:authorized.id})
+  // No browser callback: the periodic recovery path consumes the persisted contract.
+  await Promise.all([reconcileMembershipAccessJob(container),settleMembershipCheckout(container,first.id,customer.id)])
+  const settled=await s.checkoutForCustomer(first.id,customer.id)
+  expect(settled?.status).toBe('settled')
+  expect(settled?.order_id).toBe(order.id)
+  expect(settled?.contract).toEqual(first.contract)
+  expect((await dbConnection('membership').count('* as n').first()).n).toBe('1')
+  expect((await dbConnection('membership_receipt').count('* as n').first()).n).toBe('1')
+  const state=await s.findForCustomer(settled!.membership_id!,customer.id)
+  await s.stop(state!.id)
+  const repeated=await settleMembershipCheckout(container,first.id,customer.id)
+  expect(repeated).toMatchObject({status:'SETTLED',membership_id:state!.id,access:{status:'ACTIVE'}})
+  expect((await s.findForCustomer(state!.id,customer.id))?.period_end).toBe(state!.period_end)
+  expect((await s.findForCustomer(state!.id,customer.id))?.renew).toBe(false)
+  // Soft deletion cannot release the cart contract for re-enrollment.
+  await s.softDeleteMembershipCheckouts([first.id])
+  await expect(s.reserveCheckout(contract)).rejects.toThrow()
  })
 
 }})

@@ -3,11 +3,13 @@ import { generateEntityId, InjectTransactionManager, MedusaContext, MedusaServic
 import type { Context } from '@medusajs/framework/types'
 import MembershipRow from './models/membership'
 import MembershipReceipt from './models/membership-receipt'
+import MembershipCheckout from './models/membership-checkout'
+import {assertCheckoutContract,assertCheckoutReceipt,type CheckoutContract} from '../../lib/membership/checkout-policy'
 import { activateMembership, applyRenewalReceipt, assertMembership, markRenewalUnknown, planRenewal, stopRenewal, type Membership, type Receipt, type Terms } from '../../lib/membership/policy'
 
 type RecordRow={id:string;customer_id:string;first_order_id:string;status:string;period_end:Date|string;snapshot:Record<string,unknown>}
 const json=(state:Membership)=>state as unknown as Record<string,unknown>
-class MembershipModuleService extends MedusaService({Membership:MembershipRow,MembershipReceipt}) {
+class MembershipModuleService extends MedusaService({Membership:MembershipRow,MembershipReceipt,MembershipCheckout}) {
  private async lock(key:string,context:Context){
   const knex=(context.transactionManager as any)?.getTransactionContext()
   if(!knex)throw new Error('MEMBERSHIP_TRANSACTION_REQUIRED')
@@ -27,6 +29,48 @@ class MembershipModuleService extends MedusaService({Membership:MembershipRow,Me
   const saved=await this.read(state.id,context)
   if(!isDeepStrictEqual(saved,state))throw new Error('MEMBERSHIP_READBACK_MISMATCH')
   return saved
+ }
+ private checkout(row:any):{id:string;contract:CheckoutContract;status:'prepared'|'settled';order_id:string|null;membership_id:string|null}{
+  const contract=row.snapshot as CheckoutContract
+  assertCheckoutContract(contract)
+  if(row.cart_id!==contract.cart_id||row.customer_id!==contract.terms.customer_id||!['prepared','settled'].includes(row.status)||
+    (row.status==='prepared'?(row.order_id!==null||row.membership_id!==null):(!row.order_id||!row.membership_id)))throw new Error('MEMBERSHIP_CHECKOUT_SNAPSHOT_MISMATCH')
+  return {id:row.id,contract,status:row.status,order_id:row.order_id,membership_id:row.membership_id}
+ }
+ /** Internal server contract only; checkout terms must be read before any payment starts. */
+ @InjectTransactionManager()
+ async reserveCheckout(contract:CheckoutContract,@MedusaContext() context:Context={}){
+  assertCheckoutContract(contract)
+  await this.lock(`checkout-cart:${contract.cart_id}`,context)
+  const [prior]=await this.listMembershipCheckouts({cart_id:contract.cart_id},{take:1},context)
+  if(prior){
+   const checked=this.checkout(prior)
+   if(!isDeepStrictEqual({...checked.contract,accepted_at:contract.accepted_at},contract))throw new Error('MEMBERSHIP_CHECKOUT_CONTRACT_CHANGED')
+   return checked
+  }
+  const created=await this.createMembershipCheckouts({cart_id:contract.cart_id,customer_id:contract.terms.customer_id,status:'prepared',snapshot:contract as unknown as Record<string,unknown>},context)
+  const saved=this.checkout(await this.retrieveMembershipCheckout(created.id,{},context))
+  if(!isDeepStrictEqual(saved.contract,contract))throw new Error('MEMBERSHIP_CHECKOUT_READBACK_MISMATCH')
+  return saved
+ }
+ async checkoutForCustomer(id:string,customerId:string){
+  const [row]=await this.listMembershipCheckouts({id,customer_id:customerId},{take:1})
+  return row?this.checkout(row):null
+ }
+ /** Receipt comes only from the native loader bound to this persisted cart. No charge here. */
+ @InjectTransactionManager()
+ async settleCheckout(id:string,customerId:string,receipt:Receipt,now:string,@MedusaContext() context:Context={}){
+  await this.lock(`checkout:${id}`,context)
+  const checkout=this.checkout(await this.retrieveMembershipCheckout(id,{},context))
+  if(checkout.contract.terms.customer_id!==customerId)throw new Error('MEMBERSHIP_CHECKOUT_NOT_FOUND')
+  assertCheckoutReceipt(checkout.contract,receipt)
+  if(checkout.status==='settled'&&checkout.order_id!==receipt.order_id)throw new Error('MEMBERSHIP_CHECKOUT_ALREADY_SETTLED')
+  const result=await this.activate(checkout.contract.terms,receipt,checkout.contract.consent,now,context)
+  if(checkout.status==='settled'&&checkout.membership_id!==result.state.id)throw new Error('MEMBERSHIP_CHECKOUT_SETTLEMENT_MISMATCH')
+  if(checkout.status==='prepared')await this.updateMembershipCheckouts({id,status:'settled',order_id:receipt.order_id,membership_id:result.state.id},context)
+  const saved=this.checkout(await this.retrieveMembershipCheckout(id,{},context))
+  if(saved.status!=='settled'||saved.order_id!==receipt.order_id||saved.membership_id!==result.state.id||!isDeepStrictEqual(saved.contract,checkout.contract))throw new Error('MEMBERSHIP_CHECKOUT_READBACK_MISMATCH')
+  return result
  }
  /** Internal trusted-receipt boundary only. Never expose raw receipt/terms as a customer HTTP payload. */
  @InjectTransactionManager()
