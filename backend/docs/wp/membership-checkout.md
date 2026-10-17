@@ -1,6 +1,6 @@
 # Klub: smluvní podmínky uložené před platbou
 
-Stav: IMPLEMENTED_UNVERIFIED pro nativní PostgreSQL integraci do doběhnutí CI. Není hotové předplatné ani veřejné subscribe API. Navazuje na membership policy/persistence/receipt/access (#33–#37) a opravu integrovaného inventáře #38.
+Stav: VERIFIED pro níže vymezenou nativní integraci; důkaz [membership-checkout-ci.json](evidence/membership-checkout-ci.json). Není hotové předplatné ani veřejné subscribe API. Navazuje na membership policy/persistence/receipt/access (#33–#37) a opravu integrovaného inventáře #38.
 
 ## Implementace
 
@@ -18,10 +18,12 @@ Příprava používá stejný cart lock key jako installed Medusa completeCartWo
 
 Funkce reserveCheckout/settleCheckout přijímající serverové fakty jsou interní, nikoli zákaznický HTTP payload. Žádné nové veřejné route ani middleware se v tomto balíku nepřidávají. Konfiguraci modulu nadále integruje Claude až po dokončení celého toku.
 
-`auto_renew` je zaznamenaný souhlas, NENÍ doklad uložené karty/platebního mandátu ani oprávnění spustit účtování. Ještě chybí příprava Stripe metody přes nativní payment session, její ověřené serverové svázání, bezpečné initial/renewal HTTP/workflow, dunning/needs_action a plný skutečný NEXUS checkout test. Právní souhlasy a SafeOrder zůstávají na stávajícím nativním checkoutu. Žádné přímé Stripe Subscription API, externí platby ani nasazení.
+`auto_renew` je zaznamenaný souhlas, NENÍ doklad uložené karty/platebního mandátu ani oprávnění spustit účtování. Před veřejným zapnutím musí locked native validate hook vynutit existenci a shodu uložené smlouvy pro každý členský produkt, i při přímém volání standardního completeCartWorkflow; jinak lze nový přípravný krok obejít. Registrace tohoto guardu patří do dalšího integračního balíku před aktivací katalogu a HTTP. Ještě chybí příprava Stripe metody přes nativní payment session, její ověřené serverové svázání, bezpečné initial/renewal HTTP/workflow, dunning/needs_action a plný skutečný NEXUS checkout test. Právní souhlasy a SafeOrder zůstávají na stávajícím nativním checkoutu. Žádné přímé Stripe Subscription API, externí platby ani nasazení.
 
 ## Ověření
 
 Lokálně pouze cílené unit a backend tsc. Nové testy ověřují neplatné podmínky, cizí košík, změnu potvrzené ceny/verze, přípravu až po zahájení platby, žádné dvojí checkout volání, serverové dohledání objednávky a recovery více než dvou stránek s částečným selháním.
 
 Vlastní Medusa/PG fixture běží pouze na CI: souběžná rezervace, odmítnutí přepsání smlouvy, skutečná native system-provider capture, settlement souběžný s recovery, jedna membership/receipt, původní délka/čas, zastavená obnova, soft-delete unique a historická platba. Toto prokazuje nativní ledger/persistence/grant; neprokazuje živý Stripe ani celý NEXUS checkout. Plná regrese jen GitHub Actions.
+
+Finální CI39026938969 SUCCESS:115/115unit,4/4actualMedusaPG,backendtsc PASS. Plná CI39026938973 SUCCESS: backend854/854, nexus1233/1233, workerd142/142, http151/151 PASS. Zdroj runtime809e676; doplnění důkazů runtime nemění.
