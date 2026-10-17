@@ -355,27 +355,29 @@
     {
       "id": "multi-site",
       "label_sk": "Ďalšie weby",
-      "delivery_lane": "PHASE2",
+      "delivery_lane": "PHASE1",
       "backend_layer": "missing",
       "backend_status": "NOT_IMPLEMENTED",
       "new_admin_status": "NOT_IMPLEMENTED",
       "request": "Společná správa anastasia.academy a aianastasia.com bez druhé databáze zákaznic.",
       "sources": [
-        "docs/NEXUS_AUTONOMY_SPEC.md"
+        "docs/NEXUS_AUTONOMY_SPEC.md",
+        "backend/docs/wp/admin-phase1-scope.md"
       ],
-      "remaining": "Doplnit registr webů, oprávnění, obsah a přepnutí kontextu; sjednané ve fázi 2.",
+      "remaining": "Jedno jádro/jeden admin je závazná architektura nyní; doplnit registr webů, oprávnění, obsah a přepnutí kontextu. Nevytvářet druhou databázi zákaznic ani druhý platební tok.",
       "acceptance": "Přepnutí webu nemíchá obsah; zákaznice/platby/přístupy zůstávají u jednoho vlastníka."
     },
     {
       "id": "translations",
       "label_sk": "Jazyky a preklady",
-      "delivery_lane": "PHASE2",
+      "delivery_lane": "PHASE1",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "SK/EN/RU, ruční oprava překladů a stav úplnosti, žádné prázdné povinné texty.",
+      "request": "SK výchozí, EN/RU s automatickým překladem a ruční opravou v jednom adminu pro všechny weby; schválený ruční text nesmí automatický překlad přepsat.",
       "sources": [
-        "backend/docs/wp/INVENTAR-A-AKCEPTACE.md"
+        "backend/docs/wp/INVENTAR-A-AKCEPTACE.md",
+        "backend/docs/wp/admin-phase1-scope.md"
       ],
       "remaining": "Medusa locales/translations neřeší automaticky celý web, CMS a média; doplnit publikaci a překlady obsahu.",
       "acceptance": "Prázdný překlad se odliší od chybějícího; náhled i publikace ukáží vybraný jazyk."
@@ -734,16 +736,17 @@
     {
       "id": "club",
       "label_sk": "Klub a predplatné",
-      "delivery_lane": "OUTSIDE_CONTRACT",
+      "delivery_lane": "PHASE1",
       "backend_layer": "core-only",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Nezaměnit věrnostní skupinu za placené předplatné; zapsat existenci, nikoli vydávat za dodané.",
+      "request": "Členství a předplatné jako produkt přes jedno jádro Medusa/NEXUS, přístup až po ověřené platbě, obnovy/ukončení a admin obsluha.",
       "sources": [
         "nexus/workers/api/routes/klubSubscribe.ts",
-        "nexus/domains/billing/TenantSubscriptionPlanFlow.ts"
+        "nexus/domains/billing/TenantSubscriptionPlanFlow.ts",
+        "backend/docs/wp/admin-phase1-scope.md"
       ],
-      "remaining": "Worker route obsahuje prototyp Stripe subscription s placeholder price ID, bez doloženého úplného autorizačního/idempotentního toku; SaaS billing je jiná agenda.",
+      "remaining": "Rozhodnutí Claude/Jose 16.10. přesunulo Klub do fáze1. Samostatný Worker Stripe subscription endpoint je nepřípustný. Dílčí PR#32–#35 jsou oddělené, neznamenají hotový checkout/renewal/grant/admin; zdejší strom jejich integraci ještě neobsahuje.",
       "acceptance": "Do běžného menu nevystavit neakceptovaný prototyp; placené členství pouze po samostatné objednávce a celém testu."
     },
     {
