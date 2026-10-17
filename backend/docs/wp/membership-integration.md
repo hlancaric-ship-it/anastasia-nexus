@@ -21,10 +21,10 @@ Všechny cesty vyžadují autentizovanou zákaznici a no-store. Anonymní/neplat
 
 Každá provider operace má předem uloženou hranici. Unknown se známou native session dohledá stejný intent přes stejný guarded checkout, nikdy nevytváří druhý. Bez dohledatelného native ID zůstává výsledek v karanténě k prověření; bezpečný systém nesmí tvrdit, že nezachycený response znamená neprovedenou platbu. Native Stripe off-session confirm/capture se provádí teprve v authorizePayment po core validation; requires_action zůstává ve stejném pokusu. Každá úspěšná obnova má nativní objednávku, capture ledger, receipt a omezený přístup.
 
-Admin /app/clenstva má skutečné členství/přístupy, nedokončené nákupy, editor podmínek produktu a Platby a obnovy. Dohledání v adminu nikdy nespouští nové stržení. Stavy a chyby jsou slovensky a používají osobní vzhled adminu.
+Vlastní anastasia-admin/ SPA dostává HTTP /admin/memberships* pro členství/přístupy, nedokončené nákupy, editor podmínek a Platby a obnovy. Podle rozhodnutí Jose/Claude byla prototypová nová /app/clenstva agenda odstraněna; zákaznice nemá používat Medusa Admin. Dohledání v adminu nikdy nespouští nové stržení. Stavy a chyby jsou slovensky a používají osobní vzhled adminu.
 
 Claude integruje globální membershipStoreMiddlewares a modul membership + samostatný provider membership-stripe(id membership, stejné Stripe credentials jako standardní provider, capture:true). Do jeho configu/middleware ani storefrontu tento balík samovolně nesahá. Žádný self-merge ani deploy.
 
 ## Důkazy
 
-Cílené unit/types lokálně; PostgreSQL a plná regrese pouze CI. Společná E2E fixture používá skutečný native backend/DB/auth/workflow/guard a skutečný NEXUS Worker. Nahrazuje pouze externí Stripe SDK protokol syntetickým transportem, takže neprokazuje živou Stripe/SCA/bankovní integraci. UI se ověřuje v reálném Chromu1440/390. Finální čísla a zdrojové commity se doplní až po úspěšné CI; do té doby žádné tvrzení o hotovém celku.
+Cílené unit/types lokálně; PostgreSQL a plná regrese pouze CI. Společná E2E fixture používá skutečný native backend/DB/auth/workflow/guard a skutečný NEXUS Worker. Nahrazuje pouze externí Stripe SDK protokol syntetickým transportem, takže neprokazuje živou Stripe/SCA/bankovní integraci. UI vlastní SPA a storefrontu ověřuje Claude; historické prototypové /app browser testy nejsou důkazem této nové SPA. Finální čísla a zdrojové commity se doplní až po úspěšné CI; do té doby žádné tvrzení o hotovém celku.

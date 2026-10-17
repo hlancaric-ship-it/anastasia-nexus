@@ -13,6 +13,7 @@ export async function POST(req:AuthenticatedMedusaRequest,res:MedusaResponse){
   // Loaded only after authenticated validation; integration includes the billing implementation.
   const {reconcileMembershipBilling}=require('../../../../../../lib/membership/billing') as {reconcileMembershipBilling:(scope:typeof req.scope,id:string)=>Promise<{status:string}>}
   const result=await reconcileMembershipBilling(req.scope,attempt.id)
+  if(result.status==='ALREADY_SETTLED')result.status='SETTLED'
   if(!['SETTLED','RECONCILIATION_REQUIRED'].includes(result.status))throw new Error('MEMBERSHIP_RECONCILIATION_STATUS')
   await auditAdminChange(req,'membership.billing.reconcile','membership',attempt.membership_id,null,{status:result.status})
   return res.json({status:result.status})

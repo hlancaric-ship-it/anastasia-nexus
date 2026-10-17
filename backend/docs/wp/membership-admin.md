@@ -1,3 +1,7 @@
+# Aktuální rozhodnutí Jose/Claude
+
+Vlastní admin je anastasia-admin/ SPA. Nová /app/clenstva route a její browserharness byly z integračního PR odstraněny podle pivotu17.10.; zachováno a propojeno je HTTP /admin/memberships*. Následující původní prototypové ověření je historické, nikoli akceptace nové SPA. Aktuální integrace viz membership-integration.md.
+
 # Správa členství
 
 Stav: IMPLEMENTED; cílené unit testy 24/24, reálný Chrome 26 kontrol (1440 a přesných 390 px) a backend TypeScript PASS. Integrovaný PostgreSQL a plná regrese patří pouze do CI integrační větve. Toto není potvrzení dokončeného celého Klubu.

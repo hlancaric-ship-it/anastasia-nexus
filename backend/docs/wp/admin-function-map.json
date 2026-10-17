@@ -755,10 +755,10 @@
         "backend/src/lib/membership/billing.ts",
         "backend/src/lib/membership/checkout-guard.ts",
         "backend/src/modules/membership-stripe/service.ts",
-        "backend/src/admin/routes/clenstva/page.tsx",
-        "backend/docs/wp/membership-integration.md"
+        "backend/docs/wp/membership-integration.md",
+        "backend/src/api/admin/memberships/route.ts"
       ],
-      "remaining": "Integrovaný Store HTTP, nativní platební provider/obnova, guard, admin a recovery IMPLEMENTED_UNVERIFIED do finální společné CI. Produkční konfiguraci a storefront napojuje Claude; neoznačovat celý Klub hotový bez jejich integrace a end-to-end důkazu.",
+      "remaining": "Backend Store/Admin HTTP, nativní platební provider/obnova, guard a recovery IMPLEMENTED_UNVERIFIED do finální společné CI. Podle aktuálního pivotu Claude integruje agendu do vlastní anastasia-admin SPA; nová Medusa /app agenda byla z integračního PR odstraněna. Neoznačovat celek hotový bez SPA/storefront/config a E2E důkazu.",
       "acceptance": "Do běžného menu nevystavit neakceptovaný prototyp; placené členství pouze po samostatné objednávce a celém testu."
     },
     {
@@ -1015,7 +1015,7 @@
       ],
       "feature": "club",
       "source": "backend/src/api/admin/memberships/billing/[id]/reconcile/route.ts",
-      "sha256": "17f4c1965d411e464b2e7adcba07907402575e9461f08e833ffa5fe2c5dedadc"
+      "sha256": "7fcd9b495fadbd313930532ff10d9fe8903faf8ad8ec0eb16e02f85611611715"
     },
     {
       "path": "/admin/memberships/products/:id",

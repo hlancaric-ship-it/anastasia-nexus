@@ -28,11 +28,9 @@ jobs:
       TEST_TYPE: integration:http
       NODE_ENV: test
       DB_HOST: localhost
-      DB_PORT: ${{ job.services.postgres.ports[5432] }}
       DB_USERNAME: membership_synthetic
       DB_PASSWORD: membership_synthetic_only
       DB_TEMP_NAME: anastasia_membership_e2e_ci
-      DATABASE_URL: postgres://membership_synthetic:membership_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_membership_e2e_ci
       JWT_SECRET: synthetic-membership-jwt-only
       COOKIE_SECRET: synthetic-membership-cookie-only
       LEGAL_TERMS_VERSION: synthetic-terms-v1
@@ -60,8 +58,6 @@ jobs:
           assert tests
           subprocess.run(['backend/node_modules/.bin/jest','--config','backend/jest.config.js','--rootDir','backend','--runTestsByPath',*tests,'--runInBand','--forceExit'],env={**os.environ,'TEST_TYPE':'unit'},check=True)
           PYTEST
-      - name: Actual admin browser interaction at desktop and mobile widths
-        run: node backend/scripts/check-membership-admin-browser.mjs
       - name: Start actual NEXUS Worker in synthetic loopback bridge
         run: |
           mkdir -p "$RUNNER_TEMP/membership-worker"
@@ -80,6 +76,9 @@ jobs:
             f.write('NEXUS_PRICING_URL='+base+'/api/nexus/pricing\nNEXUS_SAFEORDER_URL='+base+'/api/nexus/safeorder\nNEXUS_PRICING_API_KEY=synthetic-membership-service\nNEXUS_TENANT_ID=anastasia\n')
           PYWORKER
       - name: Actual native checkout, access, renewal, stop, refunds and replay
+        env:
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+          DATABASE_URL: postgres://membership_synthetic:membership_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_membership_e2e_ci
         working-directory: backend
         run: ./node_modules/.bin/jest --runTestsByPath integration-tests/http/membership-checkout-e2e.spec.ts --runInBand --forceExit
       - name: Stop synthetic Worker
