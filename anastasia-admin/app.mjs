@@ -126,11 +126,27 @@ async function vDashboard(view) {
   </div>`;
 }
 
-function listView(view, { endpoint, cols, rows, title, onRow, empty }) {
-  view.innerHTML = `<div class="card"><div class="card-h">${esc(title)}<span class="muted" style="font-weight:400">${rows.length} záznamov</span></div>
-    <table><thead><tr>${cols.map(c => `<th>${esc(c.h)}</th>`).join('')}</tr></thead>
-    <tbody>${rows.length ? rows.map((r, i) => `<tr data-i="${i}">${cols.map(c => `<td>${c.v(r)}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${cols.length}" class="muted">${esc(empty || 'Žiadne záznamy.')}</td></tr>`}</tbody></table></div>`;
-  if (onRow) view.querySelectorAll('tbody tr[data-i]').forEach(tr => tr.onclick = () => onRow(rows[+tr.dataset.i]));
+// Kartové zobrazenie (žiadne riadkové tabuľky). `card(r)` = voliteľný HTML pre jednu kartu;
+// inak sa karta poskladá z `cols` (prvý stĺpec = hlavička, ostatné = polia pod ňou).
+function listView(view, { cols, rows, title, onRow, empty, card, search = true }) {
+  const genCard = (r) => {
+    const cells = cols.map(c => ({ h: c.h, v: c.v(r) }));
+    const head = cells.find(c => c.h) || cells[0] || { v: '' };
+    const media = cells.find(c => !c.h);
+    const rest = cells.filter(c => c !== head && c !== media && c.h);
+    return `${media ? `<div class="rc-media">${media.v}</div>` : ''}<div class="rc-body"><div class="rc-title">${head.v}</div>
+      <div class="rc-fields">${rest.map(c => `<span class="rc-f"><em>${esc(c.h)}</em>${c.v}</span>`).join('')}</div></div>`;
+  };
+  const render = (list) => `<div class="rc-grid">${list.length
+    ? list.map(r => `<${onRow ? 'button' : 'div'} class="rc" data-id="${esc(r.id ?? '')}">${card ? card(r) : genCard(r)}</${onRow ? 'button' : 'div'}>`).join('')
+    : `<div class="empty">${esc(empty || 'Zatiaľ tu nič nie je.')}</div>`}</div>`;
+  view.innerHTML = `<div class="rc-head"><h2>${esc(title)}</h2>
+    ${search && rows.length > 6 ? '<input class="rc-search" placeholder="Hľadať…">' : `<span class="muted">${rows.length} ${rows.length === 1 ? 'záznam' : 'záznamov'}</span>`}</div>
+    <div id="rc-wrap">${render(rows)}</div>`;
+  const wire = () => { if (onRow) view.querySelectorAll('.rc[data-id]').forEach(el => el.onclick = () => onRow(rows.find(x => String(x.id) === el.dataset.id) || rows[0])); };
+  wire();
+  const s = view.querySelector('.rc-search');
+  if (s) s.oninput = () => { const q = s.value.toLowerCase().trim(); const f = q ? rows.filter(r => JSON.stringify(r).toLowerCase().includes(q)) : rows; view.querySelector('#rc-wrap').innerHTML = render(f); if (onRow) view.querySelectorAll('.rc[data-id]').forEach(el => el.onclick = () => onRow(rows.find(x => String(x.id) === el.dataset.id))); };
 }
 
 function setActions(html) { const a = document.querySelector('#actions'); if (a) a.innerHTML = html || ''; }
@@ -299,12 +315,14 @@ async function vCategoryDetail(view, id) {
 }
 async function vOrders(view) {
   const { orders } = await api('/admin/orders?limit=50&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status');
-  listView(view, { title: 'Objednávky', rows: orders, onRow: o => vOrderDetail(view, o.id), cols: [
-    { h: 'Č.', v: o => '#' + (o.display_id ?? '') }, { h: 'E-mail', v: o => esc(o.email) },
-    { h: 'Stav', v: o => `<span class="pill">${esc(o.status)}</span>` },
-    { h: 'Platba', v: o => `<span class="pill">${esc(o.payment_status || '—')}</span>` },
-    { h: 'Suma', v: o => fmtEur(o.total) },
-    { h: 'Dátum', v: o => fmtDate(o.created_at) }] });
+  const payPill = (s) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc(s || '—')}</span>`;
+  const fulPill = (s) => `<span class="pill ${s === 'fulfilled' || s === 'shipped' || s === 'delivered' ? 'ok' : 'warn'}">${esc(s || 'nevybavená')}</span>`;
+  listView(view, { title: 'Objednávky', rows: orders, onRow: o => vOrderDetail(view, o.id), empty: 'Zatiaľ žiadne objednávky.',
+    card: o => `<div class="rc-body"><div class="rc-title">#${esc(o.display_id ?? '')} · ${fmtEur(o.total)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Zákazníčka</em>${esc(o.email || '—')}</span>
+      <span class="rc-f"><em>Platba</em>${payPill(o.payment_status)}</span>
+      <span class="rc-f"><em>Vybavenie</em>${fulPill(o.fulfillment_status)}</span>
+      <span class="rc-f"><em>Dátum</em>${fmtDate(o.created_at)}</span></div></div>` });
 }
 async function vOrderDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
@@ -326,10 +344,13 @@ async function vOrderDetail(view, id) {
 }
 async function vCustomers(view) {
   const { customers } = await api('/admin/customers?limit=100&fields=id,email,first_name,last_name,has_account,created_at');
-  listView(view, { title: 'Zákazníčky', rows: customers, onRow: c => vCustomerDetail(view, c.id), cols: [
-    { h: 'E-mail', v: c => esc(c.email) }, { h: 'Meno', v: c => esc([c.first_name, c.last_name].filter(Boolean).join(' ')) },
-    { h: 'Účet', v: c => c.has_account ? '<span class="pill ok">áno</span>' : '<span class="pill warn">hosť</span>' },
-    { h: 'Registrácia', v: c => fmtDate(c.created_at) }] });
+  listView(view, { title: 'Zákazníčky', rows: customers, onRow: c => vCustomerDetail(view, c.id), empty: 'Zatiaľ žiadne zákazníčky.',
+    card: c => { const nm = [c.first_name, c.last_name].filter(Boolean).join(' '); const av = (nm || c.email || '?').slice(0, 2).toUpperCase();
+      return `<div class="rc-media"><span class="thumb" style="display:grid;place-items:center;font-weight:600;color:var(--forest)">${esc(av)}</span></div>
+      <div class="rc-body"><div class="rc-title">${esc(nm || c.email)}</div><div class="rc-fields">
+      ${nm ? `<span class="rc-f"><em>E-mail</em>${esc(c.email)}</span>` : ''}
+      <span class="rc-f"><em>Účet</em>${c.has_account ? '<span class="pill ok">registrovaná</span>' : '<span class="pill warn">hosť</span>'}</span>
+      <span class="rc-f"><em>Od</em>${fmtDate(c.created_at)}</span></div></div>`; } });
 }
 async function vCustomerDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
@@ -409,11 +430,11 @@ async function tryList(view, { title, endpoint, key, cols, note }) {
     const rows = d[key] || d.items || [];
     listView(view, { title, rows, cols });
   } catch (e) {
-    view.innerHTML = `<div class="notice"><b>Čaká na backend.</b> ${esc(note)}<br><span class="muted">Endpoint ${esc(endpoint)} zatiaľ nie je dostupný (${esc(e.message)}). UI je pripravené, napojí sa po dodaní API.</span></div>`;
+    view.innerHTML = `<div class="empty"><div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">${esc(title)} — napája sa</div>${esc(note)}</div>`;
   }
 }
 function stub(view, title, note) {
-  view.innerHTML = `<div class="notice"><b>Čaká na backend.</b> ${esc(note)}<br><span class="muted">Obrazovka „${esc(title)}" je v návrhu ANASTASIA vzhľadu; napojí sa, keď bude hotový príslušný backend/endpoint.</span></div>`;
+  view.innerHTML = `<div class="empty"><div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">${esc(title)} — pripravujeme</div>${esc(note)}</div>`;
 }
 
 // sub-prepínač v topbare (pills) — jedna obrazovka, viac pohľadov
@@ -427,9 +448,42 @@ const vVouchers = (v) => tryList(v, { title: 'Darčekové poukazy', endpoint: '/
 const vPoukazy = (view) => subnav(view, [{ label: 'Kupóny a zľavy', run: vCoupons }, { label: 'Darčekové poukazy', run: vVouchers }]);
 const vKonzultacie = (v) => tryList(v, { title: 'Konzultácie', endpoint: '/admin/bookings', key: 'bookings', cols: [{ h: 'Zákazníčka', v: x => esc(x.customer_id || '') }, { h: 'Od', v: x => fmtDate(x.starts_at) }, { h: 'Stav', v: x => esc(x.status || '') }], note: 'Rezervačné jadro existuje; admin napojenie dolaďujeme.' });
 const vSpravy = (v) => tryList(v, { title: 'Správy', endpoint: '/admin/chat/conversations', key: 'conversations', cols: [{ h: 'ID', v: x => esc(x.id) }, { h: 'Stav', v: x => esc(x.status || '') }], note: 'Chat modul je v jadre; admin výpis napojíme.' });
+async function vEmaily(view) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  const { templates } = await api('/admin/email-templates');
+  listView(view, {
+    title: 'E-mailové šablóny', rows: (templates || []).map(t => ({ ...t, id: t.name })), onRow: t => vEmailDetail(view, t),
+    empty: 'Žiadne šablóny.', card: t => `<div class="rc-body"><div class="rc-title">${esc(t.label || t.name)}</div>
+      <div class="rc-fields"><span class="rc-f"><em>Komu</em>${esc(t.audience || '—')}</span>
+      <span class="rc-f"><em>Stav</em><span class="pill ${t.enabled ? 'ok' : 'off'}">${t.enabled ? 'zapnutá' : 'vypnutá'}</span>${t.customized ? '<span class="pill warn">upravená</span>' : ''}</span></div></div>`,
+  });
+}
+async function vEmailDetail(view, t) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  let html = '';
+  try { const r = await api(`/admin/email-templates/${t.name}/preview`); html = r.html || r.preview || ''; } catch {}
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(t.label || t.name)}<button class="btn ghost" id="e-back">Späť</button></div><div class="card-b">
+    <p class="muted">${esc(t.description || '')}</p>
+    <label>Náhľad e-mailu</label>
+    <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff">${html ? `<iframe style="width:100%;height:420px;border:0" sandbox></iframe>` : '<div class="empty">Náhľad sa teraz nedá načítať.</div>'}</div>
+  </div></div>`;
+  view.querySelector('#e-back').onclick = () => vEmaily(view);
+  if (html) { const f = view.querySelector('iframe'); f.srcdoc = html; }
+}
+async function vNewsletter(view) {
+  view.innerHTML = '<div class="muted">Načítavam…</div>';
+  const { consents } = await api('/admin/newsletter?limit=200');
+  listView(view, {
+    title: 'Newsletter — súhlasy', rows: (consents || []).map((c, i) => ({ ...c, id: c.id ?? i })), empty: 'Zatiaľ žiadne prihlásenia.',
+    card: c => `<div class="rc-body"><div class="rc-title">${esc(c.email)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Stav</em><span class="pill ${c.status === 'subscribed' || c.status === 'active' ? 'ok' : 'off'}">${esc(c.status || '—')}</span></span>
+      <span class="rc-f"><em>Zdroj</em>${esc(c.source || '—')}</span></div></div>`,
+  });
+}
 const vObsah = (view) => subnav(view, [
-  { label: 'Stránky a texty', run: (v) => stub(v, 'Stránky a texty', 'Samoobslužná správa stránok a textov všetkých webov.') },
-  { label: 'E-maily', run: (v) => stub(v, 'E-maily', 'Šablóny e-mailov (potvrdenia, poukazy) na úpravu bez programátora.') },
+  { label: 'E-maily', run: vEmaily },
+  { label: 'Newsletter', run: vNewsletter },
+  { label: 'Stránky a texty', run: (v) => stub(v, 'Stránky a texty', 'Samoobslužná správa obsahových stránok. Pripravuje sa modul CMS.') },
   { label: 'Médiá', run: (v) => stub(v, 'Médiá', 'Chránené videá a audio (R2).') },
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', 'SK zdroj, EN/RU — z jedného admina.') },
 ]);

@@ -68,7 +68,22 @@ tr:last-child td{border-bottom:0}
 tbody tr:hover{background:var(--soft);cursor:pointer}
 .thumb{width:36px;height:36px;border-radius:8px;object-fit:cover;display:block;background:var(--soft)}
 .thumb.ph{background:var(--soft);border:1px dashed var(--line)}
-td:has(.thumb){width:52px;padding-right:0}
+/* kartové zobrazenie záznamov */
+.rc-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 16px}
+.rc-head h2{font-size:19px;margin:0;font-weight:600}
+.rc-search{max-width:240px;padding:8px 12px;font-size:13px}
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
+.rc{display:flex;gap:12px;align-items:flex-start;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font:inherit;color:inherit;width:100%;transition:border-color .12s,box-shadow .12s}
+button.rc{cursor:pointer}
+button.rc:hover{border-color:var(--gold);box-shadow:0 6px 18px rgba(32,59,50,.08)}
+.rc-media{flex:none}
+.rc-media .thumb{width:44px;height:44px}
+.rc-body{flex:1;min-width:0}
+.rc-title{font-weight:600;font-size:15px;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis}
+.rc-fields{display:flex;flex-direction:column;gap:5px}
+.rc-f{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
+.rc-f em{font-style:normal;color:var(--muted);font-size:11px;letter-spacing:.04em;text-transform:uppercase;min-width:78px;flex:none}
+.empty{grid-column:1/-1;background:var(--soft);border-radius:14px;padding:40px;text-align:center;color:var(--muted)}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;letter-spacing:.04em;background:var(--soft);color:var(--ink)}
 .pill.ok{background:#e4f0e2;color:#2c5c2c}.pill.warn{background:#f6ecd8;color:#8a6a1e}.pill.off{background:#f0e2e2;color:#8a2e2e}
 .btn{display:inline-flex;align-items:center;gap:6px;background:var(--forest);color:var(--cream);border:0;border-radius:10px;padding:9px 16px;font-size:14px;text-decoration:none}
