@@ -348,23 +348,78 @@ async function vOrders(view) {
       <span class="rc-f"><em>Vybavenie</em>${fulPill(o.fulfillment_status)}</span>
       <span class="rc-f"><em>Dátum</em>${fmtDate(o.created_at)}</span></div></div>` });
 }
-async function vOrderDetail(view, id) {
+// Akcie objednávky cez natívne Admin API jadra (spúšťajú existujúce subscribery: e-maily, prístupy, kompenzácie).
+// Každá zmena má potvrdenie; sumy a stavy overuje jadro, SPA len ponúka to, čo dáva zmysel.
+const ORDER_FIELDS = 'id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,*items,*items.detail,*fulfillments,*fulfillments.items,*fulfillments.labels,*payment_collections,*payment_collections.payments,*payment_collections.payments.refunds,*payment_collections.payments.captures,*shipping_address,*shipping_methods';
+const PAY_LABEL = { captured: 'zaplatená', authorized: 'autorizovaná (čaká na prijatie)', partially_refunded: 'čiastočne vrátená', refunded: 'vrátená', not_paid: 'nezaplatená', awaiting: 'čaká na platbu', canceled: 'zrušená', partially_captured: 'čiastočne zaplatená', requires_action: 'čaká na overenie' };
+const FUL_LABEL = { not_fulfilled: 'nevybavená', fulfilled: 'pripravená na odoslanie', partially_fulfilled: 'čiastočne pripravená', shipped: 'odoslaná', partially_shipped: 'čiastočne odoslaná', delivered: 'doručená', canceled: 'zrušená' };
+const sum = (arr, k = 'amount') => (arr || []).reduce((a, x) => a + Number(x?.[k] || 0), 0);
+async function vOrderDetail(view, id, notice) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  const { order: o } = await api(`/admin/orders/${id}?fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,*items`);
+  const { order: o } = await api(`/admin/orders/${id}?fields=${encodeURIComponent(ORDER_FIELDS)}`);
+  const items = o.items || [];
+  const toFulfill = items.map(it => ({ id: it.id, title: it.title || it.product_title || '', quantity: Number(it.quantity) - Number(it.detail?.fulfilled_quantity || 0) })).filter(x => x.quantity > 0);
+  const fulfillments = (o.fulfillments || []).filter(f => !f.canceled_at);
+  const payments = (o.payment_collections || []).flatMap(pc => pc.payments || []).filter(p => !p.canceled_at);
+  const canceled = o.status === 'canceled';
+  const anyShipped = fulfillments.some(f => f.shipped_at);
+  const a = (o.shipping_address || {});
+  const addr = [[a.first_name, a.last_name].filter(Boolean).join(' '), a.address_1, a.address_2, [a.postal_code, a.city].filter(Boolean).join(' '), (a.country_code || '').toUpperCase()].filter(Boolean).map(esc).join('<br>');
   const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(o.created_at)}</div></div></div>
-    <div class="row"><div><label>Stav</label><div><span class="pill">${esc(o.status)}</span></div></div>
-    <div><label>Platba</label><div><span class="pill">${esc(o.payment_status || '—')}</span></div></div></div>
-    <div class="row"><div><label>Doručenie</label><div><span class="pill">${esc(o.fulfillment_status || '—')}</span></div></div>
-    <div><label>Celkom</label><div style="font-weight:600">${fmtEur(o.total)}</div></div></div>
-    <p class="muted" style="margin-top:10px">Fulfillment a refundy prebiehajú cez jadro (bezpečné serverové operácie); tu je bezpečný náhľad.</p>`;
-  const polozky = `<table><thead><tr><th>Produkt</th><th>Ks</th><th>Suma</th></tr></thead><tbody>
-    ${(o.items || []).map(it => `<tr><td>${esc(it.title || it.product_title || '')}</td><td>${it.quantity}</td><td>${fmtEur(it.total)}</td></tr>`).join('')}
-    </tbody></table><div style="margin-top:14px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>`;
-  view.innerHTML = `<div class="card"><div class="card-h">Objednávka #${o.display_id ?? ''}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
-    ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }])}
+    <div class="row"><div><label>Platba</label><div><span class="pill">${esc(PAY_LABEL[o.payment_status] || o.payment_status || '—')}</span></div></div>
+    <div><label>Vybavenie</label><div><span class="pill">${esc(FUL_LABEL[o.fulfillment_status] || o.fulfillment_status || '—')}</span>${canceled ? ' <span class="pill off">objednávka zrušená</span>' : ''}</div></div></div>
+    <div class="row"><div><label>Doručenie</label><div>${addr || '<span class="muted">bez adresy (digitálny obsah)</span>'}</div></div>
+    <div><label>Doprava</label><div>${(o.shipping_methods || []).map(m => `${esc(m.name)} · ${fmtEur(m.total ?? m.amount)}`).join('<br>') || '—'}</div></div></div>
+    <div style="margin-top:10px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>`;
+  const polozky = `<div class="rc-grid">${items.map(it => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(it.title || it.product_title || '')}</div><div class="rc-fields">
+      <span class="rc-f"><em>Kusov</em>${it.quantity}</span><span class="rc-f"><em>Suma</em>${fmtEur(it.total)}</span>
+      <span class="rc-f"><em>Pripravené</em>${Number(it.detail?.fulfilled_quantity || 0)} / ${it.quantity}</span>
+      <span class="rc-f"><em>Odoslané</em>${Number(it.detail?.shipped_quantity || 0)} / ${it.quantity}</span></div></div></div>`).join('') || '<div class="empty">Žiadne položky.</div>'}</div>`;
+  const odoslanie = `${!canceled && toFulfill.length ? `<div class="task"><div><b>Pripraviť na odoslanie</b><p class="muted">${toFulfill.map(x => `${esc(x.title)} × ${x.quantity}`).join(', ')}</p></div><button class="btn gold" id="o-ful">Pripraviť</button></div>` : ''}
+    ${fulfillments.map(f => `<div class="task"><div><b>Zásielka ${fmtDate(f.created_at)}</b>
+      <p class="muted">${(f.items || []).map(x => `${esc(x.title || '')} × ${x.quantity}`).join(', ')}</p>
+      ${f.shipped_at ? `<span class="pill ok">odoslaná ${fmtDate(f.shipped_at)}</span>${(f.labels || []).map(l => ` <span class="muted">${l.tracking_url ? `<a href="${esc(l.tracking_url)}" target="_blank" rel="noopener">${esc(l.tracking_number || 'sledovať')}</a>` : esc(l.tracking_number || '')}</span>`).join('')}`
+        : `<div class="row" style="margin-top:6px"><div><label>Číslo zásielky (voliteľné)</label><input data-trk="${esc(f.id)}" placeholder="napr. Z123456789"></div><div><label>Odkaz na sledovanie (voliteľné)</label><input data-trkurl="${esc(f.id)}" placeholder="https://…"></div></div>`}
+      </div>${f.shipped_at ? '' : `<button class="btn gold" data-ship="${esc(f.id)}">Označiť ako odoslanú</button>`}</div>`).join('')}
+    ${!toFulfill.length && !fulfillments.length ? '<p class="muted">Nie je čo pripraviť.</p>' : ''}
+    <p class="muted" style="font-size:12px;margin-top:10px">Po označení odoslania jadro pošle zákazníčke e-mail o odoslaní.</p>`;
+  const platby = `${payments.map(p => { const cap = sum(p.captures), ref = sum(p.refunds), left = Math.round((cap - ref) * 100) / 100;
+    return `<div class="task"><div><b>${fmtEur(p.amount)}</b> <span class="muted">${esc(p.provider_id || '')}</span>
+      <p class="muted">Prijaté ${fmtEur(cap)} · vrátené ${fmtEur(ref)}</p>
+      ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div><div></div></div>` : ''}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
+    <p class="muted" style="font-size:12px;margin-top:10px">Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.</p>`;
+  view.innerHTML = `<div class="card"><div class="card-h">Objednávka #${esc(o.display_id ?? '')}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
+    <div id="omsg">${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
+    ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }, { id: 'o', label: 'Odoslanie', html: odoslanie }, { id: 'pl', label: 'Platby', html: platby }])}
+    ${!canceled && !anyShipped ? '<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><button class="btn ghost" id="o-cancel">Zrušiť objednávku</button></div>' : ''}
   </div></div>`;
   wireTabs(view);
   view.querySelector('#o-back').onclick = () => vOrders(view);
+  const run = async (btn, question, fn, done) => {
+    if (!confirm(question)) return;
+    const msg = view.querySelector('#omsg'); msg.innerHTML = ''; btn.disabled = true;
+    try { await fn(); await vOrderDetail(view, id, done); }
+    catch (e) { if (e.message === '401') return; btn.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+  const fb = view.querySelector('#o-ful');
+  if (fb) fb.onclick = () => run(fb, 'Pripraviť všetky nevybavené položky na odoslanie?', () => api(`/admin/orders/${id}/fulfillments`, { method: 'POST', body: { items: toFulfill.map(x => ({ id: x.id, quantity: x.quantity })) } }), 'Položky sú pripravené na odoslanie.');
+  view.querySelectorAll('[data-ship]').forEach(b => b.onclick = () => {
+    const f = fulfillments.find(x => x.id === b.dataset.ship); if (!f) return;
+    const tn = (view.querySelector(`[data-trk="${CSS.escape(f.id)}"]`)?.value || '').trim(), tu = (view.querySelector(`[data-trkurl="${CSS.escape(f.id)}"]`)?.value || '').trim();
+    if (tu && !/^https:\/\/\S+$/.test(tu)) { view.querySelector('#omsg').innerHTML = '<div class="err">Odkaz na sledovanie musí začínať https://</div>'; return; }
+    const body = { items: (f.items || []).map(x => ({ id: x.line_item_id, quantity: x.quantity })) };
+    if (tn || tu) body.labels = [{ tracking_number: tn || '-', tracking_url: tu || '#', label_url: '#' }];
+    run(b, 'Označiť zásielku ako odoslanú? Zákazníčke odíde e-mail.', () => api(`/admin/orders/${id}/fulfillments/${f.id}/shipments`, { method: 'POST', body }), 'Zásielka je označená ako odoslaná.');
+  });
+  view.querySelectorAll('[data-cap]').forEach(b => b.onclick = () => run(b, 'Prijať (strhnúť) túto platbu?', () => api(`/admin/payments/${b.dataset.cap}/capture`, { method: 'POST', body: {} }), 'Platba je prijatá.'));
+  view.querySelectorAll('[data-ref]').forEach(b => b.onclick = () => {
+    const amt = Number(view.querySelector(`[data-refamt="${CSS.escape(b.dataset.ref)}"]`)?.value), max = Number(b.dataset.max);
+    if (!(amt > 0) || amt > max) { view.querySelector('#omsg').innerHTML = `<div class="err">Zadajte sumu od 0,01 do ${esc(fmtEur(max))}.</div>`; return; }
+    run(b, `Naozaj vrátiť ${fmtEur(amt)} zákazníčke? Túto akciu nemožno vrátiť späť.`, () => api(`/admin/payments/${b.dataset.ref}/refund`, { method: 'POST', body: { amount: amt } }), `Vrátenie ${fmtEur(amt)} bolo odoslané.`);
+  });
+  const cb = view.querySelector('#o-cancel');
+  if (cb) cb.onclick = () => run(cb, 'Naozaj zrušiť celú objednávku? Zaplatené peniaze vráťte v záložke Platby.', () => api(`/admin/orders/${id}/cancel`, { method: 'POST', body: {} }), 'Objednávka je zrušená.');
 }
 async function vCustomers(view) {
   const { customers } = await api('/admin/customers?limit=100&fields=id,email,first_name,last_name,has_account,created_at');
