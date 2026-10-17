@@ -229,7 +229,9 @@ export default async function anastasiaBootstrap({ container }: { container: Med
         selector: { id: store.id },
         update: {
           name: STORE_NAME,
-          supported_currencies: [{ currency_code: CURRENCY_CODE, is_default: true }],
+          // Ceny v katalógu sú koncové (s DPH). Produkty majú cenu len podľa meny (bez pravidla region_id),
+          // preto Medusa berie preferenciu MENY, nie regiónu; bez is_tax_inclusive by k 50 € pripočítala 23 %.
+          supported_currencies: [{ currency_code: CURRENCY_CODE, is_default: true, is_tax_inclusive: true }],
           default_sales_channel_id: salesChannel.id,
         },
       },
