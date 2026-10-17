@@ -36,7 +36,7 @@ export async function prepareMembershipCheckout(scope:Scope,cartId:string,actorI
  return scope.resolve<ILockingModule>(Modules.LOCKING).execute(cartId,async()=>{
   const query=scope.resolve(ContainerRegistrationKeys.QUERY) as any
   const read=async()=>{
-   const cart=await (scope.resolve(Modules.CART) as any).retrieveCart(cartId,{select:['id','customer_id','currency_code','completed_at','total'],relations:['items']})
+   const cart=await (scope.resolve(Modules.CART) as any).retrieveCart(cartId,{select:['id','customer_id','currency_code','completed_at','total'],relations:['items','shipping_methods']})
    if(cart.id!==cartId||cart.customer_id!==actorId)return reject('MEMBERSHIP_CHECKOUT_NOT_FOUND')
    if(cart.completed_at||cart.currency_code!=='eur'||!Array.isArray(cart.items)||cart.items.length!==1||!isOneNativeUnit(cart.items[0].quantity))return reject('MEMBERSHIP_CART_NOT_ELIGIBLE')
    const {data:links}=await query.graph({entity:'order_cart',fields:['cart_id','order_id'],filters:{cart_id:cartId}})
@@ -60,7 +60,8 @@ export async function prepareMembershipCheckout(scope:Scope,cartId:string,actorI
   if(!config||typeof config!=='object')return reject('MEMBERSHIP_PRODUCT_NOT_CONFIGURED')
   if(cart.shipping_methods?.some((method:any)=>euroMinor(method.total??method.amount)>0))return reject('MEMBERSHIP_PHYSICAL_DELIVERY_NOT_SUPPORTED')
   // This contract sells digital member access; it cannot silently carry physical fulfillment.
-  if(item.requires_shipping===true)await (scope.resolve(Modules.CART) as any).updateLineItems({id:item.id,requires_shipping:false})
+  // (id, data) form: a lone object is a Medusa selector WITHOUT data and silently updates nothing.
+  if(item.requires_shipping===true)await (scope.resolve(Modules.CART) as any).updateLineItems(item.id,{requires_shipping:false})
   const amount=euroMinor(cart.total)
   if(approval.version!==config.version||approval.amount_minor!==amount)return reject('MEMBERSHIP_APPROVAL_CHANGED')
   const contract:CheckoutContract={cart_id:cartId,terms:{customer_id:actorId,product_id:item.product_id,variant_id:item.variant_id,version:config.version,period_days:config.period_days,amount_minor:amount,currency:'eur'},consent:{version:approval.version,auto_renew:approval.auto_renew},accepted_at:new Date().toISOString()}

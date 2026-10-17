@@ -5,15 +5,16 @@ import {prepareMembershipCheckout,settleMembershipCheckout} from '../checkout'
 import {repriceCart} from '../../../api/store/nexus-cart/route'
 import {loadNativeMembershipReceipt} from '../native-receipt'
 function fixture(){
- const cart:any={id:'cart_a',customer_id:'cus_a',currency_code:'eur',completed_at:null,total:50,items:[{product_id:'prod_a',variant_id:'var_a',quantity:{numeric:1}}]}
+ const cart:any={id:'cart_a',customer_id:'cus_a',currency_code:'eur',completed_at:null,total:50,items:[{id:'item_a',product_id:'prod_a',variant_id:'var_a',quantity:{numeric:1}}]}
  const product:any={id:'prod_a',status:'published',metadata:{membership:{version:'v1',period_days:30}}}
  const pc:any={payment_sessions:[],payments:[]}
  const links:any[]=[]
  const query={graph:jest.fn(async({entity}:any)=>({data:entity==='order_cart'?links:[{id:'cart_a',payment_collection:pc}]}))}
  const membership={reserveCheckout:jest.fn(async(c:any)=>({id:'mck_a',contract:c,status:'prepared'})),checkoutForCustomer:jest.fn(async()=>({contract:{cart_id:'cart_a',terms:{product_id:'prod_a',variant_id:'var_a'},consent:{auto_renew:false}}})),settleCheckout:jest.fn(async()=>({state:{id:'mbr_a'}}))}
  const locking={execute:jest.fn(async(_key:string,fn:any)=>fn())}
- const scope:any={resolve:(key:string)=>({query,cart:{retrieveCart:async()=>cart},product:{retrieveProduct:async()=>product},locking,membership} as any)[key]}
- return {cart,product,pc,links,query,membership,locking,scope}
+ const cartService={retrieveCart:jest.fn(async()=>cart),updateLineItems:jest.fn(async()=>[])}
+ const scope:any={resolve:(key:string)=>({query,cart:cartService,product:{retrieveProduct:async()=>product},locking,membership} as any)[key]}
+ return {cart,product,pc,links,query,membership,locking,scope,cartService}
 }
 const approval={version:'v1',amount_minor:5000,auto_renew:true}
 beforeEach(()=>jest.clearAllMocks())
@@ -48,6 +49,17 @@ describe('native membership checkout adapter boundaries',()=>{
  it('rechecks native facts after repricing and never saves a cart completed in between',async()=>{
   const f=fixture();jest.mocked(repriceCart).mockImplementationOnce(async()=>{f.cart.completed_at=new Date();return {} as any})
   await expect(prepareMembershipCheckout(f.scope,'cart_a','cus_a',approval)).rejects.toThrow('NOT_ELIGIBLE')
+  expect(f.membership.reserveCheckout).not.toHaveBeenCalled()
+ })
+ it('marks the digital membership line as not requiring shipping with real update data',async()=>{
+  const f=fixture();f.cart.items[0].requires_shipping=true
+  await prepareMembershipCheckout(f.scope,'cart_a','cus_a',approval)
+  expect(f.cartService.updateLineItems).toHaveBeenCalledWith('item_a',{requires_shipping:false})
+  expect(f.cartService.retrieveCart).toHaveBeenCalledWith('cart_a',expect.objectContaining({relations:expect.arrayContaining(['shipping_methods'])}))
+ })
+ it('rejects a paid physical delivery method',async()=>{
+  const f=fixture();f.cart.shipping_methods=[{amount:3.9}]
+  await expect(prepareMembershipCheckout(f.scope,'cart_a','cus_a',approval)).rejects.toThrow('MEMBERSHIP_PHYSICAL_DELIVERY_NOT_SUPPORTED')
   expect(f.membership.reserveCheckout).not.toHaveBeenCalled()
  })
  it('settles only the order linked to the persisted own cart',async()=>{
