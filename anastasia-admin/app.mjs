@@ -96,11 +96,12 @@ async function vDashboard(view) {
   const safeCount = async (p) => { try { return (await api(p)).count; } catch { return null; } };
   await loadMe(); setUserChip();
   const today = new Date();
-  const [toFulfill, ordTotal, msgs, consults] = await Promise.all([
+  const [toFulfill, ordTotal, msgs, consults, readiness] = await Promise.all([
     safeCount('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1'),
     safeCount('/admin/orders?limit=1'),
     safeCount('/admin/chat/conversations?status=open&limit=1'),
     safeCount('/admin/bookings?limit=1'),
+    api('/admin/readiness').catch(e => { if (e.message === '401') throw e; return null; }),
   ]);
   const naVybavenie = toFulfill != null ? toFulfill : (ordTotal != null ? ordTotal : '—');
   const dnes = today.toLocaleDateString('sk-SK', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -116,6 +117,7 @@ async function vDashboard(view) {
     ${kpi('Nové správy', msgs != null ? msgs : '—', msgs != null ? 'zákazníčky čakajú na odpoveď' : 'chat sa napája')}
     ${kpi('Dnešné konzultácie', consults != null ? consults : '—', consults != null ? 'rezervácie na dnes' : 'rezervácie sa napájajú')}
   </div>
+  ${readinessCard(readiness)}
   <div class="dash-cols">
     <div class="card"><div class="card-h">Čomu sa venovať</div><div class="card-b">
       ${tasks.length ? tasks.map(([t, d, cta, href]) => `<div class="task"><div><b>${t}</b><p class="muted">${esc(d)}</p></div><a href="${href}">${cta} →</a></div>`).join('') : '<p class="muted">Všetko máte vybavené. Nič nečaká na vašu pozornosť. ✓</p>'}
@@ -126,6 +128,19 @@ async function vDashboard(view) {
       <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" href="#/poukazy">Nastaviť poukazy</a><a class="btn ghost" href="#/nastavenia">Otvoriť nastavenia →</a></div>
     </div></div>
   </div>`;
+}
+
+// Pripravenosť obchodu: len z GET /admin/readiness (reálne dáta jadra). Čo sa nedá overiť, nikdy nevydávame za hotové.
+function readinessCard(r) {
+  if (!r || !Array.isArray(r.checks)) return `<div class="card" style="margin-bottom:18px"><div class="card-h">Pripravenosť obchodu</div><div class="card-b"><p class="muted" style="margin:0">Pripravenosť sa teraz nedá overiť. Skúste obnoviť stránku.</p></div></div>`;
+  const open = r.checks.filter(c => c.status !== 'ok').sort((a, b) => (a.status === 'unknown') - (b.status === 'unknown') || (a.severity === 'blocker' ? -1 : 1) - (b.severity === 'blocker' ? -1 : 1));
+  const ok = r.checks.length - open.length;
+  const pill = (c) => c.status === 'unknown' ? '<span class="pill off">nedá sa overiť</span>' : c.severity === 'blocker' ? '<span class="pill off">bráni predaju</span>' : '<span class="pill warn">odporúčame doplniť</span>';
+  const head = r.summary.blockers ? `${r.summary.blockers} ${r.summary.blockers === 1 ? 'vec bráni' : 'veci bránia'} predaju` : open.length ? 'Predaj je možný, niečo ešte odporúčame doplniť' : 'Obchod je pripravený na predaj ✓';
+  return `<div class="card" style="margin-bottom:18px"><div class="card-h">Pripravenosť obchodu <span class="muted" style="font-weight:400;font-size:12px">${ok} z ${r.checks.length} v poriadku</span></div><div class="card-b">
+    <p style="font-weight:600;margin:0 0 10px">${esc(head)}</p>
+    ${open.map(c => `<div class="task"><div><b>${esc(c.title)}</b> ${pill(c)}${c.count > 1 ? ` <span class="muted">(${c.count})</span>` : ''}<p class="muted">${esc(c.hint)}</p></div><a href="${esc(c.href)}">Vyriešiť →</a></div>`).join('')}
+  </div></div>`;
 }
 
 // Kartové zobrazenie (žiadne riadkové tabuľky). `card(r)` = voliteľný HTML pre jednu kartu;
