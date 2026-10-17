@@ -180,17 +180,45 @@ async function clearVariantSale(ref) {
 }
 async function vProducts(view) {
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
-  const { products } = await api('/admin/products?limit=100&fields=id,title,status,handle,*variants.prices');
+  setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
+  const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
+  const { products } = await api('/admin/products?limit=100&fields=id,title,status,handle,thumbnail,metadata,*variants.prices');
   listView(view, {
     title: 'Produkty', rows: products,
     cols: [
+      { h: '', v: p => p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>' },
       { h: 'Názov', v: p => esc(p.title) },
-      { h: 'Stav', v: p => `<span class="pill ${p.status === 'published' ? 'ok' : 'warn'}">${esc(p.status)}</span>` },
+      { h: 'Stav', v: p => `<span class="pill ${p.status === 'published' ? 'ok' : 'warn'}">${p.status === 'published' ? 'zverejnený' : 'koncept'}</span>` },
       { h: 'Cena', v: p => { const pr = p.variants?.[0]?.prices?.find(x => x.currency_code === 'eur'); return fmtEur(pr?.amount); } },
-      { h: 'Varianty', v: p => (p.variants?.length || 0) },
+      { h: 'Akcia', v: p => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; } },
     ],
     onRow: p => vProductDetail(view, p.id),
   });
+}
+async function vProductNew(view) {
+  view.innerHTML = `<div class="card"><div class="card-h">Nový produkt<button class="btn ghost" id="pn-back">Späť</button></div><div class="card-b">
+    <div id="pnmsg"></div>
+    <label>Názov</label><input id="pn-title" placeholder="napr. Konzultačný balík">
+    <div class="row"><div><label>Cena (EUR)</label><input id="pn-price" type="number" step="0.01" placeholder="0.00"></div>
+    <div><label>Stav</label><select id="pn-status"><option value="draft">Koncept</option><option value="published">Zverejnený</option></select></div></div>
+    <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť produkt</button></div>
+    <p class="muted" style="margin-top:10px;font-size:12px">Produkt vznikne s jedným variantom a cenou v EUR. Ďalšie detaily (popis, kategórie, akcia) doplníte v úprave.</p>
+  </div></div>`;
+  view.querySelector('#pn-back').onclick = () => vProducts(view);
+  view.querySelector('#pn-save').onclick = async () => {
+    const msg = view.querySelector('#pnmsg'); msg.innerHTML = '';
+    const title = view.querySelector('#pn-title').value.trim();
+    const amount = Number(view.querySelector('#pn-price').value);
+    const status = view.querySelector('#pn-status').value;
+    if (!title) { msg.innerHTML = '<div class="err">Zadajte názov produktu.</div>'; return; }
+    const btn = view.querySelector('#pn-save'); btn.disabled = true;
+    try {
+      const body = { title, status, options: [{ title: 'Variant', values: ['Štandard'] }],
+        variants: [{ title: 'Štandard', options: { Variant: 'Štandard' }, prices: amount > 0 ? [{ amount, currency_code: 'eur' }] : [] }] };
+      const { product } = await api('/admin/products', { method: 'POST', body });
+      vProductDetail(view, product.id);
+    } catch (e) { btn.disabled = false; msg.innerHTML = `<div class="err">Jadro odmietlo: ${esc(e.message)}</div>`; }
+  };
 }
 async function vProductDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
