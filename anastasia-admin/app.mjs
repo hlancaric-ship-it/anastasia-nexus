@@ -38,6 +38,7 @@ const ICONS = {
   gift: '<rect x="3" y="8.5" width="18" height="11.5" rx="1"/><path d="M3 13h18M12 8.5V20M12 8.5S10.5 4 8 4.8 9 8.5 12 8.5Zm0 0s1.5-4.5 4-3.7S15 8.5 12 8.5Z"/>',
   doc: '<path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v4h4M9 13h6M9 17h5"/>',
   cog: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>',
+  star: '<path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8L12 3.5Z"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.4 2.4 0 0 1 4 1.7c0 1.5-2 1.8-2 3.3"/><circle cx="11.6" cy="17" r=".6"/>',
 };
 const navIcon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
@@ -51,6 +52,7 @@ const NAV = [
   { k: 'zakaznicky', label: 'Zákazníčky', icon: 'users', ready: true },
   { k: 'konzultacie', label: 'Konzultácie', icon: 'cal', ready: true },
   { k: 'spravy', label: 'Správy', icon: 'chat', ready: true },
+  { k: 'klub', label: 'Klub', icon: 'star', ready: true },
   { k: 'poukazy', label: 'Poukazy a zľavy', icon: 'gift', ready: true },
   { k: 'obsah', label: 'Obsah a e-maily', icon: 'doc', ready: true },
 ];
@@ -498,7 +500,6 @@ const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
   { label: 'Pripojenia', run: (v) => stub(v, 'Pripojenia', 'Vloženie/overenie API kľúčov služieb (Stripe, ComGate, dopravcovia) bez programátora.') },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', 'Napojenie fakturácie (POHODA / Money S3).') },
-  { label: 'Klub / Členstvo', run: (v) => tryList(v, { title: 'Klub / Členstvo', endpoint: '/admin/memberships', key: 'memberships', cols: [{ h: 'Zákazníčka', v: x => esc(x.customer_id || '') }, { h: 'Stav', v: x => esc(x.status || '') }, { h: 'Platí do', v: x => fmtDate(x.current_period_end) }], note: 'Členstvo/predplatné sa dokončuje v jadre (Codex).' }) },
 ]);
 function vPomoc(view) {
   view.innerHTML = `<div class="card"><div class="card-h">Potrebujete poradiť?</div><div class="card-b">
@@ -536,6 +537,142 @@ async function vEntitlementDetail(view, e) {
 }
 const vZakaznicky = (view) => subnav(view, [{ label: 'Zákazníčky', run: vCustomers }, { label: 'Prístupy a knižnica', run: vEntitlements }]);
 
+// --- Klub ANASTASIA (/admin/memberships*) — platby a stavy rieši výhradne jadro, tu len prehľad a bezpečné akcie ---
+const KLUB_TABS = [
+  { id: 'memberships', label: 'Členky', q: 'ID zákazníčky (cus_…)' },
+  { id: 'checkouts', label: 'Nákupy členstva', q: 'ID zákazníčky (cus_…)' },
+  { id: 'products', label: 'Produkty Klubu', q: 'Názov produktu' },
+  { id: 'billing', label: 'Obnovy platieb', q: 'ID členstva (mbr_…)' },
+];
+const KLUB_STATUS = { active: ['aktívne', 'ok'], renewing: ['obnovuje sa', 'warn'], unknown: ['platbu treba overiť', 'warn'], needs_review: ['na kontrolu', 'off'] };
+const KLUB_ACCESS = { active: ['prístup aktívny', 'ok'], pending: ['prístup sa pripravuje', 'warn'], expired: ['prístup vypršal', 'off'], revoked: ['prístup odobratý', 'off'], needs_review: ['prístup na kontrolu', 'warn'] };
+const KLUB_STAGE = { planned: ['naplánovaná', 'warn'], cart_requested: ['prebieha', 'warn'], cart_ready: ['prebieha', 'warn'], payment_requested: ['prebieha', 'warn'], payment_ready: ['prebieha', 'warn'], completing: ['dokončuje sa', 'warn'], needs_action: ['čaká na overenie kartou', 'warn'], unknown: ['treba overiť', 'off'], review: ['na kontrolu', 'off'], settled: ['zaplatená', 'ok'] };
+const klubPill = (map, s) => { const [l, c] = map[s] || [s || '—', 'off']; return `<span class="pill ${c}">${esc(l)}</span>`; };
+const KLUB_LIMIT = 12;
+async function vKlub(view, state = {}) {
+  const tab = KLUB_TABS.find(t => t.id === state.tab) || KLUB_TABS[0];
+  const offset = Math.max(0, state.offset | 0), q = (state.q || '').trim();
+  const go = (patch) => vKlub(view, { tab: tab.id, offset, q, ...patch });
+  view.innerHTML = '<div class="muted">Načítavam Klub…</div>';
+  let data;
+  try {
+    data = await api(`/admin/memberships?tab=${tab.id}&offset=${offset}&limit=${KLUB_LIMIT}${q ? '&q=' + encodeURIComponent(q) : ''}`);
+  } catch (e) {
+    if (e.message === '401') throw e;
+    view.innerHTML = `<div class="err">${esc(e.message)}</div><div style="margin-top:12px"><button class="btn ghost" id="k-retry">Obnoviť</button></div>`;
+    view.querySelector('#k-retry').onclick = () => go({});
+    return;
+  }
+  const items = data.items || [], count = data.count || 0;
+  const cards = {
+    memberships: m => `<div class="rc-body"><div class="rc-title">${esc(m.customer_label)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Členstvo</em>${esc(m.title)}</span>
+      <span class="rc-f"><em>Stav</em>${klubPill(KLUB_STATUS, m.status)} ${klubPill(KLUB_ACCESS, m.access_status)}</span>
+      <span class="rc-f"><em>Platí do</em>${fmtDate(m.period_end)}${m.period_elapsed ? ' <span class="pill off">obdobie skončilo</span>' : ''}</span>
+      <span class="rc-f"><em>Obnova</em>${m.renew ? '<span class="pill ok">automatická</span>' : '<span class="pill off">zastavená</span>'}</span></div></div>`,
+    checkouts: c => `<div class="rc-body"><div class="rc-title">${esc(c.customer_label)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Stav</em>${c.status === 'settled' ? '<span class="pill ok">dokončený</span>' : '<span class="pill warn">rozpracovaný</span>'}</span>
+      <span class="rc-f"><em>Objednávka</em>${c.order_id ? `<a href="#/objednavky" class="muted">${esc(c.order_id)}</a>` : '—'}</span>
+      <span class="rc-f"><em>Členstvo</em>${esc(c.membership_id || '—')}</span></div></div>`,
+    products: p => `<div class="rc-body"><div class="rc-title">${esc(p.title)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Produkt</em><span class="pill ${p.status === 'published' ? 'ok' : 'warn'}">${p.status === 'published' ? 'zverejnený' : 'koncept'}</span></span>
+      <span class="rc-f"><em>Klub</em>${p.configuration_invalid ? '<span class="pill off">nastavenie je poškodené</span>' : p.configuration ? `<span class="pill ok">${p.configuration.period_days} dní</span> <span class="muted">podmienky ${esc(p.configuration.version)}</span>` : '<span class="muted">nie je členstvo</span>'}</span></div></div>`,
+    billing: b => `<div class="rc-body"><div class="rc-title">${esc(b.title)} · ${fmtDate(b.created_at)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Stav</em>${klubPill(KLUB_STAGE, b.status)}</span>
+      <span class="rc-f"><em>Členstvo</em>${esc(b.membership_id)}</span>
+      <span class="rc-f"><em>Objednávka</em>${esc(b.order_id || '—')}</span>
+      <span class="rc-f"><em>Zmena</em>${fmtDate(b.updated_at)}</span></div></div>`,
+  };
+  const empty = { memberships: 'Zatiaľ žiadne členky v Klube.', checkouts: 'Zatiaľ žiadne nákupy členstva.', products: 'Žiadne produkty.', billing: 'Zatiaľ žiadne obnovy platieb.' };
+  const from = count ? offset + 1 : 0, to = Math.min(offset + items.length, count);
+  view.innerHTML = `<div class="tabs">${KLUB_TABS.map(t => `<button class="tab ${t.id === tab.id ? 'active' : ''}" data-k="${t.id}">${esc(t.label)}</button>`).join('')}</div>
+    <form class="rc-head" id="k-search" style="gap:10px;flex-wrap:wrap"><input class="rc-search" id="k-q" value="${esc(q)}" placeholder="${esc(tab.q)}" style="flex:1;min-width:200px">
+      <button class="btn ghost" type="submit">Hľadať</button>${q ? '<button class="btn ghost" type="button" id="k-clear">Zrušiť</button>' : ''}</form>
+    <div class="rc-grid">${items.length ? items.map(r => `<button class="rc" data-id="${esc(r.id)}">${cards[tab.id](r)}</button>`).join('') : `<div class="empty">${esc(q ? 'Nič sa nenašlo.' : empty[tab.id])}</div>`}</div>
+    <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
+      <span class="muted">${count ? `${from}–${to} z ${count}` : ''}</span>
+      <div style="display:flex;gap:8px"><button class="btn ghost" id="k-prev" ${offset > 0 ? '' : 'disabled'}>← Predchádzajúce</button><button class="btn ghost" id="k-next" ${offset + KLUB_LIMIT < count ? '' : 'disabled'}>Ďalšie →</button></div>
+    </div>`;
+  view.querySelectorAll('[data-k]').forEach(b => b.onclick = () => vKlub(view, { tab: b.dataset.k }));
+  view.querySelector('#k-search').onsubmit = (e) => { e.preventDefault(); go({ offset: 0, q: view.querySelector('#k-q').value }); };
+  const clr = view.querySelector('#k-clear'); if (clr) clr.onclick = () => go({ offset: 0, q: '' });
+  view.querySelector('#k-prev').onclick = () => go({ offset: Math.max(0, offset - KLUB_LIMIT) });
+  view.querySelector('#k-next').onclick = () => go({ offset: offset + KLUB_LIMIT });
+  const back = () => go({});
+  const open = { memberships: m => vKlubMember(view, m, back), checkouts: null, products: p => vKlubProduct(view, p, back), billing: b => vKlubBilling(view, b, back) }[tab.id];
+  view.querySelectorAll('.rc[data-id]').forEach(el => { if (!open) { el.disabled = true; el.style.cursor = 'default'; return; } el.onclick = () => open(items.find(x => x.id === el.dataset.id)); });
+}
+function vKlubMember(view, m, back) {
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(m.customer_label)}<button class="btn ghost" id="k-back">Späť</button></div><div class="card-b">
+    <div id="kmsg"></div>
+    <div class="row"><div><label>Členstvo</label><div>${esc(m.title)}</div></div><div><label>Dĺžka obdobia</label><div>${m.period_days} dní · podmienky ${esc(m.version)}</div></div></div>
+    <div class="row"><div><label>Stav</label><div>${klubPill(KLUB_STATUS, m.status)}</div></div><div><label>Prístup k obsahu</label><div>${klubPill(KLUB_ACCESS, m.access_status)}</div></div></div>
+    <div class="row"><div><label>Platí do</label><div>${fmtDate(m.period_end)}</div></div><div><label>Automatická obnova</label><div>${m.renew ? 'zapnutá' : 'zastavená'}</div></div></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      ${m.renew ? '<button class="btn ghost" id="k-stop">Zastaviť automatickú obnovu</button>' : ''}
+      <button class="btn ghost" id="k-bill">Obnovy platieb</button>
+    </div>
+    <p class="muted" style="margin-top:10px;font-size:12px">Zastavenie neodoberie už zaplatené obdobie — členka má prístup do konca obdobia, ďalšia platba sa už nespustí. Platbu, ktorá je už rozbehnutá, môže jadro ešte dokončiť.</p>
+  </div></div>`;
+  view.querySelector('#k-back').onclick = back;
+  view.querySelector('#k-bill').onclick = () => vKlub(view, { tab: 'billing', q: m.id });
+  const sb = view.querySelector('#k-stop');
+  if (sb) sb.onclick = async () => {
+    if (!confirm('Naozaj zastaviť automatickú obnovu tohto členstva? Zaplatené obdobie zostáva.')) return;
+    const msg = view.querySelector('#kmsg'); msg.innerHTML = ''; sb.disabled = true;
+    try { const r = await api(`/admin/memberships/${encodeURIComponent(m.id)}/stop`, { method: 'POST', body: {} }); vKlubMember(view, { ...m, renew: r.membership.renew, status: r.membership.status, period_end: r.membership.period_end }, back); view.querySelector('#kmsg').innerHTML = '<div class="notice">Automatická obnova je zastavená.</div>'; }
+    catch (e) { sb.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
+function vKlubProduct(view, p, back) {
+  const c = p.configuration;
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(p.title)}<button class="btn ghost" id="k-back">Späť</button></div><div class="card-b">
+    <div id="kmsg"></div>
+    ${p.configuration_invalid ? '<div class="err">Nastavenie členstva pri tomto produkte je poškodené. Kontaktujte podporu, nič neprepisujte.</div>' : ''}
+    <p class="muted">Produkt sa stane členstvom Klubu: zákazníčka ho kúpi kartou a prístup platí počet dní nižšie. Pri zmene dĺžky zadajte aj novú verziu podmienok — existujúce členky ostávajú na pôvodných podmienkach a pri ďalšej obnove ich jadro pošle na kontrolu.</p>
+    <div class="row"><div><label>Dĺžka obdobia (dni)</label><input id="k-days" type="number" min="1" max="3650" step="1" value="${c ? c.period_days : 30}" ${p.configuration_invalid ? 'disabled' : ''}></div>
+    <div><label>Verzia podmienok</label><input id="k-ver" value="${esc(c ? c.version : 'v1')}" placeholder="napr. v1, 2026-10" ${p.configuration_invalid ? 'disabled' : ''}></div></div>
+    ${p.configuration_invalid ? '' : `<div style="margin-top:16px"><button class="btn gold" id="k-save">${c ? 'Uložiť podmienky' : 'Zaradiť do Klubu'}</button></div>`}
+  </div></div>`;
+  view.querySelector('#k-back').onclick = back;
+  const sv = view.querySelector('#k-save');
+  if (sv) sv.onclick = async () => {
+    const msg = view.querySelector('#kmsg'); msg.innerHTML = '';
+    const days = Number(view.querySelector('#k-days').value), version = view.querySelector('#k-ver').value.trim();
+    if (!Number.isInteger(days) || days < 1 || days > 3650) { msg.innerHTML = '<div class="err">Dĺžka obdobia musí byť celé číslo od 1 do 3650 dní.</div>'; return; }
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(version)) { msg.innerHTML = '<div class="err">Verzia podmienok smie obsahovať len písmená, čísla, „-“ a „_“.</div>'; return; }
+    if (!confirm(c ? 'Uložiť nové podmienky členstva?' : 'Zaradiť produkt do Klubu ako členstvo?')) return;
+    sv.disabled = true;
+    try {
+      const r = await api(`/admin/memberships/products/${encodeURIComponent(p.id)}`, { method: 'POST', body: { expected: c || null, configuration: { version, period_days: days } } });
+      vKlubProduct(view, { ...p, configuration: r.product.configuration, configuration_invalid: false }, back);
+      view.querySelector('#kmsg').innerHTML = '<div class="notice">Uložené.</div>';
+    } catch (e) { sv.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
+function vKlubBilling(view, b, back) {
+  const canReconcile = !['settled', 'review'].includes(b.status);
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(b.title)}<button class="btn ghost" id="k-back">Späť</button></div><div class="card-b">
+    <div id="kmsg"></div>
+    <div class="row"><div><label>Stav</label><div>${klubPill(KLUB_STAGE, b.status)}</div></div><div><label>Členstvo</label><div>${esc(b.membership_id)}</div></div></div>
+    <div class="row"><div><label>Začiatok</label><div>${fmtDate(b.created_at)}</div></div><div><label>Objednávka</label><div>${esc(b.order_id || '—')}</div></div></div>
+    ${canReconcile ? `<div style="margin-top:16px"><button class="btn ghost" id="k-rec">Dohľadať platbu</button></div>
+    <p class="muted" style="margin-top:10px;font-size:12px">Jadro len overí už existujúcu objednávku a platbu. Nikdy nespustí novú platbu ani nový nákup.</p>` : ''}
+    ${b.status === 'needs_action' ? '<p class="muted" style="font-size:12px">Banka žiada overenie kartou. Členka ho dokončí vo svojom účte; nová platba sa nevytvára.</p>' : ''}
+    ${b.status === 'review' ? '<p class="muted" style="font-size:12px">Obnova je zastavená na kontrolu (napr. zmenené podmienky alebo neplatná karta). Členka dostane možnosť obnoviť členstvo sama.</p>' : ''}
+  </div></div>`;
+  view.querySelector('#k-back').onclick = back;
+  const rb = view.querySelector('#k-rec');
+  if (rb) rb.onclick = async () => {
+    if (!confirm('Dohľadať existujúcu platbu tejto obnovy?')) return;
+    const msg = view.querySelector('#kmsg'); msg.innerHTML = ''; rb.disabled = true;
+    try { const r = await api(`/admin/memberships/billing/${encodeURIComponent(b.id)}/reconcile`, { method: 'POST', body: {} });
+      msg.innerHTML = r.status === 'SETTLED' ? '<div class="notice">Platba je overená a členstvo predĺžené.</div>' : '<div class="notice">Objednávka zatiaľ neexistuje alebo sa nedá overiť. Skúste neskôr; nový nákup nespúšťajte.</div>'; }
+    catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    finally { rb.disabled = false; }
+  };
+}
+
 const ROUTES = {
   '': ['', '', vDashboard],
   'objednavky': ['Objednávky', 'Prehľad a vybavenie objednávok', vOrders],
@@ -544,9 +681,10 @@ const ROUTES = {
   'zakaznicky': ['Zákazníčky', 'Účty, história a prístupy', vZakaznicky],
   'konzultacie': ['Konzultácie', 'Rezervácie a termíny', vKonzultacie],
   'spravy': ['Správy', 'Konverzácie so zákazníčkami', vSpravy],
+  'klub': ['Klub ANASTASIA', 'Členky, nákupy členstva, podmienky a obnovy platieb', vKlub],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
   'obsah': ['Obsah a e-maily', 'Stránky, texty, médiá a preklady', vObsah],
-  'nastavenia': ['Nastavenia', 'Vzhľad, pripojenia, fakturácia a Klub', vNastavenia],
+  'nastavenia': ['Nastavenia', 'Vzhľad, pripojenia a fakturácia', vNastavenia],
   'pomoc': ['Pomoc', 'Podpora a vysvetlenia', vPomoc],
 };
 
