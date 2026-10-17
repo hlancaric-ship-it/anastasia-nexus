@@ -48,7 +48,10 @@ export async function prepareMembershipCheckout(scope:Scope,cartId:string,actorI
    return cart
   }
   await read()
-  await repriceCart(cartId,scope,true,undefined,actorId)
+  // Under the cart lock only VERIFY the NEXUS price: a write goes through updateLineItemInCartWorkflow,
+  // which waits for this same lock key (2 s) and failed as 503. Pricing is persisted by /store/nexus-cart;
+  // any drift since the offer is a changed approval (409, refresh via nexus-cart).
+  if((await repriceCart(cartId,scope,false,undefined,actorId))?.pricesChanged)return reject('MEMBERSHIP_APPROVAL_CHANGED')
   const cart=await read(),item=cart.items[0]
   if(!membershipIdValid(item.product_id)||!membershipIdValid(item.variant_id))return reject('MEMBERSHIP_CART_NOT_ELIGIBLE')
   const product=await (scope.resolve(Modules.PRODUCT) as any).retrieveProduct(item.product_id,{select:['id','status','metadata']})

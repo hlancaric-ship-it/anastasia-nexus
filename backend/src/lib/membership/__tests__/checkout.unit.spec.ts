@@ -20,7 +20,7 @@ beforeEach(()=>jest.clearAllMocks())
 describe('native membership checkout adapter boundaries',()=>{
  it('reprices through NEXUS and persists server facts before any session',async()=>{
   const f=fixture(),r=await prepareMembershipCheckout(f.scope,'cart_a','cus_a',approval)
-  expect(repriceCart).toHaveBeenCalledWith('cart_a',f.scope,true,undefined,'cus_a')
+  expect(repriceCart).toHaveBeenCalledWith('cart_a',f.scope,false,undefined,'cus_a')
   expect(f.locking.execute.mock.calls[0][0]).toBe('cart_a')
   expect(r.contract).toMatchObject({cart_id:'cart_a',terms:{customer_id:'cus_a',product_id:'prod_a',variant_id:'var_a',period_days:30,amount_minor:5000,currency:'eur'},consent:{version:'v1',auto_renew:true}})
  })
@@ -37,6 +37,12 @@ describe('native membership checkout adapter boundaries',()=>{
   if(kind==='amount')a.amount_minor=4900
   if(kind==='version')a.version='v2'
   await expect(prepareMembershipCheckout(f.scope,'cart_a','cus_a',a)).rejects.toThrow()
+  expect(f.membership.reserveCheckout).not.toHaveBeenCalled()
+ })
+ it('verifies NEXUS price under the cart lock without writing and rejects drift as changed approval',async()=>{
+  const f=fixture();jest.mocked(repriceCart).mockResolvedValueOnce({pricesChanged:true} as any)
+  await expect(prepareMembershipCheckout(f.scope,'cart_a','cus_a',approval)).rejects.toThrow('MEMBERSHIP_APPROVAL_CHANGED')
+  expect(repriceCart).not.toHaveBeenCalledWith(expect.anything(),expect.anything(),true,expect.anything(),expect.anything())
   expect(f.membership.reserveCheckout).not.toHaveBeenCalled()
  })
  it('rechecks native facts after repricing and never saves a cart completed in between',async()=>{

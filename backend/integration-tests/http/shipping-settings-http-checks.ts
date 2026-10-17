@@ -9,9 +9,9 @@ import { acceptCheckoutConsent } from "./legal-fixtures"
  * klient cenu dopravy nepřepíše. Dokončení objednávky tu není – to pokrývají ostatní scénáře.
  *
  * `item_total` je v Medusa 2 součet položek S DPH po slevách (cenový kontext dopravy je celý košík).
- * Syntetické ceny jsou bez DPH (SK region daň přičítá), proto test čte hrubou částku z košíku a
- * hranici ověřuje s haléřovou přesností: 81,29 € bez DPH je těsně pod 100 € s DPH, přidání položky
- * za 0,02 € bez DPH košík posune těsně nad hranici. Sazbu DPH test neopisuje.
+ * Ceny v katalógu sú koncové (s DPH, EUR je tax-inclusive z bootstrapu), test aj tak číta hrubú
+ * částku z košíka a hranicu overuje s haléřovou přesností: 99,99 € je těsně pod 100 €, přidání
+ * položky za 0,02 € košík posune těsně nad hranici. Sazbu DPH test neopisuje.
  */
 export async function verifyShippingSettings({ api, container, options, channel, region, evidence }: any) {
   const buyer = await syntheticBuyer(container, options, "shipping-digital@example.test")
@@ -27,7 +27,7 @@ export async function verifyShippingSettings({ api, container, options, channel,
     variants: [{ title: "Default", sku, manage_inventory: false, options: { Default: "Default" }, prices: [{ amount, currency_code: "eur" }] }],
   })
   const { result: products } = await createProductsWorkflow(container).run({ input: { products: [
-    product("synthetic-shipping-goods", "SYNTHETIC-SHIPPING-8129", 81.29),
+    product("synthetic-shipping-goods", "SYNTHETIC-SHIPPING-9999", 99.99),
     product("synthetic-shipping-cent", "SYNTHETIC-SHIPPING-002", 0.02),
   ] } })
   const variantId = products[0].variants[0].id
