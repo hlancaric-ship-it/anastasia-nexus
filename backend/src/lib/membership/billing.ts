@@ -8,6 +8,7 @@ import { loadNativeMembershipReceipt,euroMinor } from './native-receipt'
 import { reconcileMembershipAccess } from './access'
 import { MEMBERSHIP_STRIPE_PROVIDER } from './billing-guard'
 import { saveMembershipMandate } from './billing-mandate'
+import { assertMembershipCustomerAvailable } from './customer-guard'
 const address=(v:any)=>v?Object.fromEntries(['first_name','last_name','company','address_1','address_2','city','country_code','province','postal_code','phone'].filter(k=>typeof v[k]==='string').map(k=>[k,v[k]])):undefined
 /** Every provider effect follows a durable fence. Unknown never creates a second payment. */
 export async function runMembershipBilling(scope:any,membershipId:string,now=new Date()){
@@ -28,8 +29,21 @@ export async function runMembershipBilling(scope:any,membershipId:string,now=new
   attempt=await service.advanceBilling(attempt!.id,attempt!.stage,'settled',{order_id:orderId})
   return {status:'SETTLED',membership_id:membershipId,access:await reconcileMembershipAccess(scope,membershipId,now)}
  }
- if(['unknown','completing'].includes(attempt.stage)){const result=await settle();return result||{status:'RECONCILIATION_REQUIRED'}}
+ if(['unknown','completing'].includes(attempt.stage)){
+  // Native order already created: never create a second order or charge while its ledger is pending.
+  try{const result=await settle();if(result)return result}catch{return {status:'RECONCILIATION_REQUIRED'}}
+  if(attempt.stage==='completing')attempt=await service.advanceBilling(attempt.id,'completing','unknown')
+  if(!attempt.session_id||!attempt.collection_id)return {status:'RECONCILIATION_REQUIRED'}
+  const session=await scope.resolve(Modules.PAYMENT).retrievePaymentSession(attempt.session_id)
+  if(session.id!==attempt.session_id||session.payment_collection_id!==attempt.collection_id||session.provider_id!==MEMBERSHIP_STRIPE_PROVIDER)return {status:'RECONCILIATION_REQUIRED'}
+  // The very same durable native session/PI is recoverable; core guards run again before authorization.
+  attempt=await service.advanceBilling(attempt.id,'unknown','payment_ready')
+ }
  if(['cart_requested','payment_requested'].includes(attempt.stage))return {status:'RECONCILIATION_REQUIRED'}
+ try{await assertMembershipCustomerAvailable(scope,terms.customer_id)}catch(error){
+  if(error instanceof Error&&error.message==='MEMBERSHIP_CUSTOMER_UNAVAILABLE')return review()
+  throw error // Privacy storage failure fails closed, without starting any charge.
+ }
  const [mandate]=await service.listMembershipMandates({id:(attempt.snapshot as any).mandate_id,membership_id:membershipId},{take:1})
  if(!mandate||mandate.provider_id!==MEMBERSHIP_STRIPE_PROVIDER)return review()
  const checkout=await service.checkoutForCustomer(mandate.checkout_id,terms.customer_id)
@@ -48,7 +62,7 @@ export async function runMembershipBilling(scope:any,membershipId:string,now=new
   if(source.customer_id!==terms.customer_id||source.items?.length!==1||source.items[0].requires_shipping!==false)return review()
   attempt=await service.advanceBilling(attempt.id,'planned','cart_requested')
   try{
-   const {result:cart}=await createCartWorkflow(scope).run({input:{customer_id:terms.customer_id,region_id:source.region_id,currency_code:'eur',sales_channel_id:source.sales_channel_id,email:source.email,shipping_address:address(source.shipping_address),billing_address:address(source.billing_address),items:[{variant_id:terms.variant_id,quantity:1}]}})
+   const {result:cart}=await createCartWorkflow(scope).run({input:{customer_id:terms.customer_id,region_id:source.region_id,currency_code:'eur',sales_channel_id:source.sales_channel_id,email:source.email,shipping_address:address(source.shipping_address),billing_address:address(source.billing_address),items:[{variant_id:terms.variant_id,quantity:1,requires_shipping:false}]}})
    attempt=await service.advanceBilling(attempt.id,'cart_requested','cart_ready',{cart_id:cart.id})
   }catch{await service.advanceBilling(attempt.id,'cart_requested','unknown');return {status:'RECONCILIATION_REQUIRED'}}
  }
@@ -112,6 +126,12 @@ export async function recoverMembershipMandates(scope:any){
 export async function reconcileMembershipBilling(scope:any,attemptId:string,now=new Date()){
  const service=scope.resolve(MEMBERSHIP_MODULE) as MembershipModuleService
  const attempt=await service.retrieveMembershipBillingAttempt(attemptId)
+ if(attempt.stage==='settled'){
+  const claims=attempt.order_id?await service.listMembershipReceipts({membership_id:attempt.membership_id,order_id:attempt.order_id,checkout_key:attempt.renewal_key},{take:2}):[]
+  if(claims.length!==1)throw new Error('MEMBERSHIP_RECEIPT_STATE_MISMATCH')
+  return {status:'ALREADY_SETTLED',membership_id:attempt.membership_id,access:await reconcileMembershipAccess(scope,attempt.membership_id,now)}
+ }
+ if(attempt.stage==='review')return {status:'REVIEW'}
  if(!attempt.cart_id)return {status:'RECONCILIATION_REQUIRED'}
  const {data:orders}=await scope.resolve(ContainerRegistrationKeys.QUERY).graph({entity:'order_cart',fields:['cart_id','order_id'],filters:{cart_id:attempt.cart_id}})
  if(!Array.isArray(orders)||orders.length>1)throw new Error('MEMBERSHIP_NATIVE_ORDER_AMBIGUOUS')
@@ -119,7 +139,7 @@ export async function reconcileMembershipBilling(scope:any,attemptId:string,now=
  const terms=(attempt.snapshot as any).terms,orderId=orders[0].order_id
  const receipt=await loadNativeMembershipReceipt(scope,orderId,{cart_id:attempt.cart_id,customer_id:terms.customer_id,product_id:terms.product_id,variant_id:terms.variant_id,checkout_key:attempt.renewal_key},now)
  await service.applyReceipt(attempt.membership_id,receipt,now.toISOString())
- if(attempt.stage!=='settled')await service.advanceBilling(attempt.id,attempt.stage,'settled',{order_id:orderId})
+ await service.advanceBilling(attempt.id,attempt.stage,'settled',{order_id:orderId})
  return {status:'SETTLED',membership_id:attempt.membership_id,access:await reconcileMembershipAccess(scope,attempt.membership_id,now)}
 }
 /** Return only an already-created own native PaymentIntent secret to resume 3DS; never method IDs. */

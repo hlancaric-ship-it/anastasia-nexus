@@ -100,7 +100,7 @@ class MembershipModuleService extends MedusaService({Membership:MembershipRow,Me
   await this.lock(`billing:${id}`,context)
   const row=await this.retrieveMembershipBillingAttempt(id,{},context)
   if(row.stage!==expected)throw new Error('MEMBERSHIP_BILLING_STALE_EXECUTION')
-  const allowed:Record<string,string[]>={planned:['cart_requested','review'],cart_requested:['cart_ready','unknown'],cart_ready:['payment_requested','review'],payment_requested:['payment_ready','needs_action','unknown'],payment_ready:['completing','needs_action','review'],completing:['settled','unknown','needs_action'],needs_action:['payment_ready','review'],unknown:['payment_ready','completing','settled','review'],review:[],settled:[]}
+  const allowed:Record<string,string[]>={planned:['cart_requested','review'],cart_requested:['cart_ready','unknown'],cart_ready:['payment_requested','review'],payment_requested:['payment_ready','needs_action','unknown'],payment_ready:['completing','needs_action','review','settled'],completing:['settled','unknown','needs_action'],needs_action:['payment_ready','review','settled'],unknown:['payment_ready','completing','settled','review'],review:[],settled:[]}
   if(!allowed[expected]?.includes(next))throw new Error('MEMBERSHIP_BILLING_INVALID_TRANSITION')
   for(const key of ['cart_id','collection_id','session_id','order_id'] as const)if((row as any)[key]&&patch[key]&&(row as any)[key]!==patch[key])throw new Error('MEMBERSHIP_BILLING_BINDING_CHANGED')
   return this.updateMembershipBillingAttempts({id,stage:next as any,...patch},context)
