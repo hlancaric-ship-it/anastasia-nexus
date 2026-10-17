@@ -42,6 +42,12 @@ describe('SafeOrder backend-to-Worker loopback HTTP contract', () => {
     it('allows the actual adapter with tenant-bound service credentials', async () => {
         await expect(assertSafeOrderAllows(input, { ...serviceEnv(), NEXUS_SAFEORDER_URL: `${url}/api/nexus/safeorder` })).resolves.toMatchObject({ score: 0 });
     });
+    it('allows the membership Stripe provider as an online payment', async () => {
+        await expect(assertSafeOrderAllows({ ...input, orderSum: 50, paymentMethod: 'pp_membership_stripe_membership' }, { ...serviceEnv(), NEXUS_SAFEORDER_URL: `${url}/api/nexus/safeorder` })).resolves.toMatchObject({ score: 0 });
+    });
+    it('keeps unknown payment providers unavailable', async () => {
+        await expect(assertSafeOrderAllows({ ...input, paymentMethod: 'pp_unknown_provider' }, { ...serviceEnv(), NEXUS_SAFEORDER_URL: `${url}/api/nexus/safeorder` })).rejects.toMatchObject({ code: 'SAFEORDER_UNAVAILABLE' });
+    });
     it('rejects a missing/wrong caller credential over HTTP', async () => {
         const response = await fetch(`${url}/api/nexus/safeorder`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) });
         expect(response.status).toBe(401);
