@@ -337,3 +337,5 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
 .availability-slots input[type=time]{flex:0 1 92px}
 .availability-bookings{grid-column:2/-1;border-top:1px solid var(--line);padding-top:8px}
 @media(max-width:800px){.availability-week .rc-body{grid-template-columns:minmax(0,1fr);gap:10px}.availability-bookings{grid-column:1}.availability-week [data-add]{justify-self:start}}
+
+.detail-help .card-b{padding:20px 24px}

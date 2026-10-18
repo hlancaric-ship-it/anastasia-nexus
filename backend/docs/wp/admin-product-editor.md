@@ -13,3 +13,5 @@ Lokální mock data byla oddělena bez smazání původní DB: nová `anastasia_
 Na další pokyn je dostupnost místo vysokých týdenních sloupců kompaktní seznam sedmi denních řádků. Úseky jsou vedle sebe, tlačítko odebrání má 44 px a na mobilu se obsah zalomí. Regrese po změně 55/55 PASS.
 
 Po importu skutečné historie se v objednávkách zobrazují původní čísla, data a stavy. Archivy nemají tlačítka pro novou platbu, refundaci, odeslání ani zrušení; nejsou započtené mezi objednávky čekající na vybavení. Chrome kontrola po importu 88/88 PASS.
+
+Přístupy po migraci zobrazují názvy produktů, jména zákaznic a slovenské stavy místo interních ID. Karty i detail ověřeny 20/20 browser kontrolami; zrušení potvrzení odebrání nic nemění. Doplněno potvrzení před odebráním přístupu. Nápověda historických objednávek má správné odsazení a vysvětluje archiv namísto nového účtování či odesílání.

@@ -645,7 +645,7 @@ async function vOrderDetail(view, id, notice) {
     o: ['Pripravte a odošlite', 'Najprv pripravte položky. Po odovzdaní dopravcovi doplňte číslo zásielky a označte ju ako odoslanú. Zákazníčke odíde e-mail.', 'objednavka-vybavit'],
     pl: ['Platby a vrátenie peňazí', 'Skontrolujte prijatú a už vrátenú sumu. Pred vrátením peňazí overte sumu aj dôvod; ďalší krok si vyžiada potvrdenie.', 'objednavka-platby'],
   };
-  const showOrderHelp = tab => { const h = orderHelp[tab]; view.querySelector('#order-help').innerHTML = `<h3>${esc(h[0])}</h3><p>${esc(h[1])}</p><a class="subtle-link" href="#/pomoc/${h[2]}">Podrobný postup →</a>`; };
+  const showOrderHelp = tab => { const h = archived ? ['Historická objednávka', 'Toto sú pôvodné údaje zo starého obchodu. Objednávku znova neodosielajte ani neúčtujte. Položky, pôvodnú sumu a stav si môžete prezrieť v záložkách.', 'objednavka-vybavit'] : orderHelp[tab]; view.querySelector('#order-help').innerHTML = `<h3>${esc(h[0])}</h3><p>${esc(h[1])}</p><a class="subtle-link" href="#/pomoc/${h[2]}">Podrobný postup →</a>`; };
   showOrderHelp('p');
   view.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showOrderHelp(b.dataset.tab)));
   view.querySelector('#o-back').onclick = () => vOrders(view);
@@ -1525,12 +1525,14 @@ async function vEntitlements(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { entitlements } = await api('/admin/entitlements?limit=200');
+  const names = await namesFor((entitlements || []).map(e => e.customer_id), (entitlements || []).map(e => e.product_id));
+  const rows = (entitlements || []).map(e => ({ ...e, product_title: e.product_title || (names.prod(e.product_id) === e.product_id ? 'Produkt sa nepodarilo načítať' : names.prod(e.product_id)), customer_email: e.customer_email || (names.cust(e.customer_id) === e.customer_id ? 'Zákazníčku sa nepodarilo načítať' : names.cust(e.customer_id)) }));
   listView(view, {
-    title: 'Prístupy a knižnica', rows: (entitlements || []), onRow: e => vEntitlementDetail(view, e),
+    title: 'Prístupy a knižnica', rows, onRow: e => vEntitlementDetail(view, e),
     empty: 'Zatiaľ žiadne priradené prístupy. Pridelia sa automaticky po nákupe (jedna identita – všetky nákupy).',
     card: e => `<div class="rc-body"><div class="rc-title">${esc(e.product_title || e.product_id || 'Prístup')}</div><div class="rc-fields">
       <span class="rc-f"><em>Zákazníčka</em>${esc(e.customer_email || e.customer_id || '—')}</span>
-      <span class="rc-f"><em>Stav</em><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status || '—')}</span></span>
+      <span class="rc-f"><em>Stav</em><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status === 'active' ? 'Aktívny' : e.status === 'revoked' ? 'Odobratý' : 'Neaktívny')}</span></span>
       ${e.expires_at ? `<span class="rc-f"><em>Platí do</em>${fmtDate(e.expires_at)}</span>` : ''}</div></div>`,
   });
 }
@@ -1540,13 +1542,14 @@ async function vEntitlementDetail(view, e) {
     <div id="emsg"></div>
     <div class="row"><div><label>Produkt</label><div>${esc(e.product_title || e.product_id || '—')}</div></div>
     <div><label>Zákazníčka</label><div>${esc(e.customer_email || e.customer_id || '—')}</div></div></div>
-    <div class="row"><div><label>Stav</label><div><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status || '—')}</span></div></div>
+    <div class="row"><div><label>Stav</label><div><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status === 'active' ? 'Aktívny' : e.status === 'revoked' ? 'Odobratý' : 'Neaktívny')}</span></div></div>
     <div><label>Platí do</label><div>${e.expires_at ? fmtDate(e.expires_at) : 'trvalý'}</div></div></div>
+    <p class="muted" style="margin-top:12px">${e.source === 'migration' ? 'Prístup prenesený zo starého obchodu.' : e.source === 'admin' ? 'Prístup pridelený v administrácii.' : 'Prístup k zakúpenému produktu.'}</p>
     ${e.status === 'active' ? '<div style="margin-top:16px"><button class="btn ghost" id="e-revoke">Odobrať prístup</button></div>' : ''}
   </div></div>`;
   view.querySelector('#e-back').onclick = () => vEntitlements(view);
   const rb = view.querySelector('#e-revoke');
-  if (rb) rb.onclick = async () => { const msg = view.querySelector('#emsg'); msg.innerHTML = '';
+  if (rb) rb.onclick = async () => { if (!confirm(`Odobrať zákazníčke ${e.customer_email} prístup k produktu ${e.product_title}?`)) return; const msg = view.querySelector('#emsg'); msg.innerHTML = '';
     try { await api(`/admin/entitlements/${e.id}/revoke`, { method: 'POST' }); vEntitlements(view); }
     catch (err) { msg.innerHTML = `<div class="err">${esc(err.message)}</div>`; } };
 }
