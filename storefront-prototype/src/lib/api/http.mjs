@@ -97,7 +97,12 @@ export function createHttpApi(storage, config) {
     await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: coupon } });
   }
 
-  const giftCredit = () => { try { return JSON.parse(get(GIFT) || 'null'); } catch { return null; } };
+  // Server vracia čísla v eurách (amount, balance); košík zobrazuje popisky.
+  const giftCredit = () => {
+    let c; try { c = JSON.parse(get(GIFT) || 'null'); } catch { return null; }
+    if (!c || typeof c !== 'object') return null;
+    return { ...c, amountLabel: money(-Math.abs(Number(c.amount))), balanceLabel: money(c.balance) };
+  };
   async function cartShape() {
     const id = get(CART);
     const empty = { mode: 'http', lines: [], gift_voucher: giftCredit(), coupon: get(COUPON) || '', subtotalLabel: '0,00 €', discountLabel: get(COUPON) ? 'Kupón prijatý' : 'Kupón nezadaný', totalLabel: '0,00 €' };
@@ -401,8 +406,9 @@ export function createHttpApi(storage, config) {
     async getGiftVoucherProduct() {
       const r = await call(`/store/products?handle=darkovy-poukaz&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
       const p = r.data?.products?.[0];
-      if (!p) return mock.getGiftVoucherProduct();
-      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, label: v.title, amount: v.calculated_price?.calculated_amount })) };
+      // Bez publikovaného produktu (poukazy vypnuté v adminu) ponuka zostane prázdna, nikdy ukážkové hodnoty.
+      if (!r.ok || !p) return { id: '', handle: 'darkovy-poukaz', variants: [] };
+      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, amount: v.calculated_price?.calculated_amount })) };
     },
     async addGiftVoucher({ variant_id, recipient }) {
       if (!variant_id) return { ok: false, message: 'Vybraná hodnota poukazu už nie je dostupná.' };

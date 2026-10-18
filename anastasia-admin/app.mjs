@@ -167,7 +167,15 @@ function listView(view, { cols, rows, title, onRow, empty, card, search = true }
   if (s) s.oninput = () => { const q = s.value.toLowerCase().trim(); const f = q ? rows.filter(r => JSON.stringify(r).toLowerCase().includes(q)) : rows; view.querySelector('#rc-wrap').innerHTML = render(f); if (onRow) view.querySelectorAll('.rc[data-id]').forEach(el => el.onclick = () => onRow(rows.find(x => String(x.id) === el.dataset.id))); };
 }
 
-function setActions(html) { const a = document.querySelector('#actions'); if (a) a.innerHTML = html || ''; }
+// Prepínač podstránok (subnav) zostáva; podstránka mení len svoje tlačidlá vedľa neho.
+function setActions(html) {
+  const a = document.querySelector('#actions'); if (!a) return;
+  const pills = a.querySelector(':scope > .pills');
+  if (!pills) { a.innerHTML = html || ''; return; }
+  let own = a.querySelector(':scope > .own-actions');
+  if (!own) { own = document.createElement('span'); own.className = 'own-actions'; a.append(own); }
+  own.innerHTML = html || '';
+}
 
 // --- záložky (kompaktne na jednu stránku) ---
 function tabsHtml(tabs) {
@@ -648,9 +656,9 @@ function stub(view, title, note) {
 
 // sub-prepínač v topbare (pills) — jedna obrazovka, viac pohľadov
 function subnav(view, items, idx = 0) {
-  setActions(`<div class="pills">${items.map((it, i) => `<button class="pill ${i === idx ? 'on' : ''}" data-i="${i}">${esc(it.label)}</button>`).join('')}</div>`);
   const a = document.querySelector('#actions');
-  if (a) a.querySelectorAll('.pill').forEach(b => b.onclick = () => { if (+b.dataset.i !== idx) { items[+b.dataset.i].run(view); } });
+  if (a) a.innerHTML = `<div class="pills">${items.map((it, i) => `<button class="pill ${i === idx ? 'on' : ''}" data-i="${i}">${esc(it.label)}</button>`).join('')}</div>`;
+  if (a) a.querySelectorAll('.pill').forEach(b => b.onclick = () => { if (+b.dataset.i !== idx) subnav(view, items, +b.dataset.i); });
   items[idx].run(view);
 }
 // --- spoločné: stránkovaný zoznam kariet so záložkami stavu ---

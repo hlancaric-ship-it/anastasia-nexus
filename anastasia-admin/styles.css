@@ -91,6 +91,7 @@ button.rc:hover{border-color:var(--gold);box-shadow:0 6px 18px rgba(32,59,50,.08
 .btn.wine{background:var(--wine);color:#fff}
 .btn.wine:hover{filter:brightness(1.08)}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+#actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pills{display:inline-flex;gap:2px;background:var(--soft);border-radius:10px;padding:3px}
 .pills .pill{background:transparent;border:0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;letter-spacing:0;text-transform:none}
 .pills .pill.on{background:#fff;color:var(--forest);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06)}
