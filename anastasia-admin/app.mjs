@@ -8,6 +8,8 @@ const fmtEur = (a) => (a == null ? '—' : new Intl.NumberFormat('sk-SK', { styl
 const fmtDate = (d) => d ? new Date(d).toLocaleString('sk-SK', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mjs';
+
 // --- API klient ---
 let token = localStorage.getItem('ana_token') || '';
 async function api(path, { method = 'GET', body } = {}) {
@@ -73,9 +75,11 @@ function shell(active, title, sub) {
   const crumb = active === '' ? 'Prehľad' : (title || '');
   // Prehľad: dátum + pozdrav (meno dopĺňa setUserChip z /admin/users/me); ostatné agendy: názov a popis z ROUTES.
   const d = new Date(), today = `${d.toLocaleDateString('sk-SK', { weekday: 'long' })}, ${d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' })}`;
+  // Pomoc na stránke: tlačidlo „Ako to funguje“ pri nadpise + skrytý panel s vysvetlením (obsah z guide.mjs).
+  const helpBtn = PAGE_HELP[active] ? `<button type="button" class="help-toggle" id="ctx-help-btn" aria-expanded="false" aria-controls="ctx-help">${navIcon('help')}<span>Ako to funguje</span></button>` : '';
   const head = active === ''
-    ? `<p class="eyebrow">${esc(today)}</p><div class="heading"><div><h1 id="greet">Dobrý deň.</h1><p class="intro">Tu nájdete všetko, čo dnes potrebuje vašu pozornosť.</p></div><div id="actions"></div></div>`
-    : `<p class="eyebrow">Váš obchod</p><div class="heading"><div><h1>${esc(title)}</h1>${sub ? `<p class="intro">${esc(sub)}</p>` : ''}</div><div id="actions"></div></div>`;
+    ? `<p class="eyebrow">${esc(today)}</p><div class="heading"><div><h1 id="greet">Dobrý deň.</h1><p class="intro">Tu nájdete všetko, čo dnes potrebuje vašu pozornosť.</p>${helpBtn}</div><div id="actions"></div></div>`
+    : `<p class="eyebrow">Váš obchod</p><div class="heading"><div><h1>${esc(title)}</h1>${sub ? `<p class="intro">${esc(sub)}</p>` : ''}${helpBtn}</div><div id="actions"></div></div>`;
   return `<div class="app">
     <aside class="sidebar" id="sidebar" aria-label="Hlavná navigácia">
       ${brandHtml('a')}
@@ -96,6 +100,7 @@ function shell(active, title, sub) {
       </header>
       <main class="content" id="main">
         ${head}
+        ${ctxHelpHtml(active)}
         <div id="view"></div>
       </main>
     </div>
@@ -172,17 +177,17 @@ async function vDashboard(view) {
   const ulohy = (n) => `${n} ${plural(n, 'úloha', 'úlohy', 'úloh')}`;
 
   const dnesTag = new Date().toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' });
-  const schedule = todayB == null ? '' : `<section class="panel"><div class="panel-head"><h2>Dnes vás čaká</h2><span class="tag">${esc(dnesTag)}</span></div><div class="schedule">
+  const schedule = todayB == null ? '' : `<section class="panel" data-tour="schedule"><div class="panel-head"><h2>Dnes vás čaká</h2><span class="tag">${esc(dnesTag)}</span></div><div class="schedule">
     ${todayB.length ? todayB.slice(0, 4).map(b => `<article class="appointment"><span class="time">${esc(hm(b.starts_at))}</span><div><h3>${esc(names ? names.prod(b.product_id) : 'Konzultácia')}</h3><p>${esc(names ? names.cust(b.customer_id) : '')}${b.ends_at ? ` · ${Math.max(0, Math.round((new Date(b.ends_at) - new Date(b.starts_at)) / 60000))} min` : ''}</p><small>Rezervácia potvrdená</small></div></article>`).join('')
       : '<p class="empty-task">Na dnes nemáte žiadne potvrdené konzultácie.</p>'}
     <a class="subtle-link" href="#/konzultacie">${todayB.length > 4 ? `Pozrieť všetky ${todayB.length} konzultácie →` : 'Pozrieť konzultácie →'}</a>
   </div></section>`;
 
   view.innerHTML = `
-  ${stats.length ? `<div class="stats" style="--n:${stats.length}">${stats.map(([l, icon, n, sub, href]) => `<a class="stat" href="${href}"><div class="stat-top">${esc(l)} ${navIcon(icon)}</div><strong>${n}</strong><small>${esc(sub)}</small></a>`).join('')}</div>` : ''}
+  ${stats.length ? `<div class="stats" data-tour="stats" style="--n:${stats.length}">${stats.map(([l, icon, n, sub, href]) => `<a class="stat" href="${href}"><div class="stat-top">${esc(l)} ${navIcon(icon)}</div><strong>${n}</strong><small>${esc(sub)}</small></a>`).join('')}</div>` : ''}
   <div class="main-grid">
     <div>
-      <section class="panel"><div class="panel-head"><h2>Čomu sa venovať</h2>${tasks.length ? `<span class="tag">${ulohy(tasks.length)}</span>` : ''}</div>
+      <section class="panel" data-tour="tasks"><div class="panel-head"><h2>Čomu sa venovať</h2>${tasks.length ? `<span class="tag">${ulohy(tasks.length)}</span>` : ''}</div>
         ${tasks.length ? tasks.map(taskHtml).join('') : `<p class="empty-task">${toFulfill == null && unread == null ? 'Úlohy sa teraz nedajú načítať. Skúste obnoviť stránku.' : 'Všetko máte vybavené. Nič nečaká na vašu pozornosť.'}</p>`}
       </section>
       ${readinessCard(readiness)}
@@ -197,13 +202,13 @@ async function vDashboard(view) {
 
 // Pripravenosť obchodu: len z GET /admin/readiness (reálne dáta jadra). Čo sa nedá overiť, nikdy nevydávame za hotové.
 function readinessCard(r) {
-  if (!r || !Array.isArray(r.checks)) return `<section class="panel"><div class="panel-head"><h2>Pripravenosť obchodu</h2></div><p class="empty-task">Pripravenosť sa teraz nedá overiť. Skúste obnoviť stránku.</p></section>`;
+  if (!r || !Array.isArray(r.checks)) return `<section class="panel" data-tour="readiness"><div class="panel-head"><h2>Pripravenosť obchodu</h2></div><p class="empty-task">Pripravenosť sa teraz nedá overiť. Skúste obnoviť stránku.</p></section>`;
   const open = r.checks.filter(c => c.status !== 'ok').sort((a, b) => (a.status === 'unknown') - (b.status === 'unknown') || (a.severity === 'blocker' ? -1 : 1) - (b.severity === 'blocker' ? -1 : 1));
   const ok = r.checks.length - open.length;
   const pill = (c) => c.status === 'unknown' ? '<span class="pill off">nedá sa overiť</span>' : c.severity === 'blocker' ? '<span class="pill off">bráni predaju</span>' : '<span class="pill warn">odporúčame doplniť</span>';
   const tone = (c) => c.status === 'unknown' ? '' : c.severity === 'blocker' ? 'wine' : '';
   const head = r.summary?.blockers ? `${r.summary.blockers} ${r.summary.blockers === 1 ? 'vec bráni' : 'veci bránia'} predaju.` : open.length ? 'Predaj je možný, niečo ešte odporúčame doplniť.' : 'Obchod je pripravený na predaj.';
-  return `<section class="panel"><div class="panel-head"><h2>Pripravenosť obchodu</h2><span class="tag">${ok} z ${r.checks.length} v poriadku</span></div>
+  return `<section class="panel" data-tour="readiness"><div class="panel-head"><h2>Pripravenosť obchodu</h2><span class="tag">${ok} z ${r.checks.length} v poriadku</span></div>
     <p class="empty-task">${esc(head)}</p>
     ${open.map(c => `<article class="task"><div class="task-icon ${tone(c)}">${navIcon(c.status === 'unknown' ? 'help' : 'doc')}</div><div class="task-copy"><h3>${esc(c.title)}${c.count > 1 ? ` <span class="muted">(${c.count})</span>` : ''} ${pill(c)}</h3><p>${esc(c.hint)}</p>${c.href ? `<a class="subtle-link" href="${esc(c.href)}">Vyriešiť →</a>` : ''}</div></article>`).join('')}
   </section>`;
@@ -1261,12 +1266,209 @@ const vNastavenia = (view) => subnav(view, [
   { label: 'Používatelia', run: (v) => vPouzivatelia(v) },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', 'Napojenie fakturácie (POHODA / Money S3).') },
 ]);
+// --- sprievodca: centrum nápovedy (#/pomoc, #/pomoc/<návod>), pomoc na stránke a úvodná prehliadka ---
+// Obsah je v guide.mjs; tu je len zobrazenie. Všetok text ide cez esc().
+const normText = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const guideById = (id) => GUIDES.find(g => g.id === id) || null;
+const groupLabel = (id) => (GUIDE_GROUPS.find(g => g.id === id) || {}).label || '';
+const guideHay = (g) => normText([g.title, g.summary, g.why, ...(g.steps || []), ...(g.after || []), ...(g.careful || []), ...((g.extra && g.extra.items) || []), groupLabel(g.group)].join(' '));
+const supportLink = `<a href="mailto:${esc(SUPPORT_EMAIL)}">${esc(SUPPORT_EMAIL)}</a>`;
+
+function ctxHelpHtml(key) {
+  const h = PAGE_HELP[key]; if (!h) return '';
+  const links = (h.guides || []).map(guideById).filter(Boolean);
+  return `<section class="ctx-help" id="ctx-help" hidden aria-labelledby="ctx-help-t">
+    <div class="ctx-help-h"><h2 id="ctx-help-t">${esc(h.title)}</h2><button type="button" class="ctx-close" id="ctx-help-close" aria-label="Zavrieť vysvetlenie"><span aria-hidden="true">×</span></button></div>
+    <p>${esc(h.text)}</p>
+    ${h.points && h.points.length ? `<ul>${h.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>` : ''}
+    <div class="ctx-links">${links.map(g => `<a class="subtle-link" href="#/pomoc/${esc(g.id)}">${esc(g.title)} →</a>`).join('')}</div>
+    ${h.tour ? `<button type="button" class="btn ghost" id="ctx-tour">${navIcon('arrow')}Spustiť prehliadku administrácie</button>` : ''}
+  </section>`;
+}
+function wireCtxHelp() {
+  const btn = root.querySelector('#ctx-help-btn'), panel = root.querySelector('#ctx-help');
+  if (!btn || !panel) return;
+  const set = (open) => { panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
+  btn.onclick = () => { const open = panel.hidden; set(open); if (open) panel.querySelector('h2')?.scrollIntoView({ block: 'nearest' }); };
+  const cl = panel.querySelector('#ctx-help-close'); if (cl) cl.onclick = () => { set(false); btn.focus(); };
+  const onEsc = (e) => { if (e.key === 'Escape' && !panel.hidden) { set(false); btn.focus(); } };
+  panel.addEventListener('keydown', onEsc); btn.addEventListener('keydown', onEsc);
+  const t = panel.querySelector('#ctx-tour'); if (t) t.onclick = () => { set(false); restartTour(); };
+}
+
 function vPomoc(view) {
   view = freshView(view);
-  view.innerHTML = `<div class="card"><div class="card-h">Potrebujete poradiť?</div><div class="card-b">
-    <p>Sme tu pre vás. Pri každom nastavení v administrácii nájdete krátke vysvetlenie, čo zmena ovplyvní.</p>
-    <p class="muted">Technická podpora: <a href="mailto:podpora@l-code-dynamics.com">podpora@l-code-dynamics.com</a></p>
-  </div></div>`;
+  window.scrollTo(0, 0);
+  const id = decodeURIComponent((location.hash.replace(/^#\/?/, '').split('/')[1] || ''));
+  const g = id ? guideById(id) : null;
+  if (g) return guideDetail(view, g);
+  const card = (x) => `<a class="guide-card" href="#/pomoc/${esc(x.id)}">${navIcon(x.icon || 'doc')}<span><strong>${esc(x.title)}</strong><small>${esc(x.summary)}</small></span></a>`;
+  const render = (list) => {
+    if (!list.length) return '';
+    return GUIDE_GROUPS.map(gr => { const items = list.filter(x => x.group === gr.id); return items.length ? `<section class="help-group" aria-labelledby="hg-${esc(gr.id)}"><h2 id="hg-${esc(gr.id)}">${esc(gr.label)}</h2><div class="guide-grid">${items.map(card).join('')}</div></section>` : ''; }).join('');
+  };
+  view.innerHTML = `<div class="help-top">
+      <div class="help-search"><label for="help-q">Hľadať v návodoch</label><input id="help-q" type="search" placeholder="Napríklad vrátiť peniaze, kupón, termín…" autocomplete="off"><p class="muted help-count" id="help-count" aria-live="polite">${GUIDES.length} návodov</p></div>
+      <div class="help-tour"><h2>Prehliadka administrácie</h2><p>Krátko vás prevedie všetkými časťami administrácie a vysvetlí, na čo slúžia.</p><button type="button" class="btn primary" id="help-tour">${navIcon('arrow')}Spustiť prehliadku znova</button></div>
+    </div>
+    <div id="help-list">${render(GUIDES)}</div>
+    <aside class="help-card"><h3>Neviete si rady?</h3><p>Napíšte nám na ${supportLink}. Opíšte, čo ste robili a čo sa zobrazilo, a my vám pomôžeme.</p></aside>`;
+  view.querySelector('#help-tour').onclick = restartTour;
+  const q = view.querySelector('#help-q'), listEl = view.querySelector('#help-list'), cnt = view.querySelector('#help-count');
+  const nav = (n) => n === 1 ? '1 návod' : n >= 2 && n <= 4 ? `${n} návody` : `${n} návodov`;
+  q.oninput = () => {
+    const terms = normText(q.value).split(/\s+/).filter(Boolean);
+    const list = terms.length ? GUIDES.filter(x => { const h = guideHay(x); return terms.every(t => h.includes(t)); }) : GUIDES;
+    listEl.innerHTML = list.length ? render(list) : `<div class="empty">Na „${esc(q.value.trim())}“ sme nenašli žiadny návod. Skúste iné slovo alebo nám napíšte na ${supportLink}.</div>`;
+    cnt.textContent = terms.length ? `Nájdené: ${nav(list.length)}` : nav(GUIDES.length);
+  };
+}
+function guideDetail(view, g) {
+  const list = (arr, cls = '') => `<ul${cls ? ` class="${cls}"` : ''}>${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+  const related = GUIDES.filter(x => x.group === g.group && x.id !== g.id);
+  view.innerHTML = `<a class="subtle-link help-back" href="#/pomoc">← Všetky návody</a>
+    <article class="card guide" aria-labelledby="guide-t"><div class="card-b">
+      <p class="eyebrow">${esc(groupLabel(g.group))}</p>
+      <h2 id="guide-t">${esc(g.title)}</h2>
+      <p class="intro">${esc(g.summary)}</p>
+      <section class="guide-sec"><h3>Prečo</h3><p>${esc(g.why)}</p></section>
+      <section class="guide-sec"><h3>Ako na to</h3><ol class="guide-steps">${g.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></section>
+      ${g.extra ? `<section class="guide-sec"><h3>${esc(g.extra.title)}</h3>${list(g.extra.items)}</section>` : ''}
+      ${g.after && g.after.length ? `<section class="guide-sec"><h3>Čo sa stane potom</h3>${list(g.after)}</section>` : ''}
+      ${g.careful && g.careful.length ? `<section class="guide-sec guide-careful"><h3>Na čo si dať pozor</h3>${list(g.careful)}</section>` : ''}
+      <div class="guide-actions"><a class="btn primary" href="${esc(g.href)}">${esc(g.hrefLabel)}${navIcon('arrow')}</a><a class="btn ghost" href="#/pomoc">Všetky návody</a></div>
+    </div></article>
+    ${related.length ? `<section class="help-group"><h2>Súvisiace návody</h2><div class="guide-grid">${related.map(x => `<a class="guide-card" href="#/pomoc/${esc(x.id)}">${navIcon(x.icon || 'doc')}<span><strong>${esc(x.title)}</strong><small>${esc(x.summary)}</small></span></a>`).join('')}</div></section>` : ''}`;
+}
+
+// Úvodná prehliadka. „Videné“ sa pamätá pre každý účet zvlášť; keď je úložisko prehliadača nedostupné, aspoň do obnovenia stránky.
+let TOUR_PENDING = false, TOUR_OPEN = null;
+const TOUR_SEEN_MEM = new Set();
+const tourKey = () => 'ana_tour_seen:' + (ME?.id || ME?.email || 'anon');
+function tourSeen() { const k = tourKey(); if (TOUR_SEEN_MEM.has(k)) return true; try { return localStorage.getItem(k) === '1'; } catch { return false; } }
+function markTourSeen() { const k = tourKey(); TOUR_SEEN_MEM.add(k); try { localStorage.setItem(k, '1'); } catch { /* súkromné okno: stačí pamäť */ } }
+function restartTour() {
+  TOUR_PENDING = true;
+  const key = location.hash.replace(/^#\/?/, '').split('/')[0];
+  if (key === '' || !(key in ROUTES)) route(); else location.hash = '#/';
+}
+function maybeStartTour() {
+  if (TOUR_OPEN) return;
+  if (!TOUR_PENDING && tourSeen()) return;
+  TOUR_PENDING = false;
+  startTour();
+}
+function startTour() {
+  if (TOUR_OPEN || !TOUR.length) return;
+  const mq = window.matchMedia('(max-width: 800px)');
+  const prevFocus = document.activeElement;
+  const block = $('<div class="tour-block" aria-hidden="true"></div>');
+  const spot = $('<div class="tour-spot" aria-hidden="true" hidden></div>');
+  const card = $(`<div class="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-t" aria-describedby="tour-d">
+    <div class="tour-top"><span class="tour-count" id="tour-c"></span><button type="button" class="tour-skip" data-a="skip">Preskočiť prehliadku</button></div>
+    <div class="tour-bar" aria-hidden="true"><span></span></div>
+    <h2 id="tour-t" tabindex="-1"></h2>
+    <div class="tour-body" id="tour-d"></div>
+    <div class="tour-nav"><button type="button" class="btn ghost" data-a="prev">Späť</button><button type="button" class="btn primary" data-a="next">Ďalej</button></div>
+  </div>`);
+  document.body.append(block, spot, card);
+  root.inert = true;
+  const prevBtn = card.querySelector('[data-a="prev"]'), nextBtn = card.querySelector('[data-a="next"]'), titleEl = card.querySelector('#tour-t');
+  let i = 0, target = null, step = TOUR[0], showSeq = 0, raf = 0;
+  const sidebar = (open) => {
+    const sb = root.querySelector('#sidebar'), tg = root.querySelector('#nav-toggle');
+    if (!sb) return false;
+    const was = sb.classList.contains('mobile-open');
+    sb.classList.toggle('mobile-open', open);
+    root.querySelector('#scrim')?.classList.remove('on');
+    if (tg) { tg.setAttribute('aria-expanded', String(open)); tg.setAttribute('aria-label', open ? 'Zavrieť navigáciu' : 'Otvoriť navigáciu'); }
+    return was !== open;
+  };
+  const place = () => {
+    const vw = document.documentElement.clientWidth, vh = window.innerHeight, m = 16;
+    const cw = Math.min(400, vw - 2 * m);
+    card.style.width = cw + 'px'; card.style.maxHeight = (vh - 2 * m) + 'px';
+    const ch = card.offsetHeight;
+    const r = target && target.isConnected ? target.getBoundingClientRect() : null;
+    if (!r || (!r.width && !r.height)) {
+      spot.hidden = true; block.classList.add('dim');
+      card.style.left = Math.round((vw - cw) / 2) + 'px'; card.style.top = Math.round(Math.max(m, (vh - ch) / 2)) + 'px';
+      return;
+    }
+    const pad = 6;
+    spot.hidden = false; block.classList.remove('dim');
+    Object.assign(spot.style, { left: (r.left - pad) + 'px', top: (r.top - pad) + 'px', width: (r.width + 2 * pad) + 'px', height: (r.height + 2 * pad) + 'px' });
+    let left, top;
+    if (step.sidebar && r.right + 24 + cw <= vw - m) { left = r.right + 24; top = r.top + r.height / 2 - ch / 2; }
+    else {
+      if (r.bottom + pad + 12 + ch <= vh - m) top = r.bottom + pad + 12;
+      else if (r.top - pad - 12 - ch >= m) top = r.top - pad - 12 - ch;
+      else top = null;
+      left = r.left + r.width / 2 - cw / 2;
+      // Vysoký prvok: karta vedľa neho (vpravo, inak vľavo); keď nie je miesto, prekryje jeho spodok.
+      if (top == null) {
+        const vis = Math.max(m, Math.min(vh - m - ch, (Math.max(r.top, 0) + Math.min(r.bottom, vh)) / 2 - ch / 2));
+        if (r.right + pad + 16 + cw <= vw - m) { left = r.right + pad + 16; top = vis; }
+        else if (r.left - pad - 16 - cw >= m) { left = r.left - pad - 16 - cw; top = vis; }
+        else top = vh - m - ch;
+      }
+    }
+    card.style.left = Math.round(Math.min(Math.max(m, left), vw - m - cw)) + 'px';
+    card.style.top = Math.round(Math.min(Math.max(m, top), vh - m - ch)) + 'px';
+  };
+  const onMove = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(place); };
+  const show = async (n) => {
+    const my = ++showSeq;
+    i = Math.max(0, Math.min(TOUR.length - 1, n)); step = TOUR[i];
+    if (mq.matches && sidebar(!!step.sidebar)) await new Promise(r => setTimeout(r, 240));
+    if (my !== showSeq || !card.isConnected) return;
+    const el = step.target ? document.querySelector(step.target) : null;
+    target = el && el.getClientRects().length ? el : null;
+    card.querySelector('#tour-c').textContent = `Krok ${i + 1} z ${TOUR.length}`;
+    card.querySelector('.tour-bar span').style.width = `${Math.round((i + 1) / TOUR.length * 100)}%`;
+    titleEl.textContent = step.title;
+    card.querySelector('#tour-d').innerHTML = `<p>${esc(step.what)}</p><h3>Prečo je to dôležité</h3><p>${esc(step.why)}</p><h3>Ako to funguje</h3><p>${esc(step.how)}</p>`;
+    prevBtn.disabled = i === 0;
+    nextBtn.textContent = i === TOUR.length - 1 ? 'Dokončiť' : 'Ďalej';
+    card.scrollTop = 0;
+    if (target) target.scrollIntoView({ block: step.sidebar ? 'nearest' : (target.offsetHeight > window.innerHeight * 0.55 ? 'start' : 'center') });
+    place();
+    titleEl.focus({ preventScroll: true });
+  };
+  const close = () => {
+    if (!card.isConnected) return;
+    showSeq++; cancelAnimationFrame(raf);
+    markTourSeen();
+    document.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('resize', onMove); window.removeEventListener('scroll', onMove, true);
+    block.remove(); spot.remove(); card.remove();
+    root.inert = false;
+    if (mq.matches) sidebar(false);
+    TOUR_OPEN = null;
+    if (prevFocus && prevFocus.isConnected && typeof prevFocus.focus === 'function') prevFocus.focus({ preventScroll: true });
+  };
+  const onKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); if (i < TOUR.length - 1) show(i + 1); return; }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); if (i > 0) show(i - 1); return; }
+    if (e.key === 'Tab') {
+      const f = [...card.querySelectorAll('button:not(:disabled)')];
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1], a = document.activeElement;
+      if (e.shiftKey && (a === first || a === titleEl || !card.contains(a))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (a === last || !card.contains(a))) { e.preventDefault(); first.focus(); }
+    }
+  };
+  card.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-a]')?.dataset.a;
+    if (a === 'skip') close();
+    else if (a === 'prev' && i > 0) show(i - 1);
+    else if (a === 'next') { if (i < TOUR.length - 1) show(i + 1); else close(); }
+  });
+  document.addEventListener('keydown', onKey, true);
+  window.addEventListener('resize', onMove); window.addEventListener('scroll', onMove, true);
+  TOUR_OPEN = { close };
+  show(0);
 }
 
 async function vEntitlements(view) {
@@ -1452,7 +1654,7 @@ const ROUTES = {
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
   'obsah': ['Obsah a e-maily', 'Stránky, texty, médiá a preklady', vObsah],
   'nastavenia': ['Nastavenia', 'Vzhľad, doprava, platby, používatelia a fakturácia', vNastavenia],
-  'pomoc': ['Pomoc', 'Podpora a vysvetlenia', vPomoc],
+  'pomoc': ['Potrebujete poradiť?', 'Návody krok za krokom: prečo daná funkcia existuje, ako ju použiť a čo sa stane potom', vPomoc],
 };
 
 // Osobný vzhľad obsluhy na backende (/admin/my-theme): rovnaký na každom zariadení, s revíziou a auditom.
@@ -1515,7 +1717,10 @@ function freshView(view) {
   if (!cur || !cur.isConnected) return document.createElement('div');
   const next = cur.cloneNode(false); cur._next = next; cur.replaceWith(next); return next;
 }
+let ROUTE_SEQ = 0;
 async function route() {
+  const seq = ++ROUTE_SEQ;
+  if (TOUR_OPEN) TOUR_OPEN.close();
   const parts = (location.hash.replace(/^#\/?/, '') || '').split('/');
   if (parts[0] === 'pozvanka' && parts[1]) return renderInviteAccept(decodeURIComponent(parts[1]));
   if (!token) return renderLogin();
@@ -1527,8 +1732,11 @@ async function route() {
   wireMobileNav();
   loadMe().then(setUserChip);
   refreshBadges();
+  wireCtxHelp();
   const view = root.querySelector('#view');
   try { await r[2](view); } catch (e) { if (e.message !== '401') view.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  // Úvodná prehliadka: pri prvom prihlásení (pre daný účet) alebo na vyžiadanie, až keď je Prehľad vykreslený.
+  if (seq === ROUTE_SEQ && !(key in ROUTES && key !== '') && token) maybeStartTour();
 }
 // Prihlásenie a pozvánka: zelený panel so značkou (ako bočný panel adminu) + formulár na krémovom pozadí.
 function authShell(form) {
