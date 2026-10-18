@@ -681,7 +681,7 @@ async function vCouponNew(view) {
     <div class="row"><div><label>Typ zľavy</label><select id="pn-type"><option value="percentage">percentá %</option><option value="fixed">pevná suma €</option></select></div>
     <div><label>Hodnota</label><input id="pn-val" type="number" step="0.01" value="10"></div></div>
     <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť</button></div>
-    <p class="muted" style="margin-top:10px">Kupón vznikne v jadre (promotions). QR odkaz vytvoríte v záložke QR kódy.</p>
+    <p class="muted" style="margin-top:10px">Najprv vytvorte kupón. Potom k nemu pridáte QR kód v záložke QR kódy.</p>
   </div></div>`;
   view.querySelector('#pn-back').onclick = () => vCoupons(view);
   view.querySelector('#pn-save').onclick = async () => {

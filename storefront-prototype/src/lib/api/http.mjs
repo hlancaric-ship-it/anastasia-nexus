@@ -216,11 +216,14 @@ export function createHttpApi(storage, config) {
       return { ok: true, message: 'Produkt pridaný do košíka.', cart: await cartShape() };
     },
     async setQuantity(slug, quantity) {
-      if (!Number.isInteger(quantity) || quantity < 0 || quantity > 99) return { ok: false, message: 'Množstvo musí byť celé číslo od 0 do 99.' };
+      if (!Number.isInteger(quantity) || quantity < 0 || quantity > 999) return { ok: false, message: 'Množstvo musí byť celé číslo od 0 do 999.' };
       const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
       const current = await cartShape();
       const line = current.lines.find(l => l.slug === slug);
       if (!line) return { ok: false, message: 'Položka už nie je v košíku.' };
+      // An old QR may legitimately carry more than 99 pieces. Allow reducing
+      // that existing quantity; ordinary increases retain the current 99 cap.
+      if (quantity > 99 && quantity >= line.quantity) return { ok: false, message: 'Pri bežnom pridávaní je možné najviac 99 kusov.' };
       if (line.booking) {
         if (quantity !== 0) return { ok: false, message: 'Konzultácia sa rezervuje na jeden termín. Ďalší termín si vyberte samostatne.' };
         await releaseBooking(id); await reprice();
@@ -519,7 +522,9 @@ export function createHttpApi(storage, config) {
         return { ok: true, couponApplied: coupon?.ok ?? false, message: 'Produkt z QR odkazu je v košíku.' + (coupon ? ' ' + coupon.message : '') };
       })();
       qrImports.set(key, task);
-      try { return await task; } finally { qrImports.delete(key); }
+      try { return await task; }
+      catch { return { ok: false, couponApplied: false, message: 'Spojenie sa prerušilo. Pred opakovaním skontrolujte košík.' }; }
+      finally { qrImports.delete(key); }
     },
 
     // Darčekový poukaz: nákup (variant + príjemca) a uplatnenie kreditu v košíku (výšku určuje server).

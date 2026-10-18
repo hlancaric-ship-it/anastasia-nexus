@@ -4,7 +4,8 @@ const view=document.querySelector('#qr-view');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const api=async(path,{method='GET',body}={})=>{const r=await fetch('/api'+path,{method,headers:{'content-type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.message||'API error');return d};
 const wait=async(fn)=>{for(let i=0;i<500;i++){const v=fn();if(v)return v;await new Promise(r=>setTimeout(r,40))}throw Error('Browser condition timed out')};
-const assert=(ok,label)=>{if(!ok)throw Error(label)};
+const passed=[];
+const assert=(ok,label)=>{if(!ok)throw Error(label);passed.push(label)};
 try{
  await qrAgenda({api,esc,fmtDate:s=>s||'—',freshView:v=>v})(view);
  assert(view.textContent.includes('QR kódy'),'QR list visible');
@@ -40,5 +41,5 @@ try{
   assert(cart.lines.length===1&&cart.lines[0].quantity===1,'Storefront rescan does not duplicate product');
  }
  assert(document.documentElement.scrollWidth<=innerWidth+1,'No horizontal overflow');
- document.querySelector('#result').textContent=JSON.stringify({status:'PASS',checks:14,width:innerWidth});
+ document.querySelector('#result').textContent=JSON.stringify({status:'PASS',checks:passed.length,passed,width:innerWidth});
 }catch(e){document.querySelector('#result').textContent=JSON.stringify({status:'FAIL',error:e.message})}

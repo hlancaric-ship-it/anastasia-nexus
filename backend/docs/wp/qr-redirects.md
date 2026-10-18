@@ -1,5 +1,8 @@
 # C3 — QR kupóny a zachování URL
 
+> Aktualizace 18.10.2026: navazující balík [QR backend + vlastní admin](qr-admin-system.md) přidává trvalou evidenci, správu již vydaných odkazů a skutečné serverové rozlišení SKU při skenování. Níže uvedené původní stavy a výsledky popisují tehdejší C3 základ, nikoli stav nové integrace.
+
+
 ## Stav a hranice
 
 **PARTIAL / integrační BLOCKED.** Implementovány admin/store routy, slovenská admin

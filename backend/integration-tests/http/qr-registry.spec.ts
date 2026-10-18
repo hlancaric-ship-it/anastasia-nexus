@@ -30,6 +30,9 @@ medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContain
   const {result:[product]}=await createProductsWorkflow(container).run({input:{products:[{title:'Synthetic QR product',handle:'synthetic-qr',status:'published',shipping_profile_id:profile.id,sales_channels:[{id:channel.id}],options:[{title:'Default',values:['Default']}],variants:[{title:'Default',sku:'QR-SYNTHETIC',manage_inventory:false,options:{Default:'Default'},prices:[{amount:50,currency_code:'eur'}]}]}]}})
   const promotions=container.resolve(Modules.PROMOTION)
   const promo=await promotions.createPromotions({code:'QR-SYNTHETIC10',type:'standard',status:'active',limit:20,application_method:{type:'percentage',value:10,target_type:'items',allocation:'across'}})
+  // Existing native usage must survive QR creation, import and repeated download.
+  for(let i=0;i<3;i++)await promotions.registerUsage([{code:promo.code!,amount:5}],{customer_id:null,customer_email:null})
+  expect((await promotions.retrievePromotion(promo.id)).used).toBe(3)
   const input={produkt:'QR-SYNTHETIC',kupon:'QR-SYNTHETIC10',ks:1,format:'svg'}
   expect((await api.get('/admin/coupon-links',{validateStatus:()=>true})).status).toBe(401)
   expect((await api.get('/admin/coupon-links',buyer.options)).status).toBe(401)
@@ -76,8 +79,8 @@ medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContain
    const persisted=await entity('cart',{id},['id','items.unit_price','metadata'])
    expect(Number(persisted.items[0].unit_price)).toBe(45)
   }
-  expect((await promotions.retrievePromotion(promo.id)).used).toBe(0)
-  expect(await verifyQrBrowser(api,admin,buyer.options,region.id)).toMatchObject({status:'PASS',checks:28})
+  expect((await promotions.retrievePromotion(promo.id)).used).toBe(3)
+  expect(await verifyQrBrowser(api,admin,buyer.options,region.id)).toMatchObject({status:'PASS',widths:[1440,390]})
   const wrong=await api.post(`/admin/coupon-links/${old.id}/deactivate`,{confirmation:'WRONG'},admin)
   expect(wrong.status).toBe(409);expect((await promotions.retrievePromotion(promo.id)).status).toBe('active')
   expect((await api.post(`/admin/coupon-links/${old.id}/deactivate`,{confirmation:input.kupon},admin)).status).toBe(200)
@@ -85,7 +88,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContain
   expect((await api.post('/admin/coupon-links',input,admin)).status).toBe(422)
   expect((await api.get(`/admin/coupon-links/${old.id}/qr`,admin)).status).toBe(200)
   expect((await api.post('/store/coupon-links',{produkt:input.produkt,kupon:input.kupon,ks:1},store)).data.code_valid).toBe(false)
-  expect((await promotions.retrievePromotion(promo.id)).used).toBe(0)
+  expect((await promotions.retrievePromotion(promo.id)).used).toBe(3)
   expect((await api.post('/admin/coupon-links/import',{...importBody,dry_run:false},admin)).data).toMatchObject({created:0,existing:1})
  })
 }})

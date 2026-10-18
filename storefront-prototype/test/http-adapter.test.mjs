@@ -152,3 +152,24 @@ test('an unavailable legacy coupon still adds the valid product without inventin
 test('removing a QR product allows an intentional later rescan to add it back',async()=>{
  const f=qrHttpFixture();await f.api.importQr(qrParams());f.remove();await f.api.importQr(qrParams());assert.equal(f.stats().adds,2);
 });
+test('QR network failure returns an actionable result instead of breaking page initialization',async()=>{
+ globalThis.fetch=async()=>{throw Error('synthetic offline')};
+ const result=await createHttpApi(memoryStorage(),config).importQr(qrParams());
+ assert.equal(result.ok,false);assert.equal(result.couponApplied,false);assert.match(result.message,/skontrolujte košík/);
+});
+test('QR scan history from a previous cart cannot suppress insertion in the current cart',async()=>{
+ const f=qrHttpFixture();
+ f.storage.setItem('anastasia.qrkeys',JSON.stringify({cart_id:'old-finished-cart',keys:[JSON.stringify(['QR-SKU','2','OLD10'])]}));
+ assert.equal((await f.api.importQr(qrParams())).ok,true);assert.equal(f.stats().adds,1);
+});
+test('legacy QR quantities above 99 can be reduced while ordinary increases retain their cap',async()=>{
+ const storage=memoryStorage({'anastasia.cart':'bulk-cart'}),cart={id:'bulk-cart',items:[{id:'bulk-line',product_handle:'bulk',quantity:101,unit_price:1}]};
+ const calls=router([
+  ['GET',/^\/store\/carts\/bulk-cart/,()=>respond(200,{cart})],
+  ['POST',/^\/store\/carts\/bulk-cart\/line-items\/bulk-line$/,(_p,body)=>{assert.equal(body.quantity,100);return respond(200,{cart})}],
+ ]);
+ const api=createHttpApi(storage,config);
+ assert.equal((await api.setQuantity('bulk',100)).ok,true);
+ assert.equal((await api.setQuantity('bulk',102)).ok,false);
+ assert.equal(calls.filter(v=>v.startsWith('POST')).length,1);
+});

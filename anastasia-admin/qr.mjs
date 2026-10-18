@@ -6,7 +6,7 @@ export function qrAgenda({ api, esc, fmtDate, freshView }) {
     const message = (text, error = false) => `<div class="${error ? 'err' : 'notice'}" role="${error ? 'alert' : 'status'}">${esc(text)}</div>`;
     const fail = (error) => { const box = view.querySelector('[data-message]'); if (box) box.innerHTML = message(error.message || 'Spojenie zlyhalo. Skúste to znova.', true); };
     const frame = (title, body) => {
-      view.innerHTML = `<div class="card"><div class="card-h">${esc(title)}<button type="button" class="btn ghost" data-back>Späť na zoznam</button></div><div class="card-b"><div data-message></div>${body}</div></div>`;
+      view.innerHTML = `<section class="card" aria-labelledby="qr-heading"><div class="card-h"><h2 id="qr-heading" tabindex="-1" style="font:inherit;margin:0">${esc(title)}</h2><button type="button" class="btn ghost" data-back>Späť na zoznam</button></div><div class="card-b"><div data-message></div>${body}</div></section>`;
       view.querySelector('[data-back]').onclick = list;
     };
     async function list() {
