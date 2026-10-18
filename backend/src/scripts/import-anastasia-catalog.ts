@@ -355,6 +355,18 @@ export function buildPromotionInput(
   productIds: string[],
   campaign: { id?: string; identifier: string }
 ) {
+  for (const amount of [coupon.discount_percent, coupon.discount_amount, coupon.cart_min, coupon.cart_max]) {
+    if (!Number.isFinite(amount) || amount < 0) throw new Error("Kupón: neplatné cenové podmínky")
+  }
+  if (!Number.isSafeInteger(coupon.completed_uses) || coupon.completed_uses! < 0) {
+    throw new Error("Kupón: chybí doložená historie použití; znovu vytvořte katalog z úplného SQL exportu")
+  }
+  if (coupon.discount_percent > 0 && coupon.discount_amount > 0) {
+    throw new Error("Kupón: souběh procentní a pevné slevy není podporován; podmínky nelze zahodit")
+  }
+  if (coupon.cart_min > 0 || coupon.cart_max > 0) {
+    throw new Error("Kupón: omezení hodnoty košíku zatím není podporováno; podmínky nelze zahodit")
+  }
   const usePercent = coupon.discount_percent > 0
   const value = usePercent ? coupon.discount_percent : coupon.discount_amount
   if (!(value > 0)) throw new Error(`Kupón ${coupon.code}: nulová sleva, nelze importovat`)
@@ -372,6 +384,9 @@ export function buildPromotionInput(
     // NEXUS adapter promoce na řádcích vypíná; kupóny proto jen neaktivní, dokud není schválená politika
     status: "draft" as const,
     is_automatic: false,
+    // The installed native module forwards this model field when creating a
+    // promotion. Seed only on INSERT; existing promotions are always skipped.
+    used: coupon.completed_uses,
     ...(coupon.use_multiple ? {} : { limit: 1 }),
     ...(campaign.id
       ? { campaign_id: campaign.id }
@@ -386,7 +401,7 @@ export function buildPromotionInput(
     application_method: {
       type: usePercent ? ("percentage" as const) : ("fixed" as const),
       target_type: "items" as const,
-      allocation: "each" as const,
+      allocation: usePercent ? ("each" as const) : ("across" as const),
       value,
       ...(usePercent ? {} : { currency_code: CURRENCY_CODE }),
       ...(productIds.length

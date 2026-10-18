@@ -2,8 +2,8 @@
  * Parser starého e-shopu ANASTASIA (Umbraco + dufeksoft.ecommerce, MS SQL dump DB.sql).
  *
  * Z dumpu vyčte POUZE katalogová data (produkty, kategorie, značky, ceny, sklad, kupóny,
- * elektronické produkty, URL pro 301 mapu). Zákazníky, objednávky, členy, přístupy ani
- * cokoli osobního NEČTE a nevypisuje (ty patří do jiných balíků migrace).
+ * elektronické produkty, URL pro 301 mapu). Z objednávek ponechá pouze interní klíč,
+ * příznak dokončení a vazbu použití kupónu; osobní údaje neexportuje ani nevypisuje.
  *
  * Spuštění (mimo Medusu, bez závislostí):
  *   npx ts-node src/scripts/parse-legacy-db.ts <cesta/DB.sql> [výstupní-adresář]
@@ -107,6 +107,8 @@ export interface LegacyCoupon {
   cart_max: number
   product_codes: string[]
   status_at_parse: "active" | "expired" | "scheduled"
+  /** Počet slevových řádků v dokončených objednávkách; undefined = historie nedoložena. */
+  completed_uses?: number
 }
 
 export interface LegacyDigitalProduct {
@@ -335,7 +337,7 @@ function castValue(v: SqlValue, type: string): SqlValue {
  * Vyparsuje všechny `INSERT [dbo].[<tabulka>] (...) VALUES (...)` pro vyjmenované tabulky.
  * Vrací řádky jako objekty {sloupec: hodnota}. Ostatní tabulky přeskočí (nečte jejich data).
  */
-export function parseInserts(sql: string, tables: string[]): Record<string, SqlRow[]> {
+export function parseInserts(sql: string, tables: string[], projection: Record<string, string[]> = {}): Record<string, SqlRow[]> {
   const wanted = new Set(tables)
   const out: Record<string, SqlRow[]> = {}
   for (const t of tables) out[t] = []
@@ -361,7 +363,8 @@ export function parseInserts(sql: string, tables: string[]): Record<string, SqlR
         c.i++
         const row: SqlRow = {}
         for (let k = 0; k < cols.length; k++) {
-          row[cols[k]] = readValue(c)
+          const value = readValue(c)
+          if (!projection[table] || projection[table].includes(cols[k])) row[cols[k]] = value
           c.skipWs()
           if (k < cols.length - 1) {
             if (c.peek() !== ",") throw new Error(`Očekávána ',' za sloupcem ${cols[k]}`)
@@ -387,7 +390,8 @@ export function parseInserts(sql: string, tables: string[]): Record<string, SqlR
       header.lastIndex = c.i
     } catch (err) {
       const line = sql.slice(0, m.index).split("\n").length
-      throw new Error(`Chyba parsování INSERT ${table} (řádek ${line}): ${(err as Error).message}`)
+      // Projected order rows may contain personal data in excluded columns.
+      throw new Error(`Chyba parsování INSERT ${table} (řádek ${line}): ${projection[table] ? "neplatný SQL řádek" : (err as Error).message}`)
     }
   }
   return out
@@ -507,6 +511,38 @@ export interface BuildResult {
   catalog: LegacyCatalog
   redirects: RedirectEntry[]
   report: ParseReport
+}
+
+/** Mirrors CouponRepository.WasUsed: COUNT discount rows joined to finished quotes.
+ * Table declarations are required so an omitted history cannot become a false zero.
+ * Keys never leave this function; only aggregate counts are exported.
+ */
+export function completedCouponUses(sql: string): Map<string, number> | undefined {
+  if (!["ecQuote", "ecProduct2Quote"].every(table =>
+    new RegExp(`^CREATE TABLE \\[dbo\\]\\.\\[${table}\\]`, "m").test(sql))) return undefined
+  const rows = parseInserts(sql, ["ecQuote", "ecProduct2Quote"], {
+    ecQuote: ["pk", "dateFinished"], ecProduct2Quote: ["pkQuote", "nonProductId"],
+  })
+  const finished = new Set<string>()
+  const seen = new Set<string>()
+  for (const row of rows.ecQuote) {
+    if (typeof row.pk !== "string" || !("dateFinished" in row)) throw new Error("Neúplná historie kupónů: ecQuote")
+    const id = row.pk.toLowerCase()
+    if (seen.has(id)) throw new Error("Duplicitní objednávka v historii kupónů")
+    seen.add(id)
+    if (row.dateFinished !== null) finished.add(id)
+  }
+  const counts = new Map<string, number>()
+  for (const row of rows.ecProduct2Quote) {
+    if (typeof row.pkQuote !== "string" || !("nonProductId" in row)) throw new Error("Neúplná historie kupónů: ecProduct2Quote")
+    if (typeof row.nonProductId !== "string" || !row.nonProductId.trim()) continue
+    if (!seen.has(row.pkQuote.toLowerCase())) throw new Error("Neúplná historie kupónů: chybí objednávka")
+    if (finished.has(row.pkQuote.toLowerCase())) {
+      const code = row.nonProductId.trim().toUpperCase()
+      counts.set(code, (counts.get(code) ?? 0) + 1)
+    }
+  }
+  return counts
 }
 
 export function buildCatalog(sql: string, sourceFile: string, now: Date = new Date()): BuildResult {
@@ -761,6 +797,7 @@ export function buildCatalog(sql: string, sourceFile: string, now: Date = new Da
 
   // --- kupóny
   const coupons: LegacyCoupon[] = []
+  const couponUses = t.ecCoupon.length ? completedCouponUses(sql) : undefined
   for (const r of t.ecCoupon) {
     const code = str(r.couponCode)
     const id = guid(r.pk)
@@ -771,7 +808,7 @@ export function buildCatalog(sql: string, sourceFile: string, now: Date = new Da
       until && until.slice(0, 19) < nowIso ? "expired" : from && from.slice(0, 19) > nowIso ? "scheduled" : "active"
     const perc = num(r.discountPerc)
     const amount = num(r.discountAmount)
-    if (perc > 0 && amount > 0) warnings.push(`Kupón ${code}: zadané procento i částka – importér použije procento`)
+    if (perc > 0 && amount > 0) warnings.push(`Kupón ${code}: procento a částka se sčítají; současný importér tento souběh odmítne`)
     if (perc <= 0 && amount <= 0) warnings.push(`Kupón ${code}: nulová sleva`)
     const codes = splitCodes(str(r.productCodes))
     for (const pc of codes) {
@@ -789,6 +826,7 @@ export function buildCatalog(sql: string, sourceFile: string, now: Date = new Da
       cart_max: num(r.quotePriceMax),
       product_codes: codes,
       status_at_parse: status,
+      ...(couponUses ? { completed_uses: couponUses.get(code.trim().toUpperCase()) ?? 0 } : {}),
     })
   }
   if (coupons.length) {

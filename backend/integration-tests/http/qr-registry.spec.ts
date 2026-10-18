@@ -2,7 +2,9 @@ import { Server } from 'node:net'
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { asValue } from '@medusajs/framework/awilix'
 import { ContainerRegistrationKeys, Modules, generateJwtToken } from '@medusajs/framework/utils'
-import { createProductsWorkflow } from '@medusajs/medusa/core-flows'
+import { createProductsWorkflow, createPromotionsWorkflow } from '@medusajs/medusa/core-flows'
+import { buildPromotionInput } from '../../src/scripts/import-anastasia-catalog'
+import { codeAvailable } from '../../src/api/admin/coupon-links/validation'
 import bootstrap, { API_KEY_TITLE, SALES_CHANNEL_NAME, DIGITAL_PROFILE_NAME } from '../../src/scripts/anastasia-bootstrap'
 import { verifyQrBrowser } from '../../scripts/qr-browser'
 import { syntheticBuyer, associateCart } from './customer-fixtures'
@@ -13,6 +15,17 @@ Server.prototype.listen=function(...args:any[]){if(typeof args[0]==='number'&&(a
 jest.setTimeout(180000)
 medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContainer,dbConnection})=>{
  afterAll(()=>{Server.prototype.listen=listen})
+ it('seeds legacy usage through the actual native creation workflow without reviving consumed coupons',async()=>{
+  const container=getContainer()
+  const input=buildPromotionInput({legacy_id:'synthetic_history',code:'SYNTHETIC_HISTORY',discount_percent:0,discount_amount:10,valid_from:null,valid_until:null,use_multiple:false,cart_min:0,cart_max:0,product_codes:[],status_at_parse:'active',completed_uses:2},[],{identifier:'synthetic-history'})
+  const {result}=await createPromotionsWorkflow(container).run({input:{promotionsData:[input]}} as any)
+  const native=await container.resolve(Modules.PROMOTION).retrievePromotion(result[0].id,{relations:['application_method','campaign']})
+  expect(native.status).toBe('draft');expect(native.used).toBe(2);expect(native.limit).toBe(1)
+  expect(native.application_method?.allocation).toBe('across')
+  expect(codeAvailable({...native,status:'active'} as any,input.code)).toBe(false)
+  const row=(await dbConnection.raw('select used from promotion where id = ?',[native.id])).rows[0]
+  expect(Number(row.used)).toBe(2)
+ })
  it('persists new/legacy QR, redownloads without reissuing discounts, and applies both through actual NEXUS pricing',async()=>{
   const container=getContainer(),logger=container.resolve(ContainerRegistrationKeys.LOGGER)
   container.register({[ContainerRegistrationKeys.LOGGER]:asValue({info(){},warn(){},error(){},debug(){},log(){}})})

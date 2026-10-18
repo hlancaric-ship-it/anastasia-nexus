@@ -55,7 +55,7 @@ jobs:
           ./node_modules/.bin/tsc --noEmit
           python3 scripts/check-admin-function-map.py
           node --test ../storefront-prototype/test/http-adapter.test.mjs ../storefront-prototype/test/mock.test.mjs
-          ./node_modules/.bin/jest --runTestsByPath src/api/admin/coupon-links/__tests__/links.unit.spec.ts src/api/admin/coupon-links/__tests__/registry.unit.spec.ts --runInBand --forceExit
+          ./node_modules/.bin/jest --runTestsByPath src/api/admin/coupon-links/__tests__/links.unit.spec.ts src/api/admin/coupon-links/__tests__/registry.unit.spec.ts src/scripts/__tests__/legacy-coupon-import.unit.spec.ts src/scripts/__tests__/catalog-import.unit.spec.ts --runInBand --forceExit
       - name: Start actual NEXUS code in synthetic loopback bridge
         run: |
           mkdir -p "$RUNNER_TEMP/qr-worker"
