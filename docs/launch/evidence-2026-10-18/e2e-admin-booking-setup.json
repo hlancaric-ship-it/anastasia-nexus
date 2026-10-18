@@ -1,0 +1,57 @@
+{
+  "at": "2026-10-18T10:42:04.493Z",
+  "results": [
+    {
+      "step": "admin-konzultacie-zalozky",
+      "ok": true,
+      "detail": {
+        "pills": [
+          "Rezervácie",
+          "Typy konzultácií",
+          "Dostupnosť"
+        ]
+      }
+    },
+    {
+      "step": "admin-ui-novy-typ",
+      "ok": true,
+      "detail": {
+        "cardTxt": "E2E typ admin mvdp4a2g Cena55,00 €Dĺžka45 min + 15 min pauza Formaonline Stavv ponuke",
+        "meta": "45|15|published"
+      }
+    },
+    {
+      "step": "admin-ui-uprava-ceny",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "step": "admin-ui-dostupnost-tyzdna",
+      "ok": true,
+      "detail": {
+        "weekHead": "7. 12. – 13. 12. 2026",
+        "badMsg": "streda 9. 12.: začiatok úseku musí byť pred koncom.",
+        "av": "2026-12-07 10:00-12:00"
+      }
+    },
+    {
+      "step": "storefront-ponuka-z-adminu",
+      "ok": true,
+      "detail": {
+        "listed": 1,
+        "dec7": [
+          "10:00",
+          "10:30",
+          "11:00"
+        ],
+        "head": "KonzultáciaE2E typ admin mvdp4a2g45 minút · online · 60,00 €Iná konzultácia"
+      }
+    },
+    {
+      "step": "admin-ui-archivacia-skryje-typ",
+      "ok": true,
+      "detail": {}
+    }
+  ],
+  "errors": []
+}

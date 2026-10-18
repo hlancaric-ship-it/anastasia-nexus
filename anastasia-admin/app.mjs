@@ -815,6 +815,137 @@ function vBookingDetail(view, b, back) {
   };
 }
 
+// --- Typy konzultácií (/admin/booking/types) — typ = produkt s cenou, ktorý si zákazníčka rezervuje na webe ---
+const BT_FORM = { online: 'online', in_person: 'osobne' };
+async function vBookingTypes(view, notice) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam typy konzultácií…</div>';
+  let d;
+  try { d = await api('/admin/booking/types?include_archived=true'); }
+  catch (e) { return loadError(view, e, () => vBookingTypes(view)); }
+  const types = d.types || [];
+  view.innerHTML = `${notice ? `<div class="notice">${esc(notice)}</div>` : ''}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px"><p class="muted" style="margin:0">Aktívne typy si zákazníčky rezervujú na stránke Konzultácie → Vybrať termín.</p><button class="btn gold" id="bt-new">Nový typ konzultácie</button></div>
+    <div class="rc-grid">${types.length ? types.map(t => `<button class="rc" data-id="${esc(t.id)}"><div class="rc-body"><div class="rc-title">${esc(t.title)}</div><div class="rc-fields">
+      <span class="rc-f"><em>Cena</em>${fmtEur(t.price_eur)}</span><span class="rc-f"><em>Dĺžka</em>${t.duration_minutes} min${t.buffer_minutes ? ` + ${t.buffer_minutes} min pauza` : ''}</span>
+      <span class="rc-f"><em>Forma</em>${esc(BT_FORM[t.form] || t.form)}</span>
+      <span class="rc-f"><em>Stav</em>${t.archived ? '<span class="pill off">archivovaný</span>' : t.active ? '<span class="pill ok">v ponuke</span>' : '<span class="pill warn">skrytý</span>'}</span></div></div></button>`).join('') : '<div class="empty">Zatiaľ žiadny typ konzultácie. Vytvorte prvý, aby si zákazníčky mohli rezervovať termín.</div>'}</div>`;
+  view.querySelector('#bt-new').onclick = () => vBookingTypeForm(view, null);
+  view.querySelectorAll('.rc[data-id]').forEach(el => el.onclick = () => vBookingTypeForm(view, types.find(t => t.id === el.dataset.id)));
+}
+function vBookingTypeForm(view, t) {
+  view = freshView(view);
+  const isNew = !t;
+  t = t || { title: '', description: '', price_eur: '', duration_minutes: 60, buffer_minutes: 15, form: 'online', active: true, archived: false };
+  view.innerHTML = `<div class="card"><div class="card-h">${isNew ? 'Nový typ konzultácie' : esc(t.title)}<button class="btn ghost" id="bt-back">Späť</button></div><div class="card-b">
+    <div id="btmsg"></div>
+    <form id="bt-form">
+      <label>Názov</label><input id="bt-title" maxlength="120" required value="${esc(t.title)}">
+      <label style="margin-top:12px">Popis (voliteľné)</label><textarea id="bt-desc" rows="3" maxlength="2000">${esc(t.description)}</textarea>
+      <div class="row" style="margin-top:12px">
+        <div><label>Cena (EUR s DPH)</label><input id="bt-price" type="number" step="0.01" min="0" required value="${esc(t.price_eur ?? '')}"></div>
+        <div><label>Forma</label><select id="bt-formsel"><option value="online" ${t.form === 'online' ? 'selected' : ''}>online</option><option value="in_person" ${t.form === 'in_person' ? 'selected' : ''}>osobne</option></select></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div><label>Dĺžka (minúty)</label><input id="bt-dur" type="number" step="5" min="15" max="480" required value="${esc(t.duration_minutes)}"></div>
+        <div><label>Pauza po konzultácii (minúty)</label><input id="bt-buf" type="number" step="5" min="0" max="240" required value="${esc(t.buffer_minutes)}"></div>
+      </div>
+      ${t.archived ? '' : `<label style="margin-top:12px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="bt-active" style="width:auto" ${t.active ? 'checked' : ''}> V ponuke na webe</label>`}
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" type="submit">${isNew ? 'Vytvoriť' : 'Uložiť'}</button>
+        ${isNew ? '' : `<button class="btn ghost" type="button" id="bt-arch">${t.archived ? 'Obnoviť z archívu' : 'Archivovať'}</button>`}</div>
+      ${isNew ? '' : '<p class="muted" style="font-size:12px;margin-top:8px">Zmena ceny platí pre nové rezervácie. Archivovaný typ zmizne z webu; existujúce termíny ostávajú platné.</p>'}
+    </form>
+  </div></div>`;
+  const back = (n) => vBookingTypes(view, n);
+  view.querySelector('#bt-back').onclick = () => back();
+  const msg = view.querySelector('#btmsg');
+  const fail = (btn, e) => { if (e.message === '401') return; btn.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; };
+  view.querySelector('#bt-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type=submit]'), v = id => view.querySelector(id).value.trim();
+    const body = { title: v('#bt-title'), description: v('#bt-desc'), price_eur: Math.round(Number(v('#bt-price')) * 100) / 100,
+      duration_minutes: Number(v('#bt-dur')), buffer_minutes: Number(v('#bt-buf')), form: v('#bt-formsel') };
+    const act = view.querySelector('#bt-active'); if (act) body.active = act.checked; else if (isNew) body.active = true;
+    if (body.title.length < 2) { msg.innerHTML = '<div class="err">Názov musí mať aspoň 2 znaky.</div>'; return; }
+    if (!(body.price_eur >= 0) || v('#bt-price') === '') { msg.innerHTML = '<div class="err">Zadajte cenu v eurách.</div>'; return; }
+    if (!Number.isInteger(body.duration_minutes) || body.duration_minutes < 15 || body.duration_minutes > 480 || body.duration_minutes % 5) { msg.innerHTML = '<div class="err">Dĺžka musí byť 15 až 480 minút, v násobkoch 5.</div>'; return; }
+    if (!Number.isInteger(body.buffer_minutes) || body.buffer_minutes < 0 || body.buffer_minutes > 240) { msg.innerHTML = '<div class="err">Pauza musí byť 0 až 240 minút.</div>'; return; }
+    msg.innerHTML = ''; btn.disabled = true;
+    try {
+      await api(isNew ? '/admin/booking/types' : `/admin/booking/types/${encodeURIComponent(t.id)}`, { method: 'POST', body });
+      back(isNew ? 'Typ konzultácie je vytvorený. Nastavte ešte dostupnosť, aby sa na webe zobrazili termíny.' : 'Zmeny sú uložené.');
+    } catch (err) { fail(btn, err); }
+  };
+  const ab = view.querySelector('#bt-arch');
+  if (ab) ab.onclick = async () => {
+    if (!t.archived && !confirm('Archivovať tento typ? Zmizne z webu, existujúce rezervácie ostanú platné.')) return;
+    ab.disabled = true;
+    try { await api(`/admin/booking/types/${encodeURIComponent(t.id)}`, { method: 'POST', body: t.archived ? { archived: false, active: true } : { archived: true } }); back(t.archived ? 'Typ je obnovený a znova v ponuke.' : 'Typ je archivovaný.'); }
+    catch (err) { fail(ab, err); }
+  };
+}
+
+// --- Dostupnosť (/admin/booking/availability) — časové úseky týždňa (po–ne), z ktorých web ponúka termíny ---
+const AV_TZ = 'Europe/Bratislava';
+const avYmd = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: AV_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const avAdd = (day, n) => { const d = new Date(`${day}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const avMonday = (day) => { const wd = new Date(`${day}T12:00:00Z`).getUTCDay(); return avAdd(day, -((wd + 6) % 7)); };
+const avDay = (day, o) => new Intl.DateTimeFormat('sk-SK', { timeZone: 'UTC', ...o }).format(new Date(`${day}T12:00:00Z`));
+const avTime = (iso) => new Intl.DateTimeFormat('sk-SK', { timeZone: AV_TZ, hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+async function vAvailability(view, st = {}) {
+  view = freshView(view);
+  const week = st.week || avMonday(avYmd(new Date()));
+  view.innerHTML = '<div class="muted">Načítavam dostupnosť…</div>';
+  let d;
+  try { d = await api(`/admin/booking/availability?week_start=${week}`); }
+  catch (e) { return loadError(view, e, () => vAvailability(view, st)); }
+  const days = (st.draft || d.days).map(x => ({ date: x.date, ranges: x.ranges.map(r => ({ ...r })) }));
+  const bookings = (d.bookings || []).filter(b => b.status === 'held' || b.status === 'confirmed');
+  const past = avAdd(week, 6) < avYmd(new Date());
+  const rangeHtml = (di, r, ri) => `<div style="display:flex;gap:6px;align-items:center;margin-top:6px" data-r="${di}:${ri}"><input type="time" step="900" value="${esc(r.start_time)}" data-f="start_time" style="width:auto" aria-label="Od"> – <input type="time" step="900" value="${esc(r.end_time)}" data-f="end_time" style="width:auto" aria-label="Do"><button type="button" class="btn ghost" data-del="${di}:${ri}" aria-label="Odstrániť úsek" style="padding:6px 10px">×</button></div>`;
+  view.innerHTML = `${st.notice ? `<div class="notice">${esc(st.notice)}</div>` : ''}<div id="avmsg"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn ghost" id="av-prev">← Predchádzajúci</button><strong>${esc(avDay(week, { day: 'numeric', month: 'numeric' }))} – ${esc(avDay(avAdd(week, 6), { day: 'numeric', month: 'numeric', year: 'numeric' }))}</strong><button class="btn ghost" id="av-next">Nasledujúci →</button></div>
+      <button class="btn ghost" id="av-copy">Prevziať z predchádzajúceho týždňa</button>
+    </div>
+    <p class="muted">Zadajte, kedy máte čas na konzultácie (čas Bratislava). Web z toho ponúkne termíny podľa dĺžky a pauzy každého typu. Deň bez úseku = zatvorené.</p>
+    <div class="rc-grid">${days.map((x, di) => {
+      const bk = bookings.filter(b => avYmd(new Date(b.starts_at)) === x.date);
+      return `<div class="rc" style="cursor:default"><div class="rc-body"><div class="rc-title" style="text-transform:none">${esc(avDay(x.date, { weekday: 'long', day: 'numeric', month: 'numeric' }))}</div>
+        ${x.ranges.map((r, ri) => rangeHtml(di, r, ri)).join('') || '<div class="muted" style="margin-top:6px">Zatvorené</div>'}
+        <button type="button" class="btn ghost" data-add="${di}" style="margin-top:8px">+ Pridať úsek</button>
+        ${bk.length ? `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">${bk.map(b => `<div class="muted" style="font-size:12px">${esc(avTime(b.starts_at))}–${esc(avTime(b.ends_at))} · ${esc(b.customer?.name || '')} · ${esc(b.product?.title || '')} ${klubPill(B_STATUS, b.status)}</div>`).join('')}</div>` : ''}
+      </div></div>`;
+    }).join('')}</div>
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn gold" id="av-save" ${past ? 'disabled' : ''}>Uložiť týždeň</button>${past ? '<span class="muted">Minulý týždeň sa už nemení.</span>' : ''}</div>`;
+  const collect = () => days.map((x, di) => ({ date: x.date, ranges: x.ranges.map((_, ri) => {
+    const row = view.querySelector(`[data-r="${di}:${ri}"]`);
+    return { start_time: row.querySelector('[data-f=start_time]').value, end_time: row.querySelector('[data-f=end_time]').value };
+  }) }));
+  const redraw = (draft, notice) => vAvailability(view, { week, draft, notice });
+  view.querySelector('#av-prev').onclick = () => vAvailability(view, { week: avAdd(week, -7) });
+  view.querySelector('#av-next').onclick = () => vAvailability(view, { week: avAdd(week, 7) });
+  view.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { const c = collect(), r = c[+b.dataset.add].ranges, last = r.at(-1); r.push(last ? { start_time: last.end_time, end_time: last.end_time < '20:00' ? `${String(Math.min(23, +last.end_time.slice(0, 2) + 2)).padStart(2, '0')}:00` : '23:00' } : { start_time: '09:00', end_time: '12:00' }); redraw(c); });
+  view.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const [di, ri] = b.dataset.del.split(':').map(Number), c = collect(); c[di].ranges.splice(ri, 1); redraw(c); });
+  view.querySelector('#av-copy').onclick = async () => {
+    const btn = view.querySelector('#av-copy'); btn.disabled = true;
+    try { const p = await api(`/admin/booking/availability?week_start=${avAdd(week, -7)}`); redraw(days.map((x, i) => ({ date: x.date, ranges: p.days[i]?.ranges || [] })), 'Úseky sú prevzaté. Skontrolujte ich a uložte.'); }
+    catch (e) { if (e.message === '401') return; btn.disabled = false; view.querySelector('#avmsg').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+  view.querySelector('#av-save').onclick = async () => {
+    const btn = view.querySelector('#av-save'), msg = view.querySelector('#avmsg'), body = { week_start: week, days: collect() };
+    const bad = body.days.find(x => x.ranges.some(r => !r.start_time || !r.end_time || r.start_time >= r.end_time));
+    if (bad) { msg.innerHTML = `<div class="err">${esc(avDay(bad.date, { weekday: 'long', day: 'numeric', month: 'numeric' }))}: začiatok úseku musí byť pred koncom.</div>`; return; }
+    msg.innerHTML = ''; btn.disabled = true;
+    try { await api('/admin/booking/availability', { method: 'POST', body }); vAvailability(view, { week, notice: 'Dostupnosť je uložená. Termíny na webe sa hneď aktualizovali.' }); }
+    catch (e) {
+      if (e.message === '401') return; btn.disabled = false;
+      msg.innerHTML = `<div class="err">${/rezervac/i.test(e.message) ? 'Úsek nejde odobrať ani skrátiť, lebo do neho zasahuje rezervácia. Najprv ju zrušte v záložke Rezervácie.' : esc(e.message)}</div>`;
+    }
+  };
+}
+const vKonzultacieMenu = (view) => subnav(view, [{ label: 'Rezervácie', run: vKonzultacie }, { label: 'Typy konzultácií', run: vBookingTypes }, { label: 'Dostupnosť', run: vAvailability }]);
+
 // --- Správy (/admin/chat/*) — odpoveď odíde zákazníčke aj e-mailom ---
 const C_TABS = [{ id: 'open', label: 'Otvorené' }, { id: 'closed', label: 'Uzavreté' }, { id: 'all', label: 'Všetky' }];
 async function vSpravy(view, st = {}) {
@@ -1211,7 +1342,7 @@ const ROUTES = {
   'produkty': ['Produkty', 'Katalóg, ceny a akcie', vProducts],
   'kategorie': ['Kategórie', 'Stromy a zaradenie', vCategories],
   'zakaznicky': ['Zákazníčky', 'Účty, história a prístupy', vZakaznicky],
-  'konzultacie': ['Konzultácie', 'Rezervácie a termíny', vKonzultacie],
+  'konzultacie': ['Konzultácie', 'Rezervácie, typy konzultácií a dostupnosť', vKonzultacieMenu],
   'spravy': ['Správy', 'Konverzácie so zákazníčkami', vSpravy],
   'klub': ['Klub ANASTASIA', 'Členky, nákupy členstva, podmienky a obnovy platieb', vKlub],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
