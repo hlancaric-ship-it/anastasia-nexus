@@ -1066,12 +1066,12 @@ async function vAvailability(view, st = {}) {
       <button class="btn ghost" id="av-copy">Prevziať z predchádzajúceho týždňa</button>
     </div>
     <p class="muted">Zadajte, kedy máte čas na konzultácie (čas Bratislava). Web z toho ponúkne termíny podľa dĺžky a pauzy každého typu. Deň bez úseku = zatvorené.</p>
-    <div class="rc-grid">${days.map((x, di) => {
+    <div class="rc-grid availability-week">${days.map((x, di) => {
       const bk = bookings.filter(b => avYmd(new Date(b.starts_at)) === x.date);
       return `<div class="rc" style="cursor:default"><div class="rc-body"><div class="rc-title" style="text-transform:none">${esc(avDay(x.date, { weekday: 'long', day: 'numeric', month: 'numeric' }))}</div>
-        ${x.ranges.map((r, ri) => rangeHtml(di, r, ri)).join('') || '<div class="muted" style="margin-top:6px">Zatvorené</div>'}
-        <button type="button" class="btn ghost" data-add="${di}" style="margin-top:8px">+ Pridať úsek</button>
-        ${bk.length ? `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">${bk.map(b => `<div class="muted" style="font-size:12px">${esc(avTime(b.starts_at))}–${esc(avTime(b.ends_at))} · ${esc(b.customer?.name || '')} · ${esc(b.product?.title || '')} ${klubPill(B_STATUS, b.status)}</div>`).join('')}</div>` : ''}
+        <div class="availability-slots">${x.ranges.map((r, ri) => rangeHtml(di, r, ri)).join('') || '<span class="muted">Zatvorené</span>'}</div>
+        <button type="button" class="btn ghost" data-add="${di}">+ Pridať úsek</button>
+        ${bk.length ? `<div class="availability-bookings">${bk.map(b => `<div class="muted" style="font-size:12px">${esc(avTime(b.starts_at))}–${esc(avTime(b.ends_at))} · ${esc(b.customer?.name || '')} · ${esc(b.product?.title || '')} ${klubPill(B_STATUS, b.status)}</div>`).join('')}</div>` : ''}
       </div></div>`;
     }).join('')}</div>
     <div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn gold" id="av-save" ${past ? 'disabled' : ''}>Uložiť týždeň</button>${past ? '<span class="muted">Minulý týždeň sa už nemení.</span>' : ''}</div>`;

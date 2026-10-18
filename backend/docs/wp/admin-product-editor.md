@@ -9,3 +9,5 @@ Ověření: 83/83 browser kontrol s původními lokálními objednávkami před 
 Opakovatelný UI smoke: `ADMIN_TEST_PASSWORD=… node anastasia-admin/test/browser-editor.mjs` proti lokálnímu adminu. Heslo není v kódu ani výstupu; pro jiné umístění Playwrightu nastavte `PLAYWRIGHT_MODULE`. Test nepřepisuje produkty, neprovádí platby a nevytváří objednávky.
 
 Lokální mock data byla oddělena bez smazání původní DB: nová `anastasia_catalog_local_20261019` má 30 skutečných produktů a 11 kategorií. Původní `anastasia_launch_e2e` i snapshot zůstávají zálohou. Zachováno přihlášení správce, preference, dostupnost a veřejný klíč webu. Žádné zákaznické/objednávkové testovací záznamy se nepřenášely. Externí e-mailový provider je v procesu nového lokálního backendu vypnutý; zákaznická historie a přístupy jsou samostatný navazující import, nikoli hotový výsledek tohoto UI balíku. Žádná produkce, nasazení ani merge.
+
+Na další pokyn je dostupnost místo vysokých týdenních sloupců kompaktní seznam sedmi denních řádků. Úseky jsou vedle sebe, tlačítko odebrání má 44 px a na mobilu se obsah zalomí. Regrese po změně 55/55 PASS.
