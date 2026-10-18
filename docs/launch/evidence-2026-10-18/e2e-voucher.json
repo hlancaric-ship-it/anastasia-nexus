@@ -1,0 +1,170 @@
+{
+  "at": "2026-10-18T08:38:48.253Z",
+  "buyer": "e2e.poukaz.kupuje.mvdkon0u@example.com",
+  "recipient": "e2e.poukaz.dostane.mvdkon0u@example.com",
+  "voucherId": "gv_01M572JGNWMAS1TBKWR6KY01A2",
+  "results": [
+    {
+      "step": "ponuka-hodnot-z-backendu",
+      "ok": true,
+      "detail": {
+        "opts": [
+          "25 €",
+          "50 €"
+        ]
+      }
+    },
+    {
+      "step": "poukaz-do-kosika",
+      "ok": true
+    },
+    {
+      "step": "nakup-poukazu-a-vydanie",
+      "ok": true,
+      "detail": {
+        "r1": {
+          "summary": "Váš výberDarčekový poukaz × 150,00 € / kusKupónKupón nezadanýDopravaZadarmoCelkom50,00 €",
+          "state": "ALLOW",
+          "msg": "Objednávka bola vytvorená. Ďakujeme."
+        },
+        "order1": "order_01M572JG0BB9X1WZFAWS3QPS0E",
+        "voucher": [
+          "gv_01M572JGNWMAS1TBKWR6KY01A2",
+          "active",
+          "5000",
+          "e2e.poukaz.dostane.mvdkon0u@example.com"
+        ]
+      }
+    },
+    {
+      "step": "email-prijemkyni-s-kodom",
+      "ok": true,
+      "detail": {
+        "template": "gift-voucher-recipient-sk",
+        "codeLen": 22
+      }
+    },
+    {
+      "step": "uplatnenie-kodu-v-kosiku",
+      "ok": true,
+      "detail": {
+        "applied": "Poukaz bol uplatnený.",
+        "cartSum": "Váš výberE2E Ružový olej mvdk88e1 × 226,50 € / kusKupónKupón nezadanýPoukaz GV-****-****-****-ZTCL-50,00 €Zostatok poukazu pred čerpaním: 50,00 €Celkom3,00 €Vrátane DPH 9,91 €Pokračovať na objednávku "
+      }
+    },
+    {
+      "step": "platba-zvysku-a-cerpanie",
+      "ok": true,
+      "detail": {
+        "r2": {
+          "summary": "Váš výberE2E Ružový olej mvdk88e1 × 226,50 € / kusKupónKupón nezadanýPoukaz GV-****-****-****-ZTCL-50,00 €Zostatok poukazu pred čerpaním: 50,00 €Doprava6,00 €Celkom9,00 €Vrátane DPH 11,03 €",
+          "state": "ALLOW",
+          "msg": "Objednávka bola vytvorená. Ďakujeme."
+        },
+        "order2": "order_01M572KEZQ4MD28APSPBTFN244",
+        "after": "depleted|0"
+      }
+    },
+    {
+      "step": "admin-zoznam-poukazov",
+      "ok": true,
+      "detail": {
+        "rowTxt": "GV-****-****-****-ZTCL Zostatok0,00 € z 50,00 € Stavvyčerpaný Platí do18. 10. 2027 10:38",
+        "codeMasked": true
+      }
+    },
+    {
+      "step": "admin-detail-a-pohyby",
+      "ok": true,
+      "detail": {
+        "det": "Poukaz GV-****-****-****-ZTCLSpäť Zostatok0,00 € z 50,00 €Stavvyčerpaný Vydaný18. 10. 2026 10:38Platí do18. 10. 2027 10:38 Objednávka nákupuorder_01M572JG0BB9X1WZFAWS3QPS0EDoručenierecipient_email · sent História použitý v objednávke · 50,00 € Kedy18. 10. 2026 10:38Zostatok po0,00 € Objednávkaorder_01M572KEZQ4MD28APSPBTFN244vydaný · 50,00 € Kedy18. 10. 2026 10:38Zostatok po50,00 € Objednávkaorder_"
+      }
+    }
+  ],
+  "calls": [
+    "GET /store/product-categories 200",
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 200",
+    "GET /store/customers/me 401",
+    "POST /store/customers 200",
+    "POST /auth/token/refresh 200",
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "GET /store/product-categories 200",
+    "POST /store/carts 200",
+    "POST /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03/line-items 200",
+    "POST /store/gift-vouchers/recipients 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "GET /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "GET /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "GET /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "GET /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "GET /store/product-categories 200",
+    "POST /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03/customer 200",
+    "POST /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "GET /store/shipping-options 200",
+    "GET /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "POST /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03/shipping-methods 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03 200",
+    "POST /store/payment-collections 200",
+    "POST /store/payment-collections/pay_col_01M572J3FX07E3N012KT3GH0N8/payment-sessions 200",
+    "GET /store/legal/versions 200",
+    "POST /store/carts/cart_01M572HZB5WWDMG7Z0E42JAB03/consents 200",
+    "POST /store/nexus-checkout 200",
+    "GET /store/product-categories 200",
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 200",
+    "GET /store/customers/me 401",
+    "POST /store/customers 200",
+    "POST /auth/token/refresh 200",
+    "GET /store/product-categories 200",
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "GET /static/1792268990799-e2e.png 200",
+    "GET /static/1792305792008-e2e.png 200",
+    "GET /static/1792306220530-e2e.png 200",
+    "GET /static/1792306946599-e2e.png 200",
+    "GET /static/1792311904527-e2e.png 200",
+    "GET /store/products 200",
+    "GET /static/1792311904527-e2e.png 304",
+    "GET /store/products 200",
+    "GET /static/1792305792008-e2e.png 304",
+    "GET /static/1792306220530-e2e.png 304",
+    "GET /static/1792268990799-e2e.png 304",
+    "GET /static/1792306946599-e2e.png 304",
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "POST /store/carts 200",
+    "POST /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV/line-items 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/product-categories 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /static/1792311904527-e2e.png 304",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "POST /store/gift-vouchers/apply 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/product-categories 200",
+    "POST /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV/customer 200",
+    "POST /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "GET /store/shipping-options 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "POST /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV/shipping-methods 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV 200",
+    "POST /store/payment-collections 200",
+    "POST /store/payment-collections/pay_col_01M572K2VGEAGG5SYW6YKG5DSZ/payment-sessions 200",
+    "GET /store/legal/versions 200",
+    "POST /store/carts/cart_01M572JW8BFVW5HA9FA2D9RASV/consents 200",
+    "POST /store/nexus-checkout 200"
+  ],
+  "consoleErrors": []
+}

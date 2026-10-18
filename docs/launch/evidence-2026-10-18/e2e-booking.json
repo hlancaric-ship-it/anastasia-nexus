@@ -1,0 +1,146 @@
+{
+  "at": "2026-10-18T08:32:19.230Z",
+  "email": "e2e.konzultacia.mvdkgxuu@example.com",
+  "bookingId": "bkg_01M5727010ZWJY3XEK083CM0XF",
+  "results": [
+    {
+      "step": "admin-typ-konzultacie",
+      "ok": true,
+      "detail": {
+        "status": 201,
+        "id": "prod_01M5726VNVTBYWK4TQPYX0GW03",
+        "variant": "variant_01M5726VR4ZJA2TB301H7S6AKG"
+      }
+    },
+    {
+      "step": "admin-dostupnost-tyzdna",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "day0": {
+          "date": "2026-10-26",
+          "ranges": [
+            {
+              "start_time": "09:00",
+              "end_time": "17:00"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": "prihlasenie",
+      "ok": true,
+      "detail": {
+        "msg": "Účet je založený. Vitajte."
+      }
+    },
+    {
+      "step": "store-sloty-a-rezervacia",
+      "ok": true,
+      "detail": {
+        "slotsN": 12,
+        "slot": {
+          "start": "2026-10-26T09:30:00.000Z",
+          "end": "2026-10-26T10:30:00.000Z"
+        },
+        "booking": 201,
+        "bookingId": "bkg_01M5727010ZWJY3XEK083CM0XF",
+        "bookingStatus": "held",
+        "takenN": 9,
+        "cart": 200,
+        "cartId": "cart_01M57270575GPER5XW82H1T0CN",
+        "li": 200,
+        "attach": 200,
+        "attachD": {
+          "booking_id": "bkg_01M5727010ZWJY3XEK083CM0XF",
+          "cart_id": "cart_01M57270575GPER5XW82H1T0CN"
+        }
+      }
+    },
+    {
+      "step": "store-pripojenie-ku-kosiku",
+      "ok": true,
+      "detail": {
+        "li": 200,
+        "attach": 200,
+        "d": {
+          "booking_id": "bkg_01M5727010ZWJY3XEK083CM0XF",
+          "cart_id": "cart_01M57270575GPER5XW82H1T0CN"
+        }
+      }
+    },
+    {
+      "step": "pokladna-konzultacia-40",
+      "ok": true,
+      "detail": {
+        "summary": "Váš výberE2E konzultácia mvdkgxuu × 140,00 € / kusKupónKupón nezadanýDopravaZadarmoCelkom40,00 €Vrátane DPH 7,48 €"
+      }
+    },
+    {
+      "step": "platba-a-potvrdenie-terminu",
+      "ok": true,
+      "detail": {
+        "state": "ALLOW",
+        "msg": "Objednávka bola vytvorená. Ďakujeme.",
+        "bk": "confirmed|order_01M5727FB8MTP9GEQAYG2N2Z6Y"
+      }
+    },
+    {
+      "step": "admin-zoznam-konzultacii",
+      "ok": true,
+      "detail": {
+        "rowTxt": "e2e.konzultacia.mvdkgxuu@example.com Termín26. 10. 2026 10:30KonzultáciaE2E konzultácia mvdkgxuu Stavpotvrdená"
+      }
+    },
+    {
+      "step": "admin-detail-zaplatenej-konzultacie",
+      "ok": true,
+      "detail": {
+        "detTxt": " Termín26. 10. 2026 10:30 – 26. 10. 2026 11:30Stavpotvrdená KonzultáciaE2E konzultácia mvdkgxuuObjednávkaorder_01M5727FB8MTP9GEQAYG2N2Z6Y Termín je zaplatený v objednávke. Zrušíte ho zrušením objednávky (otvoriť objednávku); zákazníčke odíde e-mail o zrušení a zaplatená suma sa jej automaticky vráti"
+      }
+    },
+    {
+      "step": "admin-zrusenie-objednavky-zrusi-termin",
+      "ok": true,
+      "detail": {
+        "omsg": "Objednávka je zrušená.",
+        "bk2": "canceled",
+        "mails": "magic-link-sk,customer-welcome-sk,order-placed-sk,booking-confirmed-sk,order-canceled-sk,booking-canceled-sk"
+      }
+    }
+  ],
+  "calls": [
+    "GET /store/product-categories 200",
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 200",
+    "GET /store/customers/me 401",
+    "POST /store/customers 200",
+    "POST /auth/token/refresh 200",
+    "GET /store/product-categories 200",
+    "GET /store/booking-slots 200",
+    "POST /store/bookings 201",
+    "GET /store/booking-slots 200",
+    "POST /store/carts 200",
+    "POST /store/carts/cart_01M57270575GPER5XW82H1T0CN/line-items 200",
+    "POST /store/carts/cart_01M57270575GPER5XW82H1T0CN/customer 200",
+    "POST /store/bookings/bkg_01M5727010ZWJY3XEK083CM0XF/cart 200",
+    "GET /store/carts/cart_01M57270575GPER5XW82H1T0CN 200",
+    "GET /store/carts/cart_01M57270575GPER5XW82H1T0CN 200",
+    "GET /store/carts/cart_01M57270575GPER5XW82H1T0CN 200",
+    "GET /store/product-categories 200",
+    "POST /store/carts/cart_01M57270575GPER5XW82H1T0CN/customer 200",
+    "POST /store/carts/cart_01M57270575GPER5XW82H1T0CN 200",
+    "GET /store/shipping-options 200",
+    "GET /store/carts/cart_01M57270575GPER5XW82H1T0CN 200",
+    "POST /store/carts/cart_01M57270575GPER5XW82H1T0CN/shipping-methods 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M57270575GPER5XW82H1T0CN 200",
+    "POST /store/payment-collections 200",
+    "POST /store/payment-collections/pay_col_01M57273W58D9AGHTFPRH7N7EE/payment-sessions 200",
+    "GET /store/legal/versions 200",
+    "POST /store/carts/cart_01M57270575GPER5XW82H1T0CN/consents 200",
+    "POST /store/nexus-checkout 200"
+  ],
+  "consoleErrors": []
+}

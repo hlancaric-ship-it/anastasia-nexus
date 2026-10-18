@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-18T08:35:24.131Z",
+  "mbr": "mbr_01M57258FDRVB0JAWK7RG83XHM",
+  "results": [
+    {
+      "step": "admin-zastavenie-obnovy",
+      "ok": true,
+      "detail": {
+        "msg": "Automatická obnova je zastavená.",
+        "before": "active|true|2026-11-17 09:30:54.515+01",
+        "after": "active|false|2026-11-17 09:30:54.515+01",
+        "stopBtnGone": true
+      }
+    }
+  ],
+  "errs": []
+}

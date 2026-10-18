@@ -1,0 +1,100 @@
+{
+  "at": "2026-10-18T08:30:13.673Z",
+  "results": [
+    {
+      "step": "tokeny",
+      "ok": true
+    },
+    {
+      "step": "admin-rbac-vsetky-routy",
+      "ok": true,
+      "detail": {
+        "checked": 100,
+        "leaks": []
+      }
+    },
+    {
+      "step": "store-zakaznicke-routy-bez-prihlasenia",
+      "ok": true,
+      "detail": {
+        "checked": 16,
+        "anonLeaks": []
+      }
+    },
+    {
+      "step": "idor-cudzie-zaznamy",
+      "ok": true,
+      "detail": {
+        "idorLeaks": [],
+        "stillActive": "active",
+        "stillBooked": "confirmed"
+      }
+    },
+    {
+      "step": "webhooky-bez-podpisu",
+      "ok": true,
+      "detail": {
+        "hookRes": [
+          {
+            "p": "/hooks/payment/stripe_stripe",
+            "sig": true,
+            "status": 200
+          },
+          {
+            "p": "/hooks/payment/membership_stripe_membership",
+            "sig": true,
+            "status": 200
+          },
+          {
+            "p": "/hooks/nexus/booking-order",
+            "sig": true,
+            "status": 503
+          },
+          {
+            "p": "/hooks/nexus/booking-order",
+            "sig": false,
+            "status": 503
+          },
+          {
+            "p": "/hooks/ops/edge-events",
+            "sig": true,
+            "status": 401
+          },
+          {
+            "p": "/hooks/ops/edge-events",
+            "sig": false,
+            "status": 401
+          }
+        ],
+        "fakeCaptured": "0"
+      }
+    },
+    {
+      "step": "shop-prices-ochrana",
+      "ok": true,
+      "detail": {
+        "spRes": {
+          "customer": 401,
+          "negative": 400,
+          "threeDecimals": 400,
+          "extraField": 400,
+          "staleExpected": 409,
+          "wrongPriceId": 409
+        },
+        "before": "26.5",
+        "after": "26.5"
+      }
+    },
+    {
+      "step": "cena-nejde-podvrhnut-z-klienta",
+      "ok": true,
+      "detail": {
+        "unitPriceRejected": 400,
+        "lineItemStatus": 200,
+        "nexusStatus": 403,
+        "unitAfter": "26.5",
+        "server": "26.5"
+      }
+    }
+  ]
+}

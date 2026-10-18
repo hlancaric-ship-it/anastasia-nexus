@@ -1,0 +1,102 @@
+{
+  "at": "2026-10-18T08:33:30.571Z",
+  "email": "e2e.klub.mvdkii0k@example.com",
+  "results": [
+    {
+      "step": "admin-produkt-clenstva",
+      "ok": true,
+      "detail": {
+        "title": "E2E Klub mesačný mvdkii0k",
+        "saved": "Uložené."
+      }
+    },
+    {
+      "step": "admin-zaradenie-do-klubu",
+      "ok": true,
+      "detail": {
+        "kmsg": "Uložené."
+      }
+    },
+    {
+      "step": "klub-prihlasenie",
+      "ok": true
+    },
+    {
+      "step": "klub-ponuka-na-webe",
+      "ok": true,
+      "detail": {
+        "offerTxt": "30 DNÍE2E Klub mesačný mvdkii0k19,00 €Vybrať "
+      }
+    },
+    {
+      "step": "klub-3ds-overenie",
+      "ok": true
+    },
+    {
+      "step": "klub-nakup-aktivacia",
+      "ok": true,
+      "detail": {
+        "state": "ALLOW",
+        "msg": "Vitajte v Klube ANASTASIA. Členstvo je aktívne."
+      }
+    },
+    {
+      "step": "klub-clenstvo-v-db",
+      "ok": true,
+      "detail": {
+        "mbr": "mbr_01M5729WTEP8NHE7XMRHQVN6BZ|active|true|2026-11-17 09:33:26.273+01",
+        "mandate": "1"
+      }
+    },
+    {
+      "step": "ucet-clenstvo-aktivne",
+      "ok": true,
+      "detail": {
+        "acc": "AktívneE2E Klub mesačný mvdkii0kPrístup do 17. 11. 2026 · automatická obnova zapnutáZastaviť obnovu"
+      }
+    },
+    {
+      "step": "admin-klub-clenka",
+      "ok": true,
+      "detail": {
+        "det": " ČlenstvoE2E Klub mesačný mvdkii0kDĺžka obdobia30 dní · podmienky e2e-mvdkii0k StavaktívnePrístup k obsahuprístup aktívny Platí do17. 11. 2026 09:33Automatická obnovazapnutá Zastaviť automatickú obnovu Obnovy platieb Zastavenie neodoberie už zaplatené obdobie "
+      }
+    }
+  ],
+  "calls": [
+    "GET /store/product-categories 200",
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 200",
+    "GET /store/customers/me 401",
+    "POST /store/customers 200",
+    "POST /auth/token/refresh 200",
+    "GET /store/product-categories 200",
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "POST /store/carts 200",
+    "POST /store/carts/cart_01M5729972VSGBMJJ2TT4EN85M/line-items 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/memberships/offer 200",
+    "GET /store/legal/versions 200",
+    "POST /store/carts/cart_01M5729972VSGBMJJ2TT4EN85M/consents 200",
+    "POST /store/memberships/checkout 200",
+    "POST /store/memberships/checkouts/mck_01M5729AYZGSYC3DCTPYMWBHA2/payment-session 200",
+    "GET /store/customers/me 200",
+    "POST /store/nexus-checkout 200",
+    "POST /store/memberships/checkouts/mck_01M5729AYZGSYC3DCTPYMWBHA2/settle 200",
+    "GET /store/chat/conversations 200",
+    "GET /store/bookings 200",
+    "GET /store/customers/me 200",
+    "GET /store/orders 200",
+    "GET /store/chat/status 200",
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "GET /store/memberships 200",
+    "GET /static/1792305792008-e2e.png 200",
+    "GET /static/1792268990799-e2e.png 200",
+    "GET /static/1792306220530-e2e.png 200",
+    "GET /store/entitlements 200",
+    "GET /store/products 200"
+  ],
+  "consoleErrors": []
+}

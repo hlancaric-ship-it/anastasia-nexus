@@ -1,0 +1,141 @@
+{
+  "at": "2026-10-18T08:25:39.408Z",
+  "email": "e2e.nakup.mvdk8h3u@example.com",
+  "results": [
+    {
+      "step": "prihlasenie-magic-link-nova-zakaznicka",
+      "ok": true,
+      "detail": {
+        "loginMsg": "Účet je založený. Vitajte."
+      }
+    },
+    {
+      "step": "katalog-zobrazuje-produkt",
+      "ok": true,
+      "detail": {
+        "cardPrice": "26,50 €",
+        "cardImg": true
+      }
+    },
+    {
+      "step": "detail-produktu-zivy",
+      "ok": true,
+      "detail": {
+        "url": "http://127.0.0.1:4173/eshop/produkt/e2e-ru%C5%BEov%C3%BD-olej-mvdk88e1",
+        "detailPrice": "26,50 €",
+        "detailImg": true
+      }
+    },
+    {
+      "step": "pridanie-do-kosika",
+      "ok": true,
+      "detail": {
+        "addMsg": "Produkt pridaný do košíka."
+      }
+    },
+    {
+      "step": "kosik-prepocet-nexus",
+      "ok": true,
+      "detail": {
+        "cartTotal": "Váš výberE2E Ružový olej mvdk88e1 × 226,50 € / kusKupónKupón nezadanýCelkom53,00 €Vrátane DPH 9,91 €Pokračovať na objednávku "
+      }
+    },
+    {
+      "step": "pokladna-doprava-a-suma",
+      "ok": true,
+      "detail": {
+        "summaryTxt": "Váš výberE2E Ružový olej mvdk88e1 × 226,50 € / kusKupónKupón nezadanýDoprava6,00 €Celkom59,00 €Vrátane DPH 11,03 €",
+        "cartRow": ""
+      }
+    },
+    {
+      "step": "platobny-formular-sirka",
+      "ok": true,
+      "detail": {
+        "peW": 560
+      }
+    },
+    {
+      "step": "platba-a-objednavka",
+      "ok": true,
+      "detail": {
+        "state": "ALLOW",
+        "msg": "Objednávka bola vytvorená. Ďakujeme."
+      }
+    },
+    {
+      "step": "objednavka-v-db",
+      "ok": true,
+      "detail": {
+        "order": "order_01M571VJER23RZ85A7CJ6R7FGA|27|e2e.nakup.mvdk8h3u@example.com"
+      }
+    }
+  ],
+  "calls": [
+    "GET /store/product-categories 200",
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 200",
+    "GET /store/customers/me 401",
+    "POST /store/customers 200",
+    "POST /auth/token/refresh 200",
+    "GET /store/product-categories 200",
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "GET /static/1792268990799-e2e.png 200",
+    "GET /static/1792305792008-e2e.png 200",
+    "GET /static/1792306220530-e2e.png 200",
+    "GET /static/1792306946599-e2e.png 200",
+    "GET /static/1792311904527-e2e.png 200",
+    "GET /store/products 200",
+    "GET /static/1792311904527-e2e.png 304",
+    "GET /store/products 200",
+    "GET /static/1792305792008-e2e.png 304",
+    "GET /static/1792306220530-e2e.png 304",
+    "GET /static/1792306946599-e2e.png 304",
+    "GET /static/1792268990799-e2e.png 304",
+    "GET /store/products 200",
+    "POST /store/carts 200",
+    "POST /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB/line-items 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /store/product-categories 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /store/product-categories 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /static/1792311904527-e2e.png 304",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /store/product-categories 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "POST /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB/customer 200",
+    "POST /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "GET /store/shipping-options 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "POST /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB/shipping-methods 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB 200",
+    "POST /store/payment-collections 200",
+    "POST /store/payment-collections/pay_col_01M571V6X6QV8MDXSQH1VFMKM4/payment-sessions 200",
+    "GET /store/legal/versions 200",
+    "POST /store/carts/cart_01M571TZYVJYSRXR67DAM5D0JB/consents 200",
+    "POST /store/nexus-checkout 200"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

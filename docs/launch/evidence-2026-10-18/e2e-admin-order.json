@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-18T08:25:48.439Z",
+  "orderId": "order_01M571VJER23RZ85A7CJ6R7FGA",
+  "results": [
+    {
+      "step": "admin-detail-objednavky",
+      "ok": true,
+      "detail": {
+        "prehlad": "E-maile2e.nakup.mvdk8h3u@example.comDátum18. 10. 2026 10:25 Platbazaplatená Vybavenienevybavená DoručenieEva TestováTestovacia 1281101 BratislavaSK DopravaKuriér (zásielka) · 6,00 € Celkom: 59,00 €"
+      }
+    },
+    {
+      "step": "priprava-na-odoslanie",
+      "ok": true
+    },
+    {
+      "step": "oznacenie-odoslania",
+      "ok": true
+    },
+    {
+      "step": "odoslanie-v-db-a-email",
+      "ok": true,
+      "detail": {
+        "shipped": "true",
+        "shipmentMails": "1"
+      }
+    },
+    {
+      "step": "refundacia-10-eur",
+      "ok": true,
+      "detail": {
+        "refMsg": "Vrátenie 10,00 € bolo odoslané.",
+        "before": "59,00 € pp_stripe_stripe Prijaté 59,00 € · vrátené 0,00 € Suma na vrátenie (EUR) Vrátiť peniaze Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo up",
+        "after": "59,00 € pp_stripe_stripe Prijaté 59,00 € · vrátené 10,00 € Suma na vrátenie (EUR) Vrátiť peniaze Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo u",
+        "refunds": "10"
+      }
+    }
+  ],
+  "api": [
+    "POST /admin/orders/order_01M571VJER23RZ85A7CJ6R7FGA/fulfillments 200",
+    "POST /admin/orders/order_01M571VJER23RZ85A7CJ6R7FGA/fulfillments/ful_01M571VSSA6TRDV8HFTYXPFXB7/shipments 200",
+    "POST /admin/payments/pay_01M571VJW1XXR0CWDCWRR0QJ91/refund 200"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

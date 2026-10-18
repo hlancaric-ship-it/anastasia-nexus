@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-18T08:39:25.673Z",
+  "results": [
+    {
+      "step": "ponuka-hodnot-z-backendu",
+      "ok": true,
+      "detail": {
+        "opts": [
+          "25 €",
+          "50 €"
+        ]
+      }
+    },
+    {
+      "step": "poukaz-do-kosika",
+      "ok": true
+    },
+    {
+      "step": "nakup-poukazu-a-vydanie",
+      "ok": true,
+      "detail": {
+        "r1": {
+          "summary": "Váš výberDarčekový poukaz × 150,00 € / kusKupónKupón nezadanýDopravaZadarmoCelkom50,00 €",
+          "state": "ALLOW",
+          "msg": "Objednávka bola vytvorená. Ďakujeme."
+        },
+        "order1": "order_01M572MNQBF13EMW0SQTWR8Z41",
+        "voucher": [
+          "gv_01M572MPD84F9XFH5DFKC318Z4",
+          "active",
+          "5000",
+          "e2e.poukaz.dostane.mvdkq45n@example.com"
+        ]
+      }
+    },
+    {
+      "step": "email-prijemkyni-s-kodom",
+      "ok": true,
+      "detail": {
+        "template": "gift-voucher-recipient-sk",
+        "codeLen": 22
+      }
+    }
+  ]
+}

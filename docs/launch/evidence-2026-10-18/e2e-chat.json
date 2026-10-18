@@ -1,0 +1,64 @@
+{
+  "at": "2026-10-18T08:29:59.748Z",
+  "results": [
+    {
+      "step": "ucet-bez-prihlasenia",
+      "ok": true
+    },
+    {
+      "step": "ucet-realne-data",
+      "ok": true,
+      "detail": {
+        "orders": "1618. 10. 2026E2E konzultácia mvdilp0340,00 €PrijatáOtázka k objednávke",
+        "bookings": "23.novE2E konzultácia mvdilp0323. 11. 2026 · 09:00 – 10:00 · Potvrdený termínNapísať Lucii",
+        "bookingTitle": "E2E konzultácia mvdilp03",
+        "profOk": true
+      }
+    },
+    {
+      "step": "chat-zakaznicka-odoslala",
+      "ok": true,
+      "detail": {
+        "sent": "Správa bola pridaná do konverzácie."
+      }
+    },
+    {
+      "step": "chat-nespôsobila-blokovana",
+      "ok": true,
+      "detail": {
+        "av": "Chat je dostupný po nákupe produktu, programu alebo rezervácii služby."
+      }
+    },
+    {
+      "step": "admin-vidi-spravu",
+      "ok": true,
+      "detail": {
+        "cardTxt": "● e2e.konzultacia.mvdilp03@example.com Téma—Posledná správa18. 10. 2026 10:29 neprečítaná"
+      }
+    },
+    {
+      "step": "admin-odpoved-a-email",
+      "ok": true,
+      "detail": {
+        "mail": "chat-admin-reply"
+      }
+    },
+    {
+      "step": "zakaznicka-vidi-odpoved",
+      "ok": true
+    },
+    {
+      "step": "uzavreta-konverzacia",
+      "ok": true,
+      "detail": {
+        "st": "Táto konverzácia je uzavretá. Môžete začať novú konverzáciu."
+      }
+    }
+  ],
+  "errors": [
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 401",
+    "GET /store/customers/me 401",
+    "POST /store/chat/conversations/chconv_01M57234KA909A5RFGY7WN53TT/messages 409"
+  ]
+}
