@@ -254,8 +254,8 @@
       "label_sk": "QR kupóny a staré odkazy",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
-      "backend_status": "IMPLEMENTED_UNVERIFIED",
-      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "backend_status": "PARTIAL",
+      "new_admin_status": "VERIFIED",
       "request": "Generování SVG/PNG v adminu v první fázi; evidence již vydaných QR i z původního obchodu.",
       "sources": [
         "backend/src/api/admin/coupon-links/route.ts",
@@ -265,7 +265,7 @@
         "backend/src/api/admin/coupon-links/registry.ts",
         "anastasia-admin/qr.mjs"
       ],
-      "remaining": "Čeká na společnou CI a schválený import skutečných historických QR. Store preflight není aplikovaná sleva; cenu dále určuje existující NEXUS pricing.",
+      "remaining": "QR registr a nákupní průchod se současně podporovanými kupóny ověřen v CI (evidence/qr-admin-system-ci.json). Skutečná legacy migrace čerpání a podmínek dosud neověřena; současný NEXUS resolver odmítá pevné a omezené promoce. Import QR je automaticky neaktivuje.",
       "acceptance": "Naskenování nového i starého QR otevře správný cíl a server uplatní správnou slevu; výstup se stáhne bez externí QR služby."
     },
     {

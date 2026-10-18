@@ -1,6 +1,6 @@
 # QR kódy: backend, vlastní administrace a zachované odkazy
 
-Stav: IMPLEMENTED_UNVERIFIED; společná CI dosud čeká. Žádné nasazení, skutečná zákaznická data ani import na produkci.
+Stav: VERIFIED pro QR evidenci, vlastní admin a nákupní průchod se současně podporovanými kupóny (syntetická CI); PARTIAL pro skutečnou legacy obchodní migraci. Žádné nasazení, skutečná zákaznická data ani import na produkci.
 
 ## Izolace od finančního jádra
 
@@ -42,3 +42,13 @@ Cílené unit testy pokrývají stávající skutečný SVG/PNG renderer, URL a 
 ## Dosavadní ověření
 
 Na zdroji `2e17a6d` prošel workflow QR integration (GitHub Actions run39154702407): skutečný PostgreSQL, Medusa, NEXUS most a Chromium na1440/390px. Prohlédnuty oba uložené screenshoty, bez vodorovného přetečení. Celá regrese na stejném zdroji run39154702405: backend1055/1055, NEXUS1235/1235, workerd142/142 a skutečný persistence runner PASS. Cílené QR unit60/60PASS; HTTP adaptér+mock48/48PASS po doplnění chyb sítě, historie jiného košíku a snižování starého množství nad99. Nová závěrečná CI doplní důkaz zachování již nenulového čerpání (tři použití vytvořená nativním registerUsage), nikoli pouze nuly. Výsledky nejsou potvrzením skutečné produkční migrace.
+
+### Hranice skutečné legacy migrace
+
+Kontrola existujícího `buildPromotionInput` v `import-anastasia-catalog.ts` potvrdila: původní katalogový import ponechává kupóny draft a není důkazem přenosu historického čerpání ani všech obchodních omezení. `LegacyCoupon` navíc obsahuje cart_min/cart_max, které tento původní builder nepřenáší. Samotná evidence QR nesmí tento stav obejít nebo kupóny hromadně zapnout. Před skutečnou aktivací je nutná samostatná kontrola původního čerpání, limitů/omezení a kompatibility s existující NEXUS coupon policy na schválených soukromých migračních podkladech. Syntetický E2E zde dokládá zachování již existujícího nativního čerpání a funkčnost starého tvaru URL, nikoli dokončenou migraci klientských dat.
+
+## Závěrečný důkaz
+
+Zdroj `fef324c5dc93d934e2ee8d3548724084bc71f661`: všechny společné workflow SUCCESS. QR run39155319995 ověřil i zachování tří skutečných nativních použití kupónu; oba Chromium viewporty provedly po12 skutečných kontrolách. Regrese39155320014: backend1055/1055, NEXUS1235/1235, workerd142/142, skutečný persistence runner PASS. Cílené unit60/60, storefront HTTP+mock48/48. Strojový důkaz: [evidence/qr-admin-system-ci.json](evidence/qr-admin-system-ci.json). Cenové/checkout/SafeOrder/entitlement/booking zdroje a globální middleware jsou proti Claudeho69c4f7e beze změny; pouze registrace nového modulu a hranice QR byly rozšířeny.
+
+Stávající `lookupCoupon` výslovně odmítá pevné částky a všechny nativní target/buy/customer podmínky. Kontrola či oprava tohoto finančního migračního kontraktu je samostatná část; QR evidence ji nenahrazuje a netvrdí, že všechny původní slevy už lze bezpečně aktivovat.
