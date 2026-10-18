@@ -311,3 +311,20 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
   .tour-card h2{font-size:19px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* Compact detail with contextual instructions; one product editor without hidden tabs. */
+.tab,.pills .pill{font-weight:700}
+.detail-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(250px,1fr);gap:24px;align-items:start}
+.detail-layout>*,.product-editor>*{min-width:0}
+.detail-help{position:sticky;top:24px}
+.detail-help h2,.editor-section h2{font-size:17px;font-weight:700}
+.detail-help h3{font-size:16px;font-weight:700}
+.detail-help p{margin:12px 0 18px;color:var(--muted);line-height:1.7}
+.product-editor{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:28px}
+.editor-section{padding:16px 0 22px;border-bottom:1px solid var(--line)}
+.editor-section h2{margin-bottom:16px}
+.category-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.category-chips button{white-space:normal;text-align:left;overflow-wrap:anywhere}
+.product-photo{display:block;width:100%;height:180px;object-fit:contain;border-radius:8px}
+.editor-save{position:sticky;bottom:0;background:var(--paper,#fff);padding:16px 0;margin-top:12px;border-top:1px solid var(--line);z-index:2}
+@media(max-width:1100px){.detail-layout,.product-editor{grid-template-columns:minmax(0,1fr)}.detail-help{position:static}}

@@ -59,6 +59,7 @@ const NAV = [
   { k: '', label: 'Prehľad', icon: 'home', ready: true },
   { k: 'objednavky', label: 'Objednávky', icon: 'bag', ready: true, badge: 'orders' },
   { k: 'produkty', label: 'Produkty', icon: 'box', ready: true },
+  { k: 'kategorie', label: 'Kategórie', icon: 'box', ready: true },
   { k: 'zakaznicky', label: 'Zákazníčky', icon: 'users', ready: true },
   { k: 'konzultacie', label: 'Konzultácie', icon: 'cal', ready: true },
   { k: 'spravy', label: 'Správy', icon: 'chat', ready: true, badge: 'messages' },
@@ -355,6 +356,7 @@ async function vProductNew(view) {
 }
 async function vProductDetail(view, id) {
   view = freshView(view);
+  setActions('');
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,thumbnail,metadata,*images,*sales_channels,*variants.prices,*categories,variants.manage_inventory,variants.sku,*variants.inventory_items,*shipping_profile`);
   const variant = p.variants?.[0]; const price = basePrice(variant);
@@ -383,7 +385,7 @@ async function vProductDetail(view, id) {
       <div><label>Platí do (voliteľné)</label><input id="p-sale-to" type="date" value="${esc(sale.do || '')}"></div></div>
       <div class="muted" style="font-size:12px;margin-top:6px">Akčná cena sa prejaví ako zľava oproti bežnej cene (číta ju cenový engine jadra).</div>
     </div>`;
-  const kategorie = `<div>${cats.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-c="${c.id}" ${inC.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}</label>`).join('') || '<span class="muted">Žiadne kategórie.</span>'}</div>`;
+  const kategorie = `<label for="p-category">Pridať kategóriu</label><select id="p-category" ${catsR ? '' : 'disabled'}><option value="">Vyberte kategóriu…</option>${cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select><div id="p-categories" class="category-chips"></div><a class="subtle-link" href="#/kategorie">Spravovať kategórie →</a>${catsR ? '' : '<p class="muted">Kategórie sa nepodarilo načítať. Pôvodné zaradenie zostane zachované.</p>'}`;
   const popis = wysiwygHtml('p-desc', p.description || '');
   const obrazky = `<div id="p-imgs" class="rc-grid"></div>
     <label style="margin-top:12px">Pridať obrázky (JPG, PNG, WebP do 5 MB)</label><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple>
@@ -401,7 +403,7 @@ async function vProductDetail(view, id) {
         ${lv ? `<span class="rc-f"><em>Rezervované</em>${lv.reserved_quantity ?? 0}</span>` : ''}</div></div></div>`; }).join('')}</div>`) : ''}`;
   const completeness = () => {
     const np = Number(view.querySelector('#p-price')?.value);
-    const chosenCh = [...view.querySelectorAll('[data-ch]')].some(cb => cb.checked), chosenCat = [...view.querySelectorAll('[data-c]')].some(cb => cb.checked);
+    const chosenCh = [...view.querySelectorAll('[data-ch]')].some(cb => cb.checked), chosenCat = inC.size > 0;
     return [
       { ok: !!variant && np > 0, block: true, t: 'Cena v EUR' },
       { ok: chosenCh || !channels.length && inCh.size > 0, block: true, t: 'Predajný kanál' },
@@ -416,13 +418,29 @@ async function vProductDetail(view, id) {
   view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<button class="btn ghost" id="p-back">Späť</button></div><div class="card-b">
     <div id="pmsg"></div>
     <div id="p-checks" style="margin-bottom:10px"></div>
-    ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 'c', label: 'Cena a akcia', html: cena }, { id: 'o', label: 'Obrázky', html: obrazky }, { id: 'k', label: 'Kategórie', html: kategorie }, { id: 's', label: 'Predaj', html: predaj }, { id: 'sk', label: 'Sklad', html: sklad }, { id: 'd', label: 'Popis', html: popis }])}
-    <div style="margin-top:16px;display:flex;gap:10px"><button class="btn gold" id="p-save">Uložiť</button></div>
+    <div class="product-editor"><div>
+      <section class="editor-section"><h2>Základné údaje</h2>${zakladne}</section>
+      <section class="editor-section"><h2>Cena a akcia</h2>${cena}</section>
+      <section class="editor-section"><h2>Popis produktu</h2>${popis}</section>
+      <section class="editor-section"><h2>Sklad</h2>${sklad}</section>
+    </div><div>
+      <section class="editor-section"><h2>Fotografie</h2>${obrazky}</section>
+      <section class="editor-section"><h2>Kategórie</h2>${kategorie}</section>
+      <section class="editor-section"><h2>Predaj a doručenie</h2>${predaj}</section>
+    </div></div>
+    <div class="editor-save"><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
   </div></div>`;
-  wireTabs(view); wireWysiwyg(view);
+  wireWysiwyg(view);
+  const drawCategories = () => {
+    view.querySelector('#p-categories').innerHTML = [...inC].map(id => `<button type="button" class="btn ghost" data-category-remove="${esc(id)}" aria-label="Odobrať kategóriu ${esc(cats.find(c => c.id === id)?.name || p.categories?.find(c => c.id === id)?.name || 'z produktu')}">${esc(cats.find(c => c.id === id)?.name || p.categories?.find(c => c.id === id)?.name || 'Priradená kategória')} ×</button>`).join('');
+    view.querySelectorAll('[data-category-remove]').forEach(b => b.onclick = () => { inC.delete(b.dataset.categoryRemove); drawCategories(); renderChecks(); });
+    [...view.querySelector('#p-category').options].forEach(o => { o.disabled = inC.has(o.value); });
+  };
+  view.querySelector('#p-category').onchange = e => { if (e.target.value) inC.add(e.target.value); e.target.value = ''; drawCategories(); renderChecks(); };
+  drawCategories();
   view.querySelector('#p-back').onclick = () => vProducts(view);
   const drawImgs = () => {
-    view.querySelector('#p-imgs').innerHTML = images.map((u, i) => `<div class="rc"><div class="rc-body"><img src="${esc(u)}" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">
+    view.querySelector('#p-imgs').innerHTML = images.map((u, i) => `<div class="rc"><div class="rc-body"><img src="${esc(u)}" alt="" class="product-photo">
       <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${u === thumb ? '<span class="pill ok">hlavný</span>' : `<button type="button" class="btn ghost" data-main="${i}">Hlavný</button>`}<button type="button" class="btn ghost" data-rm="${i}">Odstrániť</button></div></div></div>`).join('') || '<div class="empty">Produkt zatiaľ nemá obrázok.</div>';
     view.querySelectorAll('[data-main]').forEach(b => b.onclick = () => { thumb = images[+b.dataset.main]; drawImgs(); });
     view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const u = images.splice(+b.dataset.rm, 1)[0]; if (thumb === u) thumb = images[0] || null; drawImgs(); renderChecks(); });
@@ -452,6 +470,12 @@ async function vProductDetail(view, id) {
   view.querySelector('#p-save').onclick = async () => {
     const msg = view.querySelector('#pmsg'); msg.innerHTML = ''; const btn = view.querySelector('#p-save');
     const wantStatus = view.querySelector('#p-status').value;
+    if (!view.querySelector('#p-title').value.trim()) { msg.innerHTML = '<div class="err">Zadajte názov produktu.</div>'; return; }
+    const amountInput = view.querySelector('#p-price');
+    if (amountInput.value !== '' && (!amountInput.validity.valid || !Number.isFinite(Number(amountInput.value)) || Number(amountInput.value) < 0)) { msg.innerHTML = '<div class="err">Cena musí byť nezáporná suma v EUR s najviac dvoma desatinnými miestami.</div>'; return; }
+    const saleInput = view.querySelector('#p-sale-price');
+    if (view.querySelector('#p-sale-on').checked && (saleInput.value === '' || !saleInput.validity.valid || !(Number(saleInput.value) > 0) || Number(saleInput.value) >= Number(amountInput.value))) { msg.innerHTML = '<div class="err">Akčná cena musí byť väčšia ako nula a nižšia ako bežná cena.</div>'; return; }
+
     const missing = completeness().filter(c => c.block && !c.ok).map(c => c.t);
     if (wantStatus === 'published' && missing.length) { msg.innerHTML = `<div class="err">Produkt sa nedá zverejniť, chýba: ${esc(missing.join(', '))}. Uložte ho ako koncept alebo údaje doplňte.</div>`; return; }
     if ([...view.querySelectorAll('[data-loc]')].some(i => i.value !== '' && !(Number.isInteger(Number(i.value)) && Number(i.value) >= 0))) { msg.innerHTML = '<div class="err">Počet kusov na sklade musí byť celé číslo 0 alebo viac.</div>'; return; }
@@ -460,7 +484,7 @@ async function vProductDetail(view, id) {
     btn.disabled = true;
     try {
       if (newSku) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { sku: newSku } });
-      const chosen = [...view.querySelectorAll('[data-c]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.c }));
+      const chosen = [...inC].map(id => ({ id }));
       const desc = view.querySelector('#p-desc').innerHTML.trim();
       const np = view.querySelector('#p-price').value;
       // Základná cena len cez /admin/shop-prices (zámok, kontrola pôvodnej sumy, audit) – nikdy natívne prices[],
@@ -475,7 +499,7 @@ async function vProductDetail(view, id) {
       if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
       else { await clearVariantSale(ref); saleMeta = { active: false }; }
       const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
-      const body = { title: view.querySelector('#p-title').value, status: wantStatus, description: desc, categories: chosen, metadata, images: images.map(url => ({ url })), thumbnail: thumb };
+      const body = { title: view.querySelector('#p-title').value.trim(), status: wantStatus, description: desc, categories: chosen, metadata, images: images.map(url => ({ url })), thumbnail: thumb };
       const ship = view.querySelector('#p-ship').value; if (ship && ship !== curProfile) body.shipping_profile_id = ship;
       if (channels.length) body.sales_channels = [...view.querySelectorAll('[data-ch]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.ch }));
       await api(`/admin/products/${id}`, { method: 'POST', body });
@@ -513,26 +537,41 @@ async function vCategories(view) {
   setActions('<button class="btn gold" id="cat-new">+ Nová kategória</button>');
   const nb = document.querySelector('#cat-new'); if (nb) nb.onclick = () => vCategoryDetail(view, null);
   listView(view, { title: 'Kategórie', rows: product_categories, onRow: c => vCategoryDetail(view, c.id), cols: [
-    { h: 'Názov', v: c => esc(c.name) }, { h: 'Handle', v: c => `<span class="muted">${esc(c.handle)}</span>` },
-    { h: 'Nadradená', v: c => c.parent_category_id ? '<span class="muted">áno</span>' : '—' },
+    { h: 'Názov', v: c => esc(c.name) }, { h: 'Adresa kategórie', v: c => `<span class="muted">${esc(c.handle)}</span>` },
+    { h: 'Nadradená kategória', v: c => esc(product_categories.find(p => p.id === c.parent_category_id)?.name || 'Hlavná kategória') },
     { h: 'Aktívna', v: c => c.is_active ? '<span class="pill ok">áno</span>' : '<span class="pill off">nie</span>' }] });
 }
 async function vCategoryDetail(view, id) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  let c = { name: '', handle: '', is_active: true };
-  if (id) { const r = await api(`/admin/product-categories/${id}?fields=id,name,handle,is_active`); c = r.product_category; }
+  setActions('');
+  const all = (await api('/admin/product-categories?limit=200&fields=id,name,parent_category_id')).product_categories || [];
+  let c = { name: '', handle: '', is_active: true, parent_category_id: null };
+  if (id) { const r = await api(`/admin/product-categories/${id}?fields=id,name,handle,is_active,parent_category_id`); c = r.product_category; }
+  const descendant = candidate => { const seen = new Set(); let current = candidate; while (current) { if (current === id || seen.has(current)) return true; seen.add(current); current = all.find(x => x.id === current)?.parent_category_id; } return false; };
   view.innerHTML = `<div class="card"><div class="card-h">${id ? 'Úprava kategórie' : 'Nová kategória'}<button class="btn ghost" id="c-back">Späť</button></div><div class="card-b">
     <div id="cmsg"></div>
     <label>Názov</label><input id="c-name" value="${esc(c.name)}">
-    <label>Handle (URL)</label><input id="c-handle" value="${esc(c.handle || '')}" placeholder="napr. bio-kozmetika">
+    <label>Adresa kategórie</label><input id="c-handle" value="${esc(c.handle || '')}" placeholder="napr. bio-kozmetika">
+    <label for="c-parent">Nadradená kategória</label><select id="c-parent"><option value="">Hlavná kategória</option>${all.filter(x => !descendant(x.id)).map(x => `<option value="${esc(x.id)}"${x.id === c.parent_category_id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
     <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="c-active" ${c.is_active !== false ? 'checked' : ''} style="width:auto"> Aktívna</label>
-    <div style="margin-top:16px"><button class="btn gold" id="c-save">Uložiť</button></div>
+    <div style="margin-top:16px"><button class="btn gold" id="c-save">Uložiť</button>${id ? ' <button class="btn ghost" id="c-delete">Odstrániť kategóriu</button>' : ''}</div>
   </div></div>`;
   view.querySelector('#c-back').onclick = () => vCategories(view);
+  const deleteButton = view.querySelector('#c-delete');
+  if (deleteButton) deleteButton.onclick = async () => {
+    const msg = view.querySelector('#cmsg'); msg.innerHTML = '';
+    if (all.some(x => x.parent_category_id === id)) { msg.innerHTML = '<div class="err">Táto kategória obsahuje podkategórie. Najprv ich presuňte do inej kategórie alebo odstráňte.</div>'; return; }
+    if (!confirm(`Odstrániť kategóriu „${c.name}“? Produkty zostanú zachované; odstráni sa len ich zaradenie do tejto kategórie. Túto zmenu nemožno vrátiť späť.`)) return;
+    deleteButton.disabled = true;
+    try { await api(`/admin/product-categories/${id}`, { method: 'DELETE' }); await vCategories(view); }
+    catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; deleteButton.disabled = false; }
+  };
   view.querySelector('#c-save').onclick = async () => {
     const msg = view.querySelector('#cmsg'); msg.innerHTML = '';
-    const body = { name: view.querySelector('#c-name').value, is_active: view.querySelector('#c-active').checked };
+    const name = view.querySelector('#c-name').value.trim();
+    if (!name) { msg.innerHTML = '<div class="err">Zadajte názov kategórie.</div>'; return; }
+    const body = { name, is_active: view.querySelector('#c-active').checked, parent_category_id: view.querySelector('#c-parent').value || null };
     const h = view.querySelector('#c-handle').value.trim(); if (h) body.handle = h;
     try { await api(id ? `/admin/product-categories/${id}` : '/admin/product-categories', { method: 'POST', body }); await vCategories(view); }
     catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
@@ -592,12 +631,21 @@ async function vOrderDetail(view, id, notice) {
       ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div><div></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.</p>`;
-  view.innerHTML = `<div class="card"><div class="card-h">Objednávka #${esc(o.display_id ?? '')}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(o.display_id ?? '')}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
     <div id="omsg">${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
     ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }, { id: 'o', label: 'Odoslanie', html: odoslanie }, { id: 'pl', label: 'Platby', html: platby }])}
     ${!canceled && !anyShipped ? '<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><button class="btn ghost" id="o-cancel">Zrušiť objednávku</button></div>' : ''}
-  </div></div>`;
+  </div></div><aside class="detail-help panel" aria-label="Nápoveda k objednávke"><div class="panel-head"><h2>Ako postupovať</h2></div><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
   wireTabs(view);
+  const orderHelp = {
+    p: ['Skontrolujte objednávku', 'Tu vidíte zákazníčku, doručenie a aktuálny stav platby. Položky objednávky nájdete vo vedľajšej záložke.', 'objednavka-vybavit'],
+    i: ['Čo zákazníčka objednala', 'Pri každej položke vidíte objednané, pripravené a odoslané množstvo. Na vybavenie pokračujte do Odoslanie.', 'objednavka-vybavit'],
+    o: ['Pripravte a odošlite', 'Najprv pripravte položky. Po odovzdaní dopravcovi doplňte číslo zásielky a označte ju ako odoslanú. Zákazníčke odíde e-mail.', 'objednavka-vybavit'],
+    pl: ['Platby a vrátenie peňazí', 'Skontrolujte prijatú a už vrátenú sumu. Pred vrátením peňazí overte sumu aj dôvod; ďalší krok si vyžiada potvrdenie.', 'objednavka-platby'],
+  };
+  const showOrderHelp = tab => { const h = orderHelp[tab]; view.querySelector('#order-help').innerHTML = `<h3>${esc(h[0])}</h3><p>${esc(h[1])}</p><a class="subtle-link" href="#/pomoc/${h[2]}">Podrobný postup →</a>`; };
+  showOrderHelp('p');
+  view.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showOrderHelp(b.dataset.tab)));
   view.querySelector('#o-back').onclick = () => vOrders(view);
   const run = async (btn, question, fn, done) => {
     if (!confirm(question)) return;

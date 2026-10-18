@@ -256,8 +256,8 @@ export const GUIDES = [
   {
     id: 'produkt-upravit', group: 'produkty', icon: 'box', href: '#/produkty', hrefLabel: 'Otvoriť Produkty',
     title: 'Ako upraviť produkt, cenu, obrázky a sklad',
-    summary: 'Všetky údaje produktu v záložkách a kontrola pred zverejnením.',
-    why: 'Úprava produktu je rozdelená do záložiek, aby ste vždy videli len to, čo práve meníte. Kontrola úplnosti vám ukáže, čo ešte chýba.',
+    summary: 'Všetky údaje produktu na jednej stránke a kontrola pred zverejnením.',
+    why: 'Údaje, fotografie, kategórie a sklad upravíte spolu na jednej stránke. Kontrola úplnosti vám ukáže, čo ešte chýba.',
     steps: [
       'V Produktoch kliknite na kartu produktu.',
       'Hore vidíte kontrolu úplnosti: ✓ je hotové, ✕ bráni zverejneniu, ! odporúčame doplniť.',
@@ -265,7 +265,7 @@ export const GUIDES = [
       'Cena a akcia: bežná cena v eurách a prípadná akciová cena.',
       'Obrázky: nahrajte JPG, PNG alebo WebP do 5 MB a zvoľte hlavný obrázok.',
       'Kategórie, Predaj (typ produktu a predajné kanály), Sklad (počet kusov po skladoch) a Popis (text s tučným písmom, kurzívou a zoznamami).',
-      'Kliknite na Uložiť. Uložia sa zmeny vo všetkých záložkách naraz.',
+      'Kliknite na Uložiť. Uložia sa zmeny na celej stránke naraz.',
     ],
     after: [
       'Zverejnený produkt sa zobrazí v obchode v označených predajných kanáloch.',
@@ -284,7 +284,7 @@ export const GUIDES = [
     summary: 'Dočasne nižšia cena bez prepisovania bežnej ceny.',
     why: 'Akciou dočasne znížite cenu bez toho, aby ste prepisovali bežnú cenu. Zákazníčka vidí zľavu oproti bežnej cene.',
     steps: [
-      'Otvorte produkt a prejdite do záložky Cena a akcia.',
+      'Otvorte produkt a nájdite časť Cena a akcia.',
       'Zaškrtnite Vo výpredaji / akcia.',
       'Zadajte akčnú cenu v eurách. Pole Platí do je voliteľné.',
       'Kliknite na Uložiť.',
@@ -306,7 +306,7 @@ export const GUIDES = [
       'Kliknite na + Nová kategória alebo na existujúcu kategóriu.',
       'Zadajte názov. Pole Handle (časť webovej adresy) môžete nechať prázdne.',
       'Zaškrtnite Aktívna, ak má byť kategória v ponuke, a kliknite na Uložiť.',
-      'Produkt do kategórie zaradíte v úprave produktu v záložke Kategórie.',
+      'Produkt do kategórie zaradíte v úprave produktu v časti Kategórie.',
     ],
     after: ['Kategóriu hneď nájdete v úprave produktov a v nastavení darčekových poukazov, ak chcete obmedziť, kde sa dá poukaz použiť.'],
     careful: ['Kategóriu, ktorú dočasne nechcete ukazovať, radšej nastavte ako neaktívnu.'],
@@ -573,7 +573,7 @@ export const PAGE_HELP = {
   produkty: {
     title: 'Ako fungujú Produkty',
     text: 'Tu spravujete katalóg. Kliknutím na kartu produkt upravíte, tlačidlom Pridať produkt založíte nový.',
-    points: ['Produkt sa dá zverejniť, až keď má cenu, predajný kanál, typ produktu a kód.', 'Konečnú cenu v košíku prepočíta systém automaticky na serveri.', 'Zmeny vo všetkých záložkách uložíte jedným tlačidlom Uložiť.'],
+    points: ['Produkt sa dá zverejniť, až keď má cenu, predajný kanál, typ produktu a kód.', 'Konečnú cenu v košíku prepočíta systém automaticky na serveri.', 'Zmeny na celej stránke uložíte jedným tlačidlom Uložiť.'],
     guides: ['produkt-pridat', 'produkt-upravit', 'produkt-akcia', 'kategorie'],
   },
   kategorie: {
