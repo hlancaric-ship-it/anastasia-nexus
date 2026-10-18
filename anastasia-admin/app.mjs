@@ -142,7 +142,7 @@ async function vDashboard(view) {
   const soft = (p) => api(p).catch(e => { if (e.message === '401') throw e; return null; });
   await loadMe(); setUserChip();
   const [ordersRes, chatRes, bookRes, readiness] = await Promise.all([
-    soft('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1'),
+    soft('/admin/orders?fulfillment_status[]=not_fulfilled&status[]=pending&status[]=completed&status[]=requires_action&limit=1'),
     soft('/admin/chat/conversations?status=open&limit=200'),
     soft('/admin/bookings?status=confirmed&limit=200'),
     soft('/admin/readiness'),
@@ -579,19 +579,19 @@ async function vCategoryDetail(view, id) {
 }
 async function vOrders(view) {
   view = freshView(view);
-  const { orders } = await api('/admin/orders?limit=50&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status');
+  const { orders } = await api('/admin/orders?limit=50&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata');
   const payPill = (s) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc(s || '—')}</span>`;
   const fulPill = (s) => `<span class="pill ${s === 'fulfilled' || s === 'shipped' || s === 'delivered' ? 'ok' : 'warn'}">${esc(s || 'nevybavená')}</span>`;
   listView(view, { title: 'Objednávky', rows: orders, onRow: o => vOrderDetail(view, o.id), empty: 'Zatiaľ žiadne objednávky.',
-    card: o => `<div class="rc-body"><div class="rc-title">#${esc(o.display_id ?? '')} · ${fmtEur(o.total)}</div><div class="rc-fields">
+    card: o => `<div class="rc-body"><div class="rc-title">#${esc(o.metadata?.legacy_customer_migration?.number || o.display_id || '')} · ${fmtEur(o.total)}</div><div class="rc-fields">
       <span class="rc-f"><em>Zákazníčka</em>${esc(o.email || '—')}</span>
-      <span class="rc-f"><em>Platba</em>${payPill(o.payment_status)}</span>
-      <span class="rc-f"><em>Vybavenie</em>${fulPill(o.fulfillment_status)}</span>
-      <span class="rc-f"><em>Dátum</em>${fmtDate(o.created_at)}</span></div></div>` });
+      <span class="rc-f"><em>Platba</em>${o.status === 'archived' ? esc(o.metadata?.legacy_customer_migration?.payment_status || 'Historický záznam') : payPill(o.payment_status)}</span>
+      <span class="rc-f"><em>Vybavenie</em>${o.status === 'archived' ? `<span class="pill">${esc(o.metadata?.legacy_customer_migration?.status || 'Archív')}</span>` : fulPill(o.fulfillment_status)}</span>
+      <span class="rc-f"><em>Dátum</em>${fmtDate(o.metadata?.legacy_customer_migration?.placed_at || o.created_at)}</span></div></div>` });
 }
 // Akcie objednávky cez natívne Admin API jadra (spúšťajú existujúce subscribery: e-maily, prístupy, kompenzácie).
 // Každá zmena má potvrdenie; sumy a stavy overuje jadro, SPA len ponúka to, čo dáva zmysel.
-const ORDER_FIELDS = 'id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,*items,*items.detail,*fulfillments,*fulfillments.items,*fulfillments.labels,*payment_collections,*payment_collections.payments,*payment_collections.payments.refunds,*payment_collections.payments.captures,*shipping_address,*shipping_methods';
+const ORDER_FIELDS = 'id,metadata,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,*items,*items.detail,*fulfillments,*fulfillments.items,*fulfillments.labels,*payment_collections,*payment_collections.payments,*payment_collections.payments.refunds,*payment_collections.payments.captures,*shipping_address,*shipping_methods';
 const PAY_LABEL = { captured: 'zaplatená', authorized: 'autorizovaná (čaká na prijatie)', partially_refunded: 'čiastočne vrátená', refunded: 'vrátená', not_paid: 'nezaplatená', awaiting: 'čaká na platbu', canceled: 'zrušená', partially_captured: 'čiastočne zaplatená', requires_action: 'čaká na overenie' };
 const FUL_LABEL = { not_fulfilled: 'nevybavená', fulfilled: 'pripravená na odoslanie', partially_fulfilled: 'čiastočne pripravená', shipped: 'odoslaná', partially_shipped: 'čiastočne odoslaná', delivered: 'doručená', canceled: 'zrušená' };
 const sum = (arr, k = 'amount') => (arr || []).reduce((a, x) => a + Number(x?.[k] || 0), 0);
@@ -599,17 +599,19 @@ async function vOrderDetail(view, id, notice) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { order: o } = await api(`/admin/orders/${id}?fields=${encodeURIComponent(ORDER_FIELDS)}`);
+  const history = o.metadata?.legacy_customer_migration || {};
+  const archived = o.status === 'archived';
   const items = o.items || [];
-  const toFulfill = items.map(it => ({ id: it.id, title: it.title || it.product_title || '', quantity: Number(it.quantity) - Number(it.detail?.fulfilled_quantity || 0) })).filter(x => x.quantity > 0);
+  const toFulfill = (archived ? [] : items).map(it => ({ id: it.id, title: it.title || it.product_title || '', quantity: Number(it.quantity) - Number(it.detail?.fulfilled_quantity || 0) })).filter(x => x.quantity > 0);
   const fulfillments = (o.fulfillments || []).filter(f => !f.canceled_at);
-  const payments = (o.payment_collections || []).flatMap(pc => pc.payments || []).filter(p => !p.canceled_at);
+  const payments = (archived ? [] : o.payment_collections || []).flatMap(pc => pc.payments || []).filter(p => !p.canceled_at);
   const canceled = o.status === 'canceled';
   const anyShipped = fulfillments.some(f => f.shipped_at);
   const a = (o.shipping_address || {});
   const addr = [[a.first_name, a.last_name].filter(Boolean).join(' '), a.address_1, a.address_2, [a.postal_code, a.city].filter(Boolean).join(' '), (a.country_code || '').toUpperCase()].filter(Boolean).map(esc).join('<br>');
-  const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(o.created_at)}</div></div></div>
-    <div class="row"><div><label>Platba</label><div><span class="pill">${esc(PAY_LABEL[o.payment_status] || o.payment_status || '—')}</span></div></div>
-    <div><label>Vybavenie</label><div><span class="pill">${esc(FUL_LABEL[o.fulfillment_status] || o.fulfillment_status || '—')}</span>${canceled ? ' <span class="pill off">objednávka zrušená</span>' : ''}</div></div></div>
+  const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(history.placed_at || o.created_at)}</div></div></div>
+    <div class="row"><div><label>Platba</label><div><span class="pill">${esc(history.payment_status || PAY_LABEL[o.payment_status] || o.payment_status || '—')}</span></div></div>
+    <div><label>Vybavenie</label><div><span class="pill">${esc(history.status || (archived ? 'Archív' : FUL_LABEL[o.fulfillment_status] || o.fulfillment_status) || '—')}</span>${canceled ? ' <span class="pill off">objednávka zrušená</span>' : ''}</div></div></div>
     <div class="row"><div><label>Doručenie</label><div>${addr || '<span class="muted">bez adresy (digitálny obsah)</span>'}</div></div>
     <div><label>Doprava</label><div>${(o.shipping_methods || []).map(m => `${esc(m.name)} · ${fmtEur(m.total ?? m.amount)}`).join('<br>') || '—'}</div></div></div>
     <div style="margin-top:10px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>`;
@@ -631,10 +633,10 @@ async function vOrderDetail(view, id, notice) {
       ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div><div></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.</p>`;
-  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(o.display_id ?? '')}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
-    <div id="omsg">${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
+  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
+    <div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
     ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }, { id: 'o', label: 'Odoslanie', html: odoslanie }, { id: 'pl', label: 'Platby', html: platby }])}
-    ${!canceled && !anyShipped ? '<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><button class="btn ghost" id="o-cancel">Zrušiť objednávku</button></div>' : ''}
+    ${!canceled && !archived && !anyShipped ? '<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><button class="btn ghost" id="o-cancel">Zrušiť objednávku</button></div>' : ''}
   </div></div><aside class="detail-help panel" aria-label="Nápoveda k objednávke"><div class="panel-head"><h2>Ako postupovať</h2></div><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
   wireTabs(view);
   const orderHelp = {
@@ -1749,7 +1751,7 @@ async function refreshBadges() {
   // Počty v bočnom paneli len z jadra; keď sa nedajú načítať, počítadlo sa nezobrazí.
   const show = (k) => { const el = document.querySelector(`[data-badge="${k}"]`); if (el) { if (BADGES[k] > 0) { el.textContent = BADGES[k]; el.hidden = false; } else el.hidden = true; } };
   await Promise.all([
-    api('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1').then(d => { BADGES.orders = d.count || 0; show('orders'); }).catch(() => {}),
+    api('/admin/orders?fulfillment_status[]=not_fulfilled&status[]=pending&status[]=completed&status[]=requires_action&limit=1').then(d => { BADGES.orders = d.count || 0; show('orders'); }).catch(() => {}),
     api('/admin/chat/conversations?status=open&limit=200').then(d => { BADGES.messages = d.unread || 0; show('messages'); }).catch(() => {}),
   ]);
 }
