@@ -1,12 +1,12 @@
 {
-  "at": "2026-10-18T08:25:48.439Z",
-  "orderId": "order_01M571VJER23RZ85A7CJ6R7FGA",
+  "at": "2026-10-18T11:32:36.586Z",
+  "orderId": "order_01M57CHM71FQ4AJ4M2B3M47VN6",
   "results": [
     {
       "step": "admin-detail-objednavky",
       "ok": true,
       "detail": {
-        "prehlad": "E-maile2e.nakup.mvdk8h3u@example.comDátum18. 10. 2026 10:25 Platbazaplatená Vybavenienevybavená DoručenieEva TestováTestovacia 1281101 BratislavaSK DopravaKuriér (zásielka) · 6,00 € Celkom: 59,00 €"
+        "prehlad": "E-maile2e.nakup.mvdqwpaf@example.comDátum18. 10. 2026 13:32 Platbazaplatená Vybavenienevybavená DoručenieEva TestováTestovacia 1281101 BratislavaSK DopravaKuriér (zásielka) · 6,00 € Celkom: 59,00 €"
       }
     },
     {
@@ -37,9 +37,9 @@
     }
   ],
   "api": [
-    "POST /admin/orders/order_01M571VJER23RZ85A7CJ6R7FGA/fulfillments 200",
-    "POST /admin/orders/order_01M571VJER23RZ85A7CJ6R7FGA/fulfillments/ful_01M571VSSA6TRDV8HFTYXPFXB7/shipments 200",
-    "POST /admin/payments/pay_01M571VJW1XXR0CWDCWRR0QJ91/refund 200"
+    "POST /admin/orders/order_01M57CHM71FQ4AJ4M2B3M47VN6/fulfillments 200",
+    "POST /admin/orders/order_01M57CHM71FQ4AJ4M2B3M47VN6/fulfillments/ful_01M57CHV7V05WA25JEYDZ22QXY/shipments 200",
+    "POST /admin/payments/pay_01M57CHMMJP262YQG3NTXJK1AR/refund 200"
   ],
   "consoleErrors": [
     "Failed to load resource: the server responded with a status of 404 (Not Found)"

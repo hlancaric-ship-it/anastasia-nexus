@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-18T08:29:59.748Z",
+  "at": "2026-10-18T11:35:19.084Z",
   "results": [
     {
       "step": "ucet-bez-prihlasenia",
@@ -33,7 +33,7 @@
       "step": "admin-vidi-spravu",
       "ok": true,
       "detail": {
-        "cardTxt": "● e2e.konzultacia.mvdilp03@example.com Téma—Posledná správa18. 10. 2026 10:29 neprečítaná"
+        "cardTxt": "● e2e.konzultacia.mvdilp03@example.com Téma—Posledná správa18. 10. 2026 13:35 neprečítaná"
       }
     },
     {
@@ -57,8 +57,9 @@
   ],
   "errors": [
     "POST /auth/customer/magic-link 401",
+    "POST /store/chat/conversations/chconv_01M57234KA909A5RFGY7WN53TT/messages 409",
     "POST /auth/customer/magic-link 401",
     "GET /store/customers/me 401",
-    "POST /store/chat/conversations/chconv_01M57234KA909A5RFGY7WN53TT/messages 409"
+    "POST /store/chat/conversations/chconv_01M57CPF716B96Y5HMCSQ3VMPT/messages 409"
   ]
 }

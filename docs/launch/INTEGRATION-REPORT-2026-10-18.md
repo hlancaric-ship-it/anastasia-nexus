@@ -55,7 +55,10 @@ Klub obnova běží s posunutými hodinami procesu (simulace dne obnovy, `shift-
 ## 3. Blokující problémy
 
 **P0 (bez nich nelze 23. 10. spustit – provoz, ne kód):**
-1. Produkční hosting Medusy, PostgreSQL a Redis není zřízen; zálohy (šifrování, off-site, RPO/RTO, vlastník) nerozhodnuty – `backend/docs/wp/PRODUCTION_RUNBOOK.md`.
+1. Hosting backendu je rozhodnutý: **Medusa Cloud** (18. 10.). Kód je připravený a ověřený (§8). Chybí:
+   - zřízení organizace a projektu (import repa, root `backend/`, `eu-central-1`);
+   - volba plánu: Launch kvůli zálohám a Redis, runbook §8/1;
+   - produkční env podle runbooku, příloha A.
 2. Merge PR #38–#43 do `master` – rozhoduje Jose.
 3. Produkční env podle `backend/docs/DEPLOY.md` §2 (včetně sekce Funkce Fáze 1), Stripe live klíč + webhook `stripe_stripe`, ZeptoMail doména (DKIM/bounce) ověřená, `GIFT_VOUCHER_DELIVERY=notification`, `NEXUS_BOOKING_SYNC_SECRET` shodný s Workerem, `CHAT_ADMIN_URL` na vlastní admin.
 
@@ -67,7 +70,7 @@ Klub obnova běží s posunutými hodinami procesu (simulace dne obnovy, `shift-
 5. Starší typy konzultací bez SKU (NEXUS reprice bez SKU nefunguje) – doplnit SKU při migraci dat.
 
 **P2:**
-- Default Sales Channel v bootstrapu; drobná odchylka mostu NEXUS vs. Worker (lokální simulace workerd na macOS 12.6 nejde).
+- Drobná odchylka mostu NEXUS vs. Worker (lokální simulace workerd na macOS 12.6 nejde).
 - Obnovy během posunu hodin (DST) – ověřit 25. 10.; lokálně visí `mbr_01M56XY3A02CFZ0TFN6467ZDYQ` ve stavu `renewing` (syntetika, reconcile job).
 - `/admin/readiness` počítá do „bez obrázku/kategorie“ i servisní produkty (Klub, konzultace, poukazy).
 - Košík s poukazem: „Celkom 3,00 € / Vrátane DPH 9,91 €“ – DPH se počítá z ceny zboží (víceúčelový poukaz), právně správně, ale matoucí.
@@ -103,6 +106,8 @@ karta neukazuje), opraven na maskovaný kód.
 | `73c0145` | admin: nastavení dárkových poukazů |
 | `00d9139` | kontaktní formulář a newsletter napojené na backend (`CONTACT_NOTIFY_EMAIL`) |
 | `4e3ab38` | mapa funkcí adminu: `/store/contact` (CI membership) |
+| `ce273f5`, `67796b8` | produkční runbook, věrnostní úrovně na launch prázdné |
+| `8d41f3a` | **Medusa Cloud:** detekce prostředí, Cloud DB/Redis/soubory, bootstrap jako migration script, oprava buildu, `PAYMENTS_TEST_MODE`, runbook pro Cloud |
 
 PR: #43 (draft, integrace) obsahuje #40, #42, #41, #39, #38. Všechny OPEN, merge dělá Jose.
 
@@ -110,10 +115,28 @@ PR: #43 (draft, integrace) obsahuje #40, #42, #41, #39, #38. Všechny OPEN, merg
 
 **Kód: GO** pro e-shop, objednávky a expedici, refundy, Klub (nákup, 3DS, obnova, zastavení), poukazy, účet a chat.
 **Konzultace z webu: GO** (rezervace na webu doplněna). Kontakt a newsletter: GO.
-**Spuštění celkově: NO-GO, dokud nejsou uzavřeny P0/1–3** (hosting + zálohy, merge, produkční env/Stripe/ZeptoMail).
-Pokud budou P0 hotové do 21. 10. a proběhne smoke test na produkci v test režimu Stripe, je 23. 10. reálné.
+**Nasazení na Medusa Cloud: kód GO** (§8).
+**Spuštění celkově: NO-GO, dokud nejsou uzavřeny P0/1–3** (projekt a plán na Medusa Cloud, merge, produkční env/Stripe/ZeptoMail).
+Pokud budou P0 hotové do 21. 10. a proběhne smoke test na produkci v test režimu Stripe (`PAYMENTS_TEST_MODE=1`), je 23. 10. reálné.
 
 ## 7. Postup nasazení a rollbacku
 
 Kompletní postup (pořadí, párování tajemství Worker ↔ backend, Pages env, Stripe, DNS a redirecty, ZeptoMail, smoke test
 ve dvou fázích, zálohy, rollback, co dodá vlastník) je v **`docs/launch/DEPLOY-RUNBOOK-2026-10-23.md`**.
+
+## 8. Připravenost na Medusa Cloud (ověřeno lokálně 18. 10., `8d41f3a`)
+
+| Kontrola | Výsledek |
+|---|---|
+| Config pro typy prostředí Cloudu (production / long-lived / preview, build bez secretů) | 11 kombinací. Live klíč jen v `production`, test klíč v `production` jen s `PAYMENTS_TEST_MODE`. Soubory přes S3 Cloudu (IAM), Redis moduly od Cloudu. Unit `deploy-env` 7/7 |
+| Čistý `npm ci` + `medusa build` s Cloud env | exit 0. Předtím exit 1 kvůli typové chybě v `checkout-guard.ts`, na Cloudu by spadl deploy. Opraveno |
+| `medusa db:migrate` na **prázdné** DB (jako první deploy) | migrace + migration script `anastasia-bootstrap` doběhnou: store EUR, kanál, `pk_`, region SK se Stripe a Klubem, DPH, sklad, doprava, 4 věrnostní skupiny. Opraveno: na prázdné DB ještě neexistoval store (zakládá ho až start), bootstrap by se odložil na další deploy |
+| Opakovaný deploy | bootstrap se znovu nespustí (`script_migrations`) |
+| `medusa start` sestaveného serveru s Cloud env | `/health` 200, `/store/regions` s `pk_` 200, Medusa dashboard `/app` 200 |
+| Unit testy backendu | 1020/1020 |
+| Browser E2E po změnách | celá sada zelená: 69 PASS v sériovém běhu. Scénáře, které spadly na timeoutu během souběžného buildu (nákup, objednávka, konzultace), prošly při opakování. Chat má upravený E2E skript (uzavřená konverzace z minulého běhu → „nová konverzácia“) |
+
+Neověřitelné bez účtu Medusa Cloud (ověří smoke test §3, body 11–12):
+- skutečný build a deploy v Cloudu;
+- běh plánovaných jobů (`membership-billing`) na sdíleném serveru plánu Launch;
+- URL úložiště obrázků pro `ANASTASIA_MEDIA_ORIGIN`.

@@ -29,7 +29,7 @@ try {
   rec('ucet-bez-prihlasenia', !DEMO.test(anonTxt) && /Pre zobrazenie účtu sa prihláste/.test(anonTxt));
 
   // A) Zákazníčka s objednávkou a potvrdenou konzultáciou
-  const row = sql(`select c.id||'|'||c.email from booking b join customer c on c.id=b.customer_id where b.status='confirmed' and b.deleted_at is null and exists(select 1 from "order" o where o.customer_id=c.id and o.status not in ('canceled','draft')) order by (select count(*) from notification n where n.template='magic-link-sk' and n."to"=c.email and n.created_at > now() - interval '15 minutes'), b.starts_at desc limit 1`).split('|');
+  const row = sql(`select c.id||'|'||c.email from booking b join customer c on c.id=b.customer_id where b.status='confirmed' and b.deleted_at is null and exists(select 1 from "order" o where o.customer_id=c.id and o.status not in ('canceled','draft')) order by (select count(*) from chat_message m where m.customer_id=c.id and m.created_at > now() - interval '1 day'), (select count(*) from notification n where n.template='magic-link-sk' and n."to"=c.email and n.created_at > now() - interval '15 minutes'), b.starts_at desc limit 1`).split('|');
   const [cusId, email] = row;
   const displayIds = sql(`select string_agg(display_id::text, ',') from "order" where customer_id='${cusId}'`).split(',');
   const bookingTitle = sql(`select p.title from booking b join product p on p.id=b.product_id where b.customer_id='${cusId}' and b.status='confirmed' order by b.starts_at desc limit 1`);
@@ -56,7 +56,10 @@ try {
   await p.fill('#chat-body', msg);
   await p.waitForFunction(() => !document.querySelector('#chat-form button[type=submit]').disabled, null, { timeout: 15000 });
   await p.click('#chat-form button[type=submit]');
-  await p.waitForFunction(() => /pridaná|nepodarilo|nedostupný|dostupný po/.test(document.querySelector('#chat-form .form-status')?.textContent || ''), null, { timeout: 15000 });
+  const chatStatus = (re) => p.waitForFunction((r) => new RegExp(r).test(document.querySelector('#chat-form .form-status')?.textContent || ''), re, { timeout: 15000 });
+  await chatStatus('pridaná|nepodarilo|nedostupný|dostupný po|uzavretá');
+  // Posledná konverzácia z minulého behu je uzavretá: storefront ponúkne novú (#chat-new), text ostáva vo formulári.
+  if (/uzavretá/.test(await txt(p, '#chat-form .form-status'))) { await p.click('#chat-new'); await p.click('#chat-form button[type=submit]'); await chatStatus('pridaná|nepodarilo|nedostupný|dostupný po'); }
   const sent = await txt(p, '#chat-form .form-status');
   await p.waitForFunction((m) => (document.querySelector('#chat-messages')?.textContent || '').includes(m), msg, { timeout: 15000 }).catch(() => {});
   const thread1 = await txt(p, '#chat-messages');
