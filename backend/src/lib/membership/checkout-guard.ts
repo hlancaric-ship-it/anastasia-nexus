@@ -32,7 +32,7 @@ export async function assertMembershipCheckoutCart(scope:MedusaContainer,cart:an
  assertCheckoutContract(c)
  const item=cart.items?.[0]
  if(checkout.status!=='prepared'||c.cart_id!==cart.id||t.customer_id!==cart.customer_id||cart.currency_code!==t.currency||cart.items.length!==1||!item||!isOneNativeUnit(item.quantity)||item.product_id!==t.product_id||item.variant_id!==t.variant_id||euroMinor(cart.total)!==t.amount_minor)throw new Error('MEMBERSHIP_CART_CHANGED')
- const product=products.find((p:any)=>p.id===t.product_id),config=product?.metadata?.membership
+ const product:any=products.find((p:any)=>p.id===t.product_id),config=product?.metadata?.membership
  if(!config||config.version!==t.version||config.period_days!==t.period_days)throw new Error('MEMBERSHIP_TERMS_CHANGED')
  if(sessions.length!==1||sessions[0].provider_id!==MEMBERSHIP_PROVIDER||sessions[0].data?.membership_renewal||sessions[0].data?.capture_method!=='manual'||(c.consent.auto_renew&&sessions[0].data?.setup_future_usage!=='off_session'))throw new Error('MEMBERSHIP_PAYMENT_SESSION_INVALID')
  // Fence is persisted before native session creation; arbitrary Store session data cannot stand in for it.

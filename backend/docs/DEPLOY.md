@@ -1,9 +1,16 @@
 # Nasazení backendu ANASTASIA (Medusa v2)
 
-**Medusa běží na klasickém Node hostu (VPS, Render, Railway, Fly, Hetzner...), NIKOLI na Cloudflare Workeru.**
-Medusa potřebuje dlouho běžící Node proces, Postgres a (v produkci) Redis. NEXUS pricing Worker
-na Cloudflare zůstává samostatně a Medusa ho volá server-to-server (`NEXUS_PRICING_URL`).
-Storefront i admin se k Medusě připojují přes HTTPS.
+**Produkce běží na Medusa Cloud** (rozhodnuto 18. 10. 2026), NIKOLI na Cloudflare Workeru.
+Postup pro Cloud, seznam proměnných s flagy, zálohy a rollback: `docs/launch/DEPLOY-RUNBOOK-2026-10-23.md` (kořen repa).
+NEXUS pricing Worker na Cloudflare zůstává samostatně a Medusa ho volá server-to-server (`NEXUS_PRICING_URL`).
+Storefront i admin se k Meduse připojují přes HTTPS.
+
+Na Medusa Cloud (`src/lib/deploy-env.ts`):
+- `DATABASE_URL`, `REDIS_URL`, `NODE_ENV` a úložiště souborů (S3 přes IAM roli) dodává Cloud. `S3_*` se tam ignorují.
+- Produkci určuje `MEDUSA_CLOUD_ENVIRONMENT_TYPE=production`. `long-lived` a `preview-instance` se berou jako ne-produkce.
+- Migrace a bootstrap (`src/migration-scripts/anastasia-bootstrap.ts`) běží automaticky při deployi. `medusa exec` ani `medusa user` tam nejsou.
+
+Sekce 1, 5 a 6 níže popisují i provoz na vlastním Node hostu (lokální produkční test, případná migrace z Cloudu).
 
 ## 1. Požadavky na hosting
 
@@ -16,7 +23,7 @@ Storefront i admin se k Medusě připojují přes HTTPS.
 | Doména | HTTPS, např. `api.<doména>`; reverzní proxy (Caddy/nginx) nebo PaaS TLS |
 | Paměť | min. 1 GB RAM na instanci (build + admin) |
 
-Orientační provozní náklady dle smlouvy (hosting Medusy + DB): cca 29 USD měsíčně.
+Orientační náklady: smlouva počítala s cca 29 USD měsíčně. Na Medusa Cloud odpovídá ostrému provozu plán Launch (99 USD, zálohy + Redis), viz runbook §8.
 
 ## 2. Proměnné prostředí
 
@@ -24,7 +31,8 @@ Vzor: `.env.template`. Hodnoty se nastavují v prostředí hostingu (secrets), n
 
 | Proměnná | Povinná | Popis |
 |---|---|---|
-| `NODE_ENV` | ano | `production` zapíná kontroly v `medusa-config.ts` |
+| `NODE_ENV` | ano (mimo Cloud) | `production` zapíná kontroly v `medusa-config.ts`; na Cloudu rozhoduje `MEDUSA_CLOUD_ENVIRONMENT_TYPE` |
+| `PAYMENTS_TEST_MODE` | ne | `1` jen pro smoke test na produkčním prostředí: povolí testovací Stripe klíč a zakáže live; po testu smazat |
 | `DATABASE_URL` | ano | `postgres://...` |
 | `JWT_SECRET`, `COOKIE_SECRET` | ano | min. 32 znaků, různé; generovat `openssl rand -hex 32` |
 | `STORE_CORS`, `ADMIN_CORS`, `AUTH_CORS` | ano | jen `https://` origin, čárkou oddělené, bez koncového `/` |
@@ -101,12 +109,15 @@ se zaloguje s HTTP stavem a kódem chyby ZeptoMail.
 
 ## 5. Kroky nasazení
 
+Medusa Cloud: runbook §2.2. Kroky 2–7 dělá Cloud sám při deployi a správce se zakládá pozvánkou.
+Na vlastním Node hostu:
+
 1. Vytvořit Postgres a Redis, nastavit env (sekce 2).
 2. `npm ci`
 3. `npm run build` (vytvoří `.medusa/server`).
 4. V `.medusa/server` nastavit env a spustit migrace: `npx medusa db:migrate` (v adresáři buildu: `cd .medusa/server && npm ci && npx medusa db:migrate`).
-5. Jednorázově bootstrap e-shopu (idempotentní): `npx medusa exec ./src/scripts/anastasia-bootstrap.ts`
-   (spouští se z kořene projektu, kde je zdrojový kód a `medusa-config.ts`). Vypíše publishable API klíč pro storefront.
+5. Bootstrap e-shopu proběhne v kroku 4 jako migration script (jednou na DB, idempotentní). Ručně jde spustit
+   `npx medusa exec ./src/scripts/anastasia-bootstrap.ts` z kořene projektu. Vypíše publishable API klíč pro storefront.
 6. Vytvořit admin uživatele: `npx medusa user -e <email> -p <heslo>` (heslo hned změnit, nikam neukládat).
 7. Start: `npm run start` (`medusa start`) za reverzní proxy s HTTPS. Healthcheck: `GET /health`.
 8. Nastavit Stripe webhook (sekce 3) a ověřit testovací platbu v test režimu před přepnutím na live klíče.

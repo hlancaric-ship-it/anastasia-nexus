@@ -1,8 +1,12 @@
 import { loadEnv, defineConfig, Modules } from '@medusajs/framework/utils'
+import { resolveDeployEnv } from './src/lib/deploy-env'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
-const isProduction = process.env.NODE_ENV === "production"
+// Medusa Cloud: NODE_ENV i DATABASE_URL/REDIS_URL spravuje Cloud, typ prostředí určuje MEDUSA_CLOUD_ENVIRONMENT_TYPE (viz src/lib/deploy-env.ts).
+const deploy = resolveDeployEnv()
+// Kontroly secretů a CORS běží při startu nasazeného prostředí; `medusa build` je přeskočí (secrety nemusí mít flag Build).
+const isProduction = deploy.isDeployed && !deploy.isBuild
 const jwtSecret = process.env.JWT_SECRET || (isProduction ? "" : "local-development-jwt-secret-change-before-deploy")
 const cookieSecret = process.env.COOKIE_SECRET || (isProduction ? "" : "local-development-cookie-secret-change-before-deploy")
 const storeCors = process.env.STORE_CORS || (isProduction ? "" : "http://localhost:8000")
@@ -18,7 +22,7 @@ const productionOriginListIsSafe = (value: string) => value.split(",").every((en
 })
 const productionSecretIsSafe = (value: string) => value.length >= 32 && !/^(replace|local|change|supersecret)/i.test(value)
 if (isProduction && (
-  !/^postgres(?:ql)?:\/\//i.test(process.env.DATABASE_URL || "") ||
+  (!deploy.onCloud && !/^postgres(?:ql)?:\/\//i.test(process.env.DATABASE_URL || "")) ||
   !productionSecretIsSafe(jwtSecret) || !productionSecretIsSafe(cookieSecret) || jwtSecret === cookieSecret ||
   !storeCors || !adminCors || !authCors ||
   !productionOriginListIsSafe(storeCors) || !productionOriginListIsSafe(adminCors) || !productionOriginListIsSafe(authCors)
@@ -40,29 +44,37 @@ const stripeIsLiveKey = /^(sk|rk)_live_/.test(stripeApiKey)
 if (stripeApiKey && !/^(sk|rk)_(test|live)_/.test(stripeApiKey)) {
   throw new Error("STRIPE_API_KEY must be a Stripe secret/restricted key (sk_/rk_ test or live)")
 }
-if (!isProduction && stripeIsLiveKey) {
-  throw new Error("Live Stripe key refused outside production: use sk_test_ key for local development")
+const stripeLiveRequired = deploy.isLive && !deploy.isBuild
+if (!deploy.isLive && stripeIsLiveKey) {
+  throw new Error(deploy.paymentsTestMode
+    ? "PAYMENTS_TEST_MODE is on: use sk_test_ key, or remove PAYMENTS_TEST_MODE to go live"
+    : "Live Stripe key refused outside production: use sk_test_ key for local development, staging and previews")
 }
-if (isProduction && (!stripeApiKey || !stripeIsLiveKey || !/^whsec_/.test(stripeWebhookSecret))) {
+if (stripeLiveRequired && (!stripeApiKey || !stripeIsLiveKey || !/^whsec_/.test(stripeWebhookSecret))) {
   throw new Error("Production requires a live Stripe key (STRIPE_API_KEY=sk_live_/rk_live_) and STRIPE_WEBHOOK_SECRET (whsec_)")
+}
+if (deploy.paymentsTestMode && !deploy.isBuild) {
+  console.warn("[medusa-config] PAYMENTS_TEST_MODE: production environment accepts only Stripe TEST payments – remove before launch")
 }
 if (stripeApiKey && !stripeWebhookSecret) {
   console.warn("[medusa-config] STRIPE_WEBHOOK_SECRET is not set: Stripe webhooks will be rejected (use `stripe listen` locally)")
 }
 
 // --- Redis (jen pokud existuje REDIS_URL, jinak in-memory moduly pro lokální vývoj) ---
-const redisUrl = env("REDIS_URL")
+// Na Medusa Cloud Redis moduly (event bus, cache, workflow engine, locking) zřizuje Cloud sám a REDIS_URL
+// je nastavená už při buildu – vlastní registrace by s nimi kolidovala a deploy by spadl.
+const redisUrl = deploy.onCloud ? "" : env("REDIS_URL")
 if (redisUrl && !/^rediss?:\/\//i.test(redisUrl)) {
   throw new Error("REDIS_URL must start with redis:// or rediss://")
 }
-if (isProduction && !redisUrl) {
+if (isProduction && !deploy.onCloud && !redisUrl) {
   console.warn("[medusa-config] REDIS_URL is not set in production: in-memory event bus/cache/locking/workflow engine are not safe for production or multiple instances")
 }
 
 // --- Soubory: lokální disk (vývoj) nebo S3-kompatibilní úložiště (S3, Cloudflare R2) ---
 const s3Bucket = env("S3_BUCKET")
 const s3Configured = Boolean(s3Bucket && env("S3_FILE_URL") && env("S3_ACCESS_KEY_ID") && env("S3_SECRET_ACCESS_KEY") && env("S3_REGION"))
-if (isProduction && !s3Configured) {
+if (isProduction && !deploy.onCloud && !s3Configured) {
   console.warn("[medusa-config] S3_* is not configured in production: files would be stored on the local (ephemeral) disk of the Node host")
 }
 
@@ -111,11 +123,13 @@ const notificationProviders: Array<Record<string, unknown>> = zeptoMailEnabled
   : [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["email", "feed"] } }]
 
 const modules: Array<Record<string, unknown>> = [
-  {
+  // Na Medusa Cloud skládá file modul defineConfig sám (S3 Cloudu přes IAM roli a Cloudem vložené S3_*);
+  // vlastní registrace by ho přepsala. Média webu jsou mimo Medusu (R2 přes NEXUS Worker).
+  ...(deploy.onCloud ? [] : [{
     key: Modules.FILE,
     resolve: "@medusajs/medusa/file",
     options: { providers: [fileProvider] },
-  },
+  }]),
   {
     key: Modules.NOTIFICATION,
     resolve: "@medusajs/medusa/notification",
@@ -199,7 +213,8 @@ if (redisUrl) {
 
 module.exports = defineConfig({
   projectConfig: {
-    databaseUrl: process.env.DATABASE_URL,
+    // Na Cloudu databaseUrl ani redisUrl nenastavujeme (spravuje je Cloud).
+    ...(deploy.onCloud ? {} : { databaseUrl: process.env.DATABASE_URL }),
     ...(redisUrl ? { redisUrl } : {}),
     http: {
       storeCors,

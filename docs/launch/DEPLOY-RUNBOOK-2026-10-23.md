@@ -1,7 +1,8 @@
 # ANASTASIA × NEXUS – produkční runbook pro spuštění 23. 10. 2026
 
 Stav: 18. 10. 2026, integrační větev `claude/integration-launch` (PR #43). Nic není nasazeno ani mergnuto.
-Dokument obsahuje jen postup a názvy proměnných. **Žádné skutečné klíče.** Hodnoty se zadávají přímo do hostingu,
+**Backend běží na Medusa Cloud** (rozhodnuto 18. 10. 2026). Storefront a vlastní admin jsou statické a běží na Cloudflare Pages.
+Dokument obsahuje jen postup a názvy proměnných. **Žádné skutečné klíče.** Hodnoty se zadávají přímo do Medusa Cloud,
 Cloudflare a Stripe a nikdy nejdou do gitu ani do chatu s klientem.
 
 Podrobnosti, na které runbook odkazuje:
@@ -10,25 +11,46 @@ Podrobnosti, na které runbook odkazuje:
 - legacy redirecty: `backend/docs/wp/edge-redirects.md`;
 - admin: `anastasia-admin/README.md`.
 
+`<API>` dále znamená veřejnou URL backendu na Medusa Cloud:
+- plán Launch: `https://<subdoména>.medusajs.app` (vlastní doména API na Cloudu jen od plánu Scale);
+- plán Scale: `https://api.anastasiaoz.eu`.
+
+Storefront i admin posílají přihlášení jako `Authorization: Bearer`, nespoléhají na cookies. Backend proto může běžet
+na jiné doméně než web. Vlastní doména `api.` je jen kosmetika a na launch ji nepotřebujeme.
+
 ## 0. Architektura a domény
 
-Domény jsou návrh, potvrzuje je vlastník (viz §9). DNS všech domén je na Cloudflare.
+Domény jsou návrh, potvrzuje je vlastník (viz §7). DNS všech domén je na Cloudflare.
 
 | Část | Kde běží | Doména (návrh) | Volá |
 |---|---|---|---|
 | Storefront (statický) | Cloudflare Pages, projekt `anastasia-web` | `www.anastasiaoz.eu` | backend, Stripe.js |
 | Vlastní admin (statický) | Cloudflare Pages, projekt `anastasia-admin` | `admin.anastasiaoz.eu` (za Cloudflare Access) | backend |
-| Backend Medusa 2.19 | Node 20 hosting + PostgreSQL 14+ + Redis | `api.anastasiaoz.eu` | NEXUS, Stripe, ZeptoMail, R2 |
+| Backend Medusa 2.19 | **Medusa Cloud**, region `eu-central-1`; PostgreSQL, Redis a úložiště souborů spravuje Cloud | `<API>` | NEXUS, Stripe, ZeptoMail |
 | NEXUS Worker | Cloudflare Workers `nexus-api-production`, D1 `nexus-voucher`, DO `VOUCHER_SECURITY` | `nexus.anastasiaoz.eu` | backend (booking sync, ops events) |
-| Obrázky produktů | R2 + veřejná doména | `media.anastasiaoz.eu` | – |
+| Obrázky produktů | úložiště souborů Medusa Cloud (S3 + CDN, nahrává admin) | URL přidělí Cloud | – |
 
 Storefront nikdy nevolá NEXUS přímo. Cenu počítá výhradně backend přes NEXUS (`/store/nexus-cart`, `/store/nexus-checkout`).
+
+### Co backend na Medusa Cloud dělá jinak než na vlastním serveru
+
+Řeší to `backend/src/lib/deploy-env.ts` a `medusa-config.ts`. Ověřeno unit testy a sestavením configu pro všechny typy prostředí.
+- **Typ prostředí** se pozná podle `MEDUSA_CLOUD_ENVIRONMENT_TYPE`, ne podle `NODE_ENV`, protože ten si Cloud nastavuje sám:
+  - `production` → ostrý provoz: live Stripe klíč + `whsec_` povinné;
+  - `long-lived` (staging) a `preview-instance` (náhled PR) → live klíč zakázaný.
+- **Databáze, Redis a soubory** si bere z Cloudu:
+  - `DATABASE_URL` a `REDIS_URL` vkládá Cloud;
+  - workflow engine, cache, event bus a locking jdou na Redis Cloudu;
+  - obrázky jdou do S3 Cloudu přes IAM roli. Náš modul `S3_*` / R2 se na Cloudu neregistruje.
+- **Migrace** spouští Cloud při každém deployi. Bootstrap obchodu (`src/migration-scripts/anastasia-bootstrap.ts`) běží jednou a automaticky.
+  Je idempotentní, při chybě se zopakuje při dalším deployi. `medusa exec` na Cloudu není.
+- **Build a start**: `medusa build` / `medusa start`. Čistý `npm ci` + `medusa build` s Cloud env ověřen lokálně (exit 0).
 
 ## 1. Párování tajemství (musí sedět na obou stranách)
 
 Každé tajemství vygenerovat jednou (`openssl rand -hex 32`) a vložit na obě strany. Neshoda se projeví jako 401 nebo 503, nikdy jako tichá chyba.
 
-| Backend (env hostingu) | NEXUS Worker (`wrangler secret put … --env production`) | Směr | Při neshodě |
+| Backend (Medusa Cloud → Environment variables) | NEXUS Worker (`wrangler secret put … --env production`) | Směr | Při neshodě |
 |---|---|---|---|
 | `NEXUS_PRICING_URL` = `https://nexus.anastasiaoz.eu/api/nexus/pricing` | – | backend → Worker | košík 503 |
 | `NEXUS_PRICING_API_KEY` | `MEDUSA_PRICING_API_KEY` | backend → Worker | košík 503 |
@@ -36,8 +58,8 @@ Každé tajemství vygenerovat jednou (`openssl rand -hex 32`) a vložit na obě
 | `NEXUS_SAFEORDER_URL` (prázdné = odvodí se z pricing URL) | – | backend → Worker | pokladna 503 |
 | `NEXUS_MEDUSA_WEBHOOK_URL` = `https://nexus.anastasiaoz.eu/api/webhooks/medusa` | – | backend → Worker | události se nedoručí |
 | `NEXUS_MEDUSA_WEBHOOK_SECRET` | `MEDUSA_WEBHOOK_SECRET` | backend → Worker | 401 ve Workeru |
-| `NEXUS_BOOKING_SYNC_SECRET` | `MEDUSA_BOOKING_SYNC_SECRET` + `MEDUSA_BOOKING_SYNC_URL` = `https://api.anastasiaoz.eu/hooks/nexus/booking-order` | Worker → backend | 503/401, termín se nepotvrdí |
-| `OPS_INGEST_SECRET` | `OPS_INGEST_SECRET` + `OPS_INGEST_URL` = `https://api.anastasiaoz.eu/hooks/ops/edge-events`, `OPS_INGEST_TENANT_ID` | Worker → backend | 401, chybí provozní události |
+| `NEXUS_BOOKING_SYNC_SECRET` | `MEDUSA_BOOKING_SYNC_SECRET` + `MEDUSA_BOOKING_SYNC_URL` = `<API>/hooks/nexus/booking-order` | Worker → backend | 503/401, termín se nepotvrdí |
+| `OPS_INGEST_SECRET` | `OPS_INGEST_SECRET` + `OPS_INGEST_URL` = `<API>/hooks/ops/edge-events`, `OPS_INGEST_TENANT_ID` | Worker → backend | 401, chybí provozní události |
 | `MEDIA_TOKEN_SECRET` | `MEDIA_TOKEN_SECRET` | obě | chráněná média 401 (fáze 2) |
 | – | `HMAC_SECRET` (jen Worker, poukazy NEXUS; **nesmí** být shodný s pricing klíčem) | – | – |
 | – | `MEDUSA_PRICING_POLICY_JSON` | – | košík 503 (Worker odmítne chybějící politiku) |
@@ -49,6 +71,10 @@ Klíče `loyaltyTiers` odpovídají skupinám z bootstrapu: `ZR1` Bronze, `ZR2` 
 Na launch jsou úrovně **prázdné** (`"loyaltyTiers":{}`), tedy bez věrnostních slev; stejně běželo E2E.
 Procenta si zvolí Lucia sama v adminu, jakmile bude editor politiky (fáze 2, §9). Do té doby je nevymýšlíme.
 
+**Volitelné zpevnění Workeru:** Medusa Cloud má v EU statické odchozí IP `18.153.86.98`, `35.157.194.186` a `3.67.229.94`.
+Na zóně `anastasiaoz.eu` lze přidat WAF pravidlo, které cesty `/api/nexus/pricing*` a `/api/webhooks/medusa` na `nexus.`
+pustí jen z těchto IP. Pravidlo přidat až po zeleném smoke testu (§3) a seznam IP před tím znovu ověřit v dokumentaci Cloudu.
+
 ## 2. Pořadí nasazení (den D-2 až D)
 
 Každý krok končí ověřením. Bez zeleného ověření se nepokračuje.
@@ -57,40 +83,38 @@ Každý krok končí ověřením. Bez zeleného ověření se nepokračuje.
 1. Review a merge PR #43 (obsahuje #38–#42) do `master`. CI musí být zelené na posledním commitu.
 2. Tag `launch-2026-10-23` na merge commitu. Z tohoto tagu se buildují všechny části.
 
-### 2.2 PostgreSQL a Redis
-1. Spravovaný PostgreSQL 14+ v EU: SSL (`?sslmode=require`), denní snapshot, PITR alespoň 7 dní, šifrování at rest.
-2. Redis 7 (`rediss://`), ve stejném regionu jako backend.
-3. Aplikační DB uživatel bez superuser práv.
-
-### 2.3 Backend
-Postup je v `backend/docs/DEPLOY.md` §5. Doplňky pro launch:
-1. Env podle DEPLOY §2 včetně „Funkce Fáze 1“.
-   - `medusa-config` v `NODE_ENV=production` vyžaduje silné secrety, HTTPS CORS, **live** Stripe klíč a `whsec_`; testovací klíč odmítne.
-     Mimo produkci naopak odmítne live klíč. Smoke test s testovacími kartami proto běží jako fáze A (§3) se stejným buildem
-     a `NODE_ENV=staging` a testovacím Stripe klíčem. Ostrý start (fáze B) běží s `NODE_ENV=production` a live klíčem.
-   - CORS:
-     - `STORE_CORS=https://www.anastasiaoz.eu`;
-     - `ADMIN_CORS=https://admin.anastasiaoz.eu`;
-     - `AUTH_CORS=https://www.anastasiaoz.eu,https://admin.anastasiaoz.eu`.
-   - URL do e-mailů:
-     - `MAGIC_LINK_BASE_URL=https://www.anastasiaoz.eu/prihlasenie/potvrdit`;
-     - `ACCOUNT_URL=https://www.anastasiaoz.eu/ucet` a odvozené URL objednávek a konzultací;
-     - `CHAT_ADMIN_URL=https://admin.anastasiaoz.eu/#/chat`;
-     - `COUPON_LINK_STOREFRONT_ORIGIN=https://www.anastasiaoz.eu`.
-   - Pošta:
-     - `GIFT_VOUCHER_DELIVERY=notification`;
-     - `CONTACT_NOTIFY_EMAIL` a `CHAT_ADMIN_NOTIFY_EMAIL` = schránka Lucie.
-   - Právní texty: `LEGAL_TERMS_VERSION`, `LEGAL_PRIVACY_VERSION` a `NEWSLETTER_CONSENT_VERSION`. Bez `NEWSLETTER_CONSENT_VERSION` newsletter v patičce slušně odmítne přihlášení.
-   - Obrázky: `S3_*` na R2 bucket obrázků, `S3_FILE_URL=https://media.anastasiaoz.eu`.
-2. **Záloha před migrací** (i na prázdné DB, kvůli ověření postupu): `pg_dump -Fc -f pre-migrate-<datum>.dump "$DATABASE_URL"`.
-   Dump uložit šifrovaně mimo server a zkusit `pg_restore --list`.
-3. `npm ci && npm run build`, pak v `.medusa/server` `npx medusa db:migrate`.
-4. `npx medusa exec ./src/scripts/anastasia-bootstrap.ts` (idempotentní). Vypíše publishable key `pk_…` a založí region `reg_…`.
+### 2.2 Medusa Cloud – projekt a prostředí
+1. Organizace na cloud.medusajs.com. Plán viz §8/1:
+   - Launch: zálohy 7 dní, Redis, sdílený server pro API a joby;
+   - Develop nemá zálohy ani Redis, pro ostrý provoz nevyhovuje.
+2. **Create project → Import from GitHub**, repo `anastasia-nexus`:
+   - produkční větev `master`;
+   - **Project root directory: `backend`**;
+   - region **`eu-central-1` (Frankfurt)**.
+   GitHub App Medusy potřebuje přístup k repu. Repo patří Lucii a L-Code je v něm jako `L-Code-Dynamics-Dev`, takže instalaci aplikace schvaluje vlastník repa.
+3. Hned při vytvoření vyplnit proměnné z přílohy A, bez nich první deploy spadne na kontrolách configu.
+   - Hodnoty Stripe zatím **testovací** a `PAYMENTS_TEST_MODE=1` (fáze A, §3).
+   - Proměnné z rezervovaných skupin, `S3_*` a `REDIS_URL` nevyplňovat. Spravuje je Cloud.
+4. Deploy proběhne automaticky: `npm ci` → `medusa build` → migrace → migration script `anastasia-bootstrap` → `medusa start`.
+   - Ověření v Cloud → Deployments → Logs:
+     - build bez `error`;
+     - v logu `[anastasia-bootstrap]` a publishable key;
+     - žádná chyba z `medusa-config`.
+   - `curl -fsS <API>/health` vrátí `OK`.
+5. **Publishable key a region**: Cloud → Environment → *Medusa Admin* (`<API>/app`) → přihlášení účtem Medusa Cloud.
+   - Settings → Publishable API Keys → `ANASTASIA storefront` (`pk_…`);
+   - Settings → Regions → `reg_…`.
    Obě hodnoty jsou veřejné a jdou do buildu storefrontu.
-5. Admin uživatel: `npx medusa user -e <e-mail Lucie> -p <dočasné heslo>`. Heslo předat jiným kanálem a hned změnit.
-6. Start za HTTPS.
-   - Ověření: `curl -fsS https://api.anastasiaoz.eu/health` vrátí `OK`.
-   - V logu nesmí být varování o chybějícím `REDIS_URL` ani `S3_*`.
+6. **Správci adminu** (místo `medusa user`, CLI na Cloudu není):
+   1. V `<API>/app` (Cloud přihlášení) → Settings → Users → *Invite* na servisní e-mail L-Code.
+   2. Z odkazu pozvánky (`…/app/invite?token=<token>`) vzít token a otevřít `https://admin.anastasiaoz.eu/#/pozvanka/<token>`. Heslo se nastaví tam.
+   3. Z našeho adminu (Nastavenia → Používatelia) pozvat Lucii. Heslo si zvolí sama, nikdo ho nezná.
+7. Dlouhodobé staging prostředí (`long-lived`, větev `claude/integration-launch`) je volitelné a stojí navíc 60 USD/měs. Na launch nutné není.
+   Preview prostředí PR jsou v plánu. Mají vlastní DB a live klíč v nich config odmítne.
+
+### 2.3 Zálohy před prvním ostrým provozem
+- Cloud dělá zálohy DB sám (Launch 7 dní). Před každým zásahem do dat navíc ruční dump podle §4.
+- První deploy jde do prázdné DB, ruční dump před ním není potřeba. Postup obnovy ale musí projít jednou nanečisto (restore drill, §4).
 
 ### 2.4 NEXUS Worker
 ```sh
@@ -100,8 +124,8 @@ npx wrangler d1 export nexus-voucher --remote --env production --output pre-laun
 npx wrangler d1 migrations apply nexus-voucher --remote --env production
 # secrets z §1 (každý zvlášť, hodnotu zadat interaktivně, nikdy jako argument):
 npx wrangler secret put MEDUSA_PRICING_API_KEY --env production
-#   … MEDUSA_WEBHOOK_SECRET, MEDUSA_BOOKING_SYNC_SECRET, MEDUSA_BOOKING_SYNC_URL, OPS_INGEST_SECRET,
-#     OPS_INGEST_URL, OPS_INGEST_TENANT_ID, HMAC_SECRET, MEDIA_TOKEN_SECRET,
+#   … MEDUSA_WEBHOOK_SECRET, MEDUSA_BOOKING_SYNC_SECRET, MEDUSA_BOOKING_SYNC_URL (<API>/hooks/nexus/booking-order),
+#     OPS_INGEST_SECRET, OPS_INGEST_URL (<API>/hooks/ops/edge-events), OPS_INGEST_TENANT_ID, HMAC_SECRET, MEDIA_TOKEN_SECRET,
 #     MEDUSA_PRICING_POLICY_JSON (JSON politika z §1),
 #     ENVIRONMENT (=production), MEDUSA_PRICING_TENANT_ID (=anastasia), ALLOWED_ORIGINS (=https://www.anastasiaoz.eu)
 npx wrangler secret list --env production    # kontrola: 13 názvů výše, hodnoty se nevypisují
@@ -109,6 +133,7 @@ npx wrangler deploy --env production
 ```
 - Custom domain `nexus.anastasiaoz.eu` přidat na Worker: Workers → Settings → Domains.
 - Ověření: v adminu Prehľad → Pripravenosť obchodu bez blokeru NEXUS a `POST /store/nexus-cart` na testovacím košíku vrátí cenu.
+- Pořadí vůči backendu nevadí. Backend bez Workeru vrací v košíku 503 a nic nezapíše. Worker bez backendu jen nedoručí sync.
 
 `ENVIRONMENT`, `MEDUSA_PRICING_TENANT_ID` a `ALLOWED_ORIGINS` nejsou tajné, Worker je ale čte stejně ze secrets i z vars.
 Jako secrets přežijí každý `wrangler deploy`. Varianta s `vars` v `env.production` ve `wrangler.jsonc` je §8/3.
@@ -123,44 +148,49 @@ Jako secrets přežijí každý `wrangler deploy`. Varianta s `vars` v `env.prod
 | Pages env (Production) | Hodnota |
 |---|---|
 | `ANASTASIA_SITE_URL` | `https://www.anastasiaoz.eu` (zapne canonical, sitemap, robots, HSTS) |
-| `ANASTASIA_API_ORIGIN` | `https://api.anastasiaoz.eu` |
-| `ANASTASIA_MEDIA_ORIGIN` | `https://media.anastasiaoz.eu` |
-| `ANASTASIA_PUBLISHABLE_KEY` | `pk_…` z bootstrapu |
-| `ANASTASIA_REGION_ID` | `reg_…` z bootstrapu |
+| `ANASTASIA_API_ORIGIN` | `<API>` |
+| `ANASTASIA_MEDIA_ORIGIN` | origin úložiště souborů Cloudu (viz níže) |
+| `ANASTASIA_PUBLISHABLE_KEY` | `pk_…` z §2.2/5 |
+| `ANASTASIA_REGION_ID` | `reg_…` z §2.2/5 |
 | `ANASTASIA_STRIPE_PUBLISHABLE_KEY` | `pk_test_…`, po smoke testu `pk_live_…`, pak nový build |
 | `SITE_THEME` | volitelně, výchozí motiv |
 
 Neplatný tvar hodnoty build zastaví. Bez https se produkční build nedokončí.
 Custom domain `www.anastasiaoz.eu` přidat v Pages → Custom domains.
 
+**`ANASTASIA_MEDIA_ORIGIN`** jde do CSP `img-src`. Musí to být origin, ze kterého Cloud servíruje nahrané obrázky.
+Zjistí se po prvním nahrání obrázku v adminu: URL obrázku v detailu produktu, stačí schéma + host.
+Dokud není nastavený správně, obrázky produktů se na webu nezobrazí, ale nic jiného to neovlivní.
+
 ### 2.6 Vlastní admin (Cloudflare Pages)
-- Build: `cd anastasia-admin && ANASTASIA_API_ORIGIN=https://api.anastasiaoz.eu ANASTASIA_MEDIA_ORIGIN=https://media.anastasiaoz.eu node build.mjs`.
+- Build: `cd anastasia-admin && ANASTASIA_API_ORIGIN=<API> ANASTASIA_MEDIA_ORIGIN=<origin obrázků z §2.5> node build.mjs`.
 - Output: `anastasia-admin/dist`.
 - Doména `admin.anastasiaoz.eu`. Doporučeno ji navíc chránit Cloudflare Access (e-mail OTP pro Lucii a správce) jako druhou vrstvu před přihlášením Medusy.
 - Po prvním přihlášení:
   1. Nastavenia → Vzhľad.
   2. Poukazy → Nastavenie poukazov → **Uložiť** (DEPLOY §2 to vyžaduje kvůli `GIFT_VOUCHER_DELIVERY`).
   3. Konzultácie → typy a týždenná dostupnosť.
+- Medusa dashboard `<API>/app` zůstává pro servis (Cloud přihlášení). Lucia pracuje jen ve vlastním adminu.
 
 ### 2.7 Stripe
 Postup je v DEPLOY §3.
-1. Endpoint `https://api.anastasiaoz.eu/hooks/payment/stripe_stripe` s událostmi:
+1. Endpoint `<API>/hooks/payment/stripe_stripe` s událostmi:
    - `payment_intent.succeeded`;
    - `payment_intent.payment_failed`;
    - `payment_intent.amount_capturable_updated`;
    - `payment_intent.canceled`.
-2. Signing secret uložit do `STRIPE_WEBHOOK_SECRET`.
-3. Testovací a live režim mají **každý vlastní endpoint a vlastní `whsec_`**.
+2. Signing secret uložit do `STRIPE_WEBHOOK_SECRET` (Medusa Cloud, Sensitive) a dát Redeploy. Změna proměnné se bez redeploye neprojeví.
+3. Testovací a live režim mají **každý vlastní endpoint a vlastní `whsec_`**. URL je u obou stejná.
 4. Apple Pay: ověřit doménu `www.anastasiaoz.eu` (Settings → Payment method domains).
 5. Klub nepotřebuje vlastní webhook (DEPLOY §2).
+6. Při přechodu na plán Scale s vlastní doménou `api.` přidat ve Stripe nový endpoint, ověřit ho a teprve pak smazat starý.
 
 ### 2.8 Cloudflare DNS, TLS a redirecty
 1. Záznamy:
    - `www` → Pages `anastasia-web`;
    - `admin` → Pages `anastasia-admin`;
    - `nexus` → Worker;
-   - `media` → R2;
-   - `api` → backend hosting (proxied, nebo DNS only dle hostingu).
+   - `api` jen při plánu Scale, podle pokynů Medusa Cloud (Settings → Domains). Při plánu Launch se nezakládá.
 2. SSL/TLS: Full (strict), Always Use HTTPS, HSTS až po ověření všech subdomén.
 3. **Legacy URL** (`backend/docs/wp/edge-redirects.md`):
    - 27 starých cest z GSC na novém webu existuje beze změny (build to hlídá);
@@ -176,14 +206,23 @@ Postup je v DEPLOY §3.
 Postup je v DEPLOY §4.
 1. Doména odesílatele `anastasiaoz.eu`: DKIM TXT a bounce CNAME **DNS only**.
 2. SPF na Active24 rozšířit o include ZeptoMail, pokud ho ZeptoMail vyžaduje.
-3. Env: `ZEPTOMAIL_API_KEY`, `ZEPTOMAIL_FROM_EMAIL=noreply@anastasiaoz.eu`, `ZEPTOMAIL_FROM_NAME=ANASTASIA` a `ZEPTOMAIL_REPLY_TO` (schránka Lucie).
+3. Env v Medusa Cloud:
+   - `ZEPTOMAIL_API_KEY` (Sensitive);
+   - `ZEPTOMAIL_FROM_EMAIL=noreply@anastasiaoz.eu`;
+   - `ZEPTOMAIL_FROM_NAME=ANASTASIA`;
+   - `ZEPTOMAIL_REPLY_TO` (schránka Lucie).
+   Bez `ZEPTOMAIL_API_KEY` backend běží, ale e-maily neodchází, jen se zalogují bez osobních údajů. Kontrola 1 ve smoke testu (§3) to odhalí.
 4. Ověření:
    - magic link na vlastní adresu;
    - kontaktní formulář: e-mail Lucii, „Odpovedať“ jde odesílatelce.
 
 ## 3. Smoke test
 
-**Fáze A**: produkční infrastruktura a domény, `NODE_ENV=staging`, testovací Stripe klíč a testovací webhook endpoint.
+Obě fáze běží na **stejném produkčním prostředí Cloudu** se stejnou DB, doménami a buildem. Mění se jen Stripe.
+
+**Fáze A** – `PAYMENTS_TEST_MODE=1`, testovací Stripe klíč (`sk_test_`/`rk_test_`), testovací webhook endpoint, `pk_test_` ve storefrontu.
+`PAYMENTS_TEST_MODE` platí jen v produkčním prostředí. Live klíč config v tomto režimu odmítne, takže je nejde omylem zkombinovat.
+Přepínač je potřeba proto, že na Cloudu je produkce určená typem prostředí a `NODE_ENV=staging` tam nastavit nejde.
 
 Testovací karta `4242…` / 3DS `4000 0027 6000 3184`. Jen syntetické zákaznice s vlastními adresami týmu.
 
@@ -199,9 +238,22 @@ Testovací karta `4242…` / 3DS `4000 0027 6000 3184`. Jen syntetické zákazni
 | 8 | Chat z účtu → odpověď z adminu | e-mail se odkazem do účtu |
 | 9 | `https://anastasiaoz.eu/zdrava-lekaren?utm_source=x` | 301 na `www`, query zachována |
 | 10 | Admin Prehľad → Pripravenosť | žádný blocker |
+| 11 | Obrázek produktu z adminu je vidět na webu | ověří `ANASTASIA_MEDIA_ORIGIN` (§2.5) |
+| 12 | Cloud → Logs: běží plánované joby (`membership-billing` a další) | záznamy jobů bez chyb |
+
+**Úklid po fázi A** (před fází B, schvaluje Lucky nebo Jose):
+- testovací objednávky, zákaznice a členství z fáze A v adminu zrušit;
+- testovací poukazy zneplatnit;
+- nikdy nemazat DB celou, je v ní bootstrap.
+Testovací platby ve Stripe zůstávají v testovacím režimu a s live nic nesdílí.
 
 **Fáze B**, přepnutí na live:
-1. Backend: `NODE_ENV=production`, `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET` (live endpoint) a restart. Start zároveň ověří silné secrety a HTTPS CORS.
+1. Medusa Cloud → Environment variables:
+   - `STRIPE_API_KEY` = live klíč;
+   - `STRIPE_WEBHOOK_SECRET` = `whsec_` live endpointu;
+   - `PAYMENTS_TEST_MODE` **smazat**;
+   - Redeploy.
+   Start ověří live klíč, `whsec_`, silné secrety a HTTPS CORS. Při chybě deploy neprojde a běží dál předchozí verze.
 2. Pages: `ANASTASIA_STRIPE_PUBLISHABLE_KEY=pk_live_…` a nový build.
 3. Jedna skutečná malá platba vlastní kartou týmu → plný refund.
 4. Teprve pak zveřejnit.
@@ -210,13 +262,14 @@ Testovací karta `4242…` / 3DS `4000 0027 6000 3184`. Jen syntetické zákazni
 
 | Co | Jak | Kdo |
 |---|---|---|
-| PostgreSQL | denní snapshot + PITR ≥ 7 dní u poskytovatele; týdně `pg_dump -Fc` šifrovaně off-site (např. R2 s omezeným tokenem) | provoz (L-Code) |
-| Před každou migrací | ruční `pg_dump -Fc`, ověřit `pg_restore --list` | kdo nasazuje |
+| PostgreSQL – automaticky | Medusa Cloud: denní zálohy + obnova k času (Launch 7 dní, Scale 14 dní). Obnova v Cloud → Database → Backups | Cloud |
+| PostgreSQL – off-site | týdně `pg_dump -Fc` přes **read-only connection string** z Cloud → Database (IP allowlist na adresu, odkud se dump dělá) → šifrovaně do R2 s omezeným tokenem | provoz (L-Code) |
+| Před každým zásahem do dat nebo rizikovou migrací | ruční dump stejným postupem, ověřit `pg_restore --list` | kdo nasazuje |
 | D1 `nexus-voucher` | Time Travel (30 dní) + `wrangler d1 export` před migrací | kdo nasazuje |
-| R2 obrázky | originály jsou i v repu/importu; lifecycle bez mazání | – |
-| Restore drill | 1× před launchem: dump → `pg_restore --single-transaction` do nové DB → `db:migrate` beze změn → počty řádků | L-Code |
+| Obrázky produktů | úložiště Cloudu; originály má Lucia a import | – |
+| Restore drill | 1× před launchem: dump → `pg_restore --no-owner --single-transaction` do lokální prázdné DB → `medusa db:migrate` beze změn → počty řádků | L-Code |
 
-Cíl (návrh, schvaluje vlastník): RPO 24 h (s PITR minuty), RTO 4 h.
+Cíl (návrh, schvaluje vlastník): RPO 24 h (s obnovou k času minuty), RTO 4 h.
 Lokální postup obnovy je ověřený (INTEGRATION-REPORT §1, Bezpečnost). Produkční drill zatím neproběhl.
 
 ## 5. Rollback
@@ -225,9 +278,10 @@ Lokální postup obnovy je ověřený (INTEGRATION-REPORT §1, Bezpečnost). Pro
 |---|---|---|
 | Storefront / admin | Pages → Deployments → předchozí → *Rollback* | žádná |
 | NEXUS Worker | `npx wrangler rollback --env production` | D1 migrace jsou aditivní; při poškození D1 Time Travel restore na čas před migrací |
-| Backend kód | nasadit předchozí tag/release | migrace Medusy jsou aditivní, starší kód nad novějším schématem běží |
-| Backend data | `pg_restore --single-transaction` dumpu do **nové** DB → přepnout `DATABASE_URL` → restart; nebo PITR | objednávky vzniklé po dumpu dohledat ve Stripe |
-| Platby | Stripe → vypnout webhook endpoint / vrátit test klíče; storefront do údržby přes rollback Pages | Klub joby se zastaví s procesem a nic neúčtují |
+| Backend kód | Medusa Cloud → Deployments → předchozí úspěšný deploy → **Redeploy**; nebo revert commitu na `master` (nový deploy) | Redeploy **nevrací DB**. Migrace Medusy jsou aditivní, starší kód nad novějším schématem běží |
+| Backend data | Cloud → Database → Backups → obnova zálohy / k času; nebo `pg_restore` ručního dumpu (§4) | objednávky vzniklé po čase obnovy dohledat ve Stripe |
+| Proměnné | změna hodnoty → Redeploy. Neplatná kombinace (např. live klíč mimo produkci) deploy zastaví a běží předchozí verze | – |
+| Platby | Stripe → vypnout webhook endpoint / vrátit test klíče + `PAYMENTS_TEST_MODE=1`; storefront do údržby přes rollback Pages | Klub joby nic neúčtují, dokud neprojde platba |
 
 Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit kdokoli z týmu.
 
@@ -235,10 +289,11 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 
 1. První týden kontrolovat denně:
    - admin Prehľad (pripravenosť);
-   - log backendu `level=error`;
+   - Medusa Cloud → Logs, filtr `level=error`;
    - Stripe → Webhooks (žádné failed).
 2. 25. 10. (přechod na zimní čas): zkontrolovat obnovy Klubu v adminu Klub → Obnovy platieb (INTEGRATION-REPORT P2).
 3. ZeptoMail: v Zoho CPaaS sledovat bounce a odmítnutí.
+4. Každá změna proměnné v Cloudu potřebuje Redeploy. Do té doby platí stará hodnota.
 
 ## 7. Co dodá vlastník (Lucia / LUCRAT s.r.o.)
 
@@ -250,22 +305,90 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 | 4 | Potvrzení domén (§0) a přístup k registrátorovi kvůli DNSSEC/NS | DNS | 20. 10. |
 | 5 | Doprava zdarma od částky, lhůta zrušení konzultace | env | 20. 10. |
 | 6 | Katalog produktů a typy konzultací (lze zadat v adminu) | obsah obchodu | 22. 10. |
-| 7 | Úhrada hostingu backendu + DB (cca 29 USD/měs. dle smlouvy) | provoz | 20. 10. |
+| 7 | Schválení instalace GitHub App Medusa Cloud na repo `anastasia-nexus` (pokud ji nemůže schválit L-Code) | deploy backendu | 20. 10. |
+| 8 | Úhrada plánu Medusa Cloud (viz §8/1) | provoz | 20. 10. |
 
 ## 8. Rozhodnutí a úkoly pro L-Code (Lucky / Jose)
 
-1. **Hosting backendu + PostgreSQL + Redis** – volba poskytovatele (EU region, PITR). P0, bez toho nelze spustit.
-2. Odsouhlasit dvoufázový smoke test (§3: fáze A `NODE_ENV=staging` + test klíče, fáze B produkce + jedna skutečná platba s refundem). Rozhoduje Jose.
-3. Volitelně přesunout `ENVIRONMENT`, `MEDUSA_PRICING_TENANT_ID` a `ALLOWED_ORIGINS` do `vars` v `env.production` ve `wrangler.jsonc`, až budou domény potvrzené (malý PR).
-4. Merge PR #43 → tag.
-5. Cloudflare Access pro `admin.` (doporučení).
+1. **Plán Medusa Cloud** (ceny k 18. 10. 2026, ověřit při objednávce):
+   - Develop 29 USD/měs.: bez záloh a Redis, pro ostrý provoz nevyhovuje;
+   - **Launch 99 USD/měs.**: zálohy 7 dní, Redis, backend na `*.medusajs.app`. Doporučeno;
+   - Scale 299 USD/měs.: zálohy 14 dní, oddělený worker pro joby, vlastní doména `api.`.
+   Smlouva počítala s ~29 USD za hosting, rozdíl je potřeba vyřešit s vlastníkem.
+2. Kdo zakládá organizaci Medusa Cloud a na čí kartu (L-Code, nebo přímo LUCRAT s pozvánkou pro L-Code).
+3. Odsouhlasit dvoufázový smoke test na produkčním prostředí (§3: fáze A `PAYMENTS_TEST_MODE=1` + test klíče, fáze B live + jedna skutečná platba s refundem). Rozhoduje Jose.
+4. Volitelně přesunout `ENVIRONMENT`, `MEDUSA_PRICING_TENANT_ID` a `ALLOWED_ORIGINS` do `vars` v `env.production` ve `wrangler.jsonc`, až budou domény potvrzené (malý PR).
+5. Merge PR #43 → tag.
+6. Cloudflare Access pro `admin.` (doporučení), WAF allowlist IP Cloudu na `nexus.` (§1, volitelné).
 
 ## 9. Fáze 2 (není nutné na 23. 10.)
 
 - Editor věrnostních úrovní Bronze–VIP v adminu (funkce `loyalty`): procenta si nastaví Lucia sama, politika verzovaná na backendu → NEXUS.
-
 - Materiály a faktury v účtu (R2 `MEDIA_BUCKET` binding ve Workeru, chráněná média).
 - Legacy 301 cesty produktů po importu katalogu s `legacy_path` (`export-edge-redirects.ts` → manifest Workeru, route jen pro tyto cesty).
 - SKU pro starší typy konzultací vzniklé před `3ecd65f` (nové typy z adminu SKU mají).
 - Živý chat (polling), segmentace a rozesílka newsletteru, RBAC rolí v adminu.
 - P2 položky z INTEGRATION-REPORT §3.
+
+## Příloha A – proměnné backendu v Medusa Cloud
+
+Zadávají se v Cloud → Project → Environment → Environment variables. Flagy:
+- **S** = Sensitive (hodnota se po uložení nezobrazí);
+- **B** = dostupná při buildu;
+- **R** = dostupná za běhu.
+
+`medusa build` načítá `medusa-config.ts`, proto proměnné, které config čte, mají B i R. Kontroly secretů při buildu neběží,
+build projde i bez nich. Tajemství ale nikdy nevyplňovat jen jako B.
+
+**Nevyplňovat** (spravuje Cloud, rezervované nebo nahrazené):
+- `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `PORT`;
+- `MEDUSA_WORKER_MODE`, `EXECUTION_CONTEXT`, `SESSION_STORE`;
+- `AWS_*`, `MEDUSA_CLOUD_*`;
+- `S3_*` a `BACKEND_PUBLIC_URL`. Na Cloudu je ignoruje config.
+
+| Proměnná | Flagy | Hodnota pro produkci |
+|---|---|---|
+| `JWT_SECRET` | S B R | `openssl rand -hex 32` |
+| `COOKIE_SECRET` | S B R | `openssl rand -hex 32`, jiný než JWT |
+| `STORE_CORS` | B R | `https://www.anastasiaoz.eu` |
+| `ADMIN_CORS` | B R | `https://admin.anastasiaoz.eu` |
+| `AUTH_CORS` | B R | `https://www.anastasiaoz.eu,https://admin.anastasiaoz.eu` |
+| `STRIPE_API_KEY` | S B R | fáze A `sk_test_`/`rk_test_`, fáze B `sk_live_`/`rk_live_` |
+| `STRIPE_WEBHOOK_SECRET` | S B R | `whsec_` endpointu z §2.7 (test / live) |
+| `PAYMENTS_TEST_MODE` | B R | `1` jen ve fázi A, pak smazat |
+| `STRIPE_CAPTURE` | R | výchozí `true` |
+| `STRIPE_PAYMENT_METHOD_CONFIGURATION` | B R | volitelné, `pmc_…` |
+| `MAGIC_LINK_BASE_URL` | B R | `https://www.anastasiaoz.eu/prihlasenie/potvrdit` |
+| `ZEPTOMAIL_API_KEY` | S B R | klíč Mail Agentu |
+| `ZEPTOMAIL_FROM_EMAIL` / `_FROM_NAME` / `_REPLY_TO` | B R | `noreply@anastasiaoz.eu` / `ANASTASIA` / schránka Lucie |
+| `ZEPTOMAIL_API_URL` | B R | prázdné (EU výchozí) |
+| `NEXUS_PRICING_URL` | R | `https://nexus.anastasiaoz.eu/api/nexus/pricing` |
+| `NEXUS_PRICING_API_KEY` | S R | shodný s Workerem (§1) |
+| `NEXUS_TENANT_ID` | R | `anastasia` |
+| `NEXUS_SAFEORDER_URL` / `NEXUS_OPERATIONS_URL` | R | prázdné = odvodí se z `NEXUS_PRICING_URL` |
+| `OPS_INGEST_TENANT_ID` | R | prázdné = `NEXUS_TENANT_ID` |
+| `NEXUS_MEDUSA_WEBHOOK_URL` | R | `https://nexus.anastasiaoz.eu/api/webhooks/medusa` |
+| `NEXUS_MEDUSA_WEBHOOK_SECRET` | S R | shodný s Workerem (§1) |
+| `NEXUS_BOOKING_SYNC_SECRET` | S R | shodný s Workerem (§1) |
+| `OPS_INGEST_SECRET` | S R | shodný s Workerem (§1) |
+| `MEDIA_TOKEN_SECRET` | S R | shodný s Workerem (§1) |
+| `MEDIA_DELIVERY_BASE_URL` | R | prázdné (fáze 2) |
+| `ANASTASIA_REGION_COUNTRIES` | R | `sk` |
+| `ANASTASIA_WAREHOUSE_CITY` / `_COUNTRY` / `_ADDRESS` | R | adresa skladu LUCRAT |
+| `ANASTASIA_FREE_SHIPPING_FROM_EUR` | R | od vlastníka (§7/5) |
+| `ACCOUNT_URL` | R | `https://www.anastasiaoz.eu/ucet` |
+| `ACCOUNT_ORDERS_URL` / `ACCOUNT_BOOKINGS_URL` | R | prázdné = odvodí se z `ACCOUNT_URL` |
+| `GIFT_VOUCHER_DELIVERY` | R | `notification` |
+| `LEGAL_TERMS_VERSION` / `LEGAL_PRIVACY_VERSION` / `NEWSLETTER_CONSENT_VERSION` | R | od vlastníka (§7/2) |
+| `ORDER_SELF_CANCEL_BOOKING_HOURS` | R | od vlastníka (§7/5) |
+| `CONTACT_NOTIFY_EMAIL` / `CHAT_ADMIN_NOTIFY_EMAIL` | R | schránka Lucie |
+| `CHAT_ADMIN_URL` | R | `https://admin.anastasiaoz.eu/#/chat` |
+| `CHAT_STOREFRONT_URL` | R | prázdné = odvodí se z `ACCOUNT_URL` |
+| `COUPON_LINK_STOREFRONT_ORIGIN` | R | `https://www.anastasiaoz.eu` |
+| `OPS_EVENT_RETENTION_DAYS` / `OPS_AUDIT_RETENTION_DAYS` / `CHAT_RETENTION_DAYS` | R | prázdné = výchozí |
+
+Na Cloudu config navíc kontroluje stejné věci jako na vlastním serveru. Start odmítne, pokud:
+- secrety jsou slabé nebo shodné;
+- CORS není HTTPS;
+- v `production` chybí live Stripe klíč nebo `whsec_`;
+- je live klíč mimo `production`, nebo spolu s `PAYMENTS_TEST_MODE`.
