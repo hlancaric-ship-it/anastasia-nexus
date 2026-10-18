@@ -33,7 +33,17 @@ export default class MembershipStripe extends StripeProvider {
     if(error?.type!=='StripeCardError')throw new Error('MEMBERSHIP_CONFIRMATION_UNKNOWN')
    }
   }
-  const current=await this.stripe_.paymentIntents.retrieve(id)
+  let current=await this.stripe_.paymentIntents.retrieve(id)
+  // Banka odmietla off-session platbu bez overenia: Stripe vráti PI do requires_payment_method.
+  // Ten istý PI sa znovu potvrdí s tou istou kartou, aby prešiel do requires_action (3DS v účte členky).
+  // Nikdy nový PI ani nová karta; manual capture ostáva, peniaze sa bez overenia nestrhnú.
+  const authError=current.last_payment_error,authMethod=authError?.payment_method
+  const methodId=typeof authMethod==='string'?authMethod:authMethod?.id
+  if(input.data?.membership_renewal===true&&current.status==='requires_payment_method'&&authError?.code==='authentication_required'&&typeof methodId==='string'&&/^pm_[A-Za-z0-9]+$/.test(methodId)){
+   try{await this.stripe_.paymentIntents.confirm(id,{payment_method:methodId},{idempotencyKey:`membership-authenticate:${sessionId}`})}
+   catch(error:any){if(error?.type!=='StripeCardError')throw new Error('MEMBERSHIP_CONFIRMATION_UNKNOWN')}
+   current=await this.stripe_.paymentIntents.retrieve(id)
+  }
   if(current.status==='requires_capture'){
    try{await this.stripe_.paymentIntents.capture(id,{},{idempotencyKey:`membership-capture:${sessionId}`})}
    catch{throw new Error('MEMBERSHIP_CAPTURE_UNKNOWN')}

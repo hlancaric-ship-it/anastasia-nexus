@@ -435,6 +435,12 @@ export function createHttpApi(storage, config) {
       }));
       return { name: 'Zákazníčka', orders };
     },
+    // E-mail prihlásenej zákazníčky na predvyplnenie platobného formulára (bez neho Stripe pýta e-mail pre Link).
+    async getCustomerEmail() {
+      if (!loggedIn()) return '';
+      const r = await call('/store/customers/me?fields=email');
+      return r.data?.customer?.email || '';
+    },
     async getCustomerCenter() {
       if (!loggedIn()) return mock.getCustomerCenter();
       const me = await call('/store/customers/me?fields=first_name,last_name,email,phone,metadata');

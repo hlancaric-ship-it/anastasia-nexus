@@ -344,7 +344,7 @@ if($('#klub-view')){
         say('Pripravujem platbu…','REVIEW');
         const r=await api.startMembershipCheckout({terms_accepted:form.elements.terms.checked,privacy_acknowledged:form.elements.privacy.checked,auto_renew:form.elements.auto_renew.checked});
         if(!r.ok){say(r.message,'ERROR');return;}
-        try{const Stripe=await loadStripeJs();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:r.clientSecret});payBox.hidden=false;payBox.textContent='';elements.create('payment').mount(payBox);}
+        try{const Stripe=await loadStripeJs();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:r.clientSecret});payBox.hidden=false;payBox.textContent='';const email=typeof api.getCustomerEmail==='function'?await api.getCustomerEmail().catch(()=>''):'';elements.create('payment',{defaultValues:{billingDetails:{...(email?{email}:{}),address:{country:'SK'}}}}).mount(payBox);}
         catch{say('Platobnú bránu sa nepodarilo načítať.','ERROR');return;}
         $$('input[type=checkbox]',form).forEach(input=>{input.disabled=true;});
         submit.textContent='Zaplatiť a aktivovať';say('Zadajte platobné údaje.','');return;

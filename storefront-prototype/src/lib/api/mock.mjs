@@ -137,6 +137,7 @@ export function createMockApi(storage=memoryStorage()) {
     sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),
     // Klub: bez backendu žiadne vymyslené ceny ani členstvá, len poctivý prázdny stav.
     getMembershipProducts:()=>[],
+    getCustomerEmail:()=>'',
     prepareMembership:()=>({ok:false,message:'Členstvo zatiaľ nie je v ponuke.'}),
     startMembershipCheckout:()=>({ok:false,message:'Členstvo zatiaľ nie je v ponuke.'}),
     completeMembership:()=>({ok:false,status:'ERROR',message:'Členstvo zatiaľ nie je v ponuke.'}),
