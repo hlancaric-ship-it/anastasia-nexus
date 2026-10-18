@@ -1,5 +1,5 @@
 // Browser E2E č. 6: admin API typ konzultácie + dostupnosť → zákazníčka (store API) termín → košík → pokladňa storefrontu (digitálne, Stripe 4242)
-// → booking confirmed → vlastný admin Konzultácie (detail, zrušenie). Storefront nemá UI rezervácie (P1), preto termín a košík cez store API.
+// → booking confirmed → vlastný admin Konzultácie (detail, zrušenie). Termín, súbeh, košík a expirácia cez UI storefrontu.
 import { chromium } from '/Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
 import { writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -38,39 +38,62 @@ try {
   const av = await adminApi(tok, 'POST', '/admin/booking/availability', { week_start: WEEK, days: [{ date: WEEK, ranges: [{ start_time: '09:00', end_time: '17:00' }] }] });
   rec('admin-dostupnost-tyzdna', av.status === 200 && av.data?.days?.[0]?.ranges?.length === 1, { status: av.status, msg: av.data?.message, day0: av.data?.days?.[0] });
 
-  // B) Zákazníčka: prihlásenie magic-linkom
-  await page.goto(SF + '/prihlasenie');
-  await page.fill('#login-form [name=email]', email);
-  await page.click('#login-form [type=submit]');
-  await page.waitForFunction(() => document.querySelector('#login-form .form-status')?.textContent.trim().length > 0);
-  await page.waitForTimeout(2000);
-  const link = new URL(sql(`select data->>'url' from notification where template='magic-link-sk' and data->>'url' like '%${encodeURIComponent(email)}%' order by created_at desc limit 1`));
-  await page.goto(SF + link.pathname + link.search);
-  await page.waitForFunction(() => document.querySelector('#magic-confirm')?.textContent.trim().length > 0, null, { timeout: 15000 });
-  rec('prihlasenie', /Vitajte/.test(await page.textContent('#magic-confirm')), { msg: (await page.textContent('#magic-confirm')).trim().slice(0, 120) });
+  const handle = sql(`select handle from product where id='${type.id}'`);
+  const emailB = `e2e.konzultacia.b.${RUN}@example.com`;
+  async function loginSf(p, mail) {
+    await p.goto(SF + '/prihlasenie');
+    await p.fill('#login-form [name=email]', mail);
+    await p.click('#login-form [type=submit]');
+    await p.waitForFunction(() => document.querySelector('#login-form .form-status')?.textContent.trim().length > 0);
+    await p.waitForTimeout(2000);
+    const link = new URL(sql(`select data->>'url' from notification where template='magic-link-sk' and data->>'url' like '%${encodeURIComponent(mail)}%' order by created_at desc limit 1`));
+    await p.goto(SF + link.pathname + link.search);
+    await p.waitForFunction(() => document.querySelector('#magic-confirm')?.textContent.trim().length > 0, null, { timeout: 15000 });
+    return (await p.textContent('#magic-confirm')).trim();
+  }
+  const openSlots = async (p) => { await p.goto(`${SF}/konzultacie/rezervacia?typ=${encodeURIComponent(handle)}`); await p.waitForSelector('#booking-view .booking-slot, #booking-view .empty-state, #booking-view [data-state=ERROR]', { timeout: 30000 }); return p.locator('#booking-view .booking-slot').evaluateAll(b => b.map(x => x.dataset.slot)); };
 
-  // C) Store API v kontexte prihlásenej zákazníčky: sloty → rezervácia → košík → pripojenie
-  const store = await page.evaluate(async ({ API, productId, variantId, WEEK }) => {
-    const cfg = globalThis.__ANASTASIA_CONFIG__ || {};
-    const st = localStorage.getItem('anastasia.jwt') ? localStorage : sessionStorage; const jwt = st.getItem('anastasia.jwt');
-    const h = { 'content-type': 'application/json', 'x-publishable-api-key': cfg.publishableKey, authorization: `Bearer ${jwt}` };
-    const call = async (m, p, b) => { const r = await fetch(API + p, { method: m, headers: h, body: b ? JSON.stringify(b) : undefined }); return { s: r.status, d: await r.json().catch(() => null) }; };
-    const slots = await call('GET', `/store/booking-slots?product_id=${productId}&from=${WEEK}&to=${WEEK}`);
-    const slot = slots.d?.slots?.[0];
-    if (!slot) return { slots };
-    const b = await call('POST', '/store/bookings', { product_id: productId, starts_at: slot.starts_at || slot.start });
-    const taken = await call('GET', `/store/booking-slots?product_id=${productId}&from=${WEEK}&to=${WEEK}`);
-    const cart = await call('POST', '/store/carts', { region_id: cfg.regionId });
-    const cartId = cart.d?.cart?.id;
-    const li = await call('POST', `/store/carts/${cartId}/line-items`, { variant_id: variantId, quantity: 1 });
-    await call('POST', `/store/carts/${cartId}/customer`, {});
-    const attach = await call('POST', `/store/bookings/${b.d?.booking?.id}/cart`, { cart_id: cartId });
-    st.setItem('anastasia.cart', cartId);
-    return { slotsN: slots.d?.slots?.length, slot, booking: b.s, bookingId: b.d?.booking?.id, bookingStatus: b.d?.booking?.status, takenN: taken.d?.slots?.length, cart: cart.s, cartId, li: li.s, attach: attach.s, attachD: attach.d };
-  }, { API, productId: type.id, variantId: type.variant_id, WEEK });
-  bookingId = store.bookingId || '';
-  rec('store-sloty-a-rezervacia', store.slotsN > 0 && store.booking === 201 && store.takenN < store.slotsN, store);
-  rec('store-pripojenie-ku-kosiku', store.li === 200 && store.attach === 200, { li: store.li, attach: store.attach, d: store.attachD });
+  // B) Nepřihlásená zákazníčka vidí termíny, pri výbere dostane prihlásenie s návratom
+  const anonSlots = await openSlots(page);
+  await page.locator('#booking-view .booking-slot').first().click();
+  await page.waitForSelector('#booking-view a[href="/prihlasenie"], #booking-view .button', { timeout: 10000 });
+  const anonTxt = (await page.textContent('#booking-view')).replace(/\s+/g, ' ');
+  rec('ui-sloty-anonymne-a-vyzva-na-prihlasenie', anonSlots.length > 0 && /prihláste/i.test(anonTxt) && !!(await page.evaluate(() => localStorage.getItem('anastasia.return'))), { n: anonSlots.length, anonTxt: anonTxt.slice(0, 160) });
+  const msgA = await loginSf(page, email);
+  const cont = page.locator('main a', { hasText: 'Pokračovať v rezervácii' });
+  rec('prihlasenie-a-navrat-do-rezervacie', /Vitajte/.test(msgA) && await cont.count() === 1, { msgA: msgA.slice(0, 160) });
+  await cont.click();
+  await page.waitForSelector('#booking-view .booking-slot', { timeout: 30000 });
+  await shot(page, '49-rezervacia-sloty');
+
+  // C) Súbeh: A aj B vyberú rovnaký termín, B rezervuje prvá
+  const ctxB = await browser.newContext({ viewport: { width: 1360, height: 900 }, locale: 'sk-SK' });
+  const pageB = await ctxB.newPage();
+  pageB.on('pageerror', e => consoleErrors.push('B pageerror: ' + e.message.slice(0, 300)));
+  await loginSf(pageB, emailB);
+  const slotsB = await openSlots(pageB);
+  const target = slotsB[0];
+  await page.locator(`#booking-view .booking-slot[data-slot="${target}"]`).click();
+  await page.waitForSelector('[data-booking-reserve]');
+  await pageB.locator(`#booking-view .booking-slot[data-slot="${target}"]`).click();
+  await pageB.click('[data-booking-reserve]');
+  await pageB.waitForURL('**/pokladna', { timeout: 30000 });
+  const bkB = sql(`select id||'|'||status from booking where starts_at='${target}' and status='held' order by created_at desc limit 1`);
+  await page.click('[data-booking-reserve]');
+  await page.waitForSelector('#booking-view [data-state=ERROR]', { timeout: 30000 });
+  const conflictTxt = (await page.textContent('#booking-view [data-state=ERROR]')).trim();
+  const slotsAfter = await page.locator('#booking-view .booking-slot').evaluateAll(b => b.map(x => x.dataset.slot));
+  rec('subeh-druha-zakaznicka-dostane-409-a-novu-ponuku', /\|held$/.test(bkB) && /niekto iný|nie je voľný/.test(conflictTxt) && !slotsAfter.includes(target) && slotsAfter.length > 0, { bkB, conflictTxt, target, left: slotsAfter.length });
+  await shot(page, '49b-rezervacia-obsadeny-termin');
+
+  // A rezervuje iný termín cez UI → pokladňa
+  const slotA = slotsAfter[0];
+  await page.locator(`#booking-view .booking-slot[data-slot="${slotA}"]`).click();
+  await page.click('[data-booking-reserve]');
+  await page.waitForURL('**/pokladna', { timeout: 30000 });
+  bookingId = sql(`select b.id from booking b where b.starts_at='${slotA}' and b.status='held' order by b.created_at desc limit 1`);
+  const attached = sql(`select coalesce(metadata->>'booking_id','') from cart where metadata->>'booking_id'='${bookingId}' and completed_at is null limit 1`);
+  rec('ui-rezervacia-podrzana-a-pripojena-ku-kosiku', !!bookingId && attached === bookingId, { bookingId, attached });
 
   // D) Pokladňa storefrontu (digitálne, bez dopravy)
   await page.goto(SF + '/pokladna');
@@ -100,6 +123,34 @@ try {
   await page.waitForTimeout(3000);
   const bk = sql(`select status||'|'||coalesce(order_id,'') from booking where id='${bookingId}'`);
   rec('platba-a-potvrdenie-terminu', state === 'ALLOW' && /^confirmed\|order_/.test(bk), { state, msg: (await page.textContent('#checkout-result')).trim().slice(0, 200), bk });
+
+  // F) Zákazníčka B: košík ukazuje termín bez množstva, odstránenie uvoľní termín
+  await pageB.goto(SF + '/kosik');
+  await pageB.waitForSelector('.cart-line', { timeout: 20000 });
+  const lineB = (await pageB.textContent('.cart-line')).replace(/\s+/g, ' ');
+  const qtyBtns = await pageB.locator('.cart-line .quantity').count();
+  await pageB.click('.cart-line .remove-line');
+  await pageB.waitForFunction(() => !document.querySelector('.cart-line'), null, { timeout: 20000 });
+  const bkB2 = sql(`select status from booking where id='${bkB.split('|')[0]}'`);
+  rec('kosik-termin-bez-mnozstva-odstranenie-uvolni', /Termín:/.test(lineB) && qtyBtns === 0 && bkB2 === 'canceled', { lineB: lineB.slice(0, 160), qtyBtns, bkB2 });
+  const freeAgain = await openSlots(pageB);
+  rec('uvolneny-termin-je-znova-v-ponuke', freeAgain.includes(target), { target });
+
+  // G) Expirácia podržania: B rezervuje, podržanie vyprší, pokladňa nepustí k platbe
+  await pageB.locator(`#booking-view .booking-slot[data-slot="${target}"]`).click();
+  await pageB.click('[data-booking-reserve]');
+  await pageB.waitForURL('**/pokladna', { timeout: 30000 });
+  sql(`update booking set held_until=now()-interval '1 minute' where starts_at='${target}' and status='held'`);
+  await pageB.waitForSelector('#checkout-form [name=firstName]');
+  await pageB.fill('[name=firstName]', 'Bea'); await pageB.fill('[name=lastName]', 'Neskorá'); await pageB.fill('#checkout-form [name=email]', emailB);
+  await pageB.click('[data-next="2"]');
+  const dB = pageB.locator('[name=delivery][value=digital]'); if (await dB.count()) await dB.check();
+  await pageB.click('[data-next="3"]');
+  await pageB.waitForFunction(() => /vypršalo/.test(document.querySelector('#checkout-form')?.textContent || '') || !!document.querySelector('#stripe-payment-element iframe'), null, { timeout: 30000 });
+  const expTxt = (await pageB.textContent('#checkout-form')).replace(/\s+/g, ' ');
+  rec('expirovane-podrzanie-blokuje-platbu', /vypršalo/.test(expTxt) && await pageB.locator('#stripe-payment-element iframe').count() === 0, { expTxt: (expTxt.match(/.{0,60}vypršalo.{0,80}/) || [''])[0] });
+  await shot(pageB, '49c-rezervacia-expirovana');
+  await ctxB.close();
 
   // E) Vlastný admin: Konzultácie → detail → zrušenie
   const admin = await browser.newPage({ viewport: { width: 1360, height: 900 } });

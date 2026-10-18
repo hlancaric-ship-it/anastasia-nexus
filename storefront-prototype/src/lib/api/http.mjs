@@ -70,6 +70,46 @@ export function createHttpApi(storage, config) {
   }
   const mfail = (r, fallback) => ({ ok: false, status: r.status, error: r.data?.error || 'MEMBERSHIP_ERROR', message: r.data?.message || MEMBERSHIP_MSG[r.status] || fallback });
 
+  // Konzultácia: podržaný termín patrí ku košíku (metadata.booking_id); klient si pamätá len popis pre zobrazenie.
+  const BOOKING = 'anastasia.booking';
+  const BOOKING_MSG = {
+    401: 'Pre rezerváciu termínu sa prihláste.',
+    404: 'Táto konzultácia už nie je v ponuke.',
+    409: 'Termín už nie je voľný, zvoľte prosím iný.',
+  };
+  const storedBooking = () => { try { const b = JSON.parse(get(BOOKING) || 'null'); return b && typeof b.id === 'string' ? b : null; } catch { return null; } };
+  const bookingLabel = (startsAt, endsAt) => {
+    const s = new Date(startsAt), e = new Date(endsAt);
+    if (!Number.isFinite(s.getTime()) || !Number.isFinite(e.getTime())) return '';
+    const f = o => new Intl.DateTimeFormat('sk-SK', { timeZone: 'Europe/Bratislava', ...o });
+    return `${f({ weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' }).format(s)} · ${f({ hour: '2-digit', minute: '2-digit' }).format(s)} – ${f({ hour: '2-digit', minute: '2-digit' }).format(e)}`;
+  };
+  // Uvoľní podržaný termín a odpojí konzultáciu od košíka (riadok aj metadata.booking_id), aby košík zostal dokončiteľný.
+  async function releaseBooking(cartId) {
+    const b = storedBooking(); del(BOOKING);
+    if (b && loggedIn()) await call(`/store/bookings/${encodeURIComponent(b.id)}/cancel`, { method: 'POST', body: {} }).catch(() => null);
+    if (!cartId) return;
+    const r = await call(`/store/carts/${cartId}?fields=id,metadata,*items,*items.product`).catch(() => null);
+    const cart = r?.data?.cart; if (!cart) return;
+    for (const it of cart.items || []) if (it.product?.metadata?.booking) await call(`/store/carts/${cartId}/line-items/${it.id}`, { method: 'DELETE' }).catch(() => null);
+    if (cart.metadata?.booking_id) await call(`/store/carts/${cartId}`, { method: 'POST', body: { metadata: { booking_id: '' } } }).catch(() => null);
+  }
+  // Pred platbou: termín v košíku musí byť stále podržaný pre túto zákazníčku (inak by platba prešla bez termínu).
+  async function checkCartBooking(cartId) {
+    const r = await call(`/store/carts/${cartId}?fields=id,metadata,*items,*items.product`);
+    if (!r.ok || !r.data?.cart) return { ok: false, message: 'Košík sa nepodarilo načítať. Skúste to znova.' };
+    const cart = r.data.cart;
+    const lines = (cart.items || []).filter(it => it.product?.metadata?.booking);
+    if (!lines.length && !cart.metadata?.booking_id) return { ok: true };
+    const expired = { ok: false, expired: true, message: 'Podržanie termínu vypršalo. Vyberte si prosím termín znova.' };
+    if (lines.length !== 1 || Number(lines[0].quantity) !== 1 || typeof cart.metadata?.booking_id !== 'string' || !cart.metadata.booking_id) return expired;
+    const bk = await call('/store/bookings');
+    if (!bk.ok) return { ok: false, message: 'Termín sa nepodarilo overiť. Skúste to znova.' };
+    const b = (bk.data?.bookings || []).find(x => x.id === cart.metadata.booking_id);
+    if (!b || b.status !== 'held' || (b.held_until && new Date(b.held_until).getTime() <= Date.now())) return expired;
+    return { ok: true, booking: b };
+  }
+
   const productCache = new Map();
   async function variantFor(code) {
     if (productCache.has(code)) return productCache.get(code);
@@ -112,6 +152,7 @@ export function createHttpApi(storage, config) {
     if (!id) return empty;
     const r = await call(`/store/carts/${id}?fields=*items,*items.product,*shipping_methods,total,item_subtotal,discount_total,shipping_total,tax_total`);
     const cart = r.data?.cart; if (!cart) return empty;
+    const held = storedBooking();
     const lines = (cart.items || []).map(it => ({
       slug: it.product_handle || it.product?.handle || it.id,
       name: it.product_title || it.title || it.product?.title || 'Položka',
@@ -120,6 +161,8 @@ export function createHttpApi(storage, config) {
       image: it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',
       quantity: it.quantity,
       giftVoucher: false,
+      // Konzultácia má vždy 1 ks a termín; množstvo sa nemení, riadok sa dá len odstrániť.
+      booking: it.product?.metadata?.booking ? { label: held && held.product_id === it.product_id ? held.label : '', heldUntil: held && held.product_id === it.product_id ? held.held_until : '' } : null,
       _itemId: it.id,
     }));
     const coupon = get(COUPON) || '';
@@ -177,6 +220,11 @@ export function createHttpApi(storage, config) {
       const current = await cartShape();
       const line = current.lines.find(l => l.slug === slug);
       if (!line) return { ok: false, message: 'Položka už nie je v košíku.' };
+      if (line.booking) {
+        if (quantity !== 0) return { ok: false, message: 'Konzultácia sa rezervuje na jeden termín. Ďalší termín si vyberte samostatne.' };
+        await releaseBooking(id); await reprice();
+        return { ok: true, cart: await cartShape() };
+      }
       const r = quantity === 0
         ? await call(`/store/carts/${id}/line-items/${line._itemId}`, { method: 'DELETE' })
         : await call(`/store/carts/${id}/line-items/${line._itemId}`, { method: 'POST', body: { quantity } });
@@ -209,6 +257,8 @@ export function createHttpApi(storage, config) {
       const fail = 'Objednávku sa nepodarilo pripraviť. Skúste to znova.';
       const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
       if (!owner.ok) return { ok: false, message: fail };
+      const term = await checkCartBooking(id);
+      if (!term.ok) return term;
       const shipping = delivery === 'shipping';
       const address = { first_name: String(firstName).trim(), last_name: String(lastName).trim(), country_code: 'sk',
         ...(shipping ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
@@ -265,10 +315,60 @@ export function createHttpApi(storage, config) {
         BLOCK: 'Objednávku teraz nemožno dokončiť. Kontaktujte nás, prosím.',
         ERROR: 'Služba je dočasne nedostupná. Skúste to znova o chvíľu.',
       };
-      if (r.status === 200) { del(CART); del(COUPON); return { mode: 'http', status: 'ALLOW', messages: M.ALLOW, order: r.data?.order }; }
+      if (r.status === 200) { del(CART); del(COUPON); del(BOOKING); return { mode: 'http', status: 'ALLOW', messages: M.ALLOW, order: r.data?.order }; }
       if (r.status === 409) return { mode: 'http', status: 'REVIEW', messages: M.REVIEW };
       if (r.status === 403) return { mode: 'http', status: 'BLOCK', messages: M.BLOCK };
       return { mode: 'http', status: 'ERROR', messages: M.ERROR };
+    },
+
+    // Konzultácie: typ = publikovaný produkt s metadata.booking. Voľné termíny, cenu a obsadenosť určuje server.
+    async getBookingTypes() {
+      let r; try { r = await call(`/store/products?region_id=${config.regionId}&limit=50&fields=${PRODUCT_FIELDS}`); } catch { return { ok: false, types: [] }; }
+      if (!r.ok) return { ok: false, types: [] };
+      const types = (r.data?.products || []).filter(p => p.metadata?.booking && p.metadata.booking.archived !== true).map(p => {
+        const v = (p.variants || [])[0] || {}, b = p.metadata.booking;
+        return { id: p.id, handle: p.handle, title: p.title, description: p.subtitle || '', image: p.thumbnail || '', variantId: v.id || '',
+          priceLabel: v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : '',
+          durationMinutes: Number(b.durationMinutes) || null, form: typeof b.form === 'string' ? b.form : '' };
+      }).filter(t => t.variantId);
+      return { ok: true, types };
+    },
+    async getBookingSlots(productId, from, to) {
+      const day = /^\d{4}-\d{2}-\d{2}$/;
+      if (typeof productId !== 'string' || !productId || !day.test(from) || !day.test(to)) return { ok: false, slots: [], message: 'Termíny sa nepodarilo načítať.' };
+      let r; try { r = await call(`/store/booking-slots?product_id=${encodeURIComponent(productId)}&from=${from}&to=${to}`); } catch { return { ok: false, status: 503, slots: [], message: 'Termíny sa nepodarilo načítať. Skúste to znova.' }; }
+      if (!r.ok) return { ok: false, status: r.status, slots: [], message: r.status === 404 ? BOOKING_MSG[404] : 'Termíny sa nepodarilo načítať. Skúste to znova.' };
+      return { ok: true, slots: (r.data?.slots || []).filter(s => s?.start && s?.end).map(s => ({ start: s.start, end: s.end, label: bookingLabel(s.start, s.end) })) };
+    },
+    // Podrží termín (server overí, že je naozaj ponúkaný a voľný), pridá konzultáciu do košíka a naviaže termín na košík.
+    // Predchádzajúci podržaný termín v košíku sa uvoľní; pri chybe sa nový termín hneď uvoľní, nič nezostane visieť.
+    async reserveBooking({ productId, variantId, startsAt, title = '' } = {}) {
+      if (!loggedIn()) return { ok: false, status: 401, message: BOOKING_MSG[401] };
+      if (typeof productId !== 'string' || !productId || typeof variantId !== 'string' || !variantId || typeof startsAt !== 'string' || !startsAt) return { ok: false, status: 400, message: 'Vyberte termín.' };
+      const fail = 'Termín sa nepodarilo rezervovať. Skúste to znova.';
+      try {
+        const cartId = await ensureCart();
+        if (!cartId) return { ok: false, message: 'Košík sa nepodarilo vytvoriť. Skúste to znova.' };
+        await releaseBooking(cartId);
+        const hold = await call('/store/bookings', { method: 'POST', body: { product_id: productId, starts_at: startsAt } });
+        const booking = hold.data?.booking;
+        if (hold.status !== 201 || !booking?.id) {
+          const message = hold.status === 409 ? (hold.data?.type === 'slot_taken' ? 'Termín si práve rezervoval niekto iný. Zvoľte prosím iný.' : 'Tento termín už nie je voľný. Zvoľte prosím iný.') : BOOKING_MSG[hold.status] || fail;
+          return { ok: false, status: hold.status, type: hold.data?.type || 'error', message };
+        }
+        set(BOOKING, JSON.stringify({ id: booking.id, product_id: productId, title, held_until: booking.held_until || '', label: bookingLabel(booking.starts_at, booking.ends_at) }));
+        const li = await call(`/store/carts/${cartId}/line-items`, { method: 'POST', body: { variant_id: variantId, quantity: 1 } });
+        const owner = li.ok ? await call(`/store/carts/${cartId}/customer`, { method: 'POST', body: {} }) : li;
+        const attach = owner.ok ? await call(`/store/bookings/${encodeURIComponent(booking.id)}/cart`, { method: 'POST', body: { cart_id: cartId } }) : owner;
+        if (!attach.ok) { await releaseBooking(cartId); return { ok: false, status: attach.status, message: attach.status === 409 ? 'Podržanie termínu vypršalo. Vyberte si prosím termín znova.' : fail }; }
+        await reprice();
+        return { ok: true, booking: { id: booking.id, label: bookingLabel(booking.starts_at, booking.ends_at), heldUntil: booking.held_until || '' }, cart: await cartShape() };
+      } catch { return { ok: false, status: 503, message: fail }; }
+    },
+    // Tesne pred potvrdením platby: termín musí byť stále podržaný.
+    async verifyCartBooking() {
+      const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
+      try { return await checkCartBooking(id); } catch { return { ok: false, message: 'Termín sa nepodarilo overiť. Skúste to znova.' }; }
     },
 
     // Klub ANASTASIA: samostatný košík s jedinou členskou variantou. Cenu, verziu a dĺžku určuje

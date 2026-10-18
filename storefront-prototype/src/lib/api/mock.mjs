@@ -145,6 +145,11 @@ export function createMockApi(storage=memoryStorage()) {
     stopMembership:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
     getMembershipPayment:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
     reconcileMembership:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
+    // Konzultácie: bez backendu žiadne vymyslené termíny.
+    getBookingTypes:()=>({ok:true,types:[]}),
+    getBookingSlots:()=>({ok:false,slots:[],message:'Termíny sa nepodarilo načítať.'}),
+    reserveBooking:()=>({ok:false,message:'Rezervácia termínov zatiaľ nie je dostupná.'}),
+    verifyCartBooking:()=>({ok:true}),
   };
 }
 export const api=createMockApi();
