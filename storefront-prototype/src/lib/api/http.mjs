@@ -9,7 +9,9 @@ const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena s
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,description,thumbnail,*categories,*variants,+variants.sku,+variants.calculated_price';
+  'handle,title,subtitle,description,thumbnail,metadata,*categories,*variants,+variants.sku,+variants.calculated_price';
+// Klub, konzultácie a darčekový poukaz majú vlastný nákupný tok (súhlas, termín, príjemca); bežný košík ich backend odmietne.
+const isShopProduct = p => { const m = p?.metadata || {}; return !m.membership && !m.booking && m.gift_voucher !== true && m.gift_voucher !== 'true'; };
 
 function mapProduct(p) {
   const variant = (p.variants || [])[0] || {};
@@ -138,7 +140,7 @@ export function createHttpApi(storage, config) {
 
     async getProducts({ category = '', search = '', filter = '' } = {}) {
       const r = await call(`/store/products?region_id=${config.regionId}&limit=100&fields=${PRODUCT_FIELDS}`);
-      let items = (r.data?.products || []).map(mapProduct);
+      let items = (r.data?.products || []).filter(isShopProduct).map(mapProduct);
       const s = search.toLocaleLowerCase('sk');
       if (category) items = items.filter(p => p.category === category);
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
@@ -149,7 +151,7 @@ export function createHttpApi(storage, config) {
     async getProduct(slug) {
       const r = await call(`/store/products?handle=${encodeURIComponent(slug)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
       const p = r.data?.products?.[0];
-      return p ? mapProduct(p) : null;
+      return p && isShopProduct(p) ? mapProduct(p) : null;
     },
     async getCategories() {
       const r = await call('/store/product-categories?limit=100&fields=name');
@@ -377,6 +379,55 @@ export function createHttpApi(storage, config) {
       }
       return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
     },
+
+    // QR odkaz → košík: produkt + množstvo + voliteľný kupón. Idempotentné cez uložený kľúč (max 50).
+    async importQr(params) {
+      const code = params.get('produkt'); if (!code) return { ok: false, message: 'V odkaze chýba kód produktu.' };
+      const qty = params.get('ks') ?? '1', couponCode = params.get('kupon') ?? '';
+      if (!/^[1-9]\d?$/.test(qty)) return { ok: false, message: 'QR odkaz obsahuje neplatné množstvo (1–99).' };
+      let keys = []; try { keys = JSON.parse(get(QRKEYS) || '[]'); } catch { keys = []; }
+      const key = JSON.stringify([code, qty, couponCode]);
+      if (keys.includes(key)) return { ok: true, message: 'Tento QR odkaz už bol použitý. Košík sa nezdvojil.' };
+      const added = await self.addToCart(code, Number(qty));
+      if (!added.ok) return added;
+      keys.push(key); set(QRKEYS, JSON.stringify(keys.slice(-50)));
+      let extra = '';
+      if (couponCode) { const c = await self.applyCoupon(couponCode); extra = ' ' + c.message; }
+      return { ok: true, message: added.message + extra };
+    },
+
+    // Darčekový poukaz: nákup (variant + príjemca) a uplatnenie kreditu v košíku (výšku určuje server).
+    async getGiftVoucherProduct() {
+      const r = await call(`/store/products?handle=darkovy-poukaz&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
+      const p = r.data?.products?.[0];
+      // Bez publikovaného produktu (poukazy vypnuté v adminu) ponuka zostane prázdna, nikdy ukážkové hodnoty.
+      if (!r.ok || !p) return { id: '', handle: 'darkovy-poukaz', variants: [] };
+      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, amount: v.calculated_price?.calculated_amount })) };
+    },
+    async addGiftVoucher({ variant_id, recipient }) {
+      if (!variant_id) return { ok: false, message: 'Vybraná hodnota poukazu už nie je dostupná.' };
+      if (!recipient?.name?.trim() || !/^\S+@\S+\.\S+$/.test(recipient?.email || '') || Array.from(recipient.message || '').length > 300)
+        return { ok: false, message: 'Skontrolujte meno, e-mail a odkaz (najviac 300 znakov).' };
+      const id = await ensureCart(); if (!id) return { ok: false, message: 'Košík sa nepodarilo vytvoriť.' };
+      const li = await call(`/store/carts/${id}/line-items`, { method: 'POST', body: { variant_id, quantity: 1 } });
+      if (!li.ok) return { ok: false, message: 'Poukaz sa nepodarilo pridať do košíka.' };
+      const rec = await call('/store/gift-vouchers/recipients', { method: 'POST', body: { cart_id: id, recipients: { [variant_id]: [recipient] } } });
+      await reprice();
+      return { ok: true, message: 'Poukaz pridaný do košíka.', cart: await cartShape(), recipients: rec.data?.recipients };
+    },
+    async applyGiftVoucher(code) {
+      const id = await ensureCart(); if (!id) return { ok: false, message: 'Košík je prázdny.' };
+      const r = await call('/store/gift-vouchers/apply', { method: 'POST', body: { cart_id: id, code: String(code || '').trim() } });
+      if (r.ok && r.data?.ok) { set(GIFT, JSON.stringify(r.data.gift_voucher || null)); return { ok: true, gift_voucher: r.data.gift_voucher, cart: await cartShape(), message: 'Poukaz bol uplatnený.' }; }
+      return { ok: false, status: r.status, error: r.data?.error || 'GIFT_VOUCHER_INVALID', message: r.data?.message || 'Poukaz nie je platný alebo už nie je dostupný.' };
+    },
+    async removeGiftVoucher() {
+      const id = get(CART); del(GIFT);
+      if (id) await call('/store/gift-vouchers/remove', { method: 'POST', body: { cart_id: id } });
+      await reprice();
+      return cartShape();
+    },
+
     async getAccount() {
       if (!loggedIn()) return { ok: false, name: '', orders: [] };
       const r = await call('/store/orders?limit=20&order=-created_at&fields=display_id,created_at,total,status,*items');

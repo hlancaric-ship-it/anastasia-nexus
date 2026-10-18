@@ -10,6 +10,19 @@ let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
 updateCount();
+// Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
+const kolTrack=$('.kol-track');
+if(kolTrack)(async()=>{
+  let products=[];try{products=(await api.getProducts()).slice(0,kolTrack.children.length);}catch{products=[];}
+  [...kolTrack.children].forEach((cardEl,i)=>{
+    const p=products[i];if(!p){cardEl.remove();return;}
+    const f=$$('.sc-interp',cardEl);if(f[1])f[1].textContent=p.category;if(f[2])f[2].textContent=p.category;if(f[3])f[3].textContent=p.priceLabel;if(f[4])f[4].textContent=p.name;
+    const img=$$('[style*="background-image"]',cardEl)[0];if(img)img.style.backgroundImage=`url("${encodeURI(p.image)}")`;
+    const add=$('[data-add]',cardEl);if(add)add.dataset.add=p.code;
+  });
+  kolTrack.dataset.ready='';
+  if(!products.length)kolTrack.closest('section')?.querySelector('.kol-tabs')?.insertAdjacentHTML('afterend','<p class="form-status">Produkty sa teraz nepodarilo načítať.</p>');
+})();
 
 const customerCenter=$('.customer-center');
 if(customerCenter){

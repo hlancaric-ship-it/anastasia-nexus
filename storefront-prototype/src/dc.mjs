@@ -291,6 +291,7 @@ footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!im
 }
 /* Kolekcia na landing page: prehľad (nie obchod), na mobile rotujúci pás 2 kariet */
 .kol-tabs{display:none}
+.kol-track:not([data-ready])>*{visibility:hidden}
 @media(max-width:699.98px){
 .kol-tabs{display:flex;gap:8px;margin:-24px 0 22px;overflow-x:auto;scrollbar-width:none}
 .kol-tabs a{flex:none;height:34px;padding:0 16px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid rgba(239,229,199,.24);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#EFE5C7;text-decoration:none}

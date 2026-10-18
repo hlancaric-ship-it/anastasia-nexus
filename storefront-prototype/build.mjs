@@ -15,7 +15,8 @@ const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'dist');
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
-const dcProducts=api.getProducts().slice(0,4).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,name:e(p.name),cat:e(p.category),price:e(p.priceLabel),img:p.image,add:e(p.code)}));
+// Kolekcia na úvode: prázdne karty, skutočné produkty a ceny dopĺňa prehliadač z backendu (žiadne ukážkové produkty v HTML).
+const dcProducts=Array.from({length:4},(_,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,name:'',cat:'',price:'',img:'/assets/brand-mark.svg',add:''}));
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 add2('/','Light for the Future',homeSections(dcProducts),'home');
 add('/eshop','Obchod',views.catalog());add('/eshop/kategorie','Kategórie',views.categories());
