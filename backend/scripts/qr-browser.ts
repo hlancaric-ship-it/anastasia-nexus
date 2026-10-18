@@ -45,7 +45,7 @@ export async function verifyQrBrowser(api: any, admin: any, buyer: any, regionId
    ws.addEventListener('message',event=>{const message=JSON.parse(String(event.data));const task=pending.get(message.id);if(!task)return;pending.delete(message.id);clearTimeout(task.timer);message.error?task.no(Error(message.error.message)):task.yes(message.result)})
    const command=(method:string,params:any={})=>new Promise<any>((yes,no)=>{const id=++seq;const timer=setTimeout(()=>{pending.delete(id);no(Error('Chrome command timed out: '+method))},10000);pending.set(id,{yes,no,timer});ws!.send(JSON.stringify({id,method,params}))})
    await command('Page.enable')
-   const results=[]
+   const results: Array<{ checks: number }>=[]
    for(const width of [1440,390]){
     await command('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500})
     await command('Page.navigate',{url:`http://127.0.0.1:${port}/?width=${width}`})
