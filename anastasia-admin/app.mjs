@@ -191,11 +191,11 @@ async function vDashboard(view) {
         ${tasks.length ? tasks.map(taskHtml).join('') : `<p class="empty-task">${toFulfill == null && unread == null ? 'Úlohy sa teraz nedajú načítať. Skúste obnoviť stránku.' : 'Všetko máte vybavené. Nič nečaká na vašu pozornosť.'}</p>`}
       </section>
       ${readinessCard(readiness)}
-      <div class="quick"><a class="btn" href="#/poukazy">${navIcon('gift')}Nastaviť poukazy</a><a class="btn" href="#/poukazy">${navIcon('plus')}Vytvoriť kupón</a></div>
     </div>
     <div>
       ${schedule}
       <aside class="help-card">${navIcon('help')}<h3>Všetko si nastavíte tu.</h3><p>Ceny, voľné termíny, poukazy aj texty e-mailov. Pri každom nastavení vysvetlíme, čo zmena ovplyvní.</p><a class="subtle-link" href="#/nastavenia">Otvoriť nastavenia →</a></aside>
+      <div class="quick"><a class="btn" href="#/poukazy">${navIcon('gift')}Nastaviť poukazy</a><a class="btn" href="#/poukazy">${navIcon('plus')}Vytvoriť kupón</a></div>
     </div>
   </div>`;
 }
@@ -297,7 +297,7 @@ async function vProducts(view) {
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
   const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
-  const { products } = await api('/admin/products?limit=100&fields=id,title,status,handle,thumbnail,metadata,*variants.prices');
+  const { products } = await api('/admin/products?limit=100&order=-created_at&fields=id,title,status,handle,thumbnail,metadata,*variants.prices');
   listView(view, {
     title: 'Produkty', rows: products,
     cols: [
@@ -1011,7 +1011,7 @@ async function vAvailability(view, st = {}) {
   const days = (st.draft || d.days).map(x => ({ date: x.date, ranges: x.ranges.map(r => ({ ...r })) }));
   const bookings = (d.bookings || []).filter(b => b.status === 'held' || b.status === 'confirmed');
   const past = avAdd(week, 6) < avYmd(new Date());
-  const rangeHtml = (di, r, ri) => `<div style="display:flex;gap:6px;align-items:center;margin-top:6px" data-r="${di}:${ri}"><input type="time" step="900" value="${esc(r.start_time)}" data-f="start_time" style="width:auto" aria-label="Od"> – <input type="time" step="900" value="${esc(r.end_time)}" data-f="end_time" style="width:auto" aria-label="Do"><button type="button" class="btn ghost" data-del="${di}:${ri}" aria-label="Odstrániť úsek" style="padding:6px 10px">×</button></div>`;
+  const rangeHtml = (di, r, ri) => `<div class="availability-range" data-r="${di}:${ri}"><input type="time" step="900" value="${esc(r.start_time)}" data-f="start_time" aria-label="Od"><span aria-hidden="true">–</span><input type="time" step="900" value="${esc(r.end_time)}" data-f="end_time" aria-label="Do"><button type="button" class="btn ghost" data-del="${di}:${ri}" aria-label="Odstrániť úsek">×</button></div>`;
   view.innerHTML = `${st.notice ? `<div class="notice">${esc(st.notice)}</div>` : ''}<div id="avmsg"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn ghost" id="av-prev">← Predchádzajúci</button><strong>${esc(avDay(week, { day: 'numeric', month: 'numeric' }))} – ${esc(avDay(avAdd(week, 6), { day: 'numeric', month: 'numeric', year: 'numeric' }))}</strong><button class="btn ghost" id="av-next">Nasledujúci →</button></div>

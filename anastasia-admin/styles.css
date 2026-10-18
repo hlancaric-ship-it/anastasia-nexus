@@ -128,7 +128,12 @@ a.stat:hover{border-color:#c9d1c3}
 .rc-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px;flex-wrap:wrap}
 .rc-head h2{font-size:20px;font-weight:450;letter-spacing:-.4px}
 .rc-search{max-width:280px}
-.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:16px}
+.rc,.rc-body{min-width:0}
+.rc-body{overflow-wrap:anywhere}
+.availability-range{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.availability-range input[type=time]{flex:1 1 90px;min-width:90px;width:90px;padding:8px 6px}
+.availability-range .btn{flex:none;min-width:44px;width:44px;padding:6px}
 .rc{display:flex;gap:14px;align-items:flex-start;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;font:inherit;color:inherit;width:100%;min-width:0;transition:border-color .12s,background .12s}
 button.rc:hover:not(:disabled){border-color:#8eaa92;background:#fafcf8}
 .rc-media{flex:none}
@@ -161,7 +166,7 @@ input[type=checkbox],input[type=radio]{min-height:0;padding:0;accent-color:var(-
 input[type=color]{padding:4px;height:45px;cursor:pointer}
 input[type=file]{background:#fff;padding:9px}
 input[readonly]{background:#f1f2ed;color:var(--muted)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
 .row>div{min-width:0}
 .notice{padding:13px 16px;background:#f1eada;border:1px solid #dfd3b9;font-size:13px;line-height:1.6;border-radius:6px;margin-bottom:18px;color:#71542d}
 .notice b{color:var(--wine)}
