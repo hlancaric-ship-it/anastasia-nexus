@@ -1,6 +1,6 @@
 # Staré kupóny: bezpečnost katalogového importu
 
-Stav tohoto balíku: IMPLEMENTED_UNVERIFIED pro nativní persistenci; cílené unit testy 20/20 PASS a backend TypeScript PASS. Celá finanční migrace zůstává PARTIAL. Navazuje na PR #44, nic neaktivuje ani nenasazuje.
+Stav tohoto balíku: VERIFIED pro bezpečnost tohoto importu na syntetické Meduse/PostgreSQL; cílené unit testy 20/20 PASS a backend TypeScript PASS. Celá finanční migrace zůstává PARTIAL. Navazuje na PR #44, nic neaktivuje ani nenasazuje.
 
 ## Opravený přenos
 
@@ -21,9 +21,11 @@ Zdroj obchodních pravidel: `dufeksoft.ecommerce-lib/Models/Ecommerce/PriceDisco
 ## Ověření
 
 - Cílené testy: `TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules ./node_modules/.bin/jest --runTestsByPath src/scripts/__tests__/legacy-coupon-import.unit.spec.ts src/scripts/__tests__/catalog-import.unit.spec.ts --runInBand --forceExit` — 20/20 PASS.
-- `backend/node_modules/.bin/tsc --noEmit` z `backend` — PASS.
-- Nativní Medusa/PostgreSQL test je v existujícím izolovaném QR workflow; plné regrese pouze GitHub Actions. Výsledek bude doplněn po skutečném běhu.
+- `./node_modules/.bin/tsc --noEmit` z `backend` — PASS.
+- Nativní Medusa/PostgreSQL test je v existujícím izolovaném QR workflow; plné regrese pouze GitHub Actions. Zdroj `44ea3307f465bad2c11981fa5145ef2f2dce3c95`: [QR run39159935636](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39159935636) SUCCESS, 80/80 cílených testů a 2/2 skutečných integračních testů včetně nativního historického čerpání. [Plná regrese39159935600](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39159935600) SUCCESS: backend1069/1069 a skutečný SafeOrder persistence test PASS; NEXUS i workerd PASS. Membership integration/persistence, admin a readiness rovněž SUCCESS. Žádný merge/deploy.
 
 ## Původní vydané QR
 
 V prohlédnutém archivním controlleru a šabloně je sestavení/kopírování odkazu, nikoli záznam o vydání konkrétního QR obrázku. Původní obrázky ani seznam skutečně vydaných URL zatím nebyly dohledány/importovány. Katalog kupónů není seznam vydaných QR; nesmí se za něj vydávat automaticky vygenerované kombinace kupón–produkt. Přesné původní URL lze importovat zachovaným QR importem z #44 s neznámým datem vydání; podklady pro tento import jsou stále potřebné.
+
+Read-only kontrola archivního `DB.sql` novým parserem úspěšně zpracovala 3 kupóny, u všech doloženou historii, souhrnně 1 dokončené použití. Export obsahuje 78 tabulek, mezi QR/kupónovými názvy pouze `ecCoupon`; hledání původní cesty `eshop/kosik` v exportu nenašlo žádný výskyt. Tato kontrola není importem skutečných dat ani důkazem aktuálního produkčního stavu.
