@@ -28,21 +28,28 @@ async function login(email, password) {
   token = d.token; localStorage.setItem('ana_token', token);
 }
 
-// --- ikony menu (tenké line SVG, štýl predlohy) ---
+// --- ikony (tenké line SVG zo schváleného návrhu admin-design-preview) ---
 const ICONS = {
-  home: '<path d="M3 11.5 12 4l9 7.5M5 10v10h5v-6h4v6h5V10"/>',
-  bag: '<path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/>',
-  box: '<path d="M12 3 3 7.5V16l9 4.5 9-4.5V7.5L12 3Z"/><path d="M3 7.5 12 12l9-4.5M12 12v8.5"/>',
-  users: '<circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3 3 0 0 1 0 5.6M20.5 20a5.5 5.5 0 0 0-4-5.3"/>',
-  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v4M16 3v4"/>',
-  chat: '<path d="M4 5h16v11H9l-5 4V5Z"/>',
-  gift: '<rect x="3" y="8.5" width="18" height="11.5" rx="1"/><path d="M3 13h18M12 8.5V20M12 8.5S10.5 4 8 4.8 9 8.5 12 8.5Zm0 0s1.5-4.5 4-3.7S15 8.5 12 8.5Z"/>',
-  doc: '<path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v4h4M9 13h6M9 17h5"/>',
-  cog: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>',
+  home: '<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',
+  bag: '<path d="M5 7h14l2 14H3Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/>',
+  box: '<path d="m3 7 9-4 9 4-9 5Z M3 7v10l9 4 9-4V7 M12 12v9 M7 5l10 5"/>',
+  users: '<circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3 M17 4a3 3 0 0 1 0 6 M21 21v-3a7 7 0 0 0-3-6"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5 M17 3v5 M3 11h18 M7 15h3 M14 15h3"/>',
+  chat: '<path d="M21 11a8 8 0 0 1-8 8H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z M7 8h10 M7 12h7"/>',
+  gift: '<path d="M3 8h18v5H3Z M5 13v8h14v-8 M12 8v13"/><path d="M12 8H8a3 3 0 1 1 3-3Zm0 0h4a3 3 0 1 0-3-3Z"/>',
+  doc: '<path d="M5 3h10l4 4v14H5Z M14 3v5h5 M9 12h6 M9 16h6"/>',
+  cog: '<path d="M4 6h16 M4 12h16 M4 18h16"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="18" r="2" fill="currentColor"/>',
   star: '<path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8L12 3.5Z"/>',
-  help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.4 2.4 0 0 1 4 1.7c0 1.5-2 1.8-2 3.3"/><circle cx="11.6" cy="17" r=".6"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 0 1 6 0c0 3-3 2-3 5 M12 17h.01"/>',
+  arrow: '<path d="M5 12h14 M13 6l6 6-6 6"/>',
+  plus: '<path d="M12 4v16 M4 12h16"/>',
+  menu: '<path d="M3 6h18 M3 12h18 M3 18h18"/>',
+  check: '<path d="m4 12 5 5L20 6"/>',
+  out: '<path d="M14 4h5v16h-5 M10 8l-4 4 4 4 M6 12h10"/>',
 };
-const navIcon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+const LOGO = './logo-mark.png';
+const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img src="${LOGO}" alt="" width="43" height="43"><div><div class="brand-name">ANASTASIA</div><small>PRIESTOR PRE VAŠU PRÁCU</small></div></${tag}>`;
 
 // --- navigácia (štruktúra podľa schváleného návrhu admin-design-overview) ---
 // ready:false = agenda je v admine, ale čaká na jadro → skrytá, kým sa nenapojí.
@@ -52,7 +59,7 @@ const NAV = [
   { k: 'produkty', label: 'Produkty', icon: 'box', ready: true },
   { k: 'zakaznicky', label: 'Zákazníčky', icon: 'users', ready: true },
   { k: 'konzultacie', label: 'Konzultácie', icon: 'cal', ready: true },
-  { k: 'spravy', label: 'Správy', icon: 'chat', ready: true },
+  { k: 'spravy', label: 'Správy', icon: 'chat', ready: true, badge: 'messages' },
   { k: 'klub', label: 'Klub', icon: 'star', ready: true },
   { k: 'poukazy', label: 'Poukazy a zľavy', icon: 'gift', ready: true },
   { k: 'obsah', label: 'Obsah a e-maily', icon: 'doc', ready: true },
@@ -60,89 +67,146 @@ const NAV = [
 let BADGES = {};
 
 function shell(active, title, sub) {
-  const item = (n) => `<a class="nav-item ${active === n.k ? 'active' : ''}" href="#/${n.k}">${navIcon(n.icon)}<span>${esc(n.label)}</span>${n.badge ? `<b class="badge" data-badge="${n.badge}" ${BADGES[n.badge] ? '' : 'hidden'}>${BADGES[n.badge] || ''}</b>` : ''}</a>`;
+  const cur = (k) => active === k ? ' active" aria-current="page' : '';
+  const item = (n) => `<a class="nav-item${cur(n.k)}" href="#/${n.k}">${navIcon(n.icon)}<span>${esc(n.label)}</span>${n.badge ? `<span class="counter" data-badge="${n.badge}" ${BADGES[n.badge] ? '' : 'hidden'}>${BADGES[n.badge] || ''}</span>` : ''}</a>`;
   const nav = NAV.filter(n => n.ready).map(item).join('');
+  const crumb = active === '' ? 'Prehľad' : (title || '');
+  // Prehľad: dátum + pozdrav (meno dopĺňa setUserChip z /admin/users/me); ostatné agendy: názov a popis z ROUTES.
+  const d = new Date(), today = `${d.toLocaleDateString('sk-SK', { weekday: 'long' })}, ${d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' })}`;
+  const head = active === ''
+    ? `<p class="eyebrow">${esc(today)}</p><div class="heading"><div><h1 id="greet">Dobrý deň.</h1><p class="intro">Tu nájdete všetko, čo dnes potrebuje vašu pozornosť.</p></div><div id="actions"></div></div>`
+    : `<p class="eyebrow">Váš obchod</p><div class="heading"><div><h1>${esc(title)}</h1>${sub ? `<p class="intro">${esc(sub)}</p>` : ''}</div><div id="actions"></div></div>`;
   return `<div class="app">
-    <aside class="sidebar">
-      <div class="brand"><div class="logo">A</div><div><b>ANASTASIA</b><small>PRIESTOR PRE VAŠU PRÁCU</small></div></div>
+    <aside class="sidebar" id="sidebar" aria-label="Hlavná navigácia">
+      ${brandHtml('a')}
       <div class="nav-title">Váš obchod</div>
       <nav class="nav">${nav}</nav>
       <div class="sidebar-bottom">
-        <a class="nav-item ${active === 'nastavenia' ? 'active' : ''}" href="#/nastavenia">${navIcon('cog')}<span>Nastavenia</span></a>
-        <a class="nav-item" href="#/pomoc">${navIcon('help')}<span>Potrebujete poradiť?</span></a>
-        <div class="user"><div class="ava" id="uava">LR</div><div><b id="uname">Váš účet</b><small>Váš pracovný priestor</small></div><button id="logout" title="Odhlásiť sa">×</button></div>
+        <a class="nav-item${cur('nastavenia')}" href="#/nastavenia">${navIcon('cog')}<span>Nastavenia</span></a>
+        <a class="nav-item${cur('pomoc')}" href="#/pomoc">${navIcon('help')}<span>Potrebujete poradiť?</span></a>
+        <div class="account"><span class="avatar" id="uava" aria-hidden="true"></span><div><strong id="uname">Váš účet</strong><small>Váš pracovný priestor</small></div></div>
       </div>
     </aside>
-    <main class="main"><div class="wrap">
-      ${title ? `<div class="topbar"><div><h1>${esc(title)}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div><div id="actions"></div></div>` : '<div class="topbar bare"><div></div><div id="actions"></div></div>'}
-      <div id="view"></div>
-    </div></main>
+    <div class="scrim" id="scrim"></div>
+    <div class="workspace">
+      <header class="topbar">
+        <div class="mobile-head"><button type="button" id="nav-toggle" aria-label="Otvoriť navigáciu" aria-expanded="false" aria-controls="sidebar">${navIcon('menu')}</button><img src="${LOGO}" alt="" width="28" height="28"><span>ANASTASIA</span></div>
+        <span class="crumb">Váš obchod / ${esc(crumb)}</span>
+        <div class="top-actions"><button type="button" class="subtle-link" id="logout">${navIcon('out')}Odhlásiť sa</button></div>
+      </header>
+      <main class="content" id="main">
+        ${head}
+        <div id="view"></div>
+      </main>
+    </div>
   </div>`;
+}
+function wireMobileNav() {
+  const sb = root.querySelector('#sidebar'), tg = root.querySelector('#nav-toggle'), scrim = root.querySelector('#scrim');
+  if (!sb || !tg) return;
+  const set = (open) => { sb.classList.toggle('mobile-open', open); scrim?.classList.toggle('on', open); tg.setAttribute('aria-expanded', String(open)); tg.setAttribute('aria-label', open ? 'Zavrieť navigáciu' : 'Otvoriť navigáciu'); };
+  tg.onclick = () => set(!sb.classList.contains('mobile-open'));
+  if (scrim) scrim.onclick = () => set(false);
+  sb.querySelectorAll('a').forEach(a => a.addEventListener('click', () => set(false)));
 }
 
 // --- aktuálne prihlásená obsluha (pre pozdrav + avatar) ---
 let ME = null;
 async function loadMe() { if (ME) return ME; try { ME = (await api('/admin/users/me?fields=id,first_name,last_name,email')).user || null; } catch { ME = null; } return ME; }
 function meName() { const m = ME || {}; return (m.first_name || (m.email ? m.email.split('@')[0] : '') || '').trim(); }
+function meInitials() {
+  const m = ME || {};
+  const fl = [m.first_name, m.last_name].map(s => (s || '').trim()).filter(Boolean);
+  if (fl.length >= 2) return (fl[0][0] + fl[1][0]).toUpperCase();
+  const n = meName();
+  return n ? n.slice(0, 2).toUpperCase() : '';
+}
 function setUserChip() {
-  const name = meName(); const nm = document.querySelector('#uname'); const av = document.querySelector('#uava');
+  const name = meName(); const nm = document.querySelector('#uname'); const av = document.querySelector('#uava'); const gr = document.querySelector('#greet');
   if (nm) nm.textContent = name || 'Váš účet';
-  if (av) av.textContent = (name ? name.slice(0, 2) : 'A').toUpperCase();
+  if (av) av.textContent = meInitials();
+  if (gr) gr.textContent = name ? `Dobrý deň, ${name}.` : 'Dobrý deň.';
 }
 
 // --- views ---
 async function vDashboard(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  setActions('<a class="btn wine" href="#/produkty">+ Pridať produkt</a>');
-  const safeCount = async (p) => { try { return (await api(p)).count; } catch { return null; } };
+  setActions(`<a class="btn primary" href="#/produkty">${navIcon('plus')}Pridať produkt</a>`);
+  const soft = (p) => api(p).catch(e => { if (e.message === '401') throw e; return null; });
   await loadMe(); setUserChip();
-  const today = new Date();
-  const [toFulfill, ordTotal, msgs, consults, readiness] = await Promise.all([
-    safeCount('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1'),
-    safeCount('/admin/orders?limit=1'),
-    safeCount('/admin/chat/conversations?status=open&limit=1'),
-    safeCount('/admin/bookings?limit=1'),
-    api('/admin/readiness').catch(e => { if (e.message === '401') throw e; return null; }),
+  const [ordersRes, chatRes, bookRes, readiness] = await Promise.all([
+    soft('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1'),
+    soft('/admin/chat/conversations?status=open&limit=200'),
+    soft('/admin/bookings?status=confirmed&limit=200'),
+    soft('/admin/readiness'),
   ]);
-  const naVybavenie = toFulfill != null ? toFulfill : (ordTotal != null ? ordTotal : '—');
-  const dnes = today.toLocaleDateString('sk-SK', { weekday: 'long', day: 'numeric', month: 'long' });
-  const greet = `Dobrý deň${meName() ? ', ' + esc(meName()) : ''}.`;
-  const kpi = (l, n, sub) => `<div class="kpi"><div class="kpi-l">${l}</div><div class="n">${n}</div><div class="kpi-s">${sub}</div></div>`;
+  const toFulfill = typeof ordersRes?.count === 'number' ? ordersRes.count : null;
+  // Nové správy = neprečítané (neztlmené) otvorené konverzácie, ako ich počíta jadro.
+  const unread = typeof chatRes?.unread === 'number' ? chatRes.unread : null;
+  // Dnešné konzultácie: potvrdené rezervácie s termínom dnes. Zoznam je zoradený od najnovšieho termínu;
+  // ak nepokrýva celý dnešok, číslo neukazujeme (radšej nič než nepresné).
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  const end = new Date(start); end.setDate(end.getDate() + 1);
+  let todayB = null;
+  if (bookRes && Array.isArray(bookRes.bookings)) {
+    const list = bookRes.bookings, oldest = list[list.length - 1];
+    const complete = list.length >= (bookRes.count || 0) || (oldest && new Date(oldest.starts_at) < start);
+    if (complete) todayB = list.filter(b => { const t = new Date(b.starts_at); return t >= start && t < end; }).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+  }
+  let names = null;
+  if (todayB && todayB.length) { try { names = await namesFor(todayB.map(b => b.customer_id), todayB.map(b => b.product_id)); } catch (e) { if (e.message === '401') throw e; } }
+  const hm = (d) => new Date(d).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+  const now = Date.now(), next = todayB ? todayB.find(b => new Date(b.starts_at).getTime() >= now) : null;
+  const plural = (n, one, few, many) => n === 1 ? one : n >= 2 && n <= 4 ? few : many;
+
+  const stats = [];
+  if (toFulfill != null) stats.push(['Na vybavenie', 'bag', toFulfill, toFulfill === 0 ? 'nič nečaká na vybavenie' : plural(toFulfill, 'objednávka čaká na vás', 'objednávky čakajú na vás', 'objednávok čaká na vás'), '#/objednavky']);
+  if (unread != null) stats.push(['Nové správy', 'chat', unread, unread === 0 ? 'všetky správy sú prečítané' : plural(unread, 'zákazníčka čaká na odpoveď', 'zákazníčky čakajú na odpoveď', 'zákazníčok čaká na odpoveď'), '#/spravy']);
+  if (todayB) stats.push(['Dnešné konzultácie', 'cal', todayB.length, todayB.length === 0 ? 'na dnes nič naplánované' : next ? `najbližšia o ${hm(next.starts_at)}` : 'dnešné termíny už prebehli', '#/konzultacie']);
+
   const tasks = [];
-  if (typeof naVybavenie === 'number' && naVybavenie > 0) tasks.push(['Pripravte objednávky na odoslanie', `${naVybavenie} ${naVybavenie === 1 ? 'objednávka čaká' : 'objednávky čakajú'} na vybavenie.`, 'Pozrieť objednávky', '#/objednavky']);
-  if (typeof msgs === 'number' && msgs > 0) tasks.push(['Odpovedzte zákazníčkam', `${msgs} ${msgs === 1 ? 'nová správa' : 'nové správy'} čaká na odpoveď.`, 'Prečítať správy', '#/spravy']);
+  if (toFulfill > 0) tasks.push(['wine', 'bag', 'Pripravte objednávky na odoslanie', `${toFulfill} ${plural(toFulfill, 'objednávka čaká', 'objednávky čakajú', 'objednávok čaká')} na vybavenie.`, 'Pozrieť objednávky', '#/objednavky']);
+  if (unread > 0) tasks.push(['green', 'chat', 'Odpovedzte zákazníčkam', `${plural(unread, 'Máte jednu novú správu.', `Máte ${unread} nové správy.`, `Máte ${unread} nových správ.`)} Celú komunikáciu nájdete na jednom mieste.`, 'Prečítať správy', '#/spravy']);
+  const taskHtml = ([tone, icon, t, d, cta, href]) => `<article class="task"><div class="task-icon ${tone}">${navIcon(icon)}</div><div class="task-copy"><h3>${esc(t)}</h3><p>${esc(d)}</p><a class="subtle-link" href="${esc(href)}">${esc(cta)} →</a></div></article>`;
+  const ulohy = (n) => `${n} ${plural(n, 'úloha', 'úlohy', 'úloh')}`;
+
+  const dnesTag = new Date().toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' });
+  const schedule = todayB == null ? '' : `<section class="panel"><div class="panel-head"><h2>Dnes vás čaká</h2><span class="tag">${esc(dnesTag)}</span></div><div class="schedule">
+    ${todayB.length ? todayB.slice(0, 4).map(b => `<article class="appointment"><span class="time">${esc(hm(b.starts_at))}</span><div><h3>${esc(names ? names.prod(b.product_id) : 'Konzultácia')}</h3><p>${esc(names ? names.cust(b.customer_id) : '')}${b.ends_at ? ` · ${Math.max(0, Math.round((new Date(b.ends_at) - new Date(b.starts_at)) / 60000))} min` : ''}</p><small>Rezervácia potvrdená</small></div></article>`).join('')
+      : '<p class="empty-task">Na dnes nemáte žiadne potvrdené konzultácie.</p>'}
+    <a class="subtle-link" href="#/konzultacie">${todayB.length > 4 ? `Pozrieť všetky ${todayB.length} konzultácie →` : 'Pozrieť konzultácie →'}</a>
+  </div></section>`;
+
   view.innerHTML = `
-  <div class="hero"><div><div class="eyebrow">${esc(dnes)}</div><h1 class="hello">${greet}</h1><p class="lead">Tu nájdete všetko, čo dnes potrebuje vašu pozornosť.</p></div></div>
-  <div class="kpis3">
-    ${kpi('Na vybavenie', naVybavenie, typeof naVybavenie === 'number' ? (naVybavenie === 1 ? 'objednávka čaká na vás' : 'objednávky čakajú na vás') : 'napojené na jadro')}
-    ${kpi('Nové správy', msgs != null ? msgs : '—', msgs != null ? 'zákazníčky čakajú na odpoveď' : 'chat sa napája')}
-    ${kpi('Dnešné konzultácie', consults != null ? consults : '—', consults != null ? 'rezervácie na dnes' : 'rezervácie sa napájajú')}
-  </div>
-  ${readinessCard(readiness)}
-  <div class="dash-cols">
-    <div class="card"><div class="card-h">Čomu sa venovať</div><div class="card-b">
-      ${tasks.length ? tasks.map(([t, d, cta, href]) => `<div class="task"><div><b>${t}</b><p class="muted">${esc(d)}</p></div><a href="${href}">${cta} →</a></div>`).join('') : '<p class="muted">Všetko máte vybavené. Nič nečaká na vašu pozornosť. ✓</p>'}
-    </div></div>
-    <div class="card soft-card"><div class="card-b">
-      <p style="font-weight:600;margin:0 0 6px">Všetko si nastavíte tu.</p>
-      <p class="muted" style="margin:0 0 12px">Ceny, poukazy aj texty e-mailov. Pri každom nastavení vysvetlíme, čo zmena ovplyvní.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" href="#/poukazy">Nastaviť poukazy</a><a class="btn ghost" href="#/nastavenia">Otvoriť nastavenia →</a></div>
-    </div></div>
+  ${stats.length ? `<div class="stats" style="--n:${stats.length}">${stats.map(([l, icon, n, sub, href]) => `<a class="stat" href="${href}"><div class="stat-top">${esc(l)} ${navIcon(icon)}</div><strong>${n}</strong><small>${esc(sub)}</small></a>`).join('')}</div>` : ''}
+  <div class="main-grid">
+    <div>
+      <section class="panel"><div class="panel-head"><h2>Čomu sa venovať</h2>${tasks.length ? `<span class="tag">${ulohy(tasks.length)}</span>` : ''}</div>
+        ${tasks.length ? tasks.map(taskHtml).join('') : `<p class="empty-task">${toFulfill == null && unread == null ? 'Úlohy sa teraz nedajú načítať. Skúste obnoviť stránku.' : 'Všetko máte vybavené. Nič nečaká na vašu pozornosť.'}</p>`}
+      </section>
+      ${readinessCard(readiness)}
+      <div class="quick"><a class="btn" href="#/poukazy">${navIcon('gift')}Nastaviť poukazy</a><a class="btn" href="#/poukazy">${navIcon('plus')}Vytvoriť kupón</a></div>
+    </div>
+    <div>
+      ${schedule}
+      <aside class="help-card">${navIcon('help')}<h3>Všetko si nastavíte tu.</h3><p>Ceny, voľné termíny, poukazy aj texty e-mailov. Pri každom nastavení vysvetlíme, čo zmena ovplyvní.</p><a class="subtle-link" href="#/nastavenia">Otvoriť nastavenia →</a></aside>
+    </div>
   </div>`;
 }
 
 // Pripravenosť obchodu: len z GET /admin/readiness (reálne dáta jadra). Čo sa nedá overiť, nikdy nevydávame za hotové.
 function readinessCard(r) {
-  if (!r || !Array.isArray(r.checks)) return `<div class="card" style="margin-bottom:18px"><div class="card-h">Pripravenosť obchodu</div><div class="card-b"><p class="muted" style="margin:0">Pripravenosť sa teraz nedá overiť. Skúste obnoviť stránku.</p></div></div>`;
+  if (!r || !Array.isArray(r.checks)) return `<section class="panel"><div class="panel-head"><h2>Pripravenosť obchodu</h2></div><p class="empty-task">Pripravenosť sa teraz nedá overiť. Skúste obnoviť stránku.</p></section>`;
   const open = r.checks.filter(c => c.status !== 'ok').sort((a, b) => (a.status === 'unknown') - (b.status === 'unknown') || (a.severity === 'blocker' ? -1 : 1) - (b.severity === 'blocker' ? -1 : 1));
   const ok = r.checks.length - open.length;
   const pill = (c) => c.status === 'unknown' ? '<span class="pill off">nedá sa overiť</span>' : c.severity === 'blocker' ? '<span class="pill off">bráni predaju</span>' : '<span class="pill warn">odporúčame doplniť</span>';
-  const head = r.summary.blockers ? `${r.summary.blockers} ${r.summary.blockers === 1 ? 'vec bráni' : 'veci bránia'} predaju` : open.length ? 'Predaj je možný, niečo ešte odporúčame doplniť' : 'Obchod je pripravený na predaj ✓';
-  return `<div class="card" style="margin-bottom:18px"><div class="card-h">Pripravenosť obchodu <span class="muted" style="font-weight:400;font-size:12px">${ok} z ${r.checks.length} v poriadku</span></div><div class="card-b">
-    <p style="font-weight:600;margin:0 0 10px">${esc(head)}</p>
-    ${open.map(c => `<div class="task"><div><b>${esc(c.title)}</b> ${pill(c)}${c.count > 1 ? ` <span class="muted">(${c.count})</span>` : ''}<p class="muted">${esc(c.hint)}</p></div><a href="${esc(c.href)}">Vyriešiť →</a></div>`).join('')}
-  </div></div>`;
+  const tone = (c) => c.status === 'unknown' ? '' : c.severity === 'blocker' ? 'wine' : '';
+  const head = r.summary?.blockers ? `${r.summary.blockers} ${r.summary.blockers === 1 ? 'vec bráni' : 'veci bránia'} predaju.` : open.length ? 'Predaj je možný, niečo ešte odporúčame doplniť.' : 'Obchod je pripravený na predaj.';
+  return `<section class="panel"><div class="panel-head"><h2>Pripravenosť obchodu</h2><span class="tag">${ok} z ${r.checks.length} v poriadku</span></div>
+    <p class="empty-task">${esc(head)}</p>
+    ${open.map(c => `<article class="task"><div class="task-icon ${tone(c)}">${navIcon(c.status === 'unknown' ? 'help' : 'doc')}</div><div class="task-copy"><h3>${esc(c.title)}${c.count > 1 ? ` <span class="muted">(${c.count})</span>` : ''} ${pill(c)}</h3><p>${esc(c.hint)}</p>${c.href ? `<a class="subtle-link" href="${esc(c.href)}">Vyriešiť →</a>` : ''}</div></article>`).join('')}
+  </section>`;
 }
 
 // Kartové zobrazenie (žiadne riadkové tabuľky). `card(r)` = voliteľný HTML pre jednu kartu;
@@ -1165,14 +1229,14 @@ async function vPouzivatelia(view, notice) {
 }
 // Prijatie pozvánky (bez prihlásenia): registrácia identity → prijatie pozvánky → prihlásenie.
 function renderInviteAccept(invToken, msg) {
-  root.innerHTML = `<div class="login"><form class="box" id="ia">
-    <h1>ANASTASIA</h1><p>Pozvánka do administrácie</p>
+  root.innerHTML = authShell(`<form class="box" id="ia">
+    <p class="eyebrow">Pozvánka do administrácie</p><h1>Vytvorte si účet</h1><p class="intro">Po vytvorení účtu vás rovno prihlásime.</p>
     ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
-    <label>E-mail (ten, na ktorý prišla pozvánka)</label><input id="ia-email" type="email" required autocomplete="username">
-    <div class="row"><div><label>Meno</label><input id="ia-first" required></div><div><label>Priezvisko</label><input id="ia-last" required></div></div>
-    <label>Heslo (aspoň 12 znakov)</label><input id="ia-pass" type="password" minlength="12" required autocomplete="new-password">
-    <button class="btn gold" type="submit">Vytvoriť účet</button>
-  </form></div>`;
+    <label for="ia-email">E-mail (ten, na ktorý prišla pozvánka)</label><input id="ia-email" type="email" required autocomplete="username">
+    <div class="row"><div><label for="ia-first">Meno</label><input id="ia-first" required autocomplete="given-name"></div><div><label for="ia-last">Priezvisko</label><input id="ia-last" required autocomplete="family-name"></div></div>
+    <label for="ia-pass">Heslo (aspoň 12 znakov)</label><input id="ia-pass" type="password" minlength="12" required autocomplete="new-password">
+    <button class="btn primary" type="submit">Vytvoriť účet</button>
+  </form>`);
   root.querySelector('#ia').onsubmit = async (e) => {
     e.preventDefault();
     const email = root.querySelector('#ia-email').value.trim(), password = root.querySelector('#ia-pass').value;
@@ -1432,9 +1496,12 @@ async function vAppearance(view) {
   view.querySelector('#t-reset').onclick = async () => { await save({ ...THEME.selection, scheme: 'forest' }); view.querySelector('#t-forest').value = THEME_DEFAULT.forest; view.querySelector('#t-gold').value = THEME_DEFAULT.gold; };
 }
 async function refreshBadges() {
-  try { const c = (await api('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1')).count; BADGES.orders = c || 0; } catch { return; }
-  const el = document.querySelector('[data-badge="orders"]');
-  if (el) { if (BADGES.orders > 0) { el.textContent = BADGES.orders; el.hidden = false; } else el.hidden = true; }
+  // Počty v bočnom paneli len z jadra; keď sa nedajú načítať, počítadlo sa nezobrazí.
+  const show = (k) => { const el = document.querySelector(`[data-badge="${k}"]`); if (el) { if (BADGES[k] > 0) { el.textContent = BADGES[k]; el.hidden = false; } else el.hidden = true; } };
+  await Promise.all([
+    api('/admin/orders?fulfillment_status[]=not_fulfilled&limit=1').then(d => { BADGES.orders = d.count || 0; show('orders'); }).catch(() => {}),
+    api('/admin/chat/conversations?status=open&limit=200').then(d => { BADGES.messages = d.unread || 0; show('messages'); }).catch(() => {}),
+  ]);
 }
 
 // --- router ---
@@ -1457,20 +1524,28 @@ async function route() {
   root.innerHTML = shell(key in ROUTES ? key : '', r[0], r[1]);
   loadTheme().then(applyTheme);
   root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); renderLogin(); };
+  wireMobileNav();
   loadMe().then(setUserChip);
   refreshBadges();
   const view = root.querySelector('#view');
   try { await r[2](view); } catch (e) { if (e.message !== '401') view.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
 }
+// Prihlásenie a pozvánka: zelený panel so značkou (ako bočný panel adminu) + formulár na krémovom pozadí.
+function authShell(form) {
+  return `<div class="login">
+    <aside class="login-side">${brandHtml()}<div><h2>Priestor pre vašu prácu.</h2><p>Objednávky, produkty, konzultácie aj správy od zákazníčok na jednom mieste.</p></div></aside>
+    <main class="login-main">${form}</main>
+  </div>`;
+}
 function renderLogin(msg) {
-  root.innerHTML = `<div class="login"><form class="box" id="lf">
-    <h1>ANASTASIA</h1><p>Administrácia — prihlásenie</p>
+  root.innerHTML = authShell(`<form class="box" id="lf">
+    <p class="eyebrow">Administrácia</p><h1>Prihlásenie</h1><p class="intro">Prihláste sa do svojho pracovného priestoru.</p>
     ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
-    <label>E-mail</label><input id="l-email" type="email" value="admin@anastasia.local" autocomplete="username">
-    <label>Heslo</label><input id="l-pass" type="password" autocomplete="current-password">
-    <button class="btn gold" type="submit">Prihlásiť sa</button>
-    <p class="muted" style="margin-top:14px;font-size:11px">Jadro: ${esc(API)}</p>
-  </form></div>`;
+    <label for="l-email">E-mail</label><input id="l-email" type="email" value="admin@anastasia.local" autocomplete="username">
+    <label for="l-pass">Heslo</label><input id="l-pass" type="password" autocomplete="current-password">
+    <button class="btn primary" type="submit">Prihlásiť sa</button>
+    <p class="api-note">Jadro: ${esc(API)}</p>
+  </form>`);
   root.querySelector('#lf').onsubmit = async (e) => {
     e.preventDefault();
     try { await login(root.querySelector('#l-email').value, root.querySelector('#l-pass').value); location.hash = '#/'; route(); }
