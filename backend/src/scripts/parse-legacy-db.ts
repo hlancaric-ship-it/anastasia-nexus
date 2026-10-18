@@ -497,10 +497,16 @@ function mapAvailability(label: string | null): LegacyAvailability | null {
 
 function splitCodes(v: string | null): string[] {
   if (!v) return []
+  const seen = new Set<string>()
   return v
-    .split(/[,;\s]+/)
+    .split(",")
     .map((x) => x.trim())
-    .filter(Boolean)
+    .filter((code) => {
+      const normalized = code.toUpperCase()
+      if (!code || seen.has(normalized)) return false
+      seen.add(normalized)
+      return true
+    })
 }
 
 // ---------------------------------------------------------------------------

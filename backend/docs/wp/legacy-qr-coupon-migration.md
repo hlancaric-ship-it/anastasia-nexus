@@ -1,6 +1,6 @@
 # Staré kupóny: bezpečnost katalogového importu
 
-Stav tohoto balíku: IMPLEMENTED_UNVERIFIED pro nativní persistenci; cílené unit testy 19/19 PASS a backend TypeScript PASS. Celá finanční migrace zůstává PARTIAL. Navazuje na PR #44, nic neaktivuje ani nenasazuje.
+Stav tohoto balíku: IMPLEMENTED_UNVERIFIED pro nativní persistenci; cílené unit testy 20/20 PASS a backend TypeScript PASS. Celá finanční migrace zůstává PARTIAL. Navazuje na PR #44, nic neaktivuje ani nenasazuje.
 
 ## Opravený přenos
 
@@ -10,7 +10,7 @@ Chybějící tabulka znamená neznámou historii, nikdy nulu. Starší `catalog.
 
 Nové promoce zůstávají `draft`. Při vytvoření dostanou historické `used` a původní jednorázový limit; již vyčerpaný kód se tím neobnoví. Instalovaný nativní modul předává pole `used` do modelu při vytvoření; CI test ověřuje skutečný workflow, nový service read i SQL hodnotu. Existující promoce import nadále přeskočí: nevynuluje ani nepřičte jejich současné čerpání. Oprava dříve importovaných záznamů vyžaduje samostatné porovnání snapshotu a následného provozu; tímto importerem se neprovádí.
 
-Pevná sleva je v nativním návrhu rozdělena `across`, nikoli `each`, aby se nenásobila počtem kusů. Kombinace procent a pevné částky se nesmí změnit pouze na procenta. Import ji odmítne, stejně jako dosud nepřenášené minimum/maximum hodnoty košíku a neplatná čísla. Původní katalogový JSON uchovává všechny původní hodnoty.
+Pevná sleva je v nativním návrhu rozdělena `across`, nikoli `each`, aby se nenásobila počtem kusů. Kombinace procent a pevné částky se nesmí změnit pouze na procenta. Import ji odmítne, stejně jako dosud nepřenášené minimum/maximum hodnoty košíku a neplatná čísla. Původní katalogový JSON uchovává všechny původní hodnoty. Produktové kódy se dělí pouze čárkami a odstraňují duplicity bez ohledu na velikost písmen, stejně jako původní `Coupon.ParseProductCodes`; mezera ani středník uvnitř SKU nejsou oddělovače.
 
 ## Co tento balík neřeší
 
@@ -20,6 +20,10 @@ Zdroj obchodních pravidel: `dufeksoft.ecommerce-lib/Models/Ecommerce/PriceDisco
 
 ## Ověření
 
-- Cílené testy: `TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules ./node_modules/.bin/jest --runTestsByPath src/scripts/__tests__/legacy-coupon-import.unit.spec.ts src/scripts/__tests__/catalog-import.unit.spec.ts --runInBand --forceExit` — 19/19 PASS.
+- Cílené testy: `TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules ./node_modules/.bin/jest --runTestsByPath src/scripts/__tests__/legacy-coupon-import.unit.spec.ts src/scripts/__tests__/catalog-import.unit.spec.ts --runInBand --forceExit` — 20/20 PASS.
 - `backend/node_modules/.bin/tsc --noEmit` z `backend` — PASS.
 - Nativní Medusa/PostgreSQL test je v existujícím izolovaném QR workflow; plné regrese pouze GitHub Actions. Výsledek bude doplněn po skutečném běhu.
+
+## Původní vydané QR
+
+V prohlédnutém archivním controlleru a šabloně je sestavení/kopírování odkazu, nikoli záznam o vydání konkrétního QR obrázku. Původní obrázky ani seznam skutečně vydaných URL zatím nebyly dohledány/importovány. Katalog kupónů není seznam vydaných QR; nesmí se za něj vydávat automaticky vygenerované kombinace kupón–produkt. Přesné původní URL lze importovat zachovaným QR importem z #44 s neznámým datem vydání; podklady pro tento import jsou stále potřebné.

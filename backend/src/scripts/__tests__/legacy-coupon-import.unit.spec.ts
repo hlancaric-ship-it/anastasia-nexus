@@ -37,6 +37,10 @@ describe("legacy coupon migration safety", () => {
     expect(catalog).not.toHaveProperty("orders")
     expect(JSON.stringify(catalog)).not.toContain("PRIVATE")
   })
+  it("preserves spaces and semicolons within product codes, matching legacy comma-only splitting", () => {
+    const sql = "INSERT [dbo].[ecCoupon] ([pk], [couponCode], [discountPerc], [productCodes]) VALUES ('c1', 'SAVE', 10, N' SKU 1, sku 1, SKU;2, ,SKU;2')"
+    expect(buildCatalog(sql, "synthetic.sql").catalog.coupons[0].product_codes).toEqual(["SKU 1", "SKU;2"])
+  })
   it("seeds consumed single-use coupons as drafts with native usage and the product restriction", () => {
     expect(plan()).toMatchObject({ status: "draft", used: 2, limit: 1,
       application_method: { type: "percentage", value: 10, target_rules: [{ attribute: "items.product.id", operator: "in", values: ["prod_1"] }] } })
