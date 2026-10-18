@@ -544,7 +544,7 @@ async function vOrderDetail(view, id, notice) {
     run(b, `Naozaj vrátiť ${fmtEur(amt)} zákazníčke? Túto akciu nemožno vrátiť späť.`, () => api(`/admin/payments/${b.dataset.ref}/refund`, { method: 'POST', body: { amount: amt } }), `Vrátenie ${fmtEur(amt)} bolo odoslané.`);
   });
   const cb = view.querySelector('#o-cancel');
-  if (cb) cb.onclick = () => run(cb, 'Naozaj zrušiť celú objednávku? Zaplatené peniaze vráťte v záložke Platby.', () => api(`/admin/orders/${id}/cancel`, { method: 'POST', body: {} }), 'Objednávka je zrušená.');
+  if (cb) cb.onclick = () => run(cb, 'Naozaj zrušiť celú objednávku? Zaplatená suma sa zákazníčke automaticky vráti cez platobnú bránu.', () => api(`/admin/orders/${id}/cancel`, { method: 'POST', body: {} }), 'Objednávka je zrušená.');
 }
 async function vCustomers(view) {
   view = freshView(view);
@@ -781,19 +781,23 @@ async function vKonzultacie(view, st = {}) {
 }
 function vBookingDetail(view, b, back) {
   view = freshView(view);
-  const active = b.status === 'held' || b.status === 'confirmed';
+  // Termín naviazaný na košík/objednávku backend samostatne nezruší (BOOKING_CANCEL_ORDER_FIRST): ruší sa zrušením objednávky.
+  const inOrder = Boolean(b.metadata?.checkout_cart_id);
+  const active = (b.status === 'held' || b.status === 'confirmed') && !inOrder;
   view.innerHTML = `<div class="card"><div class="card-h">Konzultácia · ${esc(b.customer_label)}<button class="btn ghost" id="b-back">Späť</button></div><div class="card-b">
     <div id="bmsg"></div>
     <div class="row"><div><label>Termín</label><div>${fmtDate(b.starts_at)} – ${fmtDate(b.ends_at)}</div></div><div><label>Stav</label><div>${klubPill(B_STATUS, b.status)}</div></div></div>
     <div class="row"><div><label>Konzultácia</label><div>${esc(b.product_label)}</div></div><div><label>Objednávka</label><div>${b.order_id ? `<a href="#/objednavky" data-ord="${esc(b.order_id)}">${esc(b.order_id)}</a>` : '—'}</div></div></div>
     ${b.status === 'held' && b.held_until ? `<p class="muted">Termín je držaný do ${fmtDate(b.held_until)}; potom sa sám uvoľní.</p>` : ''}
+    ${inOrder && b.status === 'confirmed' ? `<p class="muted">Termín je zaplatený v objednávke. Zrušíte ho zrušením objednávky${b.order_id ? ` (<a href="#/objednavky" data-ord="${esc(b.order_id)}">otvoriť objednávku</a>)` : ''}; zákazníčke odíde e-mail o zrušení a zaplatená suma sa jej automaticky vráti.</p>` : ''}
+    ${inOrder && b.status === 'held' ? '<p class="muted">Zákazníčka má termín v rozpracovanej pokladni. Ak nezaplatí, termín sa sám uvoľní.</p>' : ''}
     ${b.canceled_at ? `<p class="muted">Zrušená ${fmtDate(b.canceled_at)}${b.cancel_reason ? ': ' + esc(b.cancel_reason) : ''}</p>` : ''}
     ${active ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><label>Dôvod zrušenia (voliteľné)</label><input id="b-reason" maxlength="500">
       <div style="margin-top:10px"><button class="btn ghost" id="b-cancel">Zrušiť termín</button></div>
       <p class="muted" style="font-size:12px;margin-top:8px">${b.status === 'confirmed' ? 'Zákazníčke odíde e-mail o zrušení. Peniaze vrátite v detaile objednávky.' : 'Termín sa uvoľní pre ostatné zákazníčky.'}</p></div>` : ''}
   </div></div>`;
   view.querySelector('#b-back').onclick = back;
-  const ol = view.querySelector('[data-ord]'); if (ol) ol.onclick = (e) => { e.preventDefault(); vOrderDetail(view, b.order_id); };
+  view.querySelectorAll('[data-ord]').forEach(ol => { ol.onclick = (e) => { e.preventDefault(); vOrderDetail(view, b.order_id); }; });
   const cb = view.querySelector('#b-cancel');
   if (cb) cb.onclick = async () => {
     if (!confirm('Naozaj zrušiť tento termín?')) return;

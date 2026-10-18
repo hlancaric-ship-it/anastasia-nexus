@@ -206,8 +206,12 @@ export function createHttpApi(storage, config) {
       const up = await call(`/store/carts/${id}`, { method: 'POST', body: { email: String(email).trim(), shipping_address: address, billing_address: address } });
       if (!up.ok) return { ok: false, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
       const so = await call(`/store/shipping-options?cart_id=${encodeURIComponent(id)}&fields=id,name,shipping_profile_id,*type`);
-      const options = so.data?.shipping_options || [];
-      if (!so.ok || !options.length) return { ok: false, message: 'Pre tento košík teraz nie je dostupné doručenie. Kontaktujte nás, prosím.' };
+      // Medusa vracia možnosti aj pre profily, ktoré v košíku nie sú (napr. kuriér pri čisto digitálnom košíku).
+      const items = await call(`/store/carts/${id}?fields=id,items.product.shipping_profile.id`);
+      const profiles = new Set((items.data?.cart?.items || []).map(i => i?.product?.shipping_profile?.id).filter(Boolean));
+      if (!items.ok || !profiles.size) return { ok: false, message: fail };
+      const options = (so.data?.shipping_options || []).filter(o => profiles.has(o.shipping_profile_id));
+      if (!so.ok || [...profiles].some(p => !options.some(o => o.shipping_profile_id === p))) return { ok: false, message: 'Pre tento košík teraz nie je dostupné doručenie. Kontaktujte nás, prosím.' };
       const perProfile = new Map();
       for (const o of options) if (!perProfile.has(o.shipping_profile_id)) perProfile.set(o.shipping_profile_id, o);
       const chosen = [...perProfile.values()];
