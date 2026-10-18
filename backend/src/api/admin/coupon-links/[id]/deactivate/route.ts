@@ -1,3 +1,4 @@
+import { unavailable } from "../../failure"
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
 import { adminActor, auditAdminChange } from "../../../../../lib/observability/audit"
@@ -20,5 +21,5 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       await auditAdminChange(req, "qr.coupon_deactivated", "promotion", p.id, { status: p.status }, { status: "inactive" })
     }
     return res.json({ ok: true, message: "Kupón je vypnutý pre všetky odkazy, ktoré ho používajú. Doterajšie čerpanie zostáva zachované." })
-  } catch { return res.status(503).json({ message: "Stav kupónu sa nepodarilo potvrdiť. Obnovte detail pred ďalším pokusom." }) }
+  } catch { return unavailable(req, res, "qr_detail_deactivate_unavailable", "Stav kupónu sa nepodarilo potvrdiť. Obnovte detail pred ďalším pokusom.") }
 }

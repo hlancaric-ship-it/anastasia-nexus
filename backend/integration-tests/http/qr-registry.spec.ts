@@ -39,7 +39,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContain
   const generated=concurrent[0].data.record
   expect(new Set(concurrent.map(r=>r.data.record.id)).size).toBe(1)
   expect((await api.get('/admin/coupon-links',admin)).data.count).toBe(1)
-  expect((await container.resolve('coupon_link') as any).retrieveCouponLinkRecord(generated.id)).toMatchObject({url:generated.url,source:'generated'})
+  expect(await (container.resolve('coupon_link') as any).retrieveCouponLinkRecord(generated.id)).toMatchObject({url:generated.url,source:'generated'})
   const legacy='https://old.example/eshop/kosik?kupon=QR-SYNTHETIC10&produkt=QR-SYNTHETIC&ks=1'
   const importBody={links:[{url:legacy}]}
   const preview=await api.post('/admin/coupon-links/import',importBody,admin)

@@ -15,13 +15,13 @@ Registrace `{ resolve: "./src/modules/coupon-link" }` je přidána do `backend/m
 Všechny cesty vyžadují nativní přihlášení `user` a vracejí `Cache-Control: no-store`.
 
 - `GET /admin/coupon-links?limit=25&offset=0&q=`: stránkovaná evidence, přesné vyhledání podle kódu produktu nebo kupónu, aktuální dostupnost produktu a skutečný stav/limity/čerpání/platnost kupónu. Nejvýše 100 záznamů na stránku; nejednoznačná vazba se neoznačí za dostupnou.
-- `POST /admin/coupon-links`: zachovaný vstup `{produkt,kupon,ks,format}`. Ověří dostupnost stávajícím validátorem, vykreslí QR a uloží záznam; vrací `{url,qr,record,created,discount_applied:false}`. Nevytváří novou promotion. Při chybě renderu/DB nevydává úspěch. Dřívější příznak PENDING_PRICING_INTEGRATION byl u generování nahrazen výslovným `discount_applied:false`; generování samo nikdy nepotvrzuje slevu.
+- `POST /admin/coupon-links`: zachovaný vstup `{produkt,kupon,ks,format}`. Ověří dostupnost stávajícím validátorem, vykreslí QR a uloží záznam; vrací `{url,qr,record,created,discount_applied:false}`. Nevytváří novou promotion. Při chybě renderu/DB nevydává úspěch. Pro kompatibilitu zůstává původní příznak `activation_status:PENDING_PRICING_INTEGRATION`; znamená pouze, že tato operace slevu sama neaplikuje. Nový admin jej nepoužívá jako stav celého systému. Generování nikdy nepotvrzuje slevu.
 - `GET /admin/coupon-links/:id`: detail včetně aktuálního stavu, nikoli kopie kupónových limitů v QR registru.
 - `GET /admin/coupon-links/:id/qr?format=svg|png`: opětovné stažení původní URL, i pokud je kupón nyní neaktivní. Kupón nezapíná, nic nevystavuje znovu a nemění čerpání.
 - `POST /admin/coupon-links/import`: `{links:[{url,issued_at?}],dry_run:true}`. Nejvýše 100 odkazů. Výchozí je pouze kontrolní náhled, bez změny DB. Všechny URL se validují před prvním zápisem. Opakování/importní souběh nevytváří další záznamy. Neznámé datum vydání zůstává null. Žádné čtení skutečných migračních souborů z HTTP.
 - `POST /admin/coupon-links/:id/deactivate`: `{confirmation:"přesný kód kupónu"}`. Vypne již existující promotion; potvrzení vysvětluje dopad na všechny její odkazy. Čerpání a dokončené objednávky nemění. Opakování je idempotentní. Znovuzapnutí patří do stávající správy kupónů.
 
-Vytvoření, import a deaktivace používají stávající audit změn. Audit neukládá cílovou URL ani kód kupónu do nových auditních událostí. Stejně jako u ostatních admin změn případné selhání pomocného auditu nezruší již dokončenou změnu, ale hlásí jej stávající observability helper.
+Infrastrukturní selhání zapisují korelovanou událost domény coupon bez URL, kódů a syrových chyb DB. Vytvoření, import a deaktivace používají stávající audit změn. Audit neukládá cílovou URL ani kód kupónu do nových auditních událostí. Stejně jako u ostatních admin změn případné selhání pomocného auditu nezruší již dokončenou změnu, ale hlásí jej stávající observability helper.
 
 ## Starý obchod a konfigurace
 

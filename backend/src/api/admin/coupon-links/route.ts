@@ -1,3 +1,4 @@
+import { unavailable } from "./failure"
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { buildCouponUrl, localQrRenderer } from "./links"
 import { validateLink } from "./validation"
@@ -12,7 +13,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
   try {
     const result = await listRecords(req.scope, parsed.data)
     return res.json({ ...result, links: await Promise.all(result.links.map((r: any) => describeRecord(req.scope, r))) })
-  } catch { return res.status(503).json({ message: "Evidenciu QR kódov sa nepodarilo načítať. Skúste to znova." }) }
+  } catch { return unavailable(req, res, "qr_registry_unavailable", "Evidenciu QR kódov sa nepodarilo načítať. Skúste to znova.") }
 }
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   res.setHeader("Cache-Control", "no-store")
@@ -29,6 +30,6 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const qr = await localQrRenderer.render(url, format)
     const { record, created } = await saveRecord(req.scope, input, url, "generated", actor, new Date())
     if (created) await auditAdminChange(req, "qr.created", "coupon_link", record.id, null, { source: "generated" })
-    return res.json({ url: record.url, qr, record, created, discount_applied: false })
-  } catch { return res.status(503).json({ message: "QR kód sa nepodarilo vytvoriť a uložiť. Skúste to znova; opakovaný pokus nevytvorí ďalší kupón." }) }
+    return res.json({ url: record.url, qr, record, created, discount_applied: false, activation_status: "PENDING_PRICING_INTEGRATION" })
+  } catch { return unavailable(req, res, "qr_registry_unavailable", "QR kód sa nepodarilo vytvoriť a uložiť. Skúste to znova; opakovaný pokus nevytvorí ďalší kupón.") }
 }

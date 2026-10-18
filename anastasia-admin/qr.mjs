@@ -89,7 +89,7 @@ export function qrAgenda({ api, esc, fmtDate, freshView }) {
         try {
           const result = await api('/admin/coupon-links/import', { method: 'POST', body: { links, dry_run: dry } });
           view.querySelector('[data-message]').innerHTML = message(`${dry ? 'Kontrola' : 'Uloženie'}: ${result.created} ${dry ? 'nových' : 'pridaných'}, ${result.existing} už evidovaných. Kupóny sa nezmenili.`);
-          checked = dry ? text : ''; save.disabled = !dry;
+          checked = dry && field.value.trim() === text ? text : ''; save.disabled = !checked;
         } catch (error) { checked = ''; fail(error); save.disabled = true; }
         finally { view.querySelector('form button[type="submit"]').disabled = false; }
       };

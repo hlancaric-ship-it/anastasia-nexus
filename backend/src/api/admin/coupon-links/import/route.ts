@@ -1,3 +1,4 @@
+import { unavailable } from "../failure"
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { adminActor, auditAdminChange } from "../../../../lib/observability/audit"
 import { importInput, legacyLink, recordId, tenant, getRecord, saveRecord } from "../registry"
@@ -27,5 +28,5 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       } else existing++
     }
     return res.json({ dry_run: parsed.data.dry_run, created, existing, total: entries.length })
-  } catch { return res.status(503).json({ message: "Import sa nepodarilo dokončiť. Zopakujte rovnaký zoznam; existujúce záznamy aj čerpanie zostanú zachované." }) }
+  } catch { return unavailable(req, res, "qr_import_unavailable", "Import sa nepodarilo dokončiť. Zopakujte rovnaký zoznam; existujúce záznamy aj čerpanie zostanú zachované.") }
 }
