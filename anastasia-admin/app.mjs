@@ -767,7 +767,46 @@ async function vVoucherDetail(view, v, back) {
     catch (e) { if (e.message === '401') return; vb.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   };
 }
-const vPoukazy = (view) => subnav(view, [{ label: 'Kupóny a zľavy', run: vCoupons }, { label: 'Darčekové poukazy', run: vVouchers }]);
+const VS_DELIVERY = { recipient_email: 'e-mailom obdarovanej', buyer_pdf: 'PDF kupujúcej', both: 'obdarovanej aj PDF kupujúcej' };
+async function vVoucherSettings(view, notice) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam nastavenie…</div>';
+  let s, cats;
+  try { [{ settings: s }, { product_categories: cats }] = await Promise.all([api('/admin/vouchers/settings'), api('/admin/product-categories?limit=200&fields=id,name')]); }
+  catch (e) { return loadError(view, e, () => vVoucherSettings(view, notice)); }
+  const chk = (id, on, label) => `<label style="margin-top:12px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="${id}" style="width:auto" ${on ? 'checked' : ''}> ${label}</label>`;
+  view.innerHTML = `<div class="card"><div class="card-h">Nastavenie darčekových poukazov</div><div class="card-b">
+    <p class="muted">Zmena platí pre nové poukazy. Už vydané poukazy si držia hodnotu, platnosť a pravidlá z dňa nákupu.</p>
+    <div id="vsmsg">${notice || ''}</div>
+    ${chk('vs-on', s.enabled, 'Poukazy sú v predaji na webe')}
+    <div class="row" style="margin-top:12px"><div><label>Hodnoty v € (oddeľte bodkočiarkou, najviac 10)</label><input id="vs-values" value="${esc(s.values.map(x => String(x).replace('.', ',')).join('; '))}" placeholder="50; 100; 200"></div>
+    <div><label>Platnosť (mesiace, 1–60)</label><input id="vs-months" type="number" min="1" max="60" step="1" value="${s.validity_months}"></div></div>
+    <div class="row"><div><label>Doručenie</label><select id="vs-delivery">${Object.entries(VS_DELIVERY).map(([k, l]) => `<option value="${k}" ${s.delivery_method === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <div><label>Kde sa dá poukaz použiť</label><select id="vs-scope"><option value="all" ${s.scope_type === 'all' ? 'selected' : ''}>na celý e-shop</option><option value="categories" ${s.scope_type === 'categories' ? 'selected' : ''}>len vo vybraných kategóriách</option></select></div></div>
+    <div id="vs-cats" ${s.scope_type === 'categories' ? '' : 'hidden'}><label>Kategórie</label><div style="display:flex;flex-wrap:wrap;gap:4px 18px">${(cats || []).map(c => `<label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" data-cat="${esc(c.id)}" style="width:auto" ${s.category_ids.includes(c.id) ? 'checked' : ''}> ${esc(c.name)}</label>`).join('') || '<span class="muted">Žiadne kategórie.</span>'}</div></div>
+    ${chk('vs-partial', s.partial_redemption, 'Poukaz sa dá čerpať postupne (zostatok ostáva na ďalší nákup)')}
+    <div style="margin-top:18px"><button class="btn gold" id="vs-save">Uložiť nastavenie</button></div>
+  </div></div>`;
+  const $ = (q) => view.querySelector(q), msg = $('#vsmsg');
+  $('#vs-scope').onchange = () => { $('#vs-cats').hidden = $('#vs-scope').value !== 'categories'; };
+  $('#vs-save').onclick = async () => {
+    const parts = $('#vs-values').value.split(/[;\s]+/).filter(Boolean);
+    const values = parts.map(p => p.replace(',', '.'));
+    const months = Number($('#vs-months').value), scope_type = $('#vs-scope').value;
+    const category_ids = scope_type === 'categories' ? [...view.querySelectorAll('[data-cat]:checked')].map(x => x.dataset.cat) : [];
+    const err = !values.length || values.length > 10 || values.some(v => !/^\d+(\.\d{1,2})?$/.test(v) || Number(v) < 1 || Number(v) > 10000) ? 'Hodnoty zadajte ako sumy od 1 do 10 000 € oddelené bodkočiarkou, najviac 10.'
+      : new Set(values.map(Number)).size !== values.length ? 'Každá hodnota môže byť len raz.'
+      : !Number.isInteger(months) || months < 1 || months > 60 ? 'Platnosť zadajte v celých mesiacoch od 1 do 60.'
+      : scope_type === 'categories' && !category_ids.length ? 'Vyberte aspoň jednu kategóriu.' : '';
+    if (err) { msg.innerHTML = `<div class="err">${err}</div>`; return; }
+    const btn = $('#vs-save'); btn.disabled = true; msg.innerHTML = '';
+    try {
+      await api('/admin/vouchers/settings', { method: 'POST', body: { enabled: $('#vs-on').checked, values: values.map(Number), validity_months: months, scope_type, category_ids, partial_redemption: $('#vs-partial').checked, delivery_method: $('#vs-delivery').value } });
+      await vVoucherSettings(view, '<div class="notice">Nastavenie je uložené a ponuka poukazov na webe je aktualizovaná.</div>');
+    } catch (e) { if (e.message === '401') return; btn.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
+const vPoukazy = (view) => subnav(view, [{ label: 'Kupóny a zľavy', run: vCoupons }, { label: 'Darčekové poukazy', run: vVouchers }, { label: 'Nastavenie poukazov', run: vVoucherSettings }]);
 // --- Konzultácie (/admin/bookings*) — termíny drží rezervačné jadro, tu prehľad a zrušenie ---
 const B_STATUS = { held: ['čaká na platbu', 'warn'], confirmed: ['potvrdená', 'ok'], canceled: ['zrušená', 'off'], completed: ['prebehla', 'ok'] };
 const B_TABS = [{ id: '', label: 'Všetky' }, { id: 'confirmed', label: 'Potvrdené' }, { id: 'held', label: 'Čakajú na platbu' }, { id: 'completed', label: 'Prebehli' }, { id: 'canceled', label: 'Zrušené' }];
