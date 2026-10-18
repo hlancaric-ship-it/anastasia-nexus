@@ -810,7 +810,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/booking/types/route.ts",
-      "sha256": "7bc84d555f10b19a980cf6d496b750aaad67973ff50f80dac3381dd9fcc18498"
+      "sha256": "afd95842e535963da7dfba40b187600eacb7c7dde991cdbd18e5dc6a29354f08"
     },
     {
       "path": "/admin/booking/types/:id",
