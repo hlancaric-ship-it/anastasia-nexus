@@ -227,7 +227,8 @@
       "request": "Inbox, odpověď, přečtení, zavření/otevření, ztlumení a blokace.",
       "sources": [
         "backend/src/api/admin/chat/conversations/route.ts",
-        "backend/src/modules/chat/policy.ts"
+        "backend/src/modules/chat/policy.ts",
+        "backend/src/api/store/contact/policy.ts"
       ],
       "remaining": "Nové UI; limity dnes v kódu, žádný neexistující konfigurační přepínač.",
       "acceptance": "Čistý text; 2000 znaků zákaznice/5000 admin; 403/409/429 slovensky; počítadlo a zachování rozepsané odpovědi."
@@ -1265,6 +1266,15 @@
       "sha256": "5543d0db72e470f1a2967368b025fdd6fd90c09b569a5d1ba93aed687392418e"
     },
     {
+      "path": "/store/contact",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/contact/route.ts",
+      "sha256": "1a6697c571e72c6af63cc55a2028f8694d2cd5f69577b1d6ae0fef1ca933db94"
+    },
+    {
       "path": "/store/coupon-links",
       "methods": [
         "POST"
@@ -1343,7 +1353,7 @@
       ],
       "feature": "privacy",
       "source": "backend/src/api/store/legal/versions/route.ts",
-      "sha256": "e00c508e62af22d346baa8ceac6f3bc3275f954308a820992c1d2cb8b4018b0b"
+      "sha256": "385e9aa447c3034c05a3b7eda545de4dc83dc215765cc3c14790726f03302cd9"
     },
     {
       "path": "/store/media-access",
