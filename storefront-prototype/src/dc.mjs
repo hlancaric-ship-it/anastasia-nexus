@@ -107,6 +107,8 @@ function convert(src, {page, region = 'body', data = {}}) {
   const events = {openMenu: 'data-menu-open="top" aria-controls="dc-top-menu" aria-expanded="false"', openSide: 'data-menu-open="side" aria-controls="dc-side-menu" aria-expanded="false"', closeMenu: 'data-menu-close', togglePlay: 'data-video-toggle', toggleSound: 'data-sound-toggle', subscribe: 'data-newsletter'};
   h = h.replace(/\son(?:Click|Submit)="\{\{ (\w+) \}\}"/g, (_, fn) => events[fn] ? ' ' + events[fn] : '');
   h = h.replace(/ value="\{\{ email \}\}" onChange="\{\{ setEmail \}\}"/g, ' name="email" autocomplete="email" aria-label="Váš e-mail" required');
+  // Newsletter: text súhlasu pri formulári (verzia textu = NEWSLETTER_CONSENT_VERSION na backende).
+  h = h.replace(/(<form data-newsletter[\s\S]*?<\/form>)/g, '$1<p class="newsletter-consent" style="max-width:480px;margin:10px 0 0;font-size:12px;line-height:1.5;opacity:.75">Odoslaním súhlasíte so zasielaním noviniek ANASTASIA e-mailom. Odhlásiť sa môžete kedykoľvek. <a href="/gdpr" style="color:inherit">Súkromie a GDPR</a></p><p class="newsletter-status" role="status" style="max-width:480px;margin:6px 0 0;font-size:13px"></p>');
   // Hodnoty.
   const values = {
     railPad: 'var(--rail-pad)', railNeg: 'var(--rail-neg)', heroHeight: '100vh', captionLeft: 'var(--cap-left)', menuRight: 'var(--menu-right)',

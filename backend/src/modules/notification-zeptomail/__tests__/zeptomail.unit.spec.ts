@@ -66,6 +66,15 @@ describe("ZeptoMail – send", () => {
     expect(payload.client_reference).toBe("magic-link-sk")
   })
 
+  it("kontaktní formulář odpovídá odesílatelce, jinde zůstává globální reply-to", async () => {
+    const { service, fetchImpl } = makeService()
+    await service.send({ to: RECIPIENT, channel: "email", template: "contact-form-admin", data: { name: "Jana", email: "jana@example.com", topic: "Konzultácia", message: "Dobrý deň, otázka." } } as any)
+    expect(sentPayload(fetchImpl).reply_to).toEqual([{ address: "jana@example.com" }])
+    const other = makeService()
+    await other.service.send({ to: RECIPIENT, channel: "email", template: "chat-admin-digest", data: { email: "jana@example.com", messages: 1, conversations: 1 } } as any)
+    expect(sentPayload(other.fetchImpl).reply_to).toEqual([{ address: "info@anastasiaoz.eu" }])
+  })
+
   it("nepřidá prefix, pokud ho klíč už má", async () => {
     const { service, fetchImpl } = makeService({ apiKey: `Zoho-enczapikey ${API_KEY}` })
     await service.send({ to: RECIPIENT, channel: "email", template: "chat-admin-digest", data: { messages: 2, conversations: 1 } } as any)

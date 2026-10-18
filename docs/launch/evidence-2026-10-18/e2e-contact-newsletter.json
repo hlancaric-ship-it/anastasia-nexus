@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-18T10:58:00.385Z",
+  "results": [
+    {
+      "step": "kontakt-odoslanie",
+      "ok": true,
+      "detail": {
+        "status": "Ďakujeme, správa bola odoslaná. Ozveme sa vám čo najskôr.",
+        "row": "lucia@anastasia.local|E2E Kontakt mvdpov3s|Konzultácia|success",
+        "trapVisible": false
+      }
+    },
+    {
+      "step": "kontakt-validacia-a-pasca",
+      "ok": true,
+      "detail": {
+        "bad": 400,
+        "spam": 200
+      }
+    },
+    {
+      "step": "kontakt-limit",
+      "ok": true,
+      "detail": {
+        "codes": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          429
+        ]
+      }
+    },
+    {
+      "step": "newsletter-suhlas-ulozeny",
+      "ok": true,
+      "detail": {
+        "nstatus": "Ďakujeme, novinky vám budeme posielať e-mailom.",
+        "nrow": "subscribed|footer|true"
+      }
+    }
+  ],
+  "errors": []
+}

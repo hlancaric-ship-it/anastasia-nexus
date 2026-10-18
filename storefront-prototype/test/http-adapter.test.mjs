@@ -12,6 +12,7 @@ const SERVER_METHODS=[
   ['getGiftVoucherProduct',[]],['addGiftVoucher',[{variant_id:'v',recipient:{name:'Dana',email:'dana@example.com'}}]],
   ['applyGiftVoucher',['KOD']],['importQr',[new URLSearchParams('produkt=x')]],
   ['getAccount',[]],['getCustomerCenter',[]],['getChatStatus',[]],['getChatConversations',[]],['getChatConversation',['c1']],
+  ['sendContact',[{name:'Dana',email:'dana@example.com',subject:'Iná otázka',message:'Dobrý deň, otázka.',consent:'on'}]],['subscribeNewsletter',[{email:'dana@example.com'}]],
   ['getBookingTypes',[]],['getBookingSlots',['prod_1','2026-10-20','2026-11-16']],
   ['reserveBooking',[{productId:'prod_1',variantId:'var_1',startsAt:'2026-10-20T08:00:00.000Z'}]],
 ];

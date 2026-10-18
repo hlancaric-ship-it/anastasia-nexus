@@ -605,8 +605,17 @@ export function createHttpApi(storage, config) {
       if (r.ok) return { ok: true, status: r.status, conversation: r.data?.conversation, message: r.data?.message };
       return { ok: false, status: r.status, type: r.data?.type || 'error', message: r.data?.message };
     },
-    // TODO(src/lib/api/http.mjs): kontaktný formulár nemá backend routu – ponechané na mock.
-    // sendContact zostáva z mocku (…mock) kým nevznikne /store/ kontakt endpoint.
+    async subscribeNewsletter({ email, source = 'footer' }) {
+      const v = await call('/store/legal/versions');
+      if (!v.ok || !v.data?.newsletter_version) return { ok: false, message: 'Prihlásenie k novinkám je dočasne nedostupné.' };
+      const r = await call('/store/newsletter', { method: 'POST', body: { email, accepted: true, text_version: v.data.newsletter_version, source } });
+      return r.ok ? { ok: true, message: 'Ďakujeme, novinky vám budeme posielať e-mailom.' } : { ok: false, message: r.status === 400 ? 'Skontrolujte e-mailovú adresu.' : 'Prihlásenie sa nepodarilo. Skúste to prosím znova.' };
+    },
+    async sendContact({ name, email, subject, message, consent, website }) {
+      const r = await call('/store/contact', { method: 'POST', body: { name, email, subject, message, consent: consent === true || consent === 'on', website: website || '' } });
+      if (r.ok && r.data?.ok) return { ok: true, message: r.data.message };
+      return { ok: false, status: r.status, message: r.data?.message || 'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.' };
+    },
 
     isLoggedIn: loggedIn,
   };

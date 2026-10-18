@@ -53,6 +53,7 @@ Bez těchto hodnot backend nastartuje, ale daná funkce v produkci selže nebo p
 | `GIFT_VOUCHER_DELIVERY` | v produkci `notification` (jinak se kód poukazu jen zaloguje); po nasazení v adminu znovu uložit nastavení poukazů |
 | `COUPON_LINK_STOREFRONT_ORIGIN` | `https://<storefront>`; bez ní admin nevygeneruje QR odkaz kupónu (500) |
 | `CHAT_ADMIN_NOTIFY_EMAIL` | adresa pro souhrn nových zpráv; bez ní se souhrn jen zaloguje |
+| `CONTACT_NOTIFY_EMAIL` | kam chodí zprávy z kontaktního formuláře (šablona `contact-form-admin`, odpověď jde odesílatelce); prázdné = `CHAT_ADMIN_NOTIFY_EMAIL`, bez obou formulář vrací 503 |
 | `CHAT_ADMIN_URL` | URL chatu ve **vlastním** adminu (`https://<admin>/#/chat`); výchozí hodnota míří na Medusa `/app/chat`, který nepoužíváme |
 | `CHAT_STOREFRONT_URL` | odkaz na chat v účtu zákaznice v e-mailu s odpovědí |
 | `CHAT_RETENTION_DAYS` | retence obsahu chatu, 30–3650, výchozí 365 |
