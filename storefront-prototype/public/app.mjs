@@ -9,7 +9,10 @@ const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root
 let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
-updateCount();
+updateCount().catch(()=>{});
+for(const link of $$('[data-global-account]')) {
+  Promise.resolve().then(()=>typeof api.isLoggedIn==='function'&&api.isLoggedIn()).then(logged=>{if(logged){link.href='/ucet';link.querySelector('span').textContent='Môj účet';}}).catch(()=>{});
+}
 // Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
 const kolTrack=$('.kol-track');
 if(kolTrack)(async()=>{
@@ -63,6 +66,7 @@ if(customerCenter){
       put('#center-bookings',b.length?b.map(c=>`<article class="center-card"><div class="center-date"><span>${e(c.day)}<small>${e(c.month)}</small></span><h2>${e(c.title)}</h2></div><p>${e(c.date)} · ${e(c.status)}</p><button type="button" class="button outline" data-account-go="chat">Napísať Lucii ${arrow}</button></article>`).join(''):note('Nemáte naplánovanú konzultáciu.'));
       $$('#center-bookings [data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);}));
     }else put('#center-next-booking,#center-bookings',unavailable);
+    put('#center-materials',(data.materials||[]).length?(data.materials||[]).map(m=>`<article class="center-material" data-material-category="${e(m.category)}"><h2>${e(m.title)}</h2><span>${e(m.type)}</span></article>`).join(''):note('Zatiaľ tu nemáte žiadne materiály.'));
     put('[data-center-reorder]',(data.reorder||[]).map(p=>`<article class="center-reorder"><img src="${e(p.image)}" alt="" width="60" height="75"><div><h3>${e(p.name)}</h3><p>${e(p.priceLabel)}</p></div><button type="button" class="button outline" data-add="${e(p.code)}">Do košíka</button></article>`).join(''));
   })();
 }
@@ -80,7 +84,8 @@ if(chatForm){
   selection.addEventListener('change',()=>{detail();$('.form-status',chatForm).textContent='';});
   $('#chat-new').addEventListener('click',async()=>{selection.value='';await detail();$('.form-status',chatForm).textContent='';body.focus();});
   chatForm.addEventListener('submit',async event=>{event.preventDefault();if(busy||send.disabled)return;busy=true;count();try{const result=await api.sendChatMessage({conversation_id:selection.value||undefined,body:body.value});$('.form-status',chatForm).textContent=result.ok?'Správa bola pridaná do konverzácie.':chatErrors[result.type]||'Správu sa nepodarilo odoslať. Skúste to znova.';if(result.ok){body.value='';await list(result.conversation.id);}await availability();}catch{$('.form-status',chatForm).textContent='Chat je dočasne nedostupný. Skúste to znova.';}finally{busy=false;count();}});
-  await list();await availability();
+  // Account data must never block the shared menu and page controls.
+  void (async()=>{try{await list();await availability();}catch{status={can_write:false};count();$('#chat-availability').hidden=false;$('#chat-availability').textContent=chatErrors.chat_unavailable;}})();
 }
 
 const giftForm=$('#gift-voucher-form');

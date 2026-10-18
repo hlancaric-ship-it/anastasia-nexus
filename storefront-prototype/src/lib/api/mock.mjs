@@ -73,7 +73,7 @@ export function createMockApi(storage=memoryStorage()) {
   };
   const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';credit=null;persist();}return{ok:valid,message:valid?'Kupón prijatý.':'Kupón nie je dostupný.'};};
   return {
-    mode:'mock', canonical,
+    mode:'mock', canonical,isLoggedIn:()=>true,
     setChatPreview:value=>{chatPreview=value;},
     getChatStatus:chatStatus,
     getChatConversations:()=>({conversations:clone(conversations)}),
@@ -126,12 +126,12 @@ export function createMockApi(storage=memoryStorage()) {
     requestMagicLink:()=>({ok:true,message:'Ak účet existuje, po napojení vám pošleme odkaz. Toto je ukážka; e-mail sa neodoslal.'}),
     confirmMagicLink:()=>({ok:false,message:'Ukážkový režim: odkaz sa neoveruje a neprihlasuje vás. Môžete si otvoriť náhľad účtu.'}),
     getCustomerCenter:()=>({
-      mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
+      ok:true,bookingsOk:true,mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
       materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · 2026-0142',category:'faktury',type:'PDF'}],
       reorder:clone(products.slice(0,3)),profile:{name:'Zákazníčka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
     }),
     saveCustomerProfile:()=>({ok:true,message:'Údaje boli skontrolované.'}),
-    getAccount:()=>({name:'Zákazníčka',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),
+    getAccount:()=>({ok:true,name:'Zákazníčka',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),
     getEntitlements:({preview='locked'}={})=>({mode:'mock',active:preview==='unlocked',weeks:Array.from({length:16},(_,i)=>({number:i+1,title:`Tematický týždeň ${String(i+1).padStart(2,'0')}`,description:'Priestor pre schválený obsah programu.'}))}),
     checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Platba nie je aktívna. Objednávka sa neodoslala.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy stav.'}),
     sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),

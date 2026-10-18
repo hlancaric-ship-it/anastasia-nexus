@@ -205,8 +205,9 @@ export function chrome(page) {
     // Spodní blok: Aktuality (Zdravá lekáreň – aktuality zo starého webu).
     .replace(/(<a\b[^>]*>\s*Zdravý svet\s*<\/a>)/, '$1'+mi('Aktuality'))
     .replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
+  const accountLink = '<a class="global-account" data-global-account href="/prihlasenie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><span>Prihlásiť sa</span></a>';
   return {
-    header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>'),
+    header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>').replace('<dc-wide><a href="/konzultacie">', accountLink+'<dc-wide><a href="/konzultacie">'),
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
