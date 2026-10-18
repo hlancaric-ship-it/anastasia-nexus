@@ -22,6 +22,8 @@ add('/eshop','Obchod',views.catalog());add('/eshop/kategorie','Kategórie',views
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',views.catalog('Kozmetika'));
 for(const [slug,cat] of [['kozmetika','Kozmetika'],['vyziva','Výživa'],['domov','Domov'],['lan','Ľan']])add(`/eshop/kategoria/${slug}`,cat,views.catalog(cat));
 for(const p of api.getProducts())add(`/eshop/produkt/${p.slug}`,p.name,views.product(p));
+// Živý detail: produkty z administrácie nemajú statickú stránku; server/Pages ich prepíše sem a app.mjs ich načíta z API.
+add('/eshop/produkt-detail','Produkt',views.product({slug:'',name:'Načítavam produkt…',category:'',description:'',priceLabel:'',availability:'',image:'/assets/brand-mark.svg',code:''}));
 for(const p of api.getPages())add(p.path,p.title,views.content(p));
 add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());
 add('/prihlasenie','Prihlásenie',views.login());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
@@ -56,6 +58,18 @@ const renderDocument=(path,{title,body,design})=>{
   return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/dc.css"><script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}</head><body${design?' class="dc-page"':path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
 };
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));await cp(join(root,'src/site-themes.mjs'),join(out,'site-themes.mjs'));
+// Konfigurace prostředí pri builde (verejné hodnoty: Medusa publishable key, región, Stripe pk). CSP 'self' zakazuje inline
+// window.__ANASTASIA__, preto sa predvolené hodnoty prepisujú priamo v dist/config.mjs. Neúplný/zlý vstup build zastaví.
+{
+  const env={apiBaseUrl:'ANASTASIA_API_ORIGIN',publishableKey:'ANASTASIA_PUBLISHABLE_KEY',regionId:'ANASTASIA_REGION_ID',stripePublishableKey:'ANASTASIA_STRIPE_PUBLISHABLE_KEY'};
+  const shape={apiBaseUrl:/^https?:\/\/[^\s'"]+$/,publishableKey:/^pk_[A-Za-z0-9]+$/,regionId:/^reg_[A-Z0-9]+$/,stripePublishableKey:/^pk_(test|live)_[A-Za-z0-9]+$/};
+  const file=join(out,'config.mjs');let src=await readFile(file,'utf8');
+  for(const [key,name] of Object.entries(env)){const v=process.env[name];if(!v)continue;
+    if(!shape[key].test(v))throw new Error(`${name} má neplatný tvar`);
+    const re=new RegExp(`(${key}: w\\.${key} \\|\\| )'[^']*'`);if(!re.test(src))throw new Error(`config.mjs: chýba ${key}`);
+    src=src.replace(re,`$1'${v}'`);}
+  await writeFile(file,src);
+}
 for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),document(path,page));}
 // styles.css ve vrstvě: neoznačená pravidla z dc.css (reset a inline návrh) mají vždy přednost.
 await writeFile(join(out,'base.css'),'@import url("/styles.css") layer(legacy);\n');
@@ -82,6 +96,10 @@ await writeFile(join(out,'site-theme.js'),siteThemeBoot());
 await writeFile(join(out,'404.html'),document('/404',{title:'Stránka nenájdená',body:views.notFound()}));
 await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
-await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.stripe.com data:; media-src 'self'; font-src 'self'; connect-src 'self' ${apiOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\n`);
+// Obrázky produktov: lokálne z jadra (/static), v produkcii z R2/CDN (S3_FILE_URL backendu).
+const mediaOrigin=process.env.ANASTASIA_MEDIA_ORIGIN||apiOrigin;
+for(const [n,v] of [['ANASTASIA_API_ORIGIN',apiOrigin],['ANASTASIA_MEDIA_ORIGIN',mediaOrigin]])if(!/^https?:\/\/[^\s'";/]+$/.test(v))throw new Error(`${n} musí byť origin (bez cesty)`);
+await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' ${mediaOrigin} https://*.stripe.com data:; media-src 'self'; font-src 'self'; connect-src 'self' ${apiOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\n`);
+await writeFile(join(out,'_redirects'),'/eshop/produkt/* /eshop/produkt-detail/ 200\n');
 await writeFile(join(out,'routes.json'),JSON.stringify([...routes.keys()],null,2));
 console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). No backend calls.`);

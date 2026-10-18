@@ -233,9 +233,28 @@ if(filterForm){
   };
   filterForm.addEventListener('input',render);filterForm.addEventListener('submit',ev=>{ev.preventDefault();render();});render();
 }
-$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount();});
+$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code)return;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount();});
+// Živý detail produktu: názov, cena, obrázok a popis vždy z jadra (aj pre produkty založené v administrácii).
+const detail=$('[data-product-slug]');
+if(detail&&api.mode==='http'){
+  const slug=decodeURIComponent(location.pathname.replace(/\/+$/,'').split('/').pop()||'');
+  const p=slug&&slug!=='produkt-detail'?await api.getProduct(slug):null;
+  const section=detail.closest('section');
+  if(!p){document.title='Produkt sa nenašiel';section.innerHTML=`<div class="empty-state"><h1>Produkt sa nenašiel.</h1><p>Mohol byť vypredaný alebo stiahnutý z ponuky.</p>${button('/eshop','Prejsť do obchodu')}</div>`;}
+  else{
+    document.title=document.title.replace(/^[^|–-]*/,p.name+' ');
+    const img=$('.detail-image img',detail);img.src=p.image;img.alt=p.name;
+    $('.detail-copy .eyebrow',detail).textContent=p.category;$('.detail-copy h1',detail).textContent=p.name;
+    $('.detail-copy .lead',detail).textContent=p.description;$('.detail-price',detail).textContent=p.priceLabel;
+    const crumb=$$('.breadcrumbs span',section).pop();if(crumb)crumb.textContent=p.name;
+    $('.add-product',detail).dataset.code=p.code;
+    const text=p.descriptionHtml?new DOMParser().parseFromString(p.descriptionHtml,'text/html').body.textContent.trim():'';
+    const about=$('details p',detail);if(about)about.textContent=text||p.description||'';
+    const related=$('[data-related]',section);if(related){const others=(await api.getProducts()).filter(x=>x.slug!==p.slug).slice(0,4);related.innerHTML=others.map(card).join('');}
+  }
+}
 
-const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>`;
+const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
 async function renderCart(){
   const target=$('#cart-view');if(!target)return;
   const cart=await api.getCart();
@@ -263,14 +282,18 @@ if(checkoutForm){
     let stripe,elements,paymentReady=false;
     const loadStripe=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
     const initPayment=async()=>{
-      if(paymentReady||typeof api.createPaymentSession!=='function'||!cfg?.stripePublishableKey)return;
+      if(typeof api.createPaymentSession!=='function'||!cfg?.stripePublishableKey)return;
+      paymentReady=false;
       const fs=$('fieldset[data-step="3"]',checkoutForm);if(!fs)return;
       let host=$('#stripe-payment-element',checkoutForm);
-      if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.margin='16px 0';fs.insertBefore(host,fs.querySelector('[type=submit]')||null);}
+      if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.cssText='margin:16px 0;width:100%;max-width:560px;grid-column:1/-1';const anchor=fs.querySelector('[name=terms]')?.closest('label')||fs.querySelector('.actions');if(anchor)anchor.before(host);else fs.append(host);}
+      host.textContent='Pripravujem objednávku…';
+      if(typeof api.prepareCheckout==='function'){const el=checkoutForm.elements,f=Object.fromEntries(['firstName','lastName','email','street','city','postalCode'].map(k=>[k,el[k]?.value||'']));const prep=await api.prepareCheckout({firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:checkoutForm.elements.delivery.value,street:f.street,city:f.city,postalCode:f.postalCode});
+        if(!prep.ok){host.textContent=prep.message;return;}$('#checkout-summary').innerHTML=summary(prep.cart);}
       host.textContent='Načítavam platbu…';
       const session=await api.createPaymentSession();
       if(!session.ok){host.textContent=session.message||'Platba nie je dostupná.';return;}
-      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:session.clientSecret});host.textContent='';elements.create('payment').mount(host);paymentReady=true;}
+      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:session.clientSecret});host.textContent='';elements.create('payment',{defaultValues:{billingDetails:{email:checkoutForm.elements.email?.value||undefined,address:{country:'SK'}}}}).mount(host);paymentReady=true;}
       catch{host.textContent='Platobnú bránu sa nepodarilo načítať.';}
     };
     $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity()){const n=Number(btn.dataset.next);step(n);if(n===3)initPayment();}}));
@@ -278,6 +301,8 @@ if(checkoutForm){
     $$('[name=delivery]',checkoutForm).forEach(el=>el.addEventListener('change',()=>{const shipping=checkoutForm.elements.delivery.value==='shipping';$('#address-fields').hidden=!shipping;$$('#address-fields input').forEach(input=>{input.required=shipping;input.disabled=!shipping;});}));
     checkoutForm.addEventListener('submit',async event=>{event.preventDefault();const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity()){step(Number(current.dataset.step)+1);if(Number(current.dataset.step)+1===3)initPayment();}return;}
       const output=$('#checkout-result');
+      if(typeof api.acceptCheckoutTerms==='function'){if(!paymentReady){output.dataset.state='ERROR';output.textContent='Platba ešte nie je pripravená. Skontrolujte údaje v predchádzajúcich krokoch.';output.focus();return;}
+        const ok=await api.acceptCheckoutTerms({terms_accepted:checkoutForm.elements.terms.checked,privacy_acknowledged:checkoutForm.elements.privacy.checked});if(!ok.ok){output.dataset.state='ERROR';output.textContent=ok.message;output.focus();return;}}
       if(stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
       const result=await api.checkout();output.dataset.state=result.status;output.textContent=result.messages;output.focus();
     });

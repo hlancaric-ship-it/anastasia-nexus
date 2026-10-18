@@ -8,7 +8,7 @@ const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena s
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,thumbnail,*categories,*variants,+variants.sku,+variants.calculated_price';
+  'handle,title,subtitle,description,thumbnail,*categories,*variants,+variants.sku,+variants.calculated_price';
 
 function mapProduct(p) {
   const variant = (p.variants || [])[0] || {};
@@ -22,6 +22,7 @@ function mapProduct(p) {
     priceLabel: cp.calculated_amount != null ? money(cp.calculated_amount) : 'Cena sa doplní',
     art: ART[category] || 'jar',
     description: p.subtitle || '',
+    descriptionHtml: p.description || '',
     availability: 'Dostupné',
     isNew: false,
     isBestseller: false,
@@ -101,7 +102,7 @@ export function createHttpApi(storage, config) {
     const id = get(CART);
     const empty = { mode: 'http', lines: [], gift_voucher: giftCredit(), coupon: get(COUPON) || '', subtotalLabel: '0,00 €', discountLabel: get(COUPON) ? 'Kupón prijatý' : 'Kupón nezadaný', totalLabel: '0,00 €' };
     if (!id) return empty;
-    const r = await call(`/store/carts/${id}?fields=*items,*items.product,total,item_subtotal,discount_total`);
+    const r = await call(`/store/carts/${id}?fields=*items,*items.product,*shipping_methods,total,item_subtotal,discount_total,shipping_total,tax_total`);
     const cart = r.data?.cart; if (!cart) return empty;
     const lines = (cart.items || []).map(it => ({
       slug: it.product_handle || it.product?.handle || it.id,
@@ -118,6 +119,8 @@ export function createHttpApi(storage, config) {
       mode: 'http', lines, gift_voucher: giftCredit(), coupon,
       subtotalLabel: money(cart.item_subtotal ?? cart.total),
       discountLabel: coupon ? 'Kupón prijatý' : (cart.discount_total ? money(-cart.discount_total) : 'Kupón nezadaný'),
+      shippingLabel: (cart.shipping_methods || []).length ? (Number(cart.shipping_total) > 0 ? money(cart.shipping_total) : 'Zadarmo') : '',
+      taxLabel: Number(cart.tax_total) > 0 ? money(cart.tax_total) : '',
       totalLabel: money(cart.total),
     };
   }
@@ -189,6 +192,42 @@ export function createHttpApi(storage, config) {
       return { mode: 'http', active: Array.isArray(list) && list.length > 0, weeks };
     },
 
+    // Pokladňa krok 2→3: košík priradí prihlásenej zákazníčke, uloží kontakt a adresu a zvolí dopravu
+    // pre každý prepravný profil v košíku (ceny a DPH počíta server; klient len vyberá zo serverových možností).
+    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = 'digital', street = '', city = '', postalCode = '' } = {}) {
+      const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
+      if (!loggedIn()) return { ok: false, message: 'Pre dokončenie objednávky sa prihláste.' };
+      const fail = 'Objednávku sa nepodarilo pripraviť. Skúste to znova.';
+      const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
+      if (!owner.ok) return { ok: false, message: fail };
+      const shipping = delivery === 'shipping';
+      const address = { first_name: String(firstName).trim(), last_name: String(lastName).trim(), country_code: 'sk',
+        ...(shipping ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
+      const up = await call(`/store/carts/${id}`, { method: 'POST', body: { email: String(email).trim(), shipping_address: address, billing_address: address } });
+      if (!up.ok) return { ok: false, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
+      const so = await call(`/store/shipping-options?cart_id=${encodeURIComponent(id)}&fields=id,name,shipping_profile_id,*type`);
+      const options = so.data?.shipping_options || [];
+      if (!so.ok || !options.length) return { ok: false, message: 'Pre tento košík teraz nie je dostupné doručenie. Kontaktujte nás, prosím.' };
+      const perProfile = new Map();
+      for (const o of options) if (!perProfile.has(o.shipping_profile_id)) perProfile.set(o.shipping_profile_id, o);
+      const chosen = [...perProfile.values()];
+      if (chosen.some(o => o.type?.code !== 'digital') && !shipping) return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
+      for (const o of chosen) {
+        const sm = await call(`/store/carts/${id}/shipping-methods`, { method: 'POST', body: { option_id: o.id } });
+        if (!sm.ok) return { ok: false, message: fail };
+      }
+      await reprice();
+      return { ok: true, cart: await cartShape() };
+    },
+    // Súhlas s obchodnými podmienkami a GDPR pre konkrétny košík (verzie dodá server, autoritou je legal modul).
+    async acceptCheckoutTerms({ terms_accepted = false, privacy_acknowledged = false } = {}) {
+      const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
+      if (terms_accepted !== true || privacy_acknowledged !== true) return { ok: false, message: 'Potvrďte obchodné podmienky a ochranu osobných údajov.' };
+      const v = await call('/store/legal/versions');
+      if (!v.ok || !v.data?.terms_version) return { ok: false, message: 'Podmienky sa nepodarilo načítať. Skúste to znova.' };
+      const cs = await call(`/store/carts/${id}/consents`, { method: 'POST', body: { terms_accepted: true, privacy_acknowledged: true, terms_version: v.data.terms_version, privacy_version: v.data.privacy_version } });
+      return cs.ok ? { ok: true } : { ok: false, message: 'Súhlas sa nepodarilo uložiť. Skúste to znova.' };
+    },
     // Stripe: platobná session proti pp_stripe_stripe, vráti clientSecret pre Payment Element.
     async createPaymentSession() {
       const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
@@ -306,7 +345,8 @@ export function createHttpApi(storage, config) {
     },
 
     async requestMagicLink(email) {
-      await call('/auth/customer/magic-link', { method: 'POST', body: { email: String(email || '') } });
+      try { await call('/auth/customer/magic-link', { method: 'POST', body: { email: String(email || '') } }); }
+      catch { return { ok: false, message: 'Služba je dočasne nedostupná. Skúste to znova o chvíľu.' }; }
       return { ok: true, message: 'Ak účet existuje, poslali sme vám prihlasovací odkaz na e-mail.' };
     },
     async confirmMagicLink() {
@@ -314,8 +354,17 @@ export function createHttpApi(storage, config) {
       const email = params.get('email'), token = params.get('token');
       if (!email || !token) return { ok: false, message: 'Odkaz je neúplný. Vyžiadajte si nový.' };
       const r = await call('/auth/customer/magic-link', { method: 'POST', body: { email, token } });
-      if (r.ok && r.data?.token) { set(JWT, r.data.token); return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' }; }
-      return { ok: false, message: 'Odkaz je neplatný alebo vypršal. Vyžiadajte si nový.' };
+      if (!r.ok || !r.data?.token) return { ok: false, message: 'Odkaz je neplatný alebo vypršal. Vyžiadajte si nový.' };
+      set(JWT, r.data.token);
+      // Nová zákazníčka: overený e-mail ešte nemá Customer. Token identity ho založí a refresh vydá token so zákazníčkou.
+      if ((await call('/store/customers/me')).status === 401) {
+        const created = await call('/store/customers', { method: 'POST', body: { email } });
+        const refreshed = created.ok ? await call('/auth/token/refresh', { method: 'POST', body: {} }) : null;
+        if (!refreshed?.ok || !refreshed.data?.token) { del(JWT); return { ok: false, message: 'Účet sa nepodarilo založiť. Vyžiadajte si nový odkaz.' }; }
+        set(JWT, refreshed.data.token);
+        return { ok: true, message: 'Účet je založený. Vitajte.' };
+      }
+      return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
     },
     async getAccount() {
       if (!loggedIn()) return mock.getAccount();

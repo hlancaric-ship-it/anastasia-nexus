@@ -230,28 +230,41 @@ async function vProducts(view) {
     onRow: p => vProductDetail(view, p.id),
   });
 }
+const SKU_RE = /^[A-Z0-9][A-Z0-9._-]{1,63}$/;
+const skuFrom = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+const shipLabel = (sp) => sp.type === 'digital' ? 'Digitálny produkt / služba (bez dopravy)' : sp.type === 'default' ? 'Fyzický tovar (doprava kuriérom)' : sp.name;
 async function vProductNew(view) {
+  let profiles = []; try { profiles = (await api('/admin/shipping-profiles?limit=50&fields=id,name,type')).shipping_profiles || []; } catch (e) { if (e.message === '401') throw e; }
   view.innerHTML = `<div class="card"><div class="card-h">Nový produkt<button class="btn ghost" id="pn-back">Späť</button></div><div class="card-b">
     <div id="pnmsg"></div>
     <label>Názov</label><input id="pn-title" placeholder="napr. Konzultačný balík">
     <div class="row"><div><label>Cena (EUR)</label><input id="pn-price" type="number" step="0.01" placeholder="0.00"></div>
     <div><label>Stav</label><select id="pn-status"><option value="draft">Koncept</option><option value="published">Zverejnený</option></select></div></div>
+    <label>Kód produktu (SKU)</label><input id="pn-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">
+    <label>Typ produktu</label><select id="pn-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}">${esc(shipLabel(sp))}</option>`).join('')}</select>
     <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť produkt</button></div>
-    <p class="muted" style="margin-top:10px;font-size:12px">Produkt vznikne s jedným variantom a cenou v EUR. Obrázky, sklad, predajné kanály, popis a kategórie doplníte v úprave.</p>
+    <p class="muted" style="margin-top:10px;font-size:12px">Produkt vznikne s jedným variantom a cenou v EUR. Typ produktu určuje dopravu v pokladni. Obrázky, sklad, predajné kanály, popis a kategórie doplníte v úprave.</p>
   </div></div>`;
   view.querySelector('#pn-back').onclick = () => vProducts(view);
+  const skuIn = view.querySelector('#pn-sku');
+  skuIn.oninput = () => { skuIn.dataset.manual = '1'; };
+  view.querySelector('#pn-title').oninput = (e) => { if (!skuIn.dataset.manual) skuIn.value = skuFrom(e.target.value); };
   view.querySelector('#pn-save').onclick = async () => {
     const msg = view.querySelector('#pnmsg'); msg.innerHTML = '';
     const title = view.querySelector('#pn-title').value.trim();
     const amount = Number(view.querySelector('#pn-price').value);
     const status = view.querySelector('#pn-status').value;
+    const shipProfile = view.querySelector('#pn-ship').value;
+    if (!shipProfile) { msg.innerHTML = '<div class="err">Vyberte typ produktu (fyzický tovar alebo digitálny). Bez neho sa produkt nedá doručiť ani objednať.</div>'; return; }
     if (!title) { msg.innerHTML = '<div class="err">Zadajte názov produktu.</div>'; return; }
+    const sku = skuIn.value.trim().toUpperCase();
+    if (!SKU_RE.test(sku)) { msg.innerHTML = '<div class="err">Zadajte kód produktu (SKU): 2–64 znakov, len písmená A–Z, číslice, bodka, pomlčka alebo podčiarknik. Bez kódu obchod nevie produkt naceniť.</div>'; return; }
     if (status === 'published' && !(amount > 0)) { msg.innerHTML = '<div class="err">Zverejniť sa dá len produkt s cenou. Zadajte cenu alebo ho uložte ako koncept.</div>'; return; }
     const btn = view.querySelector('#pn-save'); btn.disabled = true;
     try {
       let channels = []; try { channels = (await api('/admin/sales-channels?limit=50&fields=id')).sales_channels || []; } catch (e) { if (e.message === '401') throw e; }
-      const body = { title, status, ...(channels.length === 1 ? { sales_channels: [{ id: channels[0].id }] } : {}), options: [{ title: 'Variant', values: ['Štandard'] }],
-        variants: [{ title: 'Štandard', options: { Variant: 'Štandard' }, prices: amount > 0 ? [{ amount, currency_code: 'eur' }] : [] }] };
+      const body = { title, status, shipping_profile_id: shipProfile, ...(channels.length === 1 ? { sales_channels: [{ id: channels[0].id }] } : {}), options: [{ title: 'Variant', values: ['Štandard'] }],
+        variants: [{ title: 'Štandard', sku, options: { Variant: 'Štandard' }, prices: amount > 0 ? [{ amount, currency_code: 'eur' }] : [] }] };
       const { product } = await api('/admin/products', { method: 'POST', body });
       vProductDetail(view, product.id);
     } catch (e) { btn.disabled = false; msg.innerHTML = `<div class="err">Jadro odmietlo: ${esc(e.message)}</div>`; }
@@ -259,14 +272,16 @@ async function vProductNew(view) {
 }
 async function vProductDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,thumbnail,metadata,*images,*sales_channels,*variants.prices,*categories,variants.manage_inventory,variants.sku,*variants.inventory_items`);
+  const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,thumbnail,metadata,*images,*sales_channels,*variants.prices,*categories,variants.manage_inventory,variants.sku,*variants.inventory_items,*shipping_profile`);
   const variant = p.variants?.[0]; const price = basePrice(variant);
   const soft = (e) => { if (e.message === '401') throw e; return null; };
-  const [catsR, chR, locR] = await Promise.all([
+  const [catsR, chR, locR, spR] = await Promise.all([
     api('/admin/product-categories?limit=200&fields=id,name').catch(soft),
     api('/admin/sales-channels?limit=50&fields=id,name,is_disabled').catch(soft),
     api('/admin/stock-locations?limit=50&fields=id,name').catch(soft),
+    api('/admin/shipping-profiles?limit=50&fields=id,name,type').catch(soft),
   ]);
+  const profiles = spR?.shipping_profiles || [], curProfile = p.shipping_profile?.id || '';
   const cats = catsR?.product_categories || [], channels = chR?.sales_channels || [], locations = locR?.stock_locations || [];
   const inC = new Set((p.categories || []).map(c => c.id)), inCh = new Set((p.sales_channels || []).map(c => c.id));
   const invItemId = variant?.inventory_items?.[0]?.inventory_item_id || null;
@@ -289,7 +304,9 @@ async function vProductDetail(view, id) {
   const obrazky = `<div id="p-imgs" class="rc-grid"></div>
     <label style="margin-top:12px">Pridať obrázky (JPG, PNG, WebP do 5 MB)</label><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple>
     <p class="muted" style="font-size:12px">Hlavný obrázok sa zobrazuje v zozname produktov a vo výsledkoch vyhľadávania. Zmeny sa uložia tlačidlom Uložiť.</p>`;
-  const predaj = `<p class="muted">Produkt sa v obchode zobrazí len v označených predajných kanáloch.</p>
+  const predaj = `<label>Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" readonly><p class="muted" style="font-size:12px">Kód sa po pridelení nemení – podľa neho obchod produkt nacení.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}
+    <label>Typ produktu (doprava)</label><select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select>
+    <p class="muted" style="margin-top:14px">Produkt sa v obchode zobrazí len v označených predajných kanáloch.</p>
     <div>${channels.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}</label>`).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`;
   const sklad = !variant ? '<p class="muted">Produkt nemá variant.</p>' : `<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="p-inv" ${variant.manage_inventory ? 'checked' : ''} style="width:auto"> Sledovať počet kusov na sklade</label>
     <p class="muted" style="font-size:12px">Digitálne produkty, konzultácie a členstvo sklad nesledujú. Pri fyzickom tovare jadro nepustí predať viac kusov, než je na sklade.</p>
@@ -304,6 +321,8 @@ async function vProductDetail(view, id) {
     return [
       { ok: !!variant && np > 0, block: true, t: 'Cena v EUR' },
       { ok: chosenCh || !channels.length && inCh.size > 0, block: true, t: 'Predajný kanál' },
+      { ok: !!view.querySelector('#p-ship')?.value || !profiles.length && !!curProfile, block: true, t: 'Typ produktu (doprava)' },
+      { ok: !!variant?.sku || SKU_RE.test((view.querySelector('#p-sku')?.value || '').trim().toUpperCase()), block: true, t: 'Kód produktu (SKU)' },
       { ok: images.length > 0, block: false, t: 'Obrázok' },
       { ok: chosenCat, block: false, t: 'Kategória' },
     ];
@@ -325,7 +344,7 @@ async function vProductDetail(view, id) {
     view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const u = images.splice(+b.dataset.rm, 1)[0]; if (thumb === u) thumb = images[0] || null; drawImgs(); renderChecks(); });
   };
   drawImgs(); renderChecks();
-  view.querySelectorAll('#p-price,[data-ch],[data-c]').forEach(el => el.addEventListener('change', renderChecks));
+  view.querySelectorAll('#p-price,#p-ship,#p-sku,[data-ch],[data-c]').forEach(el => el.addEventListener('change', renderChecks));
   view.querySelector('#p-file').onchange = async (e) => {
     const msg = view.querySelector('#pmsg'), files = [...e.target.files]; msg.innerHTML = '';
     const bad = files.find(f => !/^image\/(jpeg|png|webp)$/.test(f.type) || f.size > 5 * 1024 * 1024);
@@ -352,8 +371,11 @@ async function vProductDetail(view, id) {
     const missing = completeness().filter(c => c.block && !c.ok).map(c => c.t);
     if (wantStatus === 'published' && missing.length) { msg.innerHTML = `<div class="err">Produkt sa nedá zverejniť, chýba: ${esc(missing.join(', '))}. Uložte ho ako koncept alebo údaje doplňte.</div>`; return; }
     if ([...view.querySelectorAll('[data-loc]')].some(i => i.value !== '' && !(Number.isInteger(Number(i.value)) && Number(i.value) >= 0))) { msg.innerHTML = '<div class="err">Počet kusov na sklade musí byť celé číslo 0 alebo viac.</div>'; return; }
+    const newSku = variant && !variant.sku ? (view.querySelector('#p-sku')?.value || '').trim().toUpperCase() : '';
+    if (newSku && !SKU_RE.test(newSku)) { msg.innerHTML = '<div class="err">Kód produktu (SKU): 2–64 znakov, len písmená A–Z, číslice, bodka, pomlčka alebo podčiarknik.</div>'; return; }
     btn.disabled = true;
     try {
+      if (newSku) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { sku: newSku } });
       const chosen = [...view.querySelectorAll('[data-c]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.c }));
       const desc = view.querySelector('#p-desc').innerHTML.trim();
       const np = view.querySelector('#p-price').value;
@@ -370,6 +392,7 @@ async function vProductDetail(view, id) {
       else { await clearVariantSale(ref); saleMeta = { active: false }; }
       const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
       const body = { title: view.querySelector('#p-title').value, status: wantStatus, description: desc, categories: chosen, metadata, images: images.map(url => ({ url })), thumbnail: thumb };
+      const ship = view.querySelector('#p-ship').value; if (ship && ship !== curProfile) body.shipping_profile_id = ship;
       if (channels.length) body.sales_channels = [...view.querySelectorAll('[data-ch]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.ch }));
       await api(`/admin/products/${id}`, { method: 'POST', body });
       if (variant) await saveStock();

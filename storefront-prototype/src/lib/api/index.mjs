@@ -15,7 +15,7 @@ export function createApi(storage, adapter) {
     adapter = (useMock || !config) ? createMockApi(storage) : createHttpApi(storage, config);
   }
   let writes=Promise.resolve();
-  const mutations=new Set(['addToCart','setQuantity','applyCoupon','removeCoupon','importQr','sendChatMessage','setChatPreview','addGiftVoucher','applyGiftVoucher','removeGiftVoucher','checkout','createPaymentSession','prepareMembership','startMembershipCheckout','completeMembership','stopMembership','reconcileMembership']);
+  const mutations=new Set(['addToCart','setQuantity','applyCoupon','removeCoupon','importQr','sendChatMessage','setChatPreview','addGiftVoucher','applyGiftVoucher','removeGiftVoucher','checkout','prepareCheckout','acceptCheckoutTerms','createPaymentSession','prepareMembership','startMembershipCheckout','completeMembership','stopMembership','reconcileMembership']);
   return Object.fromEntries(Object.entries(adapter).map(([name,value])=>{
     if(typeof value!=='function')return[name,value];
     return[name,(...args)=>{
