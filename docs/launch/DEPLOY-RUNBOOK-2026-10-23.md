@@ -46,7 +46,8 @@ Každé tajemství vygenerovat jednou (`openssl rand -hex 32`) a vložit na obě
 
 `MEDUSA_PRICING_POLICY_JSON` musí obsahovat `loyaltyTiers`, `brandLimits`, `categoryLimits` a `brandSaleDiscounts`.
 Klíče `loyaltyTiers` odpovídají skupinám z bootstrapu: `ZR1` Bronze, `ZR2` Silver, `ZR3` Gold, `ZR4` VIP.
-Procenta schvaluje vlastník (§9). E2E běželo s prázdnými úrovněmi, tedy bez věrnostních slev.
+Na launch jsou úrovně **prázdné** (`"loyaltyTiers":{}`), tedy bez věrnostních slev; stejně běželo E2E.
+Procenta si zvolí Lucia sama v adminu, jakmile bude editor politiky (fáze 2, §9). Do té doby je nevymýšlíme.
 
 ## 2. Pořadí nasazení (den D-2 až D)
 
@@ -247,10 +248,9 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 | 2 | Schválené verze právních textů (VOP, ochrana údajů, souhlas s newsletterem) → `LEGAL_*_VERSION`, `NEWSLETTER_CONSENT_VERSION` | souhlasy v pokladně a newsletteru | 21. 10. |
 | 3 | E-mailová schránka pro zprávy z webu a chatu (`CONTACT_NOTIFY_EMAIL`, `CHAT_ADMIN_NOTIFY_EMAIL`, `ZEPTOMAIL_REPLY_TO`) | kontakt, chat | 20. 10. |
 | 4 | Potvrzení domén (§0) a přístup k registrátorovi kvůli DNSSEC/NS | DNS | 20. 10. |
-| 5 | Procenta věrnostních úrovní Bronze–VIP, nebo rozhodnutí „bez věrnostních slev na launch“ | `MEDUSA_PRICING_POLICY_JSON` | 20. 10. |
-| 6 | Doprava zdarma od částky, lhůta zrušení konzultace | env | 20. 10. |
-| 7 | Katalog produktů a typy konzultací (lze zadat v adminu) | obsah obchodu | 22. 10. |
-| 8 | Úhrada hostingu backendu + DB (cca 29 USD/měs. dle smlouvy) | provoz | 20. 10. |
+| 5 | Doprava zdarma od částky, lhůta zrušení konzultace | env | 20. 10. |
+| 6 | Katalog produktů a typy konzultací (lze zadat v adminu) | obsah obchodu | 22. 10. |
+| 7 | Úhrada hostingu backendu + DB (cca 29 USD/měs. dle smlouvy) | provoz | 20. 10. |
 
 ## 8. Rozhodnutí a úkoly pro L-Code (Lucky / Jose)
 
@@ -261,6 +261,8 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 5. Cloudflare Access pro `admin.` (doporučení).
 
 ## 9. Fáze 2 (není nutné na 23. 10.)
+
+- Editor věrnostních úrovní Bronze–VIP v adminu (funkce `loyalty`): procenta si nastaví Lucia sama, politika verzovaná na backendu → NEXUS.
 
 - Materiály a faktury v účtu (R2 `MEDIA_BUCKET` binding ve Workeru, chráněná média).
 - Legacy 301 cesty produktů po importu katalogu s `legacy_path` (`export-edge-redirects.ts` → manifest Workeru, route jen pro tyto cesty).
