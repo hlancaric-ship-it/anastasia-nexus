@@ -452,6 +452,7 @@ build projde i bez nich. Tajemství ale nikdy nevyplňovat jen jako B.
 | `ZEPTOMAIL_API_KEY` | S B R | klíč Mail Agentu |
 | `ZEPTOMAIL_FROM_EMAIL` / `_FROM_NAME` / `_REPLY_TO` | B R | `noreply@anastasiaoz.eu` / `ANASTASIA` / schránka Lucie |
 | `ZEPTOMAIL_API_URL` | B R | prázdné (EU výchozí) |
+| `EMAIL_RECIPIENT_ALLOWLIST` | R | fáze A: adresy týmu (`@l-code-dynamics.com`, Lucia); s `PAYMENTS_TEST_MODE=1` bez seznamu neodejde žádný e-mail. Fáze B: smazat |
 | `NEXUS_PRICING_URL` | R | `https://nexus.anastasiaoz.eu/api/nexus/pricing` |
 | `NEXUS_PRICING_API_KEY` | S R | shodný s Workerem (§1) |
 | `NEXUS_TENANT_ID` | R | `anastasia` |

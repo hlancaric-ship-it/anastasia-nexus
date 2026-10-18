@@ -103,6 +103,13 @@ const fileProvider = s3Configured
 
 // --- Notifikace: e-maily přes ZeptoMail, pokud je nastavený klíč; jinak jen log bez osobních údajů (viz docs/DEPLOY.md) ---
 const zeptoMailEnabled = Boolean(env("ZEPTOMAIL_API_KEY"))
+// Testovací provoz (PAYMENTS_TEST_MODE na ostrém Cloudu, staging, náhledy PR): e-maily jen na EMAIL_RECIPIENT_ALLOWLIST,
+// bez seznamu neodejde nic. Ostrý provoz bez omezení, pokud seznam výslovně nenastavíš.
+const emailRecipientAllowlistRaw = env("EMAIL_RECIPIENT_ALLOWLIST")
+const emailTestTraffic = deploy.paymentsTestMode || (deploy.onCloud && deploy.cloudType !== "production")
+const emailRecipientAllowlist = emailRecipientAllowlistRaw || emailTestTraffic
+  ? (emailRecipientAllowlistRaw || "").split(",").map((entry) => entry.trim()).filter(Boolean)
+  : undefined
 const notificationProviders: Array<Record<string, unknown>> = zeptoMailEnabled
   ? [
       {
@@ -115,6 +122,7 @@ const notificationProviders: Array<Record<string, unknown>> = zeptoMailEnabled
           fromName: env("ZEPTOMAIL_FROM_NAME") || "ANASTASIA",
           replyTo: env("ZEPTOMAIL_REPLY_TO") || undefined,
           apiUrl: env("ZEPTOMAIL_API_URL") || undefined,
+          recipientAllowlist: emailRecipientAllowlist,
         },
       },
       // kanál feed (in-app) zůstává na log provideru – jeden kanál smí mít jen jeden provider

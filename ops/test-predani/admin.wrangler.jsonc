@@ -1,0 +1,15 @@
+{
+  // Testovací předání ANASTASIA (19. 10. 2026): vlastní admin jako statické assety Workeru na samostatné subdoméně L-Code.
+  // Přihlášení řeší Medusa (Bearer token), navíc doporučeno Cloudflare Access (viz docs/launch/TEST-PREDANI-2026-10-19.md).
+  "$schema": "../../nexus/node_modules/wrangler/config-schema.json",
+  "name": "anastasia-test-admin",
+  "account_id": "3a147fa6382bb87477201b385bb945ea",
+  "compatibility_date": "2026-10-18",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "anastasia-test-admin.l-code-dynamics.com", "custom_domain": true }],
+  "assets": {
+    "directory": "../../anastasia-admin/dist",
+    "not_found_handling": "single-page-application"
+  }
+}

@@ -30,4 +30,5 @@ await writeFile(join(out, '_headers'), `/*
   Strict-Transport-Security: max-age=31536000
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: ${api}${media ? ' ' + media : ''}; connect-src 'self' ${api}; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
 `);
+await writeFile(join(out, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 console.log(`Admin build: dist/ → jadro ${api}${media ? `, médiá ${media}` : ''}`);
