@@ -42,6 +42,30 @@ Vzor: `.env.template`. Hodnoty se nastavují v prostředí hostingu (secrets), n
 V produkci `medusa-config.ts` spuštění odmítne (hodí chybu), pokud: není Postgres, secrety jsou slabé nebo shodné,
 CORS není HTTPS, chybí live Stripe klíč nebo `whsec_`. Chybějící `REDIS_URL` a `S3_*` jen varuje.
 
+### Funkce Fáze 1 (Klub, účet, chat, poukazy, konzultace, média, QR kupóny)
+
+Bez těchto hodnot backend nastartuje, ale daná funkce v produkci selže nebo pošle odkaz na špatnou adresu.
+
+| Proměnná | Popis |
+|---|---|
+| `MAGIC_LINK_BASE_URL` | URL potvrzení přihlášení na storefrontu |
+| `ACCOUNT_URL`, `ACCOUNT_ORDERS_URL`, `ACCOUNT_BOOKINGS_URL` | odkazy v e-mailech na účet, objednávky a konzultace |
+| `GIFT_VOUCHER_DELIVERY` | v produkci `notification` (jinak se kód poukazu jen zaloguje); po nasazení v adminu znovu uložit nastavení poukazů |
+| `COUPON_LINK_STOREFRONT_ORIGIN` | `https://<storefront>`; bez ní admin nevygeneruje QR odkaz kupónu (500) |
+| `CHAT_ADMIN_NOTIFY_EMAIL` | adresa pro souhrn nových zpráv; bez ní se souhrn jen zaloguje |
+| `CHAT_ADMIN_URL` | URL chatu ve **vlastním** adminu (`https://<admin>/#/chat`); výchozí hodnota míří na Medusa `/app/chat`, který nepoužíváme |
+| `CHAT_STOREFRONT_URL` | odkaz na chat v účtu zákaznice v e-mailu s odpovědí |
+| `CHAT_RETENTION_DAYS` | retence obsahu chatu, 30–3650, výchozí 365 |
+| `MEDIA_TOKEN_SECRET`, `MEDIA_DELIVERY_BASE_URL` | tajemství min. 32 znaků shodné s Workerem a URL doručení médií |
+| `NEXUS_BOOKING_SYNC_SECRET` | shodné s Worker secretem `MEDUSA_BOOKING_SYNC_SECRET`; bez něj `/hooks/nexus/booking-order` vrací 503 |
+| `OPS_INGEST_SECRET` | shodné s Worker secretem `OPS_INGEST_SECRET` (min. 32 znaků) |
+| `LEGAL_TERMS_VERSION`, `LEGAL_PRIVACY_VERSION`, `NEWSLETTER_CONSENT_VERSION` | verze právních textů schválené vlastníkem textů |
+| `ANASTASIA_FREE_SHIPPING_FROM_EUR`, `ORDER_SELF_CANCEL_BOOKING_HOURS` | doprava zdarma od částky, lhůta zrušení konzultace zákaznicí |
+
+Klub (`pp_membership_stripe_membership`) nepotřebuje vlastní Stripe webhook: první platbu potvrzuje `settle`
+po dokončení košíku a joby `membership-billing` / `membership-access-reconcile` (každých 10 minut) dohledají
+přerušené platby a obnovy. Používá stejné `STRIPE_API_KEY`.
+
 ## 3. Stripe
 
 1. V účtu Objednatele (LUCRAT s.r.o.) zapnout karty, Apple Pay a Google Pay (Settings > Payment methods; Apple Pay vyžaduje ověření domény storefrontu).
