@@ -13,6 +13,17 @@ node serve.mjs        # http://127.0.0.1:4178
 Přihlášení (lokální dev): `admin@anastasia.local` / `Anastasia2026!`.
 Jiné jádro: v konzoli `localStorage.setItem('ana_api','https://…')` a refresh.
 
+## Produkční build (Cloudflare Pages)
+```
+ANASTASIA_API_ORIGIN=https://api.anastasiaoz.eu \
+ANASTASIA_MEDIA_ORIGIN=https://media.anastasiaoz.eu \
+node build.mjs        # → dist/
+```
+- adresa jádra se zapíše do `<meta name="ana-api">` a má přednost před `localStorage`;
+- `dist/_headers`: CSP (`connect-src` jen na jádro), `noindex`, `X-Frame-Options: DENY`, HSTS;
+- bez https originu build skončí chybou;
+- origin adminu musí být v `ADMIN_CORS` a `AUTH_CORS` backendu.
+
 ## Stav agend
 **Funkční proti Admin API (vše přes existující routy jádra, citlivé výpočty jen na backendu):**
 - **Prehľad** – čísla + karta *Pripravenosť obchodu* z `GET /admin/readiness` (blokery, doporučení, „nedá sa overiť“ – nikdy falešné OK).
