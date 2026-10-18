@@ -4,6 +4,7 @@
 import { createMockApi } from './mock.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
+const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
 const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena sa doplní');
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
@@ -130,7 +131,8 @@ export function createHttpApi(storage, config) {
     };
   }
 
-  return {
+  // createApi volá metódy bez `this`, vnútorné volania preto idú cez `self`.
+  const self = {
     ...mock,
     mode: 'http',
 
@@ -376,74 +378,15 @@ export function createHttpApi(storage, config) {
       return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
     },
     async getAccount() {
-      if (!loggedIn()) return mock.getAccount();
-      const r = await call('/store/orders?limit=20&fields=display_id,created_at,total,status,*items');
+      if (!loggedIn()) return { ok: false, name: '', orders: [] };
+      const r = await call('/store/orders?limit=20&order=-created_at&fields=display_id,created_at,total,status,*items');
+      if (!r.ok) return { ok: false, name: '', orders: [] };
       const orders = (r.data?.orders || []).map(o => ({
         number: String(o.display_id ?? o.id), date: new Date(o.created_at).toLocaleDateString('sk-SK'),
         product: (o.items || [])[0]?.product_title || (o.items || [])[0]?.title || '—',
-        status: o.status || '—', totalLabel: money(o.total),
+        status: ORDER_STATUS[o.status] || 'Prijatá', totalLabel: money(o.total),
       }));
-      return { name: 'Zákazníčka', orders };
-    },
-
-    // QR odkaz → košík: produkt + množstvo + voliteľný kupón. Idempotentné cez uložený kľúč (max 50).
-    async importQr(params) {
-      const code = params.get('produkt'); if (!code) return { ok: false, message: 'V odkaze chýba kód produktu.' };
-      const qty = params.get('ks') ?? '1', couponCode = params.get('kupon') ?? '';
-      if (!/^[1-9]\d?$/.test(qty)) return { ok: false, message: 'QR odkaz obsahuje neplatné množstvo (1–99).' };
-      let keys = []; try { keys = JSON.parse(get(QRKEYS) || '[]'); } catch { keys = []; }
-      const key = JSON.stringify([code, qty, couponCode]);
-      if (keys.includes(key)) return { ok: true, message: 'Tento QR odkaz už bol použitý. Košík sa nezdvojil.' };
-      const added = await this.addToCart(code, Number(qty));
-      if (!added.ok) return added;
-      keys.push(key); set(QRKEYS, JSON.stringify(keys.slice(-50)));
-      let extra = '';
-      if (couponCode) { const c = await this.applyCoupon(couponCode); extra = ' ' + c.message; }
-      return { ok: true, message: added.message + extra };
-    },
-
-    // Darčekový poukaz: nákup (variant + príjemca) a uplatnenie kreditu v košíku (výšku určuje server).
-    async getGiftVoucherProduct() {
-      const r = await call(`/store/products?handle=darkovy-poukaz&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
-      const p = r.data?.products?.[0];
-      // Bez publikovaného produktu (poukazy vypnuté v adminu) ponuka zostane prázdna, nikdy ukážkové hodnoty.
-      if (!r.ok || !p) return { id: '', handle: 'darkovy-poukaz', variants: [] };
-      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, amount: v.calculated_price?.calculated_amount })) };
-    },
-    async addGiftVoucher({ variant_id, recipient }) {
-      if (!variant_id) return { ok: false, message: 'Vybraná hodnota poukazu už nie je dostupná.' };
-      if (!recipient?.name?.trim() || !/^\S+@\S+\.\S+$/.test(recipient?.email || '') || Array.from(recipient.message || '').length > 300)
-        return { ok: false, message: 'Skontrolujte meno, e-mail a odkaz (najviac 300 znakov).' };
-      const id = await ensureCart(); if (!id) return { ok: false, message: 'Košík sa nepodarilo vytvoriť.' };
-      const li = await call(`/store/carts/${id}/line-items`, { method: 'POST', body: { variant_id, quantity: 1 } });
-      if (!li.ok) return { ok: false, message: 'Poukaz sa nepodarilo pridať do košíka.' };
-      const rec = await call('/store/gift-vouchers/recipients', { method: 'POST', body: { cart_id: id, recipients: { [variant_id]: [recipient] } } });
-      await reprice();
-      return { ok: true, message: 'Poukaz pridaný do košíka.', cart: await cartShape(), recipients: rec.data?.recipients };
-    },
-    async applyGiftVoucher(code) {
-      const id = await ensureCart(); if (!id) return { ok: false, message: 'Košík je prázdny.' };
-      const r = await call('/store/gift-vouchers/apply', { method: 'POST', body: { cart_id: id, code: String(code || '').trim() } });
-      if (r.ok && r.data?.ok) { set(GIFT, JSON.stringify(r.data.gift_voucher || null)); return { ok: true, gift_voucher: r.data.gift_voucher, cart: await cartShape(), message: 'Poukaz bol uplatnený.' }; }
-      return { ok: false, status: r.status, error: r.data?.error || 'GIFT_VOUCHER_INVALID', message: r.data?.message || 'Poukaz nie je platný alebo už nie je dostupný.' };
-    },
-    async removeGiftVoucher() {
-      const id = get(CART); del(GIFT);
-      if (id) await call('/store/gift-vouchers/remove', { method: 'POST', body: { cart_id: id } });
-      await reprice();
-      return cartShape();
-    },
-
-    // História objednávok a zákaznícke centrum (prihlásene). Materiály/rezervácie: Fáza 2 → zatiaľ prázdne.
-    async getAccount() {
-      if (!loggedIn()) return mock.getAccount();
-      const r = await call('/store/orders?limit=20&fields=display_id,created_at,total,status,*items');
-      const orders = (r.data?.orders || []).map(o => ({
-        number: String(o.display_id ?? o.id), date: new Date(o.created_at).toLocaleDateString('sk-SK'),
-        product: (o.items || [])[0]?.product_title || (o.items || [])[0]?.title || '—',
-        status: o.status || '—', totalLabel: money(o.total),
-      }));
-      return { name: 'Zákazníčka', orders };
+      return { ok: true, orders };
     },
     // E-mail prihlásenej zákazníčky na predvyplnenie platobného formulára (bez neho Stripe pýta e-mail pre Link).
     async getCustomerEmail() {
@@ -452,16 +395,32 @@ export function createHttpApi(storage, config) {
       return r.data?.customer?.email || '';
     },
     async getCustomerCenter() {
-      if (!loggedIn()) return mock.getCustomerCenter();
-      const me = await call('/store/customers/me?fields=first_name,last_name,email,phone,metadata');
+      if (!loggedIn()) return { ok: false, bookings: [], materials: [], reorder: [], profile: null };
+      const [me, bk] = await Promise.all([call('/store/customers/me?fields=first_name,last_name,email,phone,metadata'), call('/store/bookings')]);
+      if (!me.ok) return { ok: false, bookings: [], materials: [], reorder: [], profile: null };
       const c = me.data?.customer || {};
       const md = c.metadata || {};
-      const reorder = (await this.getProducts()).slice(0, 3);
-      // TODO(src/lib/api/http.mjs): bookings a materials (knižnica/faktúry) sú Fáza 2 – zatiaľ prázdne.
+      const reorder = (await self.getProducts()).slice(0, 3);
+      // Rezervácie: len zaplatené alebo práve držané termíny; názov konzultácie podľa produktu.
+      const raw = (bk.data?.bookings || []).filter(b => b.status === 'confirmed' || b.status === 'completed' || (b.status === 'held' && b.order_id));
+      const ids = [...new Set(raw.map(b => b.product_id))];
+      const titles = new Map();
+      if (ids.length) {
+        const pr = await call(`/store/products?${ids.map(id => `id[]=${encodeURIComponent(id)}`).join('&')}&fields=id,title&limit=${ids.length}`);
+        for (const p of pr.data?.products || []) titles.set(p.id, p.title);
+      }
+      const tz = 'Europe/Bratislava', fmt = (d, o) => new Intl.DateTimeFormat('sk-SK', { timeZone: tz, ...o }).format(d);
+      const bookings = raw.map(b => {
+        const s = new Date(b.starts_at), e = new Date(b.ends_at);
+        return { id: b.id, upcoming: s.getTime() > Date.now(), day: fmt(s, { day: 'numeric' }), month: fmt(s, { month: 'short' }), title: titles.get(b.product_id) || 'Konzultácia',
+          date: `${fmt(s, { day: 'numeric', month: 'numeric', year: 'numeric' })} · ${fmt(s, { hour: '2-digit', minute: '2-digit' })} – ${fmt(e, { hour: '2-digit', minute: '2-digit' })}`,
+          status: b.status === 'completed' ? 'Prebehla' : 'Potvrdený termín' };
+      });
+      // TODO(src/lib/api/http.mjs): materials (knižnica/faktúry) sú Fáza 2 – zatiaľ prázdne.
       return {
-        mode: 'http', bookings: [], materials: [], reorder,
+        ok: true, mode: 'http', bookings, bookingsOk: bk.ok, materials: [], reorder,
         profile: {
-          name: [c.first_name, c.last_name].filter(Boolean).join(' ') || 'Zákazníčka', email: c.email || '', phone: c.phone || '',
+          name: [c.first_name, c.last_name].filter(Boolean).join(' '), email: c.email || '', phone: c.phone || '',
           birthDate: md.birth_date || '', birthTime: md.birth_time || '', birthPlace: md.birth_place || '',
           street: md.street || '', city: md.city || '', postalCode: md.postal_code || '',
         },
@@ -480,11 +439,12 @@ export function createHttpApi(storage, config) {
     },
 
     // Chat (Fáza 2 – AI asistent chat volá tieto routy). Reálne napojenie na /store/chat/*.
-    async getChatStatus() { const r = await call('/store/chat/status'); return r.ok ? r.data : mock.getChatStatus(); },
-    async getChatConversations() { const r = await call('/store/chat/conversations'); return r.ok ? { conversations: r.data?.conversations || [] } : mock.getChatConversations(); },
+    // Pri výpadku žiadne ukážkové konverzácie: chat sa ukáže ako dočasne nedostupný.
+    async getChatStatus() { const r = await call('/store/chat/status'); return r.ok ? r.data : { can_write: false, reason: 'chat_unavailable' }; },
+    async getChatConversations() { const r = await call('/store/chat/conversations'); return { conversations: r.ok ? r.data?.conversations || [] : [] }; },
     async getChatConversation(id) {
-      const r = await call(`/store/chat/conversations/${id}`);
-      return r.ok ? { conversation: r.data?.conversation, messages: r.data?.messages || [] } : mock.getChatConversation(id);
+      const r = await call(`/store/chat/conversations/${encodeURIComponent(id)}`);
+      return r.ok ? { conversation: r.data?.conversation, messages: r.data?.messages || [] } : { conversation: null, messages: [] };
     },
     async markChatRead(id) { const r = await call(`/store/chat/conversations/${id}/read`, { method: 'POST' }); return r.ok ? r.data : { ok: true }; },
     async sendChatMessage({ conversation_id, body }) {
@@ -499,4 +459,5 @@ export function createHttpApi(storage, config) {
 
     isLoggedIn: loggedIn,
   };
+  return self;
 }

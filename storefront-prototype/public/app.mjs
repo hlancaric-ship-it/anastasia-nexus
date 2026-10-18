@@ -27,9 +27,34 @@ if(customerCenter){
   addEventListener('hashchange',()=>show(location.hash.slice(1)));
   $$('[data-material-filter]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const filter=btn.dataset.materialFilter;$$('[data-material-filter]',customerCenter).forEach(item=>item.setAttribute('aria-pressed',String(item===btn)));$$('[data-material-category]',customerCenter).forEach(row=>{row.hidden=!!filter&&row.dataset.materialCategory!==filter;});}));
   $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{$('.form-status',form).textContent=(await api.saveCustomerProfile(Object.fromEntries(new FormData(form)))).message;}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
+  // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.
+  (async()=>{
+    const put=(sel,html)=>$$(sel,customerCenter).forEach(el=>{el.innerHTML=html;});
+    const note=text=>`<p class="form-status">${e(text)}</p>`;
+    if(!(typeof api.isLoggedIn==='function'&&await api.isLoggedIn())){put('#center-next-booking,#center-last-order,#center-bookings,#center-orders',note('Pre zobrazenie účtu sa prihláste.'));$('.center-content',customerCenter).insertAdjacentHTML('afterbegin',`<div class="empty-state"><h2>Pre zobrazenie účtu sa prihláste.</h2>${button('/prihlasenie','Prihlásiť sa')}</div>`);return;}
+    let account,data;
+    try{[account,data]=await Promise.all([api.getAccount(),api.getCustomerCenter()]);}catch{account={ok:false,orders:[]};data={ok:false,bookings:[],reorder:[]};}
+    const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');
+    if(data.ok&&data.profile){
+      const pr=data.profile;$('#center-name').textContent=pr.name||pr.email;
+      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});
+    }
+    if(account.ok){
+      const o=account.orders;
+      put('#center-last-order',o.length?`<h2>${e(o[0].number)}</h2><p>${e(o[0].status)}</p>`:note('Zatiaľ nemáte žiadnu objednávku.'));
+      put('#center-orders',o.length?o.map(order=>`<article class="center-order"><div><strong>${e(order.number)}</strong><small>${e(order.date)}</small></div><span>${e(order.product)}</span><span>${e(order.totalLabel)}</span><span class="center-chip">${e(order.status)}</span><a class="text-link" href="/kontakt">Otázka k objednávke ${arrow}</a></article>`).join(''):note('Zatiaľ nemáte žiadnu objednávku.'));
+    }else put('#center-last-order,#center-orders',unavailable);
+    if(data.ok&&data.bookingsOk){
+      const b=data.bookings,next=b.filter(x=>x.upcoming).at(-1);
+      put('#center-next-booking',next?`<div class="center-date"><span>${e(next.day)}<small>${e(next.month)}</small></span><h2>${e(next.title)}</h2></div><p>${e(next.date)}</p>`:note('Nemáte naplánovanú konzultáciu.'));
+      put('#center-bookings',b.length?b.map(c=>`<article class="center-card"><div class="center-date"><span>${e(c.day)}<small>${e(c.month)}</small></span><h2>${e(c.title)}</h2></div><p>${e(c.date)} · ${e(c.status)}</p><button type="button" class="button outline" data-account-go="chat">Napísať Lucii ${arrow}</button></article>`).join(''):note('Nemáte naplánovanú konzultáciu.'));
+      $$('#center-bookings [data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);}));
+    }else put('#center-next-booking,#center-bookings',unavailable);
+    put('[data-center-reorder]',(data.reorder||[]).map(p=>`<article class="center-reorder"><img src="${e(p.image)}" alt="" width="60" height="75"><div><h3>${e(p.name)}</h3><p>${e(p.priceLabel)}</p></div><button type="button" class="button outline" data-add="${e(p.code)}">Do košíka</button></article>`).join(''));
+  })();
 }
 
-const chatErrors={chat_not_eligible:'Chat je dostupný po nákupe produktu, programu alebo rezervácii služby.',chat_blocked:'Odosielanie správ je pre váš účet pozastavené. Kontaktujte nás cez kontaktný formulár.',chat_consecutive_limit:'Odoslali ste tri správy po sebe. Počkajte, prosím, na odpoveď Lucie.',chat_daily_limit:'Dosiahli ste denný limit správ. Skúste to znova zajtra.',conversation_closed:'Táto konverzácia je uzavretá. Môžete začať novú konverzáciu.',message_too_long:'Správa môže mať najviac 2000 znakov.',message_empty:'Napíšte správu pred odoslaním.'};
+const chatErrors={chat_unavailable:'Chat je dočasne nedostupný. Skúste to znova o chvíľu.',chat_not_eligible:'Chat je dostupný po nákupe produktu, programu alebo rezervácii služby.',chat_blocked:'Odosielanie správ je pre váš účet pozastavené. Kontaktujte nás cez kontaktný formulár.',chat_consecutive_limit:'Odoslali ste tri správy po sebe. Počkajte, prosím, na odpoveď Lucie.',chat_daily_limit:'Dosiahli ste denný limit správ. Skúste to znova zajtra.',conversation_closed:'Táto konverzácia je uzavretá. Môžete začať novú konverzáciu.',message_too_long:'Správa môže mať najviac 2000 znakov.',message_empty:'Napíšte správu pred odoslaním.'};
 const chatForm=$('#chat-form');
 if(chatForm){
   const body=chatForm.elements.body,send=$('button',chatForm),selection=$('#chat-conversation');
