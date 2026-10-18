@@ -102,6 +102,36 @@
           }
         ]
       }
+    },
+
+    // Testovací předání ANASTASIA (19. 10. 2026) na subdoménách L-Code: vlastní Worker, vlastní D1 a vlastní DO stav,
+    // nic se nesdílí s produkcí ani s dev. Secrety (HMAC_SECRET, MEDUSA_*, OPS_INGEST_*) jen přes
+    // `wrangler secret put … --env anastasia-test`. Postup: docs/launch/TEST-PREDANI-2026-10-19.md.
+    "anastasia-test": {
+      "name": "nexus-api-anastasia-test",
+      "workers_dev": false,
+      "routes": [{ "pattern": "anastasia-test-nexus.l-code-dynamics.com", "custom_domain": true }],
+      "observability": { "enabled": true },
+      "vars": {
+        "ENVIRONMENT": "production",
+        "ALLOWED_ORIGINS": "https://anastasia-test.l-code-dynamics.com,https://anastasia-test-admin.l-code-dynamics.com"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "nexus-voucher-anastasia-test",
+          "database_id": "88911e76-7cb5-437f-a9cb-df230c42f74f",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "VOUCHER_SECURITY",
+            "class_name": "SecurityCoordinator"
+          }
+        ]
+      }
     }
   }
 

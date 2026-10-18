@@ -107,6 +107,8 @@ function convert(src, {page, region = 'body', data = {}}) {
   const events = {openMenu: 'data-menu-open="top" aria-controls="dc-top-menu" aria-expanded="false"', openSide: 'data-menu-open="side" aria-controls="dc-side-menu" aria-expanded="false"', closeMenu: 'data-menu-close', togglePlay: 'data-video-toggle', toggleSound: 'data-sound-toggle', subscribe: 'data-newsletter'};
   h = h.replace(/\son(?:Click|Submit)="\{\{ (\w+) \}\}"/g, (_, fn) => events[fn] ? ' ' + events[fn] : '');
   h = h.replace(/ value="\{\{ email \}\}" onChange="\{\{ setEmail \}\}"/g, ' name="email" autocomplete="email" aria-label="Váš e-mail" required');
+  // Newsletter: text súhlasu pri formulári (verzia textu = NEWSLETTER_CONSENT_VERSION na backende).
+  h = h.replace(/(<form data-newsletter[\s\S]*?<\/form>)/g, '$1<p class="newsletter-consent" style="max-width:480px;margin:10px 0 0;font-size:12px;line-height:1.5;opacity:.75">Odoslaním súhlasíte so zasielaním noviniek ANASTASIA e-mailom. Odhlásiť sa môžete kedykoľvek. <a href="/gdpr" style="color:inherit">Súkromie a GDPR</a></p><p class="newsletter-status" role="status" style="max-width:480px;margin:6px 0 0;font-size:13px"></p>');
   // Hodnoty.
   const values = {
     railPad: 'var(--rail-pad)', railNeg: 'var(--rail-neg)', heroHeight: '100vh', captionLeft: 'var(--cap-left)', menuRight: 'var(--menu-right)',
@@ -203,8 +205,9 @@ export function chrome(page) {
     // Spodní blok: Aktuality (Zdravá lekáreň – aktuality zo starého webu).
     .replace(/(<a\b[^>]*>\s*Zdravý svet\s*<\/a>)/, '$1'+mi('Aktuality'))
     .replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
+  const accountLink = '<a class="global-account" data-global-account href="/prihlasenie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><span>Prihlásiť sa</span></a>';
   return {
-    header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>'),
+    header: convert(src.header, {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<span class="header-spacer" aria-hidden="true"></span>').replace('<dc-wide><a href="/konzultacie">', accountLink+'<dc-wide><a href="/konzultacie">'),
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
@@ -291,6 +294,7 @@ footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!im
 }
 /* Kolekcia na landing page: prehľad (nie obchod), na mobile rotujúci pás 2 kariet */
 .kol-tabs{display:none}
+.kol-track:not([data-ready])>*{visibility:hidden}
 @media(max-width:699.98px){
 .kol-tabs{display:flex;gap:8px;margin:-24px 0 22px;overflow-x:auto;scrollbar-width:none}
 .kol-tabs a{flex:none;height:34px;padding:0 16px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid rgba(239,229,199,.24);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#EFE5C7;text-decoration:none}

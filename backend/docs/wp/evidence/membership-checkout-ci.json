@@ -1,0 +1,45 @@
+{
+  "status": "VERIFIED",
+  "scope": "immutable pre-payment contract, native settlement and recovery; not full subscription billing",
+  "source_head": "809e6769bd4643a690394e9321e9e3eab1e18e38",
+  "tested_merge": "b485d6c71f665fd07cda1af1c682bde4a4e5bf82",
+  "focused_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39026938969",
+  "full_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39026938973",
+  "focused": {
+    "unit": {
+      "passed": 115,
+      "total": 115
+    },
+    "native_medusa_postgres": {
+      "passed": 4,
+      "total": 4
+    },
+    "backend_tsc": "PASS",
+    "admin_map_source_checker": "PASS"
+  },
+  "regression": {
+    "backend": {
+      "passed": 854,
+      "total": 854
+    },
+    "nexus": {
+      "passed": 1233,
+      "total": 1233
+    },
+    "workerd": {
+      "passed": 142,
+      "total": 142
+    },
+    "http": {
+      "passed": 151,
+      "total": 151
+    }
+  },
+  "limitations": [
+    "Internal functions only; public enrollment HTTP not implemented.",
+    "Native completion guard must enforce membership agreement before public activation.",
+    "Saved payment method/mandate and automatic renewal charging not implemented.",
+    "Actual native system-provider capture/settlement tested, not a complete NEXUS/Stripe subscription checkout.",
+    "Production membership registration remains deferred to Claude; no merge or deployment."
+  ]
+}

@@ -45,13 +45,15 @@ function legalPage(page,render){
 }
 export function legacyPage(page,{about=false,contactForm=''}={}){
   page=withClaims(page);
+  // Konzultácie sa objednávajú výberom termínu (rezervácia), nie cez starý e-shop.
+  const consult=/\/konzultacie(\/|$)/.test(page.source);
   if(!page.blocks.length)return '';
   const photos=page.blocks.filter(b=>b.type==='image');let first=!about;
   const render=b=>{
     if(b.type==='image')return '';
     if(/^h[1-6]$/.test(b.type)){const tag=first?'h1':b.type==='h1'?'h2':b.type;first=false;return `<${tag} class="reveal">${e(b.text)}</${tag}>`;}
     if(['table','ul','ol'].includes(b.type))return `<div class="source-structure">${b.html}</div>`;
-    return b.chunks.map(part=>{let html=e(part);for(const link of b.links||[]){if(!link.text||!link.href||!(/^(https?:|mailto:|tel:|\/)/.test(link.href)))continue;const href=link.href.startsWith('/')?(content[link.href.replace(/\/$/,'')]?link.href:'https://anastasiaoz.eu'+link.href):link.href;html=html.replace(e(link.text),`<a class="source-link" href="${e(href)}">${e(link.text)}</a>`);}return `<p class="source-text">${html}</p>`;}).join('');
+    return b.chunks.map(part=>{let html=e(part);for(const link of b.links||[]){if(!link.text||!link.href||!(/^(https?:|mailto:|tel:|\/)/.test(link.href)))continue;const href=link.href.startsWith('/eshop/produkt/')?(consult?`/konzultacie/rezervacia?typ=${encodeURIComponent(link.href.split('#')[0].split('/').pop())}`:link.href.split('#')[0]):link.href.startsWith('/')?(content[link.href.replace(/\/$/,'')]?link.href:'https://anastasiaoz.eu'+link.href):link.href;html=html.replace(e(link.text),`<a class="source-link" href="${e(href)}">${e(link.text)}</a>`);}return `<p class="source-text">${html}</p>`;}).join('');
   };
   if(LEGAL.some(x=>page.source.endsWith(x)))return legalPage(page,render);
   const groups=[];let group=[];
@@ -70,5 +72,5 @@ export function legacyPage(page,{about=false,contactForm=''}={}){
     const mode=about?'author-quote':i===0?'source-opening':images.length?'source-gallery':'source-chapter';
     return `<section class="section ${mode} ${images.length?'has-photo':''}"><div class="story-copy">${group.map(render).join('')}</div>${about?'':visual}</section>`;
   }).join('');
-  return `${opening}${title}<article class="legacy-story ${reading?'reading-story':''} ${about?'lucia-story':''}">${body}</article>${about?`<section class="author-film">${media('/media/poster.jpg','',true)}${button('/konzultacie','Konzultácie','light')}</section>`:''}${contactForm}${button('/','Na úvod','legacy-back')}`;
+  return `${opening}${title}<article class="legacy-story ${reading?'reading-story':''} ${about?'lucia-story':''}">${body}</article>${about?`<section class="author-film">${media('/media/poster.jpg','',true)}${button('/konzultacie','Konzultácie','light')}</section>`:''}${consult?`<section class="section booking-cta">${button('/konzultacie/rezervacia','Vybrať termín konzultácie')}</section>`:''}${contactForm}${button('/','Na úvod','legacy-back')}`;
 }

@@ -13,7 +13,7 @@ function nativeScalar(value:unknown,depth=0):string|number{
  }
  return fail('INVALID_NATIVE_AMOUNT')
 }
-function oneUnit(value:unknown):boolean{
+export function isOneNativeUnit(value:unknown):boolean{
  try{return /^1(?:\.0+)?$/.test(String(nativeScalar(value)))}catch{return false}
 }
 export function euroMinor(input:unknown):number{
@@ -47,7 +47,7 @@ export async function loadNativeMembershipReceipt(scope:Scope,orderId:string,bin
  if(order.id!==orderId||order.customer_id!==binding.customer_id)return fail('NATIVE_ORDER_OWNER_MISMATCH')
  if(typeof order.status!=='string'||order.status==='canceled'||order.currency_code!=='eur')return fail('NATIVE_ORDER_NOT_ELIGIBLE')
  const items=order.items
- if(!Array.isArray(items)||items.length!==1||!oneUnit(items[0].quantity)||items[0].product_id!==binding.product_id||items[0].variant_id!==binding.variant_id)return fail('NATIVE_MEMBERSHIP_ITEMS_MISMATCH')
+ if(!Array.isArray(items)||items.length!==1||!isOneNativeUnit(items[0].quantity)||items[0].product_id!==binding.product_id||items[0].variant_id!==binding.variant_id)return fail('NATIVE_MEMBERSHIP_ITEMS_MISMATCH')
  const total=euroMinor(order.total)
  if(total<=0)return fail('NATIVE_MEMBERSHIP_PAYMENT_REQUIRED')
  const collections=order.payment_collections

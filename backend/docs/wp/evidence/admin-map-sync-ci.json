@@ -1,0 +1,36 @@
+{
+  "status": "VERIFIED",
+  "scope": "source inventory synchronization; no runtime changes",
+  "source_head": "12e66378f380659080fbd329837515d0f435b0ff",
+  "tested_merge": "84639cea74cb34e96367dee6ea1b87639548880f",
+  "full_ci": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39026452999",
+  "focused": {
+    "source_checker": "PASS",
+    "unit": {
+      "passed": 1,
+      "total": 1
+    }
+  },
+  "regression": {
+    "backend": {
+      "passed": 819,
+      "total": 819
+    },
+    "nexus": {
+      "passed": 1233,
+      "total": 1233
+    },
+    "workerd": {
+      "passed": 142,
+      "total": 142
+    },
+    "http": {
+      "passed": 151,
+      "total": 151
+    }
+  },
+  "limitations": [
+    "Whole admin and subscription billing remain PARTIAL.",
+    "No live providers, merge or deployment."
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "at": "2026-10-18T08:25:09.423Z",
+  "results": [
+    {
+      "step": "admin-login",
+      "ok": true
+    },
+    {
+      "step": "kategorie-vytvorena",
+      "ok": true,
+      "detail": {
+        "catName": "E2E Rituály mvdk88e1"
+      }
+    },
+    {
+      "step": "sku-predvyplnene",
+      "ok": true,
+      "detail": {
+        "sku": "E2E-RUZOVY-OLEJ-MVDK88E1"
+      }
+    },
+    {
+      "step": "produkt-vytvoreny-koncept",
+      "ok": true,
+      "detail": {
+        "title": "E2E Ružový olej mvdk88e1",
+        "cena": 24.9
+      }
+    },
+    {
+      "step": "obrazek-nahrany",
+      "ok": true,
+      "detail": {
+        "upMsg": "Obrázky sú nahraté. Nezabudnite Uložiť."
+      }
+    },
+    {
+      "step": "produkt-ulozeny-publikovany",
+      "ok": true,
+      "detail": {
+        "save1": "Uložené."
+      }
+    },
+    {
+      "step": "cena-a-sklad-ulozene",
+      "ok": true,
+      "detail": {
+        "save2": "Uložené."
+      }
+    },
+    {
+      "step": "stav-po-reloadu",
+      "ok": true,
+      "detail": {
+        "stock": "12",
+        "priceNow": "26.5",
+        "checks": "✓ Cena v EUR✓ Predajný kanál✓ Typ produktu (doprava)✓ Kód produktu (SKU)✓ Obrázok✓ Kategória"
+      }
+    },
+    {
+      "step": "obrazek-viditelny-v-adminu",
+      "ok": true
+    }
+  ],
+  "api": [
+    "POST /admin/product-categories 200",
+    "POST /admin/products 200",
+    "POST /admin/uploads 200",
+    "POST /admin/products/prod_01M571TGY46VCERKNTDX6Y39FJ 200",
+    "POST /admin/shop-prices/variant_01M571TH372FD9K444X2H3MP2B 200",
+    "POST /admin/products/prod_01M571TGY46VCERKNTDX6Y39FJ 200",
+    "POST /admin/inventory-items/iitem_01M571TH46E17G0YBGKJY83HC1/location-levels 200"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

@@ -162,6 +162,9 @@ async function verifySharedCalendarAdmin({ api, container, options, opts, produc
   expect(created.status).toBe(201)
   const short = created.data.type
   expect(short).toMatchObject({ duration_minutes: 30, buffer_minutes: 0, price_eur: 20, active: true, archived: false })
+  // Bez SKU by košík s konzultáciou neprešiel NEXUS prepočtom.
+  const { data: [shortVariant] } = await container.resolve(ContainerRegistrationKeys.QUERY).graph({ entity: "product_variant", fields: ["sku"], filters: { id: short.variant_id } })
+  expect(shortVariant.sku).toMatch(/^KONZULTACIA-/)
   const listed = await api.get("/admin/booking/types", admin)
   expect(listed.status).toBe(200)
   expect(listed.data.types.map((t: any) => t.id)).toContain(short.id)

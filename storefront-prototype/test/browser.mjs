@@ -11,7 +11,7 @@ const watch=ctx=>{
   ctx.on('page',p=>{p.on('pageerror',err=>errors.push(p.url()+' '+err.message));p.on('console',m=>{if(m.type()==='error')errors.push(p.url()+' '+m.text());});});
 };
 const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});watch(context);
-await context.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');}catch{}});
+await context.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');window.__ANASTASIA__={useMock:true};}catch{}});
 const page=await context.newPage();
 const check=async(name,fn)=>{await fn();checks.push(name);console.log('PASS '+name);};
 const goto=async(path,p=page)=>{const response=await p.goto(base+path,{waitUntil:'load'});await p.evaluate(()=>document.fonts.ready);return response;};
@@ -25,7 +25,7 @@ const menuState=(p,kind)=>p.evaluate(kind=>{const m=document.querySelector(`#dc-
 // Fokus musí zůstat v panelu: krajní body (Tab/Shift+Tab) i dlouhá smyčka Tabů.
 const assertTrap=async(p,kind)=>{
   const panel=`#dc-${kind}-menu`;
-  const items=p.locator(`${panel} :is(a[href],button:not([disabled]),input)`).locator('visible=true');
+  const items=p.locator(`${panel} :is(a[href],button:not([disabled]),input,[tabindex="0"])`).locator('visible=true');
   const first=items.first(),last=items.last();
   await first.focus();await p.keyboard.press('Shift+Tab');assert.equal(await isActive(last),true,kind+': Shift+Tab z prvního skočí na poslední');
   await p.keyboard.press('Tab');assert.equal(await isActive(first),true,kind+': Tab z posledního skočí na první');
@@ -94,6 +94,16 @@ try{
    // Klávesnicí: Enter otevře, Escape zavře.
    await opener.focus();await page.keyboard.press('Enter');await assertOpen(page,'side');await page.keyboard.press('Escape');await assertClosed(page,'side');assert.equal(await isActive(opener),true);
    for(const path of ['/o-lucii','/eshop']){await goto(path);await page.locator('#ana-rail [data-menu-open="side"]').click();await assertOpen(page,'side');await page.keyboard.press('Escape');await assertClosed(page,'side');}
+ });
+ await check('account menus remain usable when account API is unavailable; login in every header',async()=>{
+   const isolated=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+   try{
+     await isolated.route('http://127.0.0.1:9100/**',r=>r.abort());
+     const account=await isolated.newPage();await goto('/ucet',account);
+     for(const kind of ['top','side']){const trigger=kind==='top'?headerTrigger(account):account.locator('#ana-rail [data-menu-open="side"]');await trigger.click();await assertOpen(account,kind);await account.keyboard.press('Escape');await assertClosed(account,kind);}
+     assert.match(await account.locator('#chat-availability').textContent(),/dočasne nedostupný/);
+     for(const path of ['/','/eshop','/ucet','/kontakt','/prihlasenie']){await goto(path,account);const link=account.locator('header [data-global-account]');assert.equal(await link.count(),1);assert.equal(await link.getAttribute('href'),'/prihlasenie');assert.equal(await link.isVisible(),true);}
+   }finally{await isolated.close();}
  });
  await check('lišta a hlavička při scrollu: lišta fixní, adaptivní tón, hlavička není sticky',async()=>{
    for(const path of ['/','/o-lucii','/eshop']){
@@ -210,7 +220,7 @@ try{
    for(const scenario of ['ALLOW','REVIEW','BLOCK','ERROR']){
      checkoutFixture=scenario;await goto('/pokladna');assert.equal(await page.locator('[name=scenario]').count(),0);
      await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();assert.equal(await page.locator('[data-step="1"]').isVisible(),true);
-     await page.locator('#checkout-form [name=firstName]').fill('Demo');await page.locator('#checkout-form [name=lastName]').fill('Ukazka');await page.locator('#checkout-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();await page.getByRole('button',{name:'Pokračovať na platbu'}).click();await page.locator('[name=consent]').check();await page.getByRole('button',{name:'Dokončiť objednávku'}).click();await page.waitForFunction(s=>document.querySelector('#checkout-result').dataset.state===s,scenario);
+     await page.locator('#checkout-form [name=firstName]').fill('Demo');await page.locator('#checkout-form [name=lastName]').fill('Ukazka');await page.locator('#checkout-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Pokračovať na doručenie'}).click();await page.getByRole('button',{name:'Pokračovať na platbu'}).click();await page.locator('[name=terms]').check();await page.locator('[name=privacy]').check();await page.getByRole('button',{name:'Dokončiť objednávku'}).click();await page.waitForFunction(s=>document.querySelector('#checkout-result').dataset.state===s,scenario);
    }
    await page.unroute('**/lib/api/mock.mjs',checkoutRoute);await page.screenshot({path:root+'checkout-desktop.png',fullPage:true});
  });
@@ -219,7 +229,7 @@ try{
  await check('unified customer centre: navigation, programs, materials, profile and reorder',async()=>{
    await page.evaluate(()=>sessionStorage.clear());await goto('/ucet');assert.equal(await page.locator('#account-prehlad').isVisible(),true);
    for(const id of ['programy','konzultacie','chat','objednavky','materialy','profil','prehlad']){await page.locator(`.center-sidebar [data-account-go="${id}"]`).click();assert.equal(await page.locator(`#account-${id}`).isVisible(),true);assert.equal(new URL(page.url()).hash,'#'+id);assert.equal(await page.locator('.center-sidebar [aria-current=page]').count(),1);}
-   await page.locator('.center-sidebar [data-account-go=programy]').click();assert.equal(await page.locator('.lesson').count(),0);assert.equal(await page.locator('#entitlement-preview').count(),0);assert.equal(await page.locator('.empty-state').isVisible(),true);
+   await page.locator('.center-sidebar [data-account-go=programy]').click();assert.equal(await page.locator('.lesson').count(),0);assert.equal(await page.locator('#entitlement-preview').count(),0);assert.equal(await page.locator('#account-programy .empty-state').isVisible(),true);
    await page.locator('.center-sidebar [data-account-go=materialy]').click();await page.locator('[data-material-filter=faktury]').click();assert.equal(await page.locator('.center-material:visible').count(),1);
    await page.locator('.center-sidebar [data-account-go=profil]').click();await page.locator('#center-profile [name=name]').fill('Demo');await page.locator('#center-profile button[type=submit]').click();await page.locator('#center-profile .form-status').getByText('Údaje boli skontrolované.').waitFor();assert.equal(await page.locator('input[type=password]').count(),0);assert.equal(await page.evaluate(()=>JSON.stringify(sessionStorage).includes('example.test')),false);
    await page.locator('.center-sidebar [data-account-go=objednavky]').click();await page.locator('#account-objednavky [data-add]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('.cart-count')].every(el=>el.textContent==='1'));
@@ -289,7 +299,7 @@ try{
      assert.deepEqual(errors.slice(before),[],path+': bez chyb');
      for(const href of await page.locator('a[href]').evaluateAll(els=>els.map(el=>el.getAttribute('href'))))if(href.startsWith('/'))links.add(new URL(href,'http://local').pathname.replace(/\/$/,'')||'/');
    }
-   for(const link of links)assert.ok(paths.has(link),`Link target exists: ${link}`);
+   for(const link of links)assert.ok(paths.has(link) || /^\/eshop\/produkt\/[^/]+$/.test(link) && paths.has('/eshop/produkt-detail'),`Link target exists: ${link}`);
    await page.setViewportSize({width:390,height:844});
    for(const path of routes){const before=errors.length;await page.goto(base+path,{waitUntil:'load'});await overflow(page,path+'@390');assert.deepEqual(errors.slice(before),[],path+'@390: bez chyb');}
    await page.setViewportSize({width:1440,height:1000});
@@ -319,7 +329,7 @@ try{
  });
  await check('no backend, third-party requests or JavaScript errors',async()=>{assert.deepEqual(apiCalls,[]);assert.deepEqual(errors,[]);});
  await context.close();
- const motion=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});watch(motion);await motion.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');}catch{}});const mp=await motion.newPage();
+ const motion=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});watch(motion);await motion.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');window.__ANASTASIA__={useMock:true};}catch{}});const mp=await motion.newPage();
  await check('Lenis + reveal + parallax + hero fade aktívne pri povolenom pohybe',async()=>{
    await goto('/',mp);await mp.waitForFunction(()=>!!window.__anaLenis);assert.equal(await mp.evaluate(()=>document.documentElement.classList.contains('lenis')),true);
    const floatingLogo=mp.locator('.hero-brand img');assert.match(await floatingLogo.evaluate(el=>getComputedStyle(el).filter),/brand-wave/);assert.equal(await floatingLogo.evaluate(el=>getComputedStyle(el).animationName),'none');const logoBox=await floatingLogo.boundingBox();assert.ok(logoBox.height>=300&&logoBox.x<400,'větší logo je vlevo');
@@ -358,7 +368,7 @@ try{
    await mp.setViewportSize({width:390,height:844});assert.equal(await mp.locator('[data-mobile-media] [data-video-toggle]').isVisible(),true);await mp.setViewportSize({width:1440,height:1000});
  });
  await motion.close();
- const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});watch(touch);await touch.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');}catch{}});const tp=await touch.newPage();
+ const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});watch(touch);await touch.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');window.__ANASTASIA__={useMock:true};}catch{}});const tp=await touch.newPage();
  await check('touch cards expose purchase controls without hover',async()=>{await tp.goto(base+'/eshop');const card=tp.locator('.product-card').first();assert.equal(await card.locator('[data-add]').isVisible(),true);await card.locator('[data-add]').tap();await tp.goto(base+'/kosik');await tp.locator('.cart-line').waitFor();assert.equal(await tp.locator('.cart-line').count(),1);await tp.goto(base+'/eshop');await tp.locator('.product-card').first().scrollIntoViewIfNeeded();await tp.screenshot({path:root+'catalog-touch.png'});const touchInfo=await tp.locator('.product-info').first().evaluate(el=>({hoverNone:matchMedia('(hover:none)').matches,opacity:getComputedStyle(el).opacity,visibility:getComputedStyle(el).visibility}));assert.equal(touchInfo.opacity,'1');assert.equal(touchInfo.visibility,'visible');});
  await check('touch: menu na úvode sa otvorí ťuknutím a zavrie tlačidlom',async()=>{await tp.goto(base+'/');await headerTrigger(tp).tap();await assertOpen(tp,'top');await tp.locator('#dc-top-menu button[data-menu-close]').tap();await assertClosed(tp,'top');});
  await touch.close();

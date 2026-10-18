@@ -51,6 +51,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       options: [{ title: "Default", values: ["Default"] }],
       variants: [{
         title: input.title,
+        // Bez SKU košík neprejde cez NEXUS prepočet (INVALID_MEDUSA_LINE_ITEM). Handle je unikátny, SKU teda tiež.
+        sku: `KONZULTACIA-${handle}`.toUpperCase(),
         manage_inventory: false,
         options: { Default: "Default" },
         prices: [{ amount: input.price_eur, currency_code: "eur" }],

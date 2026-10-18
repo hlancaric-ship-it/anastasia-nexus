@@ -1,0 +1,92 @@
+HEAD 67796b8 start 2026-10-18 13:23:26
+=== e2e-admin-product 13:23:26
+PASS admin-login 
+PASS kategorie-vytvorena {"catName":"E2E Rituály mvdqlqmd"}
+PASS sku-predvyplnene {"sku":"E2E-RUZOVY-OLEJ-MVDQLQMD"}
+PASS produkt-vytvoreny-koncept {"title":"E2E Ružový olej mvdqlqmd","cena":24.9}
+PASS obrazek-nahrany {"upMsg":"Obrázky sú nahraté. Nezabudnite Uložiť."}
+PASS produkt-ulozeny-publikovany {"save1":"Uložené."}
+PASS cena-a-sklad-ulozene {"save2":"Uložené."}
+PASS stav-po-reloadu {"stock":"12","priceNow":"26.5","checks":"✓ Cena v EUR✓ Predajný kanál✓ Typ produktu (doprava)✓ Kód produktu (SKU)✓ Obrázok✓ Kategória"}
+PASS obrazek-viditelny-v-adminu 
+=== e2e-shop 13:23:44
+PASS prihlasenie-magic-link-nova-zakaznicka {"loginMsg":"Účet je založený. Vitajte."}
+PASS katalog-zobrazuje-produkt {"cardPrice":"26,50 €","cardImg":true}
+PASS detail-produktu-zivy {"url":"http://127.0.0.1:4173/eshop/produkt/e2e-ru%C5%BEov%C3%BD-olej-mvdqlqmd","detailPrice":"26,50 €","detailImg":true}
+PASS pridanie-do-kosika {"addMsg":"Produkt pridaný do košíka."}
+PASS kosik-prepocet-nexus {"cartTotal":"Váš výberE2E Ružový olej mvdqlqmd × 226,50 € / kusKupónKupón nezadanýCelkom53,00 €Vrátane DPH 9,91 €Pokračovať na objednávku "}
+FAIL chyba {"message":"page.check: Timeout 30000ms exceeded."}
+=== e2e-admin-order 13:24:38
+FAIL admin-detail-objednavky {"prehlad":"E-maile2e.nakup.mvdqc62f@example.comDátum18. 10. 2026 13:16 Platbačiastočne vrátená Vybavenieodoslaná DoručenieEva TestováTestovacia 1281101 BratislavaSK DopravaKuriér (zásielka) · 6,00 € Celkom: 49,00 €"}
+FAIL chyba {"message":"page.click: Timeout 30000ms exceeded."}
+=== e2e-klub 13:25:16
+PASS admin-produkt-clenstva {"title":"E2E Klub mesačný mvdqo3xw","saved":"Uložené."}
+PASS admin-zaradenie-do-klubu {"kmsg":"Uložené."}
+PASS klub-prihlasenie 
+PASS klub-ponuka-na-webe {"offerTxt":"30 DNÍE2E Klub mesačný mvdqo3xw19,00 €Vybrať "}
+PASS klub-3ds-overenie 
+PASS klub-nakup-aktivacia {"state":"ALLOW","msg":"Vitajte v Klube ANASTASIA. Členstvo je aktívne."}
+PASS klub-clenstvo-v-db {"mbr":"mbr_01M57C5RPKT309FR4WSRXN9ECD|active|true|2026-11-17 12:25:56.167+01","mandate":"1"}
+PASS ucet-clenstvo-aktivne {"acc":"AktívneE2E Klub mesačný mvdqo3xwPrístup do 17. 11. 2026 · automatická obnova zapnutáZastaviť obnovu"}
+PASS admin-klub-clenka {"det":" ČlenstvoE2E Klub mesačný mvdqo3xwDĺžka obdobia30 dní · podmienky e2e-mvdqo3xw StavaktívnePrístup k obsahuprístup aktívny Platí do17. 11. 2026 12:25Automatická obnovazapnutá Zastaviť automatickú obnovu Obnovy platieb Zastavenie n
+=== e2e-admin-klub-stop 13:26:05
+PASS admin-zastavenie-obnovy {"msg":"Automatická obnova je zastavená.","before":"active|true|2026-11-17 12:25:56.167+01","after":"active|false|2026-11-17 12:25:56.167+01","stopBtnGone":true}
+=== e2e-admin-booking-setup 13:26:11
+PASS admin-konzultacie-zalozky {"pills":["Rezervácie","Typy konzultácií","Dostupnosť"]}
+PASS admin-ui-novy-typ {"cardTxt":"E2E typ admin mvdqp9mo Cena55,00 €Dĺžka45 min + 15 min pauza Formaonline Stavv ponuke","meta":"45|15|published"}
+PASS admin-ui-uprava-ceny {}
+PASS admin-ui-dostupnost-tyzdna {"weekHead":"7. 12. – 13. 12. 2026","badMsg":"streda 9. 12.: začiatok úseku musí byť pred koncom.","av":"2026-12-07 10:00-12:00"}
+PASS storefront-ponuka-z-adminu {"listed":1,"dec7":["10:00","10:30","11:00"],"head":"KonzultáciaE2E typ admin mvdqp9mo45 minút · online · 60,00 €Iná konzultácia"}
+PASS admin-ui-archivacia-skryje-typ {}
+=== e2e-booking 13:26:24
+PASS admin-typ-konzultacie {"status":201,"id":"prod_01M57C6NMADJ17WM9HCYS97FK6","variant":"variant_01M57C6NR4KFEJ9GRWJ3XC868B"}
+PASS admin-dostupnost-tyzdna {"status":200,"day0":{"date":"2026-10-26","ranges":[{"start_time":"09:00","end_time":"17:00"}]}}
+PASS ui-sloty-anonymne-a-vyzva-na-prihlasenie {"n":34,"anonTxt":"KonzultáciaE2E konzultácia mvdqpjxd60 minút · online · 40,00 €Iná konzultáciaPre rezerváciu termínu sa prihláste.Prihlásiť sa Po prihlásení sa sem vrátite a ter"}
+PASS prihlasenie-a-navrat-do-rezervacie {"msgA":"Účet je založený. Vitajte."}
+FAIL subeh-druha-zakaznicka-dostane-409-a-novu-ponuku {"bkB":"bkg_01M57C759DGP9R5HEW2MSP1XJF|held","conflictTxt":"Tento termín už nie je voľný. Zvoľte prosím iný.","target":"2026-10-26T08:00:00.000Z","left":0}
+FAIL chyba {"message":"locator.click: Timeout 30000ms exceeded."}
+=== e2e-voucher 13:27:18
+PASS ponuka-hodnot-z-backendu {"opts":["25 €","50 €"]}
+PASS poukaz-do-kosika 
+PASS nakup-poukazu-a-vydanie {"r1":{"summary":"Váš výberDarčekový poukaz × 150,00 € / kusKupónKupón nezadanýDopravaZadarmoCelkom50,00 €","state":"ALLOW","msg":"Objednávka bola vytvorená. Ďakujeme."},"order1":"order_01M57C998K4HGKSTK5BM4ENE21","voucher":["gv_01
+PASS email-prijemkyni-s-kodom {"template":"gift-voucher-recipient-sk","codeLen":22}
+PASS uplatnenie-kodu-v-kosiku {"applied":"Poukaz bol uplatnený.","cartSum":"Váš výberE2E Ružový olej mvdqlqmd × 226,50 € / kusKupónKupón nezadanýPoukaz GV-****-****-****-H66U-50,00 €Zostatok poukazu pred čerpaním: 50,00 €Celkom3,00 €Vrátane DPH 9,91 €Pokračova
+PASS platba-zvysku-a-cerpanie {"r2":{"summary":"Váš výberE2E Ružový olej mvdqlqmd × 226,50 € / kusKupónKupón nezadanýPoukaz GV-****-****-****-H66U-50,00 €Zostatok poukazu pred čerpaním: 50,00 €Doprava6,00 €Celkom9,00 €Vrátane DPH 11,03 €","state":"ALLOW","msg"
+PASS admin-zoznam-poukazov {"rowTxt":"GV-****-****-****-H66U Zostatok0,00 € z 50,00 € Stavvyčerpaný Platí do18. 10. 2027 13:27","codeMasked":true}
+PASS admin-detail-a-pohyby {"det":"Poukaz GV-****-****-****-H66USpäť Zostatok0,00 € z 50,00 €Stavvyčerpaný Vydaný18. 10. 2026 13:27Platí do18. 10. 2027 13:27 Objednávka nákupuorder_01M57C998K4HGKSTK5BM4ENE21Doručenierecipient_email · sent História použitý v ob
+=== e2e-voucher (ONLY_ISSUE) 13:28:38
+PASS ponuka-hodnot-z-backendu {"opts":["25 €","50 €"]}
+PASS poukaz-do-kosika 
+PASS nakup-poukazu-a-vydanie {"r1":{"summary":"Váš výberDarčekový poukaz × 150,00 € / kusKupónKupón nezadanýDopravaZadarmoCelkom50,00 €","state":"ALLOW","msg":"Objednávka bola vytvorená. Ďakujeme."},"order1":"order_01M57CBDWHD3RAP5DQ486GR0MC","voucher":["gv_01
+PASS email-prijemkyni-s-kodom {"template":"gift-voucher-recipient-sk","codeLen":22}
+=== e2e-voucher-admin 13:29:09
+PASS admin-zoznam-maskovany {"onPill":"Darčekové poukazy","maskedTail":"H66U"}
+PASS admin-detail-a-pohyby {"det":"Poukaz GV-****-****-****-H66USpäť Zostatok0,00 € z 50,00 €Stavvyčerpaný Vydaný18. 10. 2026 13:27Platí do18. 10. 2027 13:27 Objednávka nákupuorder_01M57C998K4HGKSTK5BM4ENE21Doručenierecipient_email · sent História použitý v ob
+PASS admin-zneplatnenie {"noReason":"Uveďte dôvod zneplatnenia.","db":"void|0"}
+PASS admin-prepnutie-spat-na-kupony 
+=== e2e-admin-voucher-settings 13:29:16
+PASS admin-poukazy-nastavenie-nacitane {"pills":["Kupóny a zľavy","Darčekové poukazy","Nastavenie poukazov"],"shown":"25; 50","db":"[2500, 5000]"}
+PASS admin-poukazy-validacia {"dup":"Každá hodnota môže byť len raz.","bad":"Hodnoty zadajte ako sumy od 1 do 10 000 € oddelené bodkočiarkou, najviac 10.","noCat":"Vyberte aspoň jednu kategóriu."}
+PASS admin-poukazy-ulozenie {"ok":"Nastavenie je uložené a ponuka poukazov na webe je aktualizovaná.","db":"[2500, 5000, 7500]","variants":"25 €|50 €|75 €"}
+PASS storefront-poukaz-nova-hodnota {"offer":"DARČEK Darčekový poukaz Darujte priestor pre vlastný výber. Hodnota poukazu 25 € 50 € 75 € Meno príjemcu E-mail príjemcu Odkaz pre príjemcu Pridať poukaz do košíka Prejsť do košíka"}
+PASS navrat-povodnych-hodnot {"r":"Nastavenie je uložené a ponuka poukazov na webe je aktualizovaná."}
+=== e2e-chat 13:29:23
+PASS ucet-bez-prihlasenia 
+PASS ucet-realne-data {"orders":"1618. 10. 2026E2E konzultácia mvdilp0340,00 €PrijatáOtázka k objednávke","bookings":"23.novE2E konzultácia mvdilp0323. 11. 2026 · 09:00 – 10:00 · Potvrdený termínNapísať Lucii","bookingTitle":"E2E konzultácia mvdilp03","profOk"
+FAIL chyba {"message":"page.waitForFunction: Timeout 15000ms exceeded.","at":"    at /Users/lucky/.claude/jobs/223fc22a/tmp/launch/e2e-chat.mjs:59:11"}
+=== e2e-contact-newsletter 13:29:49
+PASS kontakt-odoslanie {"status":"Ďakujeme, správa bola odoslaná. Ozveme sa vám čo najskôr.","row":"lucia@anastasia.local|E2E Kontakt mvdqty8n|Konzultácia|success","trapVisible":false}
+PASS kontakt-validacia-a-pasca {"bad":400,"spam":200}
+PASS kontakt-limit {"codes":[200,200,200,200,200,429]}
+PASS newsletter-suhlas-ulozeny {"nstatus":"Ďakujeme, novinky vám budeme posielať e-mailom.","nrow":"subscribed|footer|true"}
+=== e2e-home 13:29:57
+PASS uvod-kolekcia-z-backendu {"cards":[{"f":["E2E Rituály mvcuog7i","E2E Rituály mvcuog7i","26,50 €","E2E Ružový olej mvcuog7i"],"add":"e2e-ružový-olej-mvcuog7i"},{"f":["E2E Rituály mvdgl88j","E2E Rituály mvdgl88j","26,50 €","E2E Ružový olej mvdgl88j"],"add":
+=== audit-sec 13:30:09
+PASS tokeny 
+PASS admin-rbac-vsetky-routy {"checked":100,"leaks":[]}
+PASS store-zakaznicke-routy-bez-prihlasenia {"checked":16,"anonLeaks":[]}
+PASS idor-cudzie-zaznamy {"idorLeaks":[],"stillActive":"active","stillBooked":"confirmed"}
+PASS webhooky-bez-podpisu {"hookRes":[{"p":"/hooks/payment/stripe_stripe","sig":true,"status":200},{"p":"/hooks/payment/membership_stripe_membership","sig":true,"status":200},{"p":"/hooks/nexus/booking-order","sig":true,"status":503},{"p":"/hooks/nexus/booking
+PASS shop-prices-ochrana {"spRes":{"customer":401,"negative":400,"threeDecimals":400,"extraField":400,"staleExpected":409,"wrongPriceId":409},"before":"26.5","after":"26.5"}
+PASS cena-nejde-podvrhnut-z-klienta {"unitPriceRejected":400,"lineItemStatus":200,"nexusStatus":403,"unitAfter":"26.5","server":"26.5"}
+done 2026-10-18 13:30:12

@@ -243,3 +243,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .legal-doc{grid-template-columns:minmax(0,1fr)}
 .legal-art,.legal-body{min-width:0}
 .legal-body .source-text{overflow-wrap:anywhere}
+/* Rezervácia konzultácie: dni a voľné časy, potvrdenie termínu. */
+.booking-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:28px}.booking-head h2{font-size:clamp(28px,3.4vw,46px);margin:14px 0 10px}.booking-head>div{min-width:0}.booking-range{font-size:13px;color:var(--muted);margin-bottom:18px}.booking-days{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}.booking-day{border-top:1px solid var(--line);padding-top:16px;min-width:0}.booking-day h3{font-size:19px;letter-spacing:-.01em;margin-bottom:14px}.booking-day h3::first-letter{text-transform:uppercase}.booking-slots{display:flex;flex-wrap:wrap;gap:10px}.booking-slot{min-width:84px;min-height:44px;padding:10px 16px;border:1px solid #a3a894;border-radius:40px;font-weight:400;transition:background .2s}.booking-slot:hover{background:#e7e7d9}.booking-confirm{max-width:640px}.booking-confirm h2{font-size:clamp(24px,2.6vw,34px);margin:14px 0 10px}.booking-confirm h2::first-letter{text-transform:uppercase}.booking-cta{padding-top:0;display:flex;justify-content:center}.booking-types .lesson{display:flex;flex-direction:column}.booking-types .lesson .button{margin-top:auto}
+@media (max-width:900px){.booking-types{grid-template-columns:1fr}}
+.contact-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+
+.global-account{display:inline-flex;align-items:center;gap:8px;min-height:44px;text-decoration:none;white-space:nowrap;letter-spacing:0;font-size:14px;text-transform:none}.global-account svg{width:20px;height:22px;flex:none}@media(max-width:600px){.global-account span{font-size:12px}.global-account{gap:5px}}

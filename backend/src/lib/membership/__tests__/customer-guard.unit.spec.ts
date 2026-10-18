@@ -1,0 +1,5 @@
+import {assertMembershipCustomerAvailable} from '../customer-guard'
+function fixture(erased:any=null){const db:any=jest.fn(()=>chain),chain:any={where:()=>chain,whereNull:()=>chain,whereIn:()=>chain,first:async()=>erased};const customer={retrieveCustomer:jest.fn(async()=>({id:'cus_a'}))};const scope:any={resolve:(k:string)=>k==='customer'?customer:db};return {scope,customer,db}}
+it('uses the native erasure tombstone for background and webhook checks',async()=>{const f=fixture({id:'erasure_a'});await expect(assertMembershipCustomerAvailable(f.scope,'cus_a')).rejects.toThrow('CUSTOMER_UNAVAILABLE');expect(f.customer.retrieveCustomer).not.toHaveBeenCalled()})
+it('allows only an existing non-erased own native customer',async()=>{const f=fixture();await expect(assertMembershipCustomerAvailable(f.scope,'cus_a')).resolves.toBeUndefined();expect(f.db).toHaveBeenCalledWith('customer_erasure')})
+it('privacy database failures fail closed',async()=>{const f=fixture();f.db.mockImplementation(()=>{throw Error('db unavailable')});await expect(assertMembershipCustomerAvailable(f.scope,'cus_a')).rejects.toThrow()})
