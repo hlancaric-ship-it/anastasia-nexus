@@ -77,7 +77,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContain
    expect(Number(persisted.items[0].unit_price)).toBe(45)
   }
   expect((await promotions.retrievePromotion(promo.id)).used).toBe(0)
-  expect(await verifyQrBrowser(api,admin)).toMatchObject({status:'PASS',checks:9})
+  expect(await verifyQrBrowser(api,admin,buyer.options,region.id)).toMatchObject({status:'PASS',checks:28})
   const wrong=await api.post(`/admin/coupon-links/${old.id}/deactivate`,{confirmation:'WRONG'},admin)
   expect(wrong.status).toBe(409);expect((await promotions.retrievePromotion(promo.id)).status).toBe('active')
   expect((await api.post(`/admin/coupon-links/${old.id}/deactivate`,{confirmation:input.kupon},admin)).status).toBe(200)

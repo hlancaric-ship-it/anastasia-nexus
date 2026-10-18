@@ -120,3 +120,22 @@ describe("admin generation", () => {
     expect(res.status).toHaveBeenCalledWith(401)
   })
 })
+
+describe('legacy QR product resolution',()=>{
+ it('returns the channel-visible variant even when the old coupon is unavailable',async()=>{
+  const res=response()
+  await storePost({body:{...input,ks:'10000'},scope:scope({promotions:[{...promotion,status:'inactive'}]}),publishable_key_context:{sales_channel_ids:['sc_test']}} as any,res)
+  expect(res.status).toHaveBeenCalledWith(422)
+  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({variant_id:'variant_test',quantity:999,code_valid:false,discount_applied:false}))
+ })
+ it('resolves old product-only links without granting a discount',async()=>{
+  const res=response()
+  await storePost({body:{produkt:input.produkt,ks:'bad'},scope:scope(),publishable_key_context:{sales_channel_ids:['sc_test']}} as any,res)
+  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({variant_id:'variant_test',quantity:1,code_valid:false,discount_applied:false}))
+ })
+ it('never accepts a client-supplied price during resolution',async()=>{
+  const res=response()
+  await storePost({body:{...input,price:0},scope:scope(),publishable_key_context:{sales_channel_ids:['sc_test']}} as any,res)
+  expect(res.status).toHaveBeenCalledWith(400)
+ })
+})

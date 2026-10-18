@@ -1285,7 +1285,7 @@
       ],
       "feature": "qr",
       "source": "backend/src/api/store/coupon-links/route.ts",
-      "sha256": "7f35162e7eec738dbbd09599f02cf9a7c4c518a73a10961aa8de61dc1a340233"
+      "sha256": "ad344af5bcbcc2f383c957fcc60b365605f31eea1ebf837011e08492a2161d9c"
     },
     {
       "path": "/store/custom",

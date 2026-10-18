@@ -54,6 +54,7 @@ jobs:
         run: |
           ./node_modules/.bin/tsc --noEmit
           python3 scripts/check-admin-function-map.py
+          node --test ../storefront-prototype/test/http-adapter.test.mjs ../storefront-prototype/test/mock.test.mjs
           ./node_modules/.bin/jest --runTestsByPath src/api/admin/coupon-links/__tests__/links.unit.spec.ts src/api/admin/coupon-links/__tests__/registry.unit.spec.ts --runInBand --forceExit
       - name: Start actual NEXUS code in synthetic loopback bridge
         run: |
@@ -77,7 +78,16 @@ jobs:
         env:
           DB_PORT: ${{ job.services.postgres.ports[5432] }}
           DATABASE_URL: postgres://qr_synthetic:qr_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_qr_ci
+          QR_EVIDENCE_DIR: ${{ github.workspace }}/ci-evidence/qr
         run: ./node_modules/.bin/jest --runTestsByPath integration-tests/http/qr-registry.spec.ts --runInBand --forceExit
+      - name: Retain QR browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qr-admin-${{ github.sha }}
+          path: ci-evidence/qr/
+          if-no-files-found: warn
+          retention-days: 7
       - name: Stop synthetic Worker
         if: always()
         run: |

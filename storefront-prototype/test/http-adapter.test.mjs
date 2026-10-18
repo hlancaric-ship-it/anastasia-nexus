@@ -117,3 +117,38 @@ test('expired hold blocks payment before Stripe confirmation',async()=>{
   const r=await createHttpApi(memoryStorage({'anastasia.jwt':'jwt','anastasia.cart':'cart_1'}),config).verifyCartBooking();
   assert.equal(r.ok,false);assert.equal(r.expired,true);
 });
+
+function qrHttpFixture({ guest=false, valid=true }={}) {
+ const storage=memoryStorage(guest?{}:{'anastasia.jwt':'synthetic-login'});
+ let cart={id:'qr-cart',items:[]},adds=0,couponCalls=0;
+ const calls=router([
+  ['POST',/^\/store\/coupon-links$/,(_p,body)=>{assert.equal(body.produkt,'QR-SKU');assert.equal(body.ks,'2');return respond(valid?200:422,{variant_id:'qr-variant',quantity:2,code_valid:valid,discount_applied:false})}],
+  ['POST',/^\/store\/carts$/,()=>respond(200,{cart})],
+  ['GET',/^\/store\/carts\/qr-cart(?:\?|$)/,()=>respond(200,{cart})],
+  ['POST',/^\/store\/carts\/qr-cart\/customer$/,()=>respond(200,{cart})],
+  ['POST',/^\/store\/carts\/qr-cart\/line-items$/,(_p,body)=>{adds++;assert.deepEqual(body,{variant_id:'qr-variant',quantity:2});cart.items.push({id:'qr-line',variant_id:body.variant_id,quantity:body.quantity,unit_price:50});return respond(200,{cart})}],
+  ['POST',/^\/store\/nexus-cart$/,(_p,body)=>{if(body.couponCode){couponCalls++;return respond(valid?200:400,valid?{ok:true,coupon:{code:body.couponCode}}:{error:'COUPON_INVALID'})}return respond(200,{ok:true})}],
+ ]);
+ return{storage,calls,api:createHttpApi(storage,config),stats:()=>({adds,couponCalls}),remove:()=>{cart.items=[]}};
+}
+const qrParams=()=>new URLSearchParams('produkt=QR-SKU&ks=2&kupon=OLD10');
+test('QR resolves SKU server-side, uses returned variant, and never looks it up as a handle',async()=>{
+ const f=qrHttpFixture();assert.equal((await f.api.importQr(qrParams())).couponApplied,true);
+ assert.equal(f.stats().adds,1);assert.ok(!f.calls.some(p=>p.includes('/store/products')));
+ await f.api.importQr(qrParams());assert.equal(f.stats().adds,1);
+});
+test('concurrent imports in the same page share one product insertion',async()=>{
+ const f=qrHttpFixture();const result=await Promise.all([f.api.importQr(qrParams()),f.api.importQr(qrParams())]);
+ assert.ok(result.every(r=>r.ok));assert.equal(f.stats().adds,1);
+});
+test('QR can retry its coupon after login without adding the product again',async()=>{
+ const f=qrHttpFixture({guest:true});const first=await f.api.importQr(qrParams());assert.equal(first.ok,true);assert.equal(first.couponApplied,false);
+ f.storage.setItem('anastasia.jwt','synthetic-login');assert.equal((await f.api.importQr(qrParams())).couponApplied,true);assert.equal(f.stats().adds,1);
+});
+test('an unavailable legacy coupon still adds the valid product without inventing a discount',async()=>{
+ const f=qrHttpFixture({valid:false});const result=await f.api.importQr(qrParams());assert.equal(result.ok,true);assert.equal(result.couponApplied,false);assert.equal(f.stats().adds,1);
+ assert.equal(f.storage.getItem('anastasia.coupon'),null);
+});
+test('removing a QR product allows an intentional later rescan to add it back',async()=>{
+ const f=qrHttpFixture();await f.api.importQr(qrParams());f.remove();await f.api.importQr(qrParams());assert.equal(f.stats().adds,2);
+});

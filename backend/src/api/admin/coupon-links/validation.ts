@@ -17,7 +17,7 @@ export function codeAvailable(p: PromotionDTO | undefined, code: string, now = D
   return true
 }
 
-export async function validateLink(scope: MedusaRequest["scope"], input: LinkInput, channels?: string[]) {
+export async function resolveLinkProduct(scope: MedusaRequest["scope"], input: Pick<LinkInput, "produkt">, channels?: string[]) {
   const query = scope.resolve(ContainerRegistrationKeys.QUERY)
   const { data } = await query.graph({
     entity: "product_variant",
@@ -29,8 +29,14 @@ export async function validateLink(scope: MedusaRequest["scope"], input: LinkInp
   const variant = data[0]
   if (!variant.product || variant.product.status !== "published") return null
   if (channels && !variant.product.sales_channels?.some(c => c && channels.includes(c.id))) return null
+  return { variant_id: variant.id, product_id: variant.product.id }
+}
+
+export async function validateLink(scope: MedusaRequest["scope"], input: LinkInput, channels?: string[]) {
+  const target = await resolveLinkProduct(scope, input, channels)
+  if (!target) return null
   const promotions = scope.resolve<IPromotionModuleService>(Modules.PROMOTION)
   const matches = await promotions.listPromotions({ code: input.kupon }, { relations: ["campaign"], take: 2 })
   if (matches.length !== 1 || !codeAvailable(matches[0], input.kupon)) return null
-  return { variant_id: variant.id, product_id: variant.product.id }
+  return target
 }
