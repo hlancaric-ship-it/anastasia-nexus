@@ -1,3 +1,7 @@
+jest.mock("../registry", () => ({
+  ...jest.requireActual("../registry"),
+  saveRecord: jest.fn(async (_scope, input, url) => ({ record: { id: "qrl_" + "a".repeat(64), url, sku: input.produkt }, created: false })),
+}))
 import { adminInput, buildCouponUrl, legacyQuantity, localQrRenderer } from "../links"
 import { codeAvailable, validateLink } from "../validation"
 import { POST as adminPost } from "../route"
