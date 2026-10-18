@@ -1,7 +1,7 @@
 # ANASTASIA × NEXUS – produkční runbook pro spuštění 23. 10. 2026
 
 Stav: 18. 10. 2026, integrační větev `claude/integration-launch` (PR #43). Nic není nasazeno ani mergnuto.
-**Backend běží na Medusa Cloud** (rozhodnuto 18. 10. 2026). Storefront a vlastní admin jsou statické a běží na Cloudflare Pages.
+**Backend běží na Medusa Cloud, plán Develop (29 USD/měs., už zaplacený)** (rozhodnuto 18. 10. 2026). Storefront a vlastní admin jsou statické a běží na Cloudflare Pages.
 Dokument obsahuje jen postup a názvy proměnných. **Žádné skutečné klíče.** Hodnoty se zadávají přímo do Medusa Cloud,
 Cloudflare a Stripe a nikdy nejdou do gitu ani do chatu s klientem.
 
@@ -12,8 +12,7 @@ Podrobnosti, na které runbook odkazuje:
 - admin: `anastasia-admin/README.md`.
 
 `<API>` dále znamená veřejnou URL backendu na Medusa Cloud:
-- plán Launch: `https://<subdoména>.medusajs.app` (vlastní doména API na Cloudu jen od plánu Scale);
-- plán Scale: `https://api.anastasiaoz.eu`.
+`https://<subdoména>.medusajs.app` (plán Develop; vlastní doména `api.` by byla až od plánu Scale, nepotřebujeme ji).
 
 Storefront i admin posílají přihlášení jako `Authorization: Bearer`, nespoléhají na cookies. Backend proto může běžet
 na jiné doméně než web. Vlastní doména `api.` je jen kosmetika a na launch ji nepotřebujeme.
@@ -26,7 +25,8 @@ Domény jsou návrh, potvrzuje je vlastník (viz §7). DNS všech domén je na C
 |---|---|---|---|
 | Storefront (statický) | Cloudflare Pages, projekt `anastasia-web` | `www.anastasiaoz.eu` | backend, Stripe.js |
 | Vlastní admin (statický) | Cloudflare Pages, projekt `anastasia-admin` | `admin.anastasiaoz.eu` (za Cloudflare Access) | backend |
-| Backend Medusa 2.19 | **Medusa Cloud**, region `eu-central-1`; PostgreSQL, Redis a úložiště souborů spravuje Cloud | `<API>` | NEXUS, Stripe, ZeptoMail |
+| Backend Medusa 2.19 | **Medusa Cloud Develop**, region `eu-central-1`; PostgreSQL a úložiště souborů spravuje Cloud | `<API>` | NEXUS, Stripe, ZeptoMail |
+| Zálohy DB | GitHub Actions `db-backup.yml` → R2 `anastasia-db-backups` (EU, účet L-Code) | – | read-only connection string Cloudu |
 | NEXUS Worker | Cloudflare Workers `nexus-api-production`, D1 `nexus-voucher`, DO `VOUCHER_SECURITY` | `nexus.anastasiaoz.eu` | backend (booking sync, ops events) |
 | Obrázky produktů | úložiště souborů Medusa Cloud (S3 + CDN, nahrává admin) | URL přidělí Cloud | – |
 
@@ -38,9 +38,12 @@ Storefront nikdy nevolá NEXUS přímo. Cenu počítá výhradně backend přes 
 - **Typ prostředí** se pozná podle `MEDUSA_CLOUD_ENVIRONMENT_TYPE`, ne podle `NODE_ENV`, protože ten si Cloud nastavuje sám:
   - `production` → ostrý provoz: live Stripe klíč + `whsec_` povinné;
   - `long-lived` (staging) a `preview-instance` (náhled PR) → live klíč zakázaný.
-- **Databáze, Redis a soubory** si bere z Cloudu:
-  - `DATABASE_URL` a `REDIS_URL` vkládá Cloud;
-  - workflow engine, cache, event bus a locking jdou na Redis Cloudu;
+- **Databáze a soubory** si bere z Cloudu:
+  - `DATABASE_URL` vkládá Cloud;
+  - **Develop nemá Redis.** `defineConfig` Medusy na Cloudu bez `REDIS_URL` sám zapne in-memory workflow engine, cache, event bus a locking.
+    Stejně běží lokální E2E i všechna CI (bez Redis). Na jednom sdíleném serveru Develop je to funkční;
+    při restartu nebo redeployi se ztratí jen rozpracované události v paměti. Doručení do NEXUS a e-maily objednávek
+    jsou trvalé workflow s obnovou (`medusa-event-delivery`, `order-email-recovery`). Kdyby Cloud `REDIS_URL` později dodal, použije ho automaticky;
   - obrázky jdou do S3 Cloudu přes IAM roli. Náš modul `S3_*` / R2 se na Cloudu neregistruje.
 - **Migrace** spouští Cloud při každém deployi. Bootstrap obchodu (`src/migration-scripts/anastasia-bootstrap.ts`) běží jednou a automaticky.
   Je idempotentní, při chybě se zopakuje při dalším deployi. `medusa exec` na Cloudu není.
@@ -84,9 +87,9 @@ Každý krok končí ověřením. Bez zeleného ověření se nepokračuje.
 2. Tag `launch-2026-10-23` na merge commitu. Z tohoto tagu se buildují všechny části.
 
 ### 2.2 Medusa Cloud – projekt a prostředí
-1. Organizace na cloud.medusajs.com. Plán viz §8/1:
-   - Launch: zálohy 7 dní, Redis, sdílený server pro API a joby;
-   - Develop nemá zálohy ani Redis, pro ostrý provoz nevyhovuje.
+1. Organizace na cloud.medusajs.com, **plán Develop** (už zaplacený). Jiný plán se nekupuje.
+   - Develop nemá vlastní zálohy Cloudu ani Redis. Zálohy řeší §4 (GitHub Actions → R2), Redis viz §0.
+   - **Blokace k potvrzení (§8/1):** Develop má výpočetní limit „600 h/měs. na prostředí“, měsíc má 720–744 h.
 2. **Create project → Import from GitHub**, repo `anastasia-nexus`:
    - produkční větev `master`;
    - **Project root directory: `backend`**;
@@ -109,12 +112,19 @@ Každý krok končí ověřením. Bez zeleného ověření se nepokračuje.
    1. V `<API>/app` (Cloud přihlášení) → Settings → Users → *Invite* na servisní e-mail L-Code.
    2. Z odkazu pozvánky (`…/app/invite?token=<token>`) vzít token a otevřít `https://admin.anastasiaoz.eu/#/pozvanka/<token>`. Heslo se nastaví tam.
    3. Z našeho adminu (Nastavenia → Používatelia) pozvat Lucii. Heslo si zvolí sama, nikdo ho nezná.
-7. Dlouhodobé staging prostředí (`long-lived`, větev `claude/integration-launch`) je volitelné a stojí navíc 60 USD/měs. Na launch nutné není.
+7. **Read-only přístup pro zálohy:** Cloud → Environment → Database → *Read-only connection string* → zkopírovat
+   rovnou do GitHub secretu `BACKUP_DATABASE_URL` (Příloha B). Nikam jinam ho neukládat.
+   - **Restrict public access (IP allowlist) nezapínat.** Runnery GitHubu nemají pevné IP a záloha by přestala běžet.
+     Ochranu dělá heslo read-only účtu a TLS (skript bez TLS odmítne spojení).
+   - Write access k DB nezapínat, záloha ho nepotřebuje a skript účet se zápisem odmítne.
+   - Hned po nastavení spustit workflow ručně (§4) a ověřit zelený běh.
+8. Dlouhodobé staging prostředí (`long-lived`, větev `claude/integration-launch`) je volitelné a stojí navíc 60 USD/měs. Na launch nutné není.
    Preview prostředí PR jsou v plánu. Mají vlastní DB a live klíč v nich config odmítne.
 
 ### 2.3 Zálohy před prvním ostrým provozem
-- Cloud dělá zálohy DB sám (Launch 7 dní). Před každým zásahem do dat navíc ruční dump podle §4.
-- První deploy jde do prázdné DB, ruční dump před ním není potřeba. Postup obnovy ale musí projít jednou nanečisto (restore drill, §4).
+- Denní zálohu dělá GitHub Actions (§4). Před každým zásahem do dat navíc ruční běh workflow (*Run workflow*).
+- První deploy jde do prázdné DB, ruční dump před ním není potřeba.
+- Před fází B (§3) musí existovat aspoň jedna zelená produkční záloha a jeden restore drill z ní (§4.4).
 
 ### 2.4 NEXUS Worker
 ```sh
@@ -190,7 +200,7 @@ Postup je v DEPLOY §3.
    - `www` → Pages `anastasia-web`;
    - `admin` → Pages `anastasia-admin`;
    - `nexus` → Worker;
-   - `api` jen při plánu Scale, podle pokynů Medusa Cloud (Settings → Domains). Při plánu Launch se nezakládá.
+   - `api` se na plánu Develop nezakládá (API běží na `*.medusajs.app`).
 2. SSL/TLS: Full (strict), Always Use HTTPS, HSTS až po ověření všech subdomén.
 3. **Legacy URL** (`backend/docs/wp/edge-redirects.md`):
    - 27 starých cest z GSC na novém webu existuje beze změny (build to hlídá);
@@ -260,17 +270,92 @@ Testovací platby ve Stripe zůstávají v testovacím režimu a s live nic nesd
 
 ## 4. Zálohy
 
+Rozhodnutí A-17 (12. 10.): skripty + GitHub Actions + R2, žádná další služba ani placený plán. Medusa Cloud Develop
+vlastní zálohy nemá, proto jediná produkční záloha DB je tato.
+
 | Co | Jak | Kdo |
 |---|---|---|
-| PostgreSQL – automaticky | Medusa Cloud: denní zálohy + obnova k času (Launch 7 dní, Scale 14 dní). Obnova v Cloud → Database → Backups | Cloud |
-| PostgreSQL – off-site | týdně `pg_dump -Fc` přes **read-only connection string** z Cloud → Database (IP allowlist na adresu, odkud se dump dělá) → šifrovaně do R2 s omezeným tokenem | provoz (L-Code) |
-| Před každým zásahem do dat nebo rizikovou migrací | ruční dump stejným postupem, ověřit `pg_restore --list` | kdo nasazuje |
+| PostgreSQL – denně | `.github/workflows/db-backup.yml`, 02:17 UTC, read-only connection string → R2 `anastasia-db-backups` | automaticky |
+| PostgreSQL – před zásahem | stejný workflow ručně: Actions → *DB backup* → **Run workflow** (větev `master`) | kdo nasazuje |
 | D1 `nexus-voucher` | Time Travel (30 dní) + `wrangler d1 export` před migrací | kdo nasazuje |
 | Obrázky produktů | úložiště Cloudu; originály má Lucia a import | – |
-| Restore drill | 1× před launchem: dump → `pg_restore --no-owner --single-transaction` do lokální prázdné DB → `medusa db:migrate` beze změn → počty řádků | L-Code |
+| Restore drill | 1× před fází B a pak 1× měsíčně (§4.4) | L-Code |
 
-Cíl (návrh, schvaluje vlastník): RPO 24 h (s obnovou k času minuty), RTO 4 h.
-Lokální postup obnovy je ověřený (INTEGRATION-REPORT §1, Bezpečnost). Produkční drill zatím neproběhl.
+### 4.1 Co jeden běh zálohy udělá (a kdy selže)
+Skript `backend/src/scripts/backup-cloud.mjs`. Každý krok, který neprojde, ukončí běh chybou. Na selhání upozorní GitHub e-mailem.
+1. Ověří, že účet **nemá právo zápisu** (žádné INSERT/UPDATE/DELETE/TRUNCATE ani vlastnictví tabulek, žádná superuser práva),
+   nebo že jde o read-only repliku. Jinak `BACKUP_ROLE_NOT_READ_ONLY`.
+2. Spojení jen přes TLS (`sslmode=require` doplní sám, `disable/allow/prefer` odmítne). Lokální adresa jako zdroj je zakázaná.
+3. `pg_dump` musí být stejné nebo novější hlavní verze než server (runner má 16, Cloud import počítá s 16).
+4. **Konzistence:** `pg_dump --format=custom` čte celou DB v jednom snapshotu (REPEATABLE READ). Zápisy během dumpu
+   do zálohy nepatří, nic se nezamyká. Navíc se spočítají řádky všech tabulek těsně před a po dumpu.
+5. **Úplnost a obnovitelnost:** dump se ihned celý obnoví do prázdné PostgreSQL 16 na runneru
+   (`pg_restore --exit-on-error --single-transaction`). Počty řádků se porovnají: tabulka beze změny během dumpu musí
+   sedět přesně, chybějící nebo přebývající tabulka je chyba, prázdná záloha je chyba.
+6. **Šifrování:** gpg veřejným klíčem `ops/db-backup/anastasia-db-backup.pub.asc` (ed25519/cv25519,
+   otisk `1EAF BE0E 9924 30E7 6411 1F85 9456 588C 3BAE 4AC8`). Soukromý klíč v GitHubu ani v R2 **není**.
+   Nešifrovaný dump se smaže hned po zašifrování, R2 nikdy nevidí čitelná data.
+7. Manifest `<objekt>.json` (bez osobních údajů): sha256 šifrovaného i dešifrovaného souboru, počty řádků, verze.
+8. Nahrání do R2 a kontrola velikosti objektu (`head-object`). Shrnutí běhu je v Actions → běh → *Summary*.
+
+Logy jsou veřejné (repo je veřejné): skript nevypisuje host, uživatele, heslo ani obsah DB; chybové hlášky z psql/pg_dump
+se před výpisem čistí. Ověřeno testem (`db-backup-cloud.unit.spec.ts`).
+
+### 4.2 Úložiště, retence, ochrana proti smazání
+Bucket `anastasia-db-backups`, jurisdikce EU, Cloudflare účet L-Code (dočasně, Etapa 2 viz `MIGRACE-CLOUDFLARE-LUCIE.md`).
+Bucket slouží jen zálohám ANASTASIA, nic jiného v něm není.
+
+| Prefix | Co | Retence (lifecycle) | Zámek proti smazání (bucket lock) |
+|---|---|---|---|
+| `daily/RRRR/MM/` | každý běh | 35 dní | 30 dní |
+| `monthly/RRRR/` | kopie běhu 1. dne v měsíci (UTC) | 400 dní | 365 dní |
+| `selftest/` | jen ruční testy | 1 den | – |
+
+Zámek znamená, že zálohu nesmaže ani přepíše nikdo, ani uniklý klíč, ani omylem spuštěný příkaz. Nedokončené uploady se mažou po 1 dni.
+Velikost: dnešní data ~1,5 MB na zálohu; R2 do 10 GB je zdarma.
+
+### 4.3 Kontrola, že zálohy běží
+- Každý neúspěšný běh pošle GitHub e-mail lidem, kteří sledují repo (Lucky, Jose: Watch → Custom → Actions).
+- Týdně v §6: Actions → *DB backup* → poslední běh zelený a mladší než 26 h.
+- Plán workflow v neaktivním veřejném repu GitHub po 60 dnech vypíná. Workflow si ho proto každou noc sám znovu zapíná
+  (`gh api …/enable`, oprávnění `actions: write`, nic jiného).
+- Každý PR, který mění zálohovací skripty nebo workflow, spustí **selftest** na syntetické DB: odmítnutí účtu se zápisem,
+  záloha se zkušební obnovou, odmítnutí neprázdného cíle, nečitelnost bez soukromého klíče, dešifrování + obnova,
+  odhalení poškozeného souboru.
+
+### 4.4 Obnova (restore drill i ostrá obnova)
+Soukromý klíč a heslo k němu jsou jen v trezoru hesel L-Code (Lucky, Jose). Nikdy do GitHubu, Cloudu ani do chatu.
+Potřebné nástroje: PostgreSQL 16 klient, gpg, aws-cli v2, Node 24, checkout repa.
+
+```sh
+cd backend
+export R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… R2_ENDPOINT=https://<účet>.eu.r2.cloudflarestorage.com R2_BUCKET=anastasia-db-backups
+export BACKUP_GPG_PRIVATE_KEY_FILE=<soubor z trezoru> BACKUP_GPG_PASSPHRASE_FILE=<soubor s heslem, 0600>
+aws s3 ls s3://anastasia-db-backups/daily/2026/10/ --endpoint-url "$R2_ENDPOINT"     # výběr zálohy
+
+# a) Restore drill: obnova do PRÁZDNÉ lokální DB (nic jiného skript nepřijme)
+createdb anastasia_restore_drill
+export RESTORE_DATABASE_URL=postgres://localhost/anastasia_restore_drill
+node src/scripts/restore-cloud.mjs --key=daily/2026/10/anastasia-….dump.gpg                                  # dry run
+node src/scripts/restore-cloud.mjs --key=daily/2026/10/anastasia-….dump.gpg --confirm-empty-local-restore   # obnova
+DATABASE_URL=$RESTORE_DATABASE_URL npx medusa db:migrate    # musí projít beze změn, pak dropdb
+
+# b) Ostrá obnova produkce: jen ověřený dump pro import do Cloudu
+node src/scripts/restore-cloud.mjs --key=daily/2026/10/anastasia-….dump.gpg --decrypt-only
+#    → backend/data-private/backups/anastasia-….dump (0600, gitignored), smazat hned po importu
+```
+Každá cesta nejdřív ověří sha256 šifrovaného souboru proti manifestu, po dešifrování sha256 dumpu a čitelnost archivu.
+Ostrá obnova produkce (rozhoduje Lucky nebo Jose):
+1. Storefront do údržby (Pages rollback na stránku údržby) a Stripe webhook vypnout, aby nevznikaly nové objednávky.
+2. Cloud → Environment → Database → **Export** aktuální DB (stav před obnovou, pro dohledání).
+3. Cloud → Environment → Database → **Import** souboru z kroku b) (Cloud očekává `pg_dump -Fc` z PostgreSQL 16; náš dump to splňuje).
+4. Redeploy (migrace doběhnou nad obnovenými daty) → smoke test §3 body 2, 10, 12 → webhook zapnout → web zpět.
+5. Objednávky a platby vzniklé po čase zálohy dohledat ve Stripe.
+
+**RPO 24 h** (poslední noční záloha; před rizikovým zásahem ruční běh), **RTO 4 h**.
+Ověřeno 18. 10. 2026 na kopii lokální vývojové DB (172 tabulek): záloha → R2 → stažení → dešifrování → obnova
+do prázdné DB → shoda počtů řádků se zdrojem → `medusa db:migrate` → `medusa develop` s `/health` 200 a produkty v API.
+Produkční drill proběhne po prvním nočním běhu (§2.3).
 
 ## 5. Rollback
 
@@ -279,7 +364,7 @@ Lokální postup obnovy je ověřený (INTEGRATION-REPORT §1, Bezpečnost). Pro
 | Storefront / admin | Pages → Deployments → předchozí → *Rollback* | žádná |
 | NEXUS Worker | `npx wrangler rollback --env production` | D1 migrace jsou aditivní; při poškození D1 Time Travel restore na čas před migrací |
 | Backend kód | Medusa Cloud → Deployments → předchozí úspěšný deploy → **Redeploy**; nebo revert commitu na `master` (nový deploy) | Redeploy **nevrací DB**. Migrace Medusy jsou aditivní, starší kód nad novějším schématem běží |
-| Backend data | Cloud → Database → Backups → obnova zálohy / k času; nebo `pg_restore` ručního dumpu (§4) | objednávky vzniklé po čase obnovy dohledat ve Stripe |
+| Backend data | ověřený dump z R2 (`restore-cloud.mjs --decrypt-only`) → Cloud → Database → Import, postup §4.4 | objednávky vzniklé po čase zálohy dohledat ve Stripe |
 | Proměnné | změna hodnoty → Redeploy. Neplatná kombinace (např. live klíč mimo produkci) deploy zastaví a běží předchozí verze | – |
 | Platby | Stripe → vypnout webhook endpoint / vrátit test klíče + `PAYMENTS_TEST_MODE=1`; storefront do údržby přes rollback Pages | Klub joby nic neúčtují, dokud neprojde platba |
 
@@ -294,6 +379,8 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 2. 25. 10. (přechod na zimní čas): zkontrolovat obnovy Klubu v adminu Klub → Obnovy platieb (INTEGRATION-REPORT P2).
 3. ZeptoMail: v Zoho CPaaS sledovat bounce a odmítnutí.
 4. Každá změna proměnné v Cloudu potřebuje Redeploy. Do té doby platí stará hodnota.
+5. Týdně: Actions → *DB backup* zelený, poslední běh mladší než 26 h (§4.3). Měsíčně restore drill (§4.4).
+6. Cloud → Usage: spotřeba výpočetních hodin prostředí vůči limitu Develop (§8/1).
 
 ## 7. Co dodá vlastník (Lucia / LUCRAT s.r.o.)
 
@@ -306,20 +393,23 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 | 5 | Doprava zdarma od částky, lhůta zrušení konzultace | env | 20. 10. |
 | 6 | Katalog produktů a typy konzultací (lze zadat v adminu) | obsah obchodu | 22. 10. |
 | 7 | Schválení instalace GitHub App Medusa Cloud na repo `anastasia-nexus` (pokud ji nemůže schválit L-Code) | deploy backendu | 20. 10. |
-| 8 | Úhrada plánu Medusa Cloud (viz §8/1) | provoz | 20. 10. |
 
 ## 8. Rozhodnutí a úkoly pro L-Code (Lucky / Jose)
 
-1. **Plán Medusa Cloud** (ceny k 18. 10. 2026, ověřit při objednávce):
-   - Develop 29 USD/měs.: bez záloh a Redis, pro ostrý provoz nevyhovuje;
-   - **Launch 99 USD/měs.**: zálohy 7 dní, Redis, backend na `*.medusajs.app`. Doporučeno;
-   - Scale 299 USD/měs.: zálohy 14 dní, oddělený worker pro joby, vlastní doména `api.`.
-   Smlouva počítala s ~29 USD za hosting, rozdíl je potřeba vyřešit s vlastníkem.
-2. Kdo zakládá organizaci Medusa Cloud a na čí kartu (L-Code, nebo přímo LUCRAT s pozvánkou pro L-Code).
+1. **Plán Medusa Cloud: Develop 29 USD/měs. (už zaplacený, rozhodnuto).** Launch se nekupuje.
+   Zálohy řeší §4 (GitHub Actions + R2, bez dalších nákladů), Redis není potřeba (§0).
+   **BLOKACE, potřebuje potvrzení od Medusa (support / billing) do 21. 10.:** ceník uvádí u Develop výpočetní výkon
+   „600 hrs/mo capped per environment“. Měsíc má 720–744 h, server API běží nepřetržitě. Pokud je limit tvrdý,
+   produkce se ~25. den v měsíci zastaví. Dokumentace neříká, co se stane po jeho vyčerpání (uspání, vypnutí, doplatek).
+   Do potvrzení sledovat Cloud → Usage (§6/6).
+2. Organizace Medusa Cloud s plánem Develop existuje. Kdo z L-Code je v ní owner (jen owner zapíná write access k DB,
+   ten ale nepotřebujeme) a kdo nastaví secrety zálohy (Příloha B).
 3. Odsouhlasit dvoufázový smoke test na produkčním prostředí (§3: fáze A `PAYMENTS_TEST_MODE=1` + test klíče, fáze B live + jedna skutečná platba s refundem). Rozhoduje Jose.
 4. Volitelně přesunout `ENVIRONMENT`, `MEDUSA_PRICING_TENANT_ID` a `ALLOWED_ORIGINS` do `vars` v `env.production` ve `wrangler.jsonc`, až budou domény potvrzené (malý PR).
 5. Merge PR #43 → tag.
 6. Cloudflare Access pro `admin.` (doporučení), WAF allowlist IP Cloudu na `nexus.` (§1, volitelné).
+7. Zálohy denně, ne jen v pracovní dny: A-17 (12. 10.) počítalo s pracovními dny, Lucky 18. 10. zadal denně. Workflow běží denně.
+8. Soukromý klíč zálohy a heslo přesunout do trezoru hesel a smazat z `backend/data-private/backup-keys/` (Příloha B).
 
 ## 9. Fáze 2 (není nutné na 23. 10.)
 
@@ -392,3 +482,28 @@ Na Cloudu config navíc kontroluje stejné věci jako na vlastním serveru. Star
 - CORS není HTTPS;
 - v `production` chybí live Stripe klíč nebo `whsec_`;
 - je live klíč mimo `production`, nebo spolu s `PAYMENTS_TEST_MODE`.
+
+## Příloha B – zálohy DB: GitHub secrety a klíče
+
+GitHub → repo `anastasia-nexus` → Settings → Environments → **`production-backup`**:
+- *Deployment branches*: jen `master` (secrety se jinak do běhu nedostanou, ani z PR, ani z jiné větve);
+- *Required reviewers*: nezapínat (noční běh by čekal na schválení).
+
+| Název | Druh | Hodnota |
+|---|---|---|
+| `BACKUP_DATABASE_URL` | secret | read-only connection string z Cloud → Database (§2.2/7) |
+| `R2_BACKUP_ACCESS_KEY_ID` | secret | R2 API token **Object Read & Write jen pro bucket `anastasia-db-backups`** |
+| `R2_BACKUP_SECRET_ACCESS_KEY` | secret | k tokenu výše |
+| `R2_BACKUP_ENDPOINT` | variable | `https://<id účtu>.eu.r2.cloudflarestorage.com` (EU endpoint, jinak bucket nenajde) |
+| `R2_BACKUP_BUCKET` | variable | `anastasia-db-backups` |
+
+R2 token vytvořit v Cloudflare → R2 → Manage API tokens → *Create Account API token* (ne User token, přežije odchod člověka),
+oprávnění Object Read & Write, *Apply to specific buckets only* → `anastasia-db-backups`, TTL bez omezení.
+Token na všechny buckety nepoužívat: v CI by uniklý klíč otevřel i média a jiné projekty.
+
+Šifrovací klíč:
+- veřejný: `ops/db-backup/anastasia-db-backup.pub.asc` (v repu, není tajný);
+- soukromý + heslo: vytvořeny 18. 10. 2026, dočasně v `backend/data-private/backup-keys/` (gitignored, 0600) na stroji Luckyho.
+  **Přesunout do trezoru hesel L-Code (dvě oddělené položky) a lokální soubory smazat.** Bez soukromého klíče nejde žádná
+  záloha obnovit; ztráta klíče = ztráta všech záloh.
+- Výměna klíče: nový pár, nový `.pub.asc` v PR, staré zálohy zůstávají čitelné starým klíčem (ten se nemaže, dokud nevyprší retence 400 dní).

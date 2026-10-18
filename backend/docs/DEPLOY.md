@@ -23,7 +23,9 @@ Sekce 1, 5 a 6 níže popisují i provoz na vlastním Node hostu (lokální prod
 | Doména | HTTPS, např. `api.<doména>`; reverzní proxy (Caddy/nginx) nebo PaaS TLS |
 | Paměť | min. 1 GB RAM na instanci (build + admin) |
 
-Orientační náklady: smlouva počítala s cca 29 USD měsíčně. Na Medusa Cloud odpovídá ostrému provozu plán Launch (99 USD, zálohy + Redis), viz runbook §8.
+Náklady: Medusa Cloud **Develop 29 USD/měs.** (zaplacený, odpovídá smlouvě). Develop nemá zálohy ani Redis:
+zálohy DB dělá GitHub Actions do R2 (runbook §4, bez dalších nákladů), bez `REDIS_URL` běží jediná instance na Cloudu
+s in-memory moduly (runbook §0). Výpočetní limit Develop 600 h/měs. je otevřená blokace, runbook §8/1.
 
 ## 2. Proměnné prostředí
 
