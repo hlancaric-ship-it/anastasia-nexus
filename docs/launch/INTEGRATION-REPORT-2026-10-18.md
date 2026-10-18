@@ -1,6 +1,7 @@
 # ANASTASIA × NEXUS – integrační report pro spuštění 23. 10. 2026
 
-Stav k 18. 10. 2026. Integrační větev: `claude/integration-launch` (draft PR #43), HEAD `84538c2` + tento report.
+Stav k 18. 10. 2026 (aktualizováno odpoledne). Integrační větev: `claude/integration-launch` (draft PR #43).
+Produkční postup: **`docs/launch/DEPLOY-RUNBOOK-2026-10-23.md`**.
 Integrace obsahuje PR #40 (vlastní admin), #42 ⊃ #41 ⊃ #39 (Klub) a #38 (mapa adminu). Nic není mergnuto do `master` ani nasazeno.
 
 Prostředí E2E: lokální Medusa 2.19 (`:9100`) na PostgreSQL kopii `anastasia_launch_e2e` (migrace z větve), most s kódem
@@ -21,6 +22,10 @@ NEXUS Workeru (`:8787`), `stripe listen` v testovacím účtu, vlastní admin (`
 | Poukazy – web | 8/8 | nabídka hodnot z backendu, nákup 50 €, vydání, e-mail obdarované s kódem, uplatnění v košíku, doplatek 9 €, čerpání na 0, admin seznam maskovaně, detail s pohyby |
 | Poukazy – admin | 4/4 | maskovaný seznam, historie pohybů, zneplatnění vyžaduje důvod, DB `void|0` |
 | Účet a chat | 8/8 | účet bez přihlášení zamčený, reálné objednávky a termíny, zákaznice píše, bez nákupu blokováno, admin vidí, odpověď + e-mail, zákaznice vidí, uzavřená konverzace |
+| Konzultace – web | browser E2E | výběr typu a termínu na `/konzultacie`, held termín v košíku, platba, `confirmed` (`969577f`) |
+| Admin – konzultace | browser E2E | typy (cena, délka, SKU), týdenní dostupnost a výjimky ve vlastním adminu (`2494903`) |
+| Admin – nastavení poukazů | browser E2E | hodnoty, platnost, doručení, rozsah kategorií, uložení a reload (`73c0145`, evidence 56–57) |
+| Kontakt + newsletter | 4/4 | zpráva → e-mail Lucii (`contact-form-admin`, reply-to odesílatelka), validace, past na roboty, limit 5/10 min; newsletter v patičce uloží souhlas s verzí textu (`00d9139`, evidence 58–59) |
 | Úvod (homepage) | PASS | kolekce jen ze skutečných produktů backendu |
 | Bezpečnostní audit | 7/7 | viz níže |
 
@@ -42,9 +47,8 @@ Klub obnova běží s posunutými hodinami procesu (simulace dne obnovy, `shift-
 
 ## 2. Nehotové funkce
 
-- **Rezervace konzultací na webu:** storefront nemá UI výběru termínu (backend, platba a admin fungují; E2E volal store API pro sloty).
-- **Vlastní admin:** chybí správa typů konzultací/dostupnosti a nastavení poukazů (jen API / Medusa admin).
-- **Kontaktní formulář** na webu nic neodesílá.
+~~Rezervace konzultací na webu, typy/dostupnost a nastavení poukazů v adminu, kontaktní formulář, newsletter v patičce~~:
+**hotovo 18. 10.** (viz §1 a §5).
 - **Materiály a faktury v účtu:** fáze 2.
 - Chat bez živého pollingu (načte se při otevření).
 
@@ -56,9 +60,9 @@ Klub obnova běží s posunutými hodinami procesu (simulace dne obnovy, `shift-
 3. Produkční env podle `backend/docs/DEPLOY.md` §2 (včetně sekce Funkce Fáze 1), Stripe live klíč + webhook `stripe_stripe`, ZeptoMail doména (DKIM/bounce) ověřená, `GIFT_VOUCHER_DELIVERY=notification`, `NEXUS_BOOKING_SYNC_SECRET` shodný s Workerem, `CHAT_ADMIN_URL` na vlastní admin.
 
 **P1:**
-1. Rezervace konzultací z webu (viz 2) – buď UI do 23. 10., nebo konzultace na launch nenabízet.
-2. Typy/dostupnost konzultací a nastavení poukazů ve vlastním adminu.
-3. Kontaktní formulář.
+1. ~~Rezervace konzultací z webu~~ – hotovo (`969577f`).
+2. ~~Typy/dostupnost konzultací a nastavení poukazů ve vlastním adminu~~ – hotovo (`2494903`, `73c0145`).
+3. ~~Kontaktní formulář~~ – hotovo, navíc newsletter v patičce ukládá souhlas (`00d9139`).
 4. Guardy Klubu a konzultací (nákup produktu bez platného kontextu) zastaví nákup až při autorizaci platby, ne už při vložení do košíku; storefront tyto produkty z katalogu filtruje, riziko je jen u přímého volání API (objednávka nevznikne, chyba přijde pozdě).
 5. Starší typy konzultací bez SKU (NEXUS reprice bez SKU nefunguje) – doplnit SKU při migraci dat.
 
@@ -93,30 +97,23 @@ karta neukazuje), opraven na maskovaný kód.
 | `b4a6486` | re-review mapy adminu (booking/types) |
 | `1e07e36` | **security:** detail objednávky jen pro přihlášenou vlastnici |
 | `84538c2` | `DEPLOY.md` + `.env.template`: produkční proměnné funkcí Fáze 1 |
+| `969577f` | storefront: rezervace konzultace přímo na webu |
+| `2494903` | admin: typy konzultací a dostupnost |
+| `575f062` | produkční build storefrontu a adminu pro Cloudflare Pages (`ANASTASIA_*` env, CSP, HSTS, sitemap) |
+| `73c0145` | admin: nastavení dárkových poukazů |
+| `00d9139` | kontaktní formulář a newsletter napojené na backend (`CONTACT_NOTIFY_EMAIL`) |
+| `4e3ab38` | mapa funkcí adminu: `/store/contact` (CI membership) |
 
 PR: #43 (draft, integrace) obsahuje #40, #42, #41, #39, #38. Všechny OPEN, merge dělá Jose.
 
 ## 6. GO / NO-GO pro 23. 10.
 
 **Kód: GO** pro e-shop, objednávky a expedici, refundy, Klub (nákup, 3DS, obnova, zastavení), poukazy, účet a chat.
-**Konzultace z webu: NO-GO** bez UI rezervace (P1/1) – na launch buď doplnit, nebo nenabízet.
+**Konzultace z webu: GO** (rezervace na webu doplněna). Kontakt a newsletter: GO.
 **Spuštění celkově: NO-GO, dokud nejsou uzavřeny P0/1–3** (hosting + zálohy, merge, produkční env/Stripe/ZeptoMail).
 Pokud budou P0 hotové do 21. 10. a proběhne smoke test na produkci v test režimu Stripe, je 23. 10. reálné.
 
 ## 7. Postup nasazení a rollbacku
 
-**Nasazení** (detail `backend/docs/DEPLOY.md` §5):
-1. Jose zreviduje a mergne #43 (resp. #38–#42) do `master`; tag `launch-2026-10-23`.
-2. Zřídit Postgres (SSL, denní záloha + PITR) a Redis; env dle DEPLOY §2 včetně Funkcí Fáze 1; nejdřív **testovací** Stripe klíče.
-3. `npm ci && npm run build`; v `.medusa/server` `npx medusa db:migrate`; jednorázově `anastasia-bootstrap.ts`; admin uživatel.
-4. Start za HTTPS proxy, `GET /health`; Stripe webhook `https://<backend>/hooks/payment/stripe_stripe` + `whsec`.
-5. NEXUS Worker: secrets `MEDUSA_PRICING_API_KEY`, `MEDUSA_PRICING_TENANT_ID`, `MEDUSA_BOOKING_SYNC_SECRET`, `OPS_INGEST_SECRET` shodné s backendem; deploy Workeru.
-6. Storefront a admin na Cloudflare Pages s produkční `apiBaseUrl` a publishable klíčem; CORS na backendu.
-7. ZeptoMail: DKIM + bounce CNAME (DNS only), ověřit magic link na vlastní adresu; v adminu znovu uložit nastavení poukazů.
-8. Smoke test v test režimu Stripe (nákup, Klub, poukaz, refund) → přepnout na live klíče → jedna reálná malá platba + refund.
-
-**Rollback:**
-- Před migrací `pg_dump -Fc` (ověřený postup obnovy výše). Aplikace: nasadit předchozí build/tag (Pages „rollback to deployment“, Medusa předchozí release).
-- Migrace jsou aditivní; při problému s daty obnova z dumpu `pg_restore --single-transaction` do nové DB a přepnutí `DATABASE_URL`.
-- Stripe: přepnout zpět na test klíče / vypnout webhook endpoint; Klub joby se zastaví s procesem, nic neúčtují.
-- Worker: `wrangler rollback` na předchozí verzi.
+Kompletní postup (pořadí, párování tajemství Worker ↔ backend, Pages env, Stripe, DNS a redirecty, ZeptoMail, smoke test
+ve dvou fázích, zálohy, rollback, co dodá vlastník) je v **`docs/launch/DEPLOY-RUNBOOK-2026-10-23.md`**.
