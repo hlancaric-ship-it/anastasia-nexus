@@ -1,3 +1,5 @@
+import {publicBuildConfig} from './src/lib/build-config.mjs';
+const buildConfig=publicBuildConfig(process.env);
 const mediaOrigin=process.env.ANASTASIA_MEDIA_ORIGIN||'';
 if(mediaOrigin&&(!/^https?:\/\/[a-zA-Z0-9.:-]+$/.test(mediaOrigin)||!(mediaOrigin.startsWith('https://')||/^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?$/.test(mediaOrigin))))throw Error('Invalid media origin');
 import {mkdir,writeFile,readFile,cp} from 'node:fs/promises';
@@ -17,8 +19,8 @@ const siteTheme=process.env.SITE_THEME||siteThemes[0].id;
 if(!siteThemes.some(t=>t.id===siteTheme))throw new Error(`Unknown SITE_THEME ${siteTheme}`);
 const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'dist');
 let catalogProducts=api.getProducts();
-if(process.env.ANASTASIA_PUBLISHABLE_KEY&&process.env.ANASTASIA_REGION_ID){
- const store=createHttpApi({getItem:()=>null,setItem:()=>{}},{apiBaseUrl:process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100',publishableKey:process.env.ANASTASIA_PUBLISHABLE_KEY,regionId:process.env.ANASTASIA_REGION_ID});
+if(!buildConfig.offline){
+ const store=createHttpApi({getItem:()=>null,setItem:()=>{}},buildConfig);
  catalogProducts=await store.getProducts();if(!catalogProducts.length)throw new Error('Real catalog build returned no products');
 }
 const catalog=category=>views.catalog(category,catalogProducts);
@@ -70,9 +72,8 @@ const renderDocument=(path,{title,body,design})=>{
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));await cp(join(root,'src/site-themes.mjs'),join(out,'site-themes.mjs'));
 {
  const file=join(out,'config.mjs');let source=await readFile(file,'utf8');
- for(const [key,name] of Object.entries({apiBaseUrl:'ANASTASIA_API_ORIGIN',publishableKey:'ANASTASIA_PUBLISHABLE_KEY',regionId:'ANASTASIA_REGION_ID'})){
-  const value=process.env[name];if(!value)continue;
-  if(!/^[A-Za-z0-9_:/.-]+$/.test(value))throw new Error('Invalid public build configuration');
+ for(const key of ['apiBaseUrl','publishableKey','regionId','stripePublishableKey']){
+  const value=buildConfig[key];if(!value)continue;
   const pattern=new RegExp('('+key+': w\\.'+key+' \\|\\| )'+"'[^']*'");source=source.replace(pattern,(_,prefix)=>prefix+JSON.stringify(value));
  }
  await writeFile(file,source);
@@ -105,4 +106,4 @@ await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
 await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.stripe.com data:; media-src 'self' ${mediaOrigin}; font-src 'self'; connect-src 'self' ${apiOrigin} ${mediaOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\n`);
 await writeFile(join(out,'routes.json'),JSON.stringify([...routes.keys()],null,2));
-console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). ${process.env.ANASTASIA_PUBLISHABLE_KEY?'Real catalog loaded from Medusa.':'No backend calls.'}`);
+console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). ${!buildConfig.offline?'Real catalog loaded from Medusa.':'Explicit offline design fixtures; no runtime backend configuration.'}`);

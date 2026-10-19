@@ -21,5 +21,5 @@ jobs:
           node-version: 24.14.0
       - name: Build explicit offline fixtures and test presentation contracts
         run: |
-          node storefront-prototype/build.mjs
+          ANASTASIA_OFFLINE_FIXTURES=1 node storefront-prototype/build.mjs
           node --test storefront-prototype/test/*.test.mjs

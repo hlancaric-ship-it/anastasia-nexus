@@ -10,7 +10,7 @@ Z kořene worktree, Node.js 22+:
 
 ```sh
 node storefront-prototype/prepare-media.mjs
-node storefront-prototype/build.mjs
+ANASTASIA_OFFLINE_FIXTURES=1 node storefront-prototype/build.mjs
 node storefront-prototype/serve.mjs 4173
 ```
 
@@ -123,3 +123,9 @@ Výchozí adresa zůstává pouze lokální `127.0.0.1`. Veřejné nasazení tí
 
 Pokud dodaná složka videa už není dostupná, příprava použije existující kopie
 v `public/media/`. Bez zdroje i bez těchto kopií skončí chybou; média se nevyrábějí.
+
+## Připojený náhled a testovací předání
+
+Běžný build vyžaduje explicitně `ANASTASIA_API_ORIGIN`, `ANASTASIA_PUBLISHABLE_KEY`, `ANASTASIA_REGION_ID` a `ANASTASIA_STRIPE_PUBLISHABLE_KEY`. Bez nich skončí před zápisem do dist; nemá předvyplněné klíče jiného prostředí. Stripe publishable key se skutečně promítá do výsledného config.mjs. Pro placený obsah nastavte také `ANASTASIA_MEDIA_ORIGIN`. Offline režim výše je pouze explicitní designová/testovací fixture, bez připojené zákaznické aplikace; nekombinujte ho s reálnými údaji a neservírujte jeho výstup Lucii.
+
+Lokální backend musí mít původní veřejné soubory v adresáři svého file providera (`static/legacy-catalog`); přepnutí git worktree tyto gitignorované soubory nepřenese. Soukromý obsah zůstává v R2 a nikdy se sem nekopíruje.
