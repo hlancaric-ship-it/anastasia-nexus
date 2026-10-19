@@ -18,6 +18,6 @@ export const SHOP_CATALOG=Object.freeze([
   {slug:"pletova-voda",name:"Tvoja pleťová voda",category:"Kozmetika",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-maslo.png"},
   {slug:"osviezit-plet",name:"Tvoja pleťová voda osviežujúca",category:"Kozmetika",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-gel.png"},
   {slug:"vyuka-vedomeho-vnimania",name:"Výuka vedomého vnímania",category:"Programy a služby",priceLabel:"2 600,00 €",art:"sun",image:"/assets/zdravy-svet-luka.jpg"},
-].map((p,i)=>Object.freeze({...p,code:p.slug,description:'Podrobnosti a podmienky nájdete v detaile produktu.',availability:'Informácie v detaile',isNew:false,isBestseller:false})));
+].map((p,i)=>Object.freeze({...p,code:p.slug,description:'Podrobnosti a podmienky nájdete v detaile produktu.',availability:p.slug==='vyuka-vedomeho-vnimania'?'Dostupné':'Informácie v detaile',isNew:false,isBestseller:false})));
 export const SHOP_HANDLES=new Set(SHOP_CATALOG.map(p=>p.slug));
 export const SHOP_BY_HANDLE=new Map(SHOP_CATALOG.map(p=>[p.slug,p]));
