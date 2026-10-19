@@ -249,7 +249,7 @@ if(productDetail){
     if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
       put('[data-product-full-description]',complete);
       const intro=productDetail.querySelector('[data-product-intro]');
-      if(intro){intro.hidden=false;intro.textContent=complete.length>410?complete.slice(0,410).replace(/\\s+\\S*$/,'')+'…':complete;}
+      if(intro){intro.hidden=false;intro.textContent=complete.length>410?complete.slice(0,410).replace(/\s+\S*$/,'')+'…':complete;}
     }
     const pic=productDetail.querySelector('[data-product-main-image]');
     if(pic&&typeof product.image==='string'&&/^(https:\/\/|\/)/.test(product.image))pic.src=product.image;
