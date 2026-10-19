@@ -233,6 +233,39 @@ if(filterForm){
   };
   filterForm.addEventListener('input',render);filterForm.addEventListener('submit',ev=>{ev.preventDefault();render();});render();
 }
+// The static preview has mock metadata; live product records may carry the full original text.
+// Never manufacture curriculum or benefits: only hydrate information actually returned by API.
+const productDetail=document.querySelector('[data-product-detail]');
+if(productDetail){
+  const productHandle=productDetail.dataset.productHandle;
+  api.getProduct(productHandle).then(product=>{
+    if(!product)return;
+    const put=(selector,value)=>{const node=productDetail.querySelector(selector);if(node&&value!=null&&String(value).trim())node.textContent=String(value);};
+    put('[data-product-title]',product.name);
+    put('[data-product-price]',product.priceLabel);
+    put('[data-product-availability]',product.availability);
+    // The original legacy description must stay complete, without unverified marketing copy.
+    const complete=String(product.longDescription||product.descriptionHtml||product.description||'').trim();
+    if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
+      put('[data-product-full-description]',complete);
+      const intro=productDetail.querySelector('[data-product-intro]');
+      if(intro){intro.hidden=false;intro.textContent=complete.length>410?complete.slice(0,410).replace(/\\s+\\S*$/,'')+'…':complete;}
+    }
+    const pic=productDetail.querySelector('[data-product-main-image]');
+    if(pic&&typeof product.image==='string'&&/^(https:\/\/|\/)/.test(product.image))pic.src=product.image;
+    const gallery=(Array.isArray(product.images)?product.images:[]).map(v=>typeof v==='string'?v:v?.url).filter(v=>typeof v==='string'&&/^(https:\/\/|\/)/.test(v));
+    if(pic&&gallery.length>1){
+      const urls=[...new Set([product.image,...gallery].filter(Boolean))];let active=0;
+      const bar=productDetail.querySelector('[data-product-thumbnails]');
+      const arrows=productDetail.querySelector('[data-gallery-actions]');
+      const choose=i=>{active=(i+urls.length)%urls.length;pic.src=urls[active];bar?.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-current',String(j===active)));};
+      if(bar){bar.hidden=false;urls.forEach((uri,i)=>{const btn=document.createElement('button');btn.type='button';btn.setAttribute('aria-label', 'Fotografia '+(i+1));const thumb=document.createElement('img');thumb.src=uri;thumb.alt='';thumb.loading='lazy';btn.appendChild(thumb);btn.addEventListener('click',()=>choose(i));bar.appendChild(btn);});}
+      if(arrows){arrows.hidden=false;arrows.querySelector('[data-gallery-previous]')?.addEventListener('click',()=>choose(active-1));arrows.querySelector('[data-gallery-next]')?.addEventListener('click',()=>choose(active+1));}
+      choose(0);
+    }
+  }).catch(()=>{});
+}
+
 $('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount();});
 
 const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>`;
