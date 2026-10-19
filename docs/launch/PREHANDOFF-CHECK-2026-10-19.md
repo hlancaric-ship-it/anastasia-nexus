@@ -27,7 +27,11 @@ Nic se v rámci kontroly nenasazuje, nemění se DNS, neodesílají e-maily a ne
 
 Pozitivní dokončení nákupu se neprovádí pod cizí historickou zákaznicí ani vnášením umělých objednávek do reálného náhledu. Nativní HTTP/PG běhy pouze GitHub Actions ověřují fyzický/digitální/smíšený nákup, serverové částky a DPH/dopravu, capture, nezaplacený stav, historii a správný digitální grant, replay a izolaci. Členská integrace ověřuje také 3DS, obnovu, refundy a zastavení.
 
-Předchozí přesný runtime na masteru7b65723: backend/NEXUS39233409906 SUCCESS (1034 unit +153 nativních scénářů), členská integrace39232416173 SUCCESS. Aktuální opakované běhy a konečný výsledek jsou zaznamenány v PR tohoto balíku a v koordinačním souboru. Netvrdit, že nativní CI představuje nový úplný browser nákup na vzdáleném prostředí Lucie.
+Předchozí přesný runtime na masteru7b65723: backend/NEXUS39233409906 SUCCESS (1034 unit +153 nativních scénářů), členská integrace39232416173 SUCCESS. Opakovaný běh nad opravou0e04dff: artefakty39277893481 potvrzují1034/1034 backend unit a153/153 nativních scénářů PASS, včetně fyzického a smíšeného nákupu/capture/historie/replay a digitálního grantu. Samotný workflow při zápisu ještě zůstává in_progress, proto se neoznačuje celý za SUCCESS. Členská integrace39277899823 SUCCESS a frontend39277931821 SUCCESS. Konečný stav workflow je zaznamenán v PR a koordinačním souboru; dokumentační doplnění nemění ověřený runtime. Netvrdit, že nativní CI představuje nový úplný browser nákup na vzdáleném prostředí Lucie.
+
+## Skutečné nastavení rozšířených nákupů: BLOCKED
+
+Přes skutečný HTTP adaptér nad aktuálním katalogem ověřeno: `getBookingTypes()` = 0 rezervovatelných typů, `getGiftVoucherProduct()` = 0 nabízených variant, `getMembershipProducts()` = 0 nabídek členství. Všech 14 současných veřejných produktů má metadata booking/membership/gift_voucher neaktivní. Toto není výpadek těchto ověřených API, ale chybějící/nezveřejněné nastavení reálné nabídky. Běžný nákup stávajícího produktu nazvaného konzultace nenahrazuje rezervaci termínu. Před zkouškou těchto větví musí být v adminu přiřazeny skutečné produkty, schválené ceny, délky a dostupnost/hodnoty; nevymýšlet je a nepřidávat ukázkové nabídky.
 
 ## Další hranice
 
