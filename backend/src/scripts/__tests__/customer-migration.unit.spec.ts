@@ -77,6 +77,13 @@ describe("customer migration validation and privacy", () => {
   it("accepts only the authorized local DB", () => {
     expect(() => assertLocalDatabase("postgres://u@127.0.0.1:5432/anastasia_dev_wave1")).not.toThrow()
   })
+  it("allows the isolated local catalogue DB and can omit obsolete password drafts", () => {
+    expect(() => assertLocalDatabase("postgresql://localhost/anastasia_catalog_local_20261019")).not.toThrow()
+    expect(() => assertLocalDatabase("postgresql://remote/anastasia_catalog_local_20261019")).toThrow("LOCAL_DATABASE_REQUIRED")
+    expect(() => assertLocalDatabase("postgresql://localhost/anastasia_catalog_local_20261019?host=remote")).toThrow("LOCAL_DATABASE_REQUIRED")
+    expect(parseOptions(["--skip-password-drafts"]).skipPasswordDrafts).toBe(true)
+    expect(parseOptions([]).skipPasswordDrafts).toBe(false)
+  })
   it("rejects password fields and does not echo private values in validation errors", () => {
     const data = fixture() as any
     data.customers[0].password = "SYNTHETIC_SECRET"
@@ -137,6 +144,14 @@ describe("customer migration validation and privacy", () => {
 })
 
 describe("customer migration execution", () => {
+  it("can migrate without generating password drafts or requiring a draft writer", async () => {
+    const s = mockServices()
+    const dry = await migrateCustomers(fixture(), catalog, s, { apply: false, skipPasswordDrafts: true })
+    expect(dry.planned?.password_drafts).toBe(0)
+    const report = await migrateCustomers(fixture(), catalog, s, { apply: true, skipPasswordDrafts: true })
+    expect(report.reconciled).toBe(true)
+    expect(s.db.grants).toHaveLength(1)
+  })
   it("performs zero writes in dry-run and only returns counts and amounts", async () => {
     const s = mockServices(); const saveDraft = jest.fn()
     const report = await migrateCustomers(fixture(), catalog, s.services, { apply: false, saveDraft })
