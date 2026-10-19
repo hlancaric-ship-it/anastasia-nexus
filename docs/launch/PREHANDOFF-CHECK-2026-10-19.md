@@ -27,7 +27,7 @@ Nic se v rámci kontroly nenasazuje, nemění se DNS, neodesílají e-maily a ne
 
 Pozitivní dokončení nákupu se neprovádí pod cizí historickou zákaznicí ani vnášením umělých objednávek do reálného náhledu. Nativní HTTP/PG běhy pouze GitHub Actions ověřují fyzický/digitální/smíšený nákup, serverové částky a DPH/dopravu, capture, nezaplacený stav, historii a správný digitální grant, replay a izolaci. Členská integrace ověřuje také 3DS, obnovu, refundy a zastavení.
 
-Předchozí přesný runtime na masteru7b65723: backend/NEXUS39233409906 SUCCESS (1034 unit +153 nativních scénářů), členská integrace39232416173 SUCCESS. Opakovaný běh nad opravou0e04dff: artefakty39277893481 potvrzují1034/1034 backend unit a153/153 nativních scénářů PASS, včetně fyzického a smíšeného nákupu/capture/historie/replay a digitálního grantu. Samotný workflow při zápisu ještě zůstává in_progress, proto se neoznačuje celý za SUCCESS. Členská integrace39277899823 SUCCESS a frontend39277931821 SUCCESS. Konečný stav workflow je zaznamenán v PR a koordinačním souboru; dokumentační doplnění nemění ověřený runtime. Netvrdit, že nativní CI představuje nový úplný browser nákup na vzdáleném prostředí Lucie.
+Předchozí přesný runtime na masteru7b65723: backend/NEXUS39233409906 SUCCESS (1034 unit +153 nativních scénářů), členská integrace39232416173 SUCCESS. Opakovaný běh nad opravou0e04dff: artefakty39277893481 potvrzují1034/1034 backend unit a153/153 nativních scénářů PASS, včetně fyzického a smíšeného nákupu/capture/historie/replay a digitálního grantu. Celý workflow 39277893481 následně dokončen SUCCESS (ověřeno přes GitHub API). Členská integrace39277899823 SUCCESS a frontend39277931821 SUCCESS. Konečný stav workflow je zaznamenán v PR a koordinačním souboru; dokumentační doplnění nemění ověřený runtime. Netvrdit, že nativní CI představuje nový úplný browser nákup na vzdáleném prostředí Lucie.
 
 ## Skutečné nastavení rozšířených nákupů: BLOCKED
 
@@ -36,3 +36,15 @@ Přes skutečný HTTP adaptér nad aktuálním katalogem ověřeno: `getBookingT
 ## Další hranice
 
 Soukromý upload z vlastního adminu je samostatný nedokončený balík; přejmenování/pořadí existujících souborů je PR53, dosud nesloučené. Platby, dopravci, štítky a osobní odběr mohou být nabídnuté jen podle skutečně nastavených poskytovatelů; tato kontrola nepředstírá provozní napojení nevyplněných API. Apple Pay/Google Pay na zařízeních Lucie nebyly ověřeny. Živé e-maily/platby a ostré spuštění vyžadují vlastní přejímku.
+
+## Navazující dokončení přípravy
+
+Opraven také `ops/test-predani/deploy.sh`: neodstraňuje funkční dist před kontrolou a sestavením; smoke odmítá nedostupný config, chybějící Stripe TEST konfiguraci i live/tajný klíč. Pět izolovaných kontrol skriptu PASS; jsou součástí frontend CI. Tyto testy nepřistupují k zákaznickým datům ani skutečnému cloudu.
+
+Konkrétní podklady pro zbývající kroky:
+- Cílový Medusa Cloud projekt, jeho skutečná backend URL a oprávnění k projektu. GitHub evidence nasazení žádný cíl neposkytla; neodvozovat URL z názvu repozitáře.
+- Potvrzení skutečných nabídek: konzultace (produkt, délka, dostupnost), poukaz (částky, platnost), Klub (produkt, interval). Ceny stávajících produktů nejsou oprávněním vymyslet tyto další podmínky.
+- Před veřejným testovacím nasazením souhlas Luckyho podle původního pokynu; použít výhradně testovací subdomény L-Code, Stripe TEST, vypnutou poštu. Žádné zákaznické pozvánky neposílat.
+- Potom ověřit přihlášení Lucie, skutečný testovací nákup a přístup k obsahu na tomto konkrétním prostředí. Dosavadní CI tento provozní krok nenahrazuje.
+
+PR54 obsahuje připravené opravy a ověření; samotné odstranění těchto externích blokací ani sloučení PR není provedeno.

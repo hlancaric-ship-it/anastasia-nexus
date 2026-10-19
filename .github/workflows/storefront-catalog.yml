@@ -4,6 +4,7 @@ on:
     branches: [master]
     paths:
       - 'storefront-prototype/**'
+      - 'ops/test-predani/**'
       - '.github/workflows/storefront-catalog.yml'
   workflow_dispatch:
 permissions:
@@ -23,3 +24,5 @@ jobs:
         run: |
           ANASTASIA_OFFLINE_FIXTURES=1 node storefront-prototype/build.mjs
           node --test storefront-prototype/test/*.test.mjs
+          bash -n ops/test-predani/deploy.sh
+          node --test ops/test-predani/deploy.test.mjs
