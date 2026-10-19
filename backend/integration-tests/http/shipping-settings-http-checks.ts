@@ -1,12 +1,14 @@
 import { syntheticBuyer, associateCart } from "./customer-fixtures"
-import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
+import { capturePaymentWorkflow, createProductsWorkflow } from "@medusajs/medusa/core-flows"
+import { grantEntitlementsForOrder } from "../../src/modules/entitlement/order-sync"
 import { acceptCheckoutConsent } from "./legal-fixtures"
 
 /**
  * C-3 doprava: kurýr z bootstrapu (DB, upravitelný v adminu) a doprava zdarma od částky
  * (`ANASTASIA_FREE_SHIPPING_FROM_EUR`, runner nastavuje syntetických 100 EUR) jako nativní
  * pravidlo ceny `item_total >= hranice`. Ověřuje hranici, přepočet při změně košíku a že
- * klient cenu dopravy nepřepíše. Dokončení objednávky tu není – to pokrývají ostatní scénáře.
+ * klient cenu dopravy nepřepíše. Dokončí i fyzický a smíšený košík včetně zachycení platby,
+ * historie a přístupu pouze k digitálnímu produktu.
  *
  * `item_total` je v Medusa 2 součet položek S DPH po slevách (cenový kontext dopravy je celý košík).
  * Ceny v katalógu sú koncové (s DPH, EUR je tax-inclusive z bootstrapu), test aj tak číta hrubú
@@ -130,4 +132,68 @@ export async function verifyShippingSettings({ api, container, options, channel,
   const { data: leaked } = await query.graph({ entity: "order", fields: ["id"], filters: { email: "shipping-digital@example.test" } })
   expect(leaked).toHaveLength(0)
   record("PHYSICAL_CART_CANNOT_COMPLETE_WITH_DIGITAL_OPTION")
+
+  const entitlements = container.resolve("entitlement")
+  const completeAndCapture = async (id: string, productIds: string[]) => {
+    await associateCart(api, id, buyerOptions)
+    await ok(api.post(`/store/carts/${id}`, { email: buyer.customer.email }, buyerOptions))
+    await ok(api.post("/store/nexus-cart", { cart_id: id }, buyerOptions))
+    const before = (await ok(api.get(`/store/carts/${id}`, buyerOptions))).cart
+    const collection = await ok(api.post("/store/payment-collections", { cart_id: id }, buyerOptions))
+    await ok(api.post(`/store/payment-collections/${collection.payment_collection.id}/payment-sessions`, { provider_id: "pp_system_default" }, buyerOptions))
+    await acceptCheckoutConsent(api, id, buyerOptions)
+    const completion = await ok(api.post("/store/nexus-checkout", { cart_id: id }, buyerOptions))
+    expect(completion.paymentStatus).toBe("PENDING")
+    const orderId = completion.order.id
+    const load = async () => (await query.graph({ entity: "order", fields: ["id", "total", "shipping_total", "items.product_id", "payment_collections.captured_amount", "payment_collections.payments.id"], filters: { id: orderId } })).data[0]
+    const order = await load()
+    expect(order.items.map((i: any) => i.product_id).sort()).toEqual([...productIds].sort())
+    expect(Number(order.total)).toBeCloseTo(Number(before.total), 6)
+    expect(Number(order.shipping_total)).toBeCloseTo(Number(before.shipping_total), 6)
+    expect(await entitlements.listEntitlements({ order_id: orderId })).toHaveLength(0)
+    await capturePaymentWorkflow(container).run({ input: { payment_id: order.payment_collections[0].payments[0].id } })
+    expect(Number((await load()).payment_collections[0].captured_amount)).toBeCloseTo(Number(order.total), 6)
+    const history = await ok(api.get("/store/orders?limit=100&fields=id", buyerOptions))
+    expect(history.orders.some((o: any) => o.id === orderId)).toBe(true)
+    const previous = (await query.graph({ entity: "order", fields: ["id"], filters: { customer_id: buyer.customer.id } })).data.length
+    const replay = await api.post("/store/nexus-checkout", { cart_id: id }, buyerOptions)
+    expect([200, 400, 409]).toContain(replay.status)
+    expect((await query.graph({ entity: "order", fields: ["id"], filters: { customer_id: buyer.customer.id } })).data).toHaveLength(previous)
+    return orderId
+  }
+
+  const physicalOrder = await completeAndCapture(cart.id, [products[0].id])
+  expect((await grantEntitlementsForOrder(container, physicalOrder)).granted).toHaveLength(0)
+  expect(await entitlements.listEntitlements({ order_id: physicalOrder })).toHaveLength(0)
+  record("PHYSICAL_CHECKOUT_CAPTURE_HISTORY_AND_REPLAY")
+
+  const { data: digitalProfiles } = await query.graph({ entity: "shipping_profile", fields: ["id"], filters: { type: "digital" } })
+  expect(digitalProfiles).toHaveLength(1)
+  const { result: digitalProducts } = await createProductsWorkflow(container).run({ input: { products: [{
+    ...product("synthetic-shipping-program", "SYNTHETIC-SHIPPING-PROGRAM", 11),
+    shipping_profile_id: digitalProfiles[0].id,
+    metadata: { entitlement: true },
+  }] } })
+  const { cart: mixed } = await ok(api.post("/store/carts", {
+    region_id: region.id, sales_channel_id: channel.id, email: buyer.customer.email,
+    shipping_address: { first_name: "Synthetic", last_name: "Shipping", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" },
+  }, buyerOptions))
+  for (const variant_id of [variantId, digitalProducts[0].variants[0].id]) await ok(api.post(`/store/carts/${mixed.id}/line-items`, { variant_id, quantity: 1 }, buyerOptions))
+  const mixedOptions = (await ok(api.get(`/store/shipping-options?cart_id=${mixed.id}`, buyerOptions))).shipping_options
+  for (const profileId of [profiles[0].id, digitalProfiles[0].id]) {
+    const method = mixedOptions.find((o: any) => o.shipping_profile_id === profileId)
+    expect(method).toBeDefined()
+    await ok(api.post(`/store/carts/${mixed.id}/shipping-methods`, { option_id: method.id }, buyerOptions))
+  }
+  const mixedOrder = await completeAndCapture(mixed.id, [products[0].id, digitalProducts[0].id])
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if ((await entitlements.listEntitlements({ order_id: mixedOrder })).length) break
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+  const grants = await entitlements.listEntitlements({ order_id: mixedOrder })
+  expect(grants).toHaveLength(1)
+  expect(grants[0].product_id).toBe(digitalProducts[0].id)
+  expect(grants[0].customer_id).toBe(buyer.customer.id)
+  expect(grants[0].status).toBe("active")
+  record("MIXED_CHECKOUT_CAPTURE_HISTORY_AND_DIGITAL_ACCESS")
 }
