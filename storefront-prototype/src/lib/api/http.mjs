@@ -8,7 +8,7 @@ const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena s
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,thumbnail,*categories,*variants,+variants.sku,+variants.calculated_price';
+  'handle,title,subtitle,description,thumbnail,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
 
 function mapProduct(p) {
   const variant = (p.variants || [])[0] || {};
@@ -21,7 +21,8 @@ function mapProduct(p) {
     code: p.handle,
     priceLabel: cp.calculated_amount != null ? money(cp.calculated_amount) : 'Cena sa doplní',
     art: ART[category] || 'jar',
-    description: p.subtitle || '',
+    description: p.description || p.subtitle || '',
+    images: (p.images || []).map(image => image.url).filter(Boolean),
     availability: 'Dostupné',
     isNew: false,
     isBestseller: false,
