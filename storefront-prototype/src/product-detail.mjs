@@ -1,5 +1,6 @@
 import {escape as e,arrow,button,card} from './components.mjs';
 import {SHOP_BY_HANDLE} from './lib/api/catalog.mjs';
+import {VVV_HANDLE,VVV_INTRO,VVV_FACTS,VVV_CARDS,VVV_PANELS} from './product-course-vvv.mjs';
 
 const digital = p => (SHOP_BY_HANDLE.get(p.slug)?.category || p.category) === 'Programy a služby';
 const txt = value => e(String(value ?? ''));
@@ -14,7 +15,20 @@ const productName = p => `<p class="pd-eyebrow" data-product-category>${txt(p.ca
 const intro = p => {const s=source(p);const excerpt=s.length>410?s.slice(0,410).replace(/\s+\S*$/, '')+'…':s;return `<p class="pd-intro" data-product-intro ${excerpt?'':'hidden'}>${txt(excerpt)}</p>`;};
 const related = (p, products) => {const options=products.filter(x=>x.slug!==p.slug && digital(x)===digital(p)).slice(0,4);return options.length?`<section class="pd-related"><div class="pd-related-head"><h2>Objavte aj.</h2>${button('/eshop','Všetky produkty','outline')}</div><div class="product-grid">${options.map(card).join('')}</div></section>`:'';};
 
+const iconSvg={
+ calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6M17 2v6M3 10h18"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
+ screen:'<rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 22h8M12 18v4"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M20 4l-2 2M6 18l-2 2"/>'
+};
+const vvvIcon = type => '<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(iconSvg[type]||iconSvg.sun)+'</svg>';
+const vvvFacts = () => '<div class="pd-benefits pd-vvv-facts" aria-label="Základné informácie">'+VVV_FACTS.map(item=>'<div class="pd-vvv-fact">'+vvvIcon(item.symbol)+'<strong>'+txt(item.name)+'</strong><span>'+txt(item.detail)+'</span></div>').join('')+'</div>';
+const vvvCards = () => '<div class="pd-steps pd-vvv-steps">'+VVV_CARDS.map(item=>'<article><b>'+txt(item.label)+'</b><h3>'+txt(item.title)+'</h3><p>'+txt(item.detail)+'</p></article>').join('')+'</div>';
+const vvvPanels = () => '<div class="pd-accordions pd-vvv-accordions" aria-label="Úplné informácie o výuke">'+VVV_PANELS.map((item,index)=>'<details'+(index===0?' open':'')+'><summary>'+txt(item.title)+' <span aria-hidden="true">+</span></summary><div class="pd-original-text">'+item.html+'</div></details>').join('')+'</div>';
+const vvvPage = (p, products) => '<section class="pd-page pd-digital pd-vvv" data-product-detail data-product-authoritative data-product-handle="'+txt(p.slug)+'" data-product-kind="digital">'+crumb(p)+'<div class="pd-digital-layout"><div class="pd-media">'+photo(p)+'</div><div class="pd-info">'+productName(p)+book(p)+'<div class="pd-vvv-intro" data-product-approved-intro>'+VVV_INTRO.map(value=>'<p>'+value+'</p>').join('')+'</div>'+vvvFacts()+'</div></div><div class="pd-below"><div class="pd-below-left"><p class="pd-eyebrow">OSNOVA VÝUKY</p><h2>Čo vás čaká</h2>'+vvvCards()+'</div>'+vvvPanels()+'</div>'+related(p,products)+'</section>';
+
 export function productDetail(p, products=[]) {
+  if(p.slug===VVV_HANDLE)return vvvPage(p,products);
   const isDigital=digital(p);
   if (!isDigital) return `<section class="pd-page pd-physical" data-product-detail data-product-handle="${txt(p.slug)}" data-product-kind="physical">${crumb(p)}<div class="pd-physical-layout"><div class="pd-media">${photo(p)}</div><div class="pd-info">${productName(p)}${intro(p)}${book(p)}${disclosures(p,false)}</div></div>${related(p,products)}</section>`;
   return `<section class="pd-page pd-digital" data-product-detail data-product-handle="${txt(p.slug)}" data-product-kind="digital">${crumb(p)}<div class="pd-digital-layout"><div class="pd-media">${photo(p)}</div><div class="pd-info">${productName(p)}${book(p)}${intro(p)}<div class="pd-benefits" data-product-benefits hidden aria-label="Obsah programu"></div></div></div><div class="pd-below"><div class="pd-below-left"><p class="pd-eyebrow">PROGRAMY A SLUŽBY</p><h2>Čo vás čaká</h2><div class="pd-steps" data-product-steps hidden></div></div>${disclosures(p,true)}</div>${related(p,products)}</section>`;
