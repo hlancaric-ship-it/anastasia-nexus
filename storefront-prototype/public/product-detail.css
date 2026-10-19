@@ -38,3 +38,42 @@
 @media(max-width:760px){.pd-page{padding:24px 22px 70px}.pd-breadcrumbs{margin-bottom:24px}.pd-digital-layout,.pd-physical-layout,.pd-below{grid-template-columns:1fr;gap:25px}.pd-main-image{aspect-ratio:1.15}.pd-info{padding-top:8px}.pd-info h1{font-size:clamp(37px,10vw,61px)}.pd-below{margin-top:60px}.pd-below h2{font-size:44px}.pd-physical .pd-main-image{aspect-ratio:4/5;max-height:640px}.pd-related{margin-top:75px}.pd-related .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
 @media(max-width:420px){.pd-page{padding:20px 16px 56px}.pd-info h1{font-size:37px}.pd-purchase{align-items:stretch}.pd-buy{width:100%}.pd-purchase label{width:100%}.pd-steps article{padding:18px 14px;min-height:145px}.pd-steps h3{font-size:19px}.pd-below h2{font-size:38px}.pd-related-head{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.pd-accordions summary span{transition:none}}
+
+
+/* VVV — approved design: warm ivory ambience, soft botanical falloff and balanced editorial grids. */
+.pd-page.pd-vvv{position:relative;isolation:isolate;background:
+radial-gradient(ellipse 46% 35% at 0% 79%,rgba(87,112,64,.22),transparent 81%),
+radial-gradient(ellipse 48% 38% at 100% 77%,rgba(136,151,108,.15),transparent 80%),
+radial-gradient(ellipse 70% 45% at 48% 42%,rgba(255,253,246,.95),transparent 90%),
+linear-gradient(145deg,#f7f3e9 0%,#f3f0e4 47%,#e9e9d8 78%,#f5f1e7 100%)!important;padding-top:32px;padding-bottom:clamp(90px,9vw,160px)}
+.pd-page.pd-vvv:before,.pd-page.pd-vvv:after{content:"";position:absolute;pointer-events:none;z-index:-1;filter:blur(28px);opacity:.24;transform:rotate(-28deg)}
+.pd-page.pd-vvv:before{width:40vw;height:40vw;max-height:640px;left:-18vw;top:46%;background:repeating-conic-gradient(from 12deg at 15% 90%,transparent 0deg 19deg,rgba(76,98,53,.38) 20deg 26deg,transparent 30deg 45deg);border-radius:50%}
+.pd-page.pd-vvv:after{width:24vw;height:35vw;right:-12vw;top:17%;background:repeating-conic-gradient(from 8deg at 50% 60%,transparent 0deg 22deg,rgba(90,101,65,.17) 25deg 33deg,transparent 37deg 54deg);border-radius:50%}
+.pd-vvv .pd-breadcrumbs{margin-bottom:29px;opacity:.83}
+.pd-vvv .pd-digital-layout{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:clamp(28px,3.3vw,65px)}
+.pd-vvv .pd-info{padding-top:2px}
+.pd-vvv .pd-info h1{font-size:clamp(42px,4.3vw,71px);margin-bottom:21px;max-width:14ch}
+.pd-vvv .pd-availability{margin-bottom:23px}
+.pd-vvv .pd-main-image{aspect-ratio:1.55;border-radius:14px;box-shadow:0 14px 40px rgba(24,38,21,.11)}
+.pd-vvv .pd-image-number{font-size:9px}
+.pd-vvv .pd-purchase{margin-top:18px;display:flex;align-items:end;gap:16px}
+.pd-vvv .pd-buy{min-width:clamp(190px,21vw,360px)}
+.pd-vvv-intro{max-width:69ch;margin-top:24px;font-size:clamp(13px,1.07vw,17px);line-height:1.72;color:#39483a}
+.pd-vvv-intro p{margin:0 0 12px}.pd-vvv-intro strong{font-weight:550;color:#273627}
+.pd-vvv .pd-vvv-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0!important;margin:26px 0 0}
+.pd-vvv-fact{border-right:1px solid rgba(68,83,59,.22);padding:0 16px 0 10px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;color:#283a2a}
+.pd-vvv-fact:first-child{padding-left:0}.pd-vvv-fact:last-child{border-right:0}
+.pd-vvv-fact svg{width:30px;height:30px;margin-bottom:3px}.pd-vvv-fact strong{font-size:12px;font-weight:500;line-height:1.35}.pd-vvv-fact span{font-size:11px;line-height:1.4;color:#61705e}
+.pd-vvv .pd-below{margin-top:clamp(54px,5.5vw,85px);gap:clamp(30px,4vw,70px)}
+.pd-vvv .pd-below-left{text-align:center}.pd-vvv .pd-below-left .pd-eyebrow{margin-bottom:8px}.pd-vvv .pd-below h2{font-size:clamp(40px,4vw,65px);margin-bottom:10px}
+.pd-vvv .pd-vvv-steps{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:30px;text-align:left}
+.pd-vvv .pd-vvv-steps article{background:rgba(255,255,255,.56);border:1px solid rgba(145,155,125,.11);box-shadow:0 9px 35px rgba(46,64,37,.05);border-radius:15px;min-height:160px}
+.pd-vvv .pd-vvv-steps article h3{font-size:clamp(18px,1.8vw,25px);font-weight:350}
+.pd-vvv .pd-vvv-accordions{border-color:rgba(69,84,62,.2)}.pd-vvv .pd-vvv-accordions summary{padding:19px 4px;font-size:17px}
+.pd-vvv .pd-original-text{white-space:normal}.pd-vvv .pd-original-text p{padding:0;margin:0 0 15px;font-size:14px;line-height:1.65}
+.pd-vvv .pd-original-text h3{font-weight:450;margin:22px 0 8px;font-size:16px}
+.pd-vvv .pd-original-text ul,.pd-vvv .pd-original-text ol{padding-left:22px;margin:0 0 17px;font-size:14px;line-height:1.6}
+.pd-vvv .pd-original-text li{margin:4px 0}
+@media(max-width:1100px){.pd-vvv .pd-digital-layout{gap:28px}.pd-vvv .pd-vvv-facts{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:17px}.pd-vvv-fact:nth-child(2){border-right:0}.pd-vvv-fact:nth-child(3){padding-left:0}}
+@media(max-width:760px){.pd-page.pd-vvv{padding:22px 20px 85px}.pd-vvv .pd-digital-layout{grid-template-columns:1fr}.pd-vvv .pd-info h1{font-size:clamp(40px,8vw,65px)}.pd-vvv .pd-main-image{aspect-ratio:1.35}.pd-vvv .pd-vvv-facts{grid-template-columns:repeat(4,minmax(0,1fr))}.pd-vvv-fact:nth-child(2){border-right:1px solid rgba(68,83,59,.22)}.pd-vvv-fact:nth-child(3){padding-left:10px}.pd-vvv .pd-below{margin-top:65px}.pd-vvv .pd-vvv-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.pd-vvv .pd-vvv-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.pd-vvv-fact:nth-child(2){border-right:0}.pd-vvv-fact:nth-child(3){padding-left:0}.pd-vvv .pd-buy{min-width:0}.pd-vvv .pd-vvv-steps article{padding:20px 16px;min-height:155px}}
