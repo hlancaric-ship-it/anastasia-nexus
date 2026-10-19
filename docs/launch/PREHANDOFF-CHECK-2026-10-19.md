@@ -1,5 +1,10 @@
 # Opakovaná kontrola nákupního toku – 19. 10. 2026
 
+## Aktuální rozsah podle Luckyho
+
+Klub není součástí nynější přejímky a jeho chybějící nabídka není blokátor. Níže uvedené starší výsledky s Klubem jsou historická evidence. Kontrola jej nyní uvádí `OUT_OF_SCOPE`, nikoli jako ověřený nákup.
+Platby se zkouší výhradně ve Stripe TEST; veřejná konfigurace tohoto režimu je na místním webu potvrzena. Není to samo o sobě důkaz dokončené platby. Cloud bude propojen po zítřejším dodání přístupu.
+
 ## Výsledek předání: BLOCKED
 
 Lokální web, backend a zákaznický obsah jsou ověřitelné. Předání Lucii na dálku zatím není připravené: plánované adresy `anastasia-test.l-code-dynamics.com`, `anastasia-test-admin.l-code-dynamics.com` a `anastasia-test-nexus.l-code-dynamics.com` při této kontrole nemají DNS odpověď (`curl` exit 6). Backend má v dosavadním runbooku stále zástupnou cloudovou adresu. Nelze potvrdit vzdálené přihlášení Lucie a úplný nákup na jejím zařízení proti nasazenému prostředí. Lokalhost není adresa dostupná Lucii.
@@ -56,3 +61,5 @@ Lucky potvrdil, že Medusa Cloud ještě není propojená a přístup dodá zít
 Připraven `node ops/test-predani/check-store.mjs`. Používá stejné čtyři veřejné proměnné jako připojený build, vyžaduje Stripe TEST a provádí výhradně GET. Kontroluje region, celý stránkovaný katalog (nejvýše 2000 produktů), ceny variant, přítomnost odkazů na fotografie a existenci nabídek konzultací, Klubu a poukazů. Výstup obsahuje jen stavy a počty, žádné osobní údaje ani klíče. Neověřuje doručení fotografií, dostupnost termínů ani úspěšnou platbu; ty vyžadují následný browser test.
 
 Spuštěno proti skutečné aktuální lokální konfiguraci: region PASS, katalog 14 PASS, ceny PASS, odkazy na fotografie PASS; konzultace/členství/poukazy 0, proto BLOCKED. Žádný účet, košík, objednávka ani zpráva se nevytváří. Izolované testy zahrnují nabídky až na druhé stránce katalogu, neúplnou odpověď, nedostupnost a ochranu výstupu před únikem chybových detailů.
+
+Aktualizace kontroly rozsahu: 92/92 frontend+ops testů PASS; skutečný lokální Store API potvrzuje Stripe TEST konfiguraci, region a katalog 14. Klub OUT_OF_SCOPE, rezervovatelné konzultace a varianty poukazu stále 0. Žádné zápisy dat nebo odesílání zpráv.

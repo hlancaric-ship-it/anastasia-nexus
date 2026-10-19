@@ -5,6 +5,8 @@ import {publicBuildConfig} from '../../storefront-prototype/src/lib/build-config
 export async function checkStore(config, request=fetch){
  const checks=[];
  const record=(id,ok,count=null)=>checks.push({id,status:ok?'PASS':'BLOCKED',count});
+ record('stripe_test_configuration', /^pk_test_[A-Za-z0-9_]+$/.test(config.stripePublishableKey||''));
+ if(checks[0].status==='BLOCKED')return {status:'BLOCKED',checks};
  const get=async path=>{
   const response=await request(config.apiBaseUrl+path,{method:'GET',redirect:'error',headers:{'x-publishable-api-key':config.publishableKey},signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw Error('Store API unavailable');
@@ -31,10 +33,10 @@ export async function checkStore(config, request=fetch){
   const memberships=products.filter(p=>p.metadata?.membership);
   const vouchers=products.filter(p=>p.handle==='darkovy-poukaz'&&p.variants?.length);
   record('booking_offers',bookings.length>0,bookings.length);
-  record('membership_offers',memberships.length>0,memberships.length);
+  checks.push({id:'membership_offers',status:'OUT_OF_SCOPE',count:memberships.length});
   record('voucher_offers',vouchers.length>0,vouchers.length);
  }catch{record('complete_catalog',false);}
- return {status:checks.every(c=>c.status==='PASS')?'PASS':'BLOCKED',checks,
+ return {status:checks.every(c=>c.status==='PASS'||c.status==='OUT_OF_SCOPE')?'PASS':'BLOCKED',checks,
   scope:'Read-only catalog prerequisites only; payment, availability, login and private media require separate end-to-end verification.'};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
