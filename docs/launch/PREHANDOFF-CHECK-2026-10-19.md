@@ -48,3 +48,11 @@ Konkrétní podklady pro zbývající kroky:
 - Potom ověřit přihlášení Lucie, skutečný testovací nákup a přístup k obsahu na tomto konkrétním prostředí. Dosavadní CI tento provozní krok nenahrazuje.
 
 PR54 obsahuje připravené opravy a ověření; samotné odstranění těchto externích blokací ani sloučení PR není provedeno.
+
+## Příprava na zítřejší propojení Cloud
+
+Lucky potvrdil, že Medusa Cloud ještě není propojená a přístup dodá zítra. Tato závislost je potvrzená, nikoli chyba lokálního backendu.
+
+Připraven `node ops/test-predani/check-store.mjs`. Používá stejné čtyři veřejné proměnné jako připojený build, vyžaduje Stripe TEST a provádí výhradně GET. Kontroluje region, celý stránkovaný katalog (nejvýše 2000 produktů), ceny variant, přítomnost odkazů na fotografie a existenci nabídek konzultací, Klubu a poukazů. Výstup obsahuje jen stavy a počty, žádné osobní údaje ani klíče. Neověřuje doručení fotografií, dostupnost termínů ani úspěšnou platbu; ty vyžadují následný browser test.
+
+Spuštěno proti skutečné aktuální lokální konfiguraci: region PASS, katalog 14 PASS, ceny PASS, odkazy na fotografie PASS; konzultace/členství/poukazy 0, proto BLOCKED. Žádný účet, košík, objednávka ani zpráva se nevytváří. Izolované testy zahrnují nabídky až na druhé stránce katalogu, neúplnou odpověď, nedostupnost a ochranu výstupu před únikem chybových detailů.

@@ -25,4 +25,4 @@ jobs:
           ANASTASIA_OFFLINE_FIXTURES=1 node storefront-prototype/build.mjs
           node --test storefront-prototype/test/*.test.mjs
           bash -n ops/test-predani/deploy.sh
-          node --test ops/test-predani/deploy.test.mjs
+          node --test ops/test-predani/*.test.mjs
