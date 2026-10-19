@@ -9,6 +9,7 @@ import { verifyBookingHttp } from "./booking-http-checks"
 import { verifyGiftVoucherHttp } from "./gift-voucher-http-checks"
 import { verifyDigitalCheckout } from "./digital-checkout-checks"
 import { verifyEntitlementIsolation } from "./entitlement-isolation-http-checks"
+import { verifyProtectedLibraryAdmin } from "./protected-library-admin-http-checks"
 import { verifyOpsObservability } from "./ops-observability-checks"
 import { verifyLegalConsents } from "./legal-consents-http-checks"
 import { verifyCustomerGdpr } from "./customer-gdpr-http-checks"
@@ -215,6 +216,7 @@ medusaIntegrationTestRunner({
       if (process.env.WAVE1_BOOKING_ONLY !== "1") await verifyGiftVoucherHttp({ api, container, options, channel, region, profile, countOrders, dbConnection, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyDigitalCheckout({ api, container, options, newCart, product: products[0], evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyEntitlementIsolation({ api, container, options, evidence })
+      if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyProtectedLibraryAdmin({ api, container, options, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyLegalConsents({ api, container, options, newCart, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyCustomerGdpr({ api, container, options, newCart, evidence })
       if (!giftVoucherOnly && process.env.WAVE1_BOOKING_ONLY !== "1") await verifyOrderSelfCancel({ api, container, options, channel, region, profile, evidence })
