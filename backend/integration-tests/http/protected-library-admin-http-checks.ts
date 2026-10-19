@@ -42,10 +42,15 @@ export async function verifyProtectedLibraryAdmin({api,container,options,evidenc
   }
   expect((await api.get(path,admin)).data.media).toEqual(updated.data.media)
   record('STALE_REMOVED_DUPLICATE_FOREIGN_KEYS_REJECTED')
+  const raced=await Promise.all(['Window A','Window B'].map(title=>api.post(path,{revision:updated.data.revision,media:request.media.map((m:any,i:number)=>({...m,title:i===0?title:m.title}))},admin)))
+  expect(raced.map((r:any)=>r.status).sort()).toEqual([200,409])
+  const winner=raced.find((r:any)=>r.status===200).data
+  expect((await api.get(path,admin)).data.media).toEqual(winner.media)
+  record('CONCURRENT_EDITS_ACCEPT_ONE_WITHOUT_SILENT_OVERWRITE')
   await container.resolve('entitlement').grant({customer_id:customer.id,product_id:product.id,source:'admin',dedupe_key:`library-admin:${customer.id}:${product.id}`})
   const library=await api.get('/store/entitlements',buyer)
   expect(library.status).toBe(200)
-  expect(library.data.entitlements.find((e:any)=>e.product_id===product.id).product.media).toEqual(updated.data.media)
+  expect(library.data.entitlements.find((e:any)=>e.product_id===product.id).product.media).toEqual(winner.media)
   expect((await api.post('/store/media-access',{product_id:product.id,media_key:'synthetic-library/a.mp4'},buyer)).status).toBe(200)
   expect((await api.post('/store/media-access',{product_id:product.id,media_key:'synthetic-other/private.mp4'},buyer)).status).toBe(403)
   record('CUSTOMER_SEES_ORDERED_LABELS_WITH_UNCHANGED_GUARDS')
