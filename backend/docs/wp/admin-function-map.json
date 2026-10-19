@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_commit": "891297d15d31ff244d155743da37b7e83355e60b",
-  "date": "2026-10-16",
+  "source_commit": "c96a200",
+  "date": "2026-10-17",
   "verification": "SOURCE_REVIEW_ONLY",
   "runtime_claim": "This map verifies source coverage, not implemented UI or live provider acceptance.",
   "baseline_ci_evidence": "docs/evidence/order-email-recovery-20261016.json",
@@ -197,7 +197,10 @@
       "request": "RESET 40+, Nič nemusíš, platnost přístupů, ruční přidání/odebrání s důvodem.",
       "sources": [
         "backend/src/api/admin/entitlements/route.ts",
-        "backend/src/modules/entitlement/order-sync.ts"
+        "backend/src/modules/entitlement/order-sync.ts",
+        "backend/src/api/store/entitlements/route.ts",
+        "backend/src/lib/protected-library/catalog.ts",
+        "backend/docs/wp/protected-library-r2.md"
       ],
       "remaining": "Editor obsahu/lekcí a bezpečný upload nejsou totožné s existujícím oprávněním.",
       "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu."
@@ -227,7 +230,8 @@
       "request": "Inbox, odpověď, přečtení, zavření/otevření, ztlumení a blokace.",
       "sources": [
         "backend/src/api/admin/chat/conversations/route.ts",
-        "backend/src/modules/chat/policy.ts"
+        "backend/src/modules/chat/policy.ts",
+        "backend/src/api/store/contact/policy.ts"
       ],
       "remaining": "Nové UI; limity dnes v kódu, žádný neexistující konfigurační přepínač.",
       "acceptance": "Čistý text; 2000 znaků zákaznice/5000 admin; 403/409/429 slovensky; počítadlo a zachování rozepsané odpovědi."
@@ -739,14 +743,26 @@
       "delivery_lane": "PHASE1",
       "backend_layer": "core-only",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "PARTIAL",
       "request": "Členství a předplatné jako produkt přes jedno jádro Medusa/NEXUS, přístup až po ověřené platbě, obnovy/ukončení a admin obsluha.",
       "sources": [
         "nexus/workers/api/routes/klubSubscribe.ts",
         "nexus/domains/billing/TenantSubscriptionPlanFlow.ts",
-        "backend/docs/wp/admin-phase1-scope.md"
+        "backend/docs/wp/admin-phase1-scope.md",
+        "backend/src/lib/membership/access.ts",
+        "backend/src/lib/membership/native-receipt.ts",
+        "backend/src/modules/membership/service.ts",
+        "backend/docs/wp/evidence/membership-access-ci.json",
+        "backend/src/lib/membership/checkout.ts",
+        "backend/src/lib/membership/checkout-policy.ts",
+        "backend/docs/wp/membership-checkout.md",
+        "backend/src/lib/membership/billing.ts",
+        "backend/src/lib/membership/checkout-guard.ts",
+        "backend/src/modules/membership-stripe/service.ts",
+        "backend/docs/wp/membership-integration.md",
+        "backend/src/api/admin/memberships/route.ts"
       ],
-      "remaining": "Rozhodnutí Claude/Jose 16.10. přesunulo Klub do fáze1. Samostatný Worker Stripe subscription endpoint je nepřípustný. Dílčí PR#32–#35 jsou oddělené, neznamenají hotový checkout/renewal/grant/admin; zdejší strom jejich integraci ještě neobsahuje.",
+      "remaining": "Backend Store/Admin HTTP, nativní platební provider/obnova, guard a recovery IMPLEMENTED_UNVERIFIED do finální společné CI. Podle aktuálního pivotu Claude integruje agendu do vlastní anastasia-admin SPA; nová Medusa /app agenda byla z integračního PR odstraněna. Neoznačovat celek hotový bez SPA/storefront/config a E2E důkazu.",
       "acceptance": "Do běžného menu nevystavit neakceptovaný prototyp; placené členství pouze po samostatné objednávce a celém testu."
     },
     {
@@ -798,7 +814,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/booking/types/route.ts",
-      "sha256": "7bc84d555f10b19a980cf6d496b750aaad67973ff50f80dac3381dd9fcc18498"
+      "sha256": "afd95842e535963da7dfba40b187600eacb7c7dde991cdbd18e5dc6a29354f08"
     },
     {
       "path": "/admin/booking/types/:id",
@@ -826,7 +842,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/bookings/[id]/cancel/route.ts",
-      "sha256": "b735953b7648a59ebcfd53765931d2ac0b54885628b3886768380d99767d3e97"
+      "sha256": "53b126b07f40b5bb3189dd0c583c3a51d481753093a62a343459b027ce079c8d"
     },
     {
       "path": "/admin/chat/conversations",
@@ -979,6 +995,42 @@
       "sha256": "58a6b4825a5240aa1bfbd2280c0554418511faf018a9e4434ee1249b7a72be66"
     },
     {
+      "path": "/admin/memberships",
+      "methods": [
+        "GET"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/admin/memberships/route.ts",
+      "sha256": "b5eeee52ce6758d877b5e713e30d9abfa6cac63f52ff608a8408cad58785aa72"
+    },
+    {
+      "path": "/admin/memberships/:id/stop",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/admin/memberships/[id]/stop/route.ts",
+      "sha256": "8940d0c92f1b80b808a554cf389b240cea78f114058f106d7ef23e140c33253d"
+    },
+    {
+      "path": "/admin/memberships/billing/:id/reconcile",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/admin/memberships/billing/[id]/reconcile/route.ts",
+      "sha256": "7fcd9b495fadbd313930532ff10d9fe8903faf8ad8ec0eb16e02f85611611715"
+    },
+    {
+      "path": "/admin/memberships/products/:id",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/admin/memberships/products/[id]/route.ts",
+      "sha256": "463a69a8e43ec20592539b5068108e2ac274d7f8f7d0b918407c2a52555a1bcd"
+    },
+    {
       "path": "/admin/my-theme",
       "methods": [
         "GET",
@@ -1023,6 +1075,15 @@
       "feature": "operations",
       "source": "backend/src/api/admin/ops/nexus/route.ts",
       "sha256": "7d8a70e17020f193373cefa12ed54ec6b61a7f217e00b8a9b67e8adb6cf98792"
+    },
+    {
+      "path": "/admin/readiness",
+      "methods": [
+        "GET"
+      ],
+      "feature": "overview",
+      "source": "backend/src/api/admin/readiness/route.ts",
+      "sha256": "112a43dbb0a8b0c00ead4e17edf5fa191bbbf0248e5f248094efdd8ff3db2244"
     },
     {
       "path": "/admin/shop-prices/:id",
@@ -1208,6 +1269,15 @@
       "sha256": "5543d0db72e470f1a2967368b025fdd6fd90c09b569a5d1ba93aed687392418e"
     },
     {
+      "path": "/store/contact",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/contact/route.ts",
+      "sha256": "1a6697c571e72c6af63cc55a2028f8694d2cd5f69577b1d6ae0fef1ca933db94"
+    },
+    {
       "path": "/store/coupon-links",
       "methods": [
         "POST"
@@ -1250,7 +1320,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/entitlements/route.ts",
-      "sha256": "271b04550be1cbc0daf666746d912eef6bb5063e680b7d17f8871a639626c8e8"
+      "sha256": "d6f23f4c866277a54dc057ebc8f96a7871b20249f457bbdbceac10dc70973d0f"
     },
     {
       "path": "/store/gift-vouchers/apply",
@@ -1286,7 +1356,7 @@
       ],
       "feature": "privacy",
       "source": "backend/src/api/store/legal/versions/route.ts",
-      "sha256": "e00c508e62af22d346baa8ceac6f3bc3275f954308a820992c1d2cb8b4018b0b"
+      "sha256": "385e9aa447c3034c05a3b7eda545de4dc83dc215765cc3c14790726f03302cd9"
     },
     {
       "path": "/store/media-access",
@@ -1296,6 +1366,78 @@
       "feature": "media",
       "source": "backend/src/api/store/media-access/route.ts",
       "sha256": "47f9fed3369d89dc8be66d4fb9228f9313d98dd74c467ca645c0bcb6be99748a"
+    },
+    {
+      "path": "/store/memberships",
+      "methods": [
+        "GET"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/route.ts",
+      "sha256": "d8272e34590ea7592291504112120d885cfdb05cde4bd438756b303823fd74ac"
+    },
+    {
+      "path": "/store/memberships/:id/payment",
+      "methods": [
+        "GET"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/[id]/payment/route.ts",
+      "sha256": "d4af62b17ea3f758c57ef3f474ea4f4923a04f11c7d7610bebbff176c5b827ce"
+    },
+    {
+      "path": "/store/memberships/:id/reconcile",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/[id]/reconcile/route.ts",
+      "sha256": "1ccb6d3b20629dc85987b7b0d6f75e94cbba86844d3153dfa5ccc87342efd636"
+    },
+    {
+      "path": "/store/memberships/:id/stop",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/[id]/stop/route.ts",
+      "sha256": "a88bf229d2c85ee9c4b0564678f977ed5ac46728e5318e2a4be5d13a725d558c"
+    },
+    {
+      "path": "/store/memberships/checkout",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/checkout/route.ts",
+      "sha256": "01e2d2b46213ffb7e3bf953546ba310ea5b05183116f1aecfd6bd3016d526a2e"
+    },
+    {
+      "path": "/store/memberships/checkouts/:id/payment-session",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/checkouts/[id]/payment-session/route.ts",
+      "sha256": "6cda5fe47e6d76884b47e25174e3d972afe6bfbfbf369ac486c89046719fdd70"
+    },
+    {
+      "path": "/store/memberships/checkouts/:id/settle",
+      "methods": [
+        "POST"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/checkouts/[id]/settle/route.ts",
+      "sha256": "79ea07087a77efa9ac94f6c657f6e9fe819578bf9eccac3e2e6360d6549a32da"
+    },
+    {
+      "path": "/store/memberships/offer",
+      "methods": [
+        "GET"
+      ],
+      "feature": "club",
+      "source": "backend/src/api/store/memberships/offer/route.ts",
+      "sha256": "3e45eae37c2e3f13828539a114abd236b3a9b2a3da1448aa5ad9e44e13814cf1"
     },
     {
       "path": "/store/newsletter",
@@ -3857,6 +3999,8 @@
       "backend/src/jobs/gift-voucher-maintenance.ts",
       "backend/src/jobs/gift-voucher-rate-limit-cleanup.ts",
       "backend/src/jobs/legal-rate-cleanup.ts",
+      "backend/src/jobs/membership-access-reconcile.ts",
+      "backend/src/jobs/membership-billing.ts",
       "backend/src/jobs/ops-retention.ts"
     ],
     "subscribers": [
@@ -3882,6 +4026,7 @@
       "backend/src/subscribers/gift-voucher-order-placed.ts",
       "backend/src/subscribers/gift-voucher-payment-captured.ts",
       "backend/src/subscribers/legal-order-placed.ts",
+      "backend/src/subscribers/membership-access.ts",
       "backend/src/subscribers/nexus-medusa-events.ts"
     ],
     "workflows": [
@@ -3910,6 +4055,12 @@
       "backend/src/modules/legal/models/legal-withdrawal.ts",
       "backend/src/modules/legal/models/newsletter-consent-event.ts",
       "backend/src/modules/legal/models/newsletter-consent.ts",
+      "backend/src/modules/membership/models/membership-billing-attempt.ts",
+      "backend/src/modules/membership/models/membership-checkout.ts",
+      "backend/src/modules/membership/models/membership-initial-payment.ts",
+      "backend/src/modules/membership/models/membership-mandate.ts",
+      "backend/src/modules/membership/models/membership-receipt.ts",
+      "backend/src/modules/membership/models/membership.ts",
       "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
       "backend/src/modules/ops-audit/models/ops-event.ts"
     ],
@@ -3923,6 +4074,8 @@
       "backend/src/modules/entitlement/index.ts",
       "backend/src/modules/gift-voucher/index.ts",
       "backend/src/modules/legal/index.ts",
+      "backend/src/modules/membership-stripe/index.ts",
+      "backend/src/modules/membership/index.ts",
       "backend/src/modules/notification-log/index.ts",
       "backend/src/modules/notification-zeptomail/index.ts",
       "backend/src/modules/ops-audit/index.ts"
@@ -4109,6 +4262,7 @@
     "backend/integration-tests/http/gift-voucher-http-checks.ts",
     "backend/integration-tests/http/legal-consents-http-checks.ts",
     "backend/integration-tests/http/medusa-delivery-http-checks.ts",
+    "backend/integration-tests/http/membership-checkout-e2e.spec.ts",
     "backend/integration-tests/http/notification-receipts-http-checks.ts",
     "backend/integration-tests/http/operations-status-http-checks.ts",
     "backend/integration-tests/http/ops-observability-checks.ts",
@@ -4117,11 +4271,13 @@
     "backend/integration-tests/http/safeorder-persistence.spec.ts",
     "backend/integration-tests/http/shipping-settings-http-checks.ts",
     "backend/integration-tests/http/stock-availability-http-checks.ts",
+    "backend/src/admin/lib/__tests__/shop.unit.spec.ts",
     "backend/src/api/__tests__/auth-magic-link-rate.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/links.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
     "backend/src/api/admin/my-theme/__tests__/theme.unit.spec.ts",
     "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/write-audit.unit.spec.ts",
     "backend/src/api/store/gift-vouchers/__tests__/rate-limit.unit.spec.ts",
@@ -4138,6 +4294,20 @@
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
     "backend/src/lib/email/__tests__/send.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/access.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/admin.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/billing-guard.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/billing-mandate.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/billing.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout-guard.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout-policy.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout-recovery.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/checkout.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/customer-guard.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/initial-payment.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/native-receipt.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/membership/__tests__/store-http.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-hook.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-order.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/medusa-delivery.unit.spec.ts",
@@ -4172,6 +4342,7 @@
     "backend/src/modules/legal/__tests__/newsletter.unit.spec.ts",
     "backend/src/modules/legal/__tests__/policy.unit.spec.ts",
     "backend/src/modules/legal/__tests__/routes.unit.spec.ts",
+    "backend/src/modules/membership-stripe/__tests__/service.unit.spec.ts",
     "backend/src/modules/notification-zeptomail/__tests__/template-texts.unit.spec.ts",
     "backend/src/modules/notification-zeptomail/__tests__/zeptomail.unit.spec.ts",
     "backend/src/modules/ops-audit/__tests__/edge-ingest.unit.spec.ts",
@@ -4290,9 +4461,7 @@
     "nexus/tests/workers/scheduledRecovery.test.ts",
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
-    "nexus/tests/workers/voucherConcurrency.test.ts",
-    "backend/src/admin/lib/__tests__/shop.unit.spec.ts",
-    "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts"
+    "nexus/tests/workers/voucherConcurrency.test.ts"
   ],
   "candidate_branch": "codex/admin-theming"
 }

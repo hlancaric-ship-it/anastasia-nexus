@@ -1,3 +1,5 @@
+import {isMediaUrl} from '/lib/media-url.mjs';
+import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import {createApi} from '/lib/api/index.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
@@ -9,7 +11,23 @@ const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root
 let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
-updateCount();
+updateCount().catch(()=>{});
+for(const link of $$('[data-global-account]')) {
+  Promise.resolve().then(()=>typeof api.isLoggedIn==='function'&&api.isLoggedIn()).then(logged=>{if(logged){link.href='/ucet';link.querySelector('span').textContent='Môj účet';}}).catch(()=>{});
+}
+// Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
+const kolTrack=$('.kol-track');
+if(kolTrack)(async()=>{
+  let products=[];try{products=(await api.getProducts()).slice(0,kolTrack.children.length);}catch{products=[];}
+  [...kolTrack.children].forEach((cardEl,i)=>{
+    const p=products[i];if(!p){cardEl.remove();return;}
+    const f=$$('.sc-interp',cardEl);if(f[1])f[1].textContent=p.category;if(f[2])f[2].textContent=p.category;if(f[3])f[3].textContent=p.priceLabel;if(f[4])f[4].textContent=p.name;
+    const img=$$('[style*="background-image"]',cardEl)[0];if(img)img.style.backgroundImage=`url("${encodeURI(p.image)}")`;
+    const add=$('[data-add]',cardEl);if(add)add.dataset.add=p.code;
+  });
+  kolTrack.dataset.ready='';
+  if(!products.length)kolTrack.closest('section')?.querySelector('.kol-tabs')?.insertAdjacentHTML('afterend','<p class="form-status">Produkty sa teraz nepodarilo načítať.</p>');
+})();
 
 const customerCenter=$('.customer-center');
 if(customerCenter){
@@ -19,7 +37,7 @@ if(customerCenter){
   const setTheme=id=>{if(!themeIds.includes(id))id=themeIds[0];if(id===themeIds[0])delete document.documentElement.dataset.centerTheme;else document.documentElement.dataset.centerTheme=id;markTheme(id);try{if(id===themeIds[0])localStorage.removeItem('ana-center-theme');else localStorage.setItem('ana-center-theme',id);}catch{}};
   markTheme(document.documentElement.dataset.centerTheme||themeIds[0]);
   $$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.centerThemePick)));
-  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
+  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',klub:'Klub ANASTASIA.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
   const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];requestAnimationFrame(()=>{const active=$('.center-sidebar [aria-current=page]',customerCenter),nav=active?.parentElement;if(active&&nav&&nav.scrollWidth>nav.clientWidth){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect(),style=getComputedStyle(nav),left=n.left+parseFloat(style.paddingLeft),right=n.right-parseFloat(style.paddingRight);if(a.left<left)nav.scrollLeft+=a.left-left;else if(a.right>right)nav.scrollLeft+=a.right-right;}});return id;};
   show(location.hash.slice(1));
   $$('[data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);$('#account-title').focus({preventScroll:true});}));
@@ -27,9 +45,35 @@ if(customerCenter){
   addEventListener('hashchange',()=>show(location.hash.slice(1)));
   $$('[data-material-filter]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const filter=btn.dataset.materialFilter;$$('[data-material-filter]',customerCenter).forEach(item=>item.setAttribute('aria-pressed',String(item===btn)));$$('[data-material-category]',customerCenter).forEach(row=>{row.hidden=!!filter&&row.dataset.materialCategory!==filter;});}));
   $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{$('.form-status',form).textContent=(await api.saveCustomerProfile(Object.fromEntries(new FormData(form)))).message;}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
+  // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.
+  (async()=>{
+    const put=(sel,html)=>$$(sel,customerCenter).forEach(el=>{el.innerHTML=html;});
+    const note=text=>`<p class="form-status">${e(text)}</p>`;
+    if(!(typeof api.isLoggedIn==='function'&&await api.isLoggedIn())){put('#center-next-booking,#center-last-order,#center-bookings,#center-orders',note('Pre zobrazenie účtu sa prihláste.'));$('.center-content',customerCenter).insertAdjacentHTML('afterbegin',`<div class="empty-state"><h2>Pre zobrazenie účtu sa prihláste.</h2>${button('/prihlasenie','Prihlásiť sa')}</div>`);return;}
+    let account,data;
+    try{[account,data]=await Promise.all([api.getAccount(),api.getCustomerCenter()]);}catch{account={ok:false,orders:[]};data={ok:false,bookings:[],reorder:[]};}
+    const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');
+    if(data.ok&&data.profile){
+      const pr=data.profile;$('#center-name').textContent=pr.name||pr.email;
+      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});
+    }
+    if(account.ok){
+      const o=account.orders;
+      put('#center-last-order',o.length?`<h2>${e(o[0].number)}</h2><p>${e(o[0].status)}</p>`:note('Zatiaľ nemáte žiadnu objednávku.'));
+      put('#center-orders',o.length?o.map(order=>`<article class="center-order"><div><strong>${e(order.number)}</strong><small>${e(order.date)}</small></div><span>${e(order.product)}</span><span>${e(order.totalLabel)}</span><span class="center-chip">${e(order.status)}</span><a class="text-link" href="/kontakt">Otázka k objednávke ${arrow}</a></article>`).join(''):note('Zatiaľ nemáte žiadnu objednávku.'));
+    }else put('#center-last-order,#center-orders',unavailable);
+    if(data.ok&&data.bookingsOk){
+      const b=data.bookings,next=b.filter(x=>x.upcoming).at(-1);
+      put('#center-next-booking',next?`<div class="center-date"><span>${e(next.day)}<small>${e(next.month)}</small></span><h2>${e(next.title)}</h2></div><p>${e(next.date)}</p>`:note('Nemáte naplánovanú konzultáciu.'));
+      put('#center-bookings',b.length?b.map(c=>`<article class="center-card"><div class="center-date"><span>${e(c.day)}<small>${e(c.month)}</small></span><h2>${e(c.title)}</h2></div><p>${e(c.date)} · ${e(c.status)}</p><button type="button" class="button outline" data-account-go="chat">Napísať Lucii ${arrow}</button></article>`).join(''):note('Nemáte naplánovanú konzultáciu.'));
+      $$('#center-bookings [data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);}));
+    }else put('#center-next-booking,#center-bookings',unavailable);
+    put('#center-materials',(data.materials||[]).length?(data.materials||[]).map(m=>`<article class="center-material" data-material-category="${e(m.category)}"><h2>${e(m.title)}</h2><span>${e(m.type)}</span></article>`).join(''):note('Zatiaľ tu nemáte žiadne materiály.'));
+    put('[data-center-reorder]',(data.reorder||[]).map(p=>`<article class="center-reorder"><img src="${e(p.image)}" alt="" width="60" height="75"><div><h3>${e(p.name)}</h3><p>${e(p.priceLabel)}</p></div><button type="button" class="button outline" data-add="${e(p.code)}">Do košíka</button></article>`).join(''));
+  })();
 }
 
-const chatErrors={chat_not_eligible:'Chat je dostupný po nákupe produktu, programu alebo rezervácii služby.',chat_blocked:'Odosielanie správ je pre váš účet pozastavené. Kontaktujte nás cez kontaktný formulár.',chat_consecutive_limit:'Odoslali ste tri správy po sebe. Počkajte, prosím, na odpoveď Lucie.',chat_daily_limit:'Dosiahli ste denný limit správ. Skúste to znova zajtra.',conversation_closed:'Táto konverzácia je uzavretá. Môžete začať novú konverzáciu.',message_too_long:'Správa môže mať najviac 2000 znakov.',message_empty:'Napíšte správu pred odoslaním.'};
+const chatErrors={chat_unavailable:'Chat je dočasne nedostupný. Skúste to znova o chvíľu.',chat_not_eligible:'Chat je dostupný po nákupe produktu, programu alebo rezervácii služby.',chat_blocked:'Odosielanie správ je pre váš účet pozastavené. Kontaktujte nás cez kontaktný formulár.',chat_consecutive_limit:'Odoslali ste tri správy po sebe. Počkajte, prosím, na odpoveď Lucie.',chat_daily_limit:'Dosiahli ste denný limit správ. Skúste to znova zajtra.',conversation_closed:'Táto konverzácia je uzavretá. Môžete začať novú konverzáciu.',message_too_long:'Správa môže mať najviac 2000 znakov.',message_empty:'Napíšte správu pred odoslaním.'};
 const chatForm=$('#chat-form');
 if(chatForm){
   const body=chatForm.elements.body,send=$('button',chatForm),selection=$('#chat-conversation');
@@ -42,7 +86,8 @@ if(chatForm){
   selection.addEventListener('change',()=>{detail();$('.form-status',chatForm).textContent='';});
   $('#chat-new').addEventListener('click',async()=>{selection.value='';await detail();$('.form-status',chatForm).textContent='';body.focus();});
   chatForm.addEventListener('submit',async event=>{event.preventDefault();if(busy||send.disabled)return;busy=true;count();try{const result=await api.sendChatMessage({conversation_id:selection.value||undefined,body:body.value});$('.form-status',chatForm).textContent=result.ok?'Správa bola pridaná do konverzácie.':chatErrors[result.type]||'Správu sa nepodarilo odoslať. Skúste to znova.';if(result.ok){body.value='';await list(result.conversation.id);}await availability();}catch{$('.form-status',chatForm).textContent='Chat je dočasne nedostupný. Skúste to znova.';}finally{busy=false;count();}});
-  await list();await availability();
+  // Account data must never block the shared menu and page controls.
+  void (async()=>{try{await list();await availability();}catch{status={can_write:false};count();$('#chat-availability').hidden=false;$('#chat-availability').textContent=chatErrors.chat_unavailable;}})();
 }
 
 const giftForm=$('#gift-voucher-form');
@@ -144,8 +189,8 @@ addEventListener('pagehide',amb.save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)amb.save();});
 if(!ambOff)amb.play().catch(()=>ambUnlockEvents.forEach(t=>document.addEventListener(t,ambUnlock,{capture:true,passive:true})));
 
-// Newsletter: v náhľade sa nič neodosiela.
-$$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();if(form.elements.email.value.includes('@'))setLabel($('button',form),'Ďakujeme');}));
+// Newsletter: súhlas sa ukladá na backende (POST /store/newsletter s aktuálnou verziou textu súhlasu).
+$$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',async event=>{event.preventDefault();const button=$('button',form),status=form.parentElement?.querySelector('.newsletter-status');if(button.disabled)return;button.disabled=true;let r;try{r=await api.subscribeNewsletter({email:form.elements.email.value.trim()});}catch{r={ok:false,message:'Prihlásenie sa nepodarilo. Skúste to prosím znova.'};}if(status)status.textContent=r.message;if(r.ok){setLabel(button,'Ďakujeme');form.reset();}else button.disabled=false;}));
 
 // Reveal, parallax, hero fade, tón lišty (initFx) + O Lucii linky (initTrust).
 const motion=!reducedMotion.matches;
@@ -233,14 +278,71 @@ if(filterForm){
   };
   filterForm.addEventListener('input',render);filterForm.addEventListener('submit',ev=>{ev.preventDefault();render();});render();
 }
-$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount();});
+$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code)return;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount();});
+// Živý detail produktu: názov, cena, obrázok a popis vždy z jadra (aj pre produkty založené v administrácii).
+const detail=$('[data-product-slug]');
+if(detail&&api.mode==='http'){
+  const slug=decodeURIComponent(location.pathname.replace(/\/+$/,'').split('/').pop()||'');
+  const p=slug&&slug!=='produkt-detail'?await api.getProduct(slug):null;
+  const section=detail.closest('section');
+  // Konzultácia nemá detail v obchode: odkaz na jej „produkt“ vedie na výber termínu.
+  const bookable=!p&&slug&&typeof api.getBookingTypes==='function'?(await api.getBookingTypes()).types?.some(t=>t.handle===slug):false;
+  if(bookable)location.replace(`/konzultacie/rezervacia?typ=${encodeURIComponent(slug)}`);
+  else if(!p){document.title='Produkt sa nenašiel';section.innerHTML=`<div class="empty-state"><h1>Produkt sa nenašiel.</h1><p>Mohol byť vypredaný alebo stiahnutý z ponuky.</p>${button('/eshop','Prejsť do obchodu')}</div>`;}
+  else{
+    document.title=document.title.replace(/^[^|–-]*/,p.name+' ');
+    const img=$('.detail-image img',detail);img.src=p.image;img.alt=p.name;
+    $('.detail-copy .eyebrow',detail).textContent=p.category;$('.detail-copy h1',detail).textContent=p.name;
+    $('.detail-copy .lead',detail).textContent=p.description;$('.detail-price',detail).textContent=p.priceLabel;
+    const crumb=$$('.breadcrumbs span',section).pop();if(crumb)crumb.textContent=p.name;
+    $('.add-product',detail).dataset.code=p.code;
+    const text=p.descriptionHtml?new DOMParser().parseFromString(p.descriptionHtml,'text/html').body.textContent.trim():'';
+    const about=$('details p',detail);if(about)about.textContent=text||p.description||'';
+    const related=$('[data-related]',section);if(related){const others=(await api.getProducts()).filter(x=>x.slug!==p.slug).slice(0,4);related.innerHTML=others.map(card).join('');}
+  }
+}
 
-const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>`;
+const productDetail=document.querySelector('[data-product-detail]');
+if(productDetail){
+  const productHandle=productDetail.dataset.productHandle;
+  api.getProduct(productHandle).then(product=>{
+    if(!product)return;
+    const put=(selector,value)=>{const node=productDetail.querySelector(selector);if(node&&value!=null&&String(value).trim())node.textContent=String(value);};
+    put('[data-product-title]',product.name);
+    put('[data-product-price]',product.priceLabel);
+    put('[data-product-category]',product.category);
+    const purchase=productDetail.querySelector('.add-product');if(purchase)purchase.dataset.code=product.code;
+    put('[data-product-availability]',product.availability);
+    // The original legacy description must stay complete, without unverified marketing copy.
+    const html=product.descriptionHtml;const complete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
+    if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
+      put('[data-product-full-description]',complete);
+      const intro=productDetail.querySelector('[data-product-intro]');
+      if(intro){intro.hidden=false;const brief=complete.replace(/\s+/g,' ').trim();intro.textContent=brief.length>220?brief.slice(0,220).replace(/\s+\S*$/,'')+'…':brief;}
+    }
+    const pic=productDetail.querySelector('[data-product-main-image]');
+    if(pic&&typeof product.image==='string'&&isMediaUrl(product.image))pic.src=product.image;
+    const gallery=(Array.isArray(product.images)?product.images:[]).map(v=>typeof v==='string'?v:v?.url).filter(v=>typeof v==='string'&&isMediaUrl(v));
+    if(pic&&gallery.length>1){
+      const urls=[...new Set([product.image,...gallery].filter(Boolean))];let active=0;
+      const bar=productDetail.querySelector('[data-product-thumbnails]');
+      const arrows=productDetail.querySelector('[data-gallery-actions]');
+      const choose=i=>{active=(i+urls.length)%urls.length;pic.src=urls[active];bar?.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-current',String(j===active)));};
+      if(bar){bar.hidden=false;urls.forEach((uri,i)=>{const btn=document.createElement('button');btn.type='button';btn.setAttribute('aria-label', 'Fotografia '+(i+1));const thumb=document.createElement('img');thumb.src=uri;thumb.alt='';thumb.loading='lazy';btn.appendChild(thumb);btn.addEventListener('click',()=>choose(i));bar.appendChild(btn);});}
+      if(arrows){arrows.hidden=false;arrows.querySelector('[data-gallery-previous]')?.addEventListener('click',()=>choose(active-1));arrows.querySelector('[data-gallery-next]')?.addEventListener('click',()=>choose(active+1));}
+      choose(0);
+    }
+  }).catch(()=>{});
+}
+
+$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});});
+
+const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
 async function renderCart(){
   const target=$('#cart-view');if(!target)return;
   const cart=await api.getCart();
   if(!cart.lines.length){target.innerHTML=`<div class="empty-state"><p class="eyebrow">PRIESTOR PRE VAŠE RITUÁLY</p><h2>Váš košík je zatiaľ prázdny.</h2><p>Vyberte si niečo, čo vám spraví radosť.</p>${button('/eshop','Objaviť obchod')}</div>`;return;}
-  target.innerHTML=`<div class="cart-layout"><div>${cart.lines.map(l=>`<article class="cart-line"><img src="${l.image}" alt="" width="95" height="116"><div><h2><a href="${l.giftVoucher?'/darcekovy-poukaz':'/eshop/produkt/'+e(l.slug)}">${e(l.name)}</a></h2><p>${e(l.priceLabel)} / kus</p><div class="quantity"><button data-quantity="${l.quantity-1}" data-slug="${l.slug}" aria-label="Znížiť množstvo: ${e(l.name)}">−</button><span aria-label="Množstvo">${l.quantity}</span><button data-quantity="${l.quantity+1}" data-slug="${l.slug}" ${l.quantity>=99?'disabled':''} aria-label="Zvýšiť množstvo: ${e(l.name)}">+</button></div></div><button class="remove-line" data-quantity="0" data-slug="${l.slug}" aria-label="Odstrániť ${e(l.name)}">Odstrániť</button></article>`).join('')}<form class="coupon-form"><div class="coupon-input"><label>Zľavový kupón<input name="coupon" value="${e(cart.coupon)}" placeholder="Zadajte kód kupónu" maxlength="100" required></label><button class="button outline" type="submit">Použiť</button></div><p class="form-status" role="status"></p>${cart.coupon?'<button type="button" id="remove-coupon" class="text-link">Odstrániť kupón</button>':''}</form><form id="redeem-voucher-form"><label>Kód darčekového poukazu<input name="code" required maxlength="100" placeholder="Zadajte kód poukazu" autocomplete="off"></label><button class="button outline" type="submit">Uplatniť poukaz</button><p class="form-status" role="status"></p></form>${cart.gift_voucher?'<button type="button" id="remove-voucher" class="text-link">Odstrániť poukaz</button>':''}</div><aside class="order-summary">${summary(cart)}${button('/pokladna','Pokračovať na objednávku')}</aside></div>`;
+  target.innerHTML=`<div class="cart-layout"><div>${cart.lines.map(l=>`<article class="cart-line"><img src="${l.image}" alt="" width="95" height="116"><div><h2><a href="${l.giftVoucher?'/darcekovy-poukaz':l.booking?'/konzultacie/rezervacia?typ='+encodeURIComponent(l.slug):'/eshop/produkt/'+e(l.slug)}">${e(l.name)}</a></h2>${l.booking?`<p>${l.booking.label?`Termín: ${e(l.booking.label)}`:'Termín vyberiete v rezervácii.'}</p><p>${e(l.priceLabel)}</p>`:`<p>${e(l.priceLabel)} / kus</p><div class="quantity"><button data-quantity="${l.quantity-1}" data-slug="${l.slug}" aria-label="Znížiť množstvo: ${e(l.name)}">−</button><span aria-label="Množstvo">${l.quantity}</span><button data-quantity="${l.quantity+1}" data-slug="${l.slug}" ${l.quantity>=99?'disabled':''} aria-label="Zvýšiť množstvo: ${e(l.name)}">+</button></div>`}</div><button class="remove-line" data-quantity="0" data-slug="${l.slug}" aria-label="Odstrániť ${e(l.name)}">Odstrániť</button></article>`).join('')}<form class="coupon-form"><div class="coupon-input"><label>Zľavový kupón<input name="coupon" value="${e(cart.coupon)}" placeholder="Zadajte kód kupónu" maxlength="100" required></label><button class="button outline" type="submit">Použiť</button></div><p class="form-status" role="status"></p>${cart.coupon?'<button type="button" id="remove-coupon" class="text-link">Odstrániť kupón</button>':''}</form><form id="redeem-voucher-form"><label>Kód darčekového poukazu<input name="code" required maxlength="100" placeholder="Zadajte kód poukazu" autocomplete="off"></label><button class="button outline" type="submit">Uplatniť poukaz</button><p class="form-status" role="status"></p></form>${cart.gift_voucher?'<button type="button" id="remove-voucher" class="text-link">Odstrániť poukaz</button>':''}</div><aside class="order-summary">${summary(cart)}${button('/pokladna','Pokračovať na objednávku')}</aside></div>`;
   $$('[data-quantity]',target).forEach(btn=>btn.addEventListener('click',async()=>{const slug=btn.dataset.slug,q=Number(btn.dataset.quantity);const result=await api.setQuantity(slug,q);if(!result.ok){toast(result.message);return;}await renderCart();updateCount();const remaining=$$('[data-slug]',target).find(el=>el.dataset.slug===slug);(remaining||$('a',target))?.focus();}));
   $('.coupon-form',target).addEventListener('submit',async event=>{event.preventDefault();const result=await api.applyCoupon(event.currentTarget.elements.coupon.value);if(result.ok)await renderCart();$('.coupon-form .form-status',target).textContent=result.message;});
   $('#redeem-voucher-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(form.dataset.busy)return;form.dataset.busy='1';try{const result=await api.applyGiftVoucher(form.elements.code.value);if(result.ok)await renderCart();$('#redeem-voucher-form .form-status').textContent=result.message;}finally{delete form.dataset.busy;}});
@@ -260,34 +362,194 @@ if(checkoutForm){
     const step=n=>{$$('fieldset[data-step]',checkoutForm).forEach(el=>{el.hidden=Number(el.dataset.step)!==n;el.disabled=el.hidden;});$$('[data-step-label]').forEach(el=>el.classList.toggle('current',Number(el.dataset.stepLabel)===n));const first=$(`fieldset[data-step="${n}"] input`,checkoutForm);first?.focus();};
     // Stripe Payment Element: reálná karetní platba (Apple/Google Pay přes Payment Element). Jen v http režimu.
     const cfg=(()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}})();
-    let stripe,elements,paymentReady=false;
+    let stripe,elements,paymentReady=false,paymentRequired=true;
     const loadStripe=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
     const initPayment=async()=>{
-      if(paymentReady||typeof api.createPaymentSession!=='function'||!cfg?.stripePublishableKey)return;
+      if(typeof api.createPaymentSession!=='function')return;
+      paymentReady=false;
       const fs=$('fieldset[data-step="3"]',checkoutForm);if(!fs)return;
       let host=$('#stripe-payment-element',checkoutForm);
-      if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.margin='16px 0';fs.insertBefore(host,fs.querySelector('[type=submit]')||null);}
+      if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.cssText='margin:16px 0;width:100%;max-width:560px;grid-column:1/-1';const anchor=fs.querySelector('[name=terms]')?.closest('label')||fs.querySelector('.actions');if(anchor)anchor.before(host);else fs.append(host);}
+      host.textContent='Pripravujem objednávku…';
+      if(typeof api.prepareCheckout==='function'){const el=checkoutForm.elements,f=Object.fromEntries(['firstName','lastName','email','street','city','postalCode'].map(k=>[k,el[k]?.value||'']));const prep=await api.prepareCheckout({firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:checkoutForm.elements.delivery.value,street:f.street,city:f.city,postalCode:f.postalCode});
+        if(!prep.ok){host.textContent=prep.message;return;}$('#checkout-summary').innerHTML=summary(prep.cart);paymentRequired=prep.cart.paymentRequired!==false;}
+      if(!paymentRequired){host.textContent='Objednávka je pokrytá. Platobné údaje nie sú potrebné.';paymentReady=true;return;}
+      if(!cfg?.stripePublishableKey){host.textContent='Platobná brána nie je nakonfigurovaná.';return;}
       host.textContent='Načítavam platbu…';
       const session=await api.createPaymentSession();
       if(!session.ok){host.textContent=session.message||'Platba nie je dostupná.';return;}
-      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:session.clientSecret});host.textContent='';elements.create('payment').mount(host);paymentReady=true;}
+      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:session.clientSecret});host.textContent='';elements.create('payment',{defaultValues:{billingDetails:{email:checkoutForm.elements.email?.value||undefined,address:{country:'SK'}}}}).mount(host);paymentReady=true;}
       catch{host.textContent='Platobnú bránu sa nepodarilo načítať.';}
     };
     $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity()){const n=Number(btn.dataset.next);step(n);if(n===3)initPayment();}}));
     $$('[data-back]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>step(Number(btn.dataset.back))));
     $$('[name=delivery]',checkoutForm).forEach(el=>el.addEventListener('change',()=>{const shipping=checkoutForm.elements.delivery.value==='shipping';$('#address-fields').hidden=!shipping;$$('#address-fields input').forEach(input=>{input.required=shipping;input.disabled=!shipping;});}));
-    checkoutForm.addEventListener('submit',async event=>{event.preventDefault();const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity()){step(Number(current.dataset.step)+1);if(Number(current.dataset.step)+1===3)initPayment();}return;}
-      const output=$('#checkout-result');
-      if(stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
+    let checkoutBusy=false;
+    checkoutForm.addEventListener('submit',async event=>{event.preventDefault();if(checkoutBusy)return;const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity()){step(Number(current.dataset.step)+1);if(Number(current.dataset.step)+1===3)initPayment();}return;}
+      const output=$('#checkout-result'),submit=checkoutForm.querySelector('[type=submit]');checkoutBusy=true;if(submit)submit.disabled=true;
+      try{
+      if(typeof api.acceptCheckoutTerms==='function'){if(!paymentReady){output.dataset.state='ERROR';output.textContent='Platba ešte nie je pripravená. Skontrolujte údaje v predchádzajúcich krokoch.';output.focus();return;}
+        const ok=await api.acceptCheckoutTerms({terms_accepted:checkoutForm.elements.terms.checked,privacy_acknowledged:checkoutForm.elements.privacy.checked});if(!ok.ok){output.dataset.state='ERROR';output.textContent=ok.message;output.focus();return;}}
+      if(typeof api.verifyCartBooking==='function'){const term=await api.verifyCartBooking();if(!term.ok){output.dataset.state='ERROR';output.innerHTML=`${e(term.message)}${term.expired?` <a class="text-link" href="/konzultacie/rezervacia">Vybrať termín</a>`:''}`;output.focus();return;}}
+      if(paymentRequired&&stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
       const result=await api.checkout();output.dataset.state=result.status;output.textContent=result.messages;output.focus();
+      }catch{output.dataset.state='ERROR';output.textContent='Objednávku sa nepodarilo dokončiť. Skontrolujte jej stav v účte pred ďalším pokusom.';output.focus();}finally{checkoutBusy=false;if(submit)submit.disabled=false;}
     });
   }
 }
 $('#login-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;$('.form-status',form).textContent=(await api.requestMagicLink(form.elements.email.value)).message;});
-if($('#magic-confirm')){$('#magic-confirm').textContent=(await api.confirmMagicLink()).message;history.replaceState(null,'',location.pathname);}
-$('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;$('.form-status',form).textContent=(await api.sendContact(Object.fromEntries(new FormData(form)))).message;});
-if($('#library-view')){const render=async()=>{const access=await api.getEntitlements();$('#library-view').innerHTML=access.active?`<div class="library-grid">${access.weeks.map(w=>`<article class="lesson"><span class="eyebrow">TÝŽDEŇ ${String(w.number).padStart(2,'0')}</span><h2>${w.title}</h2><p>${w.description}</p><button class="button outline" data-lesson="${w.number}">Otvoriť lekciu ${arrow}</button></article>`).join('')}</div><div id="lesson-content" class="form-status" tabindex="-1" hidden></div>`:`<div class="empty-state locked-library"><p class="eyebrow">ZAMKNUTÁ KNIŽNICA</p><h2>Tento priestor čaká na vás.</h2><p>Program je dostupný s aktívnym prístupom.</p>${button('/prihlasenie','Prihlásiť sa')}${button('/reset-40','O programe','outline')}</div>`;
-    $$('[data-lesson]').forEach(btn=>btn.addEventListener('click',()=>{const content=$('#lesson-content');content.hidden=false;content.textContent=`Obsah lekcie sa pripravuje.`;content.focus();}));};render();}
+if($('#magic-confirm')){
+  const r=await api.confirmMagicLink();$('#magic-confirm').textContent=r.message;history.replaceState(null,'',location.pathname);
+  // Návrat len na vlastnú stránku (cesta začínajúca jedným „/“), uložený pred prihlásením.
+  let back='';try{back=localStorage.getItem('anastasia.return')||'';localStorage.removeItem('anastasia.return');}catch{}
+  if(r.ok&&/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%]*)?$/.test(back))$('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button(back,'Pokračovať v rezervácii')}</div>`);
+}
+$('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=$('button[type=submit]',form),status=$('.form-status',form);if(button.disabled)return;button.disabled=true;status.textContent='Odosielam…';let r;try{r=await api.sendContact(Object.fromEntries(new FormData(form)));}catch{r={ok:false,message:'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.'};}status.textContent=r.message;if(r.ok)form.reset();button.disabled=false;});
+// Klub ANASTASIA: ponuka a cena len zo servera; Payment Element iba autorizuje, zachytenie robí backend po SafeOrder.
+const runtimeConfig=()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}};
+const loadStripeJs=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
+const loggedInNow=async()=>typeof api.isLoggedIn==='function'&&Boolean(await api.isLoggedIn());
+const loginPrompt=text=>`<div class="empty-state"><h2>${e(text)}</h2>${button('/prihlasenie','Prihlásiť sa')}</div>`;
+if($('#klub-view')){
+  const view=$('#klub-view'),form=$('#klub-form'),offerBox=$('#klub-offer'),payBox=$('#klub-payment'),result=$('#klub-result'),submit=$('#klub-submit');
+  let stripe=null,elements=null,paying=false;
+  const say=(text,state='')=>{result.dataset.state=state;result.textContent=text;result.focus();};
+  const choose=async variantId=>{
+    form.hidden=true;view.innerHTML='<p class="form-status">Pripravujem ponuku…</p>';
+    const r=await api.prepareMembership(variantId);
+    if(!r.ok){view.innerHTML=r.status===401?loginPrompt('Pre členstvo sa prihláste.'):`<p class="form-status" data-state="ERROR">${e(r.message)}</p>`;return;}
+    const o=r.offer;view.innerHTML='';
+    offerBox.innerHTML=`<article class="center-card"><p class="eyebrow">Vaše členstvo</p><h2>${e(o.title)}</h2><p><strong>${e(o.amount_label)}</strong> · ${e(String(o.period_days))} dní prístupu</p></article>`;
+    payBox.hidden=true;payBox.textContent='';stripe=null;elements=null;submit.textContent='Pokračovať na platbu';form.hidden=false;
+  };
+  const render=async()=>{
+    if(!(await loggedInNow())){view.innerHTML=loginPrompt('Pre členstvo v Klube sa najprv prihláste.');return;}
+    const products=await api.getMembershipProducts();
+    const offers=products.flatMap(p=>p.variants.map(v=>({p,v})));
+    if(!offers.length){view.innerHTML='<div class="empty-state"><h2>Členstvo pripravujeme.</h2><p>Ponuku Klubu zverejníme čoskoro.</p></div>';return;}
+    view.innerHTML=`<div class="library-grid">${offers.map(({p,v})=>`<article class="lesson"><span class="eyebrow">${p.period_days?`${e(String(p.period_days))} DNÍ`:'ČLENSTVO'}</span><h2>${e(p.title)}</h2><p>${e(p.variants.length>1?v.label:p.description)}</p><p><strong>${e(v.priceLabel)}</strong></p><button type="button" class="button" data-klub-variant="${e(v.id)}">Vybrať ${arrow}</button></article>`).join('')}</div>`;
+    $$('[data-klub-variant]',view).forEach(btn=>btn.addEventListener('click',()=>choose(btn.dataset.klubVariant)));
+  };
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();if(paying||!form.reportValidity())return;paying=true;submit.disabled=true;
+    try{
+      if(!elements){
+        const cfg=runtimeConfig();if(!cfg?.stripePublishableKey){say('Platobná brána nie je dostupná.','ERROR');return;}
+        say('Pripravujem platbu…','REVIEW');
+        const r=await api.startMembershipCheckout({terms_accepted:form.elements.terms.checked,privacy_acknowledged:form.elements.privacy.checked,auto_renew:form.elements.auto_renew.checked});
+        if(!r.ok){say(r.message,'ERROR');return;}
+        try{const Stripe=await loadStripeJs();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:r.clientSecret});payBox.hidden=false;payBox.textContent='';const email=typeof api.getCustomerEmail==='function'?await api.getCustomerEmail().catch(()=>''):'';elements.create('payment',{defaultValues:{billingDetails:{...(email?{email}:{}),address:{country:'SK'}}}}).mount(payBox);}
+        catch{say('Platobnú bránu sa nepodarilo načítať.','ERROR');return;}
+        $$('input[type=checkbox]',form).forEach(input=>{input.disabled=true;});
+        submit.textContent='Zaplatiť a aktivovať';say('Zadajte platobné údaje.','');return;
+      }
+      say('Overujem platbu…','REVIEW');
+      const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});
+      if(error){say(error.message||'Platba zlyhala. Skontrolujte údaje karty.','ERROR');return;}
+      say('Aktivujem členstvo…','REVIEW');
+      const done=await api.completeMembership();
+      say(done.message,done.status==='SETTLED'?'ALLOW':done.status);
+      if(done.ok){payBox.hidden=true;submit.hidden=true;result.insertAdjacentHTML('afterend',`<div class="actions">${button('/ucet#klub','Moje členstvo')}</div>`);}
+    }finally{paying=false;submit.disabled=false;}
+  });
+  render();
+}
+// Rezervácia konzultácie: typ → voľný termín (server) → podržanie a naviazanie na košík → pokladňa.
+// Obsadený alebo už neponúkaný termín: hláška a nová ponuka termínov, nič sa neúčtuje.
+const RETURN_KEY='anastasia.return';
+const rememberReturn=path=>{try{localStorage.setItem(RETURN_KEY,path);}catch{}};
+if($('#booking-view')){
+  const view=$('#booking-view'),TZ='Europe/Bratislava',RANGE=28,MAX_RANGES=7;
+  const ymd=d=>new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+  const addDays=(day,n)=>{const d=new Date(`${day}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
+  const fmt=(iso,o)=>new Intl.DateTimeFormat('sk-SK',{timeZone:TZ,...o}).format(new Date(iso));
+  const status=(text,state='')=>`<p class="form-status" role="status"${state?` data-state="${state}"`:''}>${e(text)}</p>`;
+  const today=ymd(new Date());
+  let types=[],type=null,from=today,busy=false;
+  const head=()=>`<div class="booking-head"><div><p class="eyebrow">Konzultácia</p><h2>${e(type.title)}</h2><p>${[type.durationMinutes?`${type.durationMinutes} minút`:'',type.form==='online'?'online':type.form==='in_person'?'osobne':'',type.priceLabel].filter(Boolean).map(e).join(' · ')}</p></div>${types.length>1?'<button type="button" class="text-link" data-booking-change>Iná konzultácia</button>':''}</div>`;
+  const wireChange=()=>$('[data-booking-change]',view)?.addEventListener('click',()=>{type=null;history.replaceState(null,'',location.pathname);renderTypes();});
+  const renderTypes=()=>{
+    view.innerHTML=`<div class="library-grid booking-types">${types.map(t=>`<article class="lesson"><span class="eyebrow">${t.durationMinutes?`${e(String(t.durationMinutes))} MINÚT`:'KONZULTÁCIA'}</span><h2>${e(t.title)}</h2>${t.description?`<p>${e(t.description)}</p>`:''}<p><strong>${e(t.priceLabel)}</strong></p><button type="button" class="button" data-booking-type="${e(t.handle)}">Vybrať termín ${arrow}</button></article>`).join('')}</div>`;
+    $$('[data-booking-type]',view).forEach(btn=>btn.addEventListener('click',()=>{type=types.find(t=>t.handle===btn.dataset.bookingType)||null;if(!type)return;from=today;history.replaceState(null,'',`${location.pathname}?typ=${encodeURIComponent(type.handle)}`);renderSlots();}));
+  };
+  const renderSlots=async(note='',noteState='')=>{
+    view.innerHTML=head()+(note?status(note,noteState):'')+status('Hľadám voľné termíny…');wireChange();
+    // Prvé voľné termíny: posúvame sa po 28 dňoch (limit servera je 31), najviac ~pol roka dopredu.
+    let r,start=from;
+    for(let i=0;i<MAX_RANGES;i++){r=await api.getBookingSlots(type.id,start,addDays(start,RANGE-1));if(!r.ok||r.slots.length)break;start=addDays(start,RANGE);}
+    from=start;
+    const noteHtml=note?status(note,noteState):'';
+    if(!r.ok){view.innerHTML=head()+noteHtml+status(r.message,'ERROR')+'<div class="actions"><button type="button" class="button outline" data-booking-retry>Skúsiť znova</button></div>';wireChange();$('[data-booking-retry]',view).addEventListener('click',()=>renderSlots());return;}
+    if(!r.slots.length){view.innerHTML=head()+noteHtml+`<div class="empty-state"><h2>Momentálne nie sú voľné termíny.</h2><p>Napíšte nám a dohodneme termín spolu.</p>${button('/kontakt','Kontakt')}</div>`;wireChange();return;}
+    const days=new Map();for(const s of r.slots){const k=ymd(new Date(s.start));if(!days.has(k))days.set(k,[]);days.get(k).push(s);}
+    const until=addDays(from,RANGE-1);
+    view.innerHTML=head()+noteHtml+`<p class="booking-range">${e(fmt(`${from}T12:00:00Z`,{day:'numeric',month:'long'}))} – ${e(fmt(`${until}T12:00:00Z`,{day:'numeric',month:'long',year:'numeric'}))}</p><div class="booking-days">${[...days].map(([day,slots])=>`<section class="booking-day"><h3>${e(fmt(slots[0].start,{weekday:'long',day:'numeric',month:'long'}))}</h3><div class="booking-slots">${slots.map(s=>`<button type="button" class="booking-slot" data-slot="${e(s.start)}" data-label="${e(s.label)}" aria-label="${e(s.label)}">${e(fmt(s.start,{hour:'2-digit',minute:'2-digit'}))}</button>`).join('')}</div></section>`).join('')}</div><div class="actions">${from>today?'<button type="button" class="button outline" data-booking-prev>Skoršie termíny</button>':''}<button type="button" class="button outline" data-booking-next>Ďalšie termíny ${arrow}</button></div>`;
+    wireChange();
+    $('[data-booking-prev]',view)?.addEventListener('click',()=>{const prev=addDays(from,-RANGE);from=prev<today?today:prev;renderSlots();});
+    $('[data-booking-next]',view).addEventListener('click',()=>{from=addDays(from,RANGE);renderSlots();});
+    $$('[data-slot]',view).forEach(btn=>btn.addEventListener('click',()=>pick(btn.dataset.slot,btn.dataset.label)));
+  };
+  const pick=async(slot,label)=>{
+    if(!(await loggedInNow())){
+      rememberReturn(`/konzultacie/rezervacia?typ=${encodeURIComponent(type.handle)}`);
+      view.innerHTML=head()+loginPrompt('Pre rezerváciu termínu sa prihláste.')+'<p class="fine-print">Po prihlásení sa sem vrátite a termín si vyberiete znova.</p>';wireChange();return;
+    }
+    view.innerHTML=head()+`<article class="center-card booking-confirm"><p class="eyebrow">Vybraný termín</p><h2>${e(label)}</h2><p>${e(type.priceLabel)}</p><div class="actions"><button type="button" class="button" data-booking-reserve>Rezervovať a pokračovať ${arrow}</button><button type="button" class="button outline" data-booking-back>Vybrať iný termín</button></div><p class="form-status" role="status"></p></article>`;wireChange();
+    const out=$('.booking-confirm .form-status',view),go=$('[data-booking-reserve]',view);
+    $('[data-booking-back]',view).addEventListener('click',()=>renderSlots());
+    go.addEventListener('click',async()=>{
+      if(busy)return;busy=true;go.disabled=true;out.dataset.state='REVIEW';out.textContent='Rezervujem termín…';
+      try{
+        const r=await api.reserveBooking({productId:type.id,variantId:type.variantId,startsAt:slot,title:type.title});
+        if(r.ok){out.dataset.state='ALLOW';out.textContent='Termín je podržaný. Pokračujeme na objednávku…';await updateCount();location.assign('/pokladna');return;}
+        if(r.status===401){rememberReturn(`/konzultacie/rezervacia?typ=${encodeURIComponent(type.handle)}`);view.innerHTML=head()+loginPrompt('Prihlásenie vypršalo. Prihláste sa znova.');wireChange();return;}
+        if(r.status===409||r.status===404){await renderSlots(r.message,'ERROR');return;}
+        out.dataset.state='ERROR';out.textContent=r.message;
+      }finally{busy=false;if(go.isConnected)go.disabled=false;}
+    });
+  };
+  (async()=>{
+    const r=typeof api.getBookingTypes==='function'?await api.getBookingTypes():{ok:false,types:[]};
+    types=r.types||[];
+    if(!r.ok){view.innerHTML=status('Ponuku konzultácií sa nepodarilo načítať. Skúste to znova o chvíľu.','ERROR');return;}
+    if(!types.length){view.innerHTML=`<div class="empty-state"><h2>Termíny konzultácií pripravujeme.</h2><p>Napíšte nám a dohodneme termín spolu.</p>${button('/kontakt','Kontakt')}</div>`;return;}
+    const wanted=new URLSearchParams(location.search).get('typ');
+    type=types.find(t=>t.handle===wanted)||(types.length===1?types[0]:null);
+    if(type)renderSlots();else renderTypes();
+  })();
+}
+if($('#membership-view')){
+  const view=$('#membership-view');
+  const STATUS={active:'Aktívne',renewing:'Obnovuje sa',unknown:'Overujeme platbu',needs_review:'Overujeme'};
+  const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString('sk-SK');};
+  const render=async(note='')=>{
+    if(!(await loggedInNow())){view.innerHTML=loginPrompt('Pre prehľad členstva sa prihláste.');return;}
+    const [list,products]=await Promise.all([api.listMemberships(0),api.getMembershipProducts()]);
+    if(!list.ok){view.innerHTML=`<p class="form-status" data-state="ERROR">${e(list.message)}</p>`;return;}
+    const titles=new Map(products.map(p=>[p.id,p.title]));
+    view.innerHTML=(note?`<p class="form-status" role="status">${e(note)}</p>`:'')+(list.memberships.length?list.memberships.map(m=>`<article class="center-card" data-membership="${e(m.id)}"><p class="eyebrow">${e(STATUS[m.status]||'Overujeme')}</p><h2>${e(titles.get(m.product_id)||'Klub ANASTASIA')}</h2><p>Prístup do ${e(date(m.period_end))} · ${m.renew?'automatická obnova zapnutá':'bez automatickej obnovy'}</p><div class="actions">${m.status==='renewing'?`<button type="button" class="button" data-membership-confirm="${e(m.id)}">Potvrdiť platbu v banke</button>`:''}${m.renew?`<button type="button" class="button outline" data-membership-stop="${e(m.id)}">Zastaviť obnovu</button>`:''}</div><div class="form-status" role="status"></div></article>`).join(''):`<div class="empty-state"><h2>Zatiaľ nemáte členstvo.</h2>${button('/klub','Pozrieť Klub')}</div>`);
+    $$('[data-membership-stop]',view).forEach(btn=>btn.addEventListener('click',async()=>{
+      if(!confirm('Zastaviť automatickú obnovu? Prístup vám zostane do konca zaplateného obdobia.'))return;
+      btn.disabled=true;const r=await api.stopMembership(btn.dataset.membershipStop);
+      if(r.ok)render(r.message);else{btn.disabled=false;$('.form-status',btn.closest('article')).textContent=r.message;}
+    }));
+    $$('[data-membership-confirm]',view).forEach(btn=>btn.addEventListener('click',async()=>{
+      const id=btn.dataset.membershipConfirm,status=$('.form-status',btn.closest('article'));btn.disabled=true;
+      try{
+        const cfg=runtimeConfig();if(!cfg?.stripePublishableKey){status.textContent='Platobná brána nie je dostupná.';return;}
+        const pay=await api.getMembershipPayment(id);if(!pay.ok){status.textContent=pay.message;return;}
+        status.textContent='Otváram overenie v banke…';
+        const Stripe=await loadStripeJs();const {error}=await Stripe(cfg.stripePublishableKey).handleNextAction({clientSecret:pay.clientSecret});
+        if(error){status.textContent=error.message||'Overenie sa nepodarilo. Skúste to znova.';return;}
+        const r=await api.reconcileMembership(id);
+        if(r.ok)render(r.status==='SETTLED'||r.status==='ACTIVE'?'Platba je potvrdená. Ďakujeme.':'Platbu ešte overujeme. Stav sa čoskoro aktualizuje.');else status.textContent=r.message;
+      }catch{status.textContent='Overenie sa nepodarilo. Skúste to znova.';}
+      finally{btn.disabled=false;}
+    }));
+  };
+  render();
+}
+if($('#library-view')){const {mountLibrary}=await import('/library.mjs');void mountLibrary($('#library-view'),api);}
 
 // A short ripple every twelve seconds, applied only to the logo.
 const brandWave=document.querySelector('[data-brand-wave]');
@@ -341,3 +603,5 @@ async function syncCategories(){
 
 // Jazyky SK/EN/RU: zapojí přepínače a aplikuje uloženou volbu (EN/RU zatím náhled, viz i18n.mjs).
 syncCategories().finally(()=>i18nInit());
+
+initDigitalProduct();

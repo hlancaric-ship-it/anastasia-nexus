@@ -1,4 +1,4 @@
-import ZeptoMailNotificationService from "../service"
+import ZeptoMailNotificationService, { recipientAllowed } from "../service"
 import { TEMPLATE_NAMES, UnknownTemplateError, escapeHtml, formatDate, formatTime, renderTemplate, safeUrl } from "../templates"
 
 const RECIPIENT = "zakaznicka@example.test"
@@ -64,6 +64,15 @@ describe("ZeptoMail – send", () => {
     expect(payload.track_clicks).toBe(false)
     expect(payload.track_opens).toBe(false)
     expect(payload.client_reference).toBe("magic-link-sk")
+  })
+
+  it("kontaktní formulář odpovídá odesílatelce, jinde zůstává globální reply-to", async () => {
+    const { service, fetchImpl } = makeService()
+    await service.send({ to: RECIPIENT, channel: "email", template: "contact-form-admin", data: { name: "Jana", email: "jana@example.com", topic: "Konzultácia", message: "Dobrý deň, otázka." } } as any)
+    expect(sentPayload(fetchImpl).reply_to).toEqual([{ address: "jana@example.com" }])
+    const other = makeService()
+    await other.service.send({ to: RECIPIENT, channel: "email", template: "chat-admin-digest", data: { email: "jana@example.com", messages: 1, conversations: 1 } } as any)
+    expect(sentPayload(other.fetchImpl).reply_to).toEqual([{ address: "info@anastasiaoz.eu" }])
   })
 
   it("nepřidá prefix, pokud ho klíč už má", async () => {
@@ -188,5 +197,48 @@ describe("ZeptoMail – šablony", () => {
     const out = renderTemplate("booking-canceled-sk", { starts_at: "2026-10-20T08:00:00Z", ends_at: "2026-10-20T09:00:00Z", cancel_kind: "customer_request" })
     expect(out.text).toContain("Termín 20. 10. 2026 od 10:00 do 11:00 je zrušený.")
     expect(out.text).toContain("na Vašu žiadosť")
+  })
+})
+
+describe("ZeptoMail – pojistka adresátů v testovacím provozu", () => {
+  const send = (service: ZeptoMailNotificationService, to: string) => service.send({
+    to, channel: "email", template: "magic-link-sk",
+    data: { url: "https://anastasia-test.l-code-dynamics.com/ucet/prihlasenie?token=abc", ttl_minutes: 15 },
+  } as any)
+
+  it("recipientAllowed: přesná adresa, celá doména, bez subdomén, bez ohledu na velikost písmen", () => {
+    const list = ["tester@example.test", "@l-code-dynamics.com"]
+    expect(recipientAllowed("Tester@Example.TEST", list)).toBe(true)
+    expect(recipientAllowed("kdokoli@l-code-dynamics.com", list)).toBe(true)
+    expect(recipientAllowed("x@mail.l-code-dynamics.com", list)).toBe(false)
+    expect(recipientAllowed("x@l-code-dynamics.com.evil.test", list)).toBe(false)
+    expect(recipientAllowed("jina@example.test", list)).toBe(false)
+    expect(recipientAllowed("kdokoli@example.test", [])).toBe(false)
+    expect(recipientAllowed("kdokoli@example.test", undefined)).toBe(true)
+  })
+
+  it("mimo seznam se nic neodešle a log neobsahuje adresu", async () => {
+    const { service, fetchImpl, lines } = makeService({ recipientAllowlist: ["@l-code-dynamics.com"] })
+    await expect(send(service, RECIPIENT)).resolves.toEqual({})
+    expect(fetchImpl).not.toHaveBeenCalled()
+    expect(lines.join("\n")).toMatch(/send_suppressed/)
+    expect(lines.join("\n")).not.toContain(RECIPIENT)
+  })
+
+  it("prázdný seznam blokuje vše, povolená adresa projde", async () => {
+    const blocked = makeService({ recipientAllowlist: [] })
+    await send(blocked.service, "tester@l-code-dynamics.com")
+    expect(blocked.fetchImpl).not.toHaveBeenCalled()
+    const allowed = makeService({ recipientAllowlist: [" Tester@L-Code-Dynamics.com "] })
+    await expect(send(allowed.service, "tester@l-code-dynamics.com")).resolves.toEqual({ id: "req_123" })
+    expect(allowed.fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
+  it("validateOptions odmítne neplatnou položku seznamu", () => {
+    const base = { apiKey: "k", fromEmail: "a@b.sk" }
+    expect(() => ZeptoMailNotificationService.validateOptions({ ...base, recipientAllowlist: ["@l-code-dynamics.com", "x@y.sk"] })).not.toThrow()
+    expect(() => ZeptoMailNotificationService.validateOptions({ ...base, recipientAllowlist: [] })).not.toThrow()
+    expect(() => ZeptoMailNotificationService.validateOptions({ ...base, recipientAllowlist: ["l-code-dynamics.com"] })).toThrow(/EMAIL_RECIPIENT_ALLOWLIST/)
+    expect(() => ZeptoMailNotificationService.validateOptions({ ...base, recipientAllowlist: "x@y.sk" })).toThrow(/EMAIL_RECIPIENT_ALLOWLIST/)
   })
 })

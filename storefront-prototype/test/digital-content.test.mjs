@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {digitalTopics} from '../src/lib/digital-content.mjs';
+test('public Audio 0 preview is not presented as part of the purchased audio cycle',()=>{assert.deepEqual(digitalTopics({longDescription:'Audio 1 – Návrat\n\nAudio 2 – Pohyb\n\nAUDIO 0 - Vypočujte si ukážku'}).map(t=>t.title),['Návrat','Pohyb']);});
+test('topics come from actual text; absent topics do not create fake curriculum',()=>{assert.deepEqual(digitalTopics({longDescription:'Bez osnovy.'}),[]);assert.deepEqual(digitalTopics({longDescription:'Pozornosť – signály tela\nEnergia – telo a vek'}).map(t=>t.title),['Pozornosť','Energia']);});

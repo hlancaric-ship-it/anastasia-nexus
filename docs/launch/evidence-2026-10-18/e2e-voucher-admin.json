@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-18T08:39:32.502Z",
+  "results": [
+    {
+      "step": "admin-zoznam-maskovany",
+      "ok": true,
+      "detail": {
+        "onPill": "Darčekové poukazy",
+        "maskedTail": "ZTCL"
+      }
+    },
+    {
+      "step": "admin-detail-a-pohyby",
+      "ok": true,
+      "detail": {
+        "det": "Poukaz GV-****-****-****-ZTCLSpäť Zostatok0,00 € z 50,00 €Stavvyčerpaný Vydaný18. 10. 2026 10:38Platí do18. 10. 2027 10:38 Objednávka nákupuorder_01M572JG0BB9X1WZFAWS3QPS0EDoručenierecipient_email · sent História použitý v objednávke · 50,00 € Kedy18. 10. 2026 10:38Zostatok po0,00 € Objednávkaorder_01M572KEZQ4MD28APSPBTFN244vydaný · 50,00 € Kedy18. 10. 2026 10:38Zostatok po50,00 € Objednávkaorder_01M572JG0BB9X1WZFAWS3QPS0E "
+      }
+    },
+    {
+      "step": "admin-zneplatnenie",
+      "ok": true,
+      "detail": {
+        "noReason": "Uveďte dôvod zneplatnenia.",
+        "db": "void|0"
+      }
+    },
+    {
+      "step": "admin-prepnutie-spat-na-kupony",
+      "ok": true
+    }
+  ],
+  "errors": []
+}

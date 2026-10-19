@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import {
   createApiKeysWorkflow,
   createCustomerGroupsWorkflow,
+  createDefaultsWorkflow,
   createRegionsWorkflow,
   createSalesChannelsWorkflow,
   createShippingOptionsWorkflow,
@@ -14,12 +15,15 @@ import {
   updateRegionsWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows"
+import { resolveDeployEnv } from "../lib/deploy-env"
 
 /**
  * Bootstrap e-shopu ANASTASIA (LUCRAT s.r.o., SK).
  *
  * Spuštění (idempotentní, lze opakovat):
  *   npx medusa exec ./src/scripts/anastasia-bootstrap.ts
+ * Na Medusa Cloud (bez `medusa exec`) ho spouští data migration script
+ * src/migration-scripts/anastasia-bootstrap.ts při prvním deployi prostředí.
  *
  * Vytvoří: store (EUR), sales channel, publishable API klíč, region Slovensko (EUR, ceny
  * včetně DPH), daňové sazby SK, sklad, shipping profily + možnosti (zásilka, digitální
@@ -44,6 +48,8 @@ export const DIGITAL_FULFILLMENT_SET_NAME = "Digitálne produkty"
 export const DIGITAL_PROFILE_NAME = "Digitálne produkty"
 export const STRIPE_PROVIDER_ID = "pp_stripe_stripe"
 export const SYSTEM_PROVIDER_ID = "pp_system_default"
+/** Klub ANASTASIA: samostatný Stripe provider pro členství (první platba i obnova). */
+export const MEMBERSHIP_PROVIDER_ID = "pp_membership_stripe_membership"
 export const TAX_PROVIDER_ID = "tp_system"
 
 /**
@@ -108,7 +114,7 @@ export function parseCountries(raw: string | undefined): string[] {
 
 export function pickPaymentProviders(availableIds: string[], isProduction: boolean): string[] {
   if (availableIds.includes(STRIPE_PROVIDER_ID)) {
-    return [STRIPE_PROVIDER_ID]
+    return availableIds.includes(MEMBERSHIP_PROVIDER_ID) ? [STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID] : [STRIPE_PROVIDER_ID]
   }
   if (isProduction) {
     throw new Error(`Payment provider ${STRIPE_PROVIDER_ID} is not registered; set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET`)
@@ -196,7 +202,8 @@ export default async function anastasiaBootstrap({ container }: { container: Med
   const taxService = container.resolve(Modules.TAX) as any
   const paymentService = container.resolve(Modules.PAYMENT) as any
 
-  const isProduction = process.env.NODE_ENV === "production"
+  // Nasazené prostředí (Medusa Cloud nebo NODE_ENV=production) nesmí skončit s pp_system_default místo Stripe.
+  const isProduction = resolveDeployEnv().isDeployed
   const countries = parseCountries(process.env.ANASTASIA_REGION_COUNTRIES)
   const warehouseCity = (process.env.ANASTASIA_WAREHOUSE_CITY || "Bratislava").trim()
   const warehouseCountry = (process.env.ANASTASIA_WAREHOUSE_COUNTRY || "SK").trim().toUpperCase()
@@ -220,14 +227,22 @@ export default async function anastasiaBootstrap({ container }: { container: Med
 
   // 2) Store: měna EUR, výchozí sales channel
   await step(logger, "store (EUR)", async () => {
-    const store = await findFirst("store", {}, ["id", "name", "supported_currencies.*"])
-    if (!store) throw new Error("No store found; run `medusa db:migrate` first")
+    let store = await findFirst("store", {}, ["id", "name", "supported_currencies.*"])
+    if (!store) {
+      // Prázdná DB při prvním deployi (migration script běží před prvním `medusa start`, který store zakládá):
+      // stejný idempotentní workflow, který Medusa spouští při startu.
+      await createDefaultsWorkflow(container).run()
+      store = await findFirst("store", {}, ["id", "name", "supported_currencies.*"])
+    }
+    if (!store) throw new Error("No store found after createDefaultsWorkflow")
     await updateStoresWorkflow(container).run({
       input: {
         selector: { id: store.id },
         update: {
           name: STORE_NAME,
-          supported_currencies: [{ currency_code: CURRENCY_CODE, is_default: true }],
+          // Ceny v katalógu sú koncové (s DPH). Produkty majú cenu len podľa meny (bez pravidla region_id),
+          // preto Medusa berie preferenciu MENY, nie regiónu; bez is_tax_inclusive by k 50 € pripočítala 23 %.
+          supported_currencies: [{ currency_code: CURRENCY_CODE, is_default: true, is_tax_inclusive: true }],
           default_sales_channel_id: salesChannel.id,
         },
       },

@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-18T10:49:25.298Z",
+  "results": [
+    {
+      "step": "admin-poukazy-nastavenie-nacitane",
+      "ok": true,
+      "detail": {
+        "pills": [
+          "Kupóny a zľavy",
+          "Darčekové poukazy",
+          "Nastavenie poukazov"
+        ],
+        "shown": "25; 50",
+        "db": "[2500, 5000]"
+      }
+    },
+    {
+      "step": "admin-poukazy-validacia",
+      "ok": true,
+      "detail": {
+        "dup": "Každá hodnota môže byť len raz.",
+        "bad": "Hodnoty zadajte ako sumy od 1 do 10 000 € oddelené bodkočiarkou, najviac 10.",
+        "noCat": "Vyberte aspoň jednu kategóriu."
+      }
+    },
+    {
+      "step": "admin-poukazy-ulozenie",
+      "ok": true,
+      "detail": {
+        "ok": "Nastavenie je uložené a ponuka poukazov na webe je aktualizovaná.",
+        "db": "[2500, 5000, 7500]",
+        "variants": "25 €|50 €|75 €"
+      }
+    },
+    {
+      "step": "storefront-poukaz-nova-hodnota",
+      "ok": true,
+      "detail": {
+        "offer": "DARČEK Darčekový poukaz Darujte priestor pre vlastný výber. Hodnota poukazu 25 € 50 € 75 € Meno príjemcu E-mail príjemcu Odkaz pre príjemcu Pridať poukaz do košíka Prejsť do košíka"
+      }
+    },
+    {
+      "step": "navrat-povodnych-hodnot",
+      "ok": true,
+      "detail": {
+        "r": "Nastavenie je uložené a ponuka poukazov na webe je aktualizovaná."
+      }
+    }
+  ],
+  "errors": []
+}

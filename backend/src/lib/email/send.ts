@@ -9,7 +9,7 @@ import { recordEvent } from "../observability/events"
  * Jediná cesta odeslání transakčního e-mailu z backendu.
  *
  * - Přidá přepisy textů z adminu (`data.texts`) – provider sám k modulu `email-template` nemá přístup.
- * - Šablonu vypnutou v adminu nepošle (kromě povinných: přihlášení, poukazy).
+ * - Šablonu vypnutou v adminu nepošle (kromě povinných: přihlášení, poukazy, kontaktní formulář).
  * - S `idempotency_key` potlačí jen prokázaný úspěch; pending/failure nesmí spustit slepý retry.
  * - Selhání načtení přepisů e-mail nezastaví – pošle se s výchozími texty.
  * - Selhání odeslání vyhodí; volající rozhodne (subscribery chybu jen zapíší, poukaz ji potřebuje pro opakování).

@@ -1,0 +1,180 @@
+{
+  "at": "2026-10-18T11:33:29.757Z",
+  "email": "e2e.konzultacia.mvdqxjl8@example.com",
+  "bookingId": "bkg_01M57CJHP40BW2PVCPNG265WCE",
+  "results": [
+    {
+      "step": "admin-typ-konzultacie",
+      "ok": true,
+      "detail": {
+        "status": 201,
+        "id": "prod_01M57CJ1N0CWPMFMBYQYTP7BJC",
+        "variant": "variant_01M57CJ1QYJ9QFJYRNEVC4FHWR"
+      }
+    },
+    {
+      "step": "admin-dostupnost-tyzdna",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "day0": {
+          "date": "2026-10-26",
+          "ranges": [
+            {
+              "start_time": "09:00",
+              "end_time": "17:00"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": "ui-sloty-anonymne-a-vyzva-na-prihlasenie",
+      "ok": true,
+      "detail": {
+        "n": 33,
+        "anonTxt": "KonzultáciaE2E konzultácia mvdqxjl860 minút · online · 40,00 €Iná konzultáciaPre rezerváciu termínu sa prihláste.Prihlásiť sa Po prihlásení sa sem vrátite a ter"
+      }
+    },
+    {
+      "step": "prihlasenie-a-navrat-do-rezervacie",
+      "ok": true,
+      "detail": {
+        "msgA": "Účet je založený. Vitajte."
+      }
+    },
+    {
+      "step": "subeh-druha-zakaznicka-dostane-409-a-novu-ponuku",
+      "ok": true,
+      "detail": {
+        "bkB": "bkg_01M57CJE0CFZR4DJT1CVK0288Q|held",
+        "conflictTxt": "Tento termín už nie je voľný. Zvoľte prosím iný.",
+        "target": "2026-10-26T11:00:00.000Z",
+        "left": 30
+      }
+    },
+    {
+      "step": "ui-rezervacia-podrzana-a-pripojena-ku-kosiku",
+      "ok": true,
+      "detail": {
+        "bookingId": "bkg_01M57CJHP40BW2PVCPNG265WCE",
+        "attached": "bkg_01M57CJHP40BW2PVCPNG265WCE"
+      }
+    },
+    {
+      "step": "pokladna-konzultacia-40",
+      "ok": true,
+      "detail": {
+        "summary": "Váš výberE2E konzultácia mvdqxjl8 × 140,00 € / kusKupónKupón nezadanýDopravaZadarmoCelkom40,00 €Vrátane DPH 7,48 €"
+      }
+    },
+    {
+      "step": "platba-a-potvrdenie-terminu",
+      "ok": true,
+      "detail": {
+        "state": "ALLOW",
+        "msg": "Objednávka bola vytvorená. Ďakujeme.",
+        "bk": "confirmed|order_01M57CK100DCMZ6X2F8FF1E0KN"
+      }
+    },
+    {
+      "step": "kosik-termin-bez-mnozstva-odstranenie-uvolni",
+      "ok": true,
+      "detail": {
+        "lineB": "E2E konzultácia mvdqxjl8Termín: pondelok 26. 10. 2026 · 12:00 – 13:0040,00 €Odstrániť",
+        "qtyBtns": 0,
+        "bkB2": "canceled"
+      }
+    },
+    {
+      "step": "uvolneny-termin-je-znova-v-ponuke",
+      "ok": true,
+      "detail": {
+        "target": "2026-10-26T11:00:00.000Z"
+      }
+    },
+    {
+      "step": "expirovane-podrzanie-blokuje-platbu",
+      "ok": true,
+      "detail": {
+        "expTxt": "platby Platobná karta Apple Pay Google PayPodržanie termínu vypršalo. Vyberte si prosím termín znova. Súhlasím s obchodnými podmienkami. Beriem na v"
+      }
+    },
+    {
+      "step": "admin-zoznam-konzultacii",
+      "ok": true,
+      "detail": {
+        "rowTxt": "e2e.konzultacia.mvdqxjl8@example.com Termín26. 10. 2026 13:30KonzultáciaE2E konzultácia mvdqxjl8 Stavpotvrdená"
+      }
+    },
+    {
+      "step": "admin-detail-zaplatenej-konzultacie",
+      "ok": true,
+      "detail": {
+        "detTxt": " Termín26. 10. 2026 13:30 – 26. 10. 2026 14:30Stavpotvrdená KonzultáciaE2E konzultácia mvdqxjl8Objednávkaorder_01M57CK100DCMZ6X2F8FF1E0KN Termín je zaplatený v objednávke. Zrušíte ho zrušením objednávky (otvoriť objednávku); zákazníčke odíde e-mail o zrušení a zaplatená suma sa jej automaticky vráti"
+      }
+    },
+    {
+      "step": "admin-zrusenie-objednavky-zrusi-termin",
+      "ok": true,
+      "detail": {
+        "omsg": "Objednávka je zrušená.",
+        "bk2": "canceled",
+        "mails": "magic-link-sk,customer-welcome-sk,order-placed-sk,booking-confirmed-sk,order-canceled-sk,booking-canceled-sk"
+      }
+    }
+  ],
+  "calls": [
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "GET /store/booking-slots 200",
+    "GET /store/product-categories 200",
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 200",
+    "GET /store/customers/me 401",
+    "POST /store/customers 200",
+    "POST /auth/token/refresh 200",
+    "GET /store/product-categories 200",
+    "GET /store/product-categories 200",
+    "GET /store/products 200",
+    "GET /store/booking-slots 200",
+    "POST /store/carts 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "POST /store/bookings 409",
+    "GET /store/booking-slots 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "POST /store/bookings 201",
+    "POST /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F/line-items 200",
+    "POST /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F/customer 200",
+    "POST /store/bookings/bkg_01M57CJHP40BW2PVCPNG265WCE/cart 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/product-categories 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/product-categories 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "POST /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F/customer 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/bookings 200",
+    "POST /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/shipping-options 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "POST /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F/shipping-methods 200",
+    "POST /store/nexus-cart 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "POST /store/payment-collections 200",
+    "POST /store/payment-collections/pay_col_01M57CJNZESCK748531TGY80K7/payment-sessions 200",
+    "GET /store/legal/versions 200",
+    "POST /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F/consents 200",
+    "GET /store/carts/cart_01M57CJFYDKRNEADJ3N8WW358F 200",
+    "GET /store/bookings 200",
+    "POST /store/nexus-checkout 200"
+  ],
+  "consoleErrors": []
+}

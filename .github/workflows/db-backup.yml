@@ -1,0 +1,156 @@
+name: DB backup (Medusa Cloud → R2)
+# Denní šifrovaná záloha produkční DB ANASTASIA (A-17). Postup, secrety a obnova: docs/launch/DEPLOY-RUNBOOK-2026-10-23.md §4.
+# Repo je veřejné: skripty nevypisují údaje o připojení ani obsah DB; v CI je jen veřejný šifrovací klíč.
+on:
+  schedule:
+    - cron: '17 2 * * *' # denně 02:17 UTC (04:17 SELČ / 03:17 SEČ)
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'backend/src/scripts/backup-cloud.mjs'
+      - 'backend/src/scripts/restore-cloud.mjs'
+      - 'backend/src/scripts/db-backup-cloud.cjs'
+      - 'backend/src/scripts/__tests__/db-backup-cloud.unit.spec.ts'
+      - 'ops/db-backup/**'
+      - '.github/workflows/db-backup.yml'
+permissions:
+  contents: read
+concurrency:
+  group: db-backup-${{ github.event_name == 'pull_request' && github.ref || 'production' }}
+  cancel-in-progress: false
+
+jobs:
+  # Syntetická zkouška celé cesty na runneru (dump → zkušební obnova → gpg → dešifrování → obnova), bez produkce a bez R2.
+  selftest:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.6-bookworm
+        env:
+          POSTGRES_USER: backup_synthetic
+          POSTGRES_PASSWORD: backup_synthetic_only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U backup_synthetic -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - name: Synthetic source DB with read-only role
+        env:
+          PGPASSWORD: backup_synthetic_only
+          PGPORT: ${{ job.services.postgres.ports[5432] }}
+        run: |
+          set -euo pipefail
+          P="psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -U backup_synthetic"
+          for db in source restore_test restore_drill; do $P -d postgres -c "CREATE DATABASE $db"; done
+          $P -d source <<'SQL'
+          CREATE TABLE store (id text PRIMARY KEY, name text NOT NULL);
+          CREATE TABLE customer (id text PRIMARY KEY, email text UNIQUE NOT NULL, deleted_at timestamptz);
+          CREATE TABLE product (id text PRIMARY KEY, title text NOT NULL, metadata jsonb);
+          CREATE TABLE "order" (id text PRIMARY KEY, customer_id text REFERENCES customer(id), total numeric(12,2) NOT NULL, created_at timestamptz DEFAULT now());
+          INSERT INTO store VALUES ('store_synthetic', 'Synthetic store');
+          INSERT INTO customer SELECT 'cus_' || g, 'synthetic+' || g || '@example.invalid', NULL FROM generate_series(1, 250) g;
+          INSERT INTO product SELECT 'prod_' || g, 'Synthetic product ' || g, jsonb_build_object('sku', 'SYN-' || g) FROM generate_series(1, 40) g;
+          INSERT INTO "order" SELECT 'order_' || g, 'cus_' || (1 + g % 250), (g % 97) + 0.5 FROM generate_series(1, 1200) g;
+          CREATE ROLE backup_ro LOGIN PASSWORD 'backup_ro_synthetic_only';
+          GRANT USAGE ON SCHEMA public TO backup_ro;
+          GRANT SELECT ON ALL TABLES IN SCHEMA public TO backup_ro;
+          CREATE ROLE backup_rw LOGIN PASSWORD 'backup_rw_synthetic_only';
+          GRANT USAGE ON SCHEMA public TO backup_ro, backup_rw;
+          GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO backup_rw;
+          SQL
+      - name: Install backend dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
+      - name: Unit tests of backup safeguards
+        working-directory: backend
+        env:
+          TEST_TYPE: unit
+          NODE_OPTIONS: --experimental-vm-modules
+        run: ./node_modules/.bin/jest --runTestsByPath src/scripts/__tests__/db-backup-cloud.unit.spec.ts src/scripts/__tests__/db-recovery.unit.spec.ts --runInBand --forceExit
+      - name: Throwaway key, backup with restore test, refusal checks, decrypt + restore
+        working-directory: backend
+        env:
+          PGPORT: ${{ job.services.postgres.ports[5432] }}
+        run: |
+          set -euo pipefail
+          WORK="$RUNNER_TEMP/selftest"; mkdir -m 700 "$WORK"; export GNUPGHOME="$WORK/gnupg"; mkdir -m 700 "$GNUPGHOME"
+          gpg --batch --pinentry-mode loopback --passphrase '' --quick-gen-key 'selftest <selftest@example.invalid>' ed25519 cert never
+          FPR=$(gpg --list-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
+          gpg --batch --pinentry-mode loopback --passphrase '' --quick-add-key "$FPR" cv25519 encr never
+          gpg --armor --export "$FPR" > "$WORK/pub.asc"; gpg --batch --pinentry-mode loopback --passphrase '' --armor --export-secret-keys "$FPR" > "$WORK/priv.asc"
+          unset GNUPGHOME
+          SRC="postgres://backup_ro:backup_ro_synthetic_only@127.0.0.1:$PGPORT/source"
+          TGT="postgres://backup_synthetic:backup_synthetic_only@127.0.0.1:$PGPORT/restore_test"
+          if BACKUP_DATABASE_URL="postgres://backup_rw:backup_rw_synthetic_only@127.0.0.1:$PGPORT/source" RESTORE_TEST_DATABASE_URL="$TGT" \
+             BACKUP_GPG_PUBLIC_KEY_FILE="$WORK/pub.asc" node src/scripts/backup-cloud.mjs --allow-local-source; then
+            echo "::error::write-capable role was accepted"; exit 1; fi
+          BACKUP_DATABASE_URL="$SRC" RESTORE_TEST_DATABASE_URL="$TGT" BACKUP_GPG_PUBLIC_KEY_FILE="$WORK/pub.asc" RUNNER_TEMP="$WORK" \
+            node src/scripts/backup-cloud.mjs --allow-local-source --keep-local | tee "$WORK/result.json"
+          FILE=$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).local_file)' "$WORK/result.json")
+          if BACKUP_DATABASE_URL="$SRC" RESTORE_TEST_DATABASE_URL="$TGT" BACKUP_GPG_PUBLIC_KEY_FILE="$WORK/pub.asc" \
+             node src/scripts/backup-cloud.mjs --allow-local-source; then echo "::error::non-empty restore target was accepted"; exit 1; fi
+          if gpg --homedir "$(mktemp -d)" --batch --decrypt "$FILE" >/dev/null 2>&1; then echo "::error::backup readable without private key"; exit 1; fi
+          export BACKUP_GPG_PRIVATE_KEY_FILE="$WORK/priv.asc" RESTORE_DATABASE_URL="postgres://backup_synthetic:backup_synthetic_only@127.0.0.1:$PGPORT/restore_drill"
+          node src/scripts/restore-cloud.mjs --file="$FILE" --confirm-empty-local-restore
+          test "$(psql -XAt "$RESTORE_DATABASE_URL" -c 'select count(*) from "order"')" = 1200
+          cp "$FILE" "$WORK/bad.dump.gpg"; cp "$FILE.json" "$WORK/bad.dump.gpg.json"; printf 'X' | dd of="$WORK/bad.dump.gpg" bs=1 seek=300 conv=notrunc
+          if node src/scripts/restore-cloud.mjs --file="$WORK/bad.dump.gpg" --decrypt-only; then echo "::error::tampered backup was accepted"; exit 1; fi
+          echo "SELFTEST_OK"
+
+  backup:
+    if: github.event_name != 'pull_request' && github.repository == 'hlancaric-ship-it/anastasia-nexus'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # Secrety jen v prostředí production-backup, povoleném pouze pro větev master.
+    environment: production-backup
+    permissions:
+      contents: read
+      actions: write # jen pro udržení plánu: veřejné repo jinak po 60 dnech bez commitu plán vypne
+    services:
+      postgres:
+        image: postgres:16.6-bookworm
+        env:
+          POSTGRES_USER: restore_test
+          POSTGRES_PASSWORD: restore_test_only
+          POSTGRES_DB: restore_test
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U restore_test -d restore_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - name: Backup, restore test, encrypt, upload to R2
+        working-directory: backend
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          RESTORE_TEST_DATABASE_URL: postgres://restore_test:restore_test_only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/restore_test
+          BACKUP_GPG_PUBLIC_KEY_FILE: ${{ github.workspace }}/ops/db-backup/anastasia-db-backup.pub.asc
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ vars.R2_BACKUP_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BACKUP_BUCKET }}
+        run: |
+          set -euo pipefail
+          node src/scripts/backup-cloud.mjs --upload | tee "$RUNNER_TEMP/result.json"
+          node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,`Záloha ${r.object}: ${r.bytes} B, obnova ${r.restore_test}, tabulek ${r.tables}, uloženo: ${r.uploaded.join(", ")}\n`)' "$RUNNER_TEMP/result.json"
+      - name: Keep schedule enabled
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/db-backup.yml/enable"

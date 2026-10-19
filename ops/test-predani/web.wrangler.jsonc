@@ -1,0 +1,16 @@
+{
+  // Testovací předání ANASTASIA (19. 10. 2026): storefront jako statické assety Workeru na subdoméně L-Code.
+  // Neindexuje se (build bez ANASTASIA_SITE_URL → robots noindex, robots.txt Disallow, X-Robots-Tag v _headers).
+  // Nasazení jen přes ./deploy.sh (kontroly testovacího režimu). Doména Lucie se tu nepoužívá.
+  "$schema": "../../nexus/node_modules/wrangler/config-schema.json",
+  "name": "anastasia-test-web",
+  "account_id": "3a147fa6382bb87477201b385bb945ea",
+  "compatibility_date": "2026-10-18",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "anastasia-test.l-code-dynamics.com", "custom_domain": true }],
+  "assets": {
+    "directory": "../../storefront-prototype/dist",
+    "not_found_handling": "404-page"
+  }
+}

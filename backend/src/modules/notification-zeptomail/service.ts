@@ -13,6 +13,11 @@ export type ZeptoMailOptions = {
   /** EU datacentrum – ZeptoMail běží v Zoho CPaaS (cpaas.zoho.eu), účet L-Code Dynamics, agent „Anastasia“. */
   apiUrl?: string
   timeoutMs?: number
+  /**
+   * Testovací provoz: e-mail odejde jen na adresy ze seznamu (přesná adresa nebo „@doména“).
+   * `undefined` = bez omezení (ostrý provoz). Prázdné pole = neodejde nic, jen záznam v logu.
+   */
+  recipientAllowlist?: string[]
 }
 
 type Fetch = typeof fetch
@@ -22,6 +27,20 @@ const DEFAULT_TIMEOUT_MS = 15_000
 const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]+$/
 
 const isEmail = (value: unknown): value is string => typeof value === "string" && EMAIL_RE.test(value.trim())
+const DOMAIN_RE = /^@[^\s@<>()",;]+\.[^\s@<>()",;]+$/
+const isAllowlistEntry = (value: unknown): boolean =>
+  typeof value === "string" && (EMAIL_RE.test(value.trim()) || DOMAIN_RE.test(value.trim()))
+
+/** Adresát je na seznamu povolených (bez ohledu na velikost písmen; „@doména“ = celá doména, ne subdomény). */
+export function recipientAllowed(to: string, allowlist: string[] | undefined): boolean {
+  if (allowlist === undefined) return true
+  const address = to.trim().toLowerCase()
+  const domain = address.slice(address.lastIndexOf("@"))
+  return allowlist.some(entry => {
+    const e = entry.trim().toLowerCase()
+    return e.startsWith("@") ? e === domain : e === address
+  })
+}
 const SAFE_CODE_RE = /^[A-Za-z0-9_.-]{1,40}$/
 
 /**
@@ -68,6 +87,12 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
       try { url = new URL(String(options.apiUrl)) } catch { throw new MedusaError(MedusaError.Types.INVALID_DATA, "ZeptoMail: neplatná apiUrl") }
       if (url.protocol !== "https:") throw new MedusaError(MedusaError.Types.INVALID_DATA, "ZeptoMail: apiUrl musí být https")
     }
+    if (options.recipientAllowlist !== undefined) {
+      const list = options.recipientAllowlist
+      if (!Array.isArray(list) || !list.every(isAllowlistEntry)) {
+        throw new MedusaError(MedusaError.Types.INVALID_DATA, "ZeptoMail: neplatný seznam povolených adresátů (EMAIL_RECIPIENT_ALLOWLIST)")
+      }
+    }
   }
 
   constructor({ logger }: { logger: Logger }, options: ZeptoMailOptions, fetchImpl?: Fetch) {
@@ -80,6 +105,7 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
       replyTo: options.replyTo?.trim() || undefined,
       apiUrl: options.apiUrl?.trim() || DEFAULT_API_URL,
       timeoutMs: options.timeoutMs && options.timeoutMs > 0 ? options.timeoutMs : DEFAULT_TIMEOUT_MS,
+      recipientAllowlist: options.recipientAllowlist?.map(e => e.trim().toLowerCase()),
     }
     this.fetch_ = fetchImpl ?? ((input, init) => fetch(input, init))
   }
@@ -111,7 +137,10 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
     return {
       from: { address: from, ...(this.options_.fromName ? { name: this.options_.fromName } : {}) },
       to: [{ email_address: { address: to } }],
-      ...(this.options_.replyTo ? { reply_to: [{ address: this.options_.replyTo }] } : {}),
+      // Kontaktný formulár: odpoveď ide odosielateľke (overená adresa z dát), inak globálne ZEPTOMAIL_REPLY_TO.
+      ...(notification.template === "contact-form-admin" && isEmail(notification.data?.email)
+        ? { reply_to: [{ address: String(notification.data!.email).trim() }] }
+        : this.options_.replyTo ? { reply_to: [{ address: this.options_.replyTo }] } : {}),
       subject: rendered.subject,
       ...(rendered.html ? { htmlbody: rendered.html } : {}),
       ...(rendered.text ? { textbody: rendered.text } : {}),
@@ -131,6 +160,12 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
     } catch (error) {
       this.log("error", "render_failed", { template, error })
       throw error
+    }
+
+    // Testovací provoz: mimo seznam se nic neodesílá. Vrací úspěch bez ID, aby tok (např. objednávka) nespadl.
+    if (!recipientAllowed(payload.to[0].email_address.address, this.options_.recipientAllowlist)) {
+      this.log("info", "send_suppressed", { template, reason: "recipient_not_allowlisted" })
+      return {}
     }
 
     const controller = new AbortController()

@@ -1,22 +1,5 @@
-const PHOTOS={'DEMO-GEL':'/assets/p-gel.png','DEMO-KAVA':'/assets/p-kava.png','DEMO-MASLO':'/assets/p-maslo.png','DEMO-SVIECKY':'/assets/p-svieca.png'};
-const products = [
-  ['bio-sprchovy-gel','Bio sprchový gél','Kozmetika','DEMO-GEL','18,00 €','bottle','Jemný každodenný rituál. Priestor pre zloženie a overený popis produktu.'],
-  ['kava-zdrava','Káva zdravá','Výživa','DEMO-KAVA','24,00 €','coffee','Chvíľa pre seba. Priestor pre pôvod, zloženie a spôsob prípravy.'],
-  ['telove-maslo','Telové maslo','Kozmetika','DEMO-MASLO','26,00 €','jar','Starostlivosť o pokožku. Priestor pre zloženie a odporúčané použitie.'],
-  ['ritualne-sviecky-voskove','Rituálne sviečky','Domov','DEMO-SVIECKY','22,00 €','candle','Svetlo pre pokojné večery. Priestor pre materiál a bezpečné používanie.'],
-  ['pletova-voda','Pleťová voda','Kozmetika','DEMO-VODA','16,00 €','bottle','Priestor pre popis pleťovej vody a jej zloženia.'],
-  ['lanova-sukna','Ľanová sukňa','Ľan','DEMO-SUKNA','68,00 €','linen','Priestor pre materiál, miery a starostlivosť o ľan.'],
-  ['saty-lanove','Ľanové šaty','Ľan','DEMO-SATY','98,00 €','linen','Priestor pre strih, veľkosti a starostlivosť.'],
-  ['astrologia','Astrológia','Služby','DEMO-ASTRO','Cena sa doplní','sun','Priestor pre rozsah služby, podklady a spôsob doručenia.'],
-  ['supervizia','Supervízia','Služby','DEMO-SUPER','Cena sa doplní','sun','Priestor pre odborný rozsah supervízie a podmienky.'],
-  ['reset-40','RESET 40+','Programy','DEMO-RESET','168,00 €','sun','16 tematických týždňov. Jednorazový program s vlastnou knižnicou.'],
-  ['astrologia-zdravie-predispozicia','Astrológia — zdravie a predispozícia','Služby','DEMO-PROFIL','Cena sa doplní','sun','Priestor pre schválený obsah astrologického profilu.'],
-  ['vydymovanie-zmes','Vydymovanie — zmes','Domov','DEMO-ZMES','Cena sa doplní','jar','Priestor pre zloženie a návod.'],
-  ['vyuka-vedomeho-vnimania','Výuka vedomého vnímania','Programy','DEMO-VYUKA','Cena sa doplní','sun','Priestor pre osnovu a podmienky vzdelávania.'],
-  ['antibioticky-prasok','Antibiotický prášok','Výživa','DEMO-PRASOK','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
-  ['chripka-prasok','Chrípka — prášok','Výživa','DEMO-CHRIPKA','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
-  ['bio-plet-krem','Bio pleťový krém','Kozmetika','DEMO-KREM','Cena sa doplní','jar','Priestor pre zloženie a schválený produktový text.'],
-].map(([slug,name,category,code,priceLabel,art,description], index) => ({ slug,name,category,code,priceLabel,art,description,availability:'Dostupné',isNew:index<3,isBestseller:index<4,image:PHOTOS[code]||`/assets/product-${art}.svg` }));
+import {SHOP_CATALOG,SHOP_CATEGORIES} from './catalog.mjs';
+const products=SHOP_CATALOG.map(p=>({...p}));
 
 const pages = [
   ['/o-lucii','O Lucii','Človek za príbehom.','Priestor pre osobný príbeh, odborné skúsenosti a prístup Lucie.','about'],
@@ -39,7 +22,7 @@ const pages = [
 
 const aliases = {
   '/online-zdravotna-konzultacia':'/konzultacie/online-zdravotna-konzultacia',
-  '/eshop/produkt/ritualne-sviecky':'/eshop/produkt/ritualne-sviecky-voskove',
+  '/eshop/produkt/astrologia':'/eshop/produkt/astrologia-zdravie-predispozicia',
 };
 const clone = value => structuredClone(value);
 // Synthetic API responses; views never define denominations or calculate credit.
@@ -73,7 +56,7 @@ export function createMockApi(storage=memoryStorage()) {
   };
   const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';credit=null;persist();}return{ok:valid,message:valid?'Kupón prijatý.':'Kupón nie je dostupný.'};};
   return {
-    mode:'mock', canonical,
+    mode:'mock', canonical,isLoggedIn:()=>true,
     setChatPreview:value=>{chatPreview=value;},
     getChatStatus:chatStatus,
     getChatConversations:()=>({conversations:clone(conversations)}),
@@ -107,7 +90,7 @@ export function createMockApi(storage=memoryStorage()) {
     removeGiftVoucher:()=>{credit=null;return cart();},
     getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
     getProduct:slug=>clone(products.find(p=>p.slug===slug)||null),
-    getCategories:()=>[...new Set(products.map(p=>p.category))],
+    getCategories:()=>[...SHOP_CATEGORIES],
     getPages:()=>clone(pages),getPage:path=>clone(pages.find(p=>p.path===canonical(path))||null),getAliases:()=>clone(aliases),
     getCart:cart,addToCart:add,
     setQuantity:(slug,quantity)=>{if(!Number.isInteger(quantity)||quantity<0||quantity>99)return{ok:false,message:'Množstvo musí byť celé číslo od 0 do 99.'};state.lines=quantity===0?state.lines.filter(l=>l.slug!==slug):state.lines.map(l=>l.slug===slug?{...l,quantity}:l);credit=null;persist();return{ok:true,cart:cart()};},
@@ -126,15 +109,31 @@ export function createMockApi(storage=memoryStorage()) {
     requestMagicLink:()=>({ok:true,message:'Ak účet existuje, po napojení vám pošleme odkaz. Toto je ukážka; e-mail sa neodoslal.'}),
     confirmMagicLink:()=>({ok:false,message:'Ukážkový režim: odkaz sa neoveruje a neprihlasuje vás. Môžete si otvoriť náhľad účtu.'}),
     getCustomerCenter:()=>({
-      mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
+      ok:true,bookingsOk:true,mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
       materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · 2026-0142',category:'faktury',type:'PDF'}],
       reorder:clone(products.slice(0,3)),profile:{name:'Zákazníčka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
     }),
     saveCustomerProfile:()=>({ok:true,message:'Údaje boli skontrolované.'}),
-    getAccount:()=>({name:'Zákazníčka',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),
+    getAccount:()=>({ok:true,name:'Zákazníčka',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),
     getEntitlements:({preview='locked'}={})=>({mode:'mock',active:preview==='unlocked',weeks:Array.from({length:16},(_,i)=>({number:i+1,title:`Tematický týždeň ${String(i+1).padStart(2,'0')}`,description:'Priestor pre schválený obsah programu.'}))}),
     checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Platba nie je aktívna. Objednávka sa neodoslala.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy stav.'}),
     sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),
+    subscribeNewsletter:()=>({ok:true,message:'Náhľad: prihlásenie k novinkám sa neukladá.'}),
+    // Klub: bez backendu žiadne vymyslené ceny ani členstvá, len poctivý prázdny stav.
+    getMembershipProducts:()=>[],
+    getCustomerEmail:()=>'',
+    prepareMembership:()=>({ok:false,message:'Členstvo zatiaľ nie je v ponuke.'}),
+    startMembershipCheckout:()=>({ok:false,message:'Členstvo zatiaľ nie je v ponuke.'}),
+    completeMembership:()=>({ok:false,status:'ERROR',message:'Členstvo zatiaľ nie je v ponuke.'}),
+    listMemberships:()=>({ok:true,memberships:[],count:0,offset:0,limit:20}),
+    stopMembership:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
+    getMembershipPayment:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
+    reconcileMembership:()=>({ok:false,message:'Členstvo sa nenašlo.'}),
+    // Konzultácie: bez backendu žiadne vymyslené termíny.
+    getBookingTypes:()=>({ok:true,types:[]}),
+    getBookingSlots:()=>({ok:false,slots:[],message:'Termíny sa nepodarilo načítať.'}),
+    reserveBooking:()=>({ok:false,message:'Rezervácia termínov zatiaľ nie je dostupná.'}),
+    verifyCartBooking:()=>({ok:true}),
   };
 }
 export const api=createMockApi();

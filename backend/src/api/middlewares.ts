@@ -14,6 +14,8 @@ import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
 import { authMagicLinkMiddlewares } from "./auth-magic-link-middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
+import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
+import { contactStoreMiddlewares } from "./store/contact/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -37,5 +39,8 @@ export default defineMiddlewares({
     ...legalMiddlewares,
     ...orderSelfCancelMiddlewares,
     ...nexusCartMiddlewares,
+    ...contactStoreMiddlewares,
+    // Klub: všechny /store/memberships* jen přihlášená zákaznice (session/bearer).
+    ...membershipStoreMiddlewares,
   ],
 })

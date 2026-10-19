@@ -7,6 +7,7 @@ import {
   parseFreeShippingThreshold,
   parseCountries,
   pickPaymentProviders,
+  MEMBERSHIP_PROVIDER_ID,
 } from "../anastasia-bootstrap"
 
 describe("anastasia-bootstrap config", () => {
@@ -24,6 +25,7 @@ describe("anastasia-bootstrap config", () => {
     expect(pickPaymentProviders([SYSTEM_PROVIDER_ID, STRIPE_PROVIDER_ID], true)).toEqual([STRIPE_PROVIDER_ID])
     expect(pickPaymentProviders([SYSTEM_PROVIDER_ID], false)).toEqual([SYSTEM_PROVIDER_ID])
     expect(() => pickPaymentProviders([SYSTEM_PROVIDER_ID], true)).toThrow(/STRIPE_API_KEY/)
+    expect(pickPaymentProviders([STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID, SYSTEM_PROVIDER_ID], true)).toEqual([STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID])
   })
 
   it("has exactly one default VAT rate (23 %) and unique codes", () => {

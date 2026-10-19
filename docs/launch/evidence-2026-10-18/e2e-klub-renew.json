@@ -1,0 +1,78 @@
+{
+  "at": "2026-10-18T08:35:14.173Z",
+  "email": "e2e.klub.mvdkii0k@example.com",
+  "membership": "mbr_01M5729WTEP8NHE7XMRHQVN6BZ",
+  "results": [
+    {
+      "step": "ucet-obnova-caka-na-overenie",
+      "ok": true,
+      "detail": {
+        "accBefore": "Obnovuje saE2E Klub mesačný mvdkii0kPrístup do 17. 11. 2026 · automatická obnova zapnutáPotvrdiť platbu v bankeZastaviť obnovu",
+        "before": "renewing|true|2026-11-17 09:33:26.273+01"
+      }
+    },
+    {
+      "step": "obnova-3ds-overenie",
+      "ok": true
+    },
+    {
+      "step": "obnova-po-3ds-predlzena",
+      "ok": true,
+      "detail": {
+        "accAfter": "Platba je potvrdená. Ďakujeme.AktívneE2E Klub mesačný mvdkii0kPrístup do 17. 12. 2026 · automatická obnova zapnutáZastaviť obnovu",
+        "before": "renewing|true|2026-11-17 09:33:26.273+01",
+        "after": "active|true|2026-12-17 09:39:06.939+01",
+        "attempt": "settled|order_01M7MAHSH1C3VAZ5Q5F1578SZ0"
+      }
+    },
+    {
+      "step": "zastavenie-obnovy-v-ucte",
+      "ok": true,
+      "detail": {
+        "stopped": "active|false|2026-12-17 09:39:06.939+01"
+      }
+    },
+    {
+      "step": "admin-obnovy-platieb",
+      "ok": true,
+      "detail": {
+        "bill": "Obnova členstva · 17. 11. 2026 09:34 Stavzaplatená Členstvombr_01M5729WTEP8NHE7XMRHQVN6BZ Objednávkaorder_01M7MAHSH1C3VAZ5Q5F1578SZ0 Zmena17. 11. 2026 09:39"
+      }
+    },
+    {
+      "step": "chyba",
+      "ok": false,
+      "detail": {
+        "message": "locator.click: Timeout 15000ms exceeded."
+      }
+    }
+  ],
+  "calls": [
+    "GET /store/product-categories 200",
+    "POST /auth/customer/magic-link 401",
+    "POST /auth/customer/magic-link 200",
+    "GET /store/customers/me 200",
+    "GET /store/product-categories 200",
+    "GET /store/chat/conversations 200",
+    "GET /store/customers/me 200",
+    "GET /store/bookings 200",
+    "GET /store/chat/status 200",
+    "GET /store/orders 200",
+    "GET /store/product-categories 200",
+    "GET /store/memberships 200",
+    "GET /store/entitlements 200",
+    "GET /store/products 200",
+    "GET /static/1792268990799-e2e.png 200",
+    "GET /static/1792305792008-e2e.png 200",
+    "GET /static/1792306220530-e2e.png 200",
+    "GET /store/products 200",
+    "GET /store/memberships/mbr_01M5729WTEP8NHE7XMRHQVN6BZ/payment 200",
+    "POST /store/memberships/mbr_01M5729WTEP8NHE7XMRHQVN6BZ/reconcile 200",
+    "GET /store/memberships 200",
+    "GET /store/products 200",
+    "POST /store/memberships/mbr_01M5729WTEP8NHE7XMRHQVN6BZ/stop 200",
+    "GET /store/memberships 200",
+    "GET /store/products 200"
+  ],
+  "consoleErrors": []
+}

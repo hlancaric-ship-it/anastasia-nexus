@@ -40,6 +40,10 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   for (const qs of [`?customer_id=${b.id}`, `?customer_id[]=${b.id}`, "?limit=1000", "?offset=1", "?limit=-5&offset=-1"]) {
     expect(await library(optA, qs)).not.toContain(entB.id)
   }
+  const enriched = await api.get("/store/entitlements", optA)
+  expect(enriched.data.entitlements[0].product.id).toBe(productA.id)
+  expect(enriched.data.entitlements[0].product.media).toEqual([{ key: keyA, title: "a-lesson.m3u8", kind: "video" }])
+  expect(JSON.stringify(enriched.data)).not.toContain(keyB)
   record("LIBRARY_BIDIRECTIONAL")
 
   // 2) Média: vlastní produkt projde, cizí produkt / cizí klíč / podstrčený customer_id ne.

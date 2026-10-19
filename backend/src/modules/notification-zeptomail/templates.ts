@@ -624,6 +624,35 @@ const CATALOG: Entry[] = [
       button: button(r("button"), data.url),
     }),
   },
+  {
+    name: "contact-form-admin",
+    label: "Správa z kontaktného formulára (pre Vás)",
+    description: "Interný e-mail so správou z webu. Odpoveď ide priamo na e-mail odosielateľky. Nedá sa vypnúť – inak by sa správy strácali.",
+    required: true,
+    audience: "admin",
+    placeholders: [P.name],
+    slots: [
+      SUBJECT("Nová správa z webu: {meno}"),
+      HEADING("Nová správa z kontaktného formulára"),
+      text("intro", "Text", "Na správu odpovedzte priamo z e-mailu – odpoveď pôjde odosielateľke."),
+    ],
+    sample: { name: "Jana Nováková", email: "jana@example.com", topic: "Konzultácia", message: "Dobrý deň, mám otázku k termínu konzultácie." },
+    vars: data => ({ meno: str(data.name) }),
+    build: (data, t, r) => ({
+      subject: r("subject"),
+      heading: r("heading"),
+      blocks: [
+        ...p(t("intro")),
+        { kind: "rows" as const, rows: [
+          { label: "Meno", value: oneLine(str(data.name) ?? "—") },
+          { label: "E-mail", value: oneLine(str(data.email) ?? "—") },
+          { label: "Téma", value: oneLine(str(data.topic) ?? "—") },
+        ] },
+        ...(str(data.message) ? [{ kind: "quote" as const, text: str(data.message)! }] : []),
+      ],
+      button: null,
+    }),
+  },
 ]
 
 const BY_NAME = new Map(CATALOG.map(entry => [entry.name, entry]))

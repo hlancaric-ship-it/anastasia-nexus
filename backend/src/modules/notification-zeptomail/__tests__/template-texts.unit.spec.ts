@@ -29,8 +29,8 @@ describe("šablony – katalóg pre admin", () => {
     }
   })
 
-  it("povinné sú len prihlásenie a poukazy", () => {
-    expect(listTemplateDefs().filter(d => d.required).map(d => d.name).sort()).toEqual(["gift-voucher-buyer-sk", "gift-voucher-recipient-sk", "magic-link-sk"])
+  it("povinné sú len prihlásenie, poukazy a kontaktný formulár", () => {
+    expect(listTemplateDefs().filter(d => d.required).map(d => d.name).sort()).toEqual(["contact-form-admin", "gift-voucher-buyer-sk", "gift-voucher-recipient-sk", "magic-link-sk"])
     expect(getTemplateDef("neexistuje")).toBeNull()
   })
 })

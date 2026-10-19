@@ -36,7 +36,8 @@ export async function handleNexusSafeOrder(request: Request, env: Env): Promise<
     }
     const paymentMethod = input.paymentMethod.toLowerCase();
     const codMethods = ['cod', 'dobierka', 'platba pri prevzatí', 'platba na dobierku'];
-    const onlineMethods = ['stripe', 'pp_stripe_stripe', 'cardpay', 'cardpay platobná karta'];
+    // pp_membership_stripe_membership: Klub ANASTASIA, kartová platba přes Stripe (manuální capture až po ALLOW).
+    const onlineMethods = ['stripe', 'pp_stripe_stripe', 'pp_membership_stripe_membership', 'cardpay', 'cardpay platobná karta'];
     const isTestPayment = paymentMethod === 'pp_system_default' && ['development', 'test'].includes(env.ENVIRONMENT || '');
     if (!codMethods.includes(paymentMethod) && !onlineMethods.includes(paymentMethod) && !isTestPayment) {
         throw new ApiError('VALIDATION_ERROR', 400, 'Nepodporovaná platební metoda.');

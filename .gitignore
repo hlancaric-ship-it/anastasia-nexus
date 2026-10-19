@@ -8,3 +8,6 @@ dist
 build
 data-private/
 backend/data-private/
+
+# Lokálne nahraté súbory (Medusa file-local)
+backend/static/
