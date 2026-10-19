@@ -9,6 +9,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleString('sk-SK', { day: '2-digit',
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mjs';
+import { mountLibraryEditor } from './library-editor.mjs';
 
 // --- API klient ---
 let token = localStorage.getItem('ana_token') || '';
@@ -425,12 +426,14 @@ async function vProductDetail(view, id) {
       <section class="editor-section"><h2>Sklad</h2>${sklad}</section>
     </div><div>
       <section class="editor-section"><h2>Fotografie</h2>${obrazky}</section>
+      <section class="editor-section"><h2>Zakúpený obsah</h2><div id="p-library"></div></section>
       <section class="editor-section"><h2>Kategórie</h2>${kategorie}</section>
       <section class="editor-section"><h2>Predaj a doručenie</h2>${predaj}</section>
     </div></div>
     <div class="editor-save"><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
   </div></div>`;
   wireWysiwyg(view);
+  const libraryEditor = await mountLibraryEditor(view.querySelector('#p-library'), { api, productId: id });
   const drawCategories = () => {
     view.querySelector('#p-categories').innerHTML = [...inC].map(id => `<button type="button" class="btn ghost" data-category-remove="${esc(id)}" aria-label="Odobrať kategóriu ${esc(cats.find(c => c.id === id)?.name || p.categories?.find(c => c.id === id)?.name || 'z produktu')}">${esc(cats.find(c => c.id === id)?.name || p.categories?.find(c => c.id === id)?.name || 'Priradená kategória')} ×</button>`).join('');
     view.querySelectorAll('[data-category-remove]').forEach(b => b.onclick = () => { inC.delete(b.dataset.categoryRemove); drawCategories(); renderChecks(); });
@@ -481,6 +484,7 @@ async function vProductDetail(view, id) {
     if ([...view.querySelectorAll('[data-loc]')].some(i => i.value !== '' && !(Number.isInteger(Number(i.value)) && Number(i.value) >= 0))) { msg.innerHTML = '<div class="err">Počet kusov na sklade musí byť celé číslo 0 alebo viac.</div>'; return; }
     const newSku = variant && !variant.sku ? (view.querySelector('#p-sku')?.value || '').trim().toUpperCase() : '';
     if (newSku && !SKU_RE.test(newSku)) { msg.innerHTML = '<div class="err">Kód produktu (SKU): 2–64 znakov, len písmená A–Z, číslice, bodka, pomlčka alebo podčiarknik.</div>'; return; }
+    try { libraryEditor.validate(); } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
     btn.disabled = true;
     try {
       if (newSku) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { sku: newSku } });
@@ -499,11 +503,14 @@ async function vProductDetail(view, id) {
       if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
       else { await clearVariantSale(ref); saleMeta = { active: false }; }
       const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
+      // Registry changes use the revision-checked endpoint; never overwrite it from a stale product snapshot.
+      delete metadata.protected_media;
       const body = { title: view.querySelector('#p-title').value.trim(), status: wantStatus, description: desc, categories: chosen, metadata, images: images.map(url => ({ url })), thumbnail: thumb };
       const ship = view.querySelector('#p-ship').value; if (ship && ship !== curProfile) body.shipping_profile_id = ship;
       if (channels.length) body.sales_channels = [...view.querySelectorAll('[data-ch]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.ch }));
       await api(`/admin/products/${id}`, { method: 'POST', body });
       if (variant) await saveStock();
+      await libraryEditor.save();
       msg.innerHTML = '<div class="notice">Uložené.</div>';
       setTimeout(() => vProductDetail(view, id), 700);
     } catch (e) { if (e.message === '401') return; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
