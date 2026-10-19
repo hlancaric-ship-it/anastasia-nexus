@@ -1,6 +1,7 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { ENTITLEMENT_MODULE } from "../../../modules/entitlement"
+import { libraryMedia, type LibraryMedia } from "../../../lib/protected-library/catalog"
 import type EntitlementModuleService from "../../../modules/entitlement/service"
 
 function intParam(value: unknown, fallback: number): number {
@@ -23,17 +24,18 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     const { data, count } = await service.listActiveForCustomer(customerId, { limit, offset })
 
     const productIds = [...new Set(data.map((e) => e.product_id))]
-    const titles = new Map<string, { id: string; title: string; handle: string | null }>()
+    const titles = new Map<string, { id: string; title: string; handle: string | null; media: LibraryMedia[] }>()
     if (productIds.length) {
       const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
       const { data: products } = await query.graph({
         entity: "product",
-        fields: ["id", "title", "handle"],
+        fields: ["id", "title", "handle", "metadata"],
         filters: { id: productIds },
       })
-      for (const p of products ?? []) titles.set(p.id, { id: p.id, title: p.title, handle: p.handle ?? null })
+      for (const p of products ?? []) titles.set(p.id, { id: p.id, title: p.title, handle: p.handle ?? null, media: libraryMedia(p.metadata) })
     }
 
+    res.setHeader("Cache-Control", "private, no-store")
     return res.status(200).json({
       entitlements: data.map((e) => ({
         id: e.id,

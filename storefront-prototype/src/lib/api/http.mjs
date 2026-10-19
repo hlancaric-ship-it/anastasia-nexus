@@ -242,11 +242,21 @@ export function createHttpApi(storage, config) {
     async removeCoupon() { del(COUPON); await reprice(); return cartShape(); },
 
     async getEntitlements() {
-      const weeks = Array.from({ length: 16 }, (_, i) => ({ number: i + 1, title: `Tematický týždeň ${String(i + 1).padStart(2, '0')}`, description: 'Priestor pre schválený obsah programu.' }));
-      if (!loggedIn()) return { mode: 'http', active: false, weeks };
-      const r = await call('/store/entitlements');
-      const list = r.data?.entitlements || r.data?.data || [];
-      return { mode: 'http', active: Array.isArray(list) && list.length > 0, weeks };
+      if (!loggedIn()) return { ok: true, mode: 'http', active: false, entitlements: [], weeks: [] };
+      const entitlements = []; let offset = 0;
+      for (;;) {
+        const r = await call('/store/entitlements?limit=100&offset=' + offset);
+        if (!r.ok) return { ok: false, mode: 'http', active: false, entitlements: [], weeks: [] };
+        const page = r.data?.entitlements || [];entitlements.push(...page);offset += page.length;
+        if (!page.length || offset >= Number(r.data?.count || 0)) break;
+        if (offset >= 10000) return { ok: false, mode: 'http', active: false, entitlements: [], weeks: [] };
+      }
+      return { ok: true, mode: 'http', active: entitlements.length > 0, entitlements, weeks: [] };
+    },
+    async getMediaAccess(input) {
+      if (!loggedIn()) return { ok: false, message: 'Pre otvorenie obsahu sa prihláste.' };
+      const r = await call('/store/media-access', { method: 'POST', body: { product_id: input.product_id, media_key: input.media_key } });
+      return r.ok ? { ok: true, ...r.data } : { ok: false, message: r.status === 403 ? 'K tomuto obsahu nemáte aktívny prístup.' : r.status === 401 ? 'Prihlásenie vypršalo. Prihláste sa znova.' : 'Obsah je dočasne nedostupný. Skúste to neskôr.' };
     },
 
     // Pokladňa krok 2→3: košík priradí prihlásenej zákazníčke, uloží kontakt a adresu a zvolí dopravu
@@ -530,10 +540,10 @@ export function createHttpApi(storage, config) {
 
     async getAccount() {
       if (!loggedIn()) return { ok: false, name: '', orders: [] };
-      const r = await call('/store/orders?limit=20&order=-created_at&fields=display_id,created_at,total,status,*items');
+      const r = await call('/store/orders?limit=20&order=-created_at&fields=display_id,created_at,total,status,metadata,*items');
       if (!r.ok) return { ok: false, name: '', orders: [] };
       const orders = (r.data?.orders || []).map(o => ({
-        number: String(o.display_id ?? o.id), date: new Date(o.created_at).toLocaleDateString('sk-SK'),
+        number: String(o.metadata?.legacy_customer_migration?.number || o.display_id || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
         product: (o.items || [])[0]?.product_title || (o.items || [])[0]?.title || '—',
         status: ORDER_STATUS[o.status] || 'Prijatá', totalLabel: money(o.total),
       }));

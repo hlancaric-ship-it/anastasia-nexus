@@ -507,8 +507,7 @@ if($('#membership-view')){
   };
   render();
 }
-if($('#library-view')){const render=async()=>{const access=await api.getEntitlements();$('#library-view').innerHTML=access.active?`<div class="library-grid">${access.weeks.map(w=>`<article class="lesson"><span class="eyebrow">TÝŽDEŇ ${String(w.number).padStart(2,'0')}</span><h2>${w.title}</h2><p>${w.description}</p><button class="button outline" data-lesson="${w.number}">Otvoriť lekciu ${arrow}</button></article>`).join('')}</div><div id="lesson-content" class="form-status" tabindex="-1" hidden></div>`:`<div class="empty-state locked-library"><p class="eyebrow">ZAMKNUTÁ KNIŽNICA</p><h2>Tento priestor čaká na vás.</h2><p>Program je dostupný s aktívnym prístupom.</p>${button('/prihlasenie','Prihlásiť sa')}${button('/reset-40','O programe','outline')}</div>`;
-    $$('[data-lesson]').forEach(btn=>btn.addEventListener('click',()=>{const content=$('#lesson-content');content.hidden=false;content.textContent=`Obsah lekcie sa pripravuje.`;content.focus();}));};render();}
+if($('#library-view')){const {mountLibrary}=await import('/library.mjs');void mountLibrary($('#library-view'),api);}
 
 // A short ripple every twelve seconds, applied only to the logo.
 const brandWave=document.querySelector('[data-brand-wave]');
