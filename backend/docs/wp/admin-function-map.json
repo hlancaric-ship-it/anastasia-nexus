@@ -197,7 +197,10 @@
       "request": "RESET 40+, Nič nemusíš, platnost přístupů, ruční přidání/odebrání s důvodem.",
       "sources": [
         "backend/src/api/admin/entitlements/route.ts",
-        "backend/src/modules/entitlement/order-sync.ts"
+        "backend/src/modules/entitlement/order-sync.ts",
+        "backend/src/api/store/entitlements/route.ts",
+        "backend/src/lib/protected-library/catalog.ts",
+        "backend/docs/wp/protected-library-r2.md"
       ],
       "remaining": "Editor obsahu/lekcí a bezpečný upload nejsou totožné s existujícím oprávněním.",
       "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu."
@@ -1317,7 +1320,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/entitlements/route.ts",
-      "sha256": "271b04550be1cbc0daf666746d912eef6bb5063e680b7d17f8871a639626c8e8"
+      "sha256": "d6f23f4c866277a54dc057ebc8f96a7871b20249f457bbdbceac10dc70973d0f"
     },
     {
       "path": "/store/gift-vouchers/apply",
