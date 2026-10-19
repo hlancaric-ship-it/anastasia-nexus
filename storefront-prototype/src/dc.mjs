@@ -18,7 +18,7 @@ const ROUTES = {
   'ANASTASIA': '/', 'SK': '/', 'LIGHT FOR THE FUTURE': '/', '← Na úvod': '/',
   'Všetky produkty': '/eshop', 'Kategórie': '/eshop/kategorie', 'Novinky': '/eshop?filter=novinky', 'Bestsellery': '/eshop?filter=bestsellery',
   'Celý obchod': '/eshop', 'Obchod': '/eshop',
-  'Kozmetika': '/eshop/kategoria/kozmetika', 'Výživa': '/eshop/kategoria/vyziva', 'Domov': '/eshop/kategoria/domov', 'Ľan': '/eshop/kategoria/lan',
+  'Kozmetika': '/eshop?category=Kozmetika', 'Bylinky a výživa': '/eshop?category=Bylinky%20a%20v%C3%BD%C5%BEiva', 'Programy a služby': '/eshop?category=Programy%20a%20slu%C5%BEby',
   'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/reset-40',
   'Klub': '/klub', 'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
   'Konzultácie': '/konzultacie', 'Všetky konzultácie': '/konzultacie', 'Služby': '/konzultacie',
@@ -195,7 +195,7 @@ export function chrome(page) {
     .replace(/<a\b[^>]*>\s*(?:Všetky programy|Pre firmy|Individuálne programy|Pre odborníkov)\s*<\/a>/g,'')
     .replace(/(<a\b[^>]*>Všetky produkty<\/a>)/, '$1<a href="/darcekovy-poukaz" style="font-size:12px;color:#EFE5C7;padding:4px 0">Darčekový poukaz</a>')
     // Obchod: reálné kategorie z katalogu pod „Kategórie".
-    .replace(/(<a\b[^>]*>\s*Kategórie\s*<\/a>)/, '$1'+['Kozmetika','Výživa','Domov','Ľan'].map(mi).join(''))
+    .replace(/(<a\b[^>]*>\s*Kategórie\s*<\/a>)/, '$1'+['Kozmetika','Bylinky a výživa','Programy a služby'].map(mi).join(''))
     // Programy: k RESET 40+ přidat Výuku a Klub (členstvo + knižnica) — Fáze 1.
     .replace(/(<a\b[^>]*>\s*RESET 40\+\s*<\/a>)/, '$1'+['Výuka','Klub','Moja knižnica'].map(mi).join(''))
     // Služby: doplnit Astrológiu (reálna konzultácia zo starého webu).
