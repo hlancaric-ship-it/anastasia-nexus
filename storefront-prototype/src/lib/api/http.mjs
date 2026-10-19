@@ -112,6 +112,7 @@ export function createHttpApi(storage, config) {
   }
 
   const productCache = new Map();
+  const qrImports = new Map();
   async function variantFor(code) {
     if (productCache.has(code)) return productCache.get(code);
     const r = await call(`/store/products?handle=${encodeURIComponent(code)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
@@ -216,11 +217,14 @@ export function createHttpApi(storage, config) {
       return { ok: true, message: 'Produkt pridaný do košíka.', cart: await cartShape() };
     },
     async setQuantity(slug, quantity) {
-      if (!Number.isInteger(quantity) || quantity < 0 || quantity > 99) return { ok: false, message: 'Množstvo musí byť celé číslo od 0 do 99.' };
+      if (!Number.isInteger(quantity) || quantity < 0 || quantity > 999) return { ok: false, message: 'Množstvo musí byť celé číslo od 0 do 999.' };
       const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
       const current = await cartShape();
       const line = current.lines.find(l => l.slug === slug);
       if (!line) return { ok: false, message: 'Položka už nie je v košíku.' };
+      // An old QR may legitimately carry more than 99 pieces. Allow reducing
+      // that existing quantity; ordinary increases retain the current 99 cap.
+      if (quantity > 99 && quantity >= line.quantity) return { ok: false, message: 'Pri bežnom pridávaní je možné najviac 99 kusov.' };
       if (line.booking) {
         if (quantity !== 0) return { ok: false, message: 'Konzultácia sa rezervuje na jeden termín. Ďalší termín si vyberte samostatne.' };
         await releaseBooking(id); await reprice();
@@ -495,16 +499,43 @@ export function createHttpApi(storage, config) {
     async importQr(params) {
       const code = params.get('produkt'); if (!code) return { ok: false, message: 'V odkaze chýba kód produktu.' };
       const qty = params.get('ks') ?? '1', couponCode = params.get('kupon') ?? '';
-      if (!/^[1-9]\d?$/.test(qty)) return { ok: false, message: 'QR odkaz obsahuje neplatné množstvo (1–99).' };
-      let keys = []; try { keys = JSON.parse(get(QRKEYS) || '[]'); } catch { keys = []; }
       const key = JSON.stringify([code, qty, couponCode]);
-      if (keys.includes(key)) return { ok: true, message: 'Tento QR odkaz už bol použitý. Košík sa nezdvojil.' };
-      const added = await self.addToCart(code, Number(qty));
-      if (!added.ok) return added;
-      keys.push(key); set(QRKEYS, JSON.stringify(keys.slice(-50)));
-      let extra = '';
-      if (couponCode) { const c = await self.applyCoupon(couponCode); extra = ' ' + c.message; }
-      return { ok: true, message: added.message + extra };
+      if (qrImports.has(key)) return qrImports.get(key);
+      const task = (async () => {
+        // Legacy produkt is an SKU, not a storefront handle. Resolution and legacy
+        // quantity validation belong to the server, as do all monetary decisions.
+        const resolved = await call('/store/coupon-links', { method: 'POST', body: { produkt: code, kupon: couponCode, ks: qty } });
+        const target = resolved.data;
+        if ((!resolved.ok && resolved.status !== 422) || !target?.variant_id || !Number.isInteger(target.quantity) || target.quantity < 1 || target.quantity > 999) {
+          return { ok: false, message: target?.message || 'Produkt z QR odkazu nie je dostupný.' };
+        }
+        const id = await ensureCart();
+        if (!id) return { ok: false, message: 'Košík sa nepodarilo vytvoriť. Skúste to znova.' };
+        if (loggedIn()) {
+          const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
+          if (!owner.ok) return { ok: false, message: 'Košík sa nepodarilo priradiť k vášmu účtu. Obnovte prihlásenie.' };
+        }
+        let keys = [];
+        try { const saved = JSON.parse(get(QRKEYS) || '{}'); if (saved?.cart_id === id && Array.isArray(saved.keys)) keys = saved.keys; } catch { /* invalid saved state cannot block a valid link */ }
+        if (keys.includes(key)) {
+          const current = await call(`/store/carts/${id}`);
+          if (!current.ok) return { ok: false, message: 'Košík sa nepodarilo načítať. Skúste to znova.' };
+          if (!current.data?.cart?.items?.some(line => line.variant_id === target.variant_id)) keys = keys.filter(saved => saved !== key);
+        }
+        if (!keys.includes(key)) {
+          const added = await call(`/store/carts/${id}/line-items`, { method: 'POST', body: { variant_id: target.variant_id, quantity: target.quantity } });
+          if (!added.ok) return { ok: false, message: 'Produkt sa nepodarilo pridať do košíka.' };
+          keys.push(key); set(QRKEYS, JSON.stringify({ cart_id: id, keys: keys.slice(-50) }));
+          await reprice();
+        }
+        // Signing in and rescanning retries the coupon without adding the product twice.
+        const coupon = couponCode ? await self.applyCoupon(couponCode) : null;
+        return { ok: true, couponApplied: coupon?.ok ?? false, message: 'Produkt z QR odkazu je v košíku.' + (coupon ? ' ' + coupon.message : '') };
+      })();
+      qrImports.set(key, task);
+      try { return await task; }
+      catch { return { ok: false, couponApplied: false, message: 'Spojenie sa prerušilo. Pred opakovaním skontrolujte košík.' }; }
+      finally { qrImports.delete(key); }
     },
 
     // Darčekový poukaz: nákup (variant + príjemca) a uplatnenie kreditu v košíku (výšku určuje server).

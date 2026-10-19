@@ -4,10 +4,15 @@ import { authenticate, type MiddlewareRoute } from "@medusajs/framework/http"
 export const couponLinkMiddlewares: MiddlewareRoute[] = [
   {
     matcher: "/admin/coupon-links",
-    method: ["POST"],
+    method: ["GET", "POST"],
     middlewares: [authenticate("user", ["session", "bearer"])],
     bodyParser: { sizeLimit: "8kb" },
   },
+  ...["/admin/coupon-links/import", "/admin/coupon-links/:id", "/admin/coupon-links/:id/qr", "/admin/coupon-links/:id/deactivate"].map(matcher => ({
+    matcher, method: ["GET", "POST"] as ("GET" | "POST")[],
+    middlewares: [authenticate("user", ["session", "bearer"])],
+    bodyParser: { sizeLimit: "256kb" },
+  })),
   {
     matcher: "/store/coupon-links",
     method: ["POST"],

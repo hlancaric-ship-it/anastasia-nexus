@@ -476,6 +476,7 @@ build projde i bez nich. Tajemství ale nikdy nevyplňovat jen jako B.
 | `CHAT_ADMIN_URL` | R | `https://admin.anastasiaoz.eu/#/chat` |
 | `CHAT_STOREFRONT_URL` | R | prázdné = odvodí se z `ACCOUNT_URL` |
 | `COUPON_LINK_STOREFRONT_ORIGIN` | R | `https://www.anastasiaoz.eu` |
+| `COUPON_LINK_LEGACY_ORIGINS` | R | skutečné schválené původní originy QR (čárkou oddělené, včetně schématu/www); pouze pro import evidence |
 | `OPS_EVENT_RETENTION_DAYS` / `OPS_AUDIT_RETENTION_DAYS` / `CHAT_RETENTION_DAYS` | R | prázdné = výchozí |
 
 Na Cloudu config navíc kontroluje stejné věci jako na vlastním serveru. Start odmítne, pokud:

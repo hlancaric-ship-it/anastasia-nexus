@@ -1,0 +1,94 @@
+name: QR backend and admin integration
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'backend/**'
+      - 'anastasia-admin/**'
+      - '.github/workflows/qr-admin.yml'
+permissions:
+  contents: read
+jobs:
+  qr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.6-bookworm
+        env:
+          POSTGRES_USER: qr_synthetic
+          POSTGRES_PASSWORD: qr_synthetic_only
+          POSTGRES_DB: postgres
+        ports: ['5432/tcp']
+        options: >-
+          --health-cmd "pg_isready -U qr_synthetic -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      NODE_ENV: test
+      NODE_OPTIONS: --experimental-vm-modules --dns-result-order=ipv4first
+      MEDUSA_TELEMETRY_DISABLED: 'true'
+      TEST_TYPE: integration:http
+      DB_HOST: localhost
+      DB_USERNAME: qr_synthetic
+      DB_PASSWORD: qr_synthetic_only
+      DB_TEMP_NAME: anastasia_qr_ci
+      JWT_SECRET: synthetic-qr-jwt-only
+      COOKIE_SECRET: synthetic-qr-cookie-only
+      COUPON_LINK_STOREFRONT_ORIGIN: https://shop.example
+      COUPON_LINK_LEGACY_ORIGINS: https://old.example
+      MEDIA_TOKEN_SECRET: synthetic-qr-media-only
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - run: npm ci --prefix backend --no-audit --no-fund
+      - run: npm ci --prefix nexus --no-audit --no-fund
+      - name: Types, map, and focused QR checks
+        working-directory: backend
+        env:
+          TEST_TYPE: unit
+        run: |
+          ./node_modules/.bin/tsc --noEmit
+          python3 scripts/check-admin-function-map.py
+          node --test ../storefront-prototype/test/http-adapter.test.mjs ../storefront-prototype/test/mock.test.mjs
+          ./node_modules/.bin/jest --runTestsByPath src/api/admin/coupon-links/__tests__/links.unit.spec.ts src/api/admin/coupon-links/__tests__/registry.unit.spec.ts src/scripts/__tests__/legacy-coupon-import.unit.spec.ts src/scripts/__tests__/catalog-import.unit.spec.ts --runInBand --forceExit
+      - name: Start actual NEXUS code in synthetic loopback bridge
+        run: |
+          mkdir -p "$RUNNER_TEMP/qr-worker"
+          nexus/node_modules/.bin/esbuild nexus/workers/api/index.ts --bundle --platform=node --format=esm --outfile="$RUNNER_TEMP/qr-worker/worker.mjs"
+          node backend/scripts/membership-e2e-worker.mjs "$RUNNER_TEMP/qr-worker" > "$RUNNER_TEMP/qr-worker/worker.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/qr-worker/pid"
+          python3 - <<'PYWORKER'
+          from pathlib import Path
+          import os,time,json
+          path=Path(os.environ['RUNNER_TEMP'])/'qr-worker/ready.json'
+          for _ in range(100):
+            if path.exists():break
+            time.sleep(.1)
+          data=json.loads(path.read_text());base='http://127.0.0.1:'+str(data['port'])
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+            f.write('NEXUS_PRICING_URL='+base+'/api/nexus/pricing\nNEXUS_SAFEORDER_URL='+base+'/api/nexus/safeorder\nNEXUS_PRICING_API_KEY=synthetic-membership-service\nNEXUS_TENANT_ID=anastasia\n')
+          PYWORKER
+      - name: Native Medusa, PostgreSQL, actual pricing and Chromium QR flow
+        working-directory: backend
+        env:
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+          DATABASE_URL: postgres://qr_synthetic:qr_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_qr_ci
+          QR_EVIDENCE_DIR: ${{ github.workspace }}/ci-evidence/qr
+        run: ./node_modules/.bin/jest --runTestsByPath integration-tests/http/qr-registry.spec.ts --runInBand --forceExit
+      - name: Retain QR browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qr-admin-${{ github.sha }}
+          path: ci-evidence/qr/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Stop synthetic Worker
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/qr-worker/pid"; then kill "$(cat "$RUNNER_TEMP/qr-worker/pid")" || true; fi

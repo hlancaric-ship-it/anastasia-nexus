@@ -1,3 +1,7 @@
+jest.mock("../registry", () => ({
+  ...jest.requireActual("../registry"),
+  saveRecord: jest.fn(async (_scope, input, url) => ({ record: { id: "qrl_" + "a".repeat(64), url, sku: input.produkt }, created: false })),
+}))
 import { adminInput, buildCouponUrl, legacyQuantity, localQrRenderer } from "../links"
 import { codeAvailable, validateLink } from "../validation"
 import { POST as adminPost } from "../route"
@@ -115,4 +119,23 @@ describe("admin generation", () => {
     await adminPost({ body: input, auth_context: { actor_id: "customer_test", actor_type: "customer" } } as any, res)
     expect(res.status).toHaveBeenCalledWith(401)
   })
+})
+
+describe('legacy QR product resolution',()=>{
+ it('returns the channel-visible variant even when the old coupon is unavailable',async()=>{
+  const res=response()
+  await storePost({body:{...input,ks:'10000'},scope:scope({promotions:[{...promotion,status:'inactive'}]}),publishable_key_context:{sales_channel_ids:['sc_test']}} as any,res)
+  expect(res.status).toHaveBeenCalledWith(422)
+  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({variant_id:'variant_test',quantity:999,code_valid:false,discount_applied:false}))
+ })
+ it('resolves old product-only links without granting a discount',async()=>{
+  const res=response()
+  await storePost({body:{produkt:input.produkt,ks:'bad'},scope:scope(),publishable_key_context:{sales_channel_ids:['sc_test']}} as any,res)
+  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({variant_id:'variant_test',quantity:1,code_valid:false,discount_applied:false}))
+ })
+ it('never accepts a client-supplied price during resolution',async()=>{
+  const res=response()
+  await storePost({body:{...input,price:0},scope:scope(),publishable_key_context:{sales_channel_ids:['sc_test']}} as any,res)
+  expect(res.status).toHaveBeenCalledWith(400)
+ })
 })
