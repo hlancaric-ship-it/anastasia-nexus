@@ -1,13 +1,25 @@
+import { unavailable } from "./failure"
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { adminInput, buildCouponUrl, localQrRenderer } from "./links"
+import { buildCouponUrl, localQrRenderer } from "./links"
 import { validateLink } from "./validation"
+import { generationInput, pageInput, saveRecord, listRecords, describeRecord } from "./registry"
+import { adminActor, auditAdminChange } from "../../../lib/observability/audit"
 
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  res.setHeader("Cache-Control", "no-store")
+  if (!adminActor(req)) return res.status(401).json({ message: "Vyžaduje sa prihlásenie správcu." })
+  const parsed = pageInput.safeParse(req.query)
+  if (!parsed.success) return res.status(400).json({ message: "Skontrolujte vyhľadávanie a stránku." })
+  try {
+    const result = await listRecords(req.scope, parsed.data)
+    return res.json({ ...result, links: await Promise.all(result.links.map((r: any) => describeRecord(req.scope, r))) })
+  } catch { return unavailable(req, res, "qr_registry_unavailable", "Evidenciu QR kódov sa nepodarilo načítať. Skúste to znova.") }
+}
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   res.setHeader("Cache-Control", "no-store")
-  if (!req.auth_context?.actor_id || req.auth_context.actor_type !== "user") {
-    return res.status(401).json({ message: "Vyžaduje sa prihlásenie správcu." })
-  }
-  const parsed = adminInput.safeParse(req.body)
+  const actor = adminActor(req)
+  if (!actor) return res.status(401).json({ message: "Vyžaduje sa prihlásenie správcu." })
+  const parsed = generationInput.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ message: "Skontrolujte kód produktu, kupón, množstvo a formát." })
   const { format, ...input } = parsed.data
   try {
@@ -16,8 +28,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (!origin) throw new Error("MISSING_STOREFRONT_ORIGIN")
     const url = buildCouponUrl(origin, input)
     const qr = await localQrRenderer.render(url, format)
-    return res.json({ url, qr, activation_status: "PENDING_PRICING_INTEGRATION" })
-  } catch {
-    return res.status(503).json({ message: "Generátor nie je dostupný. Skontrolujte konfiguráciu a závislosti." })
-  }
+    const { record, created } = await saveRecord(req.scope, input, url, "generated", actor, new Date())
+    if (created) await auditAdminChange(req, "qr.created", "coupon_link", record.id, null, { source: "generated" })
+    return res.json({ url: record.url, qr, record, created, discount_applied: false, activation_status: "PENDING_PRICING_INTEGRATION" })
+  } catch { return unavailable(req, res, "qr_registry_unavailable", "QR kód sa nepodarilo vytvoriť a uložiť. Skúste to znova; opakovaný pokus nevytvorí ďalší kupón.") }
 }
