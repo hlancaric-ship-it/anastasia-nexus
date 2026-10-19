@@ -4,12 +4,10 @@ import {readFile} from 'node:fs/promises';
 const dist=new URL('../dist/',import.meta.url);
 const routes=JSON.parse(await readFile(new URL('routes.json',dist),'utf8'));
 const expected=new Map(Object.entries({
- 'Obchod':'/eshop','Všetky produkty':'/eshop','Darčekový poukaz':'/darcekovy-poukaz','Kategórie':'/eshop/kategorie',
- 'Kozmetika':'/eshop?category=Kozmetika','Bylinky a výživa':'/eshop?category=Bylinky%20a%20v%C3%BD%C5%BEiva','Programy a služby':'/eshop?category=Programy%20a%20slu%C5%BEby',
- 'Novinky':'/eshop?filter=novinky','Bestsellery':'/eshop?filter=bestsellery',
- 'Programy':'/reset-40','RESET 40+':'/reset-40','Výuka':'/eshop/produkt/vyuka-vedomeho-vnimania','Klub':'/klub','Moja knižnica':'/ucet',
- 'Služby':'/konzultacie','Konzultácie':'/konzultacie','Supervízia':'/konzultacie/supervizia','Astrológia':'/konzultacie/astrologicky-profil-zdravia-a-vitality','AI ANASTASIA':'/ai-anastasia',
- 'Zdravý svet':'/zdravy-svet','Aktuality':'/zdrava-lekaren','O Lucii':'/o-lucii','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
+ 'Obchod':'/eshop','Kozmetika':'/eshop?category=Kozmetika','Bylinky a výživa':'/eshop?category=Bylinky%20a%20v%C3%BD%C5%BEiva','Programy a služby':'/eshop?category=Programy%20a%20slu%C5%BEby',
+ 'Darčekový poukaz':'/darcekovy-poukaz','Konzultácie':'/konzultacie','Zdravá lekáreň':'/zdrava-lekaren','Denný stacionár Vyšná Slaná':'/denny-stacionar-vysna-slana',
+ 'Zdravý svet':'/zdravy-svet','O Lucii':'/o-lucii','Pharmanews':'/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny','Recenzie produktov':'/ai-anastasia/recenzie-farmaceutickych-produktov',
+ 'Klub':'/klub','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
 }));
 const htmlFor=path=>readFile(new URL((path==='/'?'':path.slice(1)+'/')+'index.html',dist),'utf8');
 const attribute=(text,name)=>text.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
@@ -19,14 +17,14 @@ test('both menus on every route link to the page promised by their labels',async
   const html=await htmlFor(path);
   for(const id of ['dc-side-menu','dc-top-menu']){
    const menu=html.match(new RegExp(`<aside\\b[^>]*id="${id}"[^>]*>([\\s\\S]*?)<\\/aside>`))?.[1];assert.ok(menu,`${path}: ${id} exists`);
-   const labels=new Set();
+   const labels=new Set();const occurrences=new Map();
    for(const [,attrs,inner] of menu.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)){
     const label=attribute(attrs,'aria-label')||textOf(inner),href=attribute(attrs,'href');
     assert.ok(expected.has(label),`${path} ${id}: unmapped menu label ${label}`);
     assert.equal(href,expected.get(label),`${path} ${id}: ${label} destination`);
-    assert.ok(routes.includes(new URL(href,'http://local').pathname),`${path} ${id}: target exists`);labels.add(label);
+    assert.ok(routes.includes(new URL(href,'http://local').pathname),`${path} ${id}: target exists`);labels.add(label);occurrences.set(label,(occurrences.get(label)||0)+1);
    }
-   for(const label of expected.keys())assert.ok(labels.has(label),`${path} ${id}: ${label} available`);
+   for(const label of expected.keys()){assert.ok(labels.has(label),`${path} ${id}: ${label} available`);if(label!=='Môj účet')assert.equal(occurrences.get(label),1,`${path} ${id}: ${label} not duplicated`);}
   }
  }
 });

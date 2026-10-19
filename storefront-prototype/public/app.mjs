@@ -1,3 +1,5 @@
+import {isMediaUrl} from '/lib/media-url.mjs';
+import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import {createApi} from '/lib/api/index.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
@@ -9,7 +11,7 @@ const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root
 let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
-updateCount();
+updateCount().catch(()=>{});
 
 const customerCenter=$('.customer-center');
 if(customerCenter){
@@ -42,7 +44,8 @@ if(chatForm){
   selection.addEventListener('change',()=>{detail();$('.form-status',chatForm).textContent='';});
   $('#chat-new').addEventListener('click',async()=>{selection.value='';await detail();$('.form-status',chatForm).textContent='';body.focus();});
   chatForm.addEventListener('submit',async event=>{event.preventDefault();if(busy||send.disabled)return;busy=true;count();try{const result=await api.sendChatMessage({conversation_id:selection.value||undefined,body:body.value});$('.form-status',chatForm).textContent=result.ok?'Správa bola pridaná do konverzácie.':chatErrors[result.type]||'Správu sa nepodarilo odoslať. Skúste to znova.';if(result.ok){body.value='';await list(result.conversation.id);}await availability();}catch{$('.form-status',chatForm).textContent='Chat je dočasne nedostupný. Skúste to znova.';}finally{busy=false;count();}});
-  await list();await availability();
+  // Výpadek chatu nesmí zastavit registraci ovladačů obou menu.
+  void (async()=>{try{await list();await availability();}catch{status={can_write:false};count();$('#chat-availability').hidden=false;$('#chat-availability').textContent='Chat je dočasne nedostupný. Skúste to znova.';}})();
 }
 
 const giftForm=$('#gift-voucher-form');
@@ -220,13 +223,13 @@ document.addEventListener('click',async event=>{
   if(url.origin!==location.origin||url.pathname===location.pathname&&url.search===location.search&&url.hash||reducedMotion.matches)return;
   event.preventDefault();$('.page-transition').classList.add('active');setTimeout(()=>location.assign(url.href),220);
 });
-window.addEventListener('pageshow',()=>{$('.page-transition').classList.remove('active');if(menuOpen)setMenu(null);updateCount();});
+window.addEventListener('pageshow',()=>{$('.page-transition').classList.remove('active');if(menuOpen)setMenu(null);updateCount().catch(()=>{});});
 
 const filterForm=$('.catalog-controls');
 if(filterForm){
   const params=new URLSearchParams(location.search);
   for(const name of ['category','search','filter'])if(params.has(name))filterForm.elements[name].value=params.get(name);
-  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));const products=await api.getProducts(query);if(sequence!==renderSequence)return;$('#catalog-results').innerHTML=products.length?products.map(card).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;
+  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));let products;try{products=await api.getProducts(query);}catch{if(sequence===renderSequence){$('#catalog-results').innerHTML='<div class="empty-state"><h2>Ponuku sa nepodarilo načítať.</h2><p>Obnovte stránku alebo to skúste neskôr.</p></div>';$('.result-count').textContent='Ponuka je dočasne nedostupná.';}return;}if(sequence!==renderSequence)return;$('#catalog-results').innerHTML=products.length?products.map(card).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;
     $$('[data-catalog-category]').forEach(link=>{if(link.dataset.catalogCategory===query.category)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
     const search=new URLSearchParams(Object.entries(query).filter(([,v])=>v));history.replaceState(null,'',location.pathname+(search.size?'?'+search:''));
     $('#reset-filters')?.addEventListener('click',()=>{for(const name of ['search','category','filter'])filterForm.elements[name].value='';render();});
@@ -243,17 +246,19 @@ if(productDetail){
     const put=(selector,value)=>{const node=productDetail.querySelector(selector);if(node&&value!=null&&String(value).trim())node.textContent=String(value);};
     put('[data-product-title]',product.name);
     put('[data-product-price]',product.priceLabel);
+    put('[data-product-category]',product.category);
+    const purchase=productDetail.querySelector('.add-product');if(purchase)purchase.dataset.code=product.code;
     put('[data-product-availability]',product.availability);
     // The original legacy description must stay complete, without unverified marketing copy.
-    const complete=String(product.longDescription||product.descriptionHtml||product.description||'').trim();
+    const html=product.descriptionHtml;const complete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
     if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
       put('[data-product-full-description]',complete);
       const intro=productDetail.querySelector('[data-product-intro]');
-      if(intro){intro.hidden=false;intro.textContent=complete.length>410?complete.slice(0,410).replace(/\s+\S*$/,'')+'…':complete;}
+      if(intro){intro.hidden=false;const brief=complete.replace(/\s+/g,' ').trim();intro.textContent=brief.length>220?brief.slice(0,220).replace(/\s+\S*$/,'')+'…':brief;}
     }
     const pic=productDetail.querySelector('[data-product-main-image]');
-    if(pic&&typeof product.image==='string'&&/^(https:\/\/|\/)/.test(product.image))pic.src=product.image;
-    const gallery=(Array.isArray(product.images)?product.images:[]).map(v=>typeof v==='string'?v:v?.url).filter(v=>typeof v==='string'&&/^(https:\/\/|\/)/.test(v));
+    if(pic&&typeof product.image==='string'&&isMediaUrl(product.image))pic.src=product.image;
+    const gallery=(Array.isArray(product.images)?product.images:[]).map(v=>typeof v==='string'?v:v?.url).filter(v=>typeof v==='string'&&isMediaUrl(v));
     if(pic&&gallery.length>1){
       const urls=[...new Set([product.image,...gallery].filter(Boolean))];let active=0;
       const bar=productDetail.querySelector('[data-product-thumbnails]');
@@ -266,7 +271,7 @@ if(productDetail){
   }).catch(()=>{});
 }
 
-$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount();});
+$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});});
 
 const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>`;
 async function renderCart(){
@@ -356,3 +361,5 @@ if(new URLSearchParams(location.search).has('vzhlad-editor'))window.anaOpenTheme
 // Zákaznícke menu je zámerne pevné: iba tri schválené kategórie.
 // Dynamické dopĺňanie kategórií z administrácie pridávalo duplicity a staré názvy.
 i18nInit();
+
+initDigitalProduct();

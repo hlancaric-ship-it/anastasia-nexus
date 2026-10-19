@@ -4,6 +4,7 @@ import {dirname,join} from 'node:path';
 import {legacyContent,legacyPage} from './src/legacy.mjs';
 import {chrome,homeSections,aboutSections,dcCss,ROOT_STYLE,HELMET_CSS} from './src/dc.mjs';
 import {api} from './src/lib/api/index.mjs';
+import {createHttpApi} from './src/lib/api/http.mjs';
 import {FEATURED_SLUGS} from './src/lib/api/catalog.mjs';
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
@@ -13,16 +14,24 @@ import {siteThemes,siteThemeCss,siteThemeBoot,tokenizeColors} from './src/site-t
 const siteTheme=process.env.SITE_THEME||siteThemes[0].id;
 if(!siteThemes.some(t=>t.id===siteTheme))throw new Error(`Unknown SITE_THEME ${siteTheme}`);
 const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'dist');
+let catalogProducts=api.getProducts();
+if(process.env.ANASTASIA_PUBLISHABLE_KEY&&process.env.ANASTASIA_REGION_ID){
+ const store=createHttpApi({getItem:()=>null,setItem:()=>{}},{apiBaseUrl:process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100',publishableKey:process.env.ANASTASIA_PUBLISHABLE_KEY,regionId:process.env.ANASTASIA_REGION_ID});
+ catalogProducts=await store.getProducts();if(!catalogProducts.length)throw new Error('Real catalog build returned no products');
+}
+const catalog=category=>views.catalog(category,catalogProducts);
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
 const dcProducts=FEATURED_SLUGS.map(slug=>api.getProduct(slug)).filter(Boolean).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,name:e(p.name),cat:e(p.category),price:e(p.priceLabel),img:p.image,add:e(p.code)}));
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 add2('/','Light for the Future',homeSections(dcProducts),'home');
-add('/eshop','Obchod',views.catalog());add('/eshop/kategorie','Kategórie',views.categories());
-add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',views.catalog('Kozmetika'));
-for(const [slug,cat] of [['kozmetika','Kozmetika'],['bylinky-a-vyziva','Bylinky a výživa'],['programy-a-sluzby','Programy a služby']])add(`/eshop/kategoria/${slug}`,cat,views.catalog(cat));
-for(const p of api.getProducts())add(`/eshop/produkt/${p.slug}`,p.name,views.product(p));
+add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
+add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmetika'));
+for(const [slug,cat] of [['kozmetika','Kozmetika'],['bylinky-a-vyziva','Bylinky a výživa'],['programy-a-sluzby','Programy a služby']])add(`/eshop/kategoria/${slug}`,cat,catalog(cat));
+for(const p of catalogProducts)add(`/eshop/produkt/${p.slug}`,p.name,views.product(p,catalogProducts));
+// Zachovat původní velikost písmen staré adresy minerálního krému.
+const mineral=catalogProducts.find(p=>p.slug.toLowerCase()==='mineralny-ochranny-krem-pre-citlivu-pokozku');if(mineral)add('/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku',mineral.name,views.product(mineral,catalogProducts));
 for(const p of api.getPages())add(p.path,p.title,views.content(p));
 add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());
 add('/prihlasenie','Prihlásenie',views.login());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
@@ -35,15 +44,15 @@ for(const [path,page] of Object.entries(legacyContent)){
   if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
-    add(path,page.title,legacyPage(page,{contactForm}));
-  }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,views.catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',views.catalog());}
+    add(path,page.title,legacyPage(page,{contactForm})+(path==='/denny-stacionar-vysna-slana'?'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':''));
+  }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
 }
 add('/zdravy-svet','Zdravý svet',views.zdravySvet());
 add2('/o-lucii','O Lucii',aboutSections(),'about');
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
-for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.split(',')[1]);const path=target.pathname.replace(/\/$/,'')||'/';if(!routes.has(path)){if(path.startsWith('/eshop/produkt/'))add(path,'Obchod',views.catalog());else throw new Error(`Missing legacy route ${path}`);}}
+for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.split(',')[1]);const path=target.pathname.replace(/\/$/,'')||'/';if(!routes.has(path)){if(path.startsWith('/eshop/produkt/'))add(path,'Obchod',catalog());else throw new Error(`Missing legacy route ${path}`);}}
 const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),other:chrome('other')};
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
 const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script type="module" src="/app.mjs"></script>';
@@ -57,6 +66,15 @@ const renderDocument=(path,{title,body,design})=>{
   return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/base.css"><link rel="stylesheet" href="/dc.css"><link rel="stylesheet" href="/product-detail.css"><script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}</head><body${design?' class="dc-page"':path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
 };
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));await cp(join(root,'src/site-themes.mjs'),join(out,'site-themes.mjs'));
+{
+ const file=join(out,'config.mjs');let source=await readFile(file,'utf8');
+ for(const [key,name] of Object.entries({apiBaseUrl:'ANASTASIA_API_ORIGIN',publishableKey:'ANASTASIA_PUBLISHABLE_KEY',regionId:'ANASTASIA_REGION_ID'})){
+  const value=process.env[name];if(!value)continue;
+  if(!/^[A-Za-z0-9_:/.-]+$/.test(value))throw new Error('Invalid public build configuration');
+  const pattern=new RegExp('('+key+': w\\.'+key+' \\|\\| )'+"'[^']*'");source=source.replace(pattern,(_,prefix)=>prefix+JSON.stringify(value));
+ }
+ await writeFile(file,source);
+}
 for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),document(path,page));}
 // styles.css ve vrstvě: neoznačená pravidla z dc.css (reset a inline návrh) mají vždy přednost.
 await writeFile(join(out,'base.css'),'@import url("/styles.css") layer(legacy);\n');
@@ -85,4 +103,4 @@ await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
 await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.stripe.com data:; media-src 'self'; font-src 'self'; connect-src 'self' ${apiOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\n`);
 await writeFile(join(out,'routes.json'),JSON.stringify([...routes.keys()],null,2));
-console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). No backend calls.`);
+console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). ${process.env.ANASTASIA_PUBLISHABLE_KEY?'Real catalog loaded from Medusa.':'No backend calls.'}`);

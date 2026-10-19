@@ -2,18 +2,20 @@
 // Nejádrové metody (chat, darčekový poukaz admin, kontakt, obsahové stránky) delegujeme na mock,
 // jádro zákaznické cesty (katalog, košík, kupón, checkout, prístupy, prihlásenie, história) je reálné.
 import { createMockApi } from './mock.mjs';
+import {SHOP_CATEGORIES} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena sa doplní');
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,description,thumbnail,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
+  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
 
-function mapProduct(p) {
+function mapProduct(p,apiBase='') {
+  const media=value=>{if(typeof value!=='string')return value;try{const u=new URL(value),base=new URL(apiBase);if(u.origin===base.origin&&u.pathname.startsWith('/static/'))return '/backend-media'+u.pathname;}catch{}return value;};
   const variant = (p.variants || [])[0] || {};
   const cp = variant.calculated_price || {};
-  const category = (p.categories || [])[0]?.name || '';
+  const category = (p.categories||[]).map(c=>c.name).find(n=>SHOP_CATEGORIES.includes(n)) || (p.categories||[])[0]?.name || '';
   return {
     slug: p.handle,
     name: p.title,
@@ -21,12 +23,14 @@ function mapProduct(p) {
     code: p.handle,
     priceLabel: cp.calculated_amount != null ? money(cp.calculated_amount) : 'Cena sa doplní',
     art: ART[category] || 'jar',
-    description: p.description || p.subtitle || '',
-    images: (p.images || []).map(image => image.url).filter(Boolean),
+    description: p.subtitle || p.metadata?.description_text || '',
+    descriptionHtml: p.description || '',
+    longDescription: p.metadata?.description_text || '',
+    images: (p.images || []).map(image => media(image.url)).filter(Boolean),
     availability: 'Dostupné',
     isNew: false,
     isBestseller: false,
-    image: p.thumbnail || `/assets/product-${ART[category] || 'jar'}.svg`,
+    image: media(p.thumbnail) || `/assets/product-${ART[category] || 'jar'}.svg`,
     _variantId: variant.id,
   };
 }
@@ -116,7 +120,8 @@ export function createHttpApi(storage, config) {
 
     async getProducts({ category = '', search = '', filter = '' } = {}) {
       const r = await call(`/store/products?region_id=${config.regionId}&limit=100&fields=${PRODUCT_FIELDS}`);
-      let items = (r.data?.products || []).map(mapProduct);
+      if(!r.ok)throw new Error('Katalóg sa nepodarilo načítať.');
+      let items = (r.data?.products || []).filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
       const s = search.toLocaleLowerCase('sk');
       if (category) items = items.filter(p => p.category === category);
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
@@ -127,12 +132,12 @@ export function createHttpApi(storage, config) {
     async getProduct(slug) {
       const r = await call(`/store/products?handle=${encodeURIComponent(slug)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
       const p = r.data?.products?.[0];
-      return p ? mapProduct(p) : null;
+      return p ? mapProduct(p,base) : null;
     },
     async getCategories() {
       const r = await call('/store/product-categories?limit=100&fields=name');
       const names = (r.data?.product_categories || []).map(c => c.name).filter(Boolean);
-      return names.length ? [...new Set(names)] : mock.getCategories();
+      return r.ok ? SHOP_CATEGORIES.filter(name=>names.includes(name)) : [];
     },
 
     getCart: cartShape,
