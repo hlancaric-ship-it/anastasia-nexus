@@ -1,22 +1,5 @@
-const PHOTOS={'DEMO-GEL':'/assets/p-gel.png','DEMO-KAVA':'/assets/p-kava.png','DEMO-MASLO':'/assets/p-maslo.png','DEMO-SVIECKY':'/assets/p-svieca.png'};
-const products = [
-  ['bio-sprchovy-gel','Bio sprchový gél','Kozmetika','DEMO-GEL','18,00 €','bottle','Jemný každodenný rituál. Priestor pre zloženie a overený popis produktu.'],
-  ['kava-zdrava','Káva zdravá','Výživa','DEMO-KAVA','24,00 €','coffee','Chvíľa pre seba. Priestor pre pôvod, zloženie a spôsob prípravy.'],
-  ['telove-maslo','Telové maslo','Kozmetika','DEMO-MASLO','26,00 €','jar','Starostlivosť o pokožku. Priestor pre zloženie a odporúčané použitie.'],
-  ['ritualne-sviecky-voskove','Rituálne sviečky','Domov','DEMO-SVIECKY','22,00 €','candle','Svetlo pre pokojné večery. Priestor pre materiál a bezpečné používanie.'],
-  ['pletova-voda','Pleťová voda','Kozmetika','DEMO-VODA','16,00 €','bottle','Priestor pre popis pleťovej vody a jej zloženia.'],
-  ['lanova-sukna','Ľanová sukňa','Ľan','DEMO-SUKNA','68,00 €','linen','Priestor pre materiál, miery a starostlivosť o ľan.'],
-  ['saty-lanove','Ľanové šaty','Ľan','DEMO-SATY','98,00 €','linen','Priestor pre strih, veľkosti a starostlivosť.'],
-  ['astrologia','Astrológia','Služby','DEMO-ASTRO','Cena sa doplní','sun','Priestor pre rozsah služby, podklady a spôsob doručenia.'],
-  ['supervizia','Supervízia','Služby','DEMO-SUPER','Cena sa doplní','sun','Priestor pre odborný rozsah supervízie a podmienky.'],
-  ['reset-40','RESET 40+','Programy','DEMO-RESET','168,00 €','sun','16 tematických týždňov. Jednorazový program s vlastnou knižnicou.'],
-  ['astrologia-zdravie-predispozicia','Astrológia — zdravie a predispozícia','Služby','DEMO-PROFIL','Cena sa doplní','sun','Priestor pre schválený obsah astrologického profilu.'],
-  ['vydymovanie-zmes','Vydymovanie — zmes','Domov','DEMO-ZMES','Cena sa doplní','jar','Priestor pre zloženie a návod.'],
-  ['vyuka-vedomeho-vnimania','Výuka vedomého vnímania','Programy','DEMO-VYUKA','Cena sa doplní','sun','Priestor pre osnovu a podmienky vzdelávania.'],
-  ['antibioticky-prasok','Antibiotický prášok','Výživa','DEMO-PRASOK','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
-  ['chripka-prasok','Chrípka — prášok','Výživa','DEMO-CHRIPKA','Cena sa doplní','jar','Historický názov. Zloženie a schválený produktový text sa doplnia.'],
-  ['bio-plet-krem','Bio pleťový krém','Kozmetika','DEMO-KREM','Cena sa doplní','jar','Priestor pre zloženie a schválený produktový text.'],
-].map(([slug,name,category,code,priceLabel,art,description], index) => ({ slug,name,category,code,priceLabel,art,description,availability:'Dostupné',isNew:index<3,isBestseller:index<4,image:PHOTOS[code]||`/assets/product-${art}.svg` }));
+import {SHOP_CATALOG,SHOP_CATEGORIES} from './catalog.mjs';
+const products=SHOP_CATALOG.map(p=>({...p}));
 
 const pages = [
   ['/o-lucii','O Lucii','Človek za príbehom.','Priestor pre osobný príbeh, odborné skúsenosti a prístup Lucie.','about'],
@@ -39,7 +22,7 @@ const pages = [
 
 const aliases = {
   '/online-zdravotna-konzultacia':'/konzultacie/online-zdravotna-konzultacia',
-  '/eshop/produkt/ritualne-sviecky':'/eshop/produkt/ritualne-sviecky-voskove',
+  '/eshop/produkt/astrologia':'/eshop/produkt/astrologia-zdravie-predispozicia',
 };
 const clone = value => structuredClone(value);
 // Synthetic API responses; views never define denominations or calculate credit.
@@ -107,7 +90,7 @@ export function createMockApi(storage=memoryStorage()) {
     removeGiftVoucher:()=>{credit=null;return cart();},
     getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
     getProduct:slug=>clone(products.find(p=>p.slug===slug)||null),
-    getCategories:()=>[...new Set(products.map(p=>p.category))],
+    getCategories:()=>[...SHOP_CATEGORIES],
     getPages:()=>clone(pages),getPage:path=>clone(pages.find(p=>p.path===canonical(path))||null),getAliases:()=>clone(aliases),
     getCart:cart,addToCart:add,
     setQuantity:(slug,quantity)=>{if(!Number.isInteger(quantity)||quantity<0||quantity>99)return{ok:false,message:'Množstvo musí byť celé číslo od 0 do 99.'};state.lines=quantity===0?state.lines.filter(l=>l.slug!==slug):state.lines.map(l=>l.slug===slug?{...l,quantity}:l);credit=null;persist();return{ok:true,cart:cart()};},

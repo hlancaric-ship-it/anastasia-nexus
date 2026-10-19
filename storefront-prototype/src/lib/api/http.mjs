@@ -1,7 +1,4 @@
-// Reálný adaptér na backend (Medusa Store API + NEXUS routy). Stejné rozhraní jako mock.mjs.
-// Nejádrové metody (chat, darčekový poukaz admin, kontakt, obsahové stránky) delegujeme na mock,
-// jádro zákaznické cesty (katalog, košík, kupón, checkout, prístupy, prihlásenie, história) je reálné.
-import { createMockApi } from './mock.mjs';
+import {SHOP_CATEGORIES} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
@@ -9,14 +6,17 @@ const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena s
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,description,thumbnail,metadata,*categories,*variants,+variants.sku,+variants.calculated_price';
+  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
+
 // Klub, konzultácie a darčekový poukaz majú vlastný nákupný tok (súhlas, termín, príjemca); bežný košík ich backend odmietne.
 const isShopProduct = p => { const m = p?.metadata || {}; return !m.membership && !m.booking && m.gift_voucher !== true && m.gift_voucher !== 'true'; };
 
-function mapProduct(p) {
+const publicMedia=(value,base)=>{try{const u=new URL(value);if(u.origin===new URL(base).origin&&u.pathname.startsWith('/static/'))return '/backend-media'+u.pathname;}catch{}return value;};
+function mapProduct(p,apiBase='') {
+  const media=value=>{if(typeof value!=='string')return value;try{const u=new URL(value),base=new URL(apiBase);if(u.origin===base.origin&&u.pathname.startsWith('/static/'))return '/backend-media'+u.pathname;}catch{}return value;};
   const variant = (p.variants || [])[0] || {};
   const cp = variant.calculated_price || {};
-  const category = (p.categories || [])[0]?.name || '';
+  const category = (p.categories||[]).map(c=>c.name).find(n=>SHOP_CATEGORIES.includes(n)) || (p.categories||[])[0]?.name || '';
   return {
     slug: p.handle,
     name: p.title,
@@ -24,18 +24,19 @@ function mapProduct(p) {
     code: p.handle,
     priceLabel: cp.calculated_amount != null ? money(cp.calculated_amount) : 'Cena sa doplní',
     art: ART[category] || 'jar',
-    description: p.subtitle || '',
+    description: p.subtitle || p.metadata?.description_text || '',
     descriptionHtml: p.description || '',
+    longDescription: p.metadata?.description_text || '',
+    images: (p.images || []).map(image => media(image.url)).filter(Boolean),
     availability: 'Dostupné',
     isNew: false,
     isBestseller: false,
-    image: p.thumbnail || `/assets/product-${ART[category] || 'jar'}.svg`,
+    image: media(p.thumbnail) || `/assets/product-${ART[category] || 'jar'}.svg`,
     _variantId: variant.id,
   };
 }
 
 export function createHttpApi(storage, config) {
-  const mock = createMockApi(storage); // fallback pro nejádrové metody a statický obsah
   const base = config.apiBaseUrl.replace(/\/+$/, '');
   const JWT = 'anastasia.jwt', CART = 'anastasia.cart', COUPON = 'anastasia.coupon', QRKEYS = 'anastasia.qrkeys', GIFT = 'anastasia.gift';
   const get = k => { try { return storage.getItem(k); } catch { return null; } };
@@ -158,7 +159,7 @@ export function createHttpApi(storage, config) {
       name: it.product_title || it.title || it.product?.title || 'Položka',
       code: it.product_handle || it.product?.handle,
       priceLabel: money(it.unit_price),
-      image: it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',
+      image: publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
       quantity: it.quantity,
       giftVoucher: false,
       // Konzultácia má vždy 1 ks a termín; množstvo sa nemení, riadok sa dá len odstrániť.
@@ -172,18 +173,18 @@ export function createHttpApi(storage, config) {
       discountLabel: coupon ? 'Kupón prijatý' : (cart.discount_total ? money(-cart.discount_total) : 'Kupón nezadaný'),
       shippingLabel: (cart.shipping_methods || []).length ? (Number(cart.shipping_total) > 0 ? money(cart.shipping_total) : 'Zadarmo') : '',
       taxLabel: Number(cart.tax_total) > 0 ? money(cart.tax_total) : '',
-      totalLabel: money(cart.total),
+      totalLabel: money(cart.total), paymentRequired: cart.total!==0,
     };
   }
 
   // createApi volá metódy bez `this`, vnútorné volania preto idú cez `self`.
   const self = {
-    ...mock,
     mode: 'http',
 
     async getProducts({ category = '', search = '', filter = '' } = {}) {
       const r = await call(`/store/products?region_id=${config.regionId}&limit=100&fields=${PRODUCT_FIELDS}`);
-      let items = (r.data?.products || []).filter(isShopProduct).map(mapProduct);
+      if(!r.ok)throw new Error('Katalóg sa nepodarilo načítať.');
+      let items = (r.data?.products || []).filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
       const s = search.toLocaleLowerCase('sk');
       if (category) items = items.filter(p => p.category === category);
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
@@ -194,12 +195,12 @@ export function createHttpApi(storage, config) {
     async getProduct(slug) {
       const r = await call(`/store/products?handle=${encodeURIComponent(slug)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
       const p = r.data?.products?.[0];
-      return p && isShopProduct(p) ? mapProduct(p) : null;
+      return p ? mapProduct(p,base) : null;
     },
     async getCategories() {
       const r = await call('/store/product-categories?limit=100&fields=name');
       const names = (r.data?.product_categories || []).map(c => c.name).filter(Boolean);
-      return names.length ? [...new Set(names)] : mock.getCategories();
+      return r.ok ? SHOP_CATEGORIES.filter(name=>names.includes(name)) : [];
     },
 
     getCart: cartShape,
@@ -242,7 +243,7 @@ export function createHttpApi(storage, config) {
     async removeCoupon() { del(COUPON); await reprice(); return cartShape(); },
 
     async getEntitlements() {
-      if (!loggedIn()) return { ok: true, mode: 'http', active: false, entitlements: [], weeks: [] };
+      if (!loggedIn()) return { ok: true, mode: 'http', active: false, authenticated: false, entitlements: [], weeks: [] };
       const entitlements = []; let offset = 0;
       for (;;) {
         const r = await call('/store/entitlements?limit=100&offset=' + offset);
@@ -251,7 +252,7 @@ export function createHttpApi(storage, config) {
         if (!page.length || offset >= Number(r.data?.count || 0)) break;
         if (offset >= 10000) return { ok: false, mode: 'http', active: false, entitlements: [], weeks: [] };
       }
-      return { ok: true, mode: 'http', active: entitlements.length > 0, entitlements, weeks: [] };
+      return { ok: true, mode: 'http', active: entitlements.length > 0, authenticated: true, entitlements, weeks: [] };
     },
     async getMediaAccess(input) {
       if (!loggedIn()) return { ok: false, message: 'Pre otvorenie obsahu sa prihláste.' };
@@ -325,7 +326,7 @@ export function createHttpApi(storage, config) {
         BLOCK: 'Objednávku teraz nemožno dokončiť. Kontaktujte nás, prosím.',
         ERROR: 'Služba je dočasne nedostupná. Skúste to znova o chvíľu.',
       };
-      if (r.status === 200) { del(CART); del(COUPON); del(BOOKING); return { mode: 'http', status: 'ALLOW', messages: M.ALLOW, order: r.data?.order }; }
+      if (r.status === 200) { del(CART); del(COUPON); del(BOOKING); const paid=r.data?.paymentStatus==='PAID'; return { mode: 'http', status: paid?'ALLOW':'PENDING', messages: paid?M.ALLOW:'Objednávka bola vytvorená. Čakáme na potvrdenie platby; platený obsah sa sprístupní po úhrade.', order: r.data?.order }; }
       if (r.status === 409) return { mode: 'http', status: 'REVIEW', messages: M.REVIEW };
       if (r.status === 403) return { mode: 'http', status: 'BLOCK', messages: M.BLOCK };
       return { mode: 'http', status: 'ERROR', messages: M.ERROR };

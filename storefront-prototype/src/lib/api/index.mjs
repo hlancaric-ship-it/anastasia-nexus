@@ -1,18 +1,13 @@
-// Datová hranice pro statický renderer (build) i prohlížeč (runtime).
-// Build používá statický `api` = mock (generuje stránky bez běžícího backendu).
-// Prohlížeč přes createApi volá reálný http adaptér; mock se použije jen s ?mock=1
-// nebo když chybí runtime konfigurace (globalThis.__ANASTASIA_CONFIG__ z /config.mjs).
+// Runtime vždy používá skutečný backend. Testy mohou předat explicitní adapter.
 import {createMockApi} from './mock.mjs';
 import {createHttpApi} from './http.mjs';
 export { api, createMockApi } from './mock.mjs';
 
 export function createApi(storage, adapter) {
   if (!adapter) {
-    let config = null, useMock = false;
-    try { config = globalThis.__ANASTASIA_CONFIG__ || null; } catch { config = null; }
-    try { useMock = new URLSearchParams(location.search).get('mock') === '1'; } catch { useMock = false; }
-    if (config && config.useMock) useMock = true;
-    adapter = (useMock || !config) ? createMockApi(storage) : createHttpApi(storage, config);
+    const config=globalThis.__ANASTASIA_CONFIG__;
+    if(!config?.apiBaseUrl||!config?.publishableKey||!config?.regionId)throw new Error('Chýba pripojenie k obchodu.');
+    adapter=createHttpApi(storage,config);
   }
   let writes=Promise.resolve();
   const mutations=new Set(['addToCart','setQuantity','applyCoupon','removeCoupon','importQr','sendChatMessage','setChatPreview','addGiftVoucher','applyGiftVoucher','removeGiftVoucher','checkout','prepareCheckout','acceptCheckoutTerms','createPaymentSession','prepareMembership','startMembershipCheckout','completeMembership','stopMembership','reconcileMembership','reserveBooking']);
