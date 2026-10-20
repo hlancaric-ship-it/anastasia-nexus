@@ -25,7 +25,7 @@ const catalog=category=>views.catalog(category,catalogProducts);
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
-const dcProducts=catalogProducts.slice(0,4).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,name:e(p.name),cat:e(p.category),price:e(p.priceLabel),img:p.image,add:e(p.code)}));
+const dcProducts=catalogProducts.slice(0,4).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,name:e(p.name),cat:e(p.category),price:e(p.priceLabel),priceLabel:e(p.priceLabel),img:p.image,add:e(p.code)}));
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 add2('/','Light for the Future',homeSections(dcProducts),'home');
 add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
@@ -57,7 +57,7 @@ const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8
 for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.split(',')[1]);const path=target.pathname.replace(/\/$/,'')||'/';if(!routes.has(path)){if(path.startsWith('/eshop/produkt/'))add(path,'Obchod',catalog());else throw new Error(`Missing legacy route ${path}`);}}
 const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),other:chrome('other')};
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
-const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script type="module" src="/app.mjs"></script>';
+const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script src="/vendor/gsap.min.js" defer></script><script src="/vendor/ScrollTrigger.min.js" defer></script><script type="module" src="/app.mjs"></script><script type="module" src="/motion.mjs"></script>';
 const document=(...args)=>tokenizeColors(renderDocument(...args));
 const renderDocument=(path,{title,body,design})=>{
   const customerLogin=['/prihlasenie','/prihlasenie/potvrdit','/nova-registracia'].includes(path);
