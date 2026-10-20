@@ -246,8 +246,9 @@ if(motion&&$('.dc-root')){
     // Každá ikona a popisek proto čte pozadí ve své vlastní výšce.
     $$('a,button',rail).forEach(control=>{const r=control.getBoundingClientRect(),t=toneAt(r.top+r.height/2);if(control.dataset.railTone===t)return;control.dataset.railTone=t;control.style.color=t==='light'?'#283020':'#EFE5C7';$$('img',control).forEach(img=>{img.style.filter=t==='light'?'brightness(0.22) sepia(0.4)':'none';});});
   };
+  let frameTick=0;
   const fxFrame=()=>{
-    probe();
+    if((frameTick++ % 3)===0)probe();
     if(!motion)return;
     const y=lenis?lenis.scroll:scrollY;
     if(hero&&heroContent&&y<vh*1.3){heroContent.style.opacity=Math.max(0,1-y/(vh*0.7)).toFixed(3);heroContent.style.transform='translate3d(0,'+(-y*0.12).toFixed(1)+'px,0)';}

@@ -17,7 +17,7 @@ const pages = [
   ['/vyuka','Výuka','Učiť sa vnímať.','Priestor pre vzdelávací obsah pôvodného webu.','programs'],
   ['/blog/zdrava-lekaren-aktuality','Zdravá lekáreň — aktuality','Poznanie pre každý deň.','Priestor pre pôvodné články a redakčne schválený obsah.','journal'],
   ['/ai-anastasia/recenzie-farmaceutickych-produktov','Recenzie farmaceutických produktov','Priestor pre odborný pohľad.','Archívna obsahová adresa. Texty recenzií sa doplnia po schválení.','journal'],
-  ['/ai-anastasia','AI ANASTASIA','Nová kapitola. Už čoskoro.','Asistent sa pripravuje vo fáze 2. V tejto ukážke ešte nie je dostupný.','future'],
+  ['/ai-anastasia','AI ANASTASIA','Nová kapitola. Už čoskoro.','Pripravuje sa...','future'],
 ].map(([path,title,headline,intro,kind])=>({path,title,headline,intro,kind}));
 
 const aliases = {

@@ -3,28 +3,31 @@
 // Skutočné obrázky a ceny v HTTP režime poskytuje backend; demo ceny zodpovedajú starému výpisu.
 // Kategorie podle starého webu (Medusa): AI ANASTASIA ACADEMY (sebarozvoj),
 // BIOKOZMETIKA a Zdravé doplnky výživy. filter v URL používá handle.
+const NEW_HANDLES=new Set(['vyuka-vedomeho-vnimania','bio-plet-krem','osviezit-plet','bio-sprchovy-gel','pletova-voda','nic-nemusis']);
+const BEST_HANDLES=new Set(['vyuka-vedomeho-vnimania','bio-plet-krem','reset-40-plus','supervizia','chripka-prasok']);
 export const SHOP_CATEGORIES=Object.freeze(['AI ANASTASIA ACADEMY','BIOKOZMETIKA','Zdravé doplnky výživy']);
 export const SHOP_CATEGORY_HANDLES=Object.freeze({
-  'AI ANASTASIA ACADEMY':'ai-anastasia-academy',
+  'AI ANASTASIA ACADEMY':'sebarozvoj',
   'BIOKOZMETIKA':'bio-kozmetika-bez-chemie',
   'Zdravé doplnky výživy':'zdrave-doplnky-vyzivy',
+  'Konzultácie a podpora':'konzultacie-pomoc-podpora',
 });
 export const FEATURED_SLUGS=Object.freeze(['osviezit-plet','pletova-voda','chripka-prasok','online-zdravotna-konzultacia']);
 export const SHOP_CATALOG=Object.freeze([
-  {slug:"reset-40-plus",name:"AI ANASTASIA RESET 40+",category:"AI ANASTASIA ACADEMY",categoryHandle:"ai-anastasia-academy",priceLabel:"168,00 €",art:"sun",image:"/assets/lucia-longevity.png"},
-  {slug:"astrologia-zdravie-predispozicia",name:"Astrologický profil zdravia a osobných predispozícií",category:"AI ANASTASIA ACADEMY",categoryHandle:"ai-anastasia-academy",priceLabel:"59,00 €",art:"sun",image:"/assets/night-sky.jpg"},
+  {slug:"reset-40-plus",name:"AI ANASTASIA RESET 40+",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"168,00 €",art:"sun",image:"/assets/lucia-longevity.png"},
+  {slug:"astrologia-zdravie-predispozicia",name:"Astrologický profil zdravia a osobných predispozícií",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"59,00 €",art:"sun",image:"/assets/night-sky.jpg"},
   {slug:"chripka-prasok",name:"CHRÍPKOVÝ PRÁŠOK",category:"Zdravé doplnky výživy",categoryHandle:"zdrave-doplnky-vyzivy",priceLabel:"9,00 €",art:"jar",image:"/assets/product-jar.svg"},
   {slug:"antibioticky-prasok",name:"JANČOVA antibiotická zmes",category:"Zdravé doplnky výživy",categoryHandle:"zdrave-doplnky-vyzivy",priceLabel:"9,00 €",art:"jar",image:"/assets/product-jar.svg"},
   {slug:"Mineralny-ochranny-krem-pre-citlivu-pokozku",name:"MINERAL PROTECT 200ml",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"38,00 €",art:"bottle",image:"/assets/product-bottle.svg"},
-  {slug:"nic-nemusis",name:"Nič nemusíš",category:"AI ANASTASIA ACADEMY",categoryHandle:"ai-anastasia-academy",priceLabel:"38,00 €",art:"sun",image:"/assets/zdravy-svet-luka.jpg"},
-  {slug:"online-zdravotna-konzultacia",name:"Online zdravotná konzultácia",category:"AI ANASTASIA ACADEMY",categoryHandle:"ai-anastasia-academy",priceLabel:"69,00 €",art:"sun",image:"/assets/lucia-portrait.jpg"},
-  {slug:"personalizovany-zdravotny-protokol-pro",name:"Personifikovaný zdravotný protokol",category:"AI ANASTASIA ACADEMY",categoryHandle:"ai-anastasia-academy",priceLabel:"59,00 €",art:"sun",image:"/assets/lucia-logo.png"},
-  {slug:"supervizia",name:"Supervízia",category:"AI ANASTASIA ACADEMY",categoryHandle:"ai-anastasia-academy",priceLabel:"69,00 €",art:"sun",image:"/assets/lucia-portrait.jpg"},
+  {slug:"nic-nemusis",name:"Nič nemusíš",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"38,00 €",art:"sun",image:"/assets/zdravy-svet-luka.jpg"},
+  {slug:"online-zdravotna-konzultacia",name:"Online zdravotná konzultácia",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"69,00 €",art:"sun",image:"/assets/lucia-portrait.jpg"},
+  {slug:"personalizovany-zdravotny-protokol-pro",name:"Personifikovaný zdravotný protokol",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"59,00 €",art:"sun",image:"/assets/lucia-logo.png"},
+  {slug:"supervizia",name:"Supervízia",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"69,00 €",art:"sun",image:"/assets/lucia-portrait.jpg"},
   {slug:"bio-plet-krem",name:"Tvoj pleťový krém",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"77,00 €",art:"jar",image:"/assets/product-jar.svg"},
   {slug:"bio-sprchovy-gel",name:"Tvoj sprcháč",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-gel.png"},
   {slug:"pletova-voda",name:"Tvoja pleťová voda",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-maslo.png"},
   {slug:"osviezit-plet",name:"Tvoja pleťová voda osviežujúca",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-gel.png"},
-  {slug:"vyuka-vedomeho-vnimania",name:"Výuka vedomého vnímania",category:"AI ANASTASIA ACADEMY",categoryHandle:"ai-anastasia-academy",priceLabel:"2 600,00 €",art:"sun",image:"/assets/zdravy-svet-luka.jpg"},
-].map((p,i)=>Object.freeze({...p,code:p.slug,description:'Podrobnosti a podmienky nájdete v detaile produktu.',availability:p.slug==='vyuka-vedomeho-vnimania'?'Dostupné':'Informácie v detaile',isNew:false,isBestseller:false})));
+  {slug:"vyuka-vedomeho-vnimania",name:"Výuka vedomého vnímania",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"2 600,00 €",art:"sun",image:"/assets/zdravy-svet-luka.jpg"},
+].map((p,i)=>Object.freeze({...p,code:p.slug,description:'Podrobnosti a podmienky nájdete v detaile produktu.',availability:p.slug==='vyuka-vedomeho-vnimania'?'Dostupné':'Informácie v detaile',isNew:NEW_HANDLES.has(p.slug),isBestseller:BEST_HANDLES.has(p.slug)})));
 export const SHOP_HANDLES=new Set(SHOP_CATALOG.map(p=>p.slug));
 export const SHOP_BY_HANDLE=new Map(SHOP_CATALOG.map(p=>[p.slug,p]));
