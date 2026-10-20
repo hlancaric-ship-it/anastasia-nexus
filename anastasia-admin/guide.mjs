@@ -172,7 +172,7 @@ export const GUIDES = [
     summary: 'Od zaplateného nákupu po odoslaný balík v dvoch krokoch.',
     why: 'Vybavenie objednávky je cesta od zaplateného nákupu k balíku u zákazníčky. Administrácia vás prevedie dvoma krokmi a zákazníčku informuje e-mailom.',
     steps: [
-      'Otvorte Objednávky a kliknite na objednávku, ktorá má v poli Vybavenie označenie not_fulfilled (nevybavená).',
+      'Otvorte Objednávky a kliknite na objednávku, ktorá má v poli Vybavenie označenie nevybavená.',
       'V záložke Prehľad skontrolujte adresu doručenia, dopravu a platbu.',
       'Prejdite do záložky Odoslanie a kliknite na Pripraviť. Všetky nevybavené položky sa zaradia do zásielky.',
       'Keď balík odovzdáte dopravcovi, doplňte číslo zásielky a odkaz na sledovanie (nie sú povinné) a kliknite na Označiť ako odoslanú.',
@@ -458,6 +458,27 @@ export const GUIDES = [
       'Stavy: active znamená, že kupón platí, inactive je vypnutý, draft je rozpracovaný a neplatí.',
       'Pri existujúcom kupóne sa dá meniť len stav. Ak chcete inú zľavu, vytvorte nový kupón s novým kódom.',
       'Kód zverejnite až po vytvorení kupónu. Dovtedy ho obchod neprijme.',
+    ],
+  },
+  {
+    id: 'qr-kody', group: 'poukazy', icon: 'gift', href: '#/poukazy', hrefLabel: 'Otvoriť Poukazy a zľavy',
+    title: 'Ako vytvoriť QR kód na leták alebo obal',
+    summary: 'QR, ktorý zákazníčku privedie k produktu so zľavou z kupónu.',
+    why: 'QR kód vytlačený na letáku, vizitke či obale otvorí zákazníčke produkt na webe a rovno uplatní zľavu z kupónu. Zákazníčka nemusí nič opisovať.',
+    steps: [
+      'Najprv si v prepínači Kupóny a zľavy vytvorte kupón (alebo použite existujúci).',
+      'Prepnite na QR kódy a kliknite na Vytvoriť QR kód.',
+      'Zadajte kód produktu (nájdete ho v detaile produktu), kód kupónu a počet kusov, ktoré sa vložia do košíka.',
+      'Kliknite na Vytvoriť a uložiť.',
+      'V detaile QR kódu kliknite na Stiahnuť SVG (pre tlačiareň) alebo Stiahnuť PNG (pre web a sociálne siete).',
+    ],
+    after: [
+      'QR kód zostáva v zozname. Ak obrázok stratíte, stiahnete ho znova bez vytvárania nového kupónu.',
+      'Cez Pridať staré odkazy si do zoznamu doplníte QR kódy, ktoré ste vytlačili pre starý web.',
+    ],
+    careful: [
+      'QR kód novú zľavu nevytvára. Zľava sa riadi kupónom.',
+      'Vypnutie kupónu v detaile QR kódu platí pre všetky QR kódy a odkazy s týmto kupónom.',
     ],
   },
   {

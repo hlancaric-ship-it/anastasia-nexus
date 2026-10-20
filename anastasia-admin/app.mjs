@@ -589,8 +589,8 @@ async function vCategoryDetail(view, id) {
 async function vOrders(view) {
   view = freshView(view);
   const { orders } = await api('/admin/orders?limit=50&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata');
-  const payPill = (s) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc(s || '—')}</span>`;
-  const fulPill = (s) => `<span class="pill ${s === 'fulfilled' || s === 'shipped' || s === 'delivered' ? 'ok' : 'warn'}">${esc(s || 'nevybavená')}</span>`;
+  const payPill = (s) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc(PAY_LABEL[s] || s || '—')}</span>`;
+  const fulPill = (s) => `<span class="pill ${s === 'fulfilled' || s === 'shipped' || s === 'delivered' ? 'ok' : 'warn'}">${esc(FUL_LABEL[s] || s || 'nevybavená')}</span>`;
   listView(view, { title: 'Objednávky', rows: orders, onRow: o => vOrderDetail(view, o.id), empty: 'Zatiaľ žiadne objednávky.',
     card: o => `<div class="rc-body"><div class="rc-title">#${esc(o.metadata?.legacy_customer_migration?.number || o.display_id || '')} · ${fmtEur(o.total)}</div><div class="rc-fields">
       <span class="rc-f"><em>Zákazníčka</em>${esc(o.email || '—')}</span>
@@ -1218,9 +1218,9 @@ async function vNewsletter(view) {
 const vObsah = (view) => subnav(view, [
   { label: 'E-maily', run: vEmaily },
   { label: 'Newsletter', run: vNewsletter },
-  { label: 'Stránky a texty', run: (v) => stub(v, 'Stránky a texty', 'Samoobslužná správa obsahových stránok. Pripravuje sa modul CMS.') },
-  { label: 'Médiá', run: (v) => stub(v, 'Médiá', 'Chránené videá a audio (R2).') },
-  { label: 'Preklady', run: (v) => stub(v, 'Preklady', 'SK zdroj, EN/RU — z jedného admina.') },
+  { label: 'Stránky a texty', run: (v) => stub(v, 'Stránky a texty', `Úpravy textov na webe (O Lucii, Zdravý svet, popisy programov) budete čoskoro robiť priamo tu, bez rizika, že sa rozbije vzhľad. Dovtedy nám pošlite nový text na ${SUPPORT_EMAIL} a upravíme ho za vás.`) },
+  { label: 'Médiá', run: (v) => stub(v, 'Médiá', `Tu budete vymieňať video na úvodnej stránke a nahrávať videá a audio k programom. Kým to pripravíme, pošlite súbor na ${SUPPORT_EMAIL}. Video na úvodnú stránku ideálne vo formáte MP4, na šírku, 1920 × 1080 px.`) },
+  { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
 const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_stripe_stripe: 'Platobná karta (Stripe)', pp_membership_stripe_membership: 'Platobná karta – Klub', manual_manual: 'Vlastná doprava' };
@@ -1324,7 +1324,7 @@ const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
   { label: 'Doprava a platby', run: vDopravaPlatby },
   { label: 'Používatelia', run: (v) => vPouzivatelia(v) },
-  { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', 'Napojenie fakturácie (POHODA / Money S3).') },
+  { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', `Prepojenie s účtovníctvom (POHODA alebo Money S3) pripravujeme. Dovtedy si objednávky môžete pozrieť v časti Objednávky. Otázky posielajte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- sprievodca: centrum nápovedy (#/pomoc, #/pomoc/<návod>), pomoc na stránke a úvodná prehliadka ---
 // Obsah je v guide.mjs; tu je len zobrazenie. Všetok text ide cez esc().
