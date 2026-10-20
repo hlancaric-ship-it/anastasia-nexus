@@ -266,14 +266,17 @@
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "VERIFIED",
       "request": "Generování SVG/PNG v adminu v první fázi; evidence již vydaných QR i z původního obchodu.",
       "sources": [
         "backend/src/api/admin/coupon-links/route.ts",
         "backend/src/scripts/export-edge-redirects.ts",
-        "nexus/workers/api/edgeRedirects.ts"
+        "nexus/workers/api/edgeRedirects.ts",
+        "backend/src/modules/coupon-link/index.ts",
+        "backend/src/api/admin/coupon-links/registry.ts",
+        "anastasia-admin/qr.mjs"
       ],
-      "remaining": "Generátor nemá registr vydaných QR; stále vrací PENDING_PRICING_INTEGRATION. Redirect mapa není evidence držitelů a uplatnění.",
+      "remaining": "QR registr a nákupní průchod se současně podporovanými kupóny ověřen v CI (evidence/qr-admin-system-ci.json). Skutečná legacy migrace čerpání a podmínek dosud neověřena; současný NEXUS resolver odmítá pevné a omezené promoce. Import QR je automaticky neaktivuje.",
       "acceptance": "Naskenování nového i starého QR otevře správný cíl a server uplatní správnou slevu; výstup se stáhne bez externí QR služby."
     },
     {
@@ -901,11 +904,12 @@
     {
       "path": "/admin/coupon-links",
       "methods": [
+        "GET",
         "POST"
       ],
       "feature": "qr",
       "source": "backend/src/api/admin/coupon-links/route.ts",
-      "sha256": "efe9ce37d0074804bfdef07159483debf28a6162f4ebd7531c99efc5e44a8f08"
+      "sha256": "f62f420723b15094ef2bfe7a217005be689aeeea8525a4584fd3626dd025889a"
     },
     {
       "path": "/admin/custom",
@@ -1302,7 +1306,7 @@
       ],
       "feature": "qr",
       "source": "backend/src/api/store/coupon-links/route.ts",
-      "sha256": "7f35162e7eec738dbbd09599f02cf9a7c4c518a73a10961aa8de61dc1a340233"
+      "sha256": "ad344af5bcbcc2f383c957fcc60b365605f31eea1ebf837011e08492a2161d9c"
     },
     {
       "path": "/store/custom",
@@ -1510,6 +1514,42 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/admin/coupon-links/:id",
+      "feature": "qr",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/route.ts",
+      "sha256": "4ad76aa81772a3158d52e6e481cfc76a106c2799779a00f91b2b214d824d4041"
+    },
+    {
+      "path": "/admin/coupon-links/import",
+      "feature": "qr",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/coupon-links/import/route.ts",
+      "sha256": "f0e718c133adaaf15bdc05426091606fd8c8c0a89b7c422f3ef48ffcfdf95f78"
+    },
+    {
+      "path": "/admin/coupon-links/:id/qr",
+      "feature": "qr",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/qr/route.ts",
+      "sha256": "e109a4af6b8758ed420bf03f44d38be07a267f82d4aabb6ace714cc473d3d8d7"
+    },
+    {
+      "path": "/admin/coupon-links/:id/deactivate",
+      "feature": "qr",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/deactivate/route.ts",
+      "sha256": "2c39745d25b93091d6a871216499a2166d81966725773c71dd82278a2fc524e1"
     }
   ],
   "native_medusa_version": "2.19.0",
@@ -4062,6 +4102,7 @@
       "backend/src/modules/chat/models/chat-customer-block.ts",
       "backend/src/modules/chat/models/chat-message.ts",
       "backend/src/modules/chat/models/chat-notification-state.ts",
+      "backend/src/modules/coupon-link/models/coupon-link-record.ts",
       "backend/src/modules/customer-privacy/models/customer-erasure.ts",
       "backend/src/modules/customer-privacy/models/customer-note.ts",
       "backend/src/modules/email-template/models/email-template-override.ts",
@@ -4087,6 +4128,7 @@
       "backend/src/modules/auth-security/index.ts",
       "backend/src/modules/booking/index.ts",
       "backend/src/modules/chat/index.ts",
+      "backend/src/modules/coupon-link/index.ts",
       "backend/src/modules/customer-privacy/index.ts",
       "backend/src/modules/email-template/index.ts",
       "backend/src/modules/entitlement/index.ts",
@@ -4482,7 +4524,9 @@
     "nexus/tests/workers/voucherConcurrency.test.ts",
     "backend/src/lib/protected-library/__tests__/editor.unit.spec.ts",
     "backend/integration-tests/http/protected-library-admin-http-checks.ts",
-    "anastasia-admin/test/browser-library-editor.mjs"
+    "anastasia-admin/test/browser-library-editor.mjs",
+    "backend/src/api/admin/coupon-links/__tests__/registry.unit.spec.ts",
+    "backend/integration-tests/http/qr-registry.spec.ts"
   ],
   "candidate_branch": "codex/admin-theming"
 }

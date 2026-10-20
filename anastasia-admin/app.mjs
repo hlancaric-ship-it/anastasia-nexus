@@ -8,6 +8,8 @@ const fmtEur = (a) => (a == null ? '—' : new Intl.NumberFormat('sk-SK', { styl
 const fmtDate = (d) => d ? new Date(d).toLocaleString('sk-SK', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+import { qrAgenda } from './qr.mjs';
+
 import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mjs';
 import { mountLibraryEditor } from './library-editor.mjs';
 
@@ -724,7 +726,7 @@ async function vCoupons(view) {
   const { promotions } = await api('/admin/promotions?limit=100&fields=id,code,status,*application_method');
   setActions('<button class="btn gold" id="promo-new">+ Nový kupón</button>');
   const nb = document.querySelector('#promo-new'); if (nb) nb.onclick = () => vCouponNew(view);
-  listView(view, { title: 'Kupóny & QR', rows: promotions, onRow: p => vCouponDetail(view, p.id), empty: 'Zatiaľ žiadne kupóny. QR generátor pridáva kupóny cez jadro.', cols: [
+  listView(view, { title: 'Kupóny a zľavy', rows: promotions, onRow: p => vCouponDetail(view, p.id), empty: 'Zatiaľ žiadne kupóny.', cols: [
     { h: 'Kód', v: p => `<b>${esc(p.code)}</b>` }, { h: 'Stav', v: p => `<span class="pill ${p.status === 'active' ? 'ok' : 'warn'}">${esc(p.status)}</span>` },
     { h: 'Zľava', v: p => { const m = p.application_method; return m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'; } }] });
 }
@@ -736,7 +738,7 @@ async function vCouponNew(view) {
     <div class="row"><div><label>Typ zľavy</label><select id="pn-type"><option value="percentage">percentá %</option><option value="fixed">pevná suma €</option></select></div>
     <div><label>Hodnota</label><input id="pn-val" type="number" step="0.01" value="10"></div></div>
     <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť</button></div>
-    <p class="muted" style="margin-top:10px">Kupón vznikne v jadre (promotions). Väzba na QR a limit sa dolaďuje cez jadro.</p>
+    <p class="muted" style="margin-top:10px">Najprv vytvorte kupón. Potom k nemu pridáte QR kód v záložke QR kódy.</p>
   </div></div>`;
   view.querySelector('#pn-back').onclick = () => vCoupons(view);
   view.querySelector('#pn-save').onclick = async () => {
@@ -932,7 +934,8 @@ async function vVoucherSettings(view, notice) {
     } catch (e) { if (e.message === '401') return; btn.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   };
 }
-const vPoukazy = (view) => subnav(view, [{ label: 'Kupóny a zľavy', run: vCoupons }, { label: 'Darčekové poukazy', run: vVouchers }, { label: 'Nastavenie poukazov', run: vVoucherSettings }]);
+const vQr = qrAgenda({ api, esc, fmtDate, freshView });
+const vPoukazy = (view) => subnav(view, [{ label: 'Kupóny a zľavy', run: vCoupons }, { label: 'QR kódy', run: vQr }, { label: 'Darčekové poukazy', run: vVouchers }, { label: 'Nastavenie poukazov', run: vVoucherSettings }]);
 // --- Konzultácie (/admin/bookings*) — termíny drží rezervačné jadro, tu prehľad a zrušenie ---
 const B_STATUS = { held: ['čaká na platbu', 'warn'], confirmed: ['potvrdená', 'ok'], canceled: ['zrušená', 'off'], completed: ['prebehla', 'ok'] };
 const B_TABS = [{ id: '', label: 'Všetky' }, { id: 'confirmed', label: 'Potvrdené' }, { id: 'held', label: 'Čakajú na platbu' }, { id: 'completed', label: 'Prebehli' }, { id: 'canceled', label: 'Zrušené' }];

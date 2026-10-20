@@ -162,6 +162,7 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/gift-voucher" },
   { resolve: "./src/modules/chat" },
   { resolve: "./src/modules/ops-audit" },
+  { resolve: "./src/modules/coupon-link" },
   { resolve: "./src/modules/email-template" },
   { resolve: "./src/modules/legal" },
   { resolve: "./src/modules/customer-privacy" },
