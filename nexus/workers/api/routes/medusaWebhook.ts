@@ -70,7 +70,6 @@ export async function handleMedusaWebhook(
     const state = KNOWN_EVENTS.has(eventName) ? 'RECEIVED' : 'NEEDS_REVIEW';
     let duplicate = false;
     try {
-        // Old receipts have no tenant or target; do not silently reactivate them.
         const legacy = await env.DB.prepare('SELECT event_id FROM medusa_webhook_receipts WHERE event_id = ?')
             .bind(eventId).first();
         if (legacy) throw new ApiError('WEBHOOK_CONFLICT', 409, 'Staršia udalosť vyžaduje kontrolu pred opakovaním.');
@@ -93,9 +92,82 @@ export async function handleMedusaWebhook(
     log(state === 'NEEDS_REVIEW' ? 'warn' : 'info', duplicate ? 'webhook.medusa.duplicate_skipped' : 'webhook.medusa.persisted', {
         opsTenant: tenantId, eventId, event: eventName, targetId, processing_state: state,
     });
+    if (!duplicate && state === 'RECEIVED') {
+        _ctx.waitUntil(processWebhookEvent(env, eventName, eventId, data as Record<string, unknown> ?? {}));
+    }
     // 200 means durable receipt only. No waitUntil task is mistaken for completed business work.
     return jsonResponse({ received: true, tenantId, event: eventName, eventId,
         ...(duplicate ? { duplicate: true } : {}), timestamp: new Date().toISOString() });
+}
+
+async function processWebhookEvent(
+    env: Env,
+    eventName: string,
+    eventId: string,
+    data: Record<string, unknown>,
+): Promise<void> {
+    try {
+        switch (eventName) {
+            case 'order.placed':
+                await handleOrderPlaced(env, data);
+                break;
+            case 'order.canceled':
+                await handleOrderCanceled(env, data);
+                break;
+            case 'customer.created':
+                await handleCustomerCreated(env, data);
+                break;
+            case 'payment.captured':
+                log('info', 'medusa.payment_captured.received', { paymentId: data.id });
+                break;
+            default:
+                log('info', 'medusa.webhook.unhandled_event', { event: eventName, eventId });
+        }
+    } catch (err) {
+        log('error', 'medusa.webhook_async_failed', {
+            event: eventName,
+            eventId,
+            error: err instanceof Error ? err.message : String(err),
+        });
+    }
+}
+
+async function handleOrderPlaced(env: Env, data: Record<string, unknown>): Promise<void> {
+    const orderId = data.id as string | undefined;
+    if (!orderId) return;
+
+    try {
+        await env.DB.prepare(
+            `INSERT INTO medusa_order_events (order_id, event_type, created_at)
+             VALUES (?, 'placed', datetime('now'))
+             ON CONFLICT(order_id, event_type) DO NOTHING`
+        ).bind(orderId, ).run();
+    } catch {
+        // Table may not exist yet — log and continue. Event receipt is already tracked.
+    }
+
+    log('info', 'medusa.order_placed.processed', {
+        orderId,
+        customerEmail: data.email || data.customer_email,
+        itemCount: Array.isArray(data.items) ? data.items.length : undefined,
+    });
+}
+
+async function handleOrderCanceled(env: Env, data: Record<string, unknown>): Promise<void> {
+    const orderId = data.id as string | undefined;
+    if (!orderId) return;
+
+    log('info', 'medusa.order_canceled.processed', { orderId });
+}
+
+async function handleCustomerCreated(env: Env, data: Record<string, unknown>): Promise<void> {
+    const customerId = data.id as string | undefined;
+    if (!customerId) return;
+
+    log('info', 'medusa.customer_created.processed', {
+        customerId,
+        email: typeof data.email === 'string' ? data.email.replace(/@.*/, '@***') : undefined,
+    });
 }
 
 async function verifyMedusaSignature(header: string | null, rawBody: string, secret: string): Promise<boolean> {

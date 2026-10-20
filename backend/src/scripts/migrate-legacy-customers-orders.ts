@@ -314,7 +314,7 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
       if (sourceCustomers.get(previous.customer_legacy_id)!.email !== sourceCustomers.get(access.customer_legacy_id)!.email || previous.expires_at !== access.expires_at) fail("ACCESS_COLLISION")
       continue
     }
-    const existing = await services.entitlement.findByDedupeKey(key)
+    const existing = await services.entitlement.findByDedupeKey(key, "default")
     if (existing && (existing.customer_id !== customerTargets.get(sourceCustomers.get(access.customer_legacy_id)!.email)?.id || existing.product_id !== productId || existing.source !== "migration")) fail("ACCESS_CONFLICT")
     grants.set(key, { access, productId, existing })
   }
@@ -367,7 +367,8 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
     const result = await services.entitlement.grant({ customer_id: customerId, product_id: productId, source: "migration",
       dedupe_key: key, order_id: access.legacy_order_id ? orderTargets.get(access.legacy_order_id)!.id : null,
       expires_at: access.expires_at ? new Date(access.expires_at) : null,
-      metadata: { legacy_access_id: access.legacy_id, legacy_order_id: access.legacy_order_id } })
+      metadata: { legacy_access_id: access.legacy_id, legacy_order_id: access.legacy_order_id },
+      tenant_id: "default" })
     if (result.entitlement.customer_id !== customerId || result.entitlement.product_id !== productId) fail("ACCESS_CONFLICT")
   }
   // Independently re-read module storage. Report persisted values, not attempted writes.
@@ -398,7 +399,7 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
   targetAfter.total_eur = money(total)
   let inactiveEntitlements = 0
   for (const [key, { access, productId }] of grants) {
-    const found = await services.entitlement.findByDedupeKey(key)
+    const found = await services.entitlement.findByDedupeKey(key, "default")
     if (!found || found.customer_id !== customerTargets.get(sourceCustomers.get(access.customer_legacy_id)!.email)!.id || found.product_id !== productId) fail("RECONCILIATION_FAILED")
     targetAfter.entitlements++
     if (found.status !== "active" || (found.expires_at && new Date(found.expires_at).getTime() <= Date.now())) inactiveEntitlements++
