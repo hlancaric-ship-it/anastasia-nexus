@@ -1,0 +1,28 @@
+# docker compose --env-file backend.env up -d --build   (spúšťa sa z koreňa repa: -f ops/test-server/compose.yml)
+name: anastasia-test
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: anastasia
+      POSTGRES_USER: anastasia
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?chýba POSTGRES_PASSWORD}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U anastasia -d anastasia"], interval: 5s, retries: 20 }
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+  backend:
+    build: { context: ../.., dockerfile: ops/test-server/Dockerfile }
+    restart: unless-stopped
+    env_file: [backend.env]
+    environment:
+      DATABASE_URL: postgres://anastasia:${POSTGRES_PASSWORD}@db:5432/anastasia
+      REDIS_URL: redis://redis:6379
+    depends_on: { db: { condition: service_healthy }, redis: { condition: service_started } }
+    # Len na localhost; von ide výhradne cez Cloudflare Tunnel.
+    ports: ["127.0.0.1:9000:9000"]
+volumes: { pgdata: {}, redisdata: {} }

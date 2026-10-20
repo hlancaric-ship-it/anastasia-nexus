@@ -995,7 +995,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/admin/entitlements/route.ts",
-      "sha256": "c072cdaff41b14051e2bb66955735f810fe71768d71c2c1d24962e8f7e3fbe47"
+      "sha256": "8137f7c7700281de2275d9bb87c13d032abfe09ddba3e4681bc9588cc0ddc7a8"
     },
     {
       "path": "/admin/entitlements/:id/revoke",
@@ -4085,7 +4085,9 @@
       "backend/src/subscribers/gift-voucher-payment-captured.ts",
       "backend/src/subscribers/legal-order-placed.ts",
       "backend/src/subscribers/membership-access.ts",
-      "backend/src/subscribers/nexus-medusa-events.ts"
+      "backend/src/subscribers/nexus-medusa-events.ts",
+      "backend/src/subscribers/nexus-voucher-issuance.ts",
+      "backend/src/subscribers/nexus-webhook-forwarder.ts"
     ],
     "workflows": [
       "backend/src/workflows/booking-checkout.ts",
