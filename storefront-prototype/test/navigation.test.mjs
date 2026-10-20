@@ -7,7 +7,7 @@ const expected=new Map(Object.entries({
  'Obchod':'/eshop','Kozmetika':'/eshop?category=Kozmetika','Bylinky a výživa':'/eshop?category=Bylinky%20a%20v%C3%BD%C5%BEiva','Programy a služby':'/eshop?category=Programy%20a%20slu%C5%BEby',
  'Darčekový poukaz':'/darcekovy-poukaz','Konzultácie':'/konzultacie','Zdravá lekáreň':'/zdrava-lekaren','Denný stacionár Vyšná Slaná':'/denny-stacionar-vysna-slana',
  'Zdravý svet':'/zdravy-svet','O Lucii':'/o-lucii','Pharmanews':'/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny','Recenzie produktov':'/ai-anastasia/recenzie-farmaceutickych-produktov',
- 'Klub':'/klub','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
+ ...(process.env.ANASTASIA_CLUB==='1'?{'Klub':'/klub'}:{}),'Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
 }));
 const htmlFor=path=>readFile(new URL((path==='/'?'':path.slice(1)+'/')+'index.html',dist),'utf8');
 const attribute=(text,name)=>text.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
