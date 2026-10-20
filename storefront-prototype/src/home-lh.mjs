@@ -184,7 +184,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const manifesto = `
-<section class="lh-split lh-split--paper" id="manifest" data-screen-label="02 Manifest">
+<section class="lh-split lh-split--paper" id="manifest" data-sk-only data-screen-label="02 Manifest">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Vitajte</p>
     ${duo('Nie ako ponuka riešení.', 'ALE AKO PRIESTOR')}
@@ -195,7 +195,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const collection = `
-<section class="lh-split lh-split--flip lh-split--dark" id="kolekcia" data-screen-label="03 Kolekcia">
+<section class="lh-split lh-split--flip lh-split--dark" id="kolekcia" data-sk-only data-screen-label="03 Kolekcia">
   <div class="lh-split__media"><img data-par="9" src="${IMG.tree}" alt="Strom v krajine" loading="lazy"></div>
   <div class="lh-split__text">
     <p class="lh-eyebrow">Kolekcia</p>
@@ -206,7 +206,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const programme = `
-<section class="lh-split lh-split--paper" id="program" data-screen-label="04 Program">
+<section class="lh-split lh-split--paper" id="program" data-sk-only data-screen-label="04 Program">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Program RESET 40+</p>
     ${duo('Nová kapitola', 'SA ZAČÍNA VAMI.')}
@@ -223,7 +223,7 @@ export function homeSections(products = []) {
 
   // --- RESET: vodorovný pás tém (bod 5) -----------------------------------
   const reset = `
-<section class="lh-reset" id="lh-reset" aria-labelledby="lh-rh">
+<section class="lh-reset" id="lh-reset" data-sk-only aria-labelledby="lh-rh">
   <div class="lh-reset__pin">
     <div class="lh-reset__head">
       <h2 id="lh-rh">${duo('Šestnásť tém.', 'Jeden RESET.')}</h2>
@@ -241,7 +241,7 @@ export function homeSections(products = []) {
 
   // --- Obloha: kruhové okno do noci (bod 2) --------------------------------
   const sky = `
-<section class="lh-sky" id="lh-obloha" aria-labelledby="lh-skh">
+<section class="lh-sky" id="lh-obloha" data-sk-only aria-labelledby="lh-skh">
   <div class="lh-sky__stage">
     <p class="lh-sky__pre" aria-hidden="true">Pozrite sa hore</p>
     <div class="lh-sky__win">
@@ -260,7 +260,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const consultations = `
-<section class="lh-split lh-split--flip" id="konzultacie" data-screen-label="06 Konzultácie">
+<section class="lh-split lh-split--flip" id="konzultacie" data-sk-only data-screen-label="06 Konzultácie">
   <div class="lh-lucia">
     <div class="lh-lucia__frame"><img data-par="8" src="${IMG.lucia}" alt="Mgr. Lucia Rogožanová, zakladateľka ANASTASIA" loading="lazy"></div>
     <div class="lh-lucia__float" data-speed="-90"><img data-par="10" src="${IMG.tree}" alt="" loading="lazy"></div>
@@ -275,7 +275,7 @@ export function homeSections(products = []) {
 
   // --- Svět ANASTASIA: vrstvené karty (bod 4) ------------------------------
   const stack = `
-<section class="lh-stack" id="lh-stack" data-screen-label="07 Svet ANASTASIA">
+<section class="lh-stack" id="lh-stack" data-sk-only data-screen-label="07 Svet ANASTASIA">
   <div class="lh-stack__head">
     ${duo('Štyri cesty', 'SVET ANASTASIA.')}
     <p>Jedna filozofia, štyri podoby. Od krému miešaného na mieru po šestnásťtýždňový program.</p>
@@ -295,7 +295,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const contact = `
-<section class="lh-contact" data-screen-label="08 Kontakt">
+<section class="lh-contact" data-sk-only data-screen-label="08 Kontakt">
   <p class="lh-eyebrow">Kontakt</p>
   ${duo('Potrebujete', 'POMOC?')}
   <p class="lh-lead lh-lead--center">Či už viete, čo hľadáte, alebo práve neviete, odkiaľ začať — napíšte nám. Ozveme sa osobne.</p>

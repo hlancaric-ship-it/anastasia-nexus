@@ -29,10 +29,18 @@ const server=http.createServer(async(req,res)=>{
     }catch{res.writeHead(502);res.end();return;}
   }
   try{
-    const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+    const requestUrl=new URL(req.url,'http://localhost');
+    const pathname=decodeURIComponent(requestUrl.pathname);
     let file=resolve(root,'.'+pathname);if(file!==root&&!file.startsWith(root+sep)){res.writeHead(403);res.end();return;}
     let info=await stat(file);if(info.isDirectory()){file=resolve(file,'index.html');info=await stat(file);}
     res.setHeader('Content-Type',mime[extname(file)]||'application/octet-stream');res.setHeader('Accept-Ranges','bytes');
+    // Země návštěvníka: v náhledu ji simuluje hlavička CF-IPCountry nebo ?country=XX
+    // (v produkci ji doplní edge vrstva z request.cf.country).
+    const country=String(req.headers['cf-ipcountry']||requestUrl.searchParams.get('country')||'').toUpperCase();
+    if(country&&/^[A-Z]{2}$/.test(country)&&extname(file)==='.html'){
+      const html=(await readFile(file,'utf8')).replace('<meta name="ana-country" content="">',`<meta name="ana-country" content="${country}">`);
+      const bytes=Buffer.from(html,'utf8');res.setHeader('Content-Length',bytes.length);res.end(req.method==='HEAD'?undefined:bytes);return;
+    }
     const range=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
     if(range){const start=Number(range[1]),end=Math.min(range[2]?Number(range[2]):info.size-1,info.size-1);if(start>end||start>=info.size){res.writeHead(416,{'Content-Range':`bytes */${info.size}`});res.end();return;}res.writeHead(206,{'Content-Range':`bytes ${start}-${end}/${info.size}`,'Content-Length':end-start+1});if(req.method==='HEAD')res.end();else createReadStream(file,{start,end}).pipe(res);}
     else{res.writeHead(200,{'Content-Length':info.size});if(req.method==='HEAD')res.end();else createReadStream(file).pipe(res);}

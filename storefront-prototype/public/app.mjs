@@ -271,6 +271,7 @@ document.addEventListener('click',async event=>{
   const add=event.target.closest('[data-add]');
   if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='var(--site-accent)';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
   const a=event.target.closest('a[href]');
+  if(a&&a.dataset&&a.dataset.i18nSwitch)return;
   if(!a||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
   const url=new URL(a.href,location.href);
   if(url.origin!==location.origin||url.pathname===location.pathname&&url.search===location.search&&url.hash||reducedMotion.matches)return;

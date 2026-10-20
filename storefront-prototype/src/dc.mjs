@@ -213,7 +213,9 @@ export function chrome(page) {
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
-    menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
+    // Jazykové přepínače jsou živé (SK/EN/RU), poznámka „už čoskoro“ neplatí.
+    menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'}))
+      .replace(/<span style="font-size:9px;opacity:0\.7">EN \/ RU už čoskoro<\/span>/, ''),
   };
 }
 
