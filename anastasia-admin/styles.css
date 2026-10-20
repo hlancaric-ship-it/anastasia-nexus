@@ -228,20 +228,29 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
 .guide-card strong{display:block;font-weight:450;font-size:15px;line-height:1.35;overflow-wrap:anywhere}
 .guide-card small{display:block;font-size:12px;color:var(--muted);line-height:1.6;margin-top:5px}
 .help-back{margin:-8px 0 14px}
-.guide{max-width:860px}
+.guide{max-width:1480px}
+.guide-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
+.guide-head .guide-actions{margin-top:4px}
+.guide-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 40px}
+.guide-related ul{list-style:none;padding:0!important;display:flex;flex-wrap:wrap;gap:4px 22px}
+.guide-related li+li{margin-top:0!important}
+.guide-steps li+li{margin-top:2px!important}
+.guide .intro{margin-top:4px}
+.guide-related a{color:var(--forest)}
+@media (max-width:1100px){.guide-cols{grid-template-columns:1fr}}
 .guide h2{font-size:26px;font-weight:400;letter-spacing:-.6px;line-height:1.25}
 .guide .intro{margin-top:8px}
-.guide-sec{border-top:1px solid var(--line);margin-top:22px;padding-top:20px}
+.guide-sec{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
 .guide-sec h3{font-size:15px;font-weight:450;margin-bottom:10px;color:var(--forest)}
-.guide-sec p,.guide-sec li{font-size:14px;line-height:1.75}
+.guide-sec p,.guide-sec li{font-size:14px;line-height:1.6}
 .guide-sec ul,.guide-sec ol{margin:0;padding-left:22px}
-.guide-sec li+li{margin-top:6px}
+.guide-sec li+li{margin-top:4px}
 .guide-steps{counter-reset:gs;list-style:none;padding-left:0!important}
 .guide-steps li{counter-increment:gs;position:relative;padding-left:40px;min-height:28px}
 .guide-steps li:before{content:counter(gs);position:absolute;left:0;top:0;width:27px;height:27px;border-radius:50%;background:var(--soft);color:var(--forest);display:grid;place-items:center;font-size:13px}
 .guide-careful{background:#f8f4ea;border:1px solid #e8dcc2;border-radius:8px;padding:16px 18px 18px}
 .guide-careful h3{color:#71542d}
-.guide-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.guide-actions{display:flex;flex-wrap:wrap;gap:10px}
 
 /* ---------- sprievodca: úvodná prehliadka ---------- */
 .tour-block{position:fixed;inset:0;z-index:1000;background:transparent}

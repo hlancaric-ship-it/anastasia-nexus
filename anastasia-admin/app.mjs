@@ -1388,17 +1388,20 @@ function guideDetail(view, g) {
   const related = GUIDES.filter(x => x.group === g.group && x.id !== g.id);
   view.innerHTML = `<a class="subtle-link help-back" href="#/pomoc">← Všetky návody</a>
     <article class="card guide" aria-labelledby="guide-t"><div class="card-b">
-      <p class="eyebrow">${esc(groupLabel(g.group))}</p>
+      <header class="guide-head"><div><p class="eyebrow">${esc(groupLabel(g.group))}</p>
       <h2 id="guide-t">${esc(g.title)}</h2>
-      <p class="intro">${esc(g.summary)}</p>
+      <p class="intro">${esc(g.summary)}</p></div>
+      <div class="guide-actions"><a class="btn primary" href="${esc(g.href)}">${esc(g.hrefLabel)}${navIcon('arrow')}</a></div></header>
+      <div class="guide-cols"><div>
       <section class="guide-sec"><h3>Prečo</h3><p>${esc(g.why)}</p></section>
       <section class="guide-sec"><h3>Ako na to</h3><ol class="guide-steps">${g.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></section>
+      </div><div>
       ${g.extra ? `<section class="guide-sec"><h3>${esc(g.extra.title)}</h3>${list(g.extra.items)}</section>` : ''}
       ${g.after && g.after.length ? `<section class="guide-sec"><h3>Čo sa stane potom</h3>${list(g.after)}</section>` : ''}
       ${g.careful && g.careful.length ? `<section class="guide-sec guide-careful"><h3>Na čo si dať pozor</h3>${list(g.careful)}</section>` : ''}
-      <div class="guide-actions"><a class="btn primary" href="${esc(g.href)}">${esc(g.hrefLabel)}${navIcon('arrow')}</a><a class="btn ghost" href="#/pomoc">Všetky návody</a></div>
-    </div></article>
-    ${related.length ? `<section class="help-group"><h2>Súvisiace návody</h2><div class="guide-grid">${related.map(x => `<a class="guide-card" href="#/pomoc/${esc(x.id)}">${navIcon(x.icon || 'doc')}<span><strong>${esc(x.title)}</strong><small>${esc(x.summary)}</small></span></a>`).join('')}</div></section>` : ''}`;
+      ${related.length ? `<section class="guide-sec guide-related"><h3>Súvisiace návody</h3><ul>${related.map(x => `<li><a href="#/pomoc/${esc(x.id)}">${esc(x.title)}</a></li>`).join('')}</ul></section>` : ''}
+      </div></div>
+    </div></article>`;
 }
 
 // Úvodná prehliadka. „Videné“ sa pamätá pre každý účet zvlášť; keď je úložisko prehliadača nedostupné, aspoň do obnovenia stránky.
