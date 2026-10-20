@@ -18,7 +18,16 @@ for(const link of $$('[data-global-account]')) {
 // Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
 const kolTrack=$('.kol-track');
 if(kolTrack)(async()=>{
-  let products=[];try{products=(await api.getProducts()).slice(0,kolTrack.children.length);}catch{products=[];}
+  let products=[];
+  try{products=(await api.getProducts()).slice(0,kolTrack.children.length);}catch{products=[];}
+  if(!products.length){
+    // Katalog v tomto běhu není dostupný. Karty ale zůstaly v HTML z buildu
+    // (src/lib/api/catalog.mjs) — necháme je stát a přiznáme stav místo prázdné
+    // sekce s chybovou hláškou.
+    kolTrack.dataset.ready='';
+    kolTrack.closest('section')?.querySelector('.kol-tabs')?.insertAdjacentHTML('afterend','<p class="kol-status">Katalóg sa dopĺňa.</p>');
+    return;
+  }
   [...kolTrack.children].forEach((cardEl,i)=>{
     const p=products[i];if(!p){cardEl.remove();return;}
     const f=$$('.sc-interp',cardEl);if(f[1])f[1].textContent=p.category;if(f[2])f[2].textContent=p.category;if(f[3])f[3].textContent=p.priceLabel;if(f[4])f[4].textContent=p.name;
@@ -26,7 +35,6 @@ if(kolTrack)(async()=>{
     const add=$('[data-add]',cardEl);if(add)add.dataset.add=p.code;
   });
   kolTrack.dataset.ready='';
-  if(!products.length)kolTrack.closest('section')?.querySelector('.kol-tabs')?.insertAdjacentHTML('afterend','<p class="form-status">Produkty sa teraz nepodarilo načítať.</p>');
 })();
 
 const customerCenter=$('.customer-center');

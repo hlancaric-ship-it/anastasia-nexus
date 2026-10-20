@@ -225,7 +225,7 @@ export function homeSections(products) {
   return P.home.sections.map((s, i) => {
     let out = convert(s, {page: 'home', data});
     if(i===0){
-      out=out.replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(16,24,15,0\.62\)[^"]*"><\/div>/,'')
+      out=out.replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(16,24,15,0\.62\)[^"]*"><\/div>/,'<div class="hero-scrim"></div><div class="hero-ghost" aria-hidden="true">ANASTASIA</div>')
         .replace(/<div style="position:relative;flex:1;min-height:0"><\/div>/,'<div class="hero-brand"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><filter id="brand-wave" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="1" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" data-brand-wave/></filter></defs></svg><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future"></div>')
         .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
     }
@@ -385,6 +385,15 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 #o-lucii::before{content:"";position:absolute;inset:0 0 auto;height:clamp(240px,28vw,440px);background:linear-gradient(180deg,${ease(CREAM,1,0,'0%','100%')});pointer-events:none;z-index:1}
 @media(min-width:1000px){.sky-section>div:not(.sky-spill)>div:first-child{align-self:center}}
 .wisdom{margin-left:var(--rail-neg);padding:clamp(64px,7vw,120px) clamp(20px,4vw,64px) clamp(72px,8vw,140px) calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
+.kol-status{margin:18px 0 0;font-size:11px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:var(--site-accent-deep);opacity:.75}
+/* Hero: vlastní signatúra značky — hluboký přechod pod text a průsvitný wordmark.
+   Návrhová reference scrim neobsahuje, bez něj text drží jen les na okraji. */
+.hero-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,24,15,.46) 0%,rgba(16,24,15,.18) 28%,rgba(16,24,15,.58) 58%,rgba(8,12,7,.86) 82%,rgba(4,6,4,.94) 100%)}
+.hero-ghost{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-weight:100;font-size:clamp(110px,20vw,360px);letter-spacing:-.06em;line-height:.8;color:rgba(239,229,199,.07);white-space:nowrap;pointer-events:none;user-select:none}
+[data-screen-label="01 Hero"] h1{font-weight:100}
+/* Outfit je variabilní font (100–900) — bez toho se váha 100 syntetizuje z 200
+   a display vypadá tlustší, než je v návrhu. */
+.dc-root,.dc-chrome{font-synthesis:none}
 .wisdom figure{margin:0 auto;max-width:1180px;display:flex;flex-direction:column;align-items:center;gap:clamp(28px,3.4vw,48px)}
 .wisdom-mark{width:1px;height:clamp(48px,6vw,80px);background:linear-gradient(transparent,var(--site-accent-deep))}
 .wisdom blockquote{margin:0;font-weight:100;font-size:clamp(34px,4.6vw,72px);line-height:1.08;letter-spacing:-0.035em}
