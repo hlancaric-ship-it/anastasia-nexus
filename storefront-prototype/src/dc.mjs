@@ -230,6 +230,14 @@ export function homeSections(products) {
         .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
     }
     let pre='';
+    // The manifest copy in the design file still carries a working note about
+    // "the ANASTASIA project" — that is scaffolding, not brand voice. Swap it
+    // for the statement itself; the meaning stays, the meta sentence goes.
+    if(out.includes('id="manifest"')){
+      out=out.replace(
+        /Táto časť webu patrí projektu ANASTASIA\.\s*<span style="color:#748054">Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani&nbsp;riadené\.<\/span>/,
+        '<span style="color:#748054">Nie ako ponuka riešení, ale ako priestor, kde nemusíte nič urýchľovať, vysvetľovať ani riadiť.</span>');
+    }
     // Kolekcia na landing page: prehľad (nie obchod) – na mobile vodorovný pás 2 kariet, ktorý sa sám otáča.
     if(out.includes('id="kolekcia"')){
       const grid='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));';
@@ -238,8 +246,10 @@ export function homeSections(products) {
     if(out.includes('data-video="sky"')){
       out=out.replace('<section ', '<section class="sky-section" ').replace('<div style="order:-1;', '<div class="sky-window" style="order:-1;').replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(0,0,0,0\) 50%,rgba\(0,0,0,0.65\) 100%\)"><\/div>/,'');
       out=out.replace(/(<section[^>]*>)/, '$1<div class="sky-spill" aria-hidden="true"><video data-video="sky-spill" poster="/assets/night-sky.jpg" autoplay muted loop playsinline preload="metadata">'+VIDEO_SOURCES.sky+'</video></div>');
-      // TODO(Lucia): nahradit vlastní myšlenkou Lucie, až ji dodá; zatím oficiální slogan značky
-      pre='<section class="wisdom" data-screen-label="04b Myšlienka" aria-label="Light for the Future"><figure><span class="wisdom-mark" aria-hidden="true"></span><blockquote>Light for the Future</blockquote><figcaption>ANASTASIA</figcaption></figure></section>\n';
+      // Statement band between the programme and the consultations. It used to
+      // hold only the brand slogan, which left a dead gap on the page — the
+      // line below is the approved copy from the original site (src/pages.mjs).
+      pre='<section class="wisdom" data-screen-label="04b Myšlienka" aria-label="Zdravý svet"><figure><span class="wisdom-mark" aria-hidden="true"></span><blockquote>Zdravý svet nie je ideál,<br><span style="color:#748054">ku ktorému sa treba dopracovať.</span></blockquote><figcaption>ANASTASIA · Zdravý svet</figcaption></figure></section>\n';
     }
     // pásmo se vkládá až za bleed, aby sekce s oblohou dál dostala odsazení pod boční lištu
     return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : pre+bleed(out);
@@ -371,11 +381,11 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 /* krémová mezera mezi konzultacemi a O Lucii */
 .sky-section{padding-bottom:clamp(96px,10vw,180px)!important}
 #o-lucii{position:relative}
-#program{padding-bottom:clamp(160px,18vw,300px)!important}
+#program{padding-bottom:clamp(88px,10vw,170px)!important}
 #o-lucii::before{content:"";position:absolute;inset:0 0 auto;height:clamp(240px,28vw,440px);background:linear-gradient(180deg,${ease(CREAM,1,0,'0%','100%')});pointer-events:none;z-index:1}
 @media(min-width:1000px){.sky-section>div:not(.sky-spill)>div:first-child{align-self:center}}
-.wisdom{margin-left:var(--rail-neg);padding:clamp(48px,6vw,96px) clamp(20px,4vw,64px) clamp(72px,9vw,160px) calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
-.wisdom figure{margin:0 auto;max-width:980px;display:flex;flex-direction:column;align-items:center;gap:clamp(24px,3vw,40px)}
+.wisdom{margin-left:var(--rail-neg);padding:clamp(64px,7vw,120px) clamp(20px,4vw,64px) clamp(72px,8vw,140px) calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
+.wisdom figure{margin:0 auto;max-width:1180px;display:flex;flex-direction:column;align-items:center;gap:clamp(28px,3.4vw,48px)}
 .wisdom-mark{width:1px;height:clamp(48px,6vw,80px);background:linear-gradient(transparent,var(--site-accent-deep))}
 .wisdom blockquote{margin:0;font-weight:100;font-size:clamp(34px,4.6vw,72px);line-height:1.08;letter-spacing:-0.035em}
 .wisdom figcaption{display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--site-accent-deep)}
