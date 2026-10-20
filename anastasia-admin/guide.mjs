@@ -573,7 +573,7 @@ export const PAGE_HELP = {
   produkty: {
     title: 'Ako fungujú Produkty',
     text: 'Tu spravujete katalóg. Kliknutím na kartu produkt upravíte, tlačidlom Pridať produkt založíte nový.',
-    points: ['Produkt sa dá zverejniť, až keď má cenu, predajný kanál, typ produktu a kód.', 'Konečnú cenu v košíku prepočíta systém automaticky na serveri.', 'Zmeny na celej stránke uložíte jedným tlačidlom Uložiť.'],
+    points: ['Produkt sa dá zverejniť, až keď má cenu, predajný kanál, typ produktu a kód.', 'Konečnú cenu v košíku prepočíta systém automaticky na serveri.', 'Názvy a poradie videí či nahrávok upravíte v časti Zakúpený obsah; pôvodné súbory aj prístupy zostávajú zachované.', 'Zmeny na celej stránke uložíte jedným tlačidlom Uložiť.'],
     guides: ['produkt-pridat', 'produkt-upravit', 'produkt-akcia', 'kategorie'],
   },
   kategorie: {

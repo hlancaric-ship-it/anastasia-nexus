@@ -200,9 +200,13 @@
         "backend/src/modules/entitlement/order-sync.ts",
         "backend/src/api/store/entitlements/route.ts",
         "backend/src/lib/protected-library/catalog.ts",
-        "backend/docs/wp/protected-library-r2.md"
+        "backend/docs/wp/protected-library-r2.md",
+        "backend/src/api/admin/products/[id]/protected-media/route.ts",
+        "backend/src/lib/protected-library/editor.ts",
+        "anastasia-admin/library-editor.mjs",
+        "backend/docs/wp/library-admin.md"
       ],
-      "remaining": "Editor obsahu/lekcí a bezpečný upload nejsou totožné s existujícím oprávněním.",
+      "remaining": "Přejmenování a pořadí již přiřazených souborů implementované; soukromý upload a nové přiřazení/odebrání zůstává samostatný nedokončený balík.",
       "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu."
     },
     {
@@ -215,9 +219,13 @@
       "request": "Správa obrázků, videa/audio, přiřazení k produktu bez JSON, oddělení veřejných a placených souborů.",
       "sources": [
         "backend/src/api/store/media-access/route.ts",
-        "nexus/workers/api/routes/mediaDelivery.ts"
+        "nexus/workers/api/routes/mediaDelivery.ts",
+        "backend/src/api/admin/products/[id]/protected-media/route.ts",
+        "backend/src/lib/protected-library/editor.ts",
+        "anastasia-admin/library-editor.mjs",
+        "backend/docs/wp/library-admin.md"
       ],
-      "remaining": "Chybí vlastní validovaný privátní upload/přiřazení; veřejné Medusa uploads nestačí pro placený obsah.",
+      "remaining": "Přejmenování a pořadí již přiřazených souborů implementované; soukromý upload a nové přiřazení/odebrání zůstává samostatný nedokončený balík.",
       "acceptance": "Placený soubor není veřejný; cizí/sousední soubor je odmítnut; UI přizná platnost vydaného odkazu do expirace."
     },
     {
@@ -1075,6 +1083,16 @@
       "feature": "operations",
       "source": "backend/src/api/admin/ops/nexus/route.ts",
       "sha256": "7d8a70e17020f193373cefa12ed54ec6b61a7f217e00b8a9b67e8adb6cf98792"
+    },
+    {
+      "path": "/admin/products/:id/protected-media",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "media",
+      "source": "backend/src/api/admin/products/[id]/protected-media/route.ts",
+      "sha256": "9d262e943fb9ea02b476f938cc10d2a1f980ac1ed1f193cf94bfa3ad5abc1a12"
     },
     {
       "path": "/admin/readiness",
@@ -4461,7 +4479,10 @@
     "nexus/tests/workers/scheduledRecovery.test.ts",
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
-    "nexus/tests/workers/voucherConcurrency.test.ts"
+    "nexus/tests/workers/voucherConcurrency.test.ts",
+    "backend/src/lib/protected-library/__tests__/editor.unit.spec.ts",
+    "backend/integration-tests/http/protected-library-admin-http-checks.ts",
+    "anastasia-admin/test/browser-library-editor.mjs"
   ],
   "candidate_branch": "codex/admin-theming"
 }
