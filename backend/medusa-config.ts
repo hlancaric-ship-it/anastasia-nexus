@@ -207,7 +207,7 @@ if (redisUrl) {
   modules.push(
     { key: Modules.EVENT_BUS, resolve: "@medusajs/medusa/event-bus-redis", options: { redisUrl } },
     { key: Modules.CACHE, resolve: "@medusajs/medusa/cache-redis", options: { redisUrl } },
-    { key: Modules.WORKFLOW_ENGINE, resolve: "@medusajs/medusa/workflow-engine-redis", options: { redisUrl } },
+    { key: Modules.WORKFLOW_ENGINE, resolve: "@medusajs/medusa/workflow-engine-redis", options: { redis: { url: redisUrl } } },
     {
       key: Modules.LOCKING,
       resolve: "@medusajs/medusa/locking",

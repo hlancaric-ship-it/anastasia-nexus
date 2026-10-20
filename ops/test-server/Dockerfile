@@ -11,6 +11,8 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app/.medusa/server ./
 RUN npm ci --omit=dev --no-audit --no-fund || npm install --omit=dev --no-audit --no-fund
+# Migrácie Medusy zapisujú aj do node_modules — celý /app patrí používateľovi node.
+RUN mkdir -p /app/static && chown -R node:node /app
 USER node
 EXPOSE 9000
 # Migrácie pri každom štarte (idempotentné), potom server.
