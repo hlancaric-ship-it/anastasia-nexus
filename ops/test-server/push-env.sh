@@ -64,6 +64,13 @@ OUT=$(mktemp); trap 'rm -f "$OUT" "$OUT.pg" "$OUT.n"' EXIT; chmod 600 "$OUT"
   echo "NEXUS_PRICING_URL=$NEXUS/api/nexus/pricing"
   echo "NEXUS_WEBHOOK_URL=$NEXUS/api/webhooks/medusa"
   echo "NEXUS_TENANT_ID=anastasia"
+  echo "ACCOUNT_BOOKINGS_URL=$WEB/ucet#konzultacie"
+  echo "GIFT_VOUCHER_DELIVERY=notification"
+  echo "MEDIA_DELIVERY_BASE_URL=$NEXUS/api/media"
+  # Verzie právnych textov na teste; pre ostré nasadenie ich schvaľuje vlastníčka textov.
+  echo "LEGAL_TERMS_VERSION=vop-2026-10-test"
+  echo "LEGAL_PRIVACY_VERSION=gdpr-2026-10-test"
+  echo "NEWSLETTER_CONSENT_VERSION=newsletter-2026-10-test"
 } > "$OUT"
 
 if grep -E '^(JWT_SECRET|COOKIE_SECRET|STRIPE_WEBHOOK_SECRET|S3_SECRET_ACCESS_KEY|ZEPTOMAIL_API_KEY)=$' "$OUT" >/dev/null; then
