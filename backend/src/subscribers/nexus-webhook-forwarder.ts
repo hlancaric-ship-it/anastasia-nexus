@@ -22,7 +22,8 @@ export default async function nexusWebhookForwarder({ event, container }: Subscr
 
   const webhookSecret = process.env.NEXUS_WEBHOOK_SECRET
   const eventName = event.name
-  const eventId = `medusa_${eventName}_${event.data.id}_${Date.now()}`
+  // NEXUS prijíma ID iba v tvare [A-Za-z0-9_-] — bodka z názvu udalosti by webhook odmietla (422).
+  const eventId = `medusa_${eventName.replace(/[^A-Za-z0-9_-]/g, "-")}_${event.data.id}_${Date.now()}`
 
   const payload = JSON.stringify({
     event: eventName,
