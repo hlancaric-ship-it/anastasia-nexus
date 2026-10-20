@@ -588,15 +588,59 @@ async function vCategoryDetail(view, id) {
 }
 async function vOrders(view) {
   view = freshView(view);
-  const { orders } = await api('/admin/orders?limit=50&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata');
+  const { orders = [] } = await api('/admin/orders?limit=100&order=-created_at&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata,*items,*customer,*shipping_methods');
   const payPill = (s) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc(PAY_LABEL[s] || s || '—')}</span>`;
   const fulPill = (s) => `<span class="pill ${s === 'fulfilled' || s === 'shipped' || s === 'delivered' ? 'ok' : 'warn'}">${esc(FUL_LABEL[s] || s || 'nevybavená')}</span>`;
-  listView(view, { title: 'Objednávky', rows: orders, onRow: o => vOrderDetail(view, o.id), empty: 'Zatiaľ žiadne objednávky.',
-    card: o => `<div class="rc-body"><div class="rc-title">#${esc(o.metadata?.legacy_customer_migration?.number || o.display_id || '')} · ${fmtEur(o.total)}</div><div class="rc-fields">
-      <span class="rc-f"><em>Zákazníčka</em>${esc(o.email || '—')}</span>
-      <span class="rc-f"><em>Platba</em>${o.status === 'archived' ? esc(o.metadata?.legacy_customer_migration?.payment_status || 'Historický záznam') : payPill(o.payment_status)}</span>
-      <span class="rc-f"><em>Vybavenie</em>${o.status === 'archived' ? `<span class="pill">${esc(o.metadata?.legacy_customer_migration?.status || 'Archív')}</span>` : fulPill(o.fulfillment_status)}</span>
-      <span class="rc-f"><em>Dátum</em>${fmtDate(o.metadata?.legacy_customer_migration?.placed_at || o.created_at)}</span></div></div>` });
+  const legacy = o => o.metadata?.legacy_customer_migration;
+  const archived = o => o.status === 'archived';
+  // Filtre zodpovedajú tomu, čo Lucia rieši: čo treba odoslať, kde sa čaká na peniaze, čo je hotové.
+  const FILTERS = [
+    ['all', 'Všetky', () => true],
+    ['todo', 'Na vybavenie', o => !archived(o) && o.status !== 'canceled' && ['captured', 'paid', 'partially_captured'].includes(o.payment_status) && ['not_fulfilled', 'partially_fulfilled', 'fulfilled'].includes(o.fulfillment_status)],
+    ['unpaid', 'Čaká na platbu', o => !archived(o) && o.status !== 'canceled' && ['not_paid', 'awaiting', 'authorized', 'requires_action'].includes(o.payment_status)],
+    ['done', 'Odoslané', o => ['shipped', 'partially_shipped', 'delivered'].includes(o.fulfillment_status)],
+    ['canceled', 'Zrušené', o => o.status === 'canceled'],
+    ['archive', 'Archív', o => archived(o)],
+  ].filter(([k, , f]) => k === 'all' || orders.some(f));
+  const name = o => [o.customer?.first_name, o.customer?.last_name].filter(Boolean).join(' ') || o.shipping_address?.first_name || '';
+  const row = o => {
+    const items = o.items || [], first = items[0];
+    const more = items.length > 1 ? ` <small>+ ${items.length - 1} ďalšie</small>` : '';
+    const thumb = first?.thumbnail ? `<img src="${esc(first.thumbnail)}" alt="" loading="lazy">` : `<span class="ot-noimg">${navIcon('bag')}</span>`;
+    return `<tr data-id="${esc(o.id)}" tabindex="0">
+      <td class="ot-img">${thumb}</td>
+      <td><b>#${esc(legacy(o)?.number || o.display_id || '')}</b><small>${fmtDate(legacy(o)?.placed_at || o.created_at)}</small></td>
+      <td>${esc(name(o) || '—')}<small>${esc(o.email || '')}</small></td>
+      <td class="ot-items">${esc(first?.title || first?.product_title || '—')}${more}</td>
+      <td class="ot-num">${fmtEur(o.total)}</td>
+      <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status)}</td>
+      <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
+      <td class="ot-act"><span class="btn ghost sm">Otvoriť ${navIcon('arrow')}</span></td></tr>`;
+  };
+  let filter = 'all', query = '';
+  view.innerHTML = `<section class="card ot-card"><div class="ot-head">
+      <h2>Objednávky <span class="muted">(${orders.length})</span></h2>
+      ${orders.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať číslo, meno, e-mail, produkt…" aria-label="Hľadať v objednávkach">' : ''}
+    </div>
+    ${FILTERS.length > 1 ? `<div class="ot-filters" role="tablist">${FILTERS.map(([k, l, f]) => `<button type="button" role="tab" data-f="${k}" aria-selected="${k === filter}">${esc(l)} <span>${orders.filter(f).length}</span></button>`).join('')}</div>` : ''}
+    <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazníčka</th><th>Položky</th><th class="ot-num">Suma</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+  </section>`;
+  const body = view.querySelector('tbody');
+  const draw = () => {
+    const f = FILTERS.find(x => x[0] === filter)?.[2] || (() => true);
+    const list = orders.filter(f).filter(o => !query || JSON.stringify([o.display_id, o.email, name(o), (o.items || []).map(i => i.title)]).toLowerCase().includes(query));
+    body.innerHTML = list.length ? list.map(row).join('') : `<tr><td colspan="8" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
+    body.querySelectorAll('tr[data-id]').forEach(tr => {
+      const open = () => vOrderDetail(view, tr.dataset.id);
+      tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+    });
+  };
+  view.querySelectorAll('.ot-filters button').forEach(b => b.onclick = () => {
+    filter = b.dataset.f; view.querySelectorAll('.ot-filters button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw();
+  });
+  const s = view.querySelector('.rc-search');
+  if (s) s.oninput = () => { query = s.value.toLowerCase().trim(); draw(); };
+  draw();
 }
 // Akcie objednávky cez natívne Admin API jadra (spúšťajú existujúce subscribery: e-maily, prístupy, kompenzácie).
 // Každá zmena má potvrdenie; sumy a stavy overuje jadro, SPA len ponúka to, čo dáva zmysel.
