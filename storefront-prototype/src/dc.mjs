@@ -2,7 +2,7 @@
 // Inline styly, texty a struktura se přebírají doslova; mění se jen to, co je v návrhu
 // vázané na React stav (šířka okna, otevřené menu, košík) — to přebírají CSS proměnné a app.mjs.
 import {readFileSync} from 'node:fs';
-import {homeSections as homeLhSections, HOME_CSS} from './home-lh.mjs';
+import {homeSections as homeLhSections, HOME_CSS, LH_HEADER} from './home-lh.mjs';
 import {fileURLToPath} from 'node:url';
 import {escape} from './components.mjs';
 import {menuGroups} from './lib/menu-navigation.mjs';
@@ -20,13 +20,13 @@ const ROUTES = {
   'ANASTASIA': '/', 'SK': '/', 'LIGHT FOR THE FUTURE': '/', '← Na úvod': '/',
   'Všetky produkty': '/eshop', 'Kategórie': '/eshop/kategorie', 'Novinky': '/eshop?filter=novinky', 'Bestsellery': '/eshop?filter=bestsellery',
   'Celý obchod': '/eshop', 'Obchod': '/eshop',
-  'Kozmetika': '/eshop?category=Kozmetika', 'Bylinky a výživa': '/eshop?category=Bylinky%20a%20v%C3%BD%C5%BEiva', 'Programy a služby': '/eshop?category=Programy%20a%20slu%C5%BEby',
-  'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/eshop?category=Programy%20a%20slu%C5%BEby',
+  'AI ANASTASIA ACADEMY': '/eshop?category=ai-anastasia-academy', 'BIOKOZMETIKA': '/eshop?category=bio-kozmetika-bez-chemie', 'Zdravé doplnky výživy': '/eshop?category=zdrave-doplnky-vyzivy', 'Programy a služby': '/eshop?category=ai-anastasia-academy',
+  'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/eshop?category=ai-anastasia-academy',
   'Klub': '/klub', 'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
   'Konzultácie': '/konzultacie', 'Všetky konzultácie': '/konzultacie', 'Služby': '/konzultacie',
   'Online konzultácia': '/konzultacie/online-zdravotna-konzultacia', 'Supervízia': '/konzultacie/supervizia',
   'Astrologický profil': '/konzultacie/astrologicky-profil-zdravia-a-vitality', 'Astrológia': '/konzultacie/astrologicky-profil-zdravia-a-vitality',
-  'AI ANASTASIA': '/ai-anastasia', 'AI ANASTASIA ACADEMY': '/ai-anastasia-academy',
+  'AI ANASTASIA': '/ai-anastasia',
   'Zdravý svet': '/zdravy-svet', 'O Lucii': '/o-lucii', 'Príbeh Lucie': '/o-lucii', 'Kontakt': '/kontakt',
   'Pharmanews': '/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny', 'Zdravé lekárne': '/zdrava-lekaren',
   'Obchodné podmienky': '/vop', 'Súkromie a GDPR': '/gdpr', 'Reklamácie': '/reklamacie',
@@ -209,7 +209,7 @@ export function chrome(page) {
   // Na novém rozvržení úvodu hlavička leží přes hero, ne tlačí obsah dolů.
   const header=page==='home'?headerHtml.replace('style="position:relative;z-index:2;','style="position:absolute;left:0;right:0;top:0;z-index:4;'):headerHtml;
   return {
-    header,
+    header: page==='home' ? LH_HEADER : header,
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
@@ -237,7 +237,7 @@ export function aboutSections() {
 
 // overflow-x:clip místo hidden — hidden by z kořene udělal scroll kontejner
 // a sticky sekce (úvod, obloha) by se držely vůči němu místo vůči oknu.
-export const ROOT_STYLE = 'font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:#283020;overflow-x:clip;padding:0 0 0 var(--rail-pad)';
+export const ROOT_STYLE = 'font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:#283020;overflow-x:clip;padding:0';
 // Globální styly z <helmet> návrhu (rozsah omezen na stránky v novém vzhledu tam, kde by rozbily starší obsah).
 // Plynulé přechody mezi sekcemi: smoothstep místo lineárního gradientu, aby na konci přechodu nevznikla viditelná hrana.
 const SMOOTH = [0, .028, .104, .216, .352, .5, .648, .784, .896, .972, 1];

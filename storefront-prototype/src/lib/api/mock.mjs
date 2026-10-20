@@ -88,7 +88,7 @@ export function createMockApi(storage=memoryStorage()) {
       return{ok:true,gift_voucher:clone(credit),cart:cart(),message:'Poukaz bol uplatnený.'};
     },
     removeGiftVoucher:()=>{credit=null;return cart();},
-    getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
+    getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category||p.categoryHandle===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
     getProduct:slug=>clone(products.find(p=>p.slug===slug)||null),
     getCategories:()=>[...SHOP_CATEGORIES],
     getPages:()=>clone(pages),getPage:path=>clone(pages.find(p=>p.path===canonical(path))||null),getAliases:()=>clone(aliases),

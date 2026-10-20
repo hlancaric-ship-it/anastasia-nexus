@@ -192,6 +192,8 @@ const vio=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.i
 $$('video').forEach(v=>{v.muted=true;if(reducedMotion.matches){v.autoplay=false;v.pause();}vio.observe(v);});
 playBtn?.addEventListener('click',()=>{if(!heroVideo){toggleAmbient();return;}if(heroVideo.paused){userPaused=false;heroVideo.play().catch(()=>toast('Video sa nepodarilo spustiť.'));}else{userPaused=true;heroVideo.pause();}videoLabel();});
 soundBtn?.addEventListener('click',toggleAmbient);
+// Ovládání zvuku je i v úvodu — vystavíme ho, ať se dá zapnout bez lišty.
+try{window.anaToggleAmbient=toggleAmbient;window.anaSoundState=()=>soundBtn?.getAttribute('aria-pressed')==='true';}catch{}
 nextBtn?.addEventListener('click',()=>{amb.next(1500);});
 addEventListener('pagehide',amb.save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)amb.save();});
@@ -204,7 +206,7 @@ $$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',async e
 const motion=!reducedMotion.matches;
 if(motion&&$('.dc-root')){
   const ease='cubic-bezier(.16,1,.3,1)';
-  const els=$$('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form').filter(el=>!el.closest('aside')&&!el.closest('article p'));
+  const els=$$('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form').filter(el=>!el.closest('aside')&&!el.closest('article p')&&!el.closest('.lh-intro'));
   const io=new IntersectionObserver(entries=>entries.forEach(en=>{if(!en.isIntersecting)return;const el=en.target;io.unobserve(el);el.style.willChange='opacity, transform';el.style.opacity='1';el.style.transform='translate3d(0,0,0)';setTimeout(()=>{el.style.willChange='auto';},1600);}),{rootMargin:'0px 0px -6% 0px',threshold:0.01});
   els.forEach(el=>{const i=[...el.parentElement.children].indexOf(el)%6;el.style.opacity='0';el.style.transform='translate3d(0,28px,0)';el.style.transition='opacity 1100ms '+ease+', transform 1300ms '+ease;el.style.transitionDelay=(i*80)+'ms';io.observe(el);});
   addEventListener('beforeprint',()=>els.forEach(el=>{el.style.opacity='1';el.style.transform='none';}));

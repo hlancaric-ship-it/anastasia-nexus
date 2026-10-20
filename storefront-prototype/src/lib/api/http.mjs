@@ -1,8 +1,9 @@
-import {SHOP_CATEGORIES} from './catalog.mjs';
+import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
 const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena sa doplní');
+const NAME_BY_HANDLE=Object.fromEntries(Object.entries(SHOP_CATEGORY_HANDLES).map(([name,handle])=>[handle,name]));
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
@@ -186,7 +187,7 @@ export function createHttpApi(storage, config) {
       if(!r.ok)throw new Error('Katalóg sa nepodarilo načítať.');
       let items = (r.data?.products || []).filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
       const s = search.toLocaleLowerCase('sk');
-      if (category) items = items.filter(p => p.category === category);
+      if (category) { const wanted = NAME_BY_HANDLE[category] || category; items = items.filter(p => p.category === wanted || p.categoryHandle === category); }
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
       if (filter === 'novinky') items = items.filter(p => p.isNew);
       if (filter === 'bestsellery') items = items.filter(p => p.isBestseller);

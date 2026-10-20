@@ -44,12 +44,12 @@ const worlds = [
   {
     n: '03', title: 'Konzultácie', from: 'od 59 €',
     text: 'Online zdravotná konzultácia, supervízia, personifikovaný protokol a astrologický profil zdravia.',
-    href: '/konzultacie', img: IMG.sky, tone: 'dark',
+    href: '/konzultacie', img: IMG.hero, tone: 'dark',
   },
   {
     n: '04', title: 'Programy', from: 'od 38 €',
     text: 'RESET 40+, výuka vedomého vnímania a audio cyklus Nič nemusíš. Prístup v účte hneď po platbe.',
-    href: '/eshop/kategoria/programy-a-sluzby', img: IMG.hero, tone: 'dark',
+    href: '/eshop/kategoria/programy-a-sluzby', img: IMG.sky, tone: 'dark',
   },
 ];
 
@@ -66,6 +66,29 @@ const topics = [
 ];
 
 const duo = (italic, caps) => `<span class="lh-display">${italic}</span><span class="lh-caps">${caps}</span>`;
+
+// Vlastní hlavička úvodu. Designová reference ji kreslí inline styly a přebírá
+// průhlednou plochu z railu — nad krémovým úvodem pak vypadá jako šedý pruh.
+// Tady je to čistý markup, barva se řídí tónem a jazykem.
+export const LH_HEADER = `
+<header id="lh-top" class="lh-top">
+  <nav class="lh-top__side" aria-label="Obchod">
+    <a href="/eshop">Obchod</a>
+    <a href="/eshop?category=ai-anastasia-academy">Programy a služby</a>
+  </nav>
+  <a class="lh-top__brand" href="/" aria-label="ANASTASIA — domov">
+    <img src="/assets/lucia-logo.png" alt="" width="34" height="34">
+    <span>ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+  </a>
+  <nav class="lh-top__side lh-top__side--right" aria-label="Účet">
+    <a href="/konzultacie">Konzultácie</a>
+    <a href="/kosik" aria-label="Košík">Košík <span class="cart-count" aria-label="Počet kusov">0</span></a>
+    <button class="lh-top__menu" type="button" data-menu-open="top" aria-label="Menu" aria-expanded="false" aria-controls="dc-top-menu">
+      <span>Menu</span>
+      <span class="lh-top__burger" aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>
+  </nav>
+</header>`;
 
 const listRow = (n, title, sub, href) => `
   <a class="lh-row" href="${href}">
@@ -100,24 +123,38 @@ export function homeSections(products = []) {
             </g>
           </mask>
         </defs>
-        <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" mask="url(#lhWord)"/>
+        <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.82" mask="url(#lhWord)"/>
         <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'EB Garamond', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
       </svg>
     </div>
     <div class="lh-intro__meta" aria-hidden="true">
       <p class="k">Lucia Rogožanová · Light for the Future</p>
-      <ul><li>Kozmetika na mieru</li><li>Bylinky Hildegardy</li><li>Konzultácie</li><li>Programy</li></ul>
-      <div class="lh-scroll-cue">Vstúpte<i></i></div>
+      <div class="lh-intro__cats">
+        <a class="lh-cat lh-cat--1" href="/eshop?category=bio-kozmetika-bez-chemie">Kozmetika na mieru</a>
+        <a class="lh-cat lh-cat--2" href="/eshop?category=zdrave-doplnky-vyzivy">Bylinky Hildegardy</a>
+        <a class="lh-cat lh-cat--3" href="/konzultacie">Konzultácie</a>
+        <a class="lh-cat lh-cat--4" href="/eshop?category=ai-anastasia-academy">Programy</a>
+      </div>
+      <div class="lh-enter-wrap">
+        <button class="lh-enter" id="lh-scroll-cue" type="button" aria-label="Prejsť ďalej">
+          <span>Vstúpte</span><span class="lh-enter__arrow" aria-hidden="true">↓</span>
+        </button>
+        <span class="lh-or" aria-hidden="true"><span class="lh-scroll-cue__wheel"><i></i></span>alebo posuňte</span>
+      </div>
     </div>
     <h1 class="lh-say lh-say--one" id="lh-ih">
-      <span class="lh-display">Nič nemusíš.</span>
-      <span class="lh-say__caps">ANASTASIA · Light for the Future</span>
+      <span class="lh-display">Vitajte.</span>
+      <span class="lh-say__note">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.</span>
     </h1>
     <div class="lh-say lh-say--two">
-      <p class="lh-display">Všetko môžeš.</p>
-      <p>Kozmetika miešaná pre jednu pleť, bylinky podľa Hildegardy z Bingenu a programy, ktoré vás vrátia k vlastnému telu.</p>
+      <p class="lh-display">Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.</p>
+      <a class="lh-cta lh-cta--gold" href="/zdravy-svet">Vstúpte do zdravého sveta ${arrow}</a>
     </div>
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
+    <button class="lh-intro__sound" type="button" data-lh-sound aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path d="m9 17 6 6m0-6-6 6"/></svg>
+      <span class="media-label">Zvuk vypnutý</span>
+    </button>
   </div>
 </section>`;
 
@@ -245,7 +282,7 @@ export function homeSections(products = []) {
 
 // CSS homepage. Drží se v jednom bloku, aby se design dal přehledně měnit.
 export const HOME_CSS = `
-.lh-display{font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-style:italic;font-weight:400;font-size:clamp(30px,3.6vw,56px);line-height:1.06;letter-spacing:-.01em;display:block;color:var(--site-cream,#EFE5C7)}
+.lh-display{font-family:Outfit,'Helvetica Neue',sans-serif;font-style:normal;font-weight:200;font-size:clamp(30px,3.6vw,56px);line-height:1.06;letter-spacing:-.01em;display:block;color:var(--site-cream,#EFE5C7)}
 .lh-caps{font-family:Outfit,'Helvetica Neue',sans-serif;font-weight:300;font-size:clamp(34px,4.6vw,78px);line-height:.98;letter-spacing:.01em;text-transform:uppercase;display:block;margin-top:.12em;color:var(--site-cream,#EFE5C7)}
 .lh-eyebrow{font-size:11px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--site-accent,#C9A355);margin:0}
 .lh-lead{font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:currentColor;opacity:.78;max-width:44ch;margin:0}
@@ -276,12 +313,12 @@ export const HOME_CSS = `
 .lh-intro__meta li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--site-accent,#C9A355);margin:0 10px 2px 0}
 .lh-say{position:absolute;color:#fff}
 .lh-say .lh-display{display:block;font-size:clamp(52px,9.5vw,158px);line-height:.9}
-.lh-say__caps{display:block;font-size:clamp(13px,1.1vw,15px);font-weight:400;letter-spacing:.3em;margin-top:18px;color:var(--site-accent-light,#D8C598)}
+.lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(14px,1.05vw,16px);font-weight:300;line-height:1.65;color:#EFEAE0}
 .lh-say--one{left:var(--lh-gut,16px);bottom:14vh;max-width:min(92vw,1100px);display:none}
-.motion .lh-say--one{display:block}
+.motion .lh-say--one{display:block;opacity:0}
 .lh-say--two{right:var(--lh-gut,16px);top:22vh;text-align:right;max-width:min(92vw,520px)}
-.lh-say--two p:last-child{max-width:400px;margin:22px 0 0 auto;font-weight:300;color:#EFEAE0}
 .motion .lh-say{opacity:0}
+.motion .lh-say--one,.motion .lh-say--two{opacity:0}
 .lh-vid-btn{position:absolute;right:var(--lh-gut,16px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.15);color:#fff;font:inherit;font-size:13px;cursor:pointer;opacity:0}
 .motion .lh-vid-btn{opacity:1}
 .lh-scroll-cue{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--lh-muted,#6E7468);display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -290,9 +327,68 @@ export const HOME_CSS = `
 @media (prefers-reduced-motion:reduce){.lh-scroll-cue i{animation:none}}
 
 /* --- Hlavička nad úvodem: barva podle toho, kde je scroll ------------------ */
-.lh-top{color:var(--lh-ink,#1E281C);transition:color .4s ease,background-color .4s ease}
+.lh-top{position:absolute;left:0;right:0;top:0;z-index:4;opacity:0;transform:translateY(-14px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;padding:26px clamp(20px,4vw,64px);border-bottom:1px solid rgba(201,163,85,.28);color:var(--lh-ink,#1E281C);background:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft),color .4s ease,background-color .4s ease}
+.lh-top__side{display:flex;align-items:center;gap:clamp(18px,2.4vw,40px);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;font-weight:400}
+.lh-top__side--right{justify-content:flex-end}
+.lh-top__side a{color:inherit;text-decoration:none}
+.lh-top__brand{display:flex;flex-direction:column;align-items:center;gap:5px;color:inherit;text-decoration:none}
+.lh-top__brand img{width:34px;height:34px;object-fit:contain;filter:brightness(.2)}
+.lh-top__brand span{font-size:14px;letter-spacing:.42em;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;padding-left:.42em}
+.lh-top__brand small{font-size:7px;letter-spacing:.3em;opacity:.75}
+.lh-top__menu{display:inline-flex;align-items:center;gap:12px;height:50px;padding:0 22px;border-radius:80px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:inherit;font-family:inherit;font-size:15px;letter-spacing:0;text-transform:none;cursor:pointer;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background .3s,border-color .3s}
+.lh-top__menu:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32)}
+.lh-top__burger{display:flex;flex-direction:column;gap:4px}
+.lh-top__burger i{width:20px;height:1px;background:currentColor}
+.lh-chrome-in .lh-top{opacity:1;transform:none}
+/* Boční lišta se na začátku úvodu schová a po prvním skrolu se vrátí. */
+#ana-rail{opacity:0;transform:translateX(-14px);transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft)}
+.lh-chrome-in #ana-rail{opacity:1;transform:none}
+/* Obsah úvodu je přes celou šířku; až s lištou se odsadí. */
+.dc-root{padding-left:0;transition:padding-left .6s var(--ana-ease-soft)}
+.lh-chrome-in .dc-root{padding-left:var(--rail-pad)}
 .lh-top--dark{color:#fff}
+.lh-top--dark .lh-top__brand img{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
 .lh-top--solid{background:rgba(244,241,235,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.lh-top--solid .lh-top__brand img{filter:brightness(.2)}
+@media (max-width:760px){
+  .lh-top{grid-template-columns:auto auto;justify-content:space-between;padding:16px 20px}
+  .lh-top__side{display:none}
+  .lh-top__side--right{display:flex;gap:14px}
+  .lh-top__side--right>a:not(.lh-top__menu){font-size:11px}
+}
+
+/* --- Kategorie se objevují jedna po druhé kolem slova --------------------- */
+.lh-intro__cats{position:absolute;inset:0;pointer-events:none}
+.lh-cat{position:absolute;pointer-events:auto;font-weight:200;font-size:clamp(26px,3.4vw,54px);line-height:1.1;letter-spacing:-.03em;color:var(--lh-ink,#1E281C);opacity:0;text-decoration:none;white-space:nowrap}
+.lh-cat--1{top:16vh;left:9%}
+.lh-cat--2{bottom:22vh;right:11%}
+.lh-cat--3{top:30vh;right:13%}
+.lh-cat--4{bottom:15vh;left:12%}
+@media (max-width:760px){
+  .lh-intro__cats{inset:auto;position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;padding:0 20px}
+  .lh-cat{position:static;font-size:clamp(19px,5.4vw,26px);white-space:normal;text-align:center}
+}
+
+/* --- Výzva ke skrolování: tlačítko, ne text, který vypadá jako odkaz ------ */
+.lh-enter-wrap{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:12px}
+.lh-enter{display:inline-flex;align-items:center;gap:16px;height:54px;padding:0 26px;border-radius:27px;background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 6px rgba(40,48,32,.06);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);color:var(--lh-ink,#1E281C);font-family:inherit;font-size:13px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .35s,border-color .35s,transform .35s}
+.lh-enter:hover{background:rgba(255,255,255,.68);transform:translateY(-2px)}
+.lh-enter__arrow{font-size:16px;letter-spacing:0;animation:lh-arrow 1.9s ease-in-out infinite}
+@keyframes lh-arrow{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+.lh-or{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--lh-muted,#6E7468)}
+.lh-or .lh-scroll-cue__wheel{width:18px;height:28px}
+@media (prefers-reduced-motion:reduce){.lh-enter__arrow{animation:none}}
+
+/* --- Zvuk v úvodu, dokud není vidět lišta ------------------------------- */
+.lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s}
+.lh-intro__sound .media-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.lh-chrome-in .lh-intro__sound{opacity:0;pointer-events:none}
+
+
+.lh-scroll-cue__wheel{width:20px;height:32px;border:1px solid currentColor;border-radius:12px;display:grid;place-items:start center;padding-top:6px}
+.lh-scroll-cue__wheel i{width:3px;height:6px;border-radius:2px;background:currentColor;animation:lh-wheel 1.8s ease-in-out infinite}
+@keyframes lh-wheel{0%{transform:translateY(0);opacity:0}30%{opacity:1}70%{opacity:1}100%{transform:translateY(10px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.lh-scroll-cue__wheel i{animation:none;opacity:1}}
 
 /* --- Split sekce ---------------------------------------------------------- */
 .lh-split{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:min(86vh,860px);background:var(--site-main,#283020);color:var(--site-cream,#EFE5C7);overflow:hidden}
@@ -322,8 +418,9 @@ export const HOME_CSS = `
 /* --- Lucia: portrét a menšia fotka inou rychlostí -------------------------- */
 .lh-lucia{position:relative;overflow:hidden;min-height:380px;background:var(--site-deep,#26321E)}
 .lh-lucia__frame{position:absolute;inset:0;overflow:hidden}
-.lh-lucia__frame img{position:absolute;left:0;top:-12%;width:100%;height:124%;object-fit:cover}
+.lh-lucia__frame img{position:absolute;left:0;top:-12%;width:100%;height:124%;object-fit:cover;object-position:center 40%}
 .lh-lucia__float{position:absolute;right:-8%;bottom:-10%;width:42%;aspect-ratio:3/4;overflow:hidden;border:10px solid var(--lh-paper,#F4F1EB)}
+.lh-lucia__float img{position:absolute;left:0;top:-12%;width:100%;height:124%;object-fit:cover;object-position:center 70%}
 
 /* --- RESET: vodorovný pás tém -------------------------------------------- */
 .lh-reset{background:var(--site-main,#283020);color:#EDE7DA;overflow:hidden}
@@ -373,7 +470,7 @@ export const HOME_CSS = `
 .lh-card--dark .lh-card__bg{background-color:#3B4537}
 .lh-card__shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,18,14,.05) 30%,rgba(14,18,14,.72))}
 .lh-card__txt{position:relative;z-index:2;width:100%;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;padding:0 clamp(20px,4vw,64px) clamp(40px,6vw,80px)}
-.lh-card__txt h3{font-family:'EB Garamond',Georgia,serif;font-style:italic;font-weight:400;font-size:clamp(56px,9vw,140px);line-height:.9;margin:0}
+.lh-card__txt h3{font-family:Outfit,'Helvetica Neue',sans-serif;font-style:normal;font-weight:200;font-size:clamp(46px,7.4vw,118px);line-height:.95;margin:0}
 .lh-card__txt h3 small{display:block;font-family:Outfit,sans-serif;font-style:normal;font-size:13px;letter-spacing:.28em;text-transform:uppercase;margin-bottom:14px;color:var(--site-accent-light,#D8C598)}
 .lh-card__txt p{max-width:400px;margin:0;font-weight:300;font-size:17px;color:#EDE7DA}
 
@@ -389,7 +486,7 @@ export const HOME_CSS = `
   .lh-split__text{padding:clamp(48px,9vw,72px) 24px}
   .lh-stats{grid-template-columns:1fr}
   .lh-lucia{min-height:70vw}
-  .lh-lucia__float{right:-4px}
+  .lh-lucia__float{right:-3%;bottom:-6%;width:38%;border-width:8px}
   .lh-say--two{top:auto;bottom:14vh;left:var(--lh-gut,16px);text-align:left}
   .lh-say--two p:last-child{margin-left:0}
 }
@@ -398,6 +495,7 @@ export const HOME_CSS = `
   .lh-intro__meta ul{justify-content:center;font-size:11px}
   .lh-card{height:auto;min-height:0;position:relative;padding:clamp(80px,20vw,120px) 0}
   .lh-card__bg{position:absolute;inset:0}
+  .lh-card__shade{background:linear-gradient(180deg,rgba(14,18,14,.12) 18%,rgba(14,18,14,.84) 78%)}
   .lh-stack__items{display:flex;flex-direction:column}
   .lh-reset__head{flex-direction:column;align-items:flex-start}
 }

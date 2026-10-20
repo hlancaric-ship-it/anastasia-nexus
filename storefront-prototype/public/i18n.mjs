@@ -55,6 +55,18 @@ export const DICT = {
   'Pozrieť produkt': ['View product', 'Смотреть товар'],
   'Napíšte nám': ['Write to us', 'Напишите нам'],
   'Kontaktujte nás': ['Contact us', 'Свяжитесь с нами'],
+  'Programy a služby': ['Programs and services', 'Программы и услуги'],
+  'Objavte svet ANASTASIA': ['Discover the ANASTASIA world', 'Откройте мир ANASTASIA'],
+  'Zvuk vypnutý': ['Sound off', 'Звук выключен'],
+  'Zvuk zapnutý': ['Sound on', 'Звук включён'],
+  'Vstúpte': ['Enter', 'Войти'],
+  'alebo posuňte': ['or scroll', 'или прокрутите'],
+  'Vstúpte do zdravého sveta': ['Enter the healthy world', 'Войдите в здоровый мир'],
+  'Posuňte nadol': ['Scroll', 'Прокрутите'],
+  'Prejsť ďalej': ['Continue', 'Продолжить'],
+  'Vitajte.': ['Welcome.', 'Добро пожаловать.'],
+  'Môj účet': ['My account', 'Мой аккаунт'],
+  'Obchod': ['Shop', 'Магазин'],
 };
 
 const idx = { en: 0, ru: 1 };
@@ -125,7 +137,12 @@ function switchEls() {
 export function init() {
   try {
     for (const el of switchEls()) {
-      el.removeAttribute('disabled');
+      // Přepínače, které jsou v návrhu disabled (EN, RU), zůstávají disabled:
+      // jazyk se na webu zatím neprodává a v SK verzi nesmí prosáknout cizí text.
+      if (el.hasAttribute('disabled')) {
+        el.title = { SK: 'Slovenčina', EN: 'Angličtina — už čoskoro', RU: 'Ruština — už čoskoro' }[el.textContent.trim().toUpperCase()] || el.title;
+        continue;
+      }
       el.style.cursor = 'pointer';
       el.setAttribute('role', 'button');
       el.setAttribute('tabindex', '0');

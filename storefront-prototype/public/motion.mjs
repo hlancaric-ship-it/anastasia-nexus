@@ -34,7 +34,18 @@ if (gsap && ScrollTrigger) {
 
   // --- Hlavička: tmavý text na krémové, bílý nad tmavými sekcemi -----------
   const darks = $$('.lh-card,#lh-obloha,#lh-reset,.lh-split--dark');
+  // Hlavička a boční lišta jsou na začátku skryté a objeví se po prvním
+  // skrolu nebo kliku na „Posuňte nadol". Pak už zůstávají.
+  const showChrome = () => {
+    if (document.body.classList.contains('lh-chrome-in')) return;
+    document.body.classList.add('lh-chrome-in');
+    // Obsah úvodu je přes celou šířku; s lištou se odsadí. Padding je inline
+    // z ROOT_STYLE, proto se musí nastavit tady.
+    const root = document.querySelector('.dc-root');
+    if (root && intro) root.style.paddingLeft = 'var(--rail-pad)';
+  };
   const head = () => {
+    if (window.scrollY > 10) showChrome();
     if (!top || !intro) return;
     const past = window.scrollY > intro.offsetHeight - window.innerHeight * 0.4;
     let dark = false;
@@ -97,10 +108,15 @@ if (gsap && ScrollTrigger) {
         .to('#lh-word-g', {scale: 110, svgOrigin: ox + ' ' + oy, duration: 0.5, ease: 'power3.in'}, 0.04)
         .to('.lh-intro__mask', {opacity: 0, duration: 0.08, ease: 'none'}, 0.46)
         .to('.lh-intro__veil,.lh-vid-btn', {opacity: 1, duration: 0.1, ease: 'none'}, 0.46)
-        .fromTo('.lh-say--one', {opacity: 0, y: 80}, {opacity: 1, y: 0, duration: 0.12, ease: 'power2.out'}, 0.56)
+        // immediateRender, protože fromTo začíná až v 0.56 — bez něj by text
+        // vstal viditelný od začátku průběhu.
+        .to('.lh-say--one', {opacity: 1, y: 0, duration: 0.12, ease: 'power2.out'}, 0.56)
         .to('.lh-say--one', {opacity: 0, y: -80, duration: 0.1, ease: 'power2.in'}, 0.74)
-        .fromTo('.lh-say--two', {opacity: 0, y: 80}, {opacity: 1, y: 0, duration: 0.12, ease: 'power2.out'}, 0.82)
+        .to('.lh-say--two', {opacity: 1, y: 0, duration: 0.12, ease: 'power2.out'}, 0.82)
         .to({}, {duration: 0.06});
+      // Texty zůstávají skryté, dokud maska neodstoupí. Nastavíme to až po
+      // vytvoření timeline, aby je scrub přepsal jen v okamžiku, kdy mají přijít.
+      gsap.set(['.lh-say--one', '.lh-say--two'], {opacity: 0, y: 80});
     };
     (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
       buildIntro();
@@ -156,13 +172,65 @@ if (gsap && ScrollTrigger) {
     }});
   }
 
+  // --- Kategorie se střídají jedna po druhé, dokud uživatel neskroluje ---
+  const cats = $$('.lh-cat');
+  if (cats.length && !reduce) {
+    const loop = gsap.timeline({repeat: -1});
+    cats.forEach(cat => {
+      loop.fromTo(cat, {opacity: 0, y: 18, filter: 'blur(6px)'}, {opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.1, ease: 'power2.out'})
+        .to(cat, {opacity: 0, y: -14, duration: 0.9, ease: 'power2.in'}, '+=1.4');
+    });
+    addEventListener('scroll', () => {
+      if (window.scrollY <= 10) return;
+      loop.kill();
+      cats.forEach(cat => gsap.set(cat, {opacity: 0}));
+    }, {passive: true, once: true});
+  }
+
+  // --- Zvuk v úvodu: stejný ambient jako v liště ---------------------------
+  const sound = $('[data-lh-sound]');
+  if (sound) {
+    const sync = () => {
+      const on = window.anaSoundState ? window.anaSoundState() : false;
+      sound.setAttribute('aria-pressed', String(on));
+      const label = sound.querySelector('.media-label');
+      if (label) label.textContent = on ? 'Zvuk zapnutý' : 'Zvuk vypnutý';
+    };
+    sound.addEventListener('click', async () => {
+      if (window.anaToggleAmbient) await window.anaToggleAmbient();
+      sync();
+    });
+    sync();
+  }
+
+  // --- Výzva ke skrolování: tlačítko i klávesy přehrávají úvod do konce ----
+  const scrollIntro = () => {
+    if (!intro) return;
+    showChrome();
+    const end = Math.max(0, intro.offsetHeight - window.innerHeight);
+    if (window.__anaLenis) window.__anaLenis.scrollTo(end, {duration: 3});
+    else window.scrollTo(0, end);
+  };
+  const cue = $('#lh-scroll-cue');
+  if (cue) cue.addEventListener('click', scrollIntro);
+  addEventListener('keydown', event => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    const key = event.key;
+    if (key !== 'ArrowDown' && key !== ' ' && key !== 'Spacebar') return;
+    const tag = (event.target && event.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (!intro || window.scrollY > intro.offsetHeight - window.innerHeight) return;
+    event.preventDefault();
+    scrollIntro();
+  });
+
   // --- Videa: hrají jen na obrazovce, hlavní se dá zastavit ----------------
   const videos = [$('#lh-intro-video'), $('#lh-sky-video')].filter(Boolean);
   // Bez souboru (media/ je zatím prázdná) video kreslí černou a poster se
   // neukáže. Fotka pod ním je proto fallback a video se rozsvítí až když
   // má data.
   const showWhenReady = video => {
-    const mark = () => { if (video.readyState >= 2) video.classList.add('lh-ready'); };
+    const mark = () => { if (video.readyState >= 2) { video.classList.add('lh-ready'); if (window.ScrollTrigger) window.ScrollTrigger.refresh(); } };
     video.addEventListener('loadeddata', mark);
     video.addEventListener('canplay', mark);
     mark();
