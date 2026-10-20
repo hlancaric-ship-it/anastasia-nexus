@@ -128,7 +128,7 @@ export function homeSections(products = []) {
       </svg>
     </div>
     <div class="lh-intro__meta" aria-hidden="true">
-      <p class="k">Lucia Rogožanová · Light for the Future</p>
+      <p class="k"><span>Lucia Rogožanová</span><span>Light for the Future</span></p>
       <div class="lh-intro__cats">
         <a class="lh-cat lh-cat--1" href="/eshop?category=bio-kozmetika-bez-chemie">Kozmetika na mieru</a>
         <a class="lh-cat lh-cat--2" href="/eshop?category=zdrave-doplnky-vyzivy">Bylinky Hildegardy</a>
@@ -308,7 +308,8 @@ export const HOME_CSS = `
 .lh-intro__mask svg{position:absolute;inset:0 var(--lh-gut,16px);width:calc(100% - 2*var(--lh-gut,16px));height:100%;overflow:visible}
 .lh-intro__meta{position:absolute;inset:0;pointer-events:none;color:var(--lh-ink,#1E281C);display:none}
 .motion .lh-intro__meta{display:block}
-.lh-intro__meta .k{position:absolute;top:clamp(110px,18vh,170px);left:0;right:0;text-align:center;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--lh-muted,#6E7468)}
+.lh-intro__meta .k{position:absolute;top:clamp(96px,16vh,160px);left:0;right:0;margin:0;text-align:center;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--lh-muted,#6E7468)}
+.lh-intro__meta .k span{display:block}
 .lh-intro__meta ul{position:absolute;bottom:clamp(96px,14vh,140px);left:var(--lh-gut,16px);right:var(--lh-gut,16px);margin:0;padding:0;list-style:none;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;max-width:1100px;margin-inline:auto}
 .lh-intro__meta li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--site-accent,#C9A355);margin:0 10px 2px 0}
 .lh-say{position:absolute;color:#fff}
@@ -316,7 +317,8 @@ export const HOME_CSS = `
 .lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(14px,1.05vw,16px);font-weight:300;line-height:1.65;color:#EFEAE0}
 .lh-say--one{left:var(--lh-gut,16px);bottom:14vh;max-width:min(92vw,1100px);display:none}
 .motion .lh-say--one{display:block;opacity:0}
-.lh-say--two{right:var(--lh-gut,16px);top:22vh;text-align:right;max-width:min(92vw,520px)}
+.lh-say--two{right:var(--lh-gut,16px);top:22vh;text-align:right;max-width:min(92vw,660px)}
+.lh-say--two .lh-display{font-size:clamp(28px,4vw,68px);max-width:620px}
 .motion .lh-say{opacity:0}
 .motion .lh-say--one,.motion .lh-say--two{opacity:0}
 .lh-vid-btn{position:absolute;right:var(--lh-gut,16px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.15);color:#fff;font:inherit;font-size:13px;cursor:pointer;opacity:0}
@@ -341,11 +343,12 @@ export const HOME_CSS = `
 .lh-top__burger i{width:20px;height:1px;background:currentColor}
 .lh-chrome-in .lh-top{opacity:1;transform:none}
 /* Boční lišta se na začátku úvodu schová a po prvním skrolu se vrátí. */
-#ana-rail{opacity:0;transform:translateX(-14px);transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft)}
-.lh-chrome-in #ana-rail{opacity:1;transform:none}
-/* Obsah úvodu je přes celou šířku; až s lištou se odsadí. */
-.dc-root{padding-left:0;transition:padding-left .6s var(--ana-ease-soft)}
-.lh-chrome-in .dc-root{padding-left:var(--rail-pad)}
+.lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft)}
+.lh-intro-page.lh-chrome-in #ana-rail{opacity:1;transform:none}
+/* Obsah úvodu je přes celou šířku; až s lištou se odsadí. Ostatní stránky
+   drží odsazení pořád, jako předtím. */
+.lh-intro-page .dc-root{padding-left:0;transition:padding-left .6s var(--ana-ease-soft)}
+.lh-intro-page.lh-chrome-in .dc-root{padding-left:var(--rail-pad)}
 .lh-top--dark{color:#fff}
 .lh-top--dark .lh-top__brand img{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
 .lh-top--solid{background:rgba(244,241,235,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -365,8 +368,9 @@ export const HOME_CSS = `
 .lh-cat--3{top:30vh;right:13%}
 .lh-cat--4{bottom:15vh;left:12%}
 @media (max-width:760px){
-  .lh-intro__cats{inset:auto;position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;padding:0 20px}
-  .lh-cat{position:static;font-size:clamp(19px,5.4vw,26px);white-space:normal;text-align:center}
+  .lh-intro__cats{position:absolute;inset:auto 20px 150px 20px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .lh-cat{position:static;font-size:21px;white-space:normal;text-align:center;line-height:1.2}
+  .lh-intro__meta .k{font-size:10px;letter-spacing:.22em}
 }
 
 /* --- Výzva ke skrolování: tlačítko, ne text, který vypadá jako odkaz ------ */

@@ -237,7 +237,7 @@ export function aboutSections() {
 
 // overflow-x:clip místo hidden — hidden by z kořene udělal scroll kontejner
 // a sticky sekce (úvod, obloha) by se držely vůči němu místo vůči oknu.
-export const ROOT_STYLE = 'font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:#283020;overflow-x:clip;padding:0';
+export const ROOT_STYLE = 'font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:#283020;overflow-x:clip;padding:0 0 0 var(--rail-pad)';
 // Globální styly z <helmet> návrhu (rozsah omezen na stránky v novém vzhledu tam, kde by rozbily starší obsah).
 // Plynulé přechody mezi sekcemi: smoothstep místo lineárního gradientu, aby na konci přechodu nevznikla viditelná hrana.
 const SMOOTH = [0, .028, .104, .216, .352, .5, .648, .784, .896, .972, 1];

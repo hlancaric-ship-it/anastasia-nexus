@@ -31,6 +31,12 @@ if (gsap && ScrollTrigger) {
   const intro = $('#lh-intro');
   const top = $('#lh-top');
   const introP = {value: 0};
+  // Úvod je přes celou šířku. Padding je inline v ROOT_STYLE, proto ho tady
+  // zrušíme; s lištou se pak vrátí.
+  if (intro) {
+    const root = document.querySelector('.dc-root');
+    if (root) root.style.paddingLeft = '0';
+  }
 
   // --- Hlavička: tmavý text na krémové, bílý nad tmavými sekcemi -----------
   const darks = $$('.lh-card,#lh-obloha,#lh-reset,.lh-split--dark');
@@ -85,7 +91,7 @@ if (gsap && ScrollTrigger) {
         });
       }
       const b = measure.getBBox();
-      const pad = b.height * 0.06;
+      const pad = b.height * 0.14;
       svg.setAttribute('viewBox', [b.x - pad, b.y - pad, b.width + 2 * pad, b.height + 2 * pad].join(' '));
       // Rozměr písmena T se musí měřit na skrytém textu, ne na textu v <mask>.
       const extent = measure.getExtentOfChar(4);
