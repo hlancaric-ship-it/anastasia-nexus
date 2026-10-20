@@ -4,7 +4,7 @@
 export const SHOP_CATEGORIES=Object.freeze(['Kozmetika','Bylinky a výživa','Programy a služby']);
 export const FEATURED_SLUGS=Object.freeze(['osviezit-plet','pletova-voda','chripka-prasok','online-zdravotna-konzultacia']);
 export const SHOP_CATALOG=Object.freeze([
-  {slug:"reset-40-plus",name:"AI ANASTASIA RESET 40+",category:"Programy a služby",priceLabel:"168,00 €",art:"sun",image:"/assets/lucia-longevity.png"},
+  {slug:"reset-40-plus",name:"RESET 40+",category:"Programy a služby",priceLabel:"168,00 €",art:"sun",image:"/assets/lucia-longevity.png"},
   {slug:"astrologia-zdravie-predispozicia",name:"Astrologický profil zdravia a osobných predispozícií",category:"Programy a služby",priceLabel:"59,00 €",art:"sun",image:"/assets/night-sky.jpg"},
   {slug:"chripka-prasok",name:"CHRÍPKOVÝ PRÁŠOK",category:"Bylinky a výživa",priceLabel:"9,00 €",art:"jar",image:"/assets/product-jar.svg"},
   {slug:"antibioticky-prasok",name:"JANČOVA antibiotická zmes",category:"Bylinky a výživa",priceLabel:"9,00 €",art:"jar",image:"/assets/product-jar.svg"},
