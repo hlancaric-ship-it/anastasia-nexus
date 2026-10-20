@@ -110,7 +110,25 @@ const emailTestTraffic = deploy.paymentsTestMode || (deploy.onCloud && deploy.cl
 const emailRecipientAllowlist = emailRecipientAllowlistRaw || emailTestTraffic
   ? (emailRecipientAllowlistRaw || "").split(",").map((entry) => entry.trim()).filter(Boolean)
   : undefined
-const notificationProviders: Array<Record<string, unknown>> = zeptoMailEnabled
+// Resend má prednosť pred ZeptoMailom (rozhodnutie 2026-10-20); kanál email smie mať len jeden provider.
+const resendEnabled = Boolean(env("RESEND_API_KEY"))
+const notificationProviders: Array<Record<string, unknown>> = resendEnabled
+  ? [
+      {
+        resolve: "./src/modules/notification-resend",
+        id: "resend",
+        options: {
+          channels: ["email"],
+          apiKey: env("RESEND_API_KEY"),
+          fromEmail: env("RESEND_FROM_EMAIL"),
+          fromName: env("RESEND_FROM_NAME") || "ANASTASIA",
+          replyTo: env("RESEND_REPLY_TO") || undefined,
+          recipientAllowlist: emailRecipientAllowlist,
+        },
+      },
+      { resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } },
+    ]
+  : zeptoMailEnabled
   ? [
       {
         resolve: "./src/modules/notification-zeptomail",

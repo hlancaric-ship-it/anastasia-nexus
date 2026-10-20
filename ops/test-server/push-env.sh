@@ -41,6 +41,13 @@ OUT=$(mktemp); trap 'rm -f "$OUT" "$OUT.pg" "$OUT.n"' EXIT; chmod 600 "$OUT"
   echo "STRIPE_API_KEY=$SK"
   echo "STRIPE_WEBHOOK_SECRET=$(get STRIPE_WEBHOOK_SECRET "$WH_FILE")"
   for k in S3_ACCESS_KEY_ID S3_SECRET_ACCESS_KEY S3_ENDPOINT S3_REGION S3_BUCKET; do echo "$k=$(get $k "$PRIV/r2-anastasia-media.env")"; done
+  # Resend má prednosť pred ZeptoMailom, ak existuje data-private/resend.env (RESEND_API_KEY, RESEND_FROM_EMAIL).
+  if [ -s "$PRIV/resend.env" ]; then
+    echo "RESEND_API_KEY=$(get RESEND_API_KEY "$PRIV/resend.env")"
+    echo "RESEND_FROM_EMAIL=$(get RESEND_FROM_EMAIL "$PRIV/resend.env")"
+    echo "RESEND_FROM_NAME=ANASTASIA (test)"
+    echo "RESEND_REPLY_TO=ceo@l-code-dynamics.com"
+  fi
   echo "ZEPTOMAIL_API_KEY=$(tr -d '\n' < "$PRIV/zeptomail.token")"
   echo "ZEPTOMAIL_API_URL=https://cpaas.zoho.eu/v1.1/email"
   echo "ZEPTOMAIL_FROM_EMAIL=${ZEPTOMAIL_FROM_EMAIL:-noreply@anastasiaoz.eu}"

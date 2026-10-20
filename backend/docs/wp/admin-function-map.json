@@ -4139,6 +4139,7 @@
       "backend/src/modules/membership-stripe/index.ts",
       "backend/src/modules/membership/index.ts",
       "backend/src/modules/notification-log/index.ts",
+      "backend/src/modules/notification-resend/index.ts",
       "backend/src/modules/notification-zeptomail/index.ts",
       "backend/src/modules/ops-audit/index.ts"
     ],
