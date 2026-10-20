@@ -74,7 +74,7 @@ export const LH_HEADER = `
 <header id="lh-top" class="lh-top">
   <nav class="lh-top__side" aria-label="Obchod">
     <a href="/eshop">Obchod</a>
-    <a href="/eshop?category=ai-anastasia-academy">Programy a služby</a>
+    <a href="/eshop?category=sebarozvoj">Programy a služby</a>
   </nav>
   <a class="lh-top__brand" href="/" aria-label="ANASTASIA — domov">
     <img src="/assets/lucia-logo.png" alt="" width="34" height="34">
@@ -122,18 +122,43 @@ export function homeSections(products = []) {
               <text id="lh-word-t" x="720" y="520" text-anchor="middle" font-family="'EB Garamond', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" fill="#000">ANASTASIA</text>
             </g>
           </mask>
+          <linearGradient id="lhShine" gradientUnits="userSpaceOnUse" x1="-900" y1="0" x2="-100" y2="0">
+            <stop offset="0" stop-color="#D8C598" stop-opacity="0"/>
+            <stop offset=".42" stop-color="#D8C598" stop-opacity=".55"/>
+            <stop offset=".55" stop-color="#F3E3B0" stop-opacity=".8"/>
+            <stop offset="1" stop-color="#F3E3B0" stop-opacity="0"/>
+          </linearGradient>
         </defs>
         <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.82" mask="url(#lhWord)"/>
+        <rect id="lh-word-shine" x="-6000" y="-6000" width="13440" height="12900" fill="url(#lhShine)" mask="url(#lhWord)" opacity="0"/>
         <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'EB Garamond', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
       </svg>
     </div>
+    <div class="lh-intro__brands">
+      <a class="lh-brand lh-brand--academy" href="/ai-anastasia-academy" aria-label="ANASTASIA ACADEMY">
+        <span class="lh-brand__name lh-shimmer-text">ANASTASIA</span>
+        <span class="lh-brand__sub lh-shimmer-text lh-shimmer-text--gold"><i></i>ACADEMY<i></i></span>
+      </a>
+      <a class="lh-brand lh-brand--main" href="/" aria-label="ANASTASIA OZ — Light for the Future">
+        <span class="lh-brand__lock">
+          <img class="lh-brand__mark" src="/assets/lucia-logo.png" alt="ANASTASIA OZ — Light for the Future" width="110" height="165">
+          <img class="lh-brand__img--shine" src="/assets/lucia-logo.png" alt="" aria-hidden="true" width="110" height="165">
+        </span>
+      </a>
+      <a class="lh-brand lh-brand--ai" href="/ai-anastasia" aria-label="AI ANASTASIA">
+        <span class="lh-brand__lock lh-brand__lock--mark">
+          <img class="lh-brand__mark" src="/assets/logo-mark.png" alt="" width="46" height="46">
+          <img class="lh-brand__img--shine" src="/assets/logo-mark.png" alt="" aria-hidden="true" width="46" height="46">
+        </span>
+        <span class="lh-brand__name lh-shimmer-text">ANASTASIA</span>
+      </a>
+    </div>
     <div class="lh-intro__meta" aria-hidden="true">
-      <p class="k"><span>Lucia Rogožanová</span><span>Light for the Future</span></p>
       <div class="lh-intro__cats">
         <a class="lh-cat lh-cat--1" href="/eshop?category=bio-kozmetika-bez-chemie">Kozmetika na mieru</a>
         <a class="lh-cat lh-cat--2" href="/eshop?category=zdrave-doplnky-vyzivy">Bylinky Hildegardy</a>
         <a class="lh-cat lh-cat--3" href="/konzultacie">Konzultácie</a>
-        <a class="lh-cat lh-cat--4" href="/eshop?category=ai-anastasia-academy">Programy</a>
+        <a class="lh-cat lh-cat--4" href="/eshop?category=sebarozvoj">Programy</a>
       </div>
       <div class="lh-enter-wrap">
         <button class="lh-enter" id="lh-scroll-cue" type="button" aria-label="Prejsť ďalej">
@@ -292,8 +317,8 @@ export const HOME_CSS = `
 .lh-cta .arrow{width:20px;height:20px}
 .lh-cta--ghost{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22);color:var(--site-cream,#EFE5C7);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%)}
 .lh-cta--ghost:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32)}
-.lh-cta--gold{background:var(--site-accent-light,#D8C598);border-color:var(--site-accent-light,#D8C598);color:var(--site-dark,#14200F)}
-.lh-cta--gold:hover{background:#fff;border-color:#fff}
+.lh-cta--gold{background:var(--site-accent-light,#D8C598);border-color:transparent;color:#1E281C}
+.lh-cta--gold:hover{background:#fff;border-color:transparent}
 
 /* --- Úvod: maska se slovem ANASTASIA, video prosvítá jen písmeny ---------- */
 .lh-intro{position:relative;height:100svh;min-height:640px}
@@ -312,6 +337,38 @@ export const HOME_CSS = `
 .lh-intro__meta .k span{display:block}
 .lh-intro__meta ul{position:absolute;bottom:clamp(96px,14vh,140px);left:var(--lh-gut,16px);right:var(--lh-gut,16px);margin:0;padding:0;list-style:none;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;max-width:1100px;margin-inline:auto}
 .lh-intro__meta li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--site-accent,#C9A355);margin:0 10px 2px 0}
+/* --- Tři loga v řadě nad úvodem: hlavní uprostřed, boční symetricky -------- */
+.lh-intro__brands{position:absolute;top:clamp(26px,5.5vh,64px);left:0;right:0;z-index:3;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;justify-items:center;column-gap:clamp(24px,4.4vw,76px);color:#EFE5C7;pointer-events:none}
+.motion .lh-intro__brands{color:var(--lh-ink,#1E281C)}
+.lh-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:inherit;pointer-events:auto;opacity:1}
+.motion .lh-brand{opacity:0}
+.lh-brand--main{height:clamp(92px,10.5vh,128px);grid-column:2;grid-row:1}
+.lh-brand__lock{position:relative;display:flex;align-items:center;justify-content:center;height:100%}
+.lh-brand__lock--mark{height:auto;width:clamp(30px,3.4vw,46px)}
+.lh-brand__mark{height:100%;width:auto;display:block}
+.lh-brand--main .lh-brand__mark{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
+.motion .lh-brand--main .lh-brand__mark{filter:none}
+.lh-brand__lock--mark .lh-brand__mark{height:auto;width:100%}
+/* Zlatý odlesk: kopie loga pod maskou, která se posouvá přes obraz. */
+.lh-brand__img--shine{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:sepia(.85) saturate(2.6) hue-rotate(3deg) brightness(1.05);-webkit-mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);-webkit-mask-size:250% 100%;mask-size:250% 100%;-webkit-mask-position:150% 0;mask-position:150% 0}
+.lh-brand--academy{height:clamp(60px,7.4vh,86px);grid-column:1;grid-row:1;justify-self:end}
+.lh-brand--ai{height:clamp(60px,7.4vh,86px);grid-column:3;grid-row:1;justify-self:start}
+.lh-brand__name{font-weight:200;font-size:clamp(13px,1.15vw,17px);letter-spacing:.3em;padding-left:.3em;white-space:nowrap;--lh-shim-base:var(--lh-ink,#1E281C)}
+.lh-brand__sub{display:flex;align-items:center;gap:8px;font-weight:300;font-size:clamp(9px,.78vw,11px);letter-spacing:.44em;padding-left:.44em;color:var(--site-accent,#C9A355);white-space:nowrap;--lh-shim-base:var(--site-accent,#C9A355)}
+.lh-brand__sub i{width:16px;height:1px;background:currentColor}
+.lh-shimmer-text--gold{--lh-shim-base:var(--site-accent,#C9A355)}
+/* Odlesk textu: barva zůstává, přes ni přejede úzký zlatý pruh. */
+.motion .lh-shimmer-text,.motion .lh-cat{background-image:linear-gradient(100deg,var(--lh-shim-base,#1E281C) 0 46%,#D8C598 48%,#F3E3B0 50%,var(--lh-shim-base,#1E281C) 52% 100%);background-size:250% 100%;background-position:150% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
+.motion .lh-cat{--lh-shim-base:var(--lh-ink,#1E281C)}
+@media (max-width:699.98px){
+  .lh-intro__brands{top:clamp(18px,3vh,40px);grid-template-columns:1fr 1fr;row-gap:14px;column-gap:20px}
+  .lh-brand--main{height:86px;grid-column:1/-1;grid-row:1;justify-self:center}
+  .lh-brand--academy{height:auto;grid-column:1;grid-row:2;justify-self:end}
+  .lh-brand--ai{height:auto;grid-column:2;grid-row:2;justify-self:start}
+  .lh-brand__name{font-size:12px;letter-spacing:.24em;padding-left:.24em}
+  .lh-brand__sub{font-size:9px;letter-spacing:.3em;padding-left:.3em;gap:6px}
+  .lh-brand__sub i{width:12px}
+}
 .lh-say{position:absolute;color:#fff}
 .lh-say .lh-display{display:block;font-size:clamp(52px,9.5vw,158px);line-height:.9}
 .lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(14px,1.05vw,16px);font-weight:300;line-height:1.65;color:#EFEAE0}

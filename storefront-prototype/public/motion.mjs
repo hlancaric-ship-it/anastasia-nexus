@@ -24,6 +24,11 @@ ScrollTrigger = window.ScrollTrigger;
 if (gsap && ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
 
+  // Zlatý odlesk: úzký pruh přejede přes nápis. Animuje se jen background-position
+  // (u loga maska), žádný layout.
+  const shimmerText = el => gsap.fromTo(el, {backgroundPosition: '150% 0'}, {backgroundPosition: '-50% 0', duration: 1.6, ease: 'sine.inOut', overwrite: 'auto'});
+  const shimmerImage = el => gsap.fromTo(el, {maskPosition: '150% 0', webkitMaskPosition: '150% 0'}, {maskPosition: '-50% 0', webkitMaskPosition: '-50% 0', duration: 1.6, ease: 'sine.inOut', overwrite: 'auto'});
+
   // ScrollTrigger musí vědět o Lenis scrollu, jinak scrub laguje.
   const lenis = window.__anaLenis;
   if (lenis) lenis.on('scroll', () => ScrollTrigger.update());
@@ -101,6 +106,29 @@ if (gsap && ScrollTrigger) {
 
       gsap.from('.lh-intro__mask', {opacity: 0, duration: 1.6, ease: 'power2.out'});
       gsap.from('.lh-intro__meta .k,.lh-intro__meta li', {y: 18, opacity: 0, duration: 1, ease: 'power3.out', stagger: 0.08, delay: 0.5});
+      // Tři loga nad úvodem: hlavní přijde první, boční o chvíli později,
+      // odlesk běží ~0,4 s po náběhu.
+      const mainBrand = $('.lh-brand--main');
+      const sideBrands = $$('.lh-brand--academy,.lh-brand--ai');
+      if (mainBrand) gsap.fromTo(mainBrand, {opacity: 0, y: 12}, {opacity: 1, y: 0, duration: 1.5, ease: 'sine.out', delay: 0.25});
+      if (sideBrands.length) gsap.fromTo(sideBrands, {opacity: 0, y: 10}, {opacity: 1, y: 0, duration: 1.5, ease: 'sine.out', delay: 0.75, stagger: 0.18});
+      gsap.delayedCall(2.15, () => {
+        shimmerImage($('.lh-brand--main .lh-brand__img--shine'));
+      });
+      gsap.delayedCall(2.65, () => {
+        $$('.lh-brand--academy,.lh-brand--ai').forEach(brand => {
+          $$('.lh-shimmer-text', brand).forEach(text => shimmerText(text));
+          shimmerImage($('.lh-brand__img--shine', brand));
+        });
+      });
+      // Jednou zlatý odlesk přes samotné slovo ANASTASIA (přes masku, jemně).
+      const wordShine = $('#lh-word-shine');
+      if (wordShine) {
+        gsap.timeline({delay: 1.6})
+          .to(wordShine, {opacity: 0.9, duration: 0.35, ease: 'sine.out'}, 0)
+          .fromTo('#lhShine', {attr: {x1: -900, x2: -100}}, {attr: {x1: 1500, x2: 2300}, duration: 1.6, ease: 'sine.inOut'}, 0)
+          .to(wordShine, {opacity: 0, duration: 0.5, ease: 'sine.in'}, 1.25);
+      }
 
       const timeline = gsap.timeline({
         scrollTrigger: {
@@ -178,13 +206,16 @@ if (gsap && ScrollTrigger) {
     }});
   }
 
-  // --- Kategorie se střídají jedna po druhé, dokud uživatel neskroluje ---
+  // --- Kategorie se střídají jedna po druhé, dokud uživitel neskroluje ---
   const cats = $$('.lh-cat');
   if (cats.length && !reduce) {
     const loop = gsap.timeline({repeat: -1});
     cats.forEach(cat => {
-      loop.fromTo(cat, {opacity: 0, y: 18, filter: 'blur(6px)'}, {opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.1, ease: 'power2.out'})
-        .to(cat, {opacity: 0, y: -14, duration: 0.9, ease: 'power2.in'}, '+=1.4');
+      // Náběh 1,4 s, ~4 s viditelná, odchod 1,4 s, krátká pauza.
+      loop.fromTo(cat, {opacity: 0, y: 18}, {opacity: 1, y: 0, duration: 1.4, ease: 'sine.inOut'})
+        .call(() => shimmerText(cat), null, '+=0.4')
+        .to(cat, {opacity: 0, y: -14, duration: 1.4, ease: 'sine.inOut'}, '+=4')
+        .to({}, {duration: 0.8});
     });
     addEventListener('scroll', () => {
       if (window.scrollY <= 10) return;
@@ -232,13 +263,16 @@ if (gsap && ScrollTrigger) {
 
   // --- Videa: hrají jen na obrazovce, hlavní se dá zastavit ----------------
   const videos = [$('#lh-intro-video'), $('#lh-sky-video')].filter(Boolean);
+  // Rozměry po nabití videa se přepočítají, ale ne během skrolu.
+  let refreshed = false;
   // Bez souboru (media/ je zatím prázdná) video kreslí černou a poster se
   // neukáže. Fotka pod ním je proto fallback a video se rozsvítí až když
   // má data.
   const showWhenReady = video => {
-    const mark = () => { if (video.readyState >= 2) { video.classList.add('lh-ready'); if (window.ScrollTrigger) window.ScrollTrigger.refresh(); } };
+    const mark = () => { if (video.readyState >= 2) { video.classList.add('lh-ready'); } };
     video.addEventListener('loadeddata', mark);
     video.addEventListener('canplay', mark);
+    video.addEventListener('loadedmetadata', () => { if (refreshed) return; refreshed = true; setTimeout(() => window.ScrollTrigger && window.ScrollTrigger.refresh(), 400); });
     mark();
   };
   videos.forEach(showWhenReady);
