@@ -2,6 +2,7 @@
 // Inline styly, texty a struktura se přebírají doslova; mění se jen to, co je v návrhu
 // vázané na React stav (šířka okna, otevřené menu, košík) — to přebírají CSS proměnné a app.mjs.
 import {readFileSync} from 'node:fs';
+import {homeSections as homeLhSections, HOME_CSS} from './home-lh.mjs';
 import {fileURLToPath} from 'node:url';
 import {escape} from './components.mjs';
 import {menuGroups} from './lib/menu-navigation.mjs';
@@ -204,8 +205,11 @@ export function chrome(page) {
     return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
+  const headerHtml=convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">');
+  // Na novém rozvržení úvodu hlavička leží přes hero, ne tlačí obsah dolů.
+  const header=page==='home'?headerHtml.replace('style="position:relative;z-index:2;','style="position:absolute;left:0;right:0;top:0;z-index:4;'):headerHtml;
   return {
-    header: convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">'),
+    header,
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
@@ -214,46 +218,9 @@ export function chrome(page) {
 }
 
 export function homeSections(products) {
-  const data = {
-    products: products.map(p => ({...p, label: 'Do košíka', fg: '#EFE5C7'})),
-    consults: [
-      {n: '01', title: 'Online zdravotná konzultácia', sub: 'Osobne aj na diaľku', href: CONSULT_ROUTES['01']},
-      {n: '02', title: 'Supervízia', sub: 'Pre odborníkov a tímy', href: CONSULT_ROUTES['02']},
-      {n: '03', title: 'Astrologický profil', sub: 'Zdravie a predispozície', href: CONSULT_ROUTES['03']},
-    ],
-  };
-  return P.home.sections.map((s, i) => {
-    let out = convert(s, {page: 'home', data});
-    if(i===0){
-      out=out.replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(16,24,15,0\.62\)[^"]*"><\/div>/,'<div class="hero-scrim"></div><div class="hero-ghost" aria-hidden="true">ANASTASIA</div>')
-        .replace(/<div style="position:relative;flex:1;min-height:0"><\/div>/,'<div class="hero-brand"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><filter id="brand-wave" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="1" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" data-brand-wave/></filter></defs></svg><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future"></div>')
-        .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
-    }
-    let pre='';
-    // The manifest copy in the design file still carries a working note about
-    // "the ANASTASIA project" — that is scaffolding, not brand voice. Swap it
-    // for the statement itself; the meaning stays, the meta sentence goes.
-    if(out.includes('id="manifest"')){
-      out=out.replace(
-        /Táto časť webu patrí projektu ANASTASIA\.\s*<span style="color:#748054">Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani&nbsp;riadené\.<\/span>/,
-        '<span style="color:#748054">Nie ako ponuka riešení, ale ako priestor, kde nemusíte nič urýchľovať, vysvetľovať ani riadiť.</span>');
-    }
-    // Kolekcia na landing page: prehľad (nie obchod) – na mobile vodorovný pás 2 kariet, ktorý sa sám otáča.
-    if(out.includes('id="kolekcia"')){
-      const grid='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));';
-      out=out.replace(grid,'<nav class="kol-tabs" aria-label="Prehľad kolekcie"><a href="/eshop?filter=novinky">Novinky</a><a href="/eshop?filter=bestsellery">Bestsellery</a><a href="/eshop">Celý obchod</a></nav>'+grid.replace('<div ','<div class="kol-track" data-carousel tabindex="0" aria-label="Vybrané produkty" '));
-    }
-    if(out.includes('data-video="sky"')){
-      out=out.replace('<section ', '<section class="sky-section" ').replace('<div style="order:-1;', '<div class="sky-window" style="order:-1;').replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(0,0,0,0\) 50%,rgba\(0,0,0,0.65\) 100%\)"><\/div>/,'');
-      out=out.replace(/(<section[^>]*>)/, '$1<div class="sky-spill" aria-hidden="true"><video data-video="sky-spill" poster="/assets/night-sky.jpg" autoplay muted loop playsinline preload="metadata">'+VIDEO_SOURCES.sky+'</video></div>');
-      // Statement band between the programme and the consultations. It used to
-      // hold only the brand slogan, which left a dead gap on the page — the
-      // line below is the approved copy from the original site (src/pages.mjs).
-      pre='<section class="wisdom" data-screen-label="04b Myšlienka" aria-label="Zdravý svet"><figure><span class="wisdom-mark" aria-hidden="true"></span><blockquote>Zdravý svet nie je ideál,<br><span style="color:#748054">ku ktorému sa treba dopracovať.</span></blockquote><figcaption>ANASTASIA · Zdravý svet</figcaption></figure></section>\n';
-    }
-    // pásmo se vkládá až za bleed, aby sekce s oblohou dál dostala odsazení pod boční lištu
-    return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : pre+bleed(out);
-  }).join('\n');
+  // Nové rozvrženie úvodu (split sekce, dvojí typografie) — viz src/home-lh.mjs.
+  // Hlavička se vkládá před hero, proto je na začátku.
+  return '%%HEADER%%\n'+homeLhSections(products);
 }
 
 export function aboutSections() {
@@ -277,6 +244,7 @@ const ease = (rgb, a0, a1, p0, p1) => SMOOTH.map((k, i) => `rgba(${rgb},${+(a0 +
 const easeVar = (color, a0, a1, p0, p1) => SMOOTH.map((k, i) => `color-mix(in srgb,${color} ${+((a0 + (a1 - a0) * k) * 100).toFixed(1)}%,transparent) calc(${p0} + (${p1} - ${p0}) * ${i / 10})`).join(',');
 const CREAM = '245,242,232', MASK = '0,0,0';
 export const HELMET_CSS = `
+${HOME_CSS}
 :is(.dc-root,.dc-chrome) .header-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
 :is(.dc-root,.dc-chrome) .header-brand-emblem{position:relative;display:block;width:36px;height:36px;overflow:hidden;border-radius:50%;flex-shrink:0}
 :is(.dc-root,.dc-chrome) .header-brand-emblem img{position:absolute;width:116.62%;height:auto;max-width:none;left:-8.45%;top:-34.01%;filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}

@@ -6,7 +6,26 @@
    This file only adds what the legacy stylesheet still lacks and documents the
    scale in one place. Loaded before /base.css, so these values win over the
    legacy :root block (legacy lives in the "legacy" cascade layer). */
+
+/* Display serif for the italic half of the headings (homepage layout follows
+   the reference: italic serif + uppercase sans in the same statement). */
+@font-face{
+  font-family:'EB Garamond';
+  src:url('/assets/eb-garamond-italic.woff2') format('woff2');
+  font-weight:400;
+  font-style:italic;
+  font-display:swap;
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
 :root{
+  /* --- Surfaces of the new homepage layout -------------------------------- */
+  --lh-paper:#F5F2E8;
+  --lh-ink:#283020;
+  --lh-muted:#69705E;
+  --lh-serif:'EB Garamond',Georgia,'Times New Roman',serif;
+  --lh-sans:Outfit,'Helvetica Neue',sans-serif;
+
   /* --- Brand palette ------------------------------------------------------ */
   --ana-ink:var(--site-main,#283020);         /* text, dark background      */
   --ana-deep:var(--site-deep,#26321E);         /* deeper shade               */
