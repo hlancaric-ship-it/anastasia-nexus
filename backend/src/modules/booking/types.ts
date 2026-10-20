@@ -19,6 +19,7 @@ export type BookingDTO = {
 export type HoldSlotInput = {
   customer_id: string
   product_id: string
+  tenant_id?: string
   starts_at: Date
   ends_at: Date
   /** Jak dlouho hold čeká na potvrzení (zaplacení), než vyprší. */

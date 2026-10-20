@@ -75,6 +75,9 @@
     "production": {
       "name": "nexus-api-production",
       "observability": { "enabled": true },
+      "vars": {
+        "ENVIRONMENT": "production"
+      },
       // Fyzicky oddělená databáze, ne jen jiný preview_database_id.
       // U kreditních dat nechceme, aby `wrangler deploy` bez --env mohl
       // sáhnout na produkční zůstatky.

@@ -5,11 +5,13 @@ export const ENTITLEMENT_SOURCES = ["order", "admin", "migration"] as const
 
 /**
  * Přístup zákaznice k digitálnímu produktu.
- * Jedna aktivní záznamová řada na (objednávka, produkt) je zaručena unikátním dedupe_key.
+ * Jedna aktivní záznamová řada na (tenant, dedupe_key) je zaručena unikátním indexem.
+ * Tenant izolace je řešena sloupcem tenant_id v databázi.
  */
 const Entitlement = model
   .define("entitlement", {
     id: model.id({ prefix: "ent" }).primaryKey(),
+    tenant_id: model.text().default("default"),
     customer_id: model.text(),
     product_id: model.text(),
     variant_id: model.text().nullable(),
@@ -25,10 +27,11 @@ const Entitlement = model
     metadata: model.json().nullable(),
   })
   .indexes([
-    { on: ["dedupe_key"], unique: true, where: "deleted_at IS NULL" },
-    { on: ["customer_id", "status"] },
-    { on: ["order_id"] },
-    { on: ["product_id"] },
+    { on: ["tenant_id", "dedupe_key"], unique: true, where: "deleted_at IS NULL" },
+    { on: ["customer_id", "tenant_id", "status"] },
+    { on: ["order_id", "tenant_id"] },
+    { on: ["product_id", "tenant_id"] },
+    { on: ["tenant_id", "granted_at"] },
   ])
 
 export default Entitlement

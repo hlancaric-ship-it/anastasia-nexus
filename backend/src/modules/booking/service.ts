@@ -149,6 +149,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "ends_at musí být po starts_at")
     }
     if (input.bufferMinutes !== undefined && (!Number.isInteger(input.bufferMinutes) || input.bufferMinutes < 0)) throw new Error("INVALID_BOOKING_BUFFER")
+    const tenant_id = input.tenant_id ?? "default"
     const heldUntil = new Date(Date.now() + clampHoldMinutes(input.holdMinutes) * 60_000)
     try {
       await this.assertSlotAvailable(input, context)
@@ -160,6 +161,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
         starts_at: input.starts_at,
         ends_at: input.ends_at,
         held_until: heldUntil,
+        tenant_id,
         metadata: { buffer_minutes: input.bufferMinutes ?? 0 },
       }, context)) as unknown as BookingDTO
     } catch (error) {

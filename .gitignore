@@ -3,11 +3,13 @@ node_modules
 .medusa
 .env
 .env.*
+.dev.vars
 .DS_Store
 dist
 build
 data-private/
 backend/data-private/
+package-lock.json
 
 # Lokálne nahraté súbory (Medusa file-local)
 backend/static/

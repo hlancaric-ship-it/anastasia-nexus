@@ -14,11 +14,15 @@ class EntitlementModuleService extends MedusaService({ Entitlement }) implements
     if (!input.customer_id || !input.product_id || !input.dedupe_key) {
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "customer_id, product_id a dedupe_key jsou povinné")
     }
-    const existing = await this.findByDedupeKey(input.dedupe_key)
+    if (!input.tenant_id) {
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "tenant_id je povinný")
+    }
+    const tenant_id = input.tenant_id
+    const existing = await this.findByDedupeKey(input.dedupe_key, tenant_id)
     if (existing) return { entitlement: existing, created: false }
 
     try {
-      const created = (await this.createEntitlements({
+      const created = (await this.createEntitlements([{
         customer_id: input.customer_id,
         product_id: input.product_id,
         variant_id: input.variant_id ?? null,
@@ -30,21 +34,25 @@ class EntitlementModuleService extends MedusaService({ Entitlement }) implements
         granted_by: input.granted_by ?? null,
         dedupe_key: input.dedupe_key,
         metadata: input.metadata ?? null,
-      })) as unknown as EntitlementDTO
+        tenant_id: tenant_id,
+      }]))[0] as EntitlementDTO
       return { entitlement: created, created: true }
     } catch (error) {
       // souběh dvou událostí (order.placed + payment.captured): prohrávající vlákno si záznam načte
       const message = error instanceof Error ? error.message : String(error)
       if (UNIQUE_VIOLATION.test(message)) {
-        const winner = await this.findByDedupeKey(input.dedupe_key)
+        const winner = await this.findByDedupeKey(input.dedupe_key, tenant_id)
         if (winner) return { entitlement: winner, created: false }
       }
       throw error
     }
   }
 
-  async findByDedupeKey(dedupeKey: string): Promise<EntitlementDTO | null> {
-    const [found] = (await this.listEntitlements({ dedupe_key: dedupeKey }, { take: 1 })) as unknown as EntitlementDTO[]
+  async findByDedupeKey(dedupeKey: string, tenant_id: string = "default"): Promise<EntitlementDTO | null> {
+    const [found] = (await this.listEntitlements({ 
+      tenant_id, 
+      dedupe_key: dedupeKey 
+    }, { take: 1 })) as unknown as EntitlementDTO[]
     return found ?? null
   }
 

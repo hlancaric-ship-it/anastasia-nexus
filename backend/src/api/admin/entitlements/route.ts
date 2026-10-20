@@ -83,6 +83,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       expires_at: expiresAt,
       granted_by: req.auth_context?.actor_id ?? null,
       metadata: typeof body.reason === "string" && body.reason.trim() ? { reason: body.reason.trim().slice(0, 500) } : null,
+      tenant_id: "default",
     })
     await auditAdminChange(req, "entitlement.grant", "entitlement", (entitlement as { id?: string })?.id ?? null, null, { customer_id: customerId, product_id: productId, status: (entitlement as { status?: string })?.status ?? null })
     return res.status(201).json({ entitlement })

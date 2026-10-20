@@ -10,6 +10,7 @@ export const BOOKING_STATUSES = ["held", "confirmed", "canceled", "completed"] a
 const Booking = model
   .define("booking", {
     id: model.id({ prefix: "bkg" }).primaryKey(),
+    tenant_id: model.text().default("default"),
     customer_id: model.text(),
     product_id: model.text(),
     calendar_id: model.text().default("lucia"),
@@ -24,9 +25,10 @@ const Booking = model
     metadata: model.json().nullable(),
   })
   .indexes([
-    { on: ["calendar_id", "starts_at"], unique: true, where: "deleted_at IS NULL AND status IN ('held','confirmed')" },
-    { on: ["customer_id", "status"] },
+    { on: ["calendar_id", "tenant_id", "starts_at"], unique: true, where: "deleted_at IS NULL AND status IN ('held','confirmed')" },
+    { on: ["customer_id", "tenant_id", "status"] },
     { on: ["order_id"] },
+    { on: ["tenant_id", "status"] },
   ])
 
 export default Booking
