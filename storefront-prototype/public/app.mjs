@@ -220,9 +220,9 @@ if(motion&&$('.dc-root')){
   const lum=c=>{const m=c.match(/[\d.]+/g);if(!m)return 0;const a=m[3]===undefined?1:+m[3];if(a<0.5)return -1;return(0.299*m[0]+0.587*m[1]+0.114*m[2])/255;};
   const setTone=t=>{
     if(!rail||t===tone)return;tone=t;const light=t==='light';
-    rail.style.background=light?'linear-gradient(100deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.06) 100%)':'linear-gradient(100deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),rgba(30,38,25,0.16)';
-    rail.style.color=light?'#283020':'#EFE5C7';rail.style.borderRightColor=light?'rgba(40,48,32,0.08)':'rgba(255,255,255,0.24)';
-    $$('div',rail).forEach(d=>{if(d.style.borderBottom||d.style.borderTop)d.style.borderColor=light?'rgba(40,48,32,0.1)':'rgba(255,255,255,0.16)';});
+    rail.style.background=light?'linear-gradient(100deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.06) 100%)':'linear-gradient(100deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.05) 45%,rgba(255,255,255,0.02) 70%,rgba(255,255,255,0.09) 100%),color-mix(in srgb,var(--site-dark) 16%,transparent)';
+    rail.style.color=light?'var(--site-main)':'var(--site-cream)';rail.style.borderRightColor=light?'color-mix(in srgb,var(--site-main) 8%,transparent)':'rgba(255,255,255,0.24)';
+    $$('div',rail).forEach(d=>{if(d.style.borderBottom||d.style.borderTop)d.style.borderColor=light?'color-mix(in srgb,var(--site-main) 10%,transparent)':'rgba(255,255,255,0.16)';});
   };
   const toneAt=y=>{
     let el=document.elementFromPoint(80,Math.max(0,Math.min(innerHeight-1,y)));
@@ -258,7 +258,7 @@ if(motion&&$('.dc-root')){
 
 document.addEventListener('click',async event=>{
   const add=event.target.closest('[data-add]');
-  if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='#C9A355';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
+  if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='var(--site-accent)';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
   const a=event.target.closest('a[href]');
   if(!a||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
   const url=new URL(a.href,location.href);
