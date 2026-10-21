@@ -46,6 +46,14 @@ export interface LegacyPricingInput {
      * createNexusPricingCalculator přeskočí (viz CouponDiscountRule.ts).
      */
     couponDiscountPercent?: Decimal;
+    /**
+     * Pevná zľava (EUR) přidělená této položce košíku.
+     *
+     * Alokaci pevné sumy mezi položky dělá Medusa (zná celý košík i pravidla
+     * kupónu); sem přichází už jen podíl pro tuto položku. Nikdy klientem
+     * dodaná hodnota -- jen serverem vypočítaná a ověřená.
+     */
+    couponFixedAmount?: Decimal;
 }
 
 export class PricingAdapter implements Rule<PricingComputationInput, PricingRuleResult> {

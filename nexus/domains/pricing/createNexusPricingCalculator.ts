@@ -165,6 +165,7 @@ export function createNexusPricingCalculator(
         const coupon = couponDiscountRule.evaluate({
             currentPrice,
             discountPercent: input.couponDiscountPercent,
+            fixedAmount: input.couponFixedAmount,
         });
         if (coupon.applied && coupon.price) {
             currentPrice = coupon.price;

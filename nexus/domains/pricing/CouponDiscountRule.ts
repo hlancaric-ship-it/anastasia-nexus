@@ -42,6 +42,13 @@ export interface CouponDiscountRuleInput {
     readonly currentPrice: Decimal;
     /** Procentuální sleva jako ratio (0.10 = 10 %), z Medusa Promotion application_method.value / 100. */
     readonly discountPercent?: Decimal;
+    /**
+     * Pevná zľava (EUR) přidělená této položce košíku.
+     *
+     * Alokaci pevné sumy mezi položky dělá Medusa (zná celý košík a pravidla
+     * kupónu); Worker jen odečte přidělený podíl. Cena NIKDY neklesne pod 0.
+     */
+    readonly fixedAmount?: Decimal;
 }
 
 export interface CouponDiscountRuleResult {
@@ -54,13 +61,22 @@ export class CouponDiscountRule implements Rule<CouponDiscountRuleInput, CouponD
     constructor(public readonly context: RuleContext) {}
 
     evaluate(input: CouponDiscountRuleInput): CouponDiscountRuleResult {
-        if (!input.discountPercent || input.discountPercent.lessThanOrEqualTo(0)) {
+        const one = new Decimal('1');
+        const zero = new Decimal(0);
+        let current = input.currentPrice;
+
+        // Procento nejprve, pevná částka potom (kdyby přišly obě, pevná snižuje to,
+        // co zbylo po procentu). Kdyby žádné nebylo, pravidlo se neaplikuje.
+        if (input.discountPercent && input.discountPercent.greaterThan(0)) {
+            const ratio = Decimal.min(input.discountPercent, one);
+            current = Decimal.max(current.mul(one.minus(ratio)), zero);
+        }
+        if (input.fixedAmount && input.fixedAmount.greaterThan(0)) {
+            current = Decimal.max(current.minus(input.fixedAmount), zero);
+        }
+        if (current.equals(input.currentPrice)) {
             return { applied: false };
         }
-        const one = new Decimal('1');
-        const ratio = Decimal.min(input.discountPercent, one);
-        const discounted = input.currentPrice.mul(one.minus(ratio));
-        const floored = Decimal.max(discounted, new Decimal(0));
-        return { applied: true, price: floored, rule: 'COUPON' };
+        return { applied: true, price: current, rule: 'COUPON' };
     }
 }

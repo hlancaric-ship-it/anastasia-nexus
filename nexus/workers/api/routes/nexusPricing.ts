@@ -43,6 +43,9 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
     if (input.couponDiscountPercent !== undefined && (typeof input.couponDiscountPercent !== 'number' || !Number.isFinite(input.couponDiscountPercent) || input.couponDiscountPercent < 0 || input.couponDiscountPercent > 1)) {
         throw new ApiError('VALIDATION_ERROR', 400, 'couponDiscountPercent musí být číslo mezi 0 a 1.');
     }
+    if (input.couponFixedAmount !== undefined && (typeof input.couponFixedAmount !== 'number' || !Number.isFinite(input.couponFixedAmount) || input.couponFixedAmount < 0)) {
+        throw new ApiError('VALIDATION_ERROR', 400, 'couponFixedAmount musí být nezáporné číslo.');
+    }
 
     if (!/^[a-z0-9_-]{2,32}$/i.test(tenantId)) {
         throw new ApiError('MISSING_BINDING', 503, 'Tenant pricing služby není správně nakonfigurován.');
@@ -65,6 +68,9 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
         productMaxDiscount: typeof input.productMaxDiscount === 'number' ? new Decimal(input.productMaxDiscount) : undefined,
         allowLoyaltyDiscount: typeof input.allowLoyaltyDiscount === 'boolean' ? input.allowLoyaltyDiscount : true,
         couponDiscountPercent: typeof input.couponDiscountPercent === 'number' ? new Decimal(input.couponDiscountPercent) : undefined,
+        // Pevná zľava (EUR) na jednu položku košíku. Alokáciu pevnej sumy medzi
+        // položky robí Medusa (zná celý košík); Worker odčíta pridelený podiel.
+        couponFixedAmount: typeof input.couponFixedAmount === 'number' ? new Decimal(input.couponFixedAmount) : undefined,
     });
 
     return jsonResponse({

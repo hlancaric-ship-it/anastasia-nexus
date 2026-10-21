@@ -9,6 +9,7 @@ import { recordEvent } from "../../../lib/observability/events"
 import { assertCartConsent, loadConsentCart } from "../../../lib/legal/checkout"
 import { LegalError } from "../../../modules/legal/policy"
 import { compensateUnfinishedCheckout, stripeIntentsOfCart } from "../../../lib/checkout/payment-compensation"
+import { recordCouponUsage } from "../../../lib/pricing/coupon-usage"
 import { bankTransferInstructions, loadCartShape, paymentMethodByProvider, PICKUP_ADDRESS } from "../../../lib/checkout/delivery-payment"
 
 /** Objednávka nevznikla: ak už bola platba kartou stiahnutá/autorizovaná, vráti ju (nikdy nevyhodí). */
@@ -68,6 +69,14 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     // Len informácia pre zákazníčku – chyba tu nesmie zmeniť výsledok už vytvorenej objednávky.
     const pickup = await loadCartShape(req.scope, { profileIds: [], shippingOptionIds: (order.shipping_methods || []).map((m: any) => m?.shipping_option_id).filter(Boolean) })
       .then((shape) => shape.methodTypes.includes("pickup")).catch(() => false)
+    // Použitie kupónu sa započíta až po vytvorení objednávky (atomicky, s kontrolou limitu).
+    // Chyba tu nesmie zrušiť hotovú objednávku.
+    const couponUsage = await recordCouponUsage(req.scope, cartId)
+    if (couponUsage.promotion_id) {
+      await recordEvent(req.scope, couponUsage.counted ? "info" : "warn", "coupon", couponUsage.counted ? "used" : "limit_exhausted", {
+        cart_id: cartId, order_id: order.id, promotion_id: couponUsage.promotion_id,
+      })
+    }
     await recordEvent(req.scope, "info", "checkout", "completed", { cart_id: cartId, order_id: order.id, paid: isPaid, currency_code: order.currency_code, payment_method: method })
     return res.status(200).json({
       ok: true,
