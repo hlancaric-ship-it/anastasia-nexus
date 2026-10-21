@@ -14,7 +14,14 @@ jest.mock('../../../../lib/loyalty/settings', () => ({
 jest.mock('../../../../lib/nexus/loyalty-policy-sync', () => ({ syncLoyaltyPolicyToWorker: jest.fn(async () => ({ synced: true, status: 200 })) }))
 
 const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
-const scope = { resolve: () => logger }
+// Administrátor je vlastník – cenovú politiku mení iba on.
+const userService = { retrieveUser: jest.fn(async () => ({ id: 'user_1', email: 'admin@anastasia.test', metadata: { anastasia_role: 'owner' } })) }
+const scope = {
+  resolve: (key: string) => {
+    if (key === 'user') return userService
+    return logger
+  },
+}
 
 function fixture(body: unknown = {}) {
   const req: any = { body, query: {}, params: {}, auth_context: { actor_type: 'user', actor_id: 'user_1' }, scope }

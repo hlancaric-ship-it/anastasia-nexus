@@ -18,7 +18,15 @@ jest.mock('../../../../lib/loyalty/assignment', () => ({
 }))
 
 const graph = jest.fn(async () => ({ data: [{ id: 'cus_1' }] }))
-const scope = { resolve: (key: string) => (key === 'query' ? { graph } : { error: jest.fn(), info: jest.fn() }) }
+// Administrátor je vlastník – dostane právo meniť úroveň (zľavu).
+const userService = { retrieveUser: jest.fn(async () => ({ id: 'user_1', email: 'admin@anastasia.test', metadata: { anastasia_role: 'owner' } })) }
+const scope = {
+  resolve: (key: string) => {
+    if (key === 'query') return { graph }
+    if (key === 'user') return userService
+    return { error: jest.fn(), info: jest.fn() }
+  },
+}
 
 function fixture(body: unknown, params: Record<string, string> = { id: 'cus_1' }) {
   const req: any = { body, query: {}, params, auth_context: { actor_type: 'user', actor_id: 'user_1' }, scope }

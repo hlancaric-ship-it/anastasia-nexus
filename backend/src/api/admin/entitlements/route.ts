@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { ENTITLEMENT_MODULE } from "../../../modules/entitlement"
 import type EntitlementModuleService from "../../../modules/entitlement/service"
 import { auditAdminChange } from "../../../lib/observability/audit"
+import { requireAdminCapability } from "../../../lib/admin/guard"
 
 const str = (v: unknown): string | undefined => {
   const s = Array.isArray(v) ? v[0] : v
@@ -51,6 +52,8 @@ type GrantBody = {
 
 /** POST /admin/entitlements: ruční udělení přístupu (vždy nový záznam, source=admin). */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  // Ručné udelenie prístupu k platenému obsahu robí iba vlastník administrácie.
+  if (!(await requireAdminCapability(req, res, "access"))) return
   const body = (req.body ?? {}) as GrantBody
   const customerId = typeof body.customer_id === "string" ? body.customer_id.trim() : ""
   const productId = typeof body.product_id === "string" ? body.product_id.trim() : ""

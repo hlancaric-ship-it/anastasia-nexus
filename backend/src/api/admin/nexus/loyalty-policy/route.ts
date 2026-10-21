@@ -1,6 +1,7 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { adminActor, auditAdminChange } from "../../../../lib/observability/audit"
+import { requireAdminCapability } from "../../../../lib/admin/guard"
 import { normalizePolicy } from "../../../../lib/loyalty/policy"
 import { readLoyaltySettingsFromStore, saveLoyaltySettingsToStore } from "../../../../lib/loyalty/settings"
 import { syncLoyaltyPolicyToWorker } from "../../../../lib/nexus/loyalty-policy-sync"
@@ -28,6 +29,8 @@ export async function PUT(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
   res.setHeader("Cache-Control", "private, no-store")
   const actor = adminActor(req)
   if (!actor) return res.status(401).json({ message: "Prihláste sa do administrácie." })
+  // Cenovú politiku (zľavy a prahy) mení iba vlastník administrácie.
+  if (!(await requireAdminCapability(req, res, "pricing"))) return
   const parsed = normalizePolicy((req.body ?? {}) as { tiers?: unknown })
   if (!parsed.ok) return res.status(400).json({ message: parsed.message })
   try {

@@ -21,17 +21,22 @@ const additions = [
   { path: '/admin/nexus/loyalty-customers', methods: ['GET'], source: 'backend/src/api/admin/nexus/loyalty-customers/route.ts', feature: 'loyalty' },
   { path: '/admin/nexus/customers/:id/tier', methods: ['POST'], source: 'backend/src/api/admin/nexus/customers/[id]/tier/route.ts', feature: 'loyalty' },
   { path: '/admin/nexus/customers/tiers', methods: ['POST'], source: 'backend/src/api/admin/nexus/customers/tiers/route.ts', feature: 'loyalty' },
+  { path: '/admin/nexus/admin-roles', methods: ['GET', 'POST'], source: 'backend/src/api/admin/nexus/admin-roles/route.ts', feature: 'roles' },
+  { path: '/admin/nexus/admin-2fa', methods: ['GET', 'POST', 'DELETE'], source: 'backend/src/api/admin/nexus/admin-2fa/route.ts', feature: 'roles' },
+  { path: '/admin/nexus/admin-2fa/verify', methods: ['POST'], source: 'backend/src/api/admin/nexus/admin-2fa/verify/route.ts', feature: 'roles' },
+  { path: '/admin/nexus/admin-2fa/recovery-codes', methods: ['POST'], source: 'backend/src/api/admin/nexus/admin-2fa/recovery-codes/route.ts', feature: 'roles' },
 ]
 
 for (const addition of additions) {
+  const methods = [...addition.methods].sort()
   const existing = map.custom_routes.find((row) => row.path === addition.path)
   if (existing) {
-    existing.methods = addition.methods
+    existing.methods = methods
     existing.feature = addition.feature
     existing.sha256 = sha(addition.source)
     continue
   }
-  map.custom_routes.push({ ...addition, sha256: sha(addition.source) })
+  map.custom_routes.push({ path: addition.path, methods, feature: addition.feature, source: addition.source, sha256: sha(addition.source) })
 }
 // Zdroj iného routy sa mohol zmeniť v paralelnej práci – hash sa osvieži,
 // ale o zmene sa vypíše (posledná kontrola kontraktu je vždy ľudská).
@@ -85,7 +90,7 @@ if (existingLoyalty) {
   for (const source of loyalty.sources) if (!existingLoyalty.sources.includes(source)) existingLoyalty.sources.push(source)
   // Pôvodný popis požiadavky a akceptačné kritériá sa NEMAŽÚ – doplnia sa.
   if (!existingLoyalty.remaining.includes('Politika úrovní')) existingLoyalty.remaining = `${existingLoyalty.remaining} ${loyalty.remaining}`
-  if (!existingLoyalty.acceptance.includes('z databázy')) existingLoyalty.acceptance = `${existingLoyalty.acceptance} ${loyalty.acceptance}`
+  if (!existingLoyalty.acceptance.includes('z politiky v databáze')) existingLoyalty.acceptance = `${existingLoyalty.acceptance} ${loyalty.acceptance}`
   existingLoyalty.backend_status = 'IMPLEMENTED_UNVERIFIED'
 } else {
   map.features.push({
@@ -94,6 +99,21 @@ if (existingLoyalty) {
     request: 'Lucia si sama nastaví zľavy a prahy věrnostných úrovní a ručne priradí zákazníka k úrovni.',
     sources: loyalty.sources, remaining: loyalty.remaining, acceptance: loyalty.acceptance,
   })
+}
+
+// Bezpečnosť administrácie: role (vlastník/asistent) a dvojfaktorové overenie.
+const rolesFeature = map.features.find((feature) => feature.id === 'roles')
+if (rolesFeature) {
+  for (const source of [
+    'backend/src/lib/admin/roles.ts',
+    'backend/src/lib/admin/guard.ts',
+    'backend/src/lib/admin/mfa.ts',
+    'backend/src/api/admin/nexus/admin-roles/route.ts',
+    'backend/src/api/admin/nexus/admin-2fa/route.ts',
+    'backend/docs/wp/admin-2fa-rbac.md',
+  ]) if (!rolesFeature.sources.includes(source)) rolesFeature.sources.push(source)
+  rolesFeature.remaining = 'Role vlastník/asistent a dvojfaktorové overenie (TOTP) sú zavedené v backende; zostáva zapnutie TOTP providera (mfa.encryption_key v medusa-config.ts, mimo tohto balíka) a UI administrácie.'
+  rolesFeature.backend_status = 'IMPLEMENTED_UNVERIFIED'
 }
 
 const newTests = [

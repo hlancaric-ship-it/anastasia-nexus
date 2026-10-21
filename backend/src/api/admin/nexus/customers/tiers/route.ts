@@ -1,6 +1,7 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { adminActor, auditAdminChange } from "../../../../../lib/observability/audit"
+import { requireAdminCapability } from "../../../../../lib/admin/guard"
 import { applyLoyaltyAssignment, loyaltyTierGroups } from "../../../../../lib/loyalty/assignment"
 import { LOYALTY_TIER_CODE_RE } from "../../../../../lib/loyalty/policy"
 
@@ -15,6 +16,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   res.setHeader("Cache-Control", "private, no-store")
   const actor = adminActor(req)
   if (!actor) return res.status(401).json({ message: "Prihláste sa do administrácie." })
+  // Úroveň určuje zľavu, preto ju mení iba vlastník administrácie.
+  if (!(await requireAdminCapability(req, res, "pricing"))) return
 
   const body = (req.body ?? {}) as { tier_code?: unknown; customer_ids?: unknown; assignments?: unknown }
   const requested: Array<{ customer_id: string; tier_code: string }> = []
