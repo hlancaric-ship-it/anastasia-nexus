@@ -8,7 +8,25 @@ import { readMedia, readStore, writeMedia, writeStoreMetadata, type MediaItem } 
 
 const MEDIA_MAX_ITEMS = 500
 const MEDIA_MAX_SIZE = 12 * 1024 * 1024
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/svg+xml']
+
+/**
+ * Povolené typy obrázkov v knižnine.
+ *
+ * `image/svg+xml` je VYŤATÝ ZÁMERNE (2026-10-21): SVG je dokument, ktorý
+ * môže obsahovať skript. Servírovaný z vlastnej domény sa dá otvoriť priamo
+ * v prehliadači a spustiť JavaScript v kontexte stránky (XSS). Obrázkový
+ * formát (JPG, PNG, WebP, GIF, AVIF) sa vykresľuje ako obrázok a skript
+ * nespustí.
+ *
+ * Na strane klienta (nahrávanie v administrácii) je allowlist užitočný len
+ * ako vstupná kontrola -- rozhoduje server.
+ */
+export const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'] as const
+
+/** True = typ smie byť v knižnine. */
+export function isAllowedMediaType(contentType: string): boolean {
+  return (ALLOWED_MEDIA_TYPES as readonly string[]).includes(contentType)
+}
 
 function safeUrl(value: unknown): string | null {
   const url = String(value ?? '').trim()
@@ -50,7 +68,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const size = Number(item.size) || 0
     const contentType = String(item.content_type ?? '').trim()
     if (size > MEDIA_MAX_SIZE) return res.status(400).json({ message: 'Niektorý obrázok je väčší ako 12 MB.' })
-    if (contentType && !ALLOWED_TYPES.includes(contentType)) return res.status(400).json({ message: 'V knihovne sú len obrázky (JPG, PNG, WebP, GIF, AVIF, SVG).' })
+    if (contentType && !isAllowedMediaType(contentType)) return res.status(400).json({ message: 'V knižne sú len obrázky (JPG, PNG, WebP, GIF, AVIF).' })
     known.add(key)
     added.push({
       key,
