@@ -383,3 +383,13 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
   :is(.dc-root,.dc-chrome) footer>div:last-of-type>div{grid-template-columns:1fr!important;gap:22px!important}
   :is(.dc-root,.dc-chrome) footer a{overflow-wrap:anywhere}
 }
+
+/* r12/3 (doplnenie): katalóg a dlaždice produktov na mobilu – jeden stĺpec,
+   text sa neorezuje a tlačidlo neprechádza cez text. */
+@media(max-width:760px){
+  .catalog-navigation{grid-template-columns:1fr!important;gap:14px!important}
+  .catalog-nav-tile h3,.catalog-nav-tile strong{overflow-wrap:anywhere;word-break:normal}
+  .catalog-grid{grid-template-columns:1fr!important}
+  .product-grid{grid-template-columns:1fr!important}
+  .catalog-section .product-card .product-info{position:relative!important;inset:auto!important}
+}
