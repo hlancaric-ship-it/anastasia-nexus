@@ -1,5 +1,7 @@
 import {SHOP_CATALOG,SHOP_CATEGORIES} from './catalog.mjs';
-const products=SHOP_CATALOG.map(p=>({...p}));
+// Digitálne produkty v ukážkovom katalógu zodpovedajú skutočným (dopravný profil „digital“).
+const DIGITAL_GROUP_BY_HANDLE={'reset-40-plus':'ACADEMY kurzy','nic-nemusis':'ACADEMY kurzy','vyuka-vedomeho-vnimania':'ACADEMY kurzy','personalizovany-zdravotny-protokol-pro':'ACADEMY kurzy','supervizia':'Konzultácie','online-zdravotna-konzultacia':'Konzultácie','astrologia-zdravie-predispozicia':'Konzultácie'};
+const products=SHOP_CATALOG.map(p=>({...p,digital:!!DIGITAL_GROUP_BY_HANDLE[p.slug],digitalGroup:DIGITAL_GROUP_BY_HANDLE[p.slug]||''}));
 
 const pages = [
   ['/o-lucii','O Lucii','Človek za príbehom.','Priestor pre osobný príbeh, odborné skúsenosti a prístup Lucie.','about'],
@@ -88,7 +90,7 @@ export function createMockApi(storage=memoryStorage()) {
       return{ok:true,gift_voucher:clone(credit),cart:cart(),message:'Poukaz bol uplatnený.'};
     },
     removeGiftVoucher:()=>{credit=null;return cart();},
-    getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
+    getProducts:({category='',search='',filter='',type=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true))&&(!type||(type==='digital'?p.digital:!p.digital)))),
     getProduct:slug=>clone(products.find(p=>p.slug===slug)||null),
     getCategories:()=>[...SHOP_CATEGORIES],
     getPages:()=>clone(pages),getPage:path=>clone(pages.find(p=>p.path===canonical(path))||null),getAliases:()=>clone(aliases),

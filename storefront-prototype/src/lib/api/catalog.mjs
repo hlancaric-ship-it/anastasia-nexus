@@ -2,6 +2,20 @@
 // Ilustračné obrázky sú len náhradou, pokiaľ príslušné originálne fotografie nie sú v deployi.
 // Skutočné obrázky a ceny v HTTP režime poskytuje backend; demo ceny zodpovedajú starému výpisu.
 export const SHOP_CATEGORIES=Object.freeze(['Kozmetika','Bylinky a výživa','Programy a služby']);
+// Návrh skupín digitálnych produktov. Základom je existujúca kategória
+// „AI ANASTASIA ACADEMY“; nič sa neprestrahuje a žiadna kategória sa nemazí.
+export const DIGITAL_GROUPS=Object.freeze([
+  {handle:'academy-kurzy',label:'ACADEMY kurzy',categories:['AI ANASTASIA ACADEMY']},
+  {handle:'audio-meditacie',label:'Audio a meditácie',categories:['Audio a meditácie']},
+  {handle:'e-knihy-dokumenty',label:'E-knihy a dokumenty',categories:['E-knihy a dokumenty']},
+  {handle:'konzultacie',label:'Konzultácie',categories:['Konzultácie']},
+]);
+export function digitalGroupLabel(categories){
+  const names=(categories||[]).filter(name=>typeof name==='string'&&name.trim()).map(name=>name.trim());
+  const group=DIGITAL_GROUPS.find(g=>g.categories.some(c=>names.includes(c)));
+  if(group)return group.label;
+  return names[0]||'Digitálne produkty';
+}
 export const FEATURED_SLUGS=Object.freeze(['osviezit-plet','pletova-voda','chripka-prasok','online-zdravotna-konzultacia']);
 export const SHOP_CATALOG=Object.freeze([
   {slug:"reset-40-plus",name:"AI ANASTASIA RESET 40+",category:"Programy a služby",priceLabel:"168,00 €",art:"sun",image:"/assets/lucia-longevity.png"},

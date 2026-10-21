@@ -1,4 +1,4 @@
-import {SHOP_CATEGORIES} from './catalog.mjs';
+import {SHOP_CATEGORIES, digitalGroupLabel} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
@@ -6,7 +6,7 @@ const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena s
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
+  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price,shipping_profile.type';
 
 // Klub, konzultácie a darčekový poukaz majú vlastný nákupný tok (súhlas, termín, príjemca); bežný košík ich backend odmietne.
 const isShopProduct = p => { const m = p?.metadata || {}; return !m.membership && !m.booking && m.gift_voucher !== true && m.gift_voucher !== 'true'; };
@@ -17,10 +17,14 @@ function mapProduct(p,apiBase='') {
   const variant = (p.variants || [])[0] || {};
   const cp = variant.calculated_price || {};
   const category = (p.categories||[]).map(c=>c.name).find(n=>SHOP_CATEGORIES.includes(n)) || (p.categories||[])[0]?.name || '';
+  // Digitálny produkt určuje dopravný profil (rovnaké pravidlo ako v pokladni), nie kategória.
+  const digital = p.shipping_profile?.type === 'digital';
   return {
     slug: p.handle,
     name: p.title,
     category,
+    digital,
+    digitalGroup: digital ? digitalGroupLabel((p.categories||[]).map(c=>c.name)) : '',
     code: p.handle,
     priceLabel: cp.calculated_amount != null ? money(cp.calculated_amount) : 'Cena sa doplní',
     art: ART[category] || 'jar',
@@ -184,7 +188,7 @@ export function createHttpApi(storage, config) {
   const self = {
     mode: 'http',
 
-    async getProducts({ category = '', search = '', filter = '' } = {}) {
+    async getProducts({ category = '', search = '', filter = '', type = '' } = {}) {
       const r = await call(`/store/products?region_id=${config.regionId}&limit=100&fields=${PRODUCT_FIELDS}`);
       if(!r.ok)throw new Error('Katalóg sa nepodarilo načítať.');
       let items = (r.data?.products || []).filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
@@ -193,6 +197,8 @@ export function createHttpApi(storage, config) {
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
       if (filter === 'novinky') items = items.filter(p => p.isNew);
       if (filter === 'bestsellery') items = items.filter(p => p.isBestseller);
+      if (type === 'digital') items = items.filter(p => p.digital);
+      if (type === 'physical') items = items.filter(p => !p.digital);
       return items;
     },
     async getProduct(slug) {
