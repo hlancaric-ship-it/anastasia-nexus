@@ -35,7 +35,7 @@ node build.mjs        # → dist/
 - **Klub** – členky, nákupy členstva, produkty Klubu, obnovy platieb (`/admin/memberships*`, zatiaľ len v integračnej vetve Klubu).
 - **Poukazy a zľavy** – kupóny (promotions); darčekové poukazy s históriou, zneplatnením a vrátením na poukaz (`/admin/vouchers*`).
 - **Obsah a e-maily** – šablóny s náhľadom, newsletter.
-- **Nastavenia** – vzhľad (`/admin/my-theme` s revíziou, 409 pri súbežnej zmene), doprava/platby/sklady (len na čítanie, bez kľúčov), používatelia a pozvánky (`/admin/invites`; prijatie na `#/pozvanka/<token>`).
+- **Nastavenia** – vzhľad (`/admin/my-theme` s revíziou, 409 pri súbežnej zmene), **pripojenia** (produktové feedy Heureka + Google Merchant s odkazom na kopírovanie, dopravca Packeta/SPS/GLS/DPD s API kľúčom uloženým šifrovaným na serveri), doprava/platby/sklady (len na čítanie, bez kľúčov), používatelia a pozvánky (`/admin/invites`; prijatie na `#/pozvanka/<token>`).
 
 **UI pripravené, „pripravujeme“:** Médiá, Stránky a texty (CMS), Preklady, Účtovníctvo. RBAC (roly) je v jadre vypnutý – každý správca má plný prístup.
 

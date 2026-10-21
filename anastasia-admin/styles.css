@@ -143,6 +143,10 @@ button.rc:hover:not(:disabled){border-color:#8eaa92;background:#fafcf8}
 .rc-fields{display:flex;flex-direction:column;gap:6px}
 .rc-f{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);flex-wrap:wrap;min-width:0;overflow-wrap:anywhere}
 .rc-f em{font-style:normal;color:var(--muted);font-size:11px;min-width:78px;flex:none}
+.rc-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:3px 7px;overflow-wrap:anywhere}
+label.carrier-pick{align-items:center;cursor:pointer}
+label.carrier-pick input[type=radio]{flex:none;width:18px;height:18px;accent-color:var(--forest)}
+label.carrier-pick:has(input:checked){border-color:#8eaa92;background:#fafcf8}
 .thumb{width:36px;height:36px;border-radius:8px;object-fit:cover;display:block;background:var(--soft)}
 .thumb.ph{border:1px dashed #c9d1c3}
 .empty{grid-column:1/-1;background:#fff;border:1px dashed #c9d1c3;border-radius:10px;padding:34px 24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}

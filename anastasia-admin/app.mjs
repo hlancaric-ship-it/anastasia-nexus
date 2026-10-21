@@ -1539,8 +1539,110 @@ function renderInviteAccept(invToken, msg) {
     } catch (err) { renderInviteAccept(invToken, err.message); }
   };
 }
+// --- Pripojenia: produktové feedy a dopravca (Nastavenia → Pripojenia) ---
+// Feed URL a stav dopravcov číta jadro; API kľúč dopravcu sa ukladá šifrovaný na serveri
+// a do prehliadača sa nikdy neposiela späť.
+const FEEDS = [
+  { id: 'heureka', label: 'Heureka', path: '/feeds/heureka.xml', hint: 'XML pre porovnávač Heureka – tento odkaz vložte do administrácie Heuriky.' },
+  { id: 'google', label: 'Google Merchant Center', path: '/feeds/google.xml', hint: 'RSS 2.0 pre Google Merchant Center – tento odkaz vložte do Merchant Centra.' },
+];
+const CARRIERS = [
+  { id: 'packeta', label: 'Packeta', hint: 'Výdajné miesta Packeta a Zásielkovňa.' },
+  { id: 'sps', label: 'SPS', hint: 'Kuriérna služba Slovenskej pošty.' },
+  { id: 'gls', label: 'GLS', hint: 'GLS Slovensko – na adresu aj na výdajné miesto.' },
+  { id: 'dpd', label: 'DPD', hint: 'DPD Slovensko – na adresu aj na výdajné miesto.' },
+];
+async function copyToClipboard(text, btn) {
+  const done = () => { const old = btn.textContent; btn.textContent = 'Skopírované'; setTimeout(() => { btn.textContent = old; }, 1800); };
+  try {
+    if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); done(); return true; }
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    if (!ok) throw new Error('copy');
+    done(); return true;
+  } catch { return false; }
+}
+async function vPripojenia(view) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam pripojenia…</div>';
+  const soft = (e) => { if (e.message === '401') throw e; return null; };
+  const [feedsR, carriersR] = await Promise.all([
+    api('/admin/feeds').catch(soft),
+    api('/admin/carriers').catch(soft),
+  ]);
+  const feeds = FEEDS.map((f) => {
+    const fromApi = (feedsR?.feeds || []).find((x) => x.id === f.id);
+    return { ...f, url: fromApi?.url || `${API}${f.path}`, hint: fromApi?.hint || f.hint };
+  });
+  const count = feedsR?.products;
+  const carriers = CARRIERS.map((c) => {
+    const fromApi = (carriersR?.carriers || []).find((x) => x.id === c.id);
+    return { ...c, active: !!fromApi?.active, has_key: !!fromApi?.has_key, key_hint: fromApi?.key_hint || null, status_label: fromApi?.status_label || 'nepripojené' };
+  });
+  const active = carriers.find((c) => c.active) || null;
+  // Aj keď jadro neodpovie, URL feedov aj zoznam dopravcov poznáme – obrazovka ostane použiteľná.
+  const feedsHtml = `<div class="rc-grid">${feeds.map((f) => `<div class="rc"><div class="rc-body">
+      <div class="rc-title">${esc(f.label)}</div>
+      <div class="rc-fields"><span class="rc-f"><em>Odkaz na feed</em><code class="rc-code">${esc(f.url)}</code></span>
+        <span class="rc-f"><em>Stav</em>${count === null || count === undefined ? '<span class="pill off">nedá sa overiť</span>' : `<span class="pill ${count ? 'ok' : 'warn'}">${count ? `${count} produktov` : 'zatiaľ žiadne produkty'}</span>`}</span></div>
+      <p class="muted" style="font-size:12px;margin:8px 0 0">${esc(f.hint)}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button type="button" class="btn ghost sm" data-copy="${esc(f.url)}">Kopírovať odkaz</button>
+        <a class="btn ghost sm" href="${esc(f.url)}" target="_blank" rel="noopener">Otvoriť feed</a>
+      </div></div></div>`).join('')}</div>`;
+  const carriersHtml = `<div class="rc-grid">${carriers.map((c) => `<label class="rc carrier-pick">
+      <input type="radio" name="carrier" value="${esc(c.id)}" ${c.active ? 'checked' : ''}>
+      <div class="rc-body"><div class="rc-title">${esc(c.label)}</div>
+        <div class="rc-fields"><span class="rc-f"><em>Stav</em><span class="pill ${c.active && c.has_key ? 'warn' : 'off'}">${esc(c.status_label)}</span></span>
+        ${c.active && c.key_hint ? `<span class="rc-f"><em>API kľúč</em>${esc(c.key_hint)}</span>` : ''}</div>
+        <p class="muted" style="font-size:12px;margin:8px 0 0">${esc(c.hint)}</p>
+      </div></label>`).join('')}</div>`;
+  view.innerHTML = `<div id="pm-msg"></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-h">Produktové feedy</div><div class="card-b">
+      <p class="muted" style="margin-top:0">Feed si porovnávač stiahne sám z odkazu – nič netreba nahrávať. Vo feede sú len zverejnené produkty v predajnom kanáli, s cenou s DPH.</p>
+      ${feedsHtml}
+    </div></div>
+    <div class="card"><div class="card-h">Dopravca</div><div class="card-b">
+      <p class="muted" style="margin-top:0">Vyberte dopravcu a vložte jeho API kľúč. Kľúč sa uloží na serveri šifrovaný a nikdy sa vám znova neukáže.
+      ${active ? ` Teraz je vybraný <b>${esc(active.label)}</b>.` : ''}</p>
+      ${carriersHtml}
+      <div class="row" style="margin-top:14px;align-items:flex-end">
+        <div><label for="carrier-key">API kľúč dopravcu</label><input id="carrier-key" type="password" autocomplete="off" placeholder="vložte kľúč od dopravcu"></div>
+        <div><button type="button" class="btn gold" id="carrier-save">Uložiť</button></div>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:10px">Pripojenie k API dopravcu ešte nie je zapojené – stav ostáva „nepripojené“ dovtedy, kým dopravcu potvrdíme.</p>
+    </div></div>`;
+  view.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    const ok = await copyToClipboard(b.dataset.copy, b);
+    if (!ok) { const msg = view.querySelector('#pm-msg'); msg.innerHTML = '<div class="err">Prehliadač nedovolil skopírovať. Odkaz si skopírujte ručne.</div>'; }
+  });
+  const save = view.querySelector('#carrier-save');
+  if (save) {
+    if (carriersR === null) { save.disabled = true; save.title = 'Jadro neodpovedá – stav sa nedá uložiť.'; }
+    save.onclick = async () => {
+      const msg = view.querySelector('#pm-msg');
+      const picked = view.querySelector('input[name="carrier"]:checked');
+      const key = view.querySelector('#carrier-key').value.trim();
+      if (!picked) { msg.innerHTML = '<div class="err">Vyberte dopravcu.</div>'; return; }
+      if (!key) { msg.innerHTML = '<div class="err">Vložte API kľúč dopravcu.</div>'; return; }
+      msg.innerHTML = ''; save.disabled = true;
+      try {
+        await api('/admin/carriers', { method: 'POST', body: { provider: picked.value, api_key: key } });
+        msg.innerHTML = '<div class="ok">Dopravca je uložený. Kľúč je na serveri šifrovaný.</div>';
+        await vPripojenia(view);
+      } catch (e) {
+        if (e.message !== '401') msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+        save.disabled = false;
+      }
+    };
+  }
+}
 const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
+  { label: 'Pripojenia', run: vPripojenia },
   { label: 'Doprava a platby', run: vDopravaPlatby },
   { label: 'Používatelia', run: (v) => vPouzivatelia(v) },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', `Prepojenie s účtovníctvom (POHODA alebo Money S3) pripravujeme. Dovtedy si objednávky môžete pozrieť v časti Objednávky. Otázky posielajte na ${SUPPORT_EMAIL}.`) },

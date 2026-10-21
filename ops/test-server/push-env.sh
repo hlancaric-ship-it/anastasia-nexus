@@ -66,6 +66,8 @@ OUT=$(mktemp); trap 'rm -f "$OUT" "$OUT.pg" "$OUT.n"' EXIT; chmod 600 "$OUT"
   echo "CHAT_STOREFRONT_URL=$WEB/ucet#chat"
   echo "CHAT_ADMIN_URL=$ADMIN/#/chat"
   echo "COUPON_LINK_STOREFRONT_ORIGIN=$WEB"
+  # Adresa webu pre produktové feedy (URL produktov v /feeds/heureka.xml a /feeds/google.xml)
+  echo "STOREFRONT_URL=$WEB"
   # Vytlačené QR kódy smerujú na pôvodnú doménu — import ich musí prijať.
   echo "COUPON_LINK_LEGACY_ORIGINS=https://anastasiaoz.eu,https://www.anastasiaoz.eu,http://anastasiaoz.eu,http://www.anastasiaoz.eu"
   echo "NEXUS_PRICING_URL=$NEXUS/api/nexus/pricing"

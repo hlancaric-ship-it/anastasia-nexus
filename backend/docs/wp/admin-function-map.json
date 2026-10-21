@@ -804,6 +804,24 @@
       ],
       "remaining": "NEXUS kontext/validace nejsou celé B2B nabídky, schvalování ani speciální ceníky ANASTASIA.",
       "acceptance": "Fakturační identita je ověřená a promítne se do správného dokladu; cizí zákazník nic nezmění."
+    },
+    {
+      "id": "product-feeds",
+      "label_sk": "Produktové feedy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Verejný XML feed pre Heuriku a RSS 2.0 pre Google Merchant Center: len zverejnené produkty v predajnom kanáli, cena s DPH cez calculated_price s region kontextom, URL podľa STOREFRONT_URL/ANASTASIA_SITE_URL.",
+      "sources": [
+        "backend/src/lib/feeds/policy.ts",
+        "backend/src/lib/feeds/catalog.ts",
+        "backend/src/api/feeds/heureka.xml/route.ts",
+        "backend/src/api/feeds/google.xml/route.ts",
+        "backend/src/api/admin/feeds/route.ts"
+      ],
+      "remaining": "Feed sa generuje pri každej požiadavke; chýba vlastný plán načítania (cron) a schválenie cez Heuriku/Google Merchant Center.",
+      "acceptance": "Feed je verejne dostupný bez prihlásenia, obsahuje len zverejnené produkty v kanáli a cenu s DPH; admin ukáže odkaz na kopírovanie."
     }
   ],
   "custom_routes": [
@@ -1007,6 +1025,15 @@
       "sha256": "58a6b4825a5240aa1bfbd2280c0554418511faf018a9e4434ee1249b7a72be66"
     },
     {
+      "path": "/admin/feeds",
+      "methods": [
+        "GET"
+      ],
+      "feature": "product-feeds",
+      "source": "backend/src/api/admin/feeds/route.ts",
+      "sha256": "f9bb2b30b7f790dfc4c19eda0d2bbf458dd19a4ea47abd571ce2a03cb9198562"
+    },
+    {
       "path": "/admin/memberships",
       "methods": [
         "GET"
@@ -1179,6 +1206,24 @@
       "feature": "returns",
       "source": "backend/src/api/admin/withdrawals/[id]/route.ts",
       "sha256": "fde8fe7b6b802fa6bf84397c047f692cabf3b1816f6a2821f4d5366af9be8f16"
+    },
+    {
+      "path": "/feeds/google.xml",
+      "methods": [
+        "GET"
+      ],
+      "feature": "product-feeds",
+      "source": "backend/src/api/feeds/google.xml/route.ts",
+      "sha256": "853804e0e0094e42a234b70d88203d773da4d7c696fdd2039243ad3b3b7fd3dd"
+    },
+    {
+      "path": "/feeds/heureka.xml",
+      "methods": [
+        "GET"
+      ],
+      "feature": "product-feeds",
+      "source": "backend/src/api/feeds/heureka.xml/route.ts",
+      "sha256": "04e194011860d90be60cf2a67d03f81986badca8e47e09f2b796b1ab9978ec6d"
     },
     {
       "path": "/hooks/nexus/booking-order",
@@ -4367,6 +4412,8 @@
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
     "backend/src/lib/email/__tests__/send.unit.spec.ts",
+    "backend/src/lib/feeds/__tests__/catalog.unit.spec.ts",
+    "backend/src/lib/feeds/__tests__/policy.unit.spec.ts",
     "backend/src/lib/membership/__tests__/access.unit.spec.ts",
     "backend/src/lib/membership/__tests__/admin.unit.spec.ts",
     "backend/src/lib/membership/__tests__/billing-guard.unit.spec.ts",
