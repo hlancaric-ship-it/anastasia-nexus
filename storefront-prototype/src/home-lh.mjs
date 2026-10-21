@@ -136,6 +136,7 @@ export function homeSections(products = []) {
     </div>
     <div class="lh-intro__brands">
       <a class="lh-brand lh-brand--academy" href="/ai-anastasia-academy" aria-label="ANASTASIA ACADEMY">
+        <span class="lh-brand__stem" aria-hidden="true"></span>
         <span class="lh-brand__name lh-shimmer-text">ANASTASIA</span>
         <span class="lh-brand__sub lh-shimmer-text lh-shimmer-text--gold"><i></i>ACADEMY<i></i></span>
       </a>
@@ -338,34 +339,36 @@ export const HOME_CSS = `
 .lh-intro__meta ul{position:absolute;bottom:clamp(96px,14vh,140px);left:var(--lh-gut,16px);right:var(--lh-gut,16px);margin:0;padding:0;list-style:none;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;max-width:1100px;margin-inline:auto}
 .lh-intro__meta li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--site-accent,#C9A355);margin:0 10px 2px 0}
 /* --- Tři loga v řadě nad úvodem: hlavní uprostřed, boční symetricky -------- */
-.lh-intro__brands{position:absolute;top:clamp(26px,5.5vh,64px);left:0;right:0;z-index:3;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;justify-items:center;column-gap:clamp(24px,4.4vw,76px);color:#EFE5C7;pointer-events:none}
+.lh-intro__brands{position:absolute;top:clamp(24px,5vh,58px);left:0;right:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:56px;color:#EFE5C7;pointer-events:none}
 .motion .lh-intro__brands{color:var(--lh-ink,#1E281C)}
 .lh-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:inherit;pointer-events:auto;opacity:1}
 .motion .lh-brand{opacity:0}
-.lh-brand--main{height:clamp(92px,10.5vh,128px);grid-column:2;grid-row:1}
+.lh-brand--academy{order:1;height:78px}
+.lh-brand--main{order:2;height:126px}
+.lh-brand--ai{order:3;height:78px}
 .lh-brand__lock{position:relative;display:flex;align-items:center;justify-content:center;height:100%}
-.lh-brand__lock--mark{height:auto;width:clamp(30px,3.4vw,46px)}
+.lh-brand__lock--mark{height:auto;width:46px}
 .lh-brand__mark{height:100%;width:auto;display:block}
 .lh-brand--main .lh-brand__mark{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
 .motion .lh-brand--main .lh-brand__mark{filter:none}
 .lh-brand__lock--mark .lh-brand__mark{height:auto;width:100%}
 /* Zlatý odlesk: kopie loga pod maskou, která se posouvá přes obraz. */
 .lh-brand__img--shine{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:sepia(.85) saturate(2.6) hue-rotate(3deg) brightness(1.05);-webkit-mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);-webkit-mask-size:250% 100%;mask-size:250% 100%;-webkit-mask-position:150% 0;mask-position:150% 0}
-.lh-brand--academy{height:clamp(60px,7.4vh,86px);grid-column:1;grid-row:1;justify-self:end}
-.lh-brand--ai{height:clamp(60px,7.4vh,86px);grid-column:3;grid-row:1;justify-self:start}
-.lh-brand__name{font-weight:200;font-size:clamp(13px,1.15vw,17px);letter-spacing:.3em;padding-left:.3em;white-space:nowrap;--lh-shim-base:var(--lh-ink,#1E281C)}
-.lh-brand__sub{display:flex;align-items:center;gap:8px;font-weight:300;font-size:clamp(9px,.78vw,11px);letter-spacing:.44em;padding-left:.44em;color:var(--site-accent,#C9A355);white-space:nowrap;--lh-shim-base:var(--site-accent,#C9A355)}
-.lh-brand__sub i{width:16px;height:1px;background:currentColor}
+.lh-brand__stem{width:1px;height:22px;background:linear-gradient(180deg,rgba(201,163,85,0),var(--site-accent,#C9A355))}
+.lh-brand__name{font-weight:200;font-size:clamp(16px,1.4vw,26px);letter-spacing:.3em;padding-left:.3em;white-space:nowrap;--lh-shim-base:var(--lh-ink,#1E281C)}
+.lh-brand__sub{display:flex;align-items:center;gap:10px;font-weight:300;font-size:clamp(10px,.95vw,14px);letter-spacing:.44em;padding-left:.44em;color:var(--site-accent,#C9A355);white-space:nowrap;--lh-shim-base:var(--site-accent,#C9A355)}
+.lh-brand__sub i{width:20px;height:1px;background:currentColor}
 .lh-shimmer-text--gold{--lh-shim-base:var(--site-accent,#C9A355)}
 /* Odlesk textu: barva zůstává, přes ni přejede úzký zlatý pruh. */
 .motion .lh-shimmer-text,.motion .lh-cat{background-image:linear-gradient(100deg,var(--lh-shim-base,#1E281C) 0 46%,#D8C598 48%,#F3E3B0 50%,var(--lh-shim-base,#1E281C) 52% 100%);background-size:250% 100%;background-position:150% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
 .motion .lh-cat{--lh-shim-base:var(--lh-ink,#1E281C)}
 @media (max-width:699.98px){
-  .lh-intro__brands{top:clamp(18px,3vh,40px);grid-template-columns:1fr 1fr;row-gap:14px;column-gap:20px}
-  .lh-brand--main{height:86px;grid-column:1/-1;grid-row:1;justify-self:center}
-  .lh-brand--academy{height:auto;grid-column:1;grid-row:2;justify-self:end}
-  .lh-brand--ai{height:auto;grid-column:2;grid-row:2;justify-self:start}
-  .lh-brand__name{font-size:12px;letter-spacing:.24em;padding-left:.24em}
+  .lh-intro__brands{top:clamp(16px,2.6vh,34px);gap:12px 22px}
+  .lh-brand--main{order:-1;flex:0 0 100%;height:92px}
+  .lh-brand--academy,.lh-brand--ai{height:58px}
+  .lh-brand__lock--mark{width:34px}
+  .lh-brand__stem{height:14px}
+  .lh-brand__name{font-size:13px;letter-spacing:.24em;padding-left:.24em}
   .lh-brand__sub{font-size:9px;letter-spacing:.3em;padding-left:.3em;gap:6px}
   .lh-brand__sub i{width:12px}
 }
@@ -374,8 +377,9 @@ export const HOME_CSS = `
 .lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(14px,1.05vw,16px);font-weight:300;line-height:1.65;color:#EFEAE0}
 .lh-say--one{left:var(--lh-gut,16px);bottom:14vh;max-width:min(92vw,1100px);display:none}
 .motion .lh-say--one{display:block;opacity:0}
-.lh-say--two{right:var(--lh-gut,16px);top:22vh;text-align:right;max-width:min(92vw,660px)}
-.lh-say--two .lh-display{font-size:clamp(28px,4vw,68px);max-width:620px}
+.lh-say--two{left:6vw;right:auto;top:auto;bottom:14vh;text-align:left;max-width:560px}
+.lh-say--two .lh-display{font-size:clamp(28px,2.6vw,44px);max-width:560px}
+.lh-say--two .lh-cta{margin-top:26px}
 .motion .lh-say{opacity:0}
 .motion .lh-say--one,.motion .lh-say--two{opacity:0}
 .lh-vid-btn{position:absolute;right:var(--lh-gut,16px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.15);color:#fff;font:inherit;font-size:13px;cursor:pointer;opacity:0}
@@ -425,8 +429,8 @@ export const HOME_CSS = `
 .lh-cat--3{top:30vh;right:13%}
 .lh-cat--4{bottom:15vh;left:12%}
 @media (max-width:760px){
-  .lh-intro__cats{position:absolute;inset:auto 20px 150px 20px;display:flex;flex-direction:column;align-items:center;gap:10px}
-  .lh-cat{position:static;font-size:21px;white-space:normal;text-align:center;line-height:1.2}
+  .lh-intro__cats{position:absolute;left:0;right:0;top:auto;bottom:20vh;height:0;display:block}
+  .lh-cat{position:absolute;left:0;right:0;top:auto;bottom:0;width:100%;font-size:21px;white-space:normal;text-align:center;line-height:1.2}
   .lh-intro__meta .k{font-size:10px;letter-spacing:.22em}
 }
 

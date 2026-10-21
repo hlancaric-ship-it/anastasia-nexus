@@ -86,7 +86,7 @@ if (gsap && ScrollTrigger) {
           const el = $(id);
           if (!el) return;
           el.textContent = '';
-          [['ANA', 520 - 236 * 0.92], ['STA', 520], ['SIA', 520 + 236 * 0.92]].forEach(([text, y]) => {
+          [['ANA', 520 - 236 * 0.78], ['STA', 520], ['SIA', 520 + 236 * 0.78]].forEach(([text, y]) => {
             const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
             tspan.setAttribute('x', '720');
             tspan.setAttribute('y', String(y));
@@ -95,9 +95,19 @@ if (gsap && ScrollTrigger) {
           });
         });
       }
-      const b = measure.getBBox();
-      const pad = b.height * 0.14;
-      svg.setAttribute('viewBox', [b.x - pad, b.y - pad, b.width + 2 * pad, b.height + 2 * pad].join(' '));
+      // ViewBox obepíná všechny řádky slova (ANA / STA / SIA) s rezervou 6 %,
+      // jinak se první písmeno na úzké obrazovce usekne.
+      const boxes = [...measure.querySelectorAll('tspan')].map(t => t.getBBox());
+      const b = boxes.length ? boxes.reduce((acc, box) => {
+        const x = Math.min(acc.x, box.x), y = Math.min(acc.y, box.y);
+        const right = Math.max(acc.x + acc.width, box.x + box.width);
+        const bottom = Math.max(acc.y + acc.height, box.y + box.height);
+        return {x, y, width: right - x, height: bottom - y};
+      }, boxes[0]) : measure.getBBox();
+      const padX = b.width * 0.06, padY = b.height * 0.06;
+      // Na mobilu je slovo o kus výš, aby se pod ním vešla kategorie a tlačítko.
+      const lift = window.innerWidth < 700 ? 20 : 0;
+      svg.setAttribute('viewBox', [b.x - padX, b.y - padY + lift, b.width + 2 * padX, b.height + 2 * padY].join(' '));
       // Rozměr písmena T se musí měřit na skrytém textu, ne na textu v <mask>.
       const extent = measure.getExtentOfChar(4);
       const fs = 236;
@@ -138,6 +148,7 @@ if (gsap && ScrollTrigger) {
       });
       timeline
         .to('.lh-intro__meta', {opacity: 0, y: -30, duration: 0.12, ease: 'none'}, 0)
+        .to('.lh-intro__brands', {opacity: 0, y: -30, duration: 0.12, ease: 'none'}, 0)
         .fromTo('#lh-intro-video', {scale: 1.35}, {scale: 1, duration: 0.62, ease: 'none'}, 0)
         .to('#lh-word-g', {scale: 110, svgOrigin: ox + ' ' + oy, duration: 0.5, ease: 'power3.in'}, 0.04)
         .to('.lh-intro__mask', {opacity: 0, duration: 0.08, ease: 'none'}, 0.46)
