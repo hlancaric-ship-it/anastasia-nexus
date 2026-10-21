@@ -123,7 +123,7 @@ export function homeSections(products = []) {
           <mask id="lhWord" maskUnits="userSpaceOnUse" x="-6000" y="-6000" width="13440" height="12900">
             <g id="lh-word-g">
               <rect x="-6000" y="-6000" width="13440" height="12900" fill="#fff"/>
-              <text id="lh-word-t" x="720" y="520" text-anchor="middle" font-family="'EB Garamond', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" fill="#000">ANASTASIA</text>
+              <text id="lh-word-t" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" fill="#000">ANASTASIA</text>
             </g>
           </mask>
           <linearGradient id="lhShine" gradientUnits="userSpaceOnUse" x1="-900" y1="0" x2="-100" y2="0">
@@ -135,7 +135,7 @@ export function homeSections(products = []) {
         </defs>
         <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.82" mask="url(#lhWord)"/>
         <rect id="lh-word-shine" x="-6000" y="-6000" width="13440" height="12900" fill="url(#lhShine)" mask="url(#lhWord)" opacity="0"/>
-        <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'EB Garamond', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
+        <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
       </svg>
     </div>
     <div class="lh-intro__brands">
@@ -313,8 +313,8 @@ export function homeSections(products = []) {
 
 // CSS homepage. Drží se v jednom bloku, aby se design dal přehledně měnit.
 export const HOME_CSS = `
-.lh-display{font-family:Outfit,'Helvetica Neue',sans-serif;font-style:normal;font-weight:200;font-size:clamp(30px,3.6vw,56px);line-height:1.06;letter-spacing:-.01em;display:block;color:var(--site-cream,#EFE5C7)}
-.lh-caps{font-family:Outfit,'Helvetica Neue',sans-serif;font-weight:300;font-size:clamp(34px,4.6vw,78px);line-height:.98;letter-spacing:.01em;text-transform:uppercase;display:block;margin-top:.12em;color:var(--site-cream,#EFE5C7)}
+.lh-display{font-family:'Fraunces',Georgia,serif;font-style:normal;font-weight:300;font-size:clamp(27px,3.2vw,50px);line-height:1.1;letter-spacing:-.005em;display:block;color:var(--site-cream,#EFE5C7)}
+.lh-caps{font-family:'Fraunces',Georgia,serif;font-weight:300;font-size:clamp(28px,3.8vw,64px);line-height:1.02;letter-spacing:0;text-transform:uppercase;display:block;margin-top:.14em;color:var(--site-cream,#EFE5C7)}
 .lh-eyebrow{font-size:11px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--site-accent,#C9A355);margin:0}
 .lh-lead{font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:currentColor;opacity:.78;max-width:44ch;margin:0}
 .lh-lead--center{margin-inline:auto;text-align:center}
@@ -381,7 +381,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-brand__sub i{width:12px}
 }
 .lh-say{position:absolute;color:#fff}
-.lh-say .lh-display{display:block;font-size:clamp(52px,9.5vw,158px);line-height:.9}
+.lh-say .lh-display{display:block;font-family:'Fraunces',Georgia,serif;font-weight:300;font-size:clamp(44px,8vw,132px);line-height:.95}
 .lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(14px,1.05vw,16px);font-weight:300;line-height:1.65;color:#EFEAE0}
 .lh-say--one{left:var(--lh-gut,16px);bottom:14vh;max-width:min(92vw,1100px);display:none}
 .motion .lh-say--one{display:block;opacity:0}
@@ -522,10 +522,10 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-reset__head .lh-display{font-size:clamp(40px,5vw,68px);color:var(--site-accent-light,#D8C598)}
 .lh-reset__head .lh-caps{font-size:clamp(34px,4.6vw,64px)}
 .lh-reset__buy{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.lh-reset__price{font-family:'EB Garamond',Georgia,serif;font-size:40px;color:var(--site-accent-light,#D8C598)}
+.lh-reset__price{font-family:'Fraunces',Georgia,serif;font-size:36px;color:var(--site-accent-light,#D8C598)}
 .lh-track{display:flex;gap:20px;width:max-content;padding-inline:clamp(20px,4vw,64px)}
 .lh-topic{flex:0 0 min(78vw,340px);min-height:300px;padding:28px;border:1px solid rgba(227,205,156,.28);border-radius:2px;display:flex;flex-direction:column;justify-content:space-between;background:rgba(255,255,255,.03)}
-.lh-topic b{font-family:'EB Garamond',Georgia,serif;font-weight:400;font-size:64px;line-height:1;color:var(--site-accent-light,#D8C598)}
+.lh-topic b{font-family:'Fraunces',Georgia,serif;font-weight:400;font-size:54px;line-height:1;color:var(--site-accent-light,#D8C598)}
 .lh-topic h3{margin:0 0 8px;font-size:22px;font-weight:400;letter-spacing:0}
 .lh-topic p{margin:0;font-size:15px;color:#BFB9A9;line-height:1.5}
 .lh-topic--more{background:var(--site-accent-light,#D8C598);color:var(--site-dark,#14200F);border-color:transparent}
@@ -563,8 +563,8 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-card--dark .lh-card__bg{background-color:#3B4537}
 .lh-card__shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,18,14,.05) 30%,rgba(14,18,14,.72))}
 .lh-card__txt{position:relative;z-index:2;width:100%;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;padding:0 clamp(20px,4vw,64px) clamp(40px,6vw,80px)}
-.lh-card__txt h3{font-family:Outfit,'Helvetica Neue',sans-serif;font-style:normal;font-weight:200;font-size:clamp(46px,7.4vw,118px);line-height:.95;margin:0}
-.lh-card__txt h3 small{display:block;font-family:Outfit,sans-serif;font-style:normal;font-size:13px;letter-spacing:.28em;text-transform:uppercase;margin-bottom:14px;color:var(--site-accent-light,#D8C598)}
+.lh-card__txt h3{font-family:'Figtree','Helvetica Neue',sans-serif;font-style:normal;font-weight:200;font-size:clamp(46px,7.4vw,118px);line-height:.95;margin:0}
+.lh-card__txt h3 small{display:block;font-family:'Figtree',sans-serif;font-style:normal;font-size:13px;letter-spacing:.28em;text-transform:uppercase;margin-bottom:14px;color:var(--site-accent-light,#D8C598)}
 .lh-card__txt p{max-width:400px;margin:0;font-weight:300;font-size:17px;color:#EDE7DA}
 
 /* --- Kontakt --------------------------------------------------------------- */

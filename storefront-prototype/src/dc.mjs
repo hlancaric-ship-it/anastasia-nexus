@@ -248,7 +248,7 @@ export function aboutSections() {
 
 // overflow-x:clip místo hidden — hidden by z kořene udělal scroll kontejner
 // a sticky sekce (úvod, obloha) by se držely vůči němu místo vůči oknu.
-export const ROOT_STYLE = 'font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:transparent;overflow-x:clip;padding:0 0 0 var(--rail-pad)';
+export const ROOT_STYLE = 'font-family:Figtree,sans-serif;font-weight:300;color:#EFE5C7;background:transparent;overflow-x:clip;padding:0 0 0 var(--rail-pad)';
 // Globální styly z <helmet> návrhu (rozsah omezen na stránky v novém vzhledu tam, kde by rozbily starší obsah).
 // Plynulé přechody mezi sekcemi: smoothstep místo lineárního gradientu, aby na konci přechodu nevznikla viditelná hrana.
 const SMOOTH = [0, .028, .104, .216, .352, .5, .648, .784, .896, .972, 1];
@@ -394,7 +394,7 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#F5F2E8}
 .hero-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,24,15,.46) 0%,rgba(16,24,15,.18) 28%,rgba(16,24,15,.58) 58%,rgba(8,12,7,.86) 82%,rgba(4,6,4,.94) 100%)}
 .hero-ghost{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-weight:100;font-size:clamp(110px,20vw,360px);letter-spacing:-.06em;line-height:.8;color:rgba(239,229,199,.07);white-space:nowrap;pointer-events:none;user-select:none}
 [data-screen-label="01 Hero"] h1{font-weight:100}
-/* Outfit je variabilní font (100–900) — bez toho se váha 100 syntetizuje z 200
+/* Figtree je variabilní font (300–600) — bez toho se váha 300 syntetizuje z 400
    a display vypadá tlustší, než je v návrhu. */
 .dc-root,.dc-chrome{font-synthesis:none}
 .wisdom figure{margin:0 auto;max-width:1180px;display:flex;flex-direction:column;align-items:center;gap:clamp(28px,3.4vw,48px)}
