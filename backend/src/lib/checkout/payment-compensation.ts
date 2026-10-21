@@ -60,14 +60,28 @@ async function stripe(deps: Required<Deps>, method: "GET" | "POST", path: string
   return json
 }
 
-export async function compensateUnfinishedCheckout(container: Container, cartId: string, reason: string, deps: Deps = {}): Promise<CompensationResult> {
-  const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
-  const fields = ["id", "completed_at", "metadata", "payment_collection.payment_sessions.provider_id", "payment_collection.payment_sessions.data"]
-  const load = async () => (await query.graph({ entity: "cart", fields, filters: { id: cartId } })).data?.[0]
-  const cart = await load()
-  const intents = [...new Set((cart?.payment_collection?.payment_sessions || [])
+const CART_FIELDS = ["id", "completed_at", "metadata", "payment_collection.payment_sessions.provider_id", "payment_collection.payment_sessions.data"]
+
+function intentsOf(cart: any): string[] {
+  return [...new Set((cart?.payment_collection?.payment_sessions || [])
     .filter((s: any) => s?.provider_id === STRIPE_PROVIDER_ID && typeof s?.data?.id === "string" && PI_RE.test(s.data.id))
     .map((s: any) => s.data.id as string))] as string[]
+}
+
+/**
+ * PaymentIntenty košíka pred dokončením. Prepočet košíka (iná suma) môže session zmazať –
+ * zaplatený PaymentIntent by sa potom v košíku už nenašiel, preto si ho checkout zapamätá vopred.
+ */
+export async function stripeIntentsOfCart(container: Container, cartId: string): Promise<string[]> {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
+  return intentsOf((await query.graph({ entity: "cart", fields: CART_FIELDS, filters: { id: cartId } })).data?.[0])
+}
+
+export async function compensateUnfinishedCheckout(container: Container, cartId: string, reason: string, deps: Deps = {}, knownIntents: string[] = []): Promise<CompensationResult> {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
+  const load = async () => (await query.graph({ entity: "cart", fields: CART_FIELDS, filters: { id: cartId } })).data?.[0]
+  const cart = await load()
+  const intents = [...new Set([...intentsOf(cart), ...knownIntents.filter((id) => PI_RE.test(id))])]
   if (!cart || !intents.length) return { status: "none", payment_intents: [] }
   if (cart.completed_at) return { status: "completed", payment_intents: [] }
 

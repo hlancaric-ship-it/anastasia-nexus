@@ -1,7 +1,7 @@
 jest.mock("../../../../lib/legal/checkout", () => ({ assertCartConsent: jest.fn(async () => {}), loadConsentCart: jest.fn(async () => ({id:"cart_test",customer_id:"cust_owner"})) }))
 jest.mock("../../nexus-cart/route", () => ({ repriceCart: jest.fn() }))
 jest.mock("@medusajs/medusa/core-flows", () => ({ completeCartWorkflow: jest.fn() }))
-jest.mock("../../../../lib/checkout/payment-compensation", () => ({ compensateUnfinishedCheckout: jest.fn(async () => ({ status: "refunded", payment_intents: [] })) }))
+jest.mock("../../../../lib/checkout/payment-compensation", () => ({ compensateUnfinishedCheckout: jest.fn(async () => ({ status: "refunded", payment_intents: [] })), stripeIntentsOfCart: jest.fn(async () => ["pi_paid"]) }))
 import { compensateUnfinishedCheckout } from "../../../../lib/checkout/payment-compensation"
 
 import { assertCartConsent, loadConsentCart } from "../../../../lib/legal/checkout"
@@ -109,7 +109,7 @@ describe("checkout failure after card payment", () => {
     const { scope } = makeScope()
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
     await POST({ body: { cart_id: "cart_test" }, scope, auth_context: AUTH } as any, res)
-    expect(compensateUnfinishedCheckout).toHaveBeenCalledWith(scope, "cart_test", "CHECKOUT_FAILED")
+    expect(compensateUnfinishedCheckout).toHaveBeenCalledWith(scope, "cart_test", "CHECKOUT_FAILED", {}, ["pi_paid"])
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, payment_compensation: "refunded" }))
   })
   it("zmena ceny po zaplatení → platba sa vráti", async () => {
@@ -118,7 +118,7 @@ describe("checkout failure after card payment", () => {
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
     await POST({ body: { cart_id: "cart_test" }, scope, auth_context: AUTH } as any, res)
     expect(res.status).toHaveBeenCalledWith(409)
-    expect(compensateUnfinishedCheckout).toHaveBeenCalledWith(scope, "cart_test", "PRICE_CHANGED")
+    expect(compensateUnfinishedCheckout).toHaveBeenCalledWith(scope, "cart_test", "PRICE_CHANGED", {}, ["pi_paid"])
   })
   it("cudzí košík nikdy nekompenzuje", async () => {
     jest.mocked(loadConsentCart).mockResolvedValueOnce({ id: "cart_test", customer_id: "cust_foreign" })

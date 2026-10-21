@@ -8,13 +8,13 @@ import { recordEvent } from "../../../lib/observability/events"
 
 import { assertCartConsent, loadConsentCart } from "../../../lib/legal/checkout"
 import { LegalError } from "../../../modules/legal/policy"
-import { compensateUnfinishedCheckout } from "../../../lib/checkout/payment-compensation"
+import { compensateUnfinishedCheckout, stripeIntentsOfCart } from "../../../lib/checkout/payment-compensation"
 import { bankTransferInstructions, loadCartShape, paymentMethodByProvider, PICKUP_ADDRESS } from "../../../lib/checkout/delivery-payment"
 
 /** Objednávka nevznikla: ak už bola platba kartou stiahnutá/autorizovaná, vráti ju (nikdy nevyhodí). */
-async function compensate(scope: AuthenticatedMedusaRequest["scope"], cartId: string, reason: string) {
+async function compensate(scope: AuthenticatedMedusaRequest["scope"], cartId: string, reason: string, knownIntents: string[]) {
   try {
-    return (await compensateUnfinishedCheckout(scope, cartId, reason)).status
+    return (await compensateUnfinishedCheckout(scope, cartId, reason, {}, knownIntents)).status
   } catch {
     return "failed" as const
   }
@@ -32,15 +32,17 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
 
   // Kompenzovať platbu smie len vlastníčka košíka (nikdy cudzí cart_id).
   let ownerVerified = false
+  let knownIntents: string[] = []
   try {
     const cart = await loadConsentCart(req.scope, cartId)
     if (cart.customer_id !== actorId) throw new Error("CART_ACCESS_DENIED")
     ownerVerified = true
+    knownIntents = await stripeIntentsOfCart(req.scope, cartId).catch(() => [])
     await assertCartConsent(req.scope, cart)
     const pricing = await repriceCart(cartId, req.scope, true, undefined, actorId)
     if (pricing.pricesChanged) {
       await recordEvent(req.scope, "warn", "checkout", "price_changed", { cart_id: cartId })
-      const paymentCompensation = await compensate(req.scope, cartId, "PRICE_CHANGED")
+      const paymentCompensation = await compensate(req.scope, cartId, "PRICE_CHANGED", knownIntents)
       return res.status(409).json({
         ok: false,
         error: "PRICE_CHANGED_PAYMENT_REINITIALIZATION_REQUIRED",
@@ -80,7 +82,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   } catch (error) {
     // Objednávka nevznikla – platbu kartou, ktorá už mohla prebehnúť, vrátime (pri dokončenom košíku nič).
     const failureCode = typeof error === "object" && error !== null && "message" in error && typeof (error as any).message === "string" && /^[A-Z][A-Z0-9_]{2,63}$/.test((error as any).message) ? (error as any).message : "CHECKOUT_FAILED"
-    const paymentCompensation = ownerVerified ? await compensate(req.scope, cartId, failureCode) : "none"
+    const paymentCompensation = ownerVerified ? await compensate(req.scope, cartId, failureCode, knownIntents) : "none"
     const fail = (status: number, body: Record<string, unknown>) => res.status(status).json({ ...body, payment_compensation: paymentCompensation })
     if (error instanceof LegalError) {
       await recordEvent(req.scope, "error", "checkout", "failed", { cart_id: cartId, error_code: error.code })

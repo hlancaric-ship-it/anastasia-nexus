@@ -37,6 +37,12 @@ describe("kompenzácia platby, keď objednávka nevznikla", () => {
     expect(t.cart.metadata.booking_id).toBe("")
     expect(() => assertNoCompensatedSession(t.cart)).toThrow("PAYMENT_COMPENSATED")
   })
+  it("vráti aj platbu, ktorej session prepočet košíka medzitým zmazal", async () => {
+    const t = setup({ sessions: [] })
+    const result = await compensateUnfinishedCheckout(t.container, "cart_1", "MEDUSA_PAYMENT_AMOUNT_MISMATCH", { fetch: t.fetchImpl, apiKey: KEY }, ["pi_123", "not-a-pi"])
+    expect(result.status).toBe("refunded")
+    expect(t.cart.metadata[COMPENSATED_PI_KEY]).toEqual(["pi_123"])
+  })
   it("autorizovanú platbu zruší", async () => {
     const t = setup({ piStatus: "requires_capture" })
     const result = await compensateUnfinishedCheckout(t.container, "cart_1", "SAFEORDER_REVIEW_REQUIRED", { fetch: t.fetchImpl, apiKey: KEY })

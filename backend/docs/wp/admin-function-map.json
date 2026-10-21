@@ -1550,7 +1550,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "98fb8b90f3933839746621042e45c8004b491ec74db0326b5f88a268655ee86a"
+      "sha256": "c7caf5c8985e009701e7aa6fde156c0c447b0b561ee611c8e4aa59af63b47075"
     },
     {
       "path": "/store/nexus-checkout/options",
