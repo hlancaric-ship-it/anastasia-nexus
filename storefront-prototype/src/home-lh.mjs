@@ -479,7 +479,8 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 @media (max-width:760px){
   /* r12/1: na mobilu logo vľavo, košík a Menu vpravo, hlavička fixná. */
   .lh-top{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:9px 14px}
-  .lh-top__side--right{grid-column:2;justify-self:end}
+  .lh-top__side--right{grid-column:3;justify-self:end}
+  .lh-top__brand{justify-self:center}
   .lh-top>nav:first-child>a{display:none}
   .lh-top>nav:first-child .lh-top__menu{display:inline-flex!important;flex:0 0 auto}
   .lh-top__brand{align-items:flex-start;gap:0}

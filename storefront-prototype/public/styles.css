@@ -485,3 +485,14 @@ body.lh-chrome-in .cookie-banner{left:var(--rail-pad)}
 @media(max-width:699.98px){.withdrawal-fields{grid-template-columns:1fr}.withdrawal-form{padding:24px 20px 28px;border-radius:22px 22px 22px 6px}}
 
 body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
+
+/* r20/2: zatvorené menu je skryté (visibility), inak položky prosvietajú cez stránku. */
+#dc-side-menu{visibility:var(--side-v,hidden)!important}
+#dc-top-menu{visibility:var(--top-v,hidden)!important}
+
+/* r20/1: mobilná hlavička je jeden riadok (Menu | logo | košík) a bez dvojitého obrysu.
+   Pravidlo musí byť v tejto vrstve (layer(legacy)), lebo významnosť vrstiev je obrátená –
+   inak by starý rámec hlavičky zostal silnejší. */
+@media(max-width:760px){
+  :is(.dc-root,.dc-chrome) header.lh-top:has([data-menu-open]){border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+}

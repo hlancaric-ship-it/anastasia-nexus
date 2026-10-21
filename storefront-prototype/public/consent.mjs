@@ -218,24 +218,24 @@ export const initCookieConsent = () => {
     writePanel(panel);
     return;
   }
-  // Na úvode webu by lišta kolidovala s preloaderom a bočnou lištou – objaví sa
-  // až po „Vstúpte“ (teda po skone úvodu) alebo po prvom scrollu.
-  const introPending = () => document.body.classList.contains('lh-intro-page') && !document.body.classList.contains('lh-chrome-in');
-  if (!introPending()) {
-    showBanner();
-    return;
-  }
-  const reveal = () => {
-    if (!hasConsentDecision()) showBanner();
+  // r20/5: lišta nesmie prekrývať úvod. Na domovskej stránke sa objaví až vtedy,
+  // keď je koniec úvodu pod viewportom (teda po skone úvodu alebo po prvom scrollu).
+  const introDone = () => {
+    const intro = document.querySelector('.lh-intro');
+    if (!intro) return true;
+    return intro.getBoundingClientRect().bottom <= 1;
   };
-  const observer = new MutationObserver(() => {
-    if (introPending()) return;
+  const stopWaiting = () => {
     observer.disconnect();
-    reveal();
-  });
+    removeEventListener('scroll', reveal);
+  };
+  const reveal = () => {
+    if (hasConsentDecision() || !introDone()) return;
+    stopWaiting();
+    showBanner();
+  };
+  const observer = new MutationObserver(reveal);
   observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-  addEventListener('scroll', () => {
-    observer.disconnect();
-    reveal();
-  }, { once: true, passive: true });
+  addEventListener('scroll', reveal, { passive: true });
+  reveal();
 };
