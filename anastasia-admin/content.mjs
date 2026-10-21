@@ -7,7 +7,7 @@ const fmtDate = (d) => (d ? new Date(d).toLocaleString('sk-SK', { day: '2-digit'
 const TYPE_LABEL = { text: 'Text', rich: 'Rich text', image: 'Obrázok', video: 'Video', link: 'Odkaz' };
 
 const fieldInput = (f) => {
-  const attrs = `data-field="${esc(f.key)}" maxlength="${esc(String(f.max_length))}"`;
+  const attrs = `data-field="${esc(f.key)}" data-revision="${esc(f.revision || '')}" maxlength="${esc(String(f.max_length))}"`;
   return f.type === 'rich'
     ? `<textarea rows="4" ${attrs}>${esc(f.value)}</textarea>`
     : `<input type="text" ${attrs} value="${esc(f.value)}">`;
@@ -33,7 +33,6 @@ const fieldHtml = (f) => `<div class="content-field${f.changed ? ' changed' : ''
   </div>
   ${(f.history || []).length ? `<details class="content-history"><summary>${f.history.length} predchádzajúcich verzií</summary>${f.history.map((h, i) => `<div class="content-version"><span>${esc(fmtDate(h.updated_at))} · ${esc(h.updated_by || '—')}</span><button type="button" class="btn ghost sm" data-version="${esc(f.key)}" data-index="${i}">Obnoviť túto verziu</button></div>`).join('')}</details>` : ''}
 </div>`;
-
 /**
  * Zoznam stránok obsahu webu.
  * @param {(path: string, options?: any) => Promise<any>} api
@@ -68,6 +67,7 @@ export async function contentPage(api, key, escHtml = esc) {
   return `<div class="card" style="margin-bottom:16px"><div class="card-h">${escHtml(page.title)}<div class="card-h-act">
       <span class="muted" style="font-size:12px">${escHtml(page.path)}</span>
       <button type="button" class="btn ghost" data-cp-back>Späť</button></div></div><div class="card-b">
+    <div id="cp-msg"></div>
     <p class="muted" style="margin-top:0">Rozviňte sekciu a upravte pole. Uložiť tlačidlom pri poli alebo skratkou Ctrl+Enter. Pôvodné znenie sa dá obnoviť.</p>
     ${page.sections.map((section) => `<details class="content-section"${section.changed ? ' open' : ''}><summary><b>${escHtml(section.title)}</b><span class="muted"> – ${section.fields.length} polí${section.changed ? ' · upravené' : ''}</span></summary>
       <div class="content-fields">${section.fields.map(fieldHtml).join('')}</div></details>`).join('')}
@@ -78,26 +78,47 @@ export async function contentPage(api, key, escHtml = esc) {
 /** Obsluha udalostí v editore stránky (uloženie, obnovenie, verzie, počítadlo znakov). */
 export function wireContentPage(root, api, key, onBack) {
   const fieldByKey = (k) => root.querySelector('[data-field="' + CSS.escape(k) + '"]');
+  const say = (html) => { const box = root.querySelector('#cp-msg'); if (box) box.innerHTML = html; };
+  // Konflikt (obsah medzitým zmenil niekto iný) – ukážeme hlášku a ponúkneme obnovenie.
+  const conflict = (message) => {
+    say(`<div class="notice">${esc(message)} <button type="button" class="btn ghost sm" data-cp-reload>Obnoviť stránku</button></div>`);
+    const btn = root.querySelector('[data-cp-reload]');
+    if (btn) btn.onclick = () => onBack.reload();
+  };
+  const fail = (e) => {
+    if (e.message === '401') return;
+    if (/zmenil niekto iný/i.test(e.message || '')) return conflict(e.message);
+    say(`<div class="err">${esc(e.message || 'Uložiť sa nepodarilo. Skúte to znova.')}</div>`);
+  };
   const save = async (fieldKey) => {
     const input = fieldByKey(fieldKey);
     if (!input) return;
+    say('');
     try {
-      await api('/admin/content', { method: 'POST', body: { page: key, field: fieldKey, value: input.value } });
+      await api('/admin/content', { method: 'POST', body: { page: key, field: fieldKey, value: input.value, revision: input.dataset.revision || '' } });
       onBack.reload();
-    } catch (e) { if (e.message !== '401') alert(e.message); }
+    } catch (e) { fail(e); }
   };
   root.querySelectorAll('[data-save]').forEach((b) => { b.onclick = () => save(b.dataset.save); });
   root.querySelectorAll('[data-reset]').forEach((b) => {
     b.onclick = async () => {
       if (!confirm('Obnoviť pôvodné znenie tohto poľa?')) return;
-      try { await api('/admin/content/reset', { method: 'POST', body: { page: key, field: b.dataset.reset } }); onBack.reload(); }
-      catch (e) { if (e.message !== '401') alert(e.message); }
+      say('');
+      const input = fieldByKey(b.dataset.reset);
+      try {
+        await api('/admin/content/reset', { method: 'POST', body: { page: key, field: b.dataset.reset, revision: input?.dataset.revision || '' } });
+        onBack.reload();
+      } catch (e) { fail(e); }
     };
   });
   root.querySelectorAll('[data-version]').forEach((b) => {
     b.onclick = async () => {
-      try { await api('/admin/content/reset', { method: 'POST', body: { page: key, field: b.dataset.version, version: Number(b.dataset.index) } }); onBack.reload(); }
-      catch (e) { if (e.message !== '401') alert(e.message); }
+      say('');
+      const input = fieldByKey(b.dataset.version);
+      try {
+        await api('/admin/content/reset', { method: 'POST', body: { page: key, field: b.dataset.version, version: Number(b.dataset.index), revision: input?.dataset.revision || '' } });
+        onBack.reload();
+      } catch (e) { fail(e); }
     };
   });
   root.querySelectorAll('[data-field]').forEach((input) => {

@@ -62,6 +62,10 @@ Zoznam všetkých kľúčov: `GET /store/content` (bez parameterra) alebo `backe
 | `label_text` | text tlačidla pri type `link` |
 | `lang` | jazyk poľa: `sk` (dnes), `en`, `ru` (miesta pripravené) |
 
+> **Bezpečnosť:** hodnoty polí typu `rich` sa pri uložení vždy vyčistia (povolené sú len značky
+> `p, br, strong, em, u, a[href, rel], ul, ol, li, h2, h3, blockquote`; skripty, obsluhy udalostí
+> a `javascript:` odkazy sa odstránia). Bližšie: `backend/docs/wp/content-sanitizacia-a-revizia.md`.
+
 ## 3. Ako to použiť vo storefronte
 
 1. **Načítajte raz pri štarte stránky** (alebo pri prechode na novú sekciu) a uložte do pamäti:

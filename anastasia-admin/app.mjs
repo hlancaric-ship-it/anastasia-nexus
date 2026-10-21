@@ -2418,11 +2418,18 @@ async function vPageTextEdit(view, slug) {
     const btn = view.querySelector('#pt-save');
     msg.innerHTML = ''; btn.disabled = true;
     try {
-      await api('/admin/pages', { method: 'POST', body: { slug, html: cleanRichText(editor.innerHTML) } });
+      await api('/admin/pages', { method: 'POST', body: { slug, html: cleanRichText(editor.innerHTML), revision: page.revision || '' } });
       msg.innerHTML = '<div class="ok">Znenie je uložené. Na webe sa zobrazí podľa adresy stránky.</div>';
       await vPageTextEdit(view, slug);
     } catch (e) {
-      if (e.message !== '401') msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+      if (e.message === '401') throw e;
+      // Obsah medzitým zmenil niekto iný – povieme to a ponúkneme obnovenie stránky.
+      if (/zmenil niekto iný/i.test(e.message || '')) {
+        msg.innerHTML = `<div class="notice">${esc(e.message)} <button type="button" class="btn ghost sm" id="pt-reload">Obnoviť stránku</button></div>`;
+        msg.querySelector('#pt-reload').onclick = () => vPageTextEdit(view, slug);
+      } else {
+        msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+      }
       btn.disabled = false;
     }
   };
@@ -2431,11 +2438,17 @@ async function vPageTextEdit(view, slug) {
     const btn = view.querySelector('#pt-reset');
     msg.innerHTML = ''; btn.disabled = true;
     try {
-      await api(`/admin/pages/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+      await api(`/admin/pages/${encodeURIComponent(slug)}`, { method: 'DELETE', body: { revision: page.revision || '' } });
       msg.innerHTML = '<div class="ok">Pôvodné znenie je obnovené.</div>';
       await vPageTextEdit(view, slug);
     } catch (e) {
-      if (e.message !== '401') msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+      if (e.message === '401') throw e;
+      if (/zmenil niekto iný/i.test(e.message || '')) {
+        msg.innerHTML = `<div class="notice">${esc(e.message)} <button type="button" class="btn ghost sm" id="pt-reload">Obnoviť stránku</button></div>`;
+        msg.querySelector('#pt-reload').onclick = () => vPageTextEdit(view, slug);
+      } else {
+        msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+      }
       btn.disabled = false;
     }
   };

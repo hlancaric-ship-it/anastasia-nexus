@@ -648,7 +648,9 @@ export const PAGE_HELP = {
   obsah: {
     title: 'Ako funguje Obsah a e-maily',
     text: 'V prepínači E-maily si pozriete náhľad každého e-mailu, ktorý obchod posiela automaticky. V prepínači Newsletter vidíte prihlásenia na odber.',
-    points: ['E-maily nemusíte posielať ručne, odchádzajú samy.', 'Úpravu textu e-mailu pre vás pripravíme, stačí napísať.'],
+    points: ['E-maily nemusíte posielať ručne, odchádzajú samy.', 'Úpravu textu e-mailu pre vás pripravíme, stačí napísať.',
+      'V prepínači Stránky a texty upravíte texty na webe. Ak medzitým zmení text niekto iný, administrácia vás na to upozorní a ponúkne obnoviť stránku.',
+      'Do textu sa dajú vložiť len jednoduché značky (odseky, tučné písmo, odrážky, nadpisy a odkazy) – skripty a nebezpečné odkazy sa odstránia automaticky.'],
     guides: ['emaily'],
   },
   nastavenia: {
