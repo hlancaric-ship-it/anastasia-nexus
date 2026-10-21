@@ -1345,12 +1345,12 @@ async function vCustomers(view) {
   let offset = 0, query = '', count = 0, tierFilter = '', tierOptions = [], loyalty = false, selected = new Set();
   const PAGE = 25;
   view.innerHTML = `<section class="card ot-card"><div class="ot-head">
-      <h2>Zákaznícy</h2>
+      <h2>Zákazníčky</h2>
       <div class="ot-head-act">
         <select class="rc-select" id="cu-tier" aria-label="Filter podľa vernostnej úrovne"><option value="">Všetky úrovne</option></select>
-        <input class="rc-search" type="search" placeholder="Hľadať meno alebo e-mail…" aria-label="Hľadať zákaznícy">
+        <input class="rc-search" type="search" placeholder="Hľadať meno alebo e-mail…" aria-label="Hľadať zákazničky">
       </div>
-    </div><div id="cu-body"><div class="muted">Načítavam zákaznícy…</div></div></section>`;
+    </div><div id="cu-body"><div class="muted">Načítavam zákazničky…</div></div></section>`;
   const body = view.querySelector('#cu-body');
   const tierSel = view.querySelector('#cu-tier');
   const load = async () => {
@@ -1388,7 +1388,7 @@ async function vCustomers(view) {
         ? `<b>${esc(tier)}</b>${c.locked ? ' <span class="pill">ručné</span>' : c.source === 'auto' ? ' <span class="muted">automaticky</span>' : ''}`
         : '<span class="muted">—</span>';
       return `<tr data-id="${esc(c.id)}" tabindex="0" role="link">
-        <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákaznícu" ${selected.has(c.id) ? 'checked' : ''}></td>
+        <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákazníčku" ${selected.has(c.id) ? 'checked' : ''}></td>
         <td class="ot-img lv-media"><span class="thumb" style="display:grid;place-items:center;font-weight:600;color:var(--forest)">${esc(av)}</span></td>
         <td class="lv-title">${esc(nm || c.email)}</td>
         <td>${esc(c.email)}</td>
@@ -1398,12 +1398,12 @@ async function vCustomers(view) {
         <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
     }).join('');
     const from = count ? offset + 1 : 0, to = Math.min(offset + customers.length, count);
-    body.innerHTML = `${selected.size ? `<div class="ot-bulk"><span class="muted">Označené zákaznícy: ${selected.size}</span><div style="display:flex;gap:8px;flex-wrap:wrap">
+    body.innerHTML = `${selected.size ? `<div class="ot-bulk"><span class="muted">Označené zákazničky: ${selected.size}</span><div style="display:flex;gap:8px;flex-wrap:wrap">
         <select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(t.name || t.code)}</option>`).join('')}</select>
         <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>
         <button type="button" class="btn ghost sm" id="cu-pick-clear">Zrušiť označenie</button></div></div>` : ''}
-      <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazníca</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Žiadne zákaznícy.</td></tr>'}</tbody></table></div>
-      <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Žiadne zákaznícy'}</span>
+      <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazníčka</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Žiadne zákazničky.</td></tr>'}</tbody></table></div>
+      <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Žiadne zákazničky'}</span>
       <div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev" ${offset <= 0 ? 'disabled' : ''}>← Predchádzajúce</button><button class="btn ghost" data-pg="next" ${offset + PAGE >= count ? 'disabled' : ''}>Ďalšie →</button></div></div>`;
     body.querySelectorAll('tr[data-id]').forEach((tr) => {
       const open = () => vCustomerDetail(view, tr.dataset.id);
@@ -1590,7 +1590,9 @@ const couponBody = (view, prefix, code, extra = {}) => {
   const to = view.querySelector(`#${prefix}-to`).value;
   const productIds = [...view.querySelectorAll(`#${prefix}-plist [data-prod]`)].filter((cb) => cb.checked).map((cb) => cb.dataset.prod);
   const am = {
-    type, value, target_type: 'items',
+    type, value,
+    // Celý košík = 'order'; len vybrané produkty = 'items' + pravidlo na produkty (jadro zľavu rozdeľuje).
+    target_type: target === 'products' ? 'items' : 'order',
     allocation: type === 'percentage' ? 'each' : 'across',
     ...(type === 'fixed' ? { currency_code: 'eur' } : {}),
     ...(target === 'products' && productIds.length ? { target_rules: [{ attribute: 'items.product.id', operator: 'in', values: productIds }] } : {}),
@@ -1658,7 +1660,7 @@ async function vCouponDetail(view, id) {
     <div class="row" style="margin-top:14px">
       <div><label for="pd-limit">Limit použití (0 = bez limitu)</label><input id="pd-limit" type="number" min="0" step="1" value="${esc(String(limit ?? 0))}"></div>
     </div>
-    <p class="muted" style="font-size:12px;margin-top:10px">Zľava platí na nové objednávky. Košík ju uplatní, keď je kód zadaný v košíku; zľava „len vybrané produkty“ sa v košíku zatiaľ neuplatní – jadro kupón s pravidlami na produkty odmieta.</p>
+    <p class="muted" style="font-size:12px;margin-top:10px">Zľava platí na nové objednávky. Košík ju uplatní, keď je kód zadaný v košíku; pri možnosti „len vybrané produkty“ sa zľava počíta len z týchto produktov.</p>
     <div style="margin-top:16px"><button class="btn gold" id="pd-save">Uložiť</button></div>
   </div></div>`;
   wireCouponTarget(view, 'pd');
@@ -2211,7 +2213,7 @@ async function vConversation(view, id, back, notice) {
     const blocked = !cu.chat_blocked;
     if (!confirm(blocked ? 'Zablokovať zákazníkovi písanie do chatu? Dá sa to kedykoľvek vrátiť.' : 'Odblokovať zákazníkovi chat?')) return;
     bb.disabled = true;
-    try { await api(`/admin/chat/customers/${encodeURIComponent(cu.id)}/block`, { method: 'POST', body: { blocked } }); await vConversation(view, id, back, blocked ? 'Chat zákazníci je zablokovaný.' : 'Chat zákazníci je odblokovaný.'); }
+    try { await api(`/admin/chat/customers/${encodeURIComponent(cu.id)}/block`, { method: 'POST', body: { blocked } }); await vConversation(view, id, back, blocked ? 'Chat zákazníčky je zablokovaný.' : 'Chat zákazníčky je odblokovaný.'); }
     catch (err) { fail(bb, err); }
   };
 }
