@@ -45,7 +45,7 @@ function translate(text, lang) {
 }
 
 // Značky a názvy značek smí zůstat latinkou i v RU verzi.
-const ALLOWED_LATIN = /\b(ANASTASIA|ACADEMY|RESET|LIGHT|FOR|THE|FUTURE|OZ|Facebook|YouTube|Pharmanews|GDPR|EMA|AI|SK|EN|RU)\b/gi;
+const ALLOWED_LATIN = /\b(ANASTASIA|ACADEMY|RESET|LIGHT|FOR|THE|FUTURE|OZ|Facebook|YouTube|Pharmanews|GDPR|EMA|AI|SK|EN|RU|Cookies)\b|[\w.+-]+@[\w-]+\.[\w.]+/gi;
 const SK_DIACRITICS = /[ľĺŕňťďľĺŕňťďšžýáíéúóäôč]/i;
 
 test('dictionary is complete for all three languages', () => {

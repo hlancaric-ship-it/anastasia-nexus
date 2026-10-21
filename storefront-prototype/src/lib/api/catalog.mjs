@@ -3,7 +3,20 @@
 // Skutočné obrázky a ceny v HTTP režime poskytuje backend; demo ceny zodpovedajú starému výpisu.
 // Kategorie podle starého webu (Medusa): AI ANASTASIA ACADEMY (sebarozvoj),
 // BIOKOZMETIKA a Zdravé doplnky výživy. filter v URL používá handle.
-const NEW_HANDLES=new Set(['vyuka-vedomeho-vnimania','bio-plet-krem','osviezit-plet','bio-sprchovy-gel','pletova-voda','nic-nemusis']);
+// Štítky NOVINKA, kódy a poradie přebraté 1:1 ze starého webu (audit/AUDIT-1to1.md).
+const NEW_HANDLES=new Set(['vyuka-vedomeho-vnimania','nic-nemusis','online-zdravotna-konzultacia','personalizovany-zdravotny-protokol-pro','Mineralny-ochranny-krem-pre-citlivu-pokozku','astrologia-zdravie-predispozicia']);
+const SKUS={
+  'supervizia':'KONZ.01','astrologia-zdravie-predispozicia':'NR.01','online-zdravotna-konzultacia':'L005',
+  'vyuka-vedomeho-vnimania':'VVV.001','bio-plet-krem':'KO.001','pletova-voda':'KO.002','chripka-prasok':'DO.002',
+  'nic-nemusis':'EP.001','bio-sprchovy-gel':'KO.003','antibioticky-prasok':'DO.003','osviezit-plet':'KO.004',
+  'personalizovany-zdravotny-protokol-pro':'L004','Mineralny-ochranny-krem-pre-citlivu-pokozku':'K05','reset-40-plus':'EP.002',
+};
+const LEGACY_RANK={
+  'vyuka-vedomeho-vnimania':1,'bio-plet-krem':2,'pletova-voda':3,'chripka-prasok':4,'nic-nemusis':5,
+  'bio-sprchovy-gel':6,'antibioticky-prasok':7,'online-zdravotna-konzultacia':8,'osviezit-plet':9,
+  'personalizovany-zdravotny-protokol-pro':10,'Mineralny-ochranny-krem-pre-citlivu-pokozku':11,
+  'reset-40-plus':12,'supervizia':13,'astrologia-zdravie-predispozicia':14,
+};
 const BEST_HANDLES=new Set(['vyuka-vedomeho-vnimania','bio-plet-krem','reset-40-plus','supervizia','chripka-prasok']);
 export const SHOP_CATEGORIES=Object.freeze(['AI ANASTASIA ACADEMY','BIOKOZMETIKA','Zdravé doplnky výživy']);
 export const SHOP_CATEGORY_HANDLES=Object.freeze({
@@ -28,6 +41,6 @@ export const SHOP_CATALOG=Object.freeze([
   {slug:"pletova-voda",name:"Tvoja pleťová voda",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-maslo.png"},
   {slug:"osviezit-plet",name:"Tvoja pleťová voda osviežujúca",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-gel.png"},
   {slug:"vyuka-vedomeho-vnimania",name:"Výuka vedomého vnímania",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"2 600,00 €",art:"sun",image:"/assets/zdravy-svet-luka.jpg"},
-].map((p,i)=>Object.freeze({...p,code:p.slug,description:'Podrobnosti a podmienky nájdete v detaile produktu.',availability:p.slug==='vyuka-vedomeho-vnimania'?'Dostupné':'Informácie v detaile',isNew:NEW_HANDLES.has(p.slug),isBestseller:BEST_HANDLES.has(p.slug)})));
+].map((p,i)=>Object.freeze({...p,code:p.slug,sku:SKUS[p.slug]||p.slug,description:'Podrobnosti a podmienky nájdete v detaile produktu.',availability:'Skladom',isNew:NEW_HANDLES.has(p.slug),isBestseller:BEST_HANDLES.has(p.slug),legacyRank:LEGACY_RANK[p.slug]||99})).sort((a,b)=>a.legacyRank-b.legacyRank));
 export const SHOP_HANDLES=new Set(SHOP_CATALOG.map(p=>p.slug));
 export const SHOP_BY_HANDLE=new Map(SHOP_CATALOG.map(p=>[p.slug,p]));

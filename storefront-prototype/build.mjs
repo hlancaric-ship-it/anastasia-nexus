@@ -22,6 +22,8 @@ if(process.env.ANASTASIA_PUBLISHABLE_KEY&&process.env.ANASTASIA_REGION_ID){
  catalogProducts=await store.getProducts();if(!catalogProducts.length)throw new Error('Real catalog build returned no products');
 }
 const catalog=category=>views.catalog(category,catalogProducts);
+// Denný stacionár: fotografie z dodaných souborů (public/media/ds).
+const dsPhotos=(dir,files)=>`<section class="section photo-gallery">${files.map(f=>`<figure><img src="/media/ds/${f}" alt="Denný stacionár Vyšná Slaná – ${f.replace(/\.[a-z]+$/,'').replace(/[_-]/g,' ')}" loading="lazy" width="1200" height="800"></figure>`).join('')}</section>`;
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
@@ -36,7 +38,8 @@ for(const p of catalogProducts)add(`/eshop/produkt/${p.slug}`,p.name,views.produ
 const mineral=catalogProducts.find(p=>p.slug.toLowerCase()==='mineralny-ochranny-krem-pre-citlivu-pokozku');if(mineral)add('/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku',mineral.name,views.product(mineral,catalogProducts));
 for(const p of api.getPages())add(p.path,p.title,views.content(p));
 add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());
-add('/prihlasenie','Prihlásenie',views.login());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
+add('/prihlasenie','Prihlásenie',views.login());
+add('/nova-registracia/vyhody','Výhody registrácie',views.registrationBenefits());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
 add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.reset());add('/reset-40/knihovna','Moje programy',views.reset(true));
 add('/klub','Klub ANASTASIA',views.klub());add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());
 add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy());
@@ -46,7 +49,7 @@ for(const [path,page] of Object.entries(legacyContent)){
   if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
-    add(path,page.title,legacyPage(page,{contactForm})+(path==='/denny-stacionar-vysna-slana'?'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':''));
+    add(path,page.title,legacyPage(page,{contactForm})+(path==='/denny-stacionar-vysna-slana'?dsPhotos('ds',['vonkajsi-vchod.jpg'])+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':''));
   }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
 }
@@ -54,7 +57,9 @@ add('/zdravy-svet','Zdravý svet',views.zdravySvet());
 add2('/o-lucii','O Lucii',aboutSections(),'about');
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
-for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.split(',')[1]);const path=target.pathname.replace(/\/$/,'')||'/';if(!routes.has(path)){if(path.startsWith('/eshop/produkt/'))add(path,'Obchod',catalog());else throw new Error(`Missing legacy route ${path}`);}}
+// Drafty starého webu (ve výpisu mali stav 404) na novom webe tiež 404 – nie výpis e-shopu.
+const DRAFT_PRODUCTS=new Set(['wobenzym','usi','lososovy','protiparazitom','prirodny-jod','ocne-kvapky-pre-psa','sampon-zvierata','bolest-klby','bolest-oci','personalizovany-zdravotny-protokol-zaklad']);
+for(const row of csv.trim().split(/\r?\n/).slice(1)){const target=new URL(row.split(',')[1]);const path=target.pathname.replace(/\/$/,'')||'/';if(routes.has(path))continue;if(path.startsWith('/eshop/produkt/')&&DRAFT_PRODUCTS.has(path.split('/').pop()))continue;if(path.startsWith('/eshop/produkt/'))add(path,'Obchod',catalog());else throw new Error(`Missing legacy route ${path}`);}
 const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),other:chrome('other')};
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
 const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script src="/vendor/gsap.min.js" defer></script><script src="/vendor/ScrollTrigger.min.js" defer></script><script type="module" src="/app.mjs"></script><script type="module" src="/motion.mjs"></script>';

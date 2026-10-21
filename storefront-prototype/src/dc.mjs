@@ -180,6 +180,9 @@ function footerLinks(html) {
     out = out.replace(new RegExp(`(>${title}</span>\\s*)(?:<a\\b[^>]*>[^<]*</a>)+`), (_, head) => head + links.map(([t, h]) => `<a href="${h}">${t}</a>`).join(''));
   }
   // Loga Academy a AI ANASTASIA jsou odkazy na své stránky (stejný styl, jen <a> místo <div>).
+  // Kontakt v päte ako na starom webe: telefón, e-mail a odkaz na Cookies.
+  out = out.replace(/(<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:12px;color:#C4C7B6">)/,
+    '$1<div style="display:flex;gap:24px;flex-wrap:wrap"><a href="tel:+421905363778">+421 905 363 778</a><a href="mailto:zdravysvet@anastasiaoz.eu">zdravysvet@anastasiaoz.eu</a><a href="/gdpr#cookies">Cookies</a></div>');
   return out.replace(/<div (style="display:grid;grid-template-rows:clamp\(170px,17vw,240px\) auto;[^"]*")>((?:(?!<\/?div\b)[\s\S]|<div\b[\s\S]*?<\/div>)*?<span [^>]*>([^<]+)<\/span>)<\/div>/g,
     (whole, style, inner, label) => FOOTER_BRANDS[label] ? `<a href="${FOOTER_BRANDS[label]}" class="footer-brand" ${style}>${inner}</a>` : whole);
 }

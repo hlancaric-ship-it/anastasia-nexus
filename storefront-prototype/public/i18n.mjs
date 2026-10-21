@@ -62,6 +62,8 @@ export const DICT = {
   'Sprevádzanie': ['Accompanying', 'Сопровождение'],
   'Pharmanews': ['Pharmanews', 'Pharmanews'],
   'Recenzie produktov': ['Product reviews', 'Отзывы о товарах'],
+  'Recenzie zákazníkov': ['Customer reviews', 'Отзывы клиентов'],
+  'Cookies': ['Cookies', 'Cookies'],
   'AI ANASTASIA ACADEMY': ['AI ANASTASIA ACADEMY', 'AI ANASTASIA ACADEMY'],
   'ACADEMY': ['ACADEMY', 'ACADEMY'],
   'BIOKOZMETIKA': ['BIOCOSMETICS', 'БИОКОСМЕТИКА'],
