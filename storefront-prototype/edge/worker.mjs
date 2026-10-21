@@ -41,7 +41,7 @@ async function backendMedia(request, env, url) {
   try { decoded = decodeURIComponent(name); } catch { decoded = '/'; }
   if (!env.API_ORIGIN || !name || /[\/\\]/.test(decoded) || decoded.includes('..')) return new Response('Not found', {status: 404});
   try {
-    const upstream = await fetch(new URL('/static/' + name, env.API_ORIGIN), {method: request.method, redirect: 'error', cf: {cacheTtl: 86400, cacheEverything: true}});
+    const upstream = await fetch(new URL('/static/' + name, env.API_ORIGIN), {method: request.method, redirect: 'manual', cf: {cacheTtl: 86400, cacheEverything: true}});
     const headers = new Headers();
     for (const h of ['content-type', 'content-length', 'etag', 'last-modified']) { const v = upstream.headers.get(h); if (v) headers.set(h, v); }
     headers.set('cache-control', upstream.ok ? 'public, max-age=86400' : 'no-store');
