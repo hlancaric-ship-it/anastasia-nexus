@@ -1,7 +1,7 @@
 import { Module } from "@medusajs/framework/utils"
 import ResetJournalModuleService from "./service"
 
-export const RESET_JOURNAL_MODULE = "resetJournal"
+export const RESET_JOURNAL_MODULE = "reset_journal"
 
 export default Module(RESET_JOURNAL_MODULE, {
   service: ResetJournalModuleService,

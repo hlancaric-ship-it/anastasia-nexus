@@ -39,7 +39,7 @@ function fixture(options: { customer?: string | null; entitled?: boolean } = {})
     resolve: (key: string) => {
       if (key === "entitlement") return entitlements
       if (key === "query") return { graph }
-      if (key === "resetJournal") return journal
+      if (key === "reset_journal") return journal
       return { error: jest.fn() }
     },
   }
