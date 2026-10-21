@@ -12,12 +12,11 @@
  * hook. See MEDUSA-SPIKE-RESULTS.md section 4/6 for the full trace.
  */
 import { addToCartWorkflow, completeCartWorkflow } from "@medusajs/medusa/core-flows"
-import type { IPromotionModuleService } from "@medusajs/framework/types"
-import { Modules } from "@medusajs/framework/utils"
 import { StepResponse } from "@medusajs/framework/workflows-sdk"
 import { assertSafeOrderAllows, SafeOrderError } from "../api/store/nexus-checkout/safeorder"
 import { recordEvent } from "../lib/observability/events"
 import { repriceCart } from "../api/store/nexus-cart/route"
+import { couponLimitState } from "../lib/pricing/coupon-usage"
 import { claimCartBooking } from "./booking-checkout"
 import type BookingModuleService from "../modules/booking/service"
 import { GIFT_VOUCHER_MODULE } from "../modules/gift-voucher"
@@ -32,8 +31,6 @@ import { assertNoCompensatedSession } from "../lib/checkout/payment-compensation
 
 type CheckoutCompensation = {
     bookingClaim?: Awaited<ReturnType<typeof claimCartBooking>>
-    computedActions?: Array<{ code: string; amount: number }>
-    registrationContext?: { customer_id: string | null; customer_email: string | null }
     giftVoucherRedemption?: string
 }
 
@@ -93,7 +90,7 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
             }
         }
     }
-    // All providers must ALLOW before consuming the coupon. Medusa owns the
+    // All providers must ALLOW before the coupon is consumed. Medusa owns the
     // transaction/row locks; let a rejected registration abort this workflow.
     if (cart.completed_at) return
     // Poukazy se ověří ještě před jakoukoli rezervací (nic se nespotřebuje).
@@ -104,19 +101,22 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
         const coupon = cart.metadata?.nexus_coupon
         if (coupon) {
             if (typeof coupon.code !== "string" || !coupon.code.trim()) throw new Error("COUPON_INVALID")
-            const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
-            const computedActions = [{ code: coupon.code, amount: 1 }]
-            const registrationContext = { customer_id: cart.customer?.id || null, customer_email: cart.email || null }
-            await promotions.registerUsage(computedActions, registrationContext)
-            compensation.computedActions = computedActions
-            compensation.registrationContext = registrationContext
+            // Vyčerpaný limit blokuje checkout (zákazník si kupón nezaplatí).
+            // Samotné započítanie použitia robí `recordCouponUsage` po vytvoření
+            // objednávky – idempotentně podle ID objednávky (jedna objednávka =
+            // jedno použitie). Medusa `registerUsage` sa tu nepoužíva: zapisoval
+            // by druhé použitie kupónu s limitem.
+            if (typeof coupon.promotion_id === "string" && coupon.promotion_id) {
+                const state = await couponLimitState(container as any, coupon.promotion_id)
+                if (state.exhausted) throw new Error("COUPON_LIMIT_EXHAUSTED")
+            }
         }
         if (giftVoucher?.redeem) {
             // Atomické čerpání (zámek řádku poukazu); případné selhání objednávky ho vrátí kompenzací.
             const redemption = await container.resolve<GiftVoucherModuleService>(GIFT_VOUCHER_MODULE).redeem(giftVoucher.redeem)
             compensation.giftVoucherRedemption = redemption.transaction_id
         }
-        if (!compensation.bookingClaim && !compensation.computedActions && !compensation.giftVoucherRedemption) return undefined
+        if (!compensation.bookingClaim && !compensation.giftVoucherRedemption) return undefined
         return new StepResponse(undefined, compensation)
     } catch (error) {
         // Při výjimce Medusa kompenzaci tohoto hooku nevolá – vrátit ručně, co se už stihlo.
@@ -136,9 +136,6 @@ async function rollbackCheckout(usage: CheckoutCompensation, container: { resolv
         try { await fn() } catch (error) { failures.push(error) }
     }
     if (usage.giftVoucherRedemption) await attempt(() => container.resolve<GiftVoucherModuleService>(GIFT_VOUCHER_MODULE).reverseRedemption(usage.giftVoucherRedemption!))
-    if (usage.computedActions) {
-        await attempt(() => container.resolve<IPromotionModuleService>(Modules.PROMOTION).revertUsage(usage.computedActions!, usage.registrationContext!))
-    }
     if (usage.bookingClaim) await attempt(() => container.resolve<BookingModuleService>("booking").releaseCheckoutClaim(usage.bookingClaim!))
     // V kompenzaci se chyba propaguje (Medusa ji zaznamená); v hooku má přednost původní chyba.
     if (rethrow && failures.length) throw failures[0]

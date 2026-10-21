@@ -1,6 +1,6 @@
 {
   "scenario": "Nákup digitálneho produktu s kupónom Montelope a vernostnou úrovňou",
-  "started_at": "2026-10-21T07:58:09.391Z",
+  "started_at": "2026-10-21T08:42:40.570Z",
   "database": "lokálna (anastasia_dev_wave1)",
   "coupon": {
     "code": "Montelope",
@@ -46,12 +46,17 @@
     {
       "step": "objednávka vznikla",
       "status": "PASS",
-      "detail": "order_01M5EQFG2XZXVWWP0AXPKJ2XRS"
+      "detail": "order_01M5ET10B4TVVE5WASXPQTDCAS"
     },
     {
       "step": "po zachytení platby je prístup udelený",
       "status": "PASS",
       "detail": "prístupy: prod_01M4GCS9ZM099PWKA8HM677WAM, prod_01M4GCS98N02YHWZKT4GNPCTSD"
+    },
+    {
+      "step": "použitie kupónu sa započíta právě raz (idempotentne podľa objednávky)",
+      "status": "PASS",
+      "detail": "pred 0 → po 1; druhý pokaz: duplicate=true"
     },
     {
       "step": "odkaz na chránený obsah je podpísaný a krátkodobý",
@@ -100,10 +105,16 @@
       "status": "active"
     }
   ],
+  "coupon_usage": {
+    "used_before": 0,
+    "used_after": 1,
+    "counted": true,
+    "duplicate_on_repeat": true
+  },
   "media_access": {
     "key": "reset-40-plus/lekcia-00.mp4",
-    "expires_at": "2026-10-21T08:08:12.000Z"
+    "expires_at": "2026-10-21T08:52:43.000Z"
   },
   "status": "PASS",
-  "finished_at": "2026-10-21T07:58:12.483Z"
+  "finished_at": "2026-10-21T08:42:43.682Z"
 }

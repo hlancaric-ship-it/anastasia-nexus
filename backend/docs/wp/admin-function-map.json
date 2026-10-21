@@ -969,7 +969,7 @@
       ],
       "feature": "web-content",
       "source": "backend/src/api/admin/content/route.ts",
-      "sha256": "bef819e6c782f3e123a773e4d018e30db9876c561242d6a0bf25c786601b715f"
+      "sha256": "b65fa35a1f486efdff5b61589a3c6c9a28a3f47aaffb981ad278fad9ed71f725"
     },
     {
       "path": "/admin/content/reset",
@@ -978,7 +978,7 @@
       ],
       "feature": "web-content",
       "source": "backend/src/api/admin/content/reset/route.ts",
-      "sha256": "8703c7ce3f89ffdcc1493b00af0bb107347911dfb1d8e47d0745c302a86f5581"
+      "sha256": "df169af4c73f55986535ba813006a7fe4c43e6d1dbf17a1909f70f32b80af9ac"
     },
     {
       "path": "/admin/coupon-links",
@@ -1380,7 +1380,7 @@
       ],
       "feature": "page-content",
       "source": "backend/src/api/admin/pages/route.ts",
-      "sha256": "ccc21c973012ec7411e46b10e504af541ced6ec2fecbd7319dab31344f9d6977"
+      "sha256": "bb2200db5004036dc29191e9d7eb5511abf303c6cd0cc42b9c0cdd021afb1bbe"
     },
     {
       "path": "/admin/pages/:slug",
@@ -1389,7 +1389,7 @@
       ],
       "feature": "page-content",
       "source": "backend/src/api/admin/pages/[slug]/route.ts",
-      "sha256": "73ad20af21b47e09d843cbc1abedd2b08452c51b9fd05454fc0a405b3a11ca1a"
+      "sha256": "5e889f6dac52d0f68782fcdb1550acee997e8e1044242cfbcb5af04994e581e0"
     },
     {
       "path": "/admin/product-catalogue",
@@ -1861,7 +1861,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "63a728699200ae015687f569b7b8c264d38a3eea45d6dcc09009dbcea5325d9e"
+      "sha256": "3bb39ea1d5558599bd994eb3874754ffffb50fe0886c0f30f7ae6bdd5c2e3a23"
     },
     {
       "path": "/store/nexus-checkout/options",

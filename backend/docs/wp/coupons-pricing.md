@@ -41,6 +41,29 @@ Podporované a overené:
   (`backend/src/lib/pricing/coupon-usage.ts`) – dva súbežné nákupy sa o jedno použitie
   nesporia. Započítanie prebieha až po vytvorení objednávky a nikdy nevyhodí chybu.
 
+### 1b. Jedna objednávka = jedno použitie kupónu (opravené 21. 10. 2026)
+
+Použitie kupónu s limitom sa zapisovalo **dvakrát**: raz `registerUsage` v hooku
+dokončenia košíka (Medusa zvýšila `promotion.used`) a raz zápisom
+`recordCouponUsage` po vytvorení objednávky. Navyše zápis po objednávke vôbec
+neprebiehal – SQL bol neplatný (stĺpec `limit` je v PostgreSQL rezervované slovo,
+bolo treba `"limit"`; chybu navyše spolupráca zapisovania prehĺtla), takže sa
+použitie kupónu vôbec nikde nepočítalo.
+
+Oprava (`backend/src/lib/pricing/coupon-usage.ts`):
+
+- jediným miestom zápisu je `recordCouponUsage` po vytvorení objednávky; hook
+  dokončenia košíka už Medusa `registerUsage` nepoužíva (v `src/workflows/hooks.ts`
+  zostala len read-only kontrola vyčerpaného limitu pred objednávkou),
+- zápis je **idempotentný podľa ID objednávky**: objednávka si do metadát uloží
+  značku `nexus_coupon_usage` a započíta sa iba raz (opakovaný checkout kupón
+  nezapočíta druhý raz),
+- značka aj zvýšenie počítadla prebehnú v jednom atomickom príkaze (CTE); zvýšenie
+  prebehne iba vtedy, keď značku získala práve táto objednávka,
+- test: `src/lib/pricing/__tests__/coupon-usage.unit.spec.ts` + e2e scenár
+  (`src/scripts/e2e-digital-coupon-loyalty.ts`, krok „použitie kupónu sa započíta
+  právě raz“).
+
 ### 2. Akčná (výpredajová) cena
 
 `backend/src/lib/pricing/sale.ts` číta `metadata.vyprodej` (z produktu aj z variantu):
@@ -157,7 +180,14 @@ npx medusa exec ./src/scripts/e2e-digital-coupon-loyalty.ts stub
   raz viac). Pre jednorazové kupóny je to malé riziko; pre campaign s limitom odporúčame
   sledovať `promotion.used`.
 - **Dva súbežné checkouty môžu prekročiť limit o jedno použitie** – zápis je atomický,
-  ale kontrola limitu prebehne v košíku, nie v transakcii objednávky.
+  ale kontrola limitu prebehne v košíku, nie v transakcii objednávky. Pred objednávkou
+  sa navyše urobí read-only kontrola limitu (`couponLimitState`), takže vyčerpaný
+  limit checkout zastaví; v úzkom medzivode medzi kontrolou a zápisom môže limit
+  spotrebovať iný súbežný nákup (zápis to potom nahlási ako `limit_exhausted`).
+- **Rozpočet kampane sa nezapisuje.** Medusa `registerUsage` vie kumulovať aj
+  rozpočet kampane (`promotion_campaign_budget`); tento obchod rozpočty nemá
+  a zápis použitia robí `recordCouponUsage`. Ak sa rozpočet kampane niekedy pridá,
+  treba použitie zapisovať cez Medusa `registerUsage` (a zrušiť zápis v `coupon-usage.ts`).
 - **Pevná zľava sa počíta z ceny pred zľavou** (base price). Ak výpredajová cena alebo
   vernostná zľava zníži cenu pod podiel pevnej sumy, zákazník dostane menej zľavy, než
   kupón nominálne hovorí (cena však nikdy nejde pod 0).

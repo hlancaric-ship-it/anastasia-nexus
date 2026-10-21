@@ -6,6 +6,7 @@ import { ContainerRegistrationKeys, Modules, QueryContext } from "@medusajs/fram
 import { capturePaymentWorkflow, completeCartWorkflow, createPaymentCollectionForCartWorkflow, createPaymentSessionsWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../api/store/nexus-cart/route"
 import { issueMediaAccess } from "../modules/entitlement/media/access"
+import { recordCouponUsage } from "../lib/pricing/coupon-usage"
 import { clearLoyaltySettings, readLoyaltySettingsFromStore, saveLoyaltySettingsToStore } from "../lib/loyalty/settings"
 import { workerLoyaltyTiers, type LoyaltyTier } from "../lib/loyalty/policy"
 import { applyLoyaltyAssignment, loyaltyTierGroups } from "../lib/loyalty/assignment"
@@ -287,7 +288,7 @@ export default async function e2eDigitalCouponLoyalty({ container, args = [] }: 
       await capturePaymentWorkflow(container).run({ input: { payment_id: paymentId } })
       for (let i = 0; i < 50; i++) {
         const rows = await entitlements.listEntitlements({ order_id: orderId })
-        if ((rows ?? []).length) break
+        if ((rows ?? []).some((entry: any) => entry.product_id === productId)) break
         await new Promise((r) => setTimeout(r, 100))
       }
     }
@@ -295,6 +296,16 @@ export default async function e2eDigitalCouponLoyalty({ container, args = [] }: 
     const grantedIds = (granted ?? []).map((entry: any) => entry.product_id)
     step("po zachytení platby je prístup udelený", grantedIds.includes(productId), `prístupy: ${grantedIds.join(", ")}`)
     report.entitlements = (granted ?? []).map((entry: any) => ({ product_id: entry.product_id, status: entry.status }))
+
+    // --- 7b) Použitie kupónu: jedna objednávka = jedno použitie ---------------
+    const { data: promoBefore } = await query.graph({ entity: "promotion", fields: ["id", "used"], filters: { id: couponId } })
+    const usedBefore = Number(promoBefore?.[0]?.used ?? 0)
+    const usage = await recordCouponUsage(container as never, { cartId: cart.id, orderId })
+    const usageAgain = await recordCouponUsage(container as never, { cartId: cart.id, orderId })
+    const { data: promoAfter } = await query.graph({ entity: "promotion", fields: ["id", "used"], filters: { id: couponId } })
+    const usedAfter = Number(promoAfter?.[0]?.used ?? 0)
+    step("použitie kupónu sa započíta právě raz (idempotentne podľa objednávky)", usage.counted && usageAgain.duplicate && usedAfter - usedBefore === 1, `pred ${usedBefore} → po ${usedAfter}; druhý pokaz: duplicate=${usageAgain.duplicate}`)
+    report.coupon_usage = { used_before: usedBefore, used_after: usedAfter, counted: usage.counted, duplicate_on_repeat: usageAgain.duplicate }
 
     // --- 8) Podpísaný krátkodobý odkaz na obsah ------------------------------
     const productRow = (await query.graph({ entity: "product", fields: ["id", "metadata"], filters: { id: productId } })).data?.[0]

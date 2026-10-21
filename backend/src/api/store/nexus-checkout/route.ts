@@ -69,11 +69,13 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     // Len informácia pre zákazníka – chyba tu nesmie zmeniť výsledok už vytvorenej objednávky.
     const pickup = await loadCartShape(req.scope, { profileIds: [], shippingOptionIds: (order.shipping_methods || []).map((m: any) => m?.shipping_option_id).filter(Boolean) })
       .then((shape) => shape.methodTypes.includes("pickup")).catch(() => false)
-    // Použitie kupónu sa započíta až po vytvorení objednávky (atomicky, s kontrolou limitu).
+    // Použitie kupónu sa započíta až po vytvorení objednávky (atomicky, s kontrolou limitu
+    // a idempotentne podľa objednávky – opakovaný checkout kupón nezapočíta druhý raz).
     // Chyba tu nesmie zrušiť hotovú objednávku.
-    const couponUsage = await recordCouponUsage(req.scope, cartId)
+    const couponUsage = await recordCouponUsage(req.scope, { cartId, orderId: order.id })
     if (couponUsage.promotion_id) {
-      await recordEvent(req.scope, couponUsage.counted ? "info" : "warn", "coupon", couponUsage.counted ? "used" : "limit_exhausted", {
+      const couponEvent = couponUsage.duplicate ? "duplicate" : couponUsage.counted ? "used" : "limit_exhausted"
+      await recordEvent(req.scope, couponUsage.counted ? "info" : "warn", "coupon", couponEvent, {
         cart_id: cartId, order_id: order.id, promotion_id: couponUsage.promotion_id,
       })
     }
@@ -122,7 +124,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (message === "MEDUSA_PAYMENT_AMOUNT_MISMATCH") {
       return fail(409, { ok: false, error: message, message: "Platební relace neodpovídá aktuální měně a částce košíku. Vytvořte novou platební relaci." })
     }
-    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message.startsWith("NEXUS_PRICING") ? 503 : 400
+    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message === "COUPON_LIMIT_EXHAUSTED" ? 409 : message.startsWith("NEXUS_PRICING") ? 503 : 400
     return fail(status, { ok: false, error: message })
   }
 }
