@@ -97,7 +97,7 @@ export function renderAccessNotice(result) {
   const status = result?.status ?? 0;
   const message = result?.message || (status === 401
     ? 'Pre prístup k Zrkadielku sa prihláste.'
-    : 'Zrkadielko je dostupné len zákazníčkám s programom RESET 40+.');
+    : 'Zrkadielko je dostupné len zákazníkom s programom RESET 40+.');
   const action = status === 401
     ? '<a class="button" href="/prihlasenie">Prihlásiť sa</a>'
     : '<a class="button" href="/reset-40">O programe RESET 40+</a>';

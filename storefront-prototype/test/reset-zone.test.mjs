@@ -79,7 +79,7 @@ test('Bez prístupu: 401 = prihlásenie, 403 = kúpiť program', () => {
   const login = renderAccessNotice({ status: 401, message: 'Pre prístup k Zrkadielku sa prihláste.' });
   assert.match(login, /data-reset-status="401"/);
   assert.match(login, /href="\/prihlasenie"/);
-  const forbidden = renderAccessNotice({ status: 403, message: 'Zrkadielko je dostupné len zákazníčkám s programom RESET 40+.' });
+  const forbidden = renderAccessNotice({ status: 403, message: 'Zrkadielko je dostupné len zákazníkom s programom RESET 40+.' });
   assert.match(forbidden, /data-reset-status="403"/);
   assert.match(forbidden, /href="\/reset-40"/);
   assert.ok(!/Chyba/.test(login + forbidden), 'bez prístupu sa nezobrazuje chyba');
@@ -103,7 +103,7 @@ test('API: 401 a 403 sa preložia na zrozumiteľnú výzvu', async () => {
   assert.equal(unauthorized.status, 401);
   assert.match(unauthorized.message, /prihláste/);
 
-  const forbiddenSetup = apiWith(async () => ({ status: 403, data: { type: 'forbidden', message: 'Program je dostupný len zákazníčkám s aktívnym prístupom.' } }));
+  const forbiddenSetup = apiWith(async () => ({ status: 403, data: { type: 'forbidden', message: 'Program je dostupný len zákazníkom s aktívnym prístupom.' } }));
   const forbidden = await forbiddenSetup.api.getResetProgram();
   forbiddenSetup.restore();
   assert.equal(forbidden.ok, false);

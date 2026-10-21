@@ -59,11 +59,11 @@ export function createHttpApi(storage, config) {
   }
   const loggedIn = () => Boolean(get(JWT));
   // RESET 40+ (členská zóna): štruktúra programu a Zrkadielko. Endpointy sú len pre
-  // prihlásenú zákazníčku s aktívnym prístupom – 401 = nie prihlásená, 403 = bez prístupu.
+  // prihláseného zákazníka s aktívnym prístupom – 401 = neprihlásený, 403 = bez prístupu.
   const RESET_MSG = {
     400: 'Údaje záznamu nie sú platné.',
     401: 'Pre prístup k Zrkadielku sa prihláste.',
-    403: 'Zrkadielko je dostupné len zákazníčkám s programom RESET 40+.',
+    403: 'Zrkadielko je dostupné len zákazníkom s programom RESET 40+.',
     404: 'Tento záznam už neexistuje.',
     429: 'Denný limit záznamov je dosiahnutý.',
   };
