@@ -93,15 +93,15 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const missing = await api.post("/store/nexus-checkout", { cart_id: buyId }, buyerOptions)
   expect([missing.status, missing.data.error]).toEqual([400, "GIFT_VOUCHER_RECIPIENT_REQUIRED"])
   expect(await countOrders()).toBe(before)
-  const badRecipient = await api.post("/store/gift-vouchers/recipients", { cart_id: buyId, recipients: { [v50]: [{ name: "Jana", email: "zle", delivery_date: today }] } }, options)
+  const badRecipient = await api.post("/store/gift-vouchers/recipients", { cart_id: buyId, recipients: { [v50]: [{ name: "Jana", email: "zle", delivery_date: today }] } }, buyerOptions)
   expect([badRecipient.status, badRecipient.data.error]).toEqual([400, "GIFT_VOUCHER_RECIPIENT_EMAIL_INVALID"])
-  const longMessage = await api.post("/store/gift-vouchers/recipients", { cart_id: buyId, recipients: { [v50]: [{ name: "Jana", email: "jana@example.test", message: "x".repeat(301) }] } }, options)
+  const longMessage = await api.post("/store/gift-vouchers/recipients", { cart_id: buyId, recipients: { [v50]: [{ name: "Jana", email: "jana@example.test", message: "x".repeat(301) }] } }, buyerOptions)
   expect(longMessage.data.error).toBe("GIFT_VOUCHER_MESSAGE_INVALID")
   await ok(api.post("/store/gift-vouchers/recipients", { cart_id: buyId, recipients: { [v50]: [
     { name: "Jana", email: "jana@example.test", message: "Všetko najlepšie", delivery_date: today },
     { name: "Eva", email: "eva@example.test" },
-  ] } }, options))
-  const selfPay = await api.post("/store/gift-vouchers/apply", { cart_id: buyId, code: (await issue(5000)).code }, options)
+  ] } }, buyerOptions))
+  const selfPay = await api.post("/store/gift-vouchers/apply", { cart_id: buyId, code: (await issue(5000)).code }, buyerOptions)
   expect([selfPay.status, selfPay.data.error]).toEqual([400, "GIFT_VOUCHER_NOT_APPLICABLE"]) // poukaz neplatí poukaz
   const bought = await ok(api.post("/store/nexus-checkout", { cart_id: buyId }, buyerOptions))
   expect(await countOrders()).toBe(before + 1)
@@ -128,7 +128,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const fullId = await goodsCart()
   const fullTotal = await cartTotal(fullId)
   const big = await issue(Math.round(fullTotal * 100) + 2000)
-  const applied = await ok(api.post("/store/gift-vouchers/apply", { cart_id: fullId, code: big.code.toLowerCase().replace(/-/g, " ") }, options))
+  const applied = await ok(api.post("/store/gift-vouchers/apply", { cart_id: fullId, code: big.code.toLowerCase().replace(/-/g, " ") }, buyerOptions))
   expect(applied.gift_voucher.amount).toBe(fullTotal)
   expect(JSON.stringify(applied)).not.toContain(big.code)
   expect(await cartTotal(fullId)).toBe(0)
@@ -144,7 +144,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const partialId = await goodsCart()
   const partialTotal = await cartTotal(partialId)
   const small = await issue(1000)
-  await ok(api.post("/store/gift-vouchers/apply", { cart_id: partialId, code: small.code }, options))
+  await ok(api.post("/store/gift-vouchers/apply", { cart_id: partialId, code: small.code }, buyerOptions))
   expect(await cartTotal(partialId)).toBeCloseTo(partialTotal - 10, 2)
   await pay(partialId)
   const partial = await ok(api.post("/store/nexus-checkout", { cart_id: partialId }, buyerOptions))
@@ -177,7 +177,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const raceIds = [await goodsCart(), await goodsCart()]
   const raceTotal = await cartTotal(raceIds[0])
   const exact = await issue(Math.round(raceTotal * 100))
-  for (const id of raceIds) await ok(api.post("/store/gift-vouchers/apply", { cart_id: id, code: exact.code }, options))
+  for (const id of raceIds) await ok(api.post("/store/gift-vouchers/apply", { cart_id: id, code: exact.code }, buyerOptions))
   const original = vouchers.redeem.bind(vouchers)
   let arrivals = 0
   let release!: () => void
@@ -209,21 +209,21 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const expired = await issue(1000)
   await dbConnection.raw("UPDATE gift_voucher SET issued_at = now() - interval '13 months', expires_at = now() - interval '1 minute' WHERE id = ?", [expired.id])
   const probeId = await goodsCart()
-  const expiredResponse = await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: expired.code }, options)
+  const expiredResponse = await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: expired.code }, buyerOptions)
   expect([expiredResponse.status, expiredResponse.data.error]).toEqual([400, "GIFT_VOUCHER_EXPIRED"])
   const toVoid = await issue(1000)
   expect((await api.post(`/admin/vouchers/${toVoid.id}/void`, { reason: "test" }, options)).status).toBe(401)
   expect((await api.post(`/admin/vouchers/${toVoid.id}/void`, {}, adminOpts)).status).toBe(400)
   await ok(api.post(`/admin/vouchers/${toVoid.id}/void`, { reason: "syntetické zneplatnenie" }, adminOpts))
-  const voidResponse = await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: toVoid.code }, options)
-  const unknown = await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "GV-AAAA-BBBB-CCCC-DDDD" }, options)
+  const voidResponse = await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: toVoid.code }, buyerOptions)
+  const unknown = await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "GV-AAAA-BBBB-CCCC-DDDD" }, buyerOptions)
   expect([voidResponse.status, voidResponse.data.error, unknown.status, unknown.data.error]).toEqual([400, "GIFT_VOUCHER_INVALID", 400, "GIFT_VOUCHER_INVALID"])
   evidence.push({ scenario: "K8_INVALID_EXPIRED_VOID_UNKNOWN", statuses: [expiredResponse.status, voidResponse.status, unknown.status] })
 
   // --- 7) Poukaz zneplatněný mezi uplatněním a checkoutem: objednávka nevznikne, nic se nečerpá
   const lateId = await goodsCart()
   const late = await issue(Math.round((await cartTotal(lateId)) * 100))
-  await ok(api.post("/store/gift-vouchers/apply", { cart_id: lateId, code: late.code }, options))
+  await ok(api.post("/store/gift-vouchers/apply", { cart_id: lateId, code: late.code }, buyerOptions))
   await vouchers.voidVoucher({ id: late.id, reason: "synthetic" })
   const lateBefore = await countOrders()
   const lateResponse = await api.post("/store/nexus-checkout", { cart_id: lateId }, buyerOptions)
@@ -244,7 +244,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
 
   // --- 9) Jednorázový poukaz: zbytek propadne; storno objednávky vrátí vše
   const single = await issue(Math.round((await cartTotal(probeId)) * 100) + 3000, { partial_redemption: false })
-  await ok(api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: single.code }, options))
+  await ok(api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: single.code }, buyerOptions))
   const singleOrder = await ok(api.post(`/store/carts/${probeId}/complete`, {}, options))
   expect([Number((await voucherRow(single.id)).balance), (await voucherRow(single.id)).status]).toEqual([0, "depleted"])
   await poll(async () => (await dbConnection.raw("SELECT 1 FROM gift_voucher_transaction WHERE voucher_id = ? AND type = 'redeemed' AND order_id IS NOT NULL", [single.id])).rows[0], "attach-single")
@@ -286,7 +286,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
 
   // Shared database limiter: HTTP middleware and real concurrent PostgreSQL upserts.
   await dbConnection.raw("DELETE FROM gift_voucher_rate_limit")
-  const attempts = await Promise.all(Array.from({ length: 25 }, () => api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "invalid" }, options)))
+  const attempts = await Promise.all(Array.from({ length: 25 }, () => api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "invalid" }, buyerOptions)))
   expect(attempts.filter((r) => r.status === 400)).toHaveLength(20)
   expect(attempts.filter((r) => r.status === 429)).toHaveLength(5)
   const limited = attempts.find((r) => r.status === 429)!
@@ -297,7 +297,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   expect(counters[0].subject).toMatch(/^[a-f0-9]{64}$/)
   expect(counters[0].attempts).toBe(21)
   await dbConnection.raw("UPDATE gift_voucher_rate_limit SET expires_at = now() - interval '1 second'")
-  expect((await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "invalid" }, options)).status).toBe(400)
+  expect((await api.post("/store/gift-vouchers/apply", { cart_id: probeId, code: "invalid" }, buyerOptions)).status).toBe(400)
   const { rows: reset } = await dbConnection.raw("SELECT attempts FROM gift_voucher_rate_limit")
   expect(reset[0].attempts).toBe(1)
   evidence.push({ scenario: "K8_APPLY_RATE_LIMIT", accepted: 20, limited: 5, expiryReset: true })

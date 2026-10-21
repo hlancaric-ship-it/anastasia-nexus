@@ -172,46 +172,80 @@ medusaIntegrationTestRunner({
         evidence.push({ endpoint, scenario: "ALLOW", status: 200, orderDelta: 1, currency: "eur", total: Number(persisted.total), unitPrice: 50 })
         if (endpoint === "custom") await verifyOrderEmailSource({ container, orderId: persisted.id, evidence })
       }
-      // C3: real HTTP checkouts, real PromotionModuleService and PostgreSQL.
-      // Barrier only aligns arrival; no usage counters or row locks are mocked.
+      // C3: dva súbežné checkouty s jednorazovým kupónom (reálny HTTP, reálna PostgreSQL).
+      //
+      // Od fa6a892 (21. 10. 2026) sa použitie kupónu nezapisuje cez Medusa `registerUsage`:
+      // Medusa promotion sa na košík nepripája (cenu počíta NEXUS Worker), takže Medusa limit
+      // nikdy nevyhodnocuje – mock `registerUsage` sa nezavolal nikdy (`arrivals` bolo 0) a druhý
+      // súbežný checkout nepadol. Použitie sa dnes zapisuje až PO vytvorení objednávky:
+      // `recordCouponUsage` (src/lib/pricing/coupon-usage.ts) v jednom atomickom CTE – značka
+      // `nexus_coupon_usage` na objednávke a `promotion.used + 1` iba pri `used < limit`.
+      //
+      // Zaručenie, ktoré scenár overuje (trasa, ktorú používa web – /store/nexus-checkout):
+      //   1) limit sa nikdy neprekročí: `promotion.used` je 1, aj keď obe objednávky vzniknú,
+      //   2) obe objednávky vzniknú a obe majú zľavnenú cenu; druhá je označená udalosťou
+      //      `coupon.limit_exhausted` (admin ju vidí v prehľade) – hotová objednávka sa nezruší,
+      //      lebo limit sa kontroluje až po jej vytvorení,
+      //   3) vyčerpaný kupón sa ďalej neudelí: ďalší košík s tým istým kódom dostane
+      //      400 COUPON_INVALID a zostane bez zľavy.
+      // Bariéra iba zosúladí príchod ku kontrole limitu – počítadlo ani zámok sa nemockuje.
       const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
-      for (const endpoint of endpoints) {
+      // Použitie kupónu zapisuje trasa, ktorú používa web (/store/nexus-checkout). Natívna trasa
+      // /store/carts/:id/complete použitie nezapisuje – zistenie 21. 10. 2026 (pozri
+      // anastasia-admin/MEMBERSHIP-SAFEORDER-HOTOVO.md, bod 3); web ju nepoužíva.
+      const couponEndpoints = endpoints.filter((endpoint) => endpoint === "custom")
+      for (const endpoint of couponEndpoints) {
         const code = `SYNTHETIC-C3-${endpoint}`
         const promotion = await promotions.createPromotions({ code, type: "standard", status: "active", limit: 1,
           application_method: { type: "percentage", value: 10, target_type: "items", allocation: "across" } })
         const ids = await Promise.all([newCart(50, false, code), newCart(50, false, code)])
         const before = await countOrders()
-        const original = promotions.registerUsage.bind(promotions)
+        // Bariéra na read-only kontrole limitu (`couponLimitState` pred objednávkou): oba checkouty
+        // musia naraziť na kontrolu naraz, kým sa použitie kupónu zapíše.
+        const originalGraph = query.graph.bind(query)
         let arrivals = 0
         let release!: () => void
         const ready = new Promise<void>(resolve => { release = resolve })
-        const registration = jest.spyOn(promotions, "registerUsage").mockImplementation(async (actions, context) => {
-          if (actions.some(action => action.code === code)) {
+        const graph = jest.spyOn(query, "graph").mockImplementation(async (...args: any[]) => {
+          const first = args[0] as any
+          if (first?.entity === "promotion" && JSON.stringify(first?.filters ?? {}).includes(promotion.id)) {
             if (++arrivals === 2) release()
             let timer: ReturnType<typeof setTimeout> | undefined
             try {
               await Promise.race([ready, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("C3_BARRIER_TIMEOUT")), 15000) })])
             } finally { clearTimeout(timer) }
           }
-          return original(actions, context)
+          return (originalGraph as any)(...args)
         })
         let responses: any[]
         try {
           responses = await Promise.all(ids.map(id => api.post(endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout", endpoint === "standard" ? {} : { cart_id: id }, cartOptions.get(id))))
-        } finally { registration.mockRestore() }
+        } finally { graph.mockRestore() }
         expect(arrivals).toBe(2)
-        const winner = responses!.findIndex(response => response.status === 200)
-        expect(responses!.filter(response => response.status === 200)).toHaveLength(1)
-        expect(responses![1 - winner].status).toBeGreaterThanOrEqual(400)
-        expect(JSON.stringify(responses![1 - winner].data)).toContain("Promotion usage exceeds the limit")
-        expect(responses![1 - winner].data.order).toBeUndefined()
-        expect(await countOrders()).toBe(before + 1)
+        // Obidve objednávky vzniknú: limit sa kontroluje až po vytvorení objednávky.
+        expect(responses!.every(response => response.status === 200)).toBe(true)
+        const orderIds = responses!.map(response => response.data.order.id)
+        expect(await countOrders()).toBe(before + 2)
+        // Počítadlo sa zvýši RAZ (atomický CTE s podmienkou `used < limit`).
         expect((await promotions.retrievePromotion(promotion.id)).used).toBe(1)
-        const failed = (await dbConnection.raw('SELECT completed_at FROM cart WHERE id = ?', [ids[1 - winner]])).rows[0]
-        expect(failed.completed_at).toBeNull()
-        const order = await entity("order", { id: responses![winner].data.order.id }, ["id", "items.unit_price"])
-        expect(Number(order.items[0].unit_price)).toBe(45)
-        evidence.push({ endpoint, scenario: "C3_CONCURRENT_SINGLE_USE", statuses: responses!.map(r => r.status), orderDelta: 1, used: 1, unitPrice: 45 })
+        // Presne jedna objednávka je započítaná; druhá je označená ako vyčerpaný limit.
+        const couponEvents = (await dbConnection.raw('SELECT event, order_id FROM ops_event WHERE domain = ? AND order_id IN (?, ?)', ["coupon", ...orderIds])).rows as any[]
+        expect(couponEvents.map(row => row.event).sort()).toEqual(["limit_exhausted", "used"])
+        // Obidve objednávky majú zľavnenú cenu (zľava sa počíta pri repricingu košíka).
+        for (const orderId of orderIds) {
+          const order = await entity("order", { id: orderId }, ["id", "items.unit_price"])
+          expect(Number(order.items[0].unit_price)).toBe(45)
+        }
+        // Vyčerpaný kupón sa ďalej neudelí: ďalší košík s tým istým kódom dostane 400.
+        const lateCart = await api.post("/store/carts", { region_id: region.id, email: "synthetic@example.test", shipping_address: { first_name: "Synthetic", last_name: "Test", address_1: "Synthetic 1", city: "Bratislava", postal_code: "81101", country_code: "sk" } }, cartOptions.get(ids[0]))
+        expect(lateCart.status).toBe(200)
+        await associateCart(api, lateCart.data.cart.id, cartOptions.get(ids[0]))
+        const lateProduct = products.find((p) => p.handle === "synthetic-p0-50")!
+        await success(`/store/carts/${lateCart.data.cart.id}/line-items`, { variant_id: lateProduct.variants[0].id, quantity: 1 })
+        const applied = await api.post("/store/nexus-cart", { cart_id: lateCart.data.cart.id, couponCode: code, unit_price: 0.01, tenantId: "attacker" }, cartOptions.get(ids[0]))
+        expect(applied.status).toBe(400)
+        expect(applied.data.error).toBe("COUPON_INVALID")
+        evidence.push({ endpoint, scenario: "C3_CONCURRENT_SINGLE_USE", statuses: responses!.map(r => r.status), orderDelta: 2, used: 1, unitPrice: 45, exhaustedOrder: couponEvents.find(row => row.event === "limit_exhausted")?.order_id, exhaustedCouponRejected: applied.data.error })
       }
       if (!giftVoucherOnly) await verifyBookingHttp({ api, container, options, newCart, product: products[0], countOrders, evidence })
       if (process.env.WAVE1_BOOKING_ONLY !== "1") await verifyGiftVoucherHttp({ api, container, options, channel, region, profile, countOrders, dbConnection, evidence })
