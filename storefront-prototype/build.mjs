@@ -50,7 +50,7 @@ for(const [path,page] of Object.entries(legacyContent)){
   if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
-    add(path,page.title,legacyPage(page,{contactForm})+(path==='/denny-stacionar-vysna-slana'?dsPhotos('ds',['vonkajsi-vchod.jpg'])+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':''));
+    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?dsPhotos('ds',['vonkajsi-vchod.jpg'])+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':''));
   }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
 }

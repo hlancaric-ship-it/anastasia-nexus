@@ -2,6 +2,7 @@ import {isMediaUrl} from '/lib/media-url.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import {createApi} from '/lib/api/index.mjs';
+import {loadContent,applyContent,pageKeyOf} from '/content.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit} from '/i18n.mjs';
@@ -635,5 +636,16 @@ async function syncCategories(){
 
 // Jazyky SK/EN/RU: zapojí přepínače a aplikuje uloženou volbu (EN/RU zatím náhled, viz i18n.mjs).
 syncCategories().finally(()=>i18nInit());
+
+// Obsah z administrácie (Medusa). Ak backend nevráti dáta, stránka si ponechá
+// zabudovaný obsah – nikdy neprázdno.
+(async()=>{
+  try{
+    for(const key of ['global',pageKeyOf(location.pathname)]){
+      const payload=await loadContent(key);
+      if(payload)applyContent(document,payload);
+    }
+  }catch{}
+})();
 
 initDigitalProduct();

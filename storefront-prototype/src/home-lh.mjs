@@ -110,7 +110,7 @@ export function homeSections(products = []) {
 <section class="lh-intro" id="lh-intro" aria-labelledby="lh-ih">
   <div class="lh-intro__stage">
     <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-      <source src="/media/hero-1080p.mp4" type="video/mp4">
+      <source src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
     </video>
     <div class="lh-intro__veil" aria-hidden="true"></div>
     <div class="lh-intro__mask" aria-hidden="true">

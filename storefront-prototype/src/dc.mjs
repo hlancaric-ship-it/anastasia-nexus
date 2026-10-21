@@ -199,13 +199,19 @@ export function chrome(page) {
     html=html.replace(/<a\b[^>]*>\s*O Lucii\s*<\/a>/g,'');
     html=html.replace(/(<a\b[^>]*>)\s*Zdravý svet\s*<\/a>/g, '$1Môj účet</a>');
     let index=0;
+    // Poradie polí menu je v semene spoločné pre všetky skupiny (nie resetované).
+    let menuField=0;
     html=html.replace(/<div style="display:flex;flex-direction:column;gap:(?:2|4)px;[^"]*">[\s\S]*?<\/div>/g,whole=>{
       if(index>=menuGroups.length)return whole;
       const group=menuGroups[index++];
       const large=whole.includes('font-size:25px');
       const wrapper=whole.slice(0,whole.indexOf('>')+1);
-      const link=(label,href,heading=false)=>`<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355">${escape(label)}</a>`;
-      return wrapper+(group.title==='Obchod'?link(group.title,group.href,true):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px">${escape(group.title)}</span>`)+group.links.map(([label,href])=>link(label,href)).join('')+'</div>';
+      // Kľúče polí menu z administrácie (rovnaké poradie ako v semene).
+      const slug=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'');
+      const base=`global__menu-${slug(group.title)}`;
+      const link=(label,href,heading=false)=>`<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355" data-content="${base}__${menuField++}-text">${escape(label)}</a>`;
+      const title=group.title==='Obchod'?link(group.title,group.href,true):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px" data-content="${base}__${menuField++}-text">${escape(group.title)}</span>`;
+      return wrapper+title+group.links.map(([label,href])=>link(label,href)).join('')+'</div>';
     });
     return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   };
