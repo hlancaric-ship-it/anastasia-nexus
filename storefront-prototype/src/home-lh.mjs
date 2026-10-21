@@ -338,7 +338,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro__video.lh-ready{opacity:1}
 .lh-intro__tint{display:none}
 .motion .lh-intro__tint{display:block;position:absolute;inset:0;background:rgba(14,20,13,.4)}
-.lh-intro__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,22,16,.42),rgba(16,22,16,.06) 45%,rgba(16,22,16,.62))}
+.lh-intro__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,20,13,.5),rgba(14,20,13,.28) 40%,rgba(14,20,13,.8)),radial-gradient(120% 70% at 0% 100%,rgba(14,20,13,.55),transparent 70%)}
 .motion .lh-intro__veil{opacity:0}
 .lh-intro__mask{position:absolute;inset:0;display:none}
 .motion .lh-intro__mask{display:block}
@@ -383,13 +383,14 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-brand__sub{font-size:9px;letter-spacing:.3em;padding-left:.3em;gap:6px}
   .lh-brand__sub i{width:12px}
 }
-.lh-say{position:absolute;color:#fff}
+.lh-say{position:absolute;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45),0 4px 28px rgba(0,0,0,.4)}
+.lh-say .lh-cta{text-shadow:none}
 .lh-say .lh-display{display:block;font-family:'Fraunces',Georgia,serif;font-weight:300;font-size:clamp(44px,8vw,132px);line-height:.95}
-.lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(14px,1.05vw,16px);font-weight:300;line-height:1.65;color:#EFEAE0}
+.lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(15px,1.05vw,17px);font-weight:400;line-height:1.65;color:#EFEAE0}
 .lh-say--one{left:var(--lh-gut,16px);bottom:14vh;max-width:min(92vw,1100px);display:none}
 .motion .lh-say--one{display:block;opacity:0}
 .lh-say--two{left:6vw;right:auto;top:auto;bottom:14vh;text-align:left;max-width:560px}
-.lh-say--two .lh-eyebrow{margin:0 0 14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--lh-muted,#6E7468)}
+.lh-say--two .lh-eyebrow{margin:0 0 14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#E6D3A3}
 .lh-say--two .lh-display{font-size:clamp(28px,2.6vw,44px);line-height:1.22;max-width:560px;font-weight:300}
 .lh-say--two .lh-cta{margin-top:26px}
 @media (prefers-reduced-motion:reduce){.lh-say--two{display:none}}
