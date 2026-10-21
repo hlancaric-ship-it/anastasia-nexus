@@ -874,7 +874,7 @@
         "backend/src/lib/chat-templates.ts",
         "backend/src/api/admin/chat/templates/route.ts"
       ],
-      "remaining": "Šablóny sa neposielajú automaticky zákazníkm, len sa vložia do pripravenej odpovede.",
+      "remaining": "Šablóny sa neposielajú automaticky zákazníkom, len sa vložia do pripravenej odpovede.",
       "acceptance": "Šablóna sa dá vložiť do odpovede v chate a po obnovení stránky zostáva uložená."
     },
     {
