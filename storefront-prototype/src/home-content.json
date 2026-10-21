@@ -1,154 +1,190 @@
 {
-  "_comment": "Obsah úvodnej stránky, ktorý môže Lucia meniť v administrácii. Backend z toho generuje stránku 'home' v semene obsahu (backend/scripts/generate-content-seed.mjs). Kľúče polí: home__<sekcia>__<index>-<typ>.",
-  "sections": [
+ "_comment": "Obsah úvodnej stránky, ktorý môže Lucia meniť v administrácii. Backend z toho generuje stránku 'home' v semene obsahu (backend/scripts/generate-content-seed.mjs). Kľúče polí: home__<sekcia>__<index>-<typ>.",
+ "sections": [
+  {
+   "key": "uvod",
+   "title": "Úvod",
+   "fields": [
     {
-      "key": "uvod",
-      "title": "Úvod",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Úvod – nadpis",
-          "value": "Vitajte."
-        },
-        {
-          "type": "rich",
-          "label": "Úvod – poznámka",
-          "value": "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť."
-        },
-        {
-          "type": "text",
-          "label": "Úvod – tlačidlo",
-          "value": "Vstúpte do zdravého sveta"
-        }
-      ]
+     "type": "text",
+     "label": "Úvod – nadpis",
+     "value": "Vitajte."
     },
     {
-      "key": "manifest",
-      "title": "Manifest",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Manifest – nadpis",
-          "value": "Priestor pre zdravie, poznanie a vedomý život."
-        },
-        {
-          "type": "text",
-          "label": "Manifest – zvýraznený nadpis",
-          "value": ""
-        },
-        {
-          "type": "rich",
-          "label": "Manifest – text",
-          "value": "Kde veci nemusia byť urýchľované, vysvetľované ani riadené."
-        }
-      ]
+     "type": "rich",
+     "label": "Úvod – poznámka",
+     "value": "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť."
     },
     {
-      "key": "kolekcia",
-      "title": "Kolekcia",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Kolekcia – nadpis",
-          "value": "Kolekcia"
-        },
-        {
-          "type": "text",
-          "label": "Kolekcia – zvýraznený nadpis",
-          "value": ""
-        }
-      ]
+     "type": "text",
+     "label": "Úvod – tlačidlo",
+     "value": "Vstúpte do zdravého sveta"
     },
     {
-      "key": "program",
-      "title": "Program",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Program – nadpis",
-          "value": "AI ANASTASIA Longevity Academy"
-        },
-        {
-          "type": "text",
-          "label": "Program – zvýraznený nadpis",
-          "value": ""
-        },
-        {
-          "type": "rich",
-          "label": "Program – text",
-          "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie."
-        }
-      ]
+     "type": "text",
+     "value": "Zdravý svet"
     },
     {
-      "key": "sluzby",
-      "title": "Služby",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Služby – nadpis",
-          "value": "Čo získate?"
-        }
-      ]
-    },
-    {
-      "key": "svet",
-      "title": "Svet",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Svet – nadpis",
-          "value": "Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia."
-        }
-      ]
-    },
-    {
-      "key": "reset",
-      "title": "RESET 40+",
-      "fields": [
-        {
-          "type": "text",
-          "label": "RESET 40+ – nadpis",
-          "value": "AI ANASTASIA RESET 40+"
-        },
-        {
-          "type": "text",
-          "label": "RESET 40+ – podnadpis",
-          "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie."
-        }
-      ]
-    },
-    {
-      "key": "obloha",
-      "title": "Obloha",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Obloha – nadpis",
-          "value": "Čo môžeme spolu riešiť?"
-        }
-      ]
-    },
-    {
-      "key": "kontakt",
-      "title": "Kontakt",
-      "fields": [
-        {
-          "type": "text",
-          "label": "Kontakt – nadpis",
-          "value": "Kontakt"
-        },
-        {
-          "type": "text",
-          "label": "Kontakt – zvýraznený nadpis",
-          "value": ""
-        },
-        {
-          "type": "rich",
-          "label": "Kontakt – text",
-          "value": "Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás."
-        }
-      ]
+     "type": "rich",
+     "value": "Zdravý svet nie je ideál, ku ktorému sa treba dopracovať."
     }
-  ]
+   ]
+  },
+  {
+   "key": "manifest",
+   "title": "Manifest",
+   "fields": [
+    {
+     "type": "text",
+     "label": "Manifest – nadpis",
+     "value": "Priestor pre zdravie, poznanie a vedomý život."
+    },
+    {
+     "type": "text",
+     "value": "Vitajte"
+    },
+    {
+     "type": "rich",
+     "label": "Manifest – text",
+     "value": "Kde veci nemusia byť urýchľované, vysvetľované ani riadené."
+    },
+    {
+     "type": "text",
+     "value": "Zdravý svet"
+    }
+   ]
+  },
+  {
+   "key": "kolekcia",
+   "title": "Kolekcia",
+   "fields": [
+    {
+     "type": "text",
+     "label": "Kolekcia – nadpis",
+     "value": "Kolekcia"
+    },
+    {
+     "type": "text",
+     "value": "Kolekcia"
+    },
+    {
+     "type": "text",
+     "value": "Celý obchod"
+    }
+   ]
+  },
+  {
+   "key": "program",
+   "title": "Program",
+   "fields": [
+    {
+     "type": "text",
+     "label": "Program – nadpis",
+     "value": "AI ANASTASIA Longevity Academy"
+    },
+    {
+     "type": "text",
+     "value": "Program RESET 40+"
+    },
+    {
+     "type": "rich",
+     "label": "Program – text",
+     "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie."
+    },
+    {
+     "type": "text",
+     "value": "Objaviť RESET 40+"
+    }
+   ]
+  },
+  {
+   "key": "sluzby",
+   "title": "Služby",
+   "fields": [
+    {
+     "type": "text",
+     "label": "Služby – nadpis",
+     "value": "Čo získate?"
+    },
+    {
+     "type": "text",
+     "value": "Sprevádzanie"
+    },
+    {
+     "type": "text",
+     "value": "Všetky konzultácie"
+    }
+   ]
+  },
+  {
+   "key": "svet",
+   "title": "Svet",
+   "fields": [
+    {
+     "type": "text",
+     "label": "Svet – nadpis",
+     "value": "Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia."
+    },
+    {
+     "type": "text",
+     "value": "Objaviť"
+    }
+   ]
+  },
+  {
+   "key": "reset",
+   "title": "RESET 40+",
+   "fields": [
+    {
+     "type": "text",
+     "label": "RESET 40+ – nadpis",
+     "value": "AI ANASTASIA RESET 40+"
+    },
+    {
+     "type": "text",
+     "label": "RESET 40+ – podnadpis",
+     "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie."
+    }
+   ]
+  },
+  {
+   "key": "obloha",
+   "title": "Obloha",
+   "fields": [
+    {
+     "type": "text",
+     "label": "Obloha – nadpis",
+     "value": "Čo môžeme spolu riešiť?"
+    },
+    {
+     "type": "text",
+     "value": "Pod hviezdami · Konzultácia"
+    }
+   ]
+  },
+  {
+   "key": "kontakt",
+   "title": "Kontakt",
+   "fields": [
+    {
+     "type": "text",
+     "label": "Kontakt – nadpis",
+     "value": "Kontakt"
+    },
+    {
+     "type": "text",
+     "value": "Kontakt"
+    },
+    {
+     "type": "rich",
+     "label": "Kontakt – text",
+     "value": "Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás."
+    },
+    {
+     "type": "text",
+     "value": "Napíšte nám"
+    }
+   ]
+  }
+ ]
 }

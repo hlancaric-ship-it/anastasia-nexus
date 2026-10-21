@@ -189,8 +189,8 @@ export function homeSections(products = []) {
       <span class="lh-say__note" data-content="home__uvod__1-rich">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.</span>
     </h1>
     <div class="lh-say lh-say--two">
-      <p class="lh-eyebrow">Zdravý svet</p>
-      <p class="lh-display">Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.</p>
+      <p class="lh-eyebrow" data-content="home__uvod__3-text">Zdravý svet</p>
+      <p class="lh-display" data-content="home__uvod__4-rich">Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.</p>
       <a class="lh-cta lh-cta--gold" href="/zdravy-svet" data-content="home__uvod__2-text">Vstúpte do zdravého sveta ${arrow}</a>
     </div>
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
@@ -205,10 +205,10 @@ export function homeSections(products = []) {
   const manifesto = `
 <section class="lh-split lh-split--paper lh-split--wide-text" id="manifest" data-sk-only data-screen-label="02 Manifest">
   <div class="lh-split__text">
-    <p class="lh-eyebrow">Vitajte</p>
+    <p class="lh-eyebrow" data-content="home__manifest__1-text">Vitajte</p>
     <h2 class="lh-display" data-content="home__manifest__0-text">Priestor pre zdravie, poznanie a vedomý život.</h2>
     <p class="lh-lead" data-content="home__manifest__2-rich">Kde veci nemusia byť urýchľované, vysvetľované ani riadené.</p>
-    <a class="lh-cta" href="/zdravy-svet">Zdravý svet ${arrow}</a>
+    <a class="lh-cta" href="/zdravy-svet" data-content="home__manifest__3-text">Zdravý svet ${arrow}</a>
   </div>
   <div class="lh-split__media">${picture(IMG.sky,"Nočná obloha nad tmavou krajinou",'data-par="8" loading="lazy"')}</div>
 </section>`;
@@ -217,20 +217,20 @@ export function homeSections(products = []) {
 <section class="lh-split lh-split--flip lh-split--dark lh-split--narrow-text lh-split--tall" id="kolekcia" data-sk-only data-screen-label="03 Kolekcia">
   <div class="lh-split__media">${picture(IMG.vyziva,"Strom v krajine",'data-par="9" loading="lazy"')}</div>
   <div class="lh-split__text">
-    <p class="lh-eyebrow">Kolekcia</p>
+    <p class="lh-eyebrow" data-content="home__kolekcia__1-text">Kolekcia</p>
     <h2 class="lh-display" data-content="home__kolekcia__0-text">Kolekcia</h2>
     <div class="lh-list">${items.map(p => listRow(p.n, p.name, p.price, `/eshop/produkt/${p.slug}`)).join('')}</div>
-    <a class="lh-cta" href="/eshop">Celý obchod ${arrow}</a>
+    <a class="lh-cta" href="/eshop" data-content="home__kolekcia__2-text">Celý obchod ${arrow}</a>
   </div>
 </section>`;
 
   const programme = `
 <section class="lh-split lh-split--paper lh-split--wide-media" id="program" data-sk-only data-screen-label="04 Program">
   <div class="lh-split__text">
-    <p class="lh-eyebrow">Program RESET 40+</p>
+    <p class="lh-eyebrow" data-content="home__program__1-text">Program RESET 40+</p>
     <h2 class="lh-display" data-content="home__program__0-text">AI ANASTASIA Longevity Academy</h2>
     <p class="lh-lead" data-content="home__program__2-rich">16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
-    <a class="lh-cta" href="/eshop/produkt/reset-40-plus">Objaviť RESET 40+ ${arrow}</a>
+    <a class="lh-cta" href="/eshop/produkt/reset-40-plus" data-content="home__program__3-text">Objaviť RESET 40+ ${arrow}</a>
   </div>
   <div class="lh-split__media">${picture(IMG.program,"Světlo v lese",'data-par="10" loading="lazy"')}</div>
   <div class="lh-stats">
@@ -252,7 +252,7 @@ export function homeSections(products = []) {
       </div>
     </div>
     <div class="lh-track" id="lh-track">
-      ${topics.map(([n, title, text]) => `<article class="lh-topic"><b>${n}</b><div><h3>${e(title)}</h3><p>${e(text)}</p></div></article>`).join('')}
+      ${topics.map(([n, title, text]) => `<article class="lh-topic"><b>${n}</b><div><h3>${e(title)}</h3><p data-content="home__reset__1-text">${e(text)}</p></div></article>`).join('')}
       <article class="lh-topic lh-topic--more"><b>+8</b><div><h3>Ďalšie témy</h3><p>Týždne 9 až 16 nájdete v plnom popise programu.</p></div></article>
     </div>
   </div>
@@ -270,7 +270,7 @@ export function homeSections(products = []) {
       </video>
     </div>
     <div class="lh-sky__txt">
-      <p class="lh-eyebrow">Pod hviezdami · Konzultácia</p>
+      <p class="lh-eyebrow" data-content="home__obloha__1-text">Pod hviezdami · Konzultácia</p>
       <h2 id="lh-skh" class="lh-display" data-content="home__obloha__0-text">Čo môžeme spolu riešiť?</h2>
       <p>Astrologický profil zdravia a vitality – jedna zo štyroch Luciiných konzultácií.</p>
       <a class="lh-cta lh-cta--gold" href="/eshop/produkt/astrologia-zdravie-predispozicia">Objaviť profil ${arrow}</a>
@@ -285,10 +285,10 @@ export function homeSections(products = []) {
     <div class="lh-lucia__float" data-speed="-90">${picture(IMG.vyziva,"",'data-par="10" loading="lazy"')}</div>
   </div>
   <div class="lh-split__text" data-speed="50">
-    <p class="lh-eyebrow">Sprevádzanie</p>
+    <p class="lh-eyebrow" data-content="home__sluzby__1-text">Sprevádzanie</p>
     <h2 class="lh-display" data-content="home__sluzby__0-text">Čo získate?</h2>
     <div class="lh-list">${consults.map(c => listRow(c.n, c.title, c.sub, c.href)).join('')}</div>
-    <a class="lh-cta" href="/konzultacie">Všetky konzultácie ${arrow}</a>
+    <a class="lh-cta" href="/konzultacie" data-content="home__sluzby__2-text">Všetky konzultácie ${arrow}</a>
   </div>
 </section>`;
 
@@ -315,10 +315,10 @@ export function homeSections(products = []) {
 
   const contact = `
 <section class="lh-contact" data-sk-only data-screen-label="08 Kontakt">
-  <p class="lh-eyebrow">Kontakt</p>
+  <p class="lh-eyebrow" data-content="home__kontakt__1-text">Kontakt</p>
   <h2 class="lh-display" data-content="home__kontakt__0-text">Kontakt</h2>
   <p class="lh-lead lh-lead--center" data-content="home__kontakt__2-rich">Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás.</p>
-  <a class="lh-cta" href="/kontakt">Napíšte nám ${arrow}</a>
+  <a class="lh-cta" href="/kontakt" data-content="home__kontakt__3-text">Napíšte nám ${arrow}</a>
 </section>`;
 
   return [hero, manifesto, collection, programme, reset, sky, consultations, stack, contact].join('\n');
