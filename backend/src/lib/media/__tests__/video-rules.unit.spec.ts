@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest'
 import {
   HERO_VIDEO_MAX_SIZE,
   HERO_VIDEO_TYPES,

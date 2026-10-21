@@ -1,5 +1,4 @@
 import { CONTENT_MAX_HISTORY, contentRevision, findSeedField, mergeContent, seedPage, seedPages, validateFieldValue } from '../policy'
-import { describe, expect, it } from 'vitest'
 
 describe('Obsah webu – návrhové stránky v semene', () => {
   it('seed obsahuje stránky home a eshop s textami a dĺžkami', () => {
