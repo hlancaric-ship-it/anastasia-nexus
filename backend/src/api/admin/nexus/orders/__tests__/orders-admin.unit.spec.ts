@@ -1,15 +1,26 @@
 import { POST as CANCEL } from "../[id]/cancel/route"
 import { POST as NOTE, GET as LIST } from "../[id]/notes/route"
+import { POST as REFUND } from "../[id]/refund/route"
 
 const cancelRun = jest.fn(async () => ({}))
 const cancelOrderWorkflow = jest.fn(() => ({ run: cancelRun }))
-jest.mock("@medusajs/medusa/core-flows", () => ({ cancelOrderWorkflow: (...args: any[]) => (cancelOrderWorkflow as any)(...args) }))
+const refundRun = jest.fn(async () => ({}))
+const refundPaymentWorkflow = jest.fn(() => ({ run: refundRun }))
+jest.mock("@medusajs/medusa/core-flows", () => ({
+  cancelOrderWorkflow: (...args: any[]) => (cancelOrderWorkflow as any)(...args),
+  refundPaymentWorkflow: (...args: any[]) => (refundPaymentWorkflow as any)(...args),
+}))
+
+const levels: any[] = [{ id: "ilev_1", location_id: "loc_1", stocked_quantity: 3, reserved_quantity: 5 }]
+const updateInventoryLevels = jest.fn(async (updates: any[]) => updates.map((u) => ({ ...u })))
+const listInventoryLevels = jest.fn(async () => levels)
+const listInventoryItems = jest.fn(async () => [{ id: "iitem_1", sku: "EP.001" }])
 jest.mock("../../../../../lib/observability/audit", () => ({
   adminActor: (r: any) => (r.auth_context?.actor_type === "user" ? r.auth_context.actor_id : null),
   auditAdminChange: jest.fn(async () => "audit_1"),
 }))
 
-const order: any = { id: "order_1", status: "open", metadata: {} }
+const order: any = { id: "order_1", status: "open", metadata: {}, items: [{ id: "item_1", quantity: 2, variant_sku: "EP.001" }] }
 const updateOrders = jest.fn(async (_id: string, patch: any) => {
   Object.assign(order, patch)
   return order
@@ -27,6 +38,7 @@ function fixture(actorId: string | null = "user_1", body: unknown = {}, id = "or
       resolve: (key: string) => {
         if (key === "order") return { retrieveOrder, updateOrders }
         if (key === "user") return { retrieveUser }
+        if (key === "inventory") return { listInventoryItems, listInventoryLevels, updateInventoryLevels }
         return { error: jest.fn(), info: jest.fn() }
       },
     },
@@ -39,6 +51,8 @@ beforeEach(() => {
   jest.clearAllMocks()
   order.status = "open"
   order.metadata = {}
+  levels[0].stocked_quantity = 3
+  levels[0].reserved_quantity = 5
 })
 
 describe("Zrušenie objednávky s dôvodom", () => {
@@ -112,5 +126,44 @@ describe("Poznámky k objednávke", () => {
     const list = fixture()
     await LIST(list.req, list.res)
     expect(list.res.json.mock.calls[0][0].notes).toHaveLength(2)
+  })
+})
+
+describe("Vrátenie peňazí a tovaru na sklad", () => {
+  it("bez dôvodu sa vrátenie neodosle", async () => {
+    const f = fixture("user_1", { payment_id: "pay_1", amount: 10, note: "  " })
+    await REFUND(f.req, f.res)
+    expect(f.res.status).toHaveBeenCalledWith(400)
+    expect(f.res.json.mock.calls[0][0].message).toBe("Dôvod vrátenia je povinný.")
+    expect(refundRun).not.toHaveBeenCalled()
+  })
+
+  it("bez sumy sa vrátenie neodosle", async () => {
+    const f = fixture("user_1", { payment_id: "pay_1", amount: 0, note: "reklamácia" })
+    await REFUND(f.req, f.res)
+    expect(f.res.status).toHaveBeenCalledWith(400)
+    expect(refundRun).not.toHaveBeenCalled()
+  })
+
+  it("vrátenie peňazí zapíše audit", async () => {
+    const f = fixture("user_1", { payment_id: "pay_1", amount: 25, note: "zákazník vracia tovar" })
+    await REFUND(f.req, f.res)
+    expect(f.res.status).toHaveBeenCalledWith(200)
+    expect(refundRun).toHaveBeenCalledWith({ input: { payment_id: "pay_1", amount: 25, note: "zákazník vracia tovar", created_by: "user_1" } })
+    const { auditAdminChange } = require("../../../../../lib/observability/audit")
+    expect(auditAdminChange).toHaveBeenCalledWith(expect.anything(), "order.refund", "order", "order_1", null, expect.objectContaining({ amount: 25, restock: false }))
+    expect(updateInventoryLevels).not.toHaveBeenCalled()
+  })
+
+  it("so zaškrtnutím sa tovar vráti na sklad a rezervácia sa uvoľní", async () => {
+    const f = fixture("user_1", { payment_id: "pay_1", amount: 25, note: "zákazník vracia tovar", restock: true })
+    await REFUND(f.req, f.res)
+    expect(f.res.status).toHaveBeenCalledWith(200)
+    expect(listInventoryItems).toHaveBeenCalledWith({ sku: ["EP.001"] }, { take: 200 })
+    expect(updateInventoryLevels).toHaveBeenCalledWith([{ id: "ilev_1", location_id: "loc_1", stocked_quantity: 5, reserved_quantity: 3 }])
+    const body = f.res.json.mock.calls[0][0]
+    expect(body.restocked).toBe(2)
+    const { auditAdminChange } = require("../../../../../lib/observability/audit")
+    expect(auditAdminChange).toHaveBeenCalledWith(expect.anything(), "order.refund", "order", "order_1", null, expect.objectContaining({ restock: true, restocked: 2 }))
   })
 })

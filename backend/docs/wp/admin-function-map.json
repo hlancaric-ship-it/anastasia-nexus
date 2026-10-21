@@ -1366,6 +1366,15 @@
       "sha256": "729b39657fbcf5ae5e061373ee6e8b7195c97ef9e27c63955407afc4ed5ec97c"
     },
     {
+      "path": "/admin/nexus/orders/:id/refund",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/admin/nexus/orders/[id]/refund/route.ts",
+      "sha256": "14a8a5cace03889e9a47178735688045d409a5d2fb61a2b4f4efd89deeac09d1"
+    },
+    {
       "path": "/admin/ops/audit",
       "methods": [
         "GET"
@@ -4432,6 +4441,7 @@
       "backend/src/jobs/ops-retention.ts"
     ],
     "subscribers": [
+      "backend/src/subscribers/admin-order-placed.ts",
       "backend/src/subscribers/auth-magic-link-requested.ts",
       "backend/src/subscribers/booking-order-canceled.ts",
       "backend/src/subscribers/booking-order-placed.ts",

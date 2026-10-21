@@ -28,6 +28,7 @@ const additions = [
   { path: '/admin/chat/conversations', methods: ['GET', 'POST'], source: 'backend/src/api/admin/chat/conversations/route.ts', feature: 'chat' },
   { path: '/admin/nexus/orders/:id/cancel', methods: ['POST'], source: 'backend/src/api/admin/nexus/orders/[id]/cancel/route.ts', feature: 'orders' },
   { path: '/admin/nexus/orders/:id/notes', methods: ['GET', 'POST'], source: 'backend/src/api/admin/nexus/orders/[id]/notes/route.ts', feature: 'orders' },
+  { path: '/admin/nexus/orders/:id/refund', methods: ['POST'], source: 'backend/src/api/admin/nexus/orders/[id]/refund/route.ts', feature: 'orders' },
 ]
 
 for (const addition of additions) {

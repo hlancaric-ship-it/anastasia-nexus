@@ -664,6 +664,38 @@ const CATALOG: Entry[] = [
     }),
   },
   {
+    name: "order-placed-admin",
+    label: "Nová objednávka (pre Vás)",
+    description: "Interný e-mail, ktorý vám príde pri každej novej objednávke. Dá sa vypnúť, ak máte vlastné upozornenie.",
+    required: false,
+    audience: "admin",
+    placeholders: [P.order, P.total, P.name],
+    slots: [
+      SUBJECT("Nová objednávka č. {cislo_objednavky}"),
+      HEADING("Nová objednávka"),
+      text("intro", "Úvodný text", "Prišla nová objednávka č. {cislo_objednavky} za {suma}."),
+      line("label_customer", "Riadok: zákazník", "Zákazník"),
+      line("label_payment", "Riadok: platba", "Platba"),
+      line("label_shipping", "Riadok: doprava", "Doprava"),
+      line("button", "Tlačidlo", "Otvoriť objednávku"),
+    ],
+    sample: { ...ORDER_SAMPLE, order_display_id: "1043", payment_status: "zaplatená", shipping_method: "Kuriér", admin_url: "https://anastasia-test-admin.l-code-dynamics.com/#/objednavky" },
+    vars: orderVars,
+    build: (data, t, r) => ({
+      subject: r("subject"),
+      heading: r("heading"),
+      blocks: [
+        ...p(t("intro")),
+        { kind: "rows" as const, rows: [
+          { label: r("label_customer"), value: oneLine(str(data.first_name) ?? "—") },
+          { label: r("label_payment"), value: oneLine(str(data.payment_status) ?? "—") },
+          { label: r("label_shipping"), value: oneLine(str(data.shipping_method) ?? "—") },
+        ] },
+      ],
+      button: button(r("button"), data.admin_url),
+    }),
+  },
+  {
     name: "contact-form-admin",
     label: "Správa z kontaktného formulára (pre Vás)",
     description: "Interný e-mail so správou z webu. Odpoveď ide priamo na e-mail odosielateľky. Nedá sa vypnúť – inak by sa správy strácali.",
