@@ -1557,13 +1557,17 @@ async function vCustomerDetail(view, id) {
       <div class="rc-fields"><span class="rc-f"><em>Stav</em>${r.status === 'completed' ? '<span class="pill ok">vykonaná</span>' : '<span class="pill warn">čaká</span>'}</span>
       <span class="rc-f"><em>Požiadala</em>${fmtDate(r.created_at)}</span></div>
       ${r.status !== 'completed' ? `<div style="margin-top:10px"><button type="button" class="btn ghost sm danger" data-erasure="${esc(r.id)}">Vymazať osobné údaje</button></div>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">Zákazník nepožiadala o výmaz osobných údajov.</div>'}`;
-  view.innerHTML = `<div class="card"><div class="card-h">Zákazník<div class="card-h-act"><button class="btn ghost" id="cu-back">Späť</button></div></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Zákazník<div class="card-h-act"><button type="button" class="btn gold" id="cu-msg">Napísať správu</button><button class="btn ghost" id="cu-back">Späť</button></div></div><div class="card-b">
     <div id="custmsg"></div>
     ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 's', label: 'Skupiny / tier', html: skupiny }, { id: 'v', label: 'Vernostná úroveň', html: vernost }, { id: 'o', label: 'Objednávky', html: objednavky }, { id: 'p', label: 'Prístupy', html: pristupy }, { id: 'g', label: 'Ochrana údajov', html: ochrana }])}
     <div style="margin-top:16px"><button class="btn gold" id="cu-save">Uložiť</button></div>
   </div></div>`;
   wireTabs(view);
   view.querySelector('#cu-back').onclick = () => vCustomers(view);
+  view.querySelector('#cu-msg').onclick = () => vNewMessage(view, {
+    customer: { id: c.id, first_name: c.first_name, last_name: c.last_name, email: c.email },
+    back: () => vCustomerDetail(view, id),
+  });
   view.querySelector('#cu-save').onclick = async () => {
     const msg = view.querySelector('#custmsg'); msg.innerHTML = '';
     try {
@@ -2151,6 +2155,8 @@ async function vSpravy(view, st = {}) {
   const status = st.status || 'open', offset = Math.max(0, st.offset | 0);
   const go = (patch) => vSpravy(view, { status, offset, ...patch });
   view.innerHTML = '<div class="muted">Načítavam správy…</div>';
+  setActions('<button type="button" class="btn gold" id="sp-new">+ Nová správa</button>');
+  const nb = document.querySelector('#sp-new'); if (nb) nb.onclick = () => vNewMessage(view);
   let d;
   try { d = await api(`/admin/chat/conversations?status=${status}&limit=${PAGE_LIMIT}&offset=${offset}`); }
   catch (e) { return loadError(view, e, () => go({})); }
@@ -2162,6 +2168,101 @@ async function vSpravy(view, st = {}) {
   wirePaged(view, { items, offset, go, open: c => vConversation(view, c.id, () => go({})) });
 }
 // --- Správy → Šablóny odpovedí: opakovane používané texty ---
+// --- Správy → Nová správa: napísať zákazníkovi, ktorý ešte neodpovedal ---
+async function vNewMessage(view, opts = {}) {
+  view = freshView(view);
+  const back = opts.back || (() => vSpravy(view));
+  let customer = opts.customer || null;
+  let timer = null;
+  const say = (html) => { const box = view.querySelector('#nm-msg'); if (box) box.innerHTML = html; };
+  const custName = (c) => [c.first_name, c.last_name].filter(Boolean).join(' ').trim() || c.email || c.id;
+  const renderChosen = () => {
+    const box = view.querySelector('#nm-chosen');
+    if (!box) return;
+    box.innerHTML = customer
+      ? `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div class="rc" style="flex:1"><div class="rc-body"><div class="rc-title">${esc(custName(customer))}</div>
+          <div class="rc-fields"><span class="rc-f"><em>E-mail</em>${esc(customer.email || '—')}</span></div></div></div>
+        <button type="button" class="btn ghost sm" id="nm-clear">Zmeniť zákazníka</button></div>`
+      : '<p class="muted">Zvoľte zákazníka vyhľadávaním podľa mena alebo e-mailu.</p>';
+    const clear = box.querySelector('#nm-clear');
+    if (clear) clear.onclick = () => { customer = null; renderChosen(); view.querySelector('#nm-search').focus(); };
+  };
+  view.innerHTML = `<div class="card"><div class="card-h">Nová správa<div class="card-h-act"><button type="button" class="btn ghost" id="nm-back">Späť</button></div></div><div class="card-b">
+    <div id="nm-msg"></div>
+    <div><label for="nm-search">Zákazník</label><input id="nm-search" type="search" placeholder="Hľadať podľa mena alebo e-mailu" autocomplete="off">
+      <div id="nm-results" hidden style="margin-top:8px"></div></div>
+    <div id="nm-chosen" style="margin-top:12px"></div>
+    <div style="margin-top:14px"><label for="nm-subject">Téma správy (voliteľné)</label><input id="nm-subject" maxlength="120" placeholder="napr. Objednávka #12 – doprava"></div>
+    <div style="margin-top:14px"><label>Text správy <button type="button" class="subtle-link" id="nm-tpl">vložiť šablónu</button></label><textarea id="nm-body" rows="6" maxlength="5000" required></textarea></div>
+    <div id="nm-tpl-list" hidden style="margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fafbf7"></div>
+    <div style="margin-top:12px"><button type="button" class="btn gold" id="nm-send">Odoslať správu</button> <span class="muted" style="font-size:12px">Zákazníkovi príde aj e-mail.</span></div>
+  </div></div>`;
+  renderChosen();
+  view.querySelector('#nm-back').onclick = () => back();
+  // Hľadanie zákazníka podľa mena alebo e-mailu
+  const results = view.querySelector('#nm-results');
+  const search = view.querySelector('#nm-search');
+  search.oninput = () => {
+    clearTimeout(timer);
+    const q = search.value.trim();
+    if (q.length < 2) { results.hidden = true; results.innerHTML = ''; return; }
+    timer = setTimeout(async () => {
+      let list = [];
+      try { list = (await api(`/admin/customers?q=${encodeURIComponent(q)}&limit=8&fields=id,email,first_name,last_name`)).customers || []; }
+      catch (e) {
+        if (e.message === '401') throw e;
+        results.hidden = false; results.innerHTML = `<div class="err">${esc(e.message)}</div>`; return;
+      }
+      results.hidden = false;
+      results.innerHTML = list.length
+        ? `<div style="display:flex;flex-direction:column;gap:6px">${list.map(c => `<button type="button" class="btn ghost sm" data-c="${esc(c.id)}" style="justify-content:flex-start;text-align:left">${esc(custName(c))} <span class="muted">${esc(c.email || '')}</span></button>`).join('')}</div>`
+        : '<div class="muted">Nenašli sme žiadneho zákazníka.</div>';
+      results.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
+        const c = list.find(x => x.id === b.dataset.c);
+        if (!c) return;
+        customer = c; results.hidden = true; search.value = ''; renderChosen();
+      });
+    }, 300);
+  };
+  // Šablóny odpovedí (rovnaké ako pri odpovedi v konverzácii)
+  const tplBox = view.querySelector('#nm-tpl-list');
+  view.querySelector('#nm-tpl').onclick = async () => {
+    if (!tplBox.hidden) { tplBox.hidden = true; return; }
+    tplBox.hidden = false; tplBox.innerHTML = '<div class="muted">Načítavam šablóny…</div>';
+    let templates = [];
+    try { templates = (await api('/admin/chat/templates')).templates || []; }
+    catch (e) { tplBox.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+    tplBox.innerHTML = templates.length
+      ? `<div style="display:flex;flex-direction:column;gap:6px">${templates.map(t => `<button type="button" class="btn ghost sm" data-tpl="${esc(t.id)}" style="justify-content:flex-start;text-align:left">${esc(t.title)}</button>`).join('')}</div>`
+      : '<div class="muted">Zatiaľ nemáte uložené žiadne šablóny. Vytvoríte ich v časti Správy → Šablóny odpovedí.</div>';
+    tplBox.querySelectorAll('[data-tpl]').forEach(b => b.onclick = () => {
+      const t = templates.find(x => x.id === b.dataset.tpl);
+      if (!t) return;
+      const area = view.querySelector('#nm-body');
+      area.value = area.value ? `${area.value}\n${t.text}` : t.text;
+      area.focus(); tplBox.hidden = true;
+    });
+  };
+  // Odoslanie správy
+  view.querySelector('#nm-send').onclick = async () => {
+    const btn = view.querySelector('#nm-send');
+    const body = view.querySelector('#nm-body').value.trim();
+    say('');
+    if (!customer) { say('<div class="err">Najprv vyberte zákazníka.</div>'); return; }
+    if (!body) { say('<div class="err">Napíšte text správy.</div>'); return; }
+    btn.disabled = true;
+    try {
+      const subject = view.querySelector('#nm-subject').value.trim();
+      const res = await api('/admin/chat/conversations', { method: 'POST', body: { customer_id: customer.id, body, ...(subject ? { subject } : {}) } });
+      await vConversation(view, res.conversation_id, back, 'Správa je odoslaná.');
+    } catch (e) {
+      if (e.message === '401') return;
+      say(`<div class="err">${esc(e.message)}</div>`);
+      btn.disabled = false;
+    }
+  };
+}
+
 async function vChatTemplates(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam šablóny…</div>';

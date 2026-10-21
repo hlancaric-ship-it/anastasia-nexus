@@ -356,6 +356,12 @@ export const GUIDES = [
       'Dole napíšte odpoveď a kliknite na Odoslať.',
       'Keď je vec vybavená, kliknite na Uzavrieť konverzáciu. Neskôr ju môžete znova otvoriť.',
     ],
+    extra: { title: 'Nová správa zákazníkovi (keď zákazník ešte neodpovedal)', items: [
+      'V Správach kliknite na Nová správa. Vyhľadajte zákazníka podľa mena alebo e-mailu a vyberte ho.',
+      'Napíšte správu. Môžete vložiť aj uloženú šablónu odpovede a doplniť tému (napr. „Objednávka #12 – doprava“).',
+      'Kliknite na Odoslať správu – zákazníkovi príde e-mail a konverzácia sa vám otvorí.',
+      'Rovnaké tlačidlo Napísať správu nájdete aj v detaile zákazníka (Zákazníci → klik na zákazníka); zákazník je vtedy už vybraný.',
+    ] },
     after: [
       'Zákazník dostane e-mailové upozornenie, že má novú odpoveď. Ak predchádzajúce upozornenie ešte nečítal, ďalšie mu neposielame, aby nebol zahltený.',
       'Keď vám zákazníci napíšu, dostanete súhrnný e-mail o nových správach, najviac raz za hodinu.',
@@ -636,7 +642,7 @@ export const PAGE_HELP = {
   spravy: {
     title: 'Ako fungujú Správy',
     text: 'Konverzácie so zákazníkmi. Otvorením sa konverzácia označí ako prečítaná, odpoveď napíšete dole.',
-    points: ['Zákazníkovi po odpovedi príde e-mailové upozornenie.', 'Vybavenú konverzáciu uzavrite, dá sa znova otvoriť.'],
+    points: ['Zákazníkovi po odpovedi príde e-mailové upozornenie.', 'Vybavenú konverzáciu uzavrite, dá sa znova otvoriť.', 'Tlačidlom Nová správa napíšete zákazníkovi, ktorý vám ešte neodpovedal – vyhľadáte ho podľa mena alebo e-mailu.'],
     guides: ['spravy'],
   },
   poukazy: {
