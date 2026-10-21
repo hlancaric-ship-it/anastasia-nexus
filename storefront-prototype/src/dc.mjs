@@ -30,6 +30,7 @@ const ROUTES = {
   'Zdravý svet': '/zdravy-svet', 'O Lucii': '/o-lucii', 'Príbeh Lucie': '/o-lucii', 'Kontakt': '/kontakt',
   'Pharmanews': '/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny', 'Zdravé lekárne': '/zdrava-lekaren',
   'Obchodné podmienky': '/vop', 'Súkromie a GDPR': '/gdpr', 'Reklamácie': '/reklamacie',
+  'Odstúpenie od zmluvy': '/odstupenie', 'Cookies': '/cookies',
   'Môj účet': '/ucet', 'Košík': '/kosik', 'Napíšte nám': '/kontakt',
 };
 // Kotvy, které v návrhu vedou na sekce stránky a zůstávají kotvami (nadpisy menu, hlavička, hero).

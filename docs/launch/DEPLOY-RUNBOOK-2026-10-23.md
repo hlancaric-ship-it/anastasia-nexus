@@ -387,7 +387,7 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 | # | Co | Proč | Termín |
 |---|---|---|---|
 | 1 | Přístup do Stripe účtu LUCRAT (live): zapnuté platební metody, ověřená firma, vytvoření webhooků (nebo pozvánka pro L-Code) | live platby | 21. 10. |
-| 2 | Schválené verze právních textů (VOP, ochrana údajů, souhlas s newsletterem) → `LEGAL_*_VERSION`, `NEWSLETTER_CONSENT_VERSION` | souhlasy v pokladně a newsletteru | 21. 10. |
+| 2 | Schválené verze právních textů (VOP, ochrana údajů, souhlas s newsletterem) → `LEGAL_*_VERSION`, `NEWSLETTER_CONSENT_VERSION` — znění účinné od 21. 10. 2026: `LEGAL_TERMS_VERSION=2026-10-21`, `LEGAL_PRIVACY_VERSION=2026-10-21` | souhlasy v pokladně a newsletteru | 21. 10. |
 | 3 | E-mailová schránka pro zprávy z webu a chatu (`CONTACT_NOTIFY_EMAIL`, `CHAT_ADMIN_NOTIFY_EMAIL`, `ZEPTOMAIL_REPLY_TO`) | kontakt, chat | 20. 10. |
 | 4 | Potvrzení domén (§0) a přístup k registrátorovi kvůli DNSSEC/NS | DNS | 20. 10. |
 | 5 | Doprava zdarma od částky, lhůta zrušení konzultace | env | 20. 10. |

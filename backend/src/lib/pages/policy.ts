@@ -23,13 +23,16 @@ export type StoredPage = {
 }
 
 export const PAGE_MAX_HTML = 60000
-export const PAGE_MAX_TEXT = 20000
+// VOP klientky (znenie účinné od 21. 10. 2026) má ~21 000 znakov textu – limit je nad to.
+export const PAGE_MAX_TEXT = 25000
 
 const DESCRIPTIONS: Record<string, string> = {
   vop: 'Podmienky, ktorými sa riadi predaj v obchode. Znenie schvaľuje majiteľ obchodu.',
-  reklamacie: 'Ako uplatniť reklamáciu alebo odstúpenie od zmluvy, vrátenie peňazí a záruka.',
+  reklamacie: 'Reklamačné pravidlá: ako uplatniť reklamáciu, vrátenie peňazí a záruka.',
+  odstupenie: 'Poučenie o odstúpení od zmluvy a vzorový formulár na odstúpenie.',
   kontakt: 'Prevádzkovateľ, adresa, IČO, e-mail a telefón. Údaje z tu sa zobrazujú v patičke aj na kontaktnej stránke.',
   gdpr: 'Ako spracúvame osobné údaje zákazníčiek a aké práva máte.',
+  cookies: 'Informácia o cookies a podobných technológiách a o vašich voľbách.',
   'o-lucii': 'Predstavenie Lucii a príbeh značky ANASTASIA.',
   paticka: 'Spodná lišta webu: odkazy, copyright a základné údaje.',
   'doprava-a-platba': 'Spôsoby dopravy, dobierka, osobný odber a spôsoby platby.',

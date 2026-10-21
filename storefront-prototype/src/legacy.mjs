@@ -1,20 +1,13 @@
-import {escape as e,arrow,button} from './components.mjs';
+import {escape as e,button} from './components.mjs';
 import content from './legacy-content.json' with {type:'json'};
 export {content as legacyContent};
 export const legacyLinks=()=>`<section class="section content-directory"><h2>ANASTASIA</h2><nav aria-label="Sekcie pôvodného webu">${Object.entries(content).map(([path,page])=>`<a href="${path}">${e(page.title)}</a>`).join('')}</nav></section>`;
 const media=(src,alt,video=false)=>video?`<div class="source-media"><video class="story-video" muted loop playsinline preload="none" poster="/media/poster.jpg" aria-label="Prírodná atmosféra"><source src="/media/hero-720p.mp4" type="video/mp4"></video><button class="story-video-toggle" type="button" aria-pressed="false" aria-label="Prehrať video">▷</button></div>`:`<figure class="source-media"><img src="${e(src)}" alt="${e(alt)}" loading="lazy" width="900" height="1000"></figure>`;
-// Pôvodná stránka Reklamácie má len nadpis – reklamačné pravidlá preberáme z čl. VIII vlastných VOP.
-function withClaims(page){
-  if(!page.source.endsWith('/reklamacie')||page.blocks.length>1)return page;
-  const vop=content['/vop']?.blocks||[],from=vop.findIndex(b=>b.type==='h2'&&/^VIII\./.test(b.text));
-  if(from<0)return page;
-  const to=vop.findIndex((b,i)=>i>from&&b.type==='h2');
-  const title=page.blocks[0]||{type:'h1',text:page.title,chunks:[page.title],links:[]};
-  return {...page,blocks:[title,...vop.slice(from,to<0?undefined:to)]};
-}
 // Právne stránky: vlastný layout ANASTASIA (lesný úvod, zlaté číslovanie článkov), žiadny holý text.
-const LEGAL=['/vop','/gdpr','/reklamacie'];
-const ROMAN=/^([IVXL]+|\d{1,2})\.\s*(.+)$/;
+// Každá časť právnych textov klientky je vlastná stránka (VOP, reklamácie, odstúpenie, GDPR, cookies).
+const LEGAL=['/vop','/reklamacie','/odstupenie','/gdpr','/cookies'];
+// Číslovanie článkov: „I. Úvodné ustanovenia“ aj „1 Predávajúci a kontakty“ (bez bodky).
+const ROMAN=/^([IVXL]+|\d{1,2})[.)]?\s+(.+)$/;
 function legalPage(page,render){
   // Zlúčenie odstavcov rozdelených v pôvodnom webe uprostred vety.
   const blocks=[];
@@ -39,12 +32,10 @@ function legalPage(page,render){
   const point=html=>html.replace(/<p class="source-text">(\d+\.\d+\.?)\s+/g,'<p class="source-text"><span class="legal-pt">$1</span> ');
   const id=(t,i)=>'cl-'+String(t.match(ROMAN)?.[1]||i+1).toLowerCase();
   const toc=arts.length>2?`<nav class="legal-toc" aria-label="Obsah">${arts.map((a,i)=>{const m=a.title.match(ROMAN);return `<a href="#${id(a.title,i)}"><b>${e(m?.[1]||i+1)}</b>${e(m?.[2]||a.title)}</a>`;}).join('')}</nav>`:'';
-  const isClaims=page.source.endsWith('/reklamacie');
   const art=(a,i)=>{const m=a.title.match(ROMAN);return `<section class="legal-art reveal" id="${id(a.title,i)}">${a.title?`<div class="legal-num" aria-hidden="true">${e(m?.[1]||'')}</div><h2>${m?`<span class="legal-h-num">${e(a.title.slice(0,a.title.length-m[2].length))}</span>${e(m[2])}`:e(a.title)}</h2>`:''}<div class="legal-body">${point(a.body.map(render).join(''))}</div></section>`;};
-  return `<section class="legal-hero"><p class="legal-eyebrow">ANASTASIA · Právne informácie</p><h1>${e(head?.text||page.title)}</h1>${toc}</section><article class="legal-doc">${arts.filter(a=>a.title||a.body.length).map(art).join('')}${isClaims?`<a class="legal-more reveal" href="/vop"><span>Úplné znenie</span><strong>Všeobecné obchodné podmienky</strong>${arrow}</a>`:''}</article>${button('/','Na úvod','legacy-back')}`;
+  return `<section class="legal-hero"><p class="legal-eyebrow">ANASTASIA · Právne informácie</p><h1>${e(head?.text||page.title)}</h1>${toc}</section><article class="legal-doc">${arts.filter(a=>a.title||a.body.length).map(art).join('')}</article>${button('/','Na úvod','legacy-back')}`;
 }
 export function legacyPage(page,{about=false,contactForm=''}={}){
-  page=withClaims(page);
   // Konzultácie sa objednávajú výberom termínu (rezervácia), nie cez starý e-shop.
   const consult=/\/konzultacie(\/|$)/.test(page.source);
   if(!page.blocks.length)return '';
