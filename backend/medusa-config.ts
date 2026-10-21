@@ -78,6 +78,11 @@ if (isProduction && !deploy.onCloud && !s3Configured) {
   console.warn("[medusa-config] S3_* is not configured in production: files would be stored on the local (ephemeral) disk of the Node host")
 }
 
+// --- Dvojfaktorové overenie administrátora (TOTP) ---
+// Medusa šifruje MFA tajomstvá kľúčom z auth modulu; bez neho enrolácia odmietne.
+// Kľúč sa nastaví len vtedy, keď je v prostredí – inak zostáva konfigurácia Medusy.
+const mfaEncryptionKey = env("MFA_ENCRYPTION_KEY")
+
 const fileProvider = s3Configured
   ? {
       resolve: "@medusajs/medusa/file-s3",
@@ -165,6 +170,8 @@ const modules: Array<Record<string, unknown>> = [
     key: Modules.AUTH,
     resolve: "@medusajs/medusa/auth",
     options: {
+      // Šifrovací kľúč pre dvojfaktorové overenie (TOTP) – nastaví sa, iba keď je v prostredí.
+      ...(mfaEncryptionKey ? { mfa: { encryption_key: mfaEncryptionKey } } : {}),
       providers: [
         { resolve: "@medusajs/medusa/auth-emailpass", id: "emailpass" },
         {

@@ -11,24 +11,32 @@
 | Prihlásenie s výzvou na kód | **áno** – `POST /auth/user/emailpass` vráti `mfa_required` + `mfa_challenge`, potom `POST /auth/mfa/challenges/:id/verify` | Bez zmeny v jadre |
 | RBAC (role a politiky) | **nie** – `@medusajs/rbac` je za flagom `MEDUSA_FF_RBAC` (predvolene vypnutý) a zapína sa v `medusa-config.ts` | Role spravíme v backendovom kóde, bez flagu a bez zásahu do `medusa-config.ts` |
 
-**Jediný krok, ktorý patrí integrátorovi:** TOTP provider vyžaduje šifrovací kľúč
-tajomstva v konfigurácii auth modulu. Bez neho provider enroláciu odmietne (fail-closed,
-nie tichý vypnutý 2FA):
+**Šifrovací kľúč pre TOTP tajomstvo – hotovo (21. 10. 2026).** Provider vyžaduje kľúč
+na šifrovanie tajomstva v konfigurácii auth modulu; bez neho enroláciu odmietne
+(fail-closed, nie tichý vypnutý 2FA). Konfigurácia aj šablona prostredia sú doplnené:
 
 ```ts
 // backend/medusa-config.ts – modul AUTH
 {
   key: Modules.AUTH,
-  resolve: "@medusajs/medusa/auth-emailpass",
+  resolve: "@medusajs/medusa/auth",
   options: {
-    providers: [{ resolve: "@medusajs/medusa/auth-emailpass", id: "emailpass" }],
-    // NOVÉ: šifrovací kľúč pre TOTP tajomstvo (min. 32 znakov, len na serveri)
-    mfa: { encryption_key: process.env.MFA_ENCRYPTION_KEY, issuer: "ANASTASIA" },
+    providers: [
+      { resolve: "@medusajs/medusa/auth-emailpass", id: "emailpass" },
+      // ... ďalší provider (magic-link)
+    ],
+    // Šifrovací kľúč pre TOTP tajomstvo (len na serveri). Pridá sa IBA vtedy,
+    // keď je MFA_ENCRYPTION_KEY nastavený v prostredí – inak zostáva konfigurácia
+    // Medusy bez zmeny.
+    ...(mfaEncryptionKey ? { mfa: { encryption_key: mfaEncryptionKey } } : {}),
   },
 }
 ```
 
-+ premenná `MFA_ENCRYPTION_KEY` v prostredí (do `.env.template` doplní integrátor).
+- `backend/.env.template` – `MFA_ENCRYPTION_KEY=` s komentárom (ako `openssl rand -hex 32`;
+  po nastavení ho nemeniť, inak sa nebudú dať overiť už zapísané faktory).
+- **Zostáva urobiť:** nastaviť `MFA_ENCRYPTION_KEY` v prostredí (lokálne `.env`,
+  produkcia secret store). Bez neho 2FA zostáva vypnuté a enrolácia odmietne.
 
 ## Čo je z implementované v backende
 
@@ -138,8 +146,10 @@ Kľúčový bod pre SPA: **odpoveď `mfa_required` nie je chyba** – je to výz
 
 ## Stav
 
-`IMPLEMENTED_UNVERIFIED` – kód a testy sú overené lokálne; zapnutie TOTP providera
-(vrátane `MFA_ENCRYPTION_KEY`) patrí integrátorovi a UI administrácie paralelná session.
+`IMPLEMENTED_UNVERIFIED` – kód a testy sú overené lokálne. Konfigurácia
+`mfa.encryption_key` (z `MFA_ENCRYPTION_KEY`) aj záznam v `.env.template` sú hotové;
+**zostáva iba dosadiť hodnotu do prostredia** (lokálne `.env`, produkcia secret store)
+a pripraviť prihlásenie s výzvou na kód v UI administrácie (paralelná session).
 
 ## Vyriešené obmedzenie: zápis metadát administrátora (21. 10. 2026)
 
