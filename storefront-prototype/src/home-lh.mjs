@@ -133,6 +133,10 @@ export function homeSections(products = []) {
               <text id="lh-word-t" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" fill="#000" stroke="#313C2B" stroke-width="1.5" paint-order="stroke fill">ANASTASIA</text>
             </g>
           </mask>
+          <mask id="lhWordInv" maskUnits="userSpaceOnUse" x="-6000" y="-6000" width="13440" height="12900">
+            <rect x="-6000" y="-6000" width="13440" height="12900" fill="#000"/>
+            <text id="lh-word-inv-t" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" fill="#fff">ANASTASIA</text>
+          </mask>
           <linearGradient id="lhShine" gradientUnits="userSpaceOnUse" x1="-900" y1="0" x2="-100" y2="0">
             <stop offset="0" stop-color="#D8C598" stop-opacity="0"/>
             <stop offset=".42" stop-color="#D8C598" stop-opacity=".55"/>
@@ -140,8 +144,8 @@ export function homeSections(products = []) {
             <stop offset="1" stop-color="#F3E3B0" stop-opacity="0"/>
           </linearGradient>
         </defs>
-        <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.94" mask="url(#lhWord)"/>
-        <rect x="-6000" y="-6000" width="13440" height="12900" fill="#0E170C" opacity="0.5" mask="url(#lhWord)"/>
+        <rect id="lh-paper" x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.94" mask="url(#lhWord)"/>
+        <rect id="lh-word-tint" x="-6000" y="-6000" width="13440" height="12900" fill="#1E2A1A" opacity="0.45" mask="url(#lhWordInv)"/>
         <rect id="lh-word-shine" x="-6000" y="-6000" width="13440" height="12900" fill="url(#lhShine)" mask="url(#lhWord)" opacity="0"/>
         <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
       </svg>
@@ -349,6 +353,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,20,13,.5),rgba(14,20,13,.28) 40%,rgba(14,20,13,.8)),radial-gradient(120% 70% at 0% 100%,rgba(14,20,13,.55),transparent 70%)}
 .motion .lh-intro__veil{opacity:0}
 .lh-intro__mask{position:absolute;inset:0;display:none}
+
 .motion .lh-intro__mask{display:block}
 .lh-intro__mask svg{position:absolute;inset:0 var(--lh-gut,16px);width:calc(100% - 2*var(--lh-gut,16px));height:100%;overflow:visible}
 .lh-intro__meta{position:absolute;inset:0;pointer-events:none;color:var(--lh-ink,#1E281C);display:none}
@@ -456,7 +461,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 
 /* --- Kategorie se objevují jedna po druhé kolem slova --------------------- */
 .lh-intro__cats{position:absolute;inset:0;pointer-events:none}
-.lh-cat{position:absolute;pointer-events:auto;font-weight:200;font-size:clamp(26px,3.4vw,54px);line-height:1.1;letter-spacing:-.03em;color:var(--lh-ink,#1E281C);opacity:0;text-decoration:none;white-space:nowrap}
+.lh-cat{text-shadow:0 1px 14px rgba(245,242,232,.92),0 0 4px rgba(245,242,232,.85);position:absolute;pointer-events:auto;font-weight:200;font-size:clamp(26px,3.4vw,54px);line-height:1.1;letter-spacing:-.03em;color:var(--lh-ink,#1E281C);opacity:0;text-decoration:none;white-space:nowrap}
 .lh-cat--1{top:16vh;left:9%}
 .lh-cat--2{bottom:22vh;right:11%}
 .lh-cat--3{top:30vh;right:13%}
@@ -510,7 +515,7 @@ html.lh-mobile-intro .lh-intro__stage{height:100svh!important}
 /* r12/2b: ak maska nejde vykresliť, ostane čitateľný tmavý nápis. */
 .lh-intro__fallback{display:none;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:300;font-size:clamp(38px,11vw,72px);letter-spacing:.04em;color:#283020}
 @supports (mask:url(#lhWord)){.lh-intro__fallback{display:none!important}}
-@media (max-width:768px),(pointer:coarse){.motion .lh-intro__mask rect{opacity:.6!important}}
+@media (max-width:768px),(pointer:coarse){.motion .lh-intro__mask #lh-word-tint{opacity:.88!important}}
 .lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s}
 .lh-intro__sound .lh-sound-on{display:none}
 .lh-intro__sound.is-on{background:var(--site-accent-light,#D8C598)!important;border-color:var(--site-accent,#C9A355)!important;color:#1E281C!important}

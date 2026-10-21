@@ -125,7 +125,7 @@ if (gsap && ScrollTrigger) {
       if (!svg || !measure) return;
       // Na úzké obrazovce tři řádky ANA / STA / SIA – písmeno T zůstane uprostřed.
       if (window.innerWidth < 700) {
-        ['#lh-word-t', '#lh-word-m'].forEach(id => {
+        ['#lh-word-t', '#lh-word-m', '#lh-word-inv-t'].forEach(id => {
           const el = $(id);
           if (!el) return;
           el.textContent = '';
@@ -158,7 +158,9 @@ if (gsap && ScrollTrigger) {
         const bgEl = $('#lh-word-bg');
         const vb = svg.getAttribute('viewBox').split(' ').map(Number);
         if (maskEl && bgEl && vb.length === 4) {
-          for (const el of [maskEl, bgEl]) {
+          const invEl = $('#lhWordInv');
+          const invText = $('#lh-word-inv-t');
+          for (const el of [maskEl, bgEl, invEl, invText].filter(Boolean)) {
             el.setAttribute('x', String(vb[0])); el.setAttribute('y', String(vb[1]));
             el.setAttribute('width', String(vb[2])); el.setAttribute('height', String(vb[3]));
           }
