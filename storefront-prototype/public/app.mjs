@@ -219,7 +219,9 @@ if(!ambOff)amb.play().catch(()=>ambUnlockEvents.forEach(t=>document.addEventList
 $$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',async event=>{event.preventDefault();const button=$('button',form),status=form.parentElement?.querySelector('.newsletter-status');if(button.disabled)return;button.disabled=true;let r;try{r=await api.subscribeNewsletter({email:form.elements.email.value.trim()});}catch{r={ok:false,message:'Prihlásenie sa nepodarilo. Skúste to prosím znova.'};}if(status)status.textContent=r.message;if(r.ok){setLabel(button,'Ďakujeme');form.reset();}else button.disabled=false;}));
 
 // Reveal, parallax, hero fade, tón lišty (initFx) + O Lucii linky (initTrust).
-const motion=!reducedMotion.matches;
+// Telefon a dotyk: bez paralaxy a plynulého skrolu (Lenis) – na mobilu to sekalo.
+const lite=matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
+const motion=!reducedMotion.matches&&!lite;
 if(motion&&$('.dc-root')){
   const ease='cubic-bezier(.16,1,.3,1)';
   const els=$$('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form').filter(el=>!el.closest('aside')&&!el.closest('article p')&&!el.closest('.lh-intro'));

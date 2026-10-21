@@ -12,6 +12,9 @@
 let gsap = window.gsap;
 let ScrollTrigger = window.ScrollTrigger;
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Telefon/dotyk: žádné scrubované filtry, paralaxy ani zmenšování karet – na mobilu trhaly skrol
+// a karty zůstávaly ztmavené (brightness .55) přesně ve chvíli, kdy je člověk četl.
+const lite = window.matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -214,7 +217,7 @@ if (gsap && ScrollTrigger) {
     }
 
     // --- Vrstvy různou rychlostí (text, menší fotka) ------------------------
-    $$('[data-speed]').forEach(el => {
+    if (!lite) $$('[data-speed]').forEach(el => {
       const speed = Number(el.dataset.speed) || 0;
       gsap.fromTo(el, {y: -speed}, {y: speed, ease: 'none', scrollTrigger: {
         trigger: el.closest('section') || el, start: 'top bottom', end: 'bottom top', scrub: true,
@@ -222,7 +225,7 @@ if (gsap && ScrollTrigger) {
     });
 
     // --- Svět ANASTASIA: karty se vrství, předchozí se zmenší a ztmaví -----
-    const cards = $$('.lh-card');
+    const cards = lite ? [] : $$('.lh-card');
     cards.forEach((card, i) => {
       const bg = $('.lh-card__bg', card);
       if (bg) gsap.fromTo(bg, {scale: 1.12, yPercent: -8}, {scale: 1, yPercent: 0, ease: 'none', scrollTrigger: {
