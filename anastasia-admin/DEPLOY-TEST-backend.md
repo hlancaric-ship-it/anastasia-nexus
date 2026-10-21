@@ -244,7 +244,9 @@ lokálny storefront na `localhost:4187`), **nie na produkcii a nie na teste**.
 
 | Overenie | Príkaz | Výsledok |
 |---|---|---|
-| Typy backendu | `cd backend && npx tsc --noEmit` | bez chyby (0 diagnostik) |
+| Typy backendu (čistý checkout, bez `.medusa/types`) | `cd backend && npx tsc --noEmit` | **0 diagnostik** |
+| Typy backendu po `medusa build` (stav ako v Docker obraze) | `cd backend && npx tsc --noEmit` | **1 chyba** – `integration-tests/http/admin-c5.spec.ts:34` (pozri R10) |
+| Build backendu (príkaz z Dockerfile) | `cd backend && npx medusa build` | `Backend build completed successfully` – nasadenie neblokuje |
 | Unit testy backendu | `cd backend && npm run test:unit` | 139 sád / 1424 testov – všetky prešli |
 | Testy storefrontu | `cd storefront-prototype && node --test "test/*.test.mjs"` | 112 testov – všetky prešli |
 | E2E platby kartou bez súhlasu s cookies (Stripe fix) | `node storefront-prototype/test/browser-checkout-stripe.mjs` | PASS (5 kontrol) |
@@ -316,6 +318,19 @@ Pri zmene znenia treba zvýšiť verziu v `backend.env`, inak staré súhlasy v 
 Po zmene adresy testovacieho webu treba CORS na backende upraviť, inak web hlási
 „blocked by CORS policy“ a katalog aj formulár odstúpenia nepracujú (overené pri lokálnom behu).
 
+**R10 – `npx tsc --noEmit` je zelený len v čistom checkoute; po `medusa build` hlási 1 chybu.**
+Chyba je v `backend/integration-tests/http/admin-c5.spec.ts:34`
+(`const setId=data[0].price_set.id` → `TS2531: Object is possibly 'null'`).
+Príčina: `medusa build`/`medusa develop` vygeneruje `.medusa/types/query-entry-points.d.ts`,
+v ktorom je `price_set` typ `Maybe<PriceSet>` (môže byť `null`), a `query.graph()` potom vracia
+typovaný výsledok. Pred generovaním typov je `tsc --noEmit` úplne zelený (overené).
+*Dopad na nasadenie:* **žiadny** – `npx medusa build` (príkaz z `ops/test-server/Dockerfile`)
+prebehne úspešne, `integration-tests/` sa do buildu servera nekompiluje. Chyba sa prejaví len
+pri ručnom `npx tsc --noEmit` po builde a pri typechecku v CI.
+*Stav:* chyba nie je z právnych textov ani z cookie lišty (vznikla v komite `f38a0eb` – admin C5),
+preto v tejto úlohe **opravená nebola** (mimo rozsahu). Fix je jedna zmenená značka v tomto teste
+(napr. `data[0]?.price_set?.id`) – rozhodne Lucky.
+
 ---
 
 ## 8. Čo treba od Luckyho pred nasadením
@@ -324,3 +339,12 @@ Po zmene adresy testovacieho webu treba CORS na backende upraviť, inak web hlá
 2. Rozhodnutie, či sa pred nasadením opraví R3 (odkaz v pätičke) – odporúčam opraviť, je to 1 riadok.
 3. Informácia, či už boli na teste robené zmeny textu v admine (R1) – ak áno, treba export metadát
    a porovnanie kľúčov pred nasadením.
+4. Rozhodnutie o R10 (typecheck v integračnom teste) – nasadenie neblokuje, dá sa odložiť.
+5. Kto a kedy doplní placeholdery `[doplní prevádzkovateľ]` (R5) – bez nich je lišta a texty neúplné.
+
+## 9. Čo sa na test NEZMENÍ (bez nového rozhodnutia)
+
+- Databáza `anastasia_dev_wave1` a produkcia: nedotknuté, všetky overenia bežali lokálne.
+- E-maily: na teste len na `@l-code-dynamics.com` (R2), žiadny e-mail mimo túto doménu.
+- Stripe: na teste len `pk_test_`/`sk_test_`, žiadna skutočná platba.
+- Nasadenie na test ani do produkcie sa nevykonalo – iba postup a jeho podklad.
