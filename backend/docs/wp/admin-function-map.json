@@ -161,15 +161,26 @@
       "label_sk": "Vernostné úrovne a osobné ceny",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
-      "backend_status": "PARTIAL",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
       "new_admin_status": "NOT_IMPLEMENTED",
       "request": "Samostatné ceníky pro jednotlivé cenové úrovně; po přihlášení vlastní cena; nastavitelné zobrazení původní a nové ceny i % úspory, všechny částky/procenta vrací server.",
       "sources": [
         "backend/src/api/store/nexus-cart/customer-tier.ts",
-        "nexus/workers/api/routes/nexusPricing.ts"
+        "nexus/workers/api/routes/nexusPricing.ts",
+        "backend/src/api/admin/nexus/loyalty-policy/route.ts",
+        "backend/src/api/admin/nexus/loyalty-customers/route.ts",
+        "backend/src/api/admin/nexus/customers/[id]/tier/route.ts",
+        "backend/src/api/admin/nexus/customers/tiers/route.ts",
+        "backend/src/lib/loyalty/policy.ts",
+        "backend/src/lib/loyalty/settings.ts",
+        "backend/src/lib/loyalty/assignment.ts",
+        "backend/src/lib/loyalty/auto-assign.ts",
+        "backend/src/lib/nexus/loyalty-policy-sync.ts",
+        "nexus/workers/api/pricing-policy-store.ts",
+        "anastasia-admin/HANDOFF-vernostne-urovne.md"
       ],
-      "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu.",
-      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika."
+      "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu. Politika úrovní, ručné aj automatické priradenie a synchronizácia do NEXUS Workera sú hotové; chýba KV binding v nasadenom Workeri (placeholder ID vo wrangler.jsonc) a UI administrácie. Osobné ceníky pre jednotlivé úrovne zostávajú samostatná požiadavka.",
+      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
     },
     {
       "id": "booking",
@@ -1253,6 +1264,43 @@
       "sha256": "e22afcc625ac17c430db9bd9c684004226f8766cff350a8b49b95cb77ac1b6a6"
     },
     {
+      "path": "/admin/nexus/customers/:id/tier",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/customers/[id]/tier/route.ts",
+      "feature": "loyalty",
+      "sha256": "db6882eafc58803055ff5411f63ba98d33e23804f06d37e2ad86b44b2f30f40e"
+    },
+    {
+      "path": "/admin/nexus/customers/tiers",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/customers/tiers/route.ts",
+      "feature": "loyalty",
+      "sha256": "20093968984e1d07af6ece1908d1127df0713643563716bce1134acb6beb84af"
+    },
+    {
+      "path": "/admin/nexus/loyalty-customers",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/nexus/loyalty-customers/route.ts",
+      "feature": "loyalty",
+      "sha256": "88a0ab2dab12b3c77b21e0fbed1110f81a55674d37ba5ba0ffdff37f52196013"
+    },
+    {
+      "path": "/admin/nexus/loyalty-policy",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "source": "backend/src/api/admin/nexus/loyalty-policy/route.ts",
+      "feature": "loyalty",
+      "sha256": "581a97140b8e57b584cbca7e0b4ecc895affae33324603a543240104af1913cd"
+    },
+    {
       "path": "/admin/ops/audit",
       "methods": [
         "GET"
@@ -1287,7 +1335,7 @@
       ],
       "feature": "page-content",
       "source": "backend/src/api/admin/pages/route.ts",
-      "sha256": "3016bc40035834c99834c35ecfcd2f1dea1acae4734bd6de3402cd9bc19d540f"
+      "sha256": "ccc21c973012ec7411e46b10e504af541ced6ec2fecbd7319dab31344f9d6977"
     },
     {
       "path": "/admin/pages/:slug",
@@ -1304,7 +1352,7 @@
         "GET"
       ],
       "source": "backend/src/api/admin/product-catalogue/route.ts",
-      "feature": "media",
+      "feature": "products",
       "sha256": "e2e67bc6785129ce6e0d87f19a76b42e3176fe8a7a6cdde099faf8471efd3fca"
     },
     {
@@ -4290,6 +4338,7 @@
   ],
   "worker_router_cases": [
     "/api/nexus/pricing",
+    "/api/nexus/pricing-policy",
     "/api/nexus/operations",
     "/api/nexus/safeorder",
     "/api/vouchers/validate",
@@ -4340,6 +4389,7 @@
       "backend/src/subscribers/gift-voucher-order-placed.ts",
       "backend/src/subscribers/gift-voucher-payment-captured.ts",
       "backend/src/subscribers/legal-order-placed.ts",
+      "backend/src/subscribers/loyalty-tier-assigned.ts",
       "backend/src/subscribers/membership-access.ts",
       "backend/src/subscribers/nexus-medusa-events.ts",
       "backend/src/subscribers/nexus-voucher-issuance.ts",
@@ -4599,8 +4649,12 @@
     "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/registry.unit.spec.ts",
     "backend/src/api/admin/my-theme/__tests__/theme.unit.spec.ts",
+    "backend/src/api/admin/nexus/__tests__/customer-tier.unit.spec.ts",
+    "backend/src/api/admin/nexus/__tests__/loyalty-customers.unit.spec.ts",
+    "backend/src/api/admin/nexus/__tests__/loyalty-policy.unit.spec.ts",
     "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
     "backend/src/api/admin/product-catalogue/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/products/[id]/protected-media/__tests__/delete-key-routing.unit.spec.ts",
     "backend/src/api/admin/products/[id]/protected-media/__tests__/library-upload.unit.spec.ts",
     "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
@@ -4608,6 +4662,7 @@
     "backend/src/api/store/gift-vouchers/__tests__/rate-limit.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/coupon.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/customer-tier.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/loyalty-pricing.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/nexus-contract.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/ownership.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/pricing-transport.unit.spec.ts",
@@ -4626,6 +4681,9 @@
     "backend/src/lib/email/__tests__/send.unit.spec.ts",
     "backend/src/lib/feeds/__tests__/catalog.unit.spec.ts",
     "backend/src/lib/feeds/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/loyalty/__tests__/auto-assign.unit.spec.ts",
+    "backend/src/lib/loyalty/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/loyalty/__tests__/settings.unit.spec.ts",
     "backend/src/lib/membership/__tests__/access.unit.spec.ts",
     "backend/src/lib/membership/__tests__/admin.unit.spec.ts",
     "backend/src/lib/membership/__tests__/billing-guard.unit.spec.ts",
@@ -4642,6 +4700,7 @@
     "backend/src/lib/membership/__tests__/store-http.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-hook.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-order.unit.spec.ts",
+    "backend/src/lib/nexus/__tests__/loyalty-policy-sync.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/medusa-delivery.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/medusa-subscriber.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/operations.unit.spec.ts",
@@ -4787,6 +4846,7 @@
     "nexus/tests/unit/medusaWebhookRoute.test.ts",
     "nexus/tests/unit/nexusPricingRoute.test.ts",
     "nexus/tests/unit/nexusSafeOrderRoute.test.ts",
+    "nexus/tests/unit/pricingPolicy.test.ts",
     "nexus/tests/workers/bookingInbox.test.ts",
     "nexus/tests/workers/edgeRedirects.test.ts",
     "nexus/tests/workers/intentClaim.test.ts",
@@ -4794,6 +4854,7 @@
     "nexus/tests/workers/media-security-regression.test.ts",
     "nexus/tests/workers/medusaWebhook.test.ts",
     "nexus/tests/workers/operationsStatus.test.ts",
+    "nexus/tests/workers/pricingPolicy.test.ts",
     "nexus/tests/workers/safeOrder.test.ts",
     "nexus/tests/workers/scheduledRecovery.test.ts",
     "nexus/tests/workers/schema.test.ts",
