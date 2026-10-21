@@ -212,7 +212,7 @@ function ambUnlock(event){
 const toggleAmbient=async()=>{
   if(!amb.paused){ambOff=true;try{localStorage.setItem(AMB_OFF,'1');}catch{}await amb.stop();return;}
   ambOff=false;try{localStorage.removeItem(AMB_OFF);}catch{}
-  try{await amb.play();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}
+  try{await amb.play();soundLabel();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}
 };
 heroVideo?.addEventListener('play',videoLabel);heroVideo?.addEventListener('pause',videoLabel);videoLabel();soundLabel();
 let userPaused=false;

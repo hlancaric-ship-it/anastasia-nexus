@@ -32,7 +32,7 @@ const symbolFor=category=>{
 const TILES=[['AI ANASTASIA ACADEMY','AI ANASTASIA Academy','/eshop?category=sebarozvoj'],['BIOKOZMETIKA','Biokozmetika','/eshop?category=bio-kozmetika-bez-chemie'],['Zdravé doplnky výživy','Zdravé doplnky výživy','/eshop?category=zdrave-doplnky-vyzivy'],['Darčekový poukaz','Darčekový poukaz','/darcekovy-poukaz']];
 
 export function catalogNavigation(categories,current=''){
-  const known=TILES.filter(([key])=>categories.includes(key));
+  const known=TILES.filter(([key])=>key==='Darčekový poukaz'||categories.includes(key));
   const rest=categories.filter(category=>!known.some(([key])=>key===category));
   const tile=([key,label,href])=>`<a class="catalog-nav-tile" href="${href}" data-catalog-category="${e(key)}" ${handleOf(key)===current?'aria-current="page"':''}>${symbolFor(key)}<span>${e(label)}</span></a>`;
   return `<nav class="catalog-navigation" aria-label="Vybrať kategóriu">${known.map(tile).join('')}${rest.map(category=>`<a class="catalog-nav-tile" href="/eshop?category=${encodeURIComponent(handleOf(category))}" data-catalog-category="${e(category)}" ${handleOf(category)===current?'aria-current="page"':''}><span>${e(category)}</span></a>`).join('')}</nav>`;

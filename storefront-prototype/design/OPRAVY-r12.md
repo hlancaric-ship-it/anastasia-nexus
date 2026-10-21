@@ -45,3 +45,15 @@ Priorita shora dolů. Vše ověř headless na 360, 390, 430 a 1440 (screenshoty 
 
 Pravidla: texty klienta 1:1, nic nevymýšlet. Commit jen vlastní soubory, NEPUSHOVAT, NIKDY git checkout/reset/stash/clean.
 Výkon na mobilu: žádné těžké filtry, animace jen transform/opacity.
+
+9. **Obchod – dlaždice kategorií (nové zadání Luckyho 14:54)**
+   - Na /obchod pod nadpisem „Veci, ktoré majú zmysel.“ budou **4 stejné dlaždice v mřížce 2×2** (mobil i desktop jednotně):
+     AI ANASTASIA Academy · Biokozmetika · Zdravé doplnky výživy · **Darčekový poukaz** (4. dlaždice místo samostatného odkazu pod mřížkou).
+   - Žádné fotky ani lahvičky: na všech dlaždicích **symboly ze starého návrhu** (tam byly místo produktových fotek
+     liniové symboly/piktogramy – hledej v design/homepage-v2.dc.html, src/dc.mjs, git historii `git log -p -S` a v
+     ~/Desktop / ~/Downloads ANASTASIA podkladech; malá ikonka u „BIOKOZMETIKA“ je ze stejné rodiny). Jeden jednotný styl,
+     velký symbol uprostřed dlaždice, stejné pozadí na všech 4 (tlumená zelená/pastel), název pod symbolem.
+   - Názvy se nesmí ořezávat („AI ANASTASIA ACADI…“, „Zdravé doplnky výži…“) – zalomit na 2 řádky, menší písmo.
+   - Symboly jsou ve Figma návrhu (Lucky dodá jako SVG do storefront-prototype/public/assets/symbols/). Připrav dlaždice tak,
+     aby stačilo SVG vložit (cat-academy.svg, cat-biokozmetika.svg, cat-doplnky.svg, cat-poukaz.svg); dokud tam nejsou,
+     dlaždice bez obrázku jen s názvem. Nic si nevymýšlej.

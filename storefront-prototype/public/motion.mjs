@@ -223,6 +223,7 @@ if (gsap && ScrollTrigger) {
       gsap.set(['.lh-say--one', '.lh-say--two'], {opacity: 0, y: 80});
       if (mobileIntro) {
         // r12/2a: na mobilu sa úvod prehrá sám po Vstúpte (3–4 s).
+        timeline.pause(0);
         window.__anaIntroTimeline = timeline;
         const unlock = () => {
           document.documentElement.classList.remove('lh-locked');
@@ -316,6 +317,8 @@ if (gsap && ScrollTrigger) {
       if (label) label.textContent = on ? 'Zvuk zapnutý' : 'Zvuk vypnutý';
     };
     document.addEventListener('ana:sound', sync);
+    // Stav zvuku je jednotný pre všetky tlačidlá – kontrolujeme ho aj priamo.
+    setInterval(sync, 600);
     sound.addEventListener('click', async () => {
       if (window.anaToggleAmbient) await window.anaToggleAmbient();
       sync();
