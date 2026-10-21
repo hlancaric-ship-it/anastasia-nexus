@@ -3,6 +3,7 @@
  * POST /admin/media – zapíše nahraté súbory do knihovne (samotné nahrávanie robí natívne /admin/uploads).
  */
 import type { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
+import { checkHeroUpload, isHeroVideo } from '../../../lib/media/video-rules'
 import { adminActor, auditAdminChange } from '../../../lib/observability/audit'
 import { readMedia, readStore, writeMedia, writeStoreMetadata, type MediaItem } from '../../../lib/pages/store'
 
@@ -67,8 +68,14 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (!key || known.has(key)) continue
     const size = Number(item.size) || 0
     const contentType = String(item.content_type ?? '').trim()
-    if (size > MEDIA_MAX_SIZE) return res.status(400).json({ message: 'Niektorý obrázok je väčší ako 12 MB.' })
-    if (contentType && !isAllowedMediaType(contentType)) return res.status(400).json({ message: 'V knižne sú len obrázky (JPG, PNG, WebP, GIF, AVIF).' })
+    if (contentType && isHeroVideo({ type: contentType })) {
+      // Hero video: len MP4/WEBM a do 25 MB (rozmery kontroluje prehliadač).
+      const problem = checkHeroUpload({ name: key, type: contentType, size })
+      if (problem) return res.status(400).json({ message: problem })
+    } else {
+      if (size > MEDIA_MAX_SIZE) return res.status(400).json({ message: 'Niektorý obrázok je väčší ako 12 MB.' })
+      if (contentType && !isAllowedMediaType(contentType)) return res.status(400).json({ message: 'V knižne sú len obrázky (JPG, PNG, WebP, GIF, AVIF).' })
+    }
     known.add(key)
     added.push({
       key,

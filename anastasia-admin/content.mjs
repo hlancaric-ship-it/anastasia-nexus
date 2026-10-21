@@ -1,17 +1,30 @@
 // Obsah webu – úprava obsahových blokov po sekciách (backend /admin/content).
 // Backend drží seed (pôvodné texty zo storefrontu) a zmeny; tu sa iba editujú hodnoty.
 
+import { checkHeroPoster, checkHeroVideo } from './media-rules.mjs';
+
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmtDate = (d) => (d ? new Date(d).toLocaleString('sk-SK', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—');
 
 const TYPE_LABEL = { text: 'Text', rich: 'Rich text', image: 'Obrázok', video: 'Video', link: 'Odkaz' };
 
 const fieldInput = (f) => {
-  const attrs = `data-field="${esc(f.key)}" data-revision="${esc(f.revision || '')}" maxlength="${esc(String(f.max_length))}"`;
+  // maxlength je len pomôcka (data-maxlength): prekročenie musí odmietnuť server,
+  // aby zákazník videl jeho hlášku pri poli – prehliadač by ho zastavil sám.
+  const attrs = `data-field="${esc(f.key)}" data-revision="${esc(f.revision || '')}" data-maxlength="${esc(String(f.max_length))}"`;
+  if (f.type === 'video') return videoField(f);
   return f.type === 'rich'
     ? `<textarea rows="4" ${attrs}>${esc(f.value)}</textarea>`
     : `<input type="text" ${attrs} value="${esc(f.value)}">`;
 };
+
+/** Nahrávanie hero videa: len MP4/WEBM v 1080p/720p/480p (alebo poster). */
+const videoField = (f) => `<div class="content-video">
+  ${f.value ? `<video src="${esc(f.value)}" controls muted playsinline></video>` : '<p class="muted">bez videa</p>'}
+  <p class="muted" style="font-size:12px;margin:8px 0 4px">Podporované formáty: MP4 (1080p, 720p, 480p) a WEBM, maximálne 25 MB. Poster: JPG, PNG alebo WebP do 5 MB.</p>
+  <input type="file" accept="video/mp4,video/webm" data-video-upload="${esc(f.key)}">
+  <input type="file" accept="image/jpeg,image/png,image/webp" data-poster-upload="${esc(f.key)}">
+</div>`;
 
 /** Náhľad sekcie: obsah (texty, obrázky, odkazy). Dizajn ostáva zamknutý vo storefronte. */
 const preview = (section) => `<div class="content-preview">${section.fields.map((f) => {
@@ -26,6 +39,7 @@ const fieldHtml = (f) => `<div class="content-field${f.changed ? ' changed' : ''
   <div class="content-label"><b>${esc(f.label)}</b><span class="pill">${esc(TYPE_LABEL[f.type] || f.type)}</span>${f.changed ? '<span class="pill warn">zmenené</span>' : ''}</div>
   ${f.hint ? `<p class="muted" style="font-size:12px;margin:2px 0 6px">${esc(f.hint)}</p>` : ''}
   ${fieldInput(f)}
+  <p class="err" data-field-error="${esc(f.key)}" style="display:none"></p>
   <div class="content-actions">
     <button type="button" class="btn gold sm" data-save="${esc(f.key)}">Uložiť</button>
     ${f.changed ? `<button type="button" class="btn ghost sm" data-reset="${esc(f.key)}">Obnoviť pôvodné</button>` : ''}
@@ -97,9 +111,46 @@ export function wireContentPage(root, api, key, onBack) {
     try {
       await api('/admin/content', { method: 'POST', body: { page: key, field: fieldKey, value: input.value, revision: input.dataset.revision || '' } });
       onBack.reload();
-    } catch (e) { fail(e); }
+    } catch (e) { fail(e); showFieldError(fieldKey, e.message); }
+  };
+  const fieldError = (fieldKey) => root.querySelector(`[data-field-error="${CSS.escape(fieldKey)}"]`);
+  const showFieldError = (fieldKey, message) => {
+    const box = fieldError(fieldKey);
+    if (!box) return;
+    box.textContent = message || '';
+    box.style.display = message ? '' : 'none';
   };
   root.querySelectorAll('[data-save]').forEach((b) => { b.onclick = () => save(b.dataset.save); });
+
+  // Nahrávanie hero videa a posteru – formáty a rozmery sa kontrolujú pred nahratím.
+  const uploadMedia = async (file) => {
+    const fd = new FormData();
+    fd.append('files', file);
+    const data = await api('/admin/uploads', { method: 'POST', body: fd });
+    const uploaded = (data.files || []).map(f => ({ key: f.key || String(f.url || '').split('/').pop(), url: f.url, name: f.name || f.key, size: f.size || 0, content_type: f.content_type || f.mimetype || '' }));
+    if (!uploaded.length) throw new Error('Súbor sa nepodarilo nahrať.');
+    await api('/admin/media', { method: 'POST', body: { files: uploaded } });
+    return uploaded[0];
+  };
+  const uploadToField = async (fieldKey, file, kind) => {
+    const message = kind === 'poster' ? checkHeroPoster(file) : await checkHeroVideo(file);
+    if (message) { showFieldError(fieldKey, message); return; }
+    showFieldError(fieldKey, '');
+    try {
+      const media = await uploadMedia(file);
+      if (!media?.url) throw new Error('Súbor sa nepodarilo nahrať.');
+      const input = fieldByKey(fieldKey);
+      input.value = media.url;
+      await api('/admin/content', { method: 'POST', body: { page: key, field: fieldKey, value: media.url, revision: input.dataset.revision || '' } });
+      onBack.reload();
+    } catch (e) { showFieldError(fieldKey, e.message || 'Nahrávanie sa nepodarilo.'); }
+  };
+  root.querySelectorAll('[data-video-upload]').forEach((input) => {
+    input.onchange = () => { const file = input.files?.[0]; if (file) uploadToField(input.dataset.videoUpload, file, 'video'); };
+  });
+  root.querySelectorAll('[data-poster-upload]').forEach((input) => {
+    input.onchange = () => { const file = input.files?.[0]; if (file) uploadToField(input.dataset.posterUpload, file, 'poster'); };
+  });
   root.querySelectorAll('[data-reset]').forEach((b) => {
     b.onclick = async () => {
       if (!confirm('Obnoviť pôvodné znenie tohto poľa?')) return;

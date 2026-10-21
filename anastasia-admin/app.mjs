@@ -57,10 +57,11 @@ function friendlyError(status, serverMessage) {
   return 'Nepodarilo sa načítať údaje. Skúte to znova.';
 }
 async function api(path, { method = 'GET', body } = {}) {
+  const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
   const res = await fetch(API + path, {
     method,
-    headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    headers: { ...(isForm ? {} : { 'content-type': 'application/json' }), ...(token ? { authorization: 'Bearer ' + token } : {}) },
+    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
   });
   if (res.status === 401) { token = ''; localStorage.removeItem('ana_token'); renderLogin('Prihlásenie vypršalo.'); throw new Error('401'); }
   const data = await res.json().catch(() => ({}));
