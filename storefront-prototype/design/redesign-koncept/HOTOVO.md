@@ -89,7 +89,28 @@ Používame mužský/neutrálny rod („zákazníci“), nikdy „zákazníčky�
 Commity kola 2: `0fa6fde` (montáž, značka raz, mobilný hero, tlačidlá),
 `c04180d` (kontrast, parallax sekcia, levanduľový pás, paleta hlavička, fullPage shoty).
 
-## 8. Čo treba rozhodnúť pred produkciou
+## 8. Kolo 3 (`OPRAVY-k3.md`) – prázdne bloky vo fullPage shotoch
+
+Príčina: `fullPage` snímka v Chrome nespustí `loading="lazy"` a parallax posun bol
+neobmedzený, takže pod obrázkami vznikalo prázdno (a tmavý blok v sekcii „Môžeš tu nájsť…“).
+
+Opravy (všetko v `design/redesign-koncept/`, produkčný kód nedotknutý):
+
+- **Odhalenie pri scrolle** cez `IntersectionObserver` **s fallbackom** – po 2,6 s sa odhalí všetko,
+  takže v statickej snímke nezostane žiadny prázdny blok; bez JS alebo pri
+  `prefers-reduced-motion` je obsah viditeľný hneď.
+- **Parallax s obmedzeným posunom** (max. 4 % výšky rámu) – obrázok nikdy neodhalí prázdny priestor.
+- **Video má poster** (`night-sky.jpg`) a parallax rámy majú jemný podklad, takže ani pri
+  nenačítanom obrázku nevznikne čierny blok.
+- **Nové fullPage screenshoty** (`shots/*-full.png`) vzniknuté po **reálnom postupnom scrolle**
+  (390 px aj 1440 px, všetky tri stránky).
+
+Overenie po postupnom scrolle (390 aj 1440, všetky stránky): **všetky obrázky načítané**
+(0 nenačítaných), **žiadny skrytý reveal**, **žiadne vodorovné pretekanie**, 0 chýb v konzoli.
+
+Commity kola 3: `3703736` (reveal s fallbackom, stabilný parallax, nové shoty po scrolle).
+
+## 9. Čo treba rozhodnúť pred produkciou
 
 1. Potvrdiť mätovú a levanduľovú (obidve navrhnuté v koncepte) a definitívne
    odsúhlasiť bordó v zone účtu.
