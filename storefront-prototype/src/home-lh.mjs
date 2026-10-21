@@ -363,9 +363,9 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro__meta ul{position:absolute;bottom:clamp(96px,14vh,140px);left:var(--lh-gut,16px);right:var(--lh-gut,16px);margin:0;padding:0;list-style:none;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;max-width:1100px;margin-inline:auto}
 .lh-intro__meta li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--site-accent,#C9A355);margin:0 10px 2px 0}
 /* --- Tři loga v řadě nad úvodem: hlavní uprostřed, boční symetricky -------- */
-.lh-intro__brands{position:absolute;top:clamp(24px,5vh,58px);
+.lh-intro__brands{position:absolute;top:clamp(24px,5vh,58px);left:0;right:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:56px;color:#EFE5C7;pointer-events:none}
 /* r17/1: rada troch log je na desktope aspoň 48 px pod hlavičkou. */
-@media (min-width:761px) and (pointer:fine){.lh-intro__brands{top:clamp(104px,11vh,150px)}}left:0;right:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:56px;color:#EFE5C7;pointer-events:none}
+@media (min-width:761px) and (pointer:fine){.lh-intro__brands{top:clamp(112px,11vh,150px)}}
 .motion .lh-intro__brands{color:var(--lh-ink,#1E281C)}
 .lh-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:inherit;pointer-events:auto;opacity:1}
 .motion .lh-brand{opacity:0}
@@ -437,8 +437,14 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{opacity:0;visibility:hidden}
 .lh-chrome-in .lh-top{opacity:1;transform:none;pointer-events:auto}
 /* Boční lišta se na začátku úvodu schová a po prvním skrolu se vrátí. */
-.lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft)}
+.lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .4s var(--ana-ease-soft),transform .4s var(--ana-ease-soft)}
 .lh-intro-page.lh-chrome-in #ana-rail{opacity:1;transform:none;pointer-events:auto}
+/* r17/5: jedno Menu – v hlavičke kým bočná lišta nie je vidieť, potom už len v lište. */
+@media (min-width:761px) and (pointer:fine){
+  .lh-intro-page .lh-top__menu{transition:opacity .4s var(--ana-ease-soft)}
+  .lh-intro-page.lh-chrome-in .lh-top__menu{opacity:0;pointer-events:none}
+  .lh-intro-page .dc-root{transition:padding-left .4s var(--ana-ease-soft)}
+}
 /* Obsah úvodu je přes celou šířku; až s lištou se odsadí. Ostatní stránky
    drží odsazení pořád, jako předtím. */
 .lh-intro-page .dc-root{padding-left:0;transition:padding-left .6s var(--ana-ease-soft)}
