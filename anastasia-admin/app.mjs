@@ -20,6 +20,19 @@ import { contentPages, contentPage, wireContentPage } from './content.mjs';
 
 // --- API klient ---
 let token = localStorage.getItem('ana_token') || '';
+// Text chyby, ktorý uvidí používateľ – žiadne technické detaily (cesta, HTTP kód).
+// Podrobnosti idú do konzoly, aby sa dali poslať podpore.
+function friendlyError(status, serverMessage) {
+  const text = String(serverMessage || '').trim();
+  const looksTechnical = !text || /→|HTTP|\/admin\/|\/store\/|undefined|null|\{\s*"/i.test(text);
+  if (!looksTechnical) return text.replace(/\bjadro\b/g, 'systém');
+  if (status === 404) return 'Táto časť administrácie zatiaľ nie je dostupná. Skúte to neskôr alebo to oznámte podpore.';
+  if (status === 403) return 'Na túto časť nemáte prístup.';
+  if (status === 409) return 'Údaje sa medzitým zmenili. Načítajte stránku znova a skúste to znova.';
+  if (status === 429) return 'Príliš veľa požiadaviek. Skúte to o chvíľu.';
+  if (status >= 500) return 'Server momentálne neodpovedá. Skúte to o chvíľu.';
+  return 'Nepodarilo sa načítať údaje. Skúte to znova.';
+}
 async function api(path, { method = 'GET', body } = {}) {
   const res = await fetch(API + path, {
     method,
@@ -28,7 +41,13 @@ async function api(path, { method = 'GET', body } = {}) {
   });
   if (res.status === 401) { token = ''; localStorage.removeItem('ana_token'); renderLogin('Prihlásenie vypršalo.'); throw new Error('401'); }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message || `${method} ${path} → ${res.status}`);
+  if (!res.ok) {
+    const detail = `${method} ${path} → ${res.status}`;
+    console.warn('[admin] API chyba:', detail, data?.message || '');
+    const err = new Error(friendlyError(res.status, data?.message));
+    err.detail = detail;
+    throw err;
+  }
   return data;
 }
 async function login(email, password) {
@@ -573,7 +592,7 @@ async function vProducts(view) {
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
   const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
-  let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false;
+  let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false, fallback = false;
   const selected = new Set();
   // Sklad: súčet zásob podľa SKU (inventory item má rovnaké SKU ako variant).
   let stockBySku = new Map();
@@ -592,7 +611,7 @@ async function vProducts(view) {
       <td class="ot-img lv-media">${p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>'}</td>
       <td class="lv-title">${esc(p.title)}</td>
       <td><span class="pill ${PRODUCT_STATUS[p.status]?.[1] || 'warn'}">${esc(PRODUCT_STATUS[p.status]?.[0] || p.status || '—')}</span></td>
-      <td>${p.digital ? '<span class="pill ok">digitálny</span>' : '<span class="muted">fyzický</span>'}</td>
+      <td>${fallback ? '<span class="muted">—</span>' : p.digital ? '<span class="pill ok">digitálny</span>' : '<span class="muted">fyzický</span>'}</td>
       <td>${fmtEur(basePrice(p.variants?.[0])?.amount)}</td>
       <td>${stock === null ? '<span class="muted">—</span>' : stock <= 0 ? '<span class="pill off">vypredané</span>' : stock <= 5 ? `<span class="pill warn">${stock} ks</span>` : `<span>${stock} ks</span>`}</td>
       <td>${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
@@ -621,7 +640,7 @@ async function vProducts(view) {
         <button type="button" class="btn ghost sm" id="p-bulk-clear">Zrušiť označenie</button>
       </div></div>
     <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena s DPH</th><th>Sklad</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
-    <div class="ot-foot"><span class="muted" id="p-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
+    <div class="ot-foot"><span class="muted" id="p-range"></span><span class="muted" id="p-note" hidden></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('#p-body');
   const load = async () => {
@@ -634,10 +653,16 @@ async function vProducts(view) {
       if (status) params.set('status', status);
       if (type) params.set('type', type);
       const [data, inv] = await Promise.all([
-        api(`/admin/product-catalogue?${params}`),
+        api(`/admin/product-catalogue?${params}`).catch(async (e) => {
+          // Záložný zdroj: katalóg s filtrom typu v jadre zatiaľ nemusí byť dostupný.
+          console.warn('[admin] katalóg produktov nedostupný, načítavam záložný zoznam:', e?.detail || e?.message);
+          const plain = await api(`/admin/products?limit=${params.get('limit')}&offset=${params.get('offset')}&order=-created_at&fields=id,title,status,handle,thumbnail,metadata,*variants.prices,*variants.sku,*categories`);
+          return { ...plain, fallback: true };
+        }),
         api('/admin/inventory-items?limit=500&fields=id,sku,*inventory_levels').catch(() => null),
       ]);
       const products = data.products || [];
+      fallback = !!data.fallback;
       count = Number(data.count) || 0;
       stockBySku = new Map((inv?.inventory_items || []).map(i => [i.sku, (i.inventory_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0)]));
       body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="9" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
@@ -662,6 +687,8 @@ async function vProducts(view) {
       const from = count ? offset + 1 : 0, to = Math.min(offset + products.length, count);
       view.querySelector('#p-count').textContent = `(${count})`;
       view.querySelector('#p-range').textContent = count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadne produkty';
+      const note = view.querySelector('#p-note');
+      if (note) { note.hidden = !fallback; note.textContent = fallback ? 'Zoznam sa načítal zo základného jadra – filter digitálnych produktov zatiaľ nefunguje.' : ''; }
       view.querySelector('[data-pg="prev"]').disabled = offset <= 0;
       view.querySelector('[data-pg="next"]').disabled = offset + PRODUCT_PAGE_SIZE >= count;
     } catch (e) {
@@ -1284,7 +1311,7 @@ async function vOrderDetail(view, id, notice) {
   wireTabs(view);
   const orderHelp = {
     p: ['Skontrolujte objednávku', 'Tu vidíte zákazníka, doručenie a aktuálny stav platby. Položky objednávky nájdete vo vedľajšej záložke.', 'objednavka-vybavit'],
-    i: ['Čo zákazník objednala', 'Pri každej položke vidíte objednané, pripravené a odoslané množstvo. Na vybavenie pokračujte do Odoslanie.', 'objednavka-vybavit'],
+    i: ['Čo zákazník objednal', 'Pri každej položke vidíte objednané, pripravené a odoslané množstvo. Na vybavenie pokračujte do Odoslanie.', 'objednavka-vybavit'],
     o: ['Pripravte a odošlite', 'Najprv pripravte položky. Po odovzdaní dopravcovi doplňte číslo zásielky a označte ju ako odoslanú. Zákazníkovi odíde e-mail.', 'objednavka-vybavit'],
     pl: ['Platby a vrátenie peňazí', 'Skontrolujte prijatú a už vrátenú sumu. Pred vrátením peňazí overte sumu aj dôvod; ďalší krok si vyžiada potvrdenie.', 'objednavka-platby'],
   };
@@ -1348,9 +1375,9 @@ async function vCustomers(view) {
       <h2>Zákazníci</h2>
       <div class="ot-head-act">
         <select class="rc-select" id="cu-tier" aria-label="Filter podľa vernostnej úrovne"><option value="">Všetky úrovne</option></select>
-        <input class="rc-search" type="search" placeholder="Hľadať meno alebo e-mail…" aria-label="Hľadať zákazničky">
+        <input class="rc-search" type="search" placeholder="Hľadať meno alebo e-mail…" aria-label="Hľadať zákazníkov">
       </div>
-    </div><div id="cu-body"><div class="muted">Načítavam zákazničky…</div></div></section>`;
+    </div><div id="cu-body"><div class="muted">Načítavam zákazníkov…</div></div></section>`;
   const body = view.querySelector('#cu-body');
   const tierSel = view.querySelector('#cu-tier');
   const load = async () => {
@@ -1399,12 +1426,12 @@ async function vCustomers(view) {
         <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
     }).join('');
     const from = count ? offset + 1 : 0, to = Math.min(offset + customers.length, count);
-    body.innerHTML = `${selected.size ? `<div class="ot-bulk"><span class="muted">Označené zákazničky: ${selected.size}</span><div style="display:flex;gap:8px;flex-wrap:wrap">
+    body.innerHTML = `${selected.size ? `<div class="ot-bulk"><span class="muted">Označení zákazníci: ${selected.size}</span><div style="display:flex;gap:8px;flex-wrap:wrap">
         <select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(t.name || t.code)}</option>`).join('')}</select>
         <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>
         <button type="button" class="btn ghost sm" id="cu-pick-clear">Zrušiť označenie</button></div></div>` : ''}
-      <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Žiadne zákazničky.</td></tr>'}</tbody></table></div>
-      <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Žiadne zákazničky'}</span>
+      <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Zatiaľ žiadni zákazníci.</td></tr>'}</tbody></table></div>
+      <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadni zákazníci'}</span>
       <div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev" ${offset <= 0 ? 'disabled' : ''}>← Predchádzajúce</button><button class="btn ghost" data-pg="next" ${offset + PAGE >= count ? 'disabled' : ''}>Ďalšie →</button></div></div>`;
     body.querySelectorAll('tr[data-id]').forEach((tr) => {
       const open = () => vCustomerDetail(view, tr.dataset.id);
@@ -1735,7 +1762,7 @@ async function loadError(view, e, retry) {
   view.innerHTML = `<div class="err">${esc(e.message)}</div><div style="margin-top:12px"><button class="btn ghost" id="x-retry">Obnoviť</button></div>`;
   view.querySelector('#x-retry').onclick = retry;
 }
-// mená zákazníčok a produktov pre karty (natívne Admin API, len na čítanie)
+// mená zákazníkov a produktov pre karty (natívne Admin API, len na čítanie)
 async function namesFor(customerIds, productIds) {
   const q = (ids) => [...new Set(ids.filter(Boolean))].map(id => 'id[]=' + encodeURIComponent(id)).join('&');
   const [cs, ps] = await Promise.all([
@@ -1760,13 +1787,13 @@ async function vVouchers(view, st = {}) {
   try { d = await api(`/admin/vouchers?limit=${PAGE_LIMIT}&offset=${offset}${status ? '&status=' + status : ''}`); }
   catch (e) { return loadError(view, e, () => go({})); }
   const items = d.vouchers || [];
-  view.innerHTML = pagedHtml({ tabs: V_TABS, active: status, items, count: d.count || 0, offset, empty: 'Žiadne poukazy.',
+  view.innerHTML = pagedHtml({ tabs: V_TABS, active: status, items, count: d.count || 0, offset, empty: 'Zatiaľ neboli vydané žiadne darčekové poukazy. Po kúpe poukazu sa tu objaví.',
     card: v => `<div class="rc-body"><div class="rc-title">${esc(v.code)}</div><div class="rc-fields">
       <span class="rc-f"><em>Zostatok</em>${fmtEur(v.balance)} z ${fmtEur(v.initial_amount)}</span>
       <span class="rc-f"><em>Stav</em>${statusPill(V_STATUS, v.status)}</span>
       <span class="rc-f"><em>Platí do</em>${v.expires_at ? fmtDate(v.expires_at) : '—'}</span></div></div>` })
     + `<div class="card" style="margin-top:20px"><div class="card-h">Vrátiť peniaze na poukaz</div><div class="card-b">
-      <p class="muted">Ak zákazník zaplatila objednávku poukazom, vrátite sumu späť na jej poukaz. Jadro nepustí viac, než bolo poukazom zaplatené.</p>
+      <p class="muted">Ak zákazník zaplatil objednávku darčekovým poukazom, môžete sumu vrátiť späť na jeho poukaz. Systém nepustí vrátiť viac, než bolo poukazom zaplatené.</p>
       <div id="vrmsg"></div>
       <form id="vr" class="row"><div><label>ID objednávky</label><input id="vr-o" placeholder="order_…" required></div>
       <div><label>Suma (EUR)</label><input id="vr-a" type="number" step="0.01" min="0.01" required></div>
@@ -1889,8 +1916,8 @@ async function vKonzultacie(view, st = {}) {
   const items = (d.bookings || []).map(b => ({ ...b, customer_label: n.cust(b.customer_id), product_label: n.prod(b.product_id) }));
   // Stavové záložky patria do hornej lišty – rovnako ako v ostatných častiach administrácie.
   setActions(`<div class="pills">${B_TABS.map(t => `<button class="pill ${t.id === status ? 'on' : ''}" data-st="${esc(t.id)}">${esc(t.label)}</button>`).join('')}</div>`);
-  document.querySelectorAll('#actions .pills .pill').forEach(b => b.onclick = () => go({ status: b.dataset.st, offset: 0 }));
-  view.innerHTML = pagedHtml({ tabs: null, active: status, items, count: d.count || 0, offset, empty: 'Žiadne konzultácie.',
+  document.querySelectorAll('#actions .own-actions .pill').forEach(b => b.onclick = () => go({ status: b.dataset.st, offset: 0 }));
+  view.innerHTML = pagedHtml({ tabs: null, active: status, items, count: d.count || 0, offset, empty: 'Zatiaľ tu nie sú žiadne konzultácie. Ako pridáte typy konzultácií a voľné termíny, rezervácie sa zobrazia tu.',
     card: b => `<div class="rc-body"><div class="rc-title">${esc(b.customer_label)}</div><div class="rc-fields">
       <span class="rc-f"><em>Termín</em>${fmtDate(b.starts_at)}</span><span class="rc-f"><em>Konzultácia</em>${esc(b.product_label)}</span>
       <span class="rc-f"><em>Stav</em>${statusPill(B_STATUS, b.status)}</span></div></div>` });
@@ -1923,7 +1950,7 @@ function vBookingDetail(view, b, back) {
     <div class="row"><div><label>Termín</label><div>${fmtDate(b.starts_at)} – ${fmtDate(b.ends_at)}</div></div><div><label>Stav</label><div>${statusPill(B_STATUS, b.status)}</div></div></div>
     <div class="row"><div><label>Konzultácia</label><div>${esc(b.product_label)}</div></div><div><label>Objednávka</label><div>${b.order_id ? `<a href="#/objednavky" data-ord="${esc(b.order_id)}">${esc(b.order_id)}</a>` : '—'}</div></div></div>
     ${b.status === 'held' && b.held_until ? `<p class="muted">Termín je držaný do ${fmtDate(b.held_until)}; potom sa sám uvoľní.</p>` : ''}
-    ${inOrder && b.status === 'confirmed' ? `<p class="muted">Termín je zaplatený v objednávke. Zrušíte ho zrušením objednávky${b.order_id ? ` (<a href="#/objednavky" data-ord="${esc(b.order_id)}">otvoriť objednávku</a>)` : ''}; zákazníkovi odíde e-mail o zrušení a zaplatená suma sa jej automaticky vráti.</p>` : ''}
+    ${inOrder && b.status === 'confirmed' ? `<p class="muted">Termín je zaplatený v objednávke. Zrušíte ho zrušením objednávky${b.order_id ? ` (<a href="#/objednavky" data-ord="${esc(b.order_id)}">otvoriť objednávku</a>)` : ''}; zákazníkovi odíde e-mail o zrušení a zaplatená suma sa mu automaticky vráti.</p>` : ''}
     ${inOrder && b.status === 'held' ? '<p class="muted">Zákazník má termín v rozpracovanej pokladni. Ak nezaplatí, termín sa sám uvoľní.</p>' : ''}
     ${b.canceled_at ? `<p class="muted">Zrušená ${fmtDate(b.canceled_at)}${b.cancel_reason ? ': ' + esc(b.cancel_reason) : ''}</p>` : ''}
     ${active ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><label>Dôvod zrušenia (voliteľné)</label><input id="b-reason" maxlength="500">
@@ -2087,7 +2114,7 @@ async function vSpravy(view, st = {}) {
   try { d = await api(`/admin/chat/conversations?status=${status}&limit=${PAGE_LIMIT}&offset=${offset}`); }
   catch (e) { return loadError(view, e, () => go({})); }
   const items = d.conversations || [];
-  view.innerHTML = (d.unread ? `<div class="notice">Neprečítané konverzácie: ${d.unread}</div>` : '') + pagedHtml({ tabs: C_TABS, active: status, items, count: d.count || 0, offset, empty: 'Žiadne konverzácie.',
+  view.innerHTML = (d.unread ? `<div class="notice">Neprečítané konverzácie: ${d.unread}</div>` : '') + pagedHtml({ tabs: C_TABS, active: status, items, count: d.count || 0, offset, empty: 'Zatiaľ tu nie sú žiadne konverzácie. Keď zákazník napíše z účtu na webe, správa sa zobrazí tu.',
     card: c => `<div class="rc-body"><div class="rc-title">${c.unread ? '● ' : ''}${esc(c.customer?.name || c.customer?.email || 'Zákazník')}</div><div class="rc-fields">
       <span class="rc-f"><em>Téma</em>${esc(c.subject || '—')}</span><span class="rc-f"><em>Posledná správa</em>${fmtDate(c.last_message_at)}</span>
       <span class="rc-f">${c.unread ? '<span class="pill warn">neprečítaná</span>' : ''}${c.status === 'closed' ? '<span class="pill off">uzavretá</span>' : ''}${c.muted ? ' <span class="pill off">stlmená</span>' : ''}${c.customer?.chat_blocked ? ' <span class="pill off">chat zablokovaný</span>' : ''}</span></div></div>` });
@@ -2285,7 +2312,7 @@ async function vNewsletter(view) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { consents } = await api('/admin/newsletter?limit=200');
   listView(view, {
-    title: 'Newsletter — súhlasy', rows: (consents || []).map((c, i) => ({ ...c, id: c.id ?? i })), empty: 'Zatiaľ žiadne prihlásenia.',
+    title: 'Newsletter — súhlasy', rows: (consents || []).map((c, i) => ({ ...c, id: c.id ?? i })), empty: 'Zatiaľ sa nikto neprihlásil na newsletter. Prihlásenia pribudnú, keď niekto vyplní formulár na webe.',
     card: c => `<div class="rc-body"><div class="rc-title">${esc(c.email)}</div><div class="rc-fields">
       <span class="rc-f"><em>Stav</em><span class="pill ${c.status === 'subscribed' || c.status === 'active' ? 'ok' : 'off'}">${esc(c.status || '—')}</span></span>
       <span class="rc-f"><em>Zdroj</em>${esc(c.source || '—')}</span></div></div>`,
@@ -2330,7 +2357,7 @@ async function vPageTextEdit(view, slug) {
       <button type="button" class="btn gold" id="pt-save">Uložiť znenie</button>
     </div></div><div class="card-b">
     <div id="pt-msg"></div>
-    <p class="muted" style="margin-top:0">${esc(page.description || '')} Píšte tak, ako by ste chceli text čítať zákazník – bez značiek a kódu.</p>
+    <p class="muted" style="margin-top:0">${esc(page.description || '')} Píšte tak, ako by ste chceli, aby si text čítal zákazník – bez značiek a kódu.</p>
     <div class="em-grid">
       <div>${wysiwygHtml('pt-editor', page.html)}</div>
       <div class="em-preview"><div class="em-subj"><span class="muted">Náhľad:</span> <b>Takto sa text zobrazí</b></div>
@@ -2452,7 +2479,7 @@ async function vAmbasadori(view) {
   const commission = Number((await api('/admin/ambassadors/settings').catch(() => ({}))).commission_percent ?? 10);
   view.innerHTML = `<div class="card" style="margin-bottom:16px"><div class="card-h">Ambasádori<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span></div></div><div class="card-b">
     <p class="muted" style="margin-top:0">Ambasadorský režim (odporúčanie zákazníkov za províziu) pripravujeme. Zatiaľ sa na webe nič nezapína a žiadne provízie sa nevyplácajú.
-    Návrh dátového modelu je v <code class="rc-code">backend/docs/wp/ambasador-faza2.md</code>.</p>
+    Návrh dátového modelu máme pripravený, režim zapneme v druhej fáze.</p>
     ${list.length ? `<div class="ot-wrap"><table class="ot lv"><thead><tr>${AMBASSADOR_COLUMNS.map(([, h]) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
       ${list.map(a => `<tr data-id="${esc(a.id)}" tabindex="0" role="link">${AMBASSADOR_COLUMNS.map(([key]) => `<td>${esc(a[key] ?? '—')}</td>`).join('')}</tr>`).join('')}
     </tbody></table></div>` : '<div class="empty">Zatiaľ nemáme žiadnych ambasádorov – režim sa pripravuje.</div>'}
@@ -2483,7 +2510,7 @@ const vObsah = (view) => subnav(view, [
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
-const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (+2 €)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta (Stripe)', pp_membership_stripe_membership: 'Platobná karta – Klub', manual_manual: 'Vlastná doprava' };
+const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (+2 €)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta (Stripe)', pp_membership_stripe_membership: 'Platobná karta', manual_manual: 'Vlastná doprava' };
 const provLabel = (id) => PROVIDER_LABEL[id] || id || '—';
 async function vDopravaPlatby(view) {
   view = freshView(view);
@@ -2691,6 +2718,7 @@ async function vPripojenia(view) {
   }
 }
 // --- Nastavenia → História zmien: čo kto v administrácii zmenil (z auditu jadra) ---
+const AUDIT_ENTITY = { store: 'nastavenia obchodu', user: 'účet správcu', customer: 'zákazník', order: 'objednávka', product: 'produkt', promotion: 'kupón', media: 'obrázok', page: 'text stránky', content: 'obsah webu', carrier: 'dopravca', entitlement: 'prístup k obsahu' };
 const AUDIT_LABEL = {
   'admin.theme.update': 'Zmena farieb administrácie',
   'admin.carrier.update': 'Zmena dopravcu',
@@ -2710,20 +2738,40 @@ async function vAuditLog(view) {
     if (e.message === '401') throw e;
     view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return;
   }
+  // Zmena pre človeka: čo sa zmenilo, bez surového JSON.
   const changed = (c) => {
     if (!c || typeof c !== 'object') return '';
-    const keys = Object.keys(c);
-    if (!keys.length) return '';
-    return keys.map(k => `${k}: ${typeof c[k] === 'object' ? JSON.stringify(c[k]) : String(c[k])}`).join(' · ');
+    const parts = Object.entries(c).map(([key, value]) => {
+      if (value && typeof value === 'object' && 'to' in value && 'from' in value) {
+        const to = value.to || {}, from = value.from || {};
+        if (key === 'theme') {
+          const bits = [];
+          if (to.navigation && to.navigation !== from.navigation) bits.push(`bočný panel ${from.navigation || 'výchozí'} → ${to.navigation}`);
+          if (to.accent && to.accent !== from.accent) bits.push(`akcent ${from.accent || 'výchozí'} → ${to.accent}`);
+          if (to.scheme && to.scheme !== from.scheme) {
+            const schemeName = (v) => (v === 'custom' ? 'vlastné farby' : v === 'forest' ? 'výchozí motív ANASTASIA' : v || 'výchozí');
+            bits.push(`motív ${schemeName(from.scheme)} → ${schemeName(to.scheme)}`);
+          }
+          return bits.length ? `farby: ${bits.join(', ')}` : 'farby administrácie';
+        }
+        if (key === 'revision') return 'revízia záznamu';
+        return key;
+      }
+      if (value === null || value === undefined) return `${key}: odstránené`;
+      if (typeof value === 'object') return `${key}: ${Object.entries(value).map(([k2, v2]) => `${k2} = ${v2}`).join(', ')}`;
+      return `${key}: ${value}`;
+    });
+    return parts.join(' · ');
   };
+  const actorName = (en) => (en.actor_type === 'system' ? 'systém' : 'správca');
   view.innerHTML = `<div class="card"><div class="card-h">História zmien<span class="muted">(${count})</span></div><div class="card-b">
     <p class="muted" style="margin-top:0">Záznamy o tom, čo kto zmenil v administrácii. Píše sa to automaticky pri každej uloženej zmene.</p>
     ${entries.length ? `<div class="rc-grid">${entries.map(en => `<div class="rc"><div class="rc-body">
         <div class="rc-title">${esc(AUDIT_LABEL[en.action] || en.action)}</div>
         <div class="rc-fields">
           <span class="rc-f"><em>Kedy</em>${fmtDate(en.created_at)}</span>
-          <span class="rc-f"><em>Kto</em>${esc(en.actor_id || '—')}</span>
-          <span class="rc-f"><em>Čo</em>${esc(en.entity_type || '—')}${en.entity_id ? ` · ${esc(String(en.entity_id).slice(0, 24))}` : ''}</span>
+          <span class="rc-f"><em>Kto</em>${esc(actorName(en))}</span>
+          <span class="rc-f"><em>Čo</em>${esc(AUDIT_ENTITY[en.entity_type] || en.entity_type || '—')}</span>
         </div>
         ${changed(en.changes) ? `<p class="muted" style="font-size:12px;margin:8px 0 0;overflow-wrap:anywhere">${esc(changed(en.changes).slice(0, 300))}</p>` : ''}
       </div></div>`).join('')}</div>` : '<div class="empty">Zatiaľ nie je zaznamenaná žiadna zmena.</div>'}
@@ -2768,7 +2816,7 @@ async function vLoyaltyPolicy(view) {
       <button type="button" class="btn ghost" id="lp-add">+ Pridať úroveň</button>
       <button type="button" class="btn gold" id="lp-save">Uložiť zmeny</button>
     </div>
-    <p class="muted" style="font-size:12px;margin-top:12px">Zľava sa počíta na serveri pri nákupe. Úroveň sa priradí automaticky podľa celkovej útraty zákazníci. Ak jej úroveň nastavíte ručne, automatické priradenie ju už nepremení.</p>
+    <p class="muted" style="font-size:12px;margin-top:12px">Zľava sa počíta na serveri pri nákupe. Úroveň sa priradí automaticky podľa celkovej útraty zákazníka. Ak mu úroveň nastavíte ručne, automatické priradenie ju už nepremení.</p>
   </div></div>`;
   const rows = view.querySelector('#lp-rows');
   const msg = view.querySelector('#lp-msg');
@@ -3109,7 +3157,7 @@ async function vAppearance(view) {
   const forest = custom ? t.selection.navigation : THEME_DEFAULT.forest, gold = custom ? t.selection.accent : THEME_DEFAULT.gold;
   view.innerHTML = `<div class="card"><div class="card-h">Vzhľad administrácie</div><div class="card-b">
     <div id="tmsg"></div>
-    <p class="muted">Východzí je zelený motív ANASTASIA. Vlastné farby sa uložia k vášmu účtu, takže ich uvidíte na každom zariadení.</p>
+    <p class="muted">Východzí je motív ANASTASIA v teplých farbách s bordó a zlatou. Vlastné farby sa uložia k vášmu účtu, takže ich uvidíte na každom zariadení.</p>
     <div class="row">
       <div><label>Hlavná (bočný panel)</label><input type="color" id="t-forest" value="${esc(forest)}"></div>
       <div><label>Akcent (zlatá)</label><input type="color" id="t-gold" value="${esc(gold)}"></div>
@@ -3175,7 +3223,7 @@ async function route() {
 // Prihlásenie a pozvánka: zelený panel so značkou (ako bočný panel adminu) + formulár na krémovom pozadí.
 function authShell(form) {
   return `<div class="login">
-    <aside class="login-side">${brandHtml()}<div><h2>Priestor pre vašu prácu.</h2><p>Objednávky, produkty, konzultácie aj správy od zákazníčok na jednom mieste.</p></div></aside>
+    <aside class="login-side">${brandHtml()}<div><h2>Priestor pre vašu prácu.</h2><p>Objednávky, produkty, konzultácie aj správy od zákazníkov na jednom mieste.</p></div></aside>
     <main class="login-main">${form}</main>
   </div>`;
 }

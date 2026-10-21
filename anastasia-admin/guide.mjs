@@ -17,7 +17,7 @@ export const TOUR = [
   {
     id: 'cisla', target: '[data-tour="stats"]',
     title: 'Čísla na dnes',
-    what: 'Koľko objednávok čaká na vybavenie, koľko zákazníčok čaká na odpoveď a koľko konzultácií máte dnes.',
+    what: 'Koľko objednávok čaká na vybavenie, koľko zákazníkov čaká na odpoveď a koľko konzultácií máte dnes.',
     why: 'Na prvý pohľad vidíte, či niečo nečaká. Čísla sú vždy aktuálne z vášho obchodu, nič sa neodhaduje.',
     how: 'Kliknutím na kartu prejdete priamo na danú agendu. Ak sa niektoré číslo nedá načítať, karta sa radšej nezobrazí, než aby ukázala nepresný údaj.',
   },
@@ -605,7 +605,7 @@ export const PAGE_HELP = {
   },
   konzultacie: {
     title: 'Ako fungujú Konzultácie',
-    text: 'Tri prepínače: Rezervácie (termíny zákazníčok), Typy konzultácií (čo ponúkate a za koľko) a Dostupnosť (kedy máte čas).',
+    text: 'Tri prepínače: Rezervácie (termíny zákazníkov), Typy konzultácií (čo ponúkate a za koľko) a Dostupnosť (kedy máte čas).',
     points: ['Web ponúkne termíny len z vašej dostupnosti, podľa dĺžky a pauzy typu konzultácie.', 'Pri zrušení potvrdeného termínu dostane zákazník e-mail.'],
     guides: ['konzultacie-rezervacie', 'konzultacie-nastavit'],
   },
