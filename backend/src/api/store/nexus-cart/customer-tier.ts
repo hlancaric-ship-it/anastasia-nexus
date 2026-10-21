@@ -1,23 +1,10 @@
-export type CustomerGroupLike = { name?: unknown; metadata?: Record<string, unknown> | null }
-
-const TIER_CODE = /^ZR\d+$/
-
-/**
- * Určí věrnostní tier NEXUS ze skupin zákazníka.
- * Zdroj pravdy je `metadata.nexus_tier` skupiny (Bronze/Silver/Gold/VIP -> ZR1..ZR4);
- * název skupiny ve tvaru ZR\d+ zůstává jako zpětně kompatibilní záloha.
- * Při více skupinách vyhrává nejvyšší `metadata.rank`, jinak nejvyšší číslo v kódu.
- */
-export function resolveCustomerTier(groups: CustomerGroupLike[] | null | undefined): string | undefined {
-  const candidates: Array<{ tier: string; rank: number }> = []
-  for (const group of groups || []) {
-    const fromMeta = typeof group?.metadata?.nexus_tier === "string" ? group.metadata.nexus_tier.trim().toUpperCase() : ""
-    const fromName = String(group?.name ?? "").trim().toUpperCase()
-    const tier = TIER_CODE.test(fromMeta) ? fromMeta : TIER_CODE.test(fromName) ? fromName : ""
-    if (!tier) continue
-    const metaRank = Number(group?.metadata?.rank)
-    candidates.push({ tier, rank: Number.isFinite(metaRank) ? metaRank : Number(tier.slice(2)) })
-  }
-  candidates.sort((a, b) => b.rank - a.rank)
-  return candidates[0]?.tier
-}
+// Vernostná úroveň zákazníčky – jediný zdroj pravdy pre čítanie tieru.
+//
+// Zdroj je `metadata.nexus_tier` skupiny (Bronze/Silver/Gold/VIP -> ZR1..ZR4);
+// název skupiny ve tvaru ZR\d+ zostáva jako zpětně kompatibilní záloha.
+// Při více skupinách vyhrává nejvyšší `metadata.rank`, jinak nejvyšší číslo v kódu.
+//
+// Táto implementácia je preložená do `src/lib/loyalty/tier.ts`, aby ju mohli
+// používat i administrace a automatické zaradení (jedna definice, žádný drift).
+export type { CustomerGroupLike } from "../../../lib/loyalty/tier"
+export { resolveCustomerTier } from "../../../lib/loyalty/tier"

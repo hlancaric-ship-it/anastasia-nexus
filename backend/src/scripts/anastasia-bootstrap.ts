@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { LOYALTY_LOCK_GROUP_NAME } from "../lib/loyalty/assignment"
 import {
   createApiKeysWorkflow,
   createCustomerGroupsWorkflow,
@@ -477,6 +478,14 @@ export default async function anastasiaBootstrap({ container }: { container: Med
     }
     if (missing.length) {
       await createCustomerGroupsWorkflow(container).run({ input: { customersData: missing } })
+    }
+    // Skupina ručního zámoku: zákaznice, které správce zařadil ručně.
+    // Automatické zařazení podle útraty ji nesmí přepsat.
+    const lockGroup = await findFirst("customer_group", { name: LOYALTY_LOCK_GROUP_NAME })
+    if (!lockGroup) {
+      await createCustomerGroupsWorkflow(container).run({
+        input: { customersData: [{ name: LOYALTY_LOCK_GROUP_NAME, metadata: { loyalty_lock: true } }] },
+      })
     }
   })
 
