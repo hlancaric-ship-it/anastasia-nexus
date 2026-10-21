@@ -1347,6 +1347,25 @@
       "sha256": "af8cf599e4e22b709f6192a5949289bbe8946d09b1c2f83fbfaf253ca7cbdb2a"
     },
     {
+      "path": "/admin/nexus/orders/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/admin/nexus/orders/[id]/cancel/route.ts",
+      "sha256": "4f69a82698f841c21de4699f53e8d88fbe6c85bf55ec45348b5668b3b3b26cc5"
+    },
+    {
+      "path": "/admin/nexus/orders/:id/notes",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/admin/nexus/orders/[id]/notes/route.ts",
+      "sha256": "729b39657fbcf5ae5e061373ee6e8b7195c97ef9e27c63955407afc4ed5ec97c"
+    },
+    {
       "path": "/admin/ops/audit",
       "methods": [
         "GET"
