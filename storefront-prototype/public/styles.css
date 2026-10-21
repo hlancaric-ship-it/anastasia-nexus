@@ -347,3 +347,18 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 /* Pätička: každý stĺpec má rovnakú šírku a odkazy pod sebou (jedna kolónka). */
 .dc-root footer>div:last-of-type>div{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important;gap:24px clamp(24px,4vw,64px)!important;align-items:start!important}
 .dc-root footer>div:last-of-type>div>div{display:flex!important;flex-direction:column!important;gap:14px!important}
+
+/* r12/3: karta produktu na mobilu – obrázek, názov, tlačítko bez prekryvu. */
+@media(max-width:760px){
+  .product-grid{grid-template-columns:1fr!important;gap:26px!important}
+  .product-card{border-radius:28px 0 0 0!important;background:var(--ana-paper,#F5F2E8)!important}
+  .product-image{display:block!important;position:relative!important;inset:auto!important;aspect-ratio:3/4!important;overflow:hidden!important;border-radius:28px 0 0 0!important}
+  .product-image img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
+  .product-image .image-above{display:none!important}
+  .product-caption{position:relative!important;inset:auto!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;padding:16px 18px 0!important;transform:none!important;opacity:1!important;visibility:visible!important}
+  .product-caption h3{font-size:20px!important;line-height:1.2!important;margin:0 0 4px!important}
+  .product-info{position:relative!important;inset:auto!important;opacity:1!important;visibility:visible!important;transform:none!important;padding:6px 18px 18px!important;background:transparent!important;border:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .product-info p{display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;margin:0 0 12px!important;font-size:14px!important}
+  .product-info .button{width:100%!important;min-height:48px!important}
+  .category-tag{position:absolute!important;top:12px!important;left:12px!important}
+}
