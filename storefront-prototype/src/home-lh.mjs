@@ -442,7 +442,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-top--solid .lh-top__brand img{filter:brightness(.2)}
 @media (max-width:760px){
   .lh-top{grid-template-columns:auto auto;justify-content:space-between;padding:16px 20px}
-  .lh-top__side{display:none}
+  .lh-top__side a:not([aria-label="Košík"]):not(.lh-top__menu){display:none}
   .lh-top__side--right{display:flex;gap:14px}
   .lh-top__side--right>a:not(.lh-top__menu){font-size:11px}
 }

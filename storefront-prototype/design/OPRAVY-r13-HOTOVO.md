@@ -15,3 +15,6 @@ Screenshoty: `/Users/lucky/.claude/jobs/8ebf6c40/tmp/r13-intro-{360,390,430,1440
 
 ## Poznámka
 Na podstránkach (napr. `/eshop`) hlavičku kreslí referenčný dizajn a má už poradie Menu vľavo / logo uprostred / košík vpravo – zjednotené s úvodom ✓.
+V intru na mobile je hlavička: **Menu vľavo, košík vpravo**, logo v hlavičke je skryté (aby sa OZ neopakoval s radou log pod ňou); po prejdení intra sa logo objaví.
+
+Overené v mobile hlavičke (390 px, DPR 3): `["Menu", "Košík (0)"]` ✓
