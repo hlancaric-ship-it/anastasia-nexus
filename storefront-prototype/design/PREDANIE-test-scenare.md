@@ -194,7 +194,7 @@ Otvorte `https://anastasia-test-admin.l-code-dynamics.com` a prejdite si všetky
     automaticky uplatniť v košíku,
   - ☐ v časti **Darčekové poukazy** vidíte vytvorený poukaz, jeho stav a pohyby.
 - ☐ **Obsah a e-maily**:
-  - ☐ upravíte text na stránke (napr. na úvode) – zmena sa zobrazí na webe,
+  - ☐ upravíte text na stránke (napr. Kontakt) – zmena sa zobrazí na webe,
   - ☐ upravíte obrázok stránky,
   - ☐ v časti **E-mailové šablóny** upravíte text potvrdzovacieho e-mailu a vidíte náhľad.
 - ☐ **Nastavenia** – skontrolujete, či sa dajú upraviť bežné nastavenia obchodu.
