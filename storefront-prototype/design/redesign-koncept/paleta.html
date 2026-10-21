@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paleta a typografia — KONCEPT redesignu</title>
+<meta name="description" content="KONCEPT: pastelová paleta, typografia, tlačidlá a karty. Iba voľne licencované fonty.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=Figtree:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="koncept.css">
+</head>
+<body>
+
+<aside class="k-rail" aria-label="Bočná navigácia">
+  <a class="k-rail__mark" href="index.html">ANASTASIA</a>
+  <a href="index.html#kategorie">Menu</a>
+  <a href="index.html#kontakt">Kontakt</a>
+</aside>
+
+<header class="k-head is-solid">
+  <a class="k-head__logo" href="index.html">
+    <img src="../../public/assets/lucia-logo.png" alt="ANASTASIA OZ — Light for the Future" width="38" height="38">
+    <span class="k-head__word">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+  </a>
+  <nav class="k-nav" aria-label="Hlavná navigácia">
+    <a href="index.html#manifest">Zdravý svet</a>
+    <a href="index.html#programy">Programy</a>
+    <a href="index.html#kategorie">Kategórie</a>
+    <a href="ucet.html">Môj účet</a>
+  </nav>
+  <a class="k-cart" href="#">Košík (0)</a>
+  <button class="k-burger" type="button" aria-label="Menu" aria-expanded="false" data-menu-open><i></i></button>
+</header>
+
+<div class="k-menu" id="k-menu">
+  <div class="k-menu__head">
+    <span class="k-head__word">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+    <button class="k-menu__close" type="button" data-close aria-label="Zavrieť">✕</button>
+  </div>
+  <ul>
+    <li><a href="index.html#manifest">Zdravý svet</a></li>
+    <li><a href="index.html#programy">Programy</a></li>
+    <li><a href="index.html#kategorie">Kategórie</a></li>
+    <li><a href="ucet.html">Môj účet</a></li>
+    <li><a href="paleta.html">Paleta a typografia</a></li>
+  </ul>
+</div>
+
+<main class="k-section">
+  <p class="k-eyebrow">KONCEPT</p>
+  <h1 class="k-headline">Paleta, typografia, tlačidlá a karty.</h1>
+  <p class="k-lead">Pokojná pastelová paleta: lesná zelená, šalviová, mätová a krémová.
+  Levanduľová je Luciina vlastná značka (etiketa Mineral Protect) a zlato zostáva len
+  drobným akcentom pri logu. Bordó v koncepte nie je.</p>
+
+  <!-- Farby -->
+  <section class="k-subsection" id="farby">
+    <h2>Farby</h2>
+    <div class="k-swatches">
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#313C2B"></div>
+        <dl><dt>Lesná zelená</dt><dd>#313C2B · text a pätička</dd></dl></div>
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#778658"></div>
+        <dl><dt>Šalviová</dt><dd>#778658 · zvýraznenie, akcent</dd></dl></div>
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#B4CDB0"></div>
+        <dl><dt>Mätová (nová)</dt><dd>#B4CDB0 · navrhnutá</dd></dl></div>
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#DCE7D9"></div>
+        <dl><dt>Mätová svetlá</dt><dd>#DCE7D9 · zóna účtu, sekcie</dd></dl></div>
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#F5F2E8"></div>
+        <dl><dt>Krémová</dt><dd>#F5F2E8 · pozadie</dd></dl></div>
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#B9A7C9"></div>
+        <dl><dt>Levanduľová</dt><dd>#B9A7C9 · značka (Mineral Protect)</dd></dl></div>
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#E8E1F1"></div>
+        <dl><dt>Levanduľová svetlá</dt><dd>#E8E1F1 · značkové karty</dd></dl></div>
+      <div class="k-swatch"><div class="k-swatch__bar" style="background:#C9A355"></div>
+        <dl><dt>Zlatá</dt><dd>#C9A355 · len drobný akcent pri logu</dd></dl></div>
+    </div>
+  </section>
+
+  <!-- Typografia -->
+  <section class="k-subsection" id="typografia">
+    <h2>Typografia</h2>
+    <p class="k-lead">Fraunces (nadmerná, kvartérna, OFL) na nadpisy a kurzíva v úvode;
+    Figtree (OFL) na text. Obe sú voľne licencované cez Google Fonts — v produkcii ich
+    hostingujeme u seba (rovnaké súbory ako dnes).</p>
+    <div class="k-type-row">
+      <span>Display · Fraunces 300 · clamp(52px, 13vw, 168px)</span>
+      <h2 style="font-size:clamp(40px,8vw,96px)">Vitajte.</h2>
+    </div>
+    <div class="k-type-row">
+      <span>Display kurzíva · Fraunces italic 300</span>
+      <h2 style="font-size:clamp(32px,6vw,72px);font-style:italic">AI ANASTASIA RESET 40+</h2>
+    </div>
+    <div class="k-type-row">
+      <span>Nadpis sekcie · Fraunces 300 · clamp(30px, 5vw, 62px)</span>
+      <h2 class="k-headline">Priestor pre zdravie, poznanie a vedomý život.</h2>
+    </div>
+    <div class="k-type-row">
+      <span>Text · Figtree 300 · 16–19 px / 1,7</span>
+      <p style="max-width:52ch">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.</p>
+    </div>
+    <div class="k-type-row">
+      <span>Malý text a značky · Figtree 400 · 10–13 px, letter-spacing 0,2 em</span>
+      <p style="font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)">Môj svet · Zrkadielko · Obchodné podmienky</p>
+    </div>
+  </section>
+
+  <!-- Tlačidlá -->
+  <section class="k-subsection" id="tlacidla">
+    <h2>Tlačidlá</h2>
+    <p class="k-lead">Pill tvar, minimálna výška 44 px, jemný prechod. Hierarchia: plné (lesná zelená)
+    → mätové → levanduľové → obrys.</p>
+    <div class="k-buttons">
+      <button class="k-btn k-btn--solid" type="button">Pridať záznam</button>
+      <button class="k-btn k-btn--mata" type="button">Otvoriť vstupný dotazník</button>
+      <button class="k-btn k-btn--lavanda" type="button">Zrkadielko</button>
+      <button class="k-btn" type="button">Upraviť</button>
+      <button class="k-btn" type="button">Zmazať</button>
+    </div>
+  </section>
+
+  <!-- Karty -->
+  <section class="k-subsection" id="karty">
+    <h2>Karty</h2>
+    <p class="k-lead">Jeden tvar karty s mierne asymetrickým zaoblením (22/22/22/6 px),
+    hairline okraj a jemný posun pri prejdení myšou.</p>
+    <div class="k-grid">
+      <article class="k-card">
+        <span class="k-card__tag">Sprevádzanie</span>
+        <h3>Konzultácie</h3>
+        <p>Online zdravotná konzultácia, Supervízia, Astrologický profil.</p>
+      </article>
+      <article class="k-card k-card--mata">
+        <span class="k-card__tag">Program</span>
+        <h3>AI ANASTASIA RESET 40+</h3>
+        <p>16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
+      </article>
+      <article class="k-card k-card--lavanda">
+        <span class="k-card__tag">Značka</span>
+        <h3>Mineral Protect</h3>
+        <p>Levanduľový akcent nesie značku, nie bordó.</p>
+      </article>
+      <article class="k-card k-card--les">
+        <span class="k-card__tag">AI ANASTASIA</span>
+        <h3>AI ANASTASIA Longevity Academy</h3>
+        <p>16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<script src="koncept.js"></script>
+</body>
+</html>
