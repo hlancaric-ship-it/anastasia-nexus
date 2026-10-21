@@ -416,3 +416,23 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .catalog-nav-tile{background:#313C2B!important;color:#F5F2E8!important}
 .catalog-nav-tile span{color:#F5F2E8!important}
 .catalog-nav-tile svg{color:#F5F2E8!important;opacity:.9}
+
+/* r15/2: ovládacie prvky majú na mobile minimálne 44 px (dotyková zóna). */
+@media(max-width:760px){
+  :is(.dc-root,.dc-chrome) button,
+  :is(.dc-root,.dc-chrome) .button,
+  :is(.dc-root,.dc-chrome) [role="button"],
+  :is(.dc-root,.dc-chrome) [data-menu-close],
+  :is(.dc-root,.dc-chrome) .header-account,
+  :is(.dc-root,.dc-chrome) .lh-top__menu{min-width:44px!important;min-height:44px!important}
+  :is(.dc-root,.dc-chrome) [role="button"]{display:inline-flex;align-items:center;justify-content:center}
+  .pd-thumbnails button{min-width:44px!important;min-height:44px!important}
+}
+
+/* r15/2: záložky v účte a tlačidlá množstva sú na mobile dotykové (44 px). */
+@media(max-width:760px){
+  [data-account-go]{min-height:44px!important}
+  .center-sidebar{overflow-x:visible!important}
+  .center-sidebar nav{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;gap:4px!important}
+  .pd-quantity button,.pd-digital-purchase button,.quantity button{min-width:44px!important;min-height:44px!important}
+}

@@ -61,6 +61,10 @@ if (gsap && ScrollTrigger) {
   if (mobileIntro) {
     document.documentElement.classList.add('lh-locked');
     document.documentElement.classList.add('lh-mobile-intro');
+    // r15/4: na mobile sa hero video načíta až pri ťuknutí na Vstúpte – predtým
+    // je LCP text (krémová plocha s tmavými písmenami), nie frame videa.
+    const introVideo=$('#lh-intro-video');
+    if(introVideo){for(const source of introVideo.querySelectorAll('source[data-lh-src]'))source.removeAttribute('src');}
     if (window.__anaLenis) window.__anaLenis.stop();
   }
   const introP = {value: 0};
@@ -342,6 +346,9 @@ if (gsap && ScrollTrigger) {
     if (!mobileIntro) return;
     const t = window.__anaIntroTimeline;
     if (!t) { document.documentElement.classList.remove('lh-locked'); if (window.__anaLenis) window.__anaLenis.start(); return; }
+    // video sa pri ťuknutí naštartuje (gestum) a prehrá intro
+    const iv=$('#lh-intro-video');
+    if(iv){for(const source of iv.querySelectorAll('source[data-lh-src]')){if(!source.getAttribute('src'))source.setAttribute('src',source.dataset.lhSrc);}iv.load();iv.play().catch(()=>{});}
     if (!t.isActive()) t.play(0);
   });
   // r12/2: klik na VSTÚPTE je gestum – hudba sa spustí pri ňom (iOS/Android).

@@ -409,7 +409,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 @media (prefers-reduced-motion:reduce){.lh-say--two{display:none}}
 .motion .lh-say{opacity:0}
 .motion .lh-say--one,.motion .lh-say--two{opacity:0}
-.lh-vid-btn{position:absolute;right:auto;left:calc(var(--lh-gut,16px) + 8px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.15);color:#fff;font:inherit;font-size:13px;cursor:pointer;opacity:0}
+.lh-vid-btn{position:absolute;right:auto;left:calc(var(--lh-gut,16px) + 8px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#1E281C;font:inherit;font-size:13px;cursor:pointer;opacity:0;display:grid;place-items:center;transition:opacity .5s}
 .motion .lh-vid-btn{opacity:1}
 .lh-scroll-cue{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--lh-muted,#6E7468);display:flex;flex-direction:column;align-items:center;gap:10px}
 .lh-scroll-cue i{width:1px;height:44px;background:linear-gradient(var(--site-accent-light,#D8C598),transparent);animation:lh-cue 2.2s ease-in-out infinite}
@@ -426,7 +426,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-top__brand img{width:34px;height:34px;object-fit:contain;filter:brightness(.2)}
 .lh-top__brand span{font-size:14px;letter-spacing:.42em;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;padding-left:.42em}
 .lh-top__brand small{font-size:7px;letter-spacing:.3em;opacity:.75}
-.lh-top__menu{display:inline-flex;align-items:center;gap:12px;height:50px;padding:0 22px;border-radius:80px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:inherit;font-family:inherit;font-size:15px;letter-spacing:0;text-transform:none;cursor:pointer;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background .3s,border-color .3s}
+.lh-top__menu{display:inline-flex;align-items:center;gap:12px;min-height:44px;height:50px;padding:0 22px;border-radius:80px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:inherit;font-family:inherit;font-size:15px;letter-spacing:0;text-transform:none;cursor:pointer;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);transition:background .3s,border-color .3s}
 .lh-top__menu:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32)}
 .lh-top__burger{display:flex;flex-direction:column;gap:4px}
 .lh-top__burger i{width:20px;height:1px;background:currentColor}
@@ -461,7 +461,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 
 /* --- Kategorie se objevují jedna po druhé kolem slova --------------------- */
 .lh-intro__cats{position:absolute;inset:0;pointer-events:none}
-.lh-cat{text-shadow:0 1px 14px rgba(245,242,232,.92),0 0 4px rgba(245,242,232,.85);position:absolute;pointer-events:auto;font-weight:200;font-size:clamp(26px,3.4vw,54px);line-height:1.1;letter-spacing:-.03em;color:var(--lh-ink,#1E281C);opacity:0;text-decoration:none;white-space:nowrap}
+.lh-cat{text-shadow:0 1px 14px rgba(245,242,232,.92),0 0 4px rgba(245,242,232,.85);position:absolute;pointer-events:auto;font-weight:300;font-size:clamp(26px,3.4vw,54px);line-height:1.1;letter-spacing:-.03em;color:#313C2B;opacity:0;text-decoration:none;white-space:nowrap}
 .lh-cat--1{top:16vh;left:9%}
 .lh-cat--2{bottom:22vh;right:11%}
 .lh-cat--3{top:30vh;right:13%}
@@ -478,7 +478,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-top__side--right{gap:10px;font-size:11px}
   .lh-top__side--right>a:not([aria-label="Košík"]){display:none}
   .lh-top__side--right .lh-top__menu{display:none}
-  .lh-top__menu{height:36px;padding:0 14px;gap:8px;font-size:11px;letter-spacing:1.2px}
+  .lh-top__menu{height:44px;min-height:44px;padding:0 16px;gap:8px;font-size:11px;letter-spacing:1.2px}
   .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
   .lh-intro__brands{top:62px;gap:0 14px;flex-wrap:nowrap;justify-content:center}
   .lh-brand--main,.lh-brand--academy,.lh-brand--ai{height:58px;flex:0 0 auto}

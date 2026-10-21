@@ -13,6 +13,7 @@ let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
 updateCount().catch(()=>{});
+window.addEventListener('unhandledrejection',event=>{const reason=String(event.reason||'');if(/Failed to fetch|NetworkError|Load failed/i.test(reason))event.preventDefault();});
 for(const link of $$('[data-global-account]')) {
   Promise.resolve().then(()=>typeof api.isLoggedIn==='function'&&api.isLoggedIn()).then(logged=>{if(logged){link.href='/ucet';link.querySelector('span').textContent='Môj účet';}}).catch(()=>{});
 }

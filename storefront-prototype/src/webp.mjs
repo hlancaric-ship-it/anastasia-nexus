@@ -23,6 +23,8 @@ export function webpFor(src) {
 
 export function picture(src, alt, attrs = '') {
   const webp = webpFor(src);
+  // WebP je v src, aby prehliadač netahal naraz dva súbory (scanner stiahne img
+  // ešte pred spracovaním <source>). JPG ostáva v <noscript> ako záloha.
   if (!webp) return `<img src="${e(src)}" alt="${e(alt)}" ${attrs}>`;
-  return `<picture><source srcset="${e(webp)}" type="image/webp"><img src="${e(src)}" alt="${e(alt)}" ${attrs}></picture>`;
+  return `<picture><source srcset="${e(webp)}" type="image/webp"><img src="${e(webp)}" alt="${e(alt)}" ${attrs}><noscript><img src="${e(src)}" alt="${e(alt)}" ${attrs}></noscript></picture>`;
 }
