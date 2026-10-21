@@ -994,7 +994,7 @@ async function vOrders(view) {
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status)}${method ? `<small>${esc(method.label)}</small>` : ''}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
       <td class="ot-act ot-act-print"><div class="ot-acts">
-        <button type="button" class="btn ghost sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
+        <button type="button" class="btn gold sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
         <button type="button" class="btn ghost sm" data-print="slip" title="Vytlačiť dodací list (A4)">Dodací list</button>
         <button type="button" class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</button>
       </div></td></tr>`;
@@ -2744,8 +2744,10 @@ function setDarkMode(on) {
 setDarkMode(isDarkMode());
 function applyTheme(t) {
   const st = document.documentElement.style;
-  if (t && t.selection && t.selection.scheme === 'custom') { st.setProperty('--forest', t.selection.navigation); st.setProperty('--gold', t.selection.accent); }
-  else { st.removeProperty('--forest'); st.removeProperty('--gold'); }
+  // Vlastný motív mení bočný panel a dekoratívny akcent; pevné farby obsahu (bordó, zlatá) zostávajú
+  // nedotknuté – inak by vlastná voľba farby stratila kontrast textu.
+  if (t && t.selection && t.selection.scheme === 'custom') { st.setProperty('--forest', t.selection.navigation); st.setProperty('--accent', t.selection.accent); }
+  else { st.removeProperty('--forest'); st.removeProperty('--accent'); }
 }
 async function loadTheme(force) {
   if (THEME && !force) return THEME;
