@@ -151,10 +151,36 @@ async function globalPage() {
   }
 }
 
+/** Návrhové stránky (domov, obchod): texty zo zdrojových JSONov storefrontu. */
+function pageFromDesign(file, pageKey, title, path) {
+  const src = readJson(join(STOREFRONT, file))
+  const sections = (src.sections || []).map((s, si) => ({
+    key: String(s.key),
+    title: String(s.title || s.key),
+    order: si,
+    fields: (s.fields || []).map((f, i) => {
+      const type = f.type === 'rich' ? 'rich' : 'text'
+      const text = String(f.value || '').trim()
+      const max = text.length > LIMITS.longtext ? LIMITS.longtext : type === 'text' ? LIMITS.text : LIMITS.rich
+      return {
+        key: keyOf(pageKey, String(s.key), i, type),
+        type,
+        label: type === 'text' ? `Nadpis ${i + 1}` : `Odsek ${i + 1}`,
+        value: text,
+        max_length: max,
+        lang: 'sk',
+      }
+    }).filter(f => f.value),
+  }))
+  return { key: pageKey, title, path, sections }
+}
+
 const legacy = readJson(join(STOREFRONT, 'src/legacy-content.json'))
 const pages = pagesFromLegacy(legacy)
 const global = await globalPage()
-const all = [global, ...pages]
+const home = pageFromDesign('src/home-content.json', 'home', 'Úvod', '/')
+const eshop = pageFromDesign('src/eshop-content.json', 'eshop', 'Obchod', '/eshop')
+const all = [global, home, eshop, ...pages]
 const stats = {
   pages: all.length,
   sections: all.reduce((a, p) => a + p.sections.length, 0),

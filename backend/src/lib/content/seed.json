@@ -1,16 +1,16 @@
 {
- "generated_at": "2026-10-21T15:21:53.567Z",
- "source": "/Users/lucky/anastasia-nexus-release/storefront-prototype",
+ "generated_at": "2026-10-21T20:22:46.465Z",
+ "source": "/Users/lucky/anastasia-nexus-codex-storefront-design/storefront-prototype",
  "stats": {
-  "pages": 20,
-  "sections": 72,
-  "fields": 1538,
+  "pages": 22,
+  "sections": 82,
+  "fields": 1572,
   "byType": {
-   "text": 297,
+   "text": 324,
    "image": 20,
-   "link": 121,
+   "link": 122,
    "video": 1,
-   "rich": 1099
+   "rich": 1105
   }
  },
  "pages": [
@@ -83,15 +83,15 @@
       {
        "key": "global__menu-obchod__1-text",
        "type": "text",
-       "label": "Položka menu – AI ANASTASIA ACADEMY",
-       "value": "AI ANASTASIA ACADEMY",
+       "label": "Položka menu – AI ANASTASIA Academy",
+       "value": "AI ANASTASIA Academy",
        "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "global__menu-obchod__1-link",
        "type": "link",
-       "label": "Odkaz položky menu – AI ANASTASIA ACADEMY",
+       "label": "Odkaz položky menu – AI ANASTASIA Academy",
        "value": "/eshop?category=sebarozvoj",
        "max_length": 500,
        "lang": "sk"
@@ -99,15 +99,15 @@
       {
        "key": "global__menu-obchod__2-text",
        "type": "text",
-       "label": "Položka menu – BIOKOZMETIKA",
-       "value": "BIOKOZMETIKA",
+       "label": "Položka menu – Biokozmetika",
+       "value": "Biokozmetika",
        "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "global__menu-obchod__2-link",
        "type": "link",
-       "label": "Odkaz položky menu – BIOKOZMETIKA",
+       "label": "Odkaz položky menu – Biokozmetika",
        "value": "/eshop?category=bio-kozmetika-bez-chemie",
        "max_length": 500,
        "lang": "sk"
@@ -390,6 +390,346 @@
        "max_length": 500,
        "lang": "sk",
        "hint": "Odporúčaný rozmer 1920 × 1080 px (MP4, do 20 MB)."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "home",
+   "title": "Úvod",
+   "path": "/",
+   "sections": [
+    {
+     "key": "uvod",
+     "title": "Úvod",
+     "order": 0,
+     "fields": [
+      {
+       "key": "home__uvod__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Vitajte.",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__uvod__1-rich",
+       "type": "rich",
+       "label": "Odsek 2",
+       "value": "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "home__uvod__2-text",
+       "type": "text",
+       "label": "Nadpis 3",
+       "value": "Vstúpte do zdravého sveta",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__uvod__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Zdravý svet",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__uvod__4-rich",
+       "type": "rich",
+       "label": "Odsek 5",
+       "value": "Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.",
+       "max_length": 2000,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "manifest",
+     "title": "Manifest",
+     "order": 1,
+     "fields": [
+      {
+       "key": "home__manifest__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Priestor pre zdravie, poznanie a vedomý život.",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__manifest__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Vitajte",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__manifest__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "Kde veci nemusia byť urýchľované, vysvetľované ani riadené.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "home__manifest__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Zdravý svet",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "kolekcia",
+     "title": "Kolekcia",
+     "order": 2,
+     "fields": [
+      {
+       "key": "home__kolekcia__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Kolekcia",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__kolekcia__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Kolekcia",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__kolekcia__2-text",
+       "type": "text",
+       "label": "Nadpis 3",
+       "value": "Celý obchod",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "program",
+     "title": "Program",
+     "order": 3,
+     "fields": [
+      {
+       "key": "home__program__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "AI ANASTASIA Longevity Academy",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__program__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Program RESET 40+",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__program__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "home__program__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Objaviť RESET 40+",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "sluzby",
+     "title": "Služby",
+     "order": 4,
+     "fields": [
+      {
+       "key": "home__sluzby__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Čo získate?",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__sluzby__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Sprevádzanie",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__sluzby__2-text",
+       "type": "text",
+       "label": "Nadpis 3",
+       "value": "Všetky konzultácie",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "svet",
+     "title": "Svet",
+     "order": 5,
+     "fields": [
+      {
+       "key": "home__svet__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__svet__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Objaviť",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "reset",
+     "title": "RESET 40+",
+     "order": 6,
+     "fields": [
+      {
+       "key": "home__reset__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "AI ANASTASIA RESET 40+",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__reset__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "obloha",
+     "title": "Obloha",
+     "order": 7,
+     "fields": [
+      {
+       "key": "home__obloha__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Čo môžeme spolu riešiť?",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__obloha__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Pod hviezdami · Konzultácia",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "kontakt",
+     "title": "Kontakt",
+     "order": 8,
+     "fields": [
+      {
+       "key": "home__kontakt__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Kontakt",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__kontakt__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Kontakt",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__kontakt__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "home__kontakt__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Napíšte nám",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "eshop",
+   "title": "Obchod",
+   "path": "/eshop",
+   "sections": [
+    {
+     "key": "katalog",
+     "title": "Obchod",
+     "order": 0,
+     "fields": [
+      {
+       "key": "eshop__katalog__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Veci, ktoré majú zmysel.",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "eshop__katalog__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "OBCHOD",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "eshop__katalog__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "Malé každodenné rituály. Objavte produkty a programy sveta ANASTASIA.",
+       "max_length": 2000,
+       "lang": "sk"
       }
      ]
     }
