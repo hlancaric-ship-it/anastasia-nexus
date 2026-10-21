@@ -85,4 +85,20 @@ export function fillPrintWindow(w, orders, kind) {
   setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 250);
 }
 
+/**
+ * Vytlačí ľubovoľný HTML dokument (napr. náhľad darčekového poukazu).
+ * Okno sa otvára v kliknutí, CSS sa doplní do hlavičky a tlač sa spustí po chvíli.
+ */
+export function openPrintHtml(title, html, css = '') {
+  const w = openPrintWindow(title);
+  if (css) {
+    const style = w.document.createElement('style');
+    style.textContent = css;
+    w.document.head.appendChild(style);
+  }
+  w.document.body.innerHTML = html;
+  setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 250);
+  return w;
+}
+
 export const PRINT_FIELDS = 'id,display_id,email,total,currency_code,created_at,payment_status,metadata,*items,*shipping_address,*billing_address,*shipping_methods,*payment_collections,*payment_collections.payment_sessions';

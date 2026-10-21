@@ -14,7 +14,8 @@ import { qrAgenda } from './qr.mjs';
 
 import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mjs';
 import { mountLibraryEditor } from './library-editor.mjs';
-import { openPrintWindow, fillPrintWindow, PRINT_FIELDS } from './print.mjs';
+import { openPrintWindow, fillPrintWindow, openPrintHtml, PRINT_FIELDS } from './print.mjs';
+import { voucherHtml, voucherListHtml, VOUCHER_CSS } from './voucher.mjs';
 
 // --- API klient ---
 let token = localStorage.getItem('ana_token') || '';
@@ -92,13 +93,14 @@ const NAV = [
   { k: 'spravy', label: 'Správy', icon: 'chat', ready: true, badge: 'messages' },
   { k: 'klub', label: 'Klub', icon: 'star', ready: true },
   { k: 'poukazy', label: 'Poukazy a zľavy', icon: 'gift', ready: true },
+  { k: 'ambasadori', label: 'Ambasádori', icon: 'star', ready: true, phase2: true },
   { k: 'obsah', label: 'Obsah a e-maily', icon: 'doc', ready: true },
 ];
 let BADGES = {};
 
 function shell(active, title, sub) {
   const cur = (k) => active === k ? ' active" aria-current="page' : '';
-  const item = (n) => `<a class="nav-item${cur(n.k)}" href="#/${n.k}">${navIcon(n.icon)}<span>${esc(n.label)}</span>${n.badge ? `<span class="counter" data-badge="${n.badge}" ${BADGES[n.badge] ? '' : 'hidden'}>${BADGES[n.badge] || ''}</span>` : ''}</a>`;
+  const item = (n) => `<a class="nav-item${cur(n.k)}" href="#/${n.k}">${navIcon(n.icon)}<span>${esc(n.label)}</span>${n.phase2 ? '<span class="nav-phase">Fáza 2</span>' : ''}${n.badge ? `<span class="counter" data-badge="${n.badge}" ${BADGES[n.badge] ? '' : 'hidden'}>${BADGES[n.badge] || ''}</span>` : ''}</a>`;
   const nav = NAV.filter(n => n.ready).map(item).join('');
   const crumb = active === '' ? 'Prehľad' : (title || '');
   // Prehľad: dátum + pozdrav (meno dopĺňa setUserChip z /admin/users/me); ostatné agendy: názov a popis z ROUTES.
@@ -1119,6 +1121,13 @@ async function vOrderDetail(view, id, notice) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { order: o } = await api(`/admin/orders/${id}?fields=${encodeURIComponent(ORDER_FIELDS)}`);
   const history = o.metadata?.legacy_customer_migration || {};
+  // Darčekové poukazy k objednávke: poukazy z jadra (hodnota, platnosť, kód) + obdarovaní z metadát objednávky.
+  const giftRecipients = o.metadata?.gift_voucher_recipients ?? {};
+  let giftVouchers = [];
+  if (Object.keys(giftRecipients).length) {
+    try { giftVouchers = (await api(`/admin/vouchers?order_id=${encodeURIComponent(id)}&limit=50`)).vouchers || []; }
+    catch (e) { if (e.message === '401') return; giftVouchers = []; }
+  }
   const archived = o.status === 'archived';
   const items = o.items || [];
   const toFulfill = (archived ? [] : items).map(it => ({ id: it.id, title: it.title || it.product_title || '', quantity: Number(it.quantity) - Number(it.detail?.fulfilled_quantity || 0) })).filter(x => x.quantity > 0);
@@ -1169,6 +1178,12 @@ async function vOrderDetail(view, id, notice) {
     </div></div><div class="card-b">
     <div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
     ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }, { id: 'o', label: 'Odoslanie', html: odoslanie }, { id: 'pl', label: 'Platby', html: platby }])}
+    ${giftVouchers.length ? `<div style="margin-top:16px"><div class="card" style="margin:0"><div class="card-h">Darčekové poukazy<div class="card-h-act"><button type="button" class="btn gold" id="o-gift-print">Tlačiť poukazy</button></div></div>
+      <div class="card-b"><div class="voucher-list" id="gift-list">${giftVouchers.map((gv, i) => {
+        const r = Object.values(giftRecipients).flat().find(x => x && x.email) || {};
+        return voucherHtml({ value: gv.initial_amount, currency: gv.currency_code, code: gv.code, expires_at: gv.expires_at, recipient_name: r.name, message: r.message });
+      }).join('')}</div>
+      <p class="muted" style="font-size:12px;margin-top:10px">Kód je maskovaný – plný kód dostal každý obdarovaný e-mailom. Hodnotu a platnosť overuje backend.</p></div></div>` : ''}
     ${!canceled && !archived && !anyShipped ? '<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><button class="btn ghost" id="o-cancel">Zrušiť objednávku</button></div>' : ''}
   </div></div><aside class="detail-help panel" aria-label="Nápoveda k objednávke"><div class="panel-head"><h2>Ako postupovať</h2></div><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
   wireTabs(view);
@@ -1182,6 +1197,14 @@ async function vOrderDetail(view, id, notice) {
   showOrderHelp('p');
   view.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showOrderHelp(b.dataset.tab)));
   view.querySelector('#o-back').onclick = () => vOrders(view);
+  const giftPrint = view.querySelector('#o-gift-print');
+  if (giftPrint) giftPrint.onclick = () => {
+    const cards = giftVouchers.map((gv) => {
+      const r = Object.values(giftRecipients).flat().find(x => x && x.email) || {};
+      return voucherHtml({ value: gv.initial_amount, currency: gv.currency_code, code: gv.code, expires_at: gv.expires_at, recipient_name: r.name, message: r.message });
+    });
+    openPrintHtml('Darčekové poukazy – ANASTASIA', voucherListHtml(cards, 'Kód je maskovaný – plný kód dostal každý obdarovaný e-mailom.'), VOUCHER_CSS);
+  };
   view.querySelector('#o-print-label').onclick = () => printOrders([id], 'label');
   view.querySelector('#o-print-slip').onclick = () => printOrders([id], 'slip');
   // Poznámka k objednávke: uloží sa do metadát objednávky (vidí ju len tím, kto má prístup do admina).
@@ -1439,15 +1462,27 @@ async function vVouchers(view, st = {}) {
 async function vVoucherDetail(view, v, back) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  let tx = [];
+  let tx = [], mail = null;
   try { tx = (await api(`/admin/vouchers/${encodeURIComponent(v.id)}/transactions?limit=50`)).transactions || []; }
   catch (e) { if (e.message === '401') return; }
-  view.innerHTML = `<div class="card"><div class="card-h">Poukaz ${esc(v.code)}<button class="btn ghost" id="v-back">Späť</button></div><div class="card-b">
+  // Náhľad e-mailu, ktorý putuje obdarovanej (šablona je v časti Obsah → E-maily).
+  try { mail = (await api('/admin/email-templates/gift-voucher-recipient-sk/preview', { method: 'POST', body: { texts: {} } })).preview || null; }
+  catch (e) { mail = null; }
+  const card = voucherHtml({ value: v.initial_amount, currency: v.currency_code, code: v.code, expires_at: v.expires_at, note: 'Kód je v tejto tlači maskovaný – plný kód dostala obdarovaná e-mailom.' });
+  view.innerHTML = `<div class="card"><div class="card-h">Poukaz ${esc(v.code)}<div class="card-h-act">
+      <button type="button" class="btn gold" id="v-print">Tlačiť poukaz</button>
+      <button class="btn ghost" id="v-back">Späť</button></div></div><div class="card-b">
     <div id="vmsg"></div>
     <div class="row"><div><label>Zostatok</label><div>${fmtEur(v.balance)} z ${fmtEur(v.initial_amount)}</div></div><div><label>Stav</label><div>${klubPill(V_STATUS, v.status)}</div></div></div>
     <div class="row"><div><label>Vydaný</label><div>${fmtDate(v.issued_at)}</div></div><div><label>Platí do</label><div>${v.expires_at ? fmtDate(v.expires_at) : '—'}</div></div></div>
     <div class="row"><div><label>Objednávka nákupu</label><div>${esc(v.source_order_id || '—')}</div></div><div><label>Doručenie</label><div>${esc(v.delivery_method || '—')} · ${esc(v.delivery_status || '—')}</div></div></div>
     ${v.voided_at ? `<p class="muted">Zneplatnený ${fmtDate(v.voided_at)}: ${esc(v.void_reason || '')}</p>` : ''}
+    <div class="voucher-preview">${card}</div>
+    <p class="muted" style="font-size:12px;margin-top:10px">Náhľad poukazu v značke ANASTASIA. Hodnotu a platnosť overuje backend – v náhľade je kód maskovaný, plný kód dostala obdarovaná e-mailom.</p>
+    ${mail ? `<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>E-mail pre obdarovanú</b><span class="muted" style="font-size:12px">${esc(mail.subject || '')}</span></div>
+      <iframe class="voucher-mail" title="Náhľad e-mailu pre obdarovanú" sandbox="" srcdoc="${esc(mail.html || '')}"></iframe>
+    </div>` : ''}
     <label style="margin-top:14px">História</label>
     <div class="rc-grid">${tx.map(t => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(V_TX[t.type] || t.type)} · ${fmtEur(t.amount)}</div><div class="rc-fields">
       <span class="rc-f"><em>Kedy</em>${fmtDate(t.created_at)}</span><span class="rc-f"><em>Zostatok po</em>${fmtEur(t.balance_after)}</span>
@@ -1456,6 +1491,8 @@ async function vVoucherDetail(view, v, back) {
       <div style="margin-top:10px"><button class="btn ghost" id="v-void">Zneplatniť poukaz</button></div></div>` : ''}
   </div></div>`;
   view.querySelector('#v-back').onclick = back;
+  const printBtn = view.querySelector('#v-print');
+  if (printBtn) printBtn.onclick = () => openPrintHtml('Darčekový poukaz – ANASTASIA', card, VOUCHER_CSS);
   const vb = view.querySelector('#v-void');
   if (vb) vb.onclick = async () => {
     const reason = view.querySelector('#v-reason').value.trim(), msg = view.querySelector('#vmsg');
@@ -2071,6 +2108,42 @@ async function vMediaLibrary(view) {
       msg.innerHTML = `<div class="err">${esc(err.message)}</div>`; upload.disabled = false;
     }
   };
+}
+// --- Ambasádori: Fáza 2 – pripravujeme (UI nad prázdnymi dátami, backend ešte nemá) ---
+const AMBASSADOR_PHASE = 'Fáza 2 – pripravujeme';
+const AMBASSADOR_STATUS = { active: ['aktívny', 'ok'], invited: ['pozvaný', 'warn'], paused: ['pozastavený', 'off'], draft: ['rozpracovaný', 'off'] };
+const AMBASSADOR_COLUMNS = [['Meno', 'Meno'], ['E-mail', 'E-mail'], ['Kód / odkaz', 'Kód / odkaz'], ['Provize', 'Provize'], ['Obrat', 'Obrat'], ['Stav', 'Stav']];
+async function vAmbasadori(view) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam ambasádorov…</div>';
+  let list = [];
+  try { list = (await api('/admin/ambassadors?limit=100')).ambassadors || []; }
+  catch (e) { if (e.message === '401') throw e; list = []; }
+  const commission = Number((await api('/admin/ambassadors/settings').catch(() => ({}))).commission_percent ?? 10);
+  view.innerHTML = `<div class="card" style="margin-bottom:16px"><div class="card-h">Ambasádori<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span></div></div><div class="card-b">
+    <p class="muted" style="margin-top:0">Ambasadorský režim (odporúčanie zákazníčiek za províziu) pripravujeme. Zatiaľ sa na webe nič nezapína a žiadne provízie sa nevyplácajú.
+    Návrh dátového modelu je v <code class="rc-code">backend/docs/wp/ambasador-faza2.md</code>.</p>
+    ${list.length ? `<div class="ot-wrap"><table class="ot lv"><thead><tr>${AMBASSADOR_COLUMNS.map(([, h]) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
+      ${list.map(a => `<tr data-id="${esc(a.id)}" tabindex="0" role="link">${AMBASSADOR_COLUMNS.map(([key]) => `<td>${esc(a[key] ?? '—')}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>` : '<div class="empty">Zatiaľ nemáme žiadnych ambasádorov – režim sa pripravuje.</div>'}
+  </div></div>
+  <div class="card"><div class="card-h">Nastavenie provízie</div><div class="card-b">
+    <p class="muted" style="margin-top:0">Provízia sa počíta z výšky objednávky, ktorú ambasADOR priviedol, a vypláca sa mu podľa dohodnutého cyklu. Percento ani výplaty sa zatiaľ nemenia.</p>
+    <div class="row"><div><label>Provizia (%)</label><input id="am-commission" type="number" min="0" max="100" step="1" value="${esc(String(commission))}" disabled></div>
+    <div><label>Stav režimu</label><div><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span></div></div></div>
+    <p class="muted" style="font-size:12px;margin-top:10px">Ovládanie bude aktívne, keď backend dodá atribúcie objednávok a prevádzku provízie.</p>
+  </div></div>`;
+  view.querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () => vAmbasadorDetail(view, { id: tr.dataset.id, ...(list.find(x => x.id === tr.dataset.id) || {}) }));
+}
+function vAmbasadorDetail(view, a) {
+  view = freshView(view);
+  view.innerHTML = `<div class="card"><div class="card-h">AmbasADOR<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span><button class="btn ghost" id="am-back">Späť</button></div></div><div class="card-b">
+    <div class="row"><div><label>Meno</label><div>${esc(a.name || a.customer_label || '—')}</div></div><div><label>E-mail</label><div>${esc(a.email || '—')}</div></div></div>
+    <div class="row"><div><label>Kód / odkaz</label><div>${esc(a.code || a.referral_code || '—')}</div></div><div><label>Provize</label><div>${esc(String(a.commission_percent ?? '—'))} %</div></div></div>
+    <div class="row"><div><label>Obrat</label><div>${esc(a.revenue != null ? fmtEur(a.revenue) : '—')}</div></div><div><label>Stav</label><div>${klubPill(AMBASSADOR_STATUS, a.status || 'draft')}</div></div></div>
+    <p class="muted" style="font-size:12px;margin-top:12px">Detail ambasadora bude obsahovať odkaz na odporúčanie, zoznam privedených objednávok a prehľad výplat.</p>
+  </div></div>`;
+  view.querySelector('#am-back').onclick = () => vAmbasadori(view);
 }
 const vObsah = (view) => subnav(view, [
   { label: 'E-maily', run: vEmaily },
@@ -2728,6 +2801,7 @@ const ROUTES = {
   'klub': ['Klub ANASTASIA', 'Členky, nákupy členstva, podmienky a obnovy platieb', vKlub],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
   'obsah': ['Obsah a e-maily', 'Stránky, texty, médiá a preklady', vObsah],
+  'ambasadori': ['Ambasádori', 'Odporúčanie zákazníčiek za províziu – Fáza 2, pripravujeme', vAmbasadori],
   'nastavenia': ['Nastavenia', 'Vzhľad, doprava, platby, používatelia a fakturácia', vNastavenia],
   'pomoc': ['Potrebujete poradiť?', 'Návody krok za krokom: prečo daná funkcia existuje, ako ju použiť a čo sa stane potom', vPomoc],
 };
