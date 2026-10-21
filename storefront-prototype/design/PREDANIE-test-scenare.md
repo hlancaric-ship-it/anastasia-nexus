@@ -27,11 +27,11 @@ si, čo ste presne robili (pozri bod 9). Odškrtnutý zoznam je najlepšia spät
 ## 1. Úvod webu
 
 ### 1.1 Na mobile (do 430 px šírky)
-- ☐ Otvorte `https://anastasia-test.l-code-dynamics.com` na mobilnom telefóne.
+- ☐ Otvorte `https://anastasia-test.l-code-dynamics.com` na mobile telefóne.
 - ☐ Prejdite prstom úvodom až na koniec – video na pozadí a texty sa ukazujú, nič sa neprekrýva.
-- ☐ Ťuknite na tlačidlo **Menu** v hornej lište – otvorí sa menu na celú obrazovku.
-- ☐ Ťuknite na **„Vstúpte do zdravého sveta“** – dostanete sa do ďalšej časti stránky.
-- ☐ V menu si vyskúšajte aj prechod na **Obchod**, **Konzultácie** a **Môj účet**.
+- ☐ Ťuknite na tlačidlo **Menu** v hornej lište – otvorí sa Vám menu na celú obrazovku.
+- ☐ Ťuknite na tlačidlo **VSTÚPTE ↓** – dostanete sa do ďalšej časti úvodu.
+- ☐ V menu si vyskúšajte aj prechod na **OBCHOD**, **PROGRAMY A SLÚŽBY** a **KONZULTÁCIE**.
 
 ### 1.2 Na počítači
 - ☐ Otvorte rovnakú adresu na počítači.
@@ -40,23 +40,23 @@ si, čo ste presne robili (pozri bod 9). Odškrtnutý zoznam je najlepšia spät
 - ☐ Prejdite myšou cez obrázky – obrázok sa má jemne posúvať (paralax).
 
 ### 1.3 Jazyky
-- ☐ Vľavo hore prepínajte jazyk **SK / EN / RU** a skontrolujte, že sa texty prekladajú.
+- ☐ V **bočnej lište vľavo hore** prepínajte jazyk **SK / EN / RU** (SK je hore, pod ním EN, pod ním RU).
 - ☐ Prejdite na pár stránok (napr. Obchod, Kontakt) v každom jazyku.
 
 ---
 
 ## 2. E-shop: produkt → košík → pokladňa → platba
 
-- ☐ Otvorte **Obchod** a vyberte kategóriu (napr. Kozmetika).
+- ☐ Otvorte **OBCHOD** (v hlavičke) a vyberte kategóriu (napr. **BIOKOZMETIKA**).
 - ☐ Otvorte ľubovoľný produkt – skontrolujte názov, cenu, popis a fotografie.
-- ☐ Kliknite na **Pridať do košíka** a potom otvorte **Košík** (vpravo hore).
+- ☐ Kliknite na **Pridať do košíka** a potom otvorte **KOŠÍK ( 0)** v hlavičke.
 - ☐ Skontrolujte, že sa v košíku zobrazuje položka aj cena; skúste zmeniť množstvo a položku
   odstrániť.
-- ☐ Kliknite na **Prejsť do pokladne**.
+- ☐ V košíku pokračujte tlačidlom na prechod do **pokladne** (stránka „Už len malý krok.“).
 - ☐ Vyplňte údaje (meno, priezvisko, e-mail, adresu podľa spôsobu dodania).
 - ☐ Vyberte **Kartou online** a kliknite na **Zaplatiť**.
 - ☐ Zadajte testovaciu kartu `4242 4242 4242 4242`, ľubovoľný budúci dátum a ľubovoľné CVC.
-- ☐ Po úspešnej platbe sa má zobraziť potvrdenie objednávky a Vám má prísť **potvrdzujúci e-mail**.
+- ☐ Po úspešnej platbe sa má zobraziť potvrdenie objednávky a vy má prísť **potvrdzujúci e-mail**.
 - ☐ Skontrolujte, že v e-maile je uvedené číslo objednávky, položky a spôsob dodania.
 
 ---
@@ -64,10 +64,11 @@ si, čo ste presne robili (pozri bod 9). Odškrtnutý zoznam je najlepšia spät
 ## 3. Kupón Montelope
 
 Kupón **Montelope** zníži cenu o **20 €** a platí **len na program RESET 40+** (na ostatné
-položky sa zľava neuplatní).
+položky sa zľava neuplatní). Kupón uplatníte **v košíku** – pole na kód kupónu je priamo v košíku,
+a **na uplatnenie kupónu musíte byť prihlásený**.
 
-- ☐ Vložte do košíka **RESET 40+** (cena 168 €).
-- ☐ V košíku otvorte pole na kupón, vložte **Montelope** a potvrďte.
+- ☐ Prihláste sa (pozri bod 5.2) a vložte do košíka **AI ANASTASIA RESET 40+** (cena 168 €).
+- ☐ V košíku vložte do poľa na kupón **Montelope** a potvrďte.
 - ☐ Cena RESET 40+ má klesnúť o 20 € (zo 168 € na 148 €).
 - ☐ Skontrolujte, že ostatné položky v košíku (napr. voda) **zostávajú bez zľavy**.
 - ☐ Skontrolujte, že po odstránení kupónu sa cena vráti na pôvodnú.
@@ -77,43 +78,47 @@ položky sa zľava neuplatní).
 
 ## 4. Darčekový poukaz
 
-- ☐ Otvorte stránku **Darčekový poukaz** a vyberte sumu a príjemcu.
-- ☐ Prejdite do košíka a potvrďte nákup (testovacou kartou).
-- ☐ Skontrolujte, že Vám príde e-mail s darčekovým poukazom (kód).
-- ☐ Vytvorte si druhý košík, vložte ľubovoľný produkt a v košíku vložte **kód poukazu**.
+- ☐ Otvorte stránku **DARČEKOVÝ POUKAZ** (v kategóriách v obchode) a vyberte sumu a príjemcu.
+- ☐ Kliknite na **Pridať poukaz do košíka** a potom na **Prejsť do košíka**.
+- ☐ Dokončite objednávku (testovacou kartou).
+- ☐ Skontrolujte, že vám príde e-mail s darčekovým poukazom (kód).
+- ☐ Vytvorte si druhý košík, vložte ľubovoľný produkt a v košíku vložte **kód poukazu**
+  (pole na uplatnenie darčekového poukazu).
 - ☐ Skontrolujte, že sa cena zníži a v potvrdení objednávky je uvedený poukaz.
-- ☐ Skontrolujte, že poukaz možno použiť len raz a že potom ho už nemožno použiť znova.
+- ☐ Skontrolujte, že poukaz možno použiť len raz a že po ňom už ďalej nejde použiť.
 
 ---
 
 ## 5. Zákaznícky účet
 
-### 5.1 Registrácia
-- ☐ Kliknite na **Prihlásiť sa** a vyberte **Vytvoriť si účet**.
-- ☐ Vyplňte e-mail, meno, priezvisko a heslo a účet vytvorte.
-- ☐ Skontrolujte, že Vám príde e-mail s potvrdením registrácie.
+### 5.1 Prvý prihlas a registrácia
+- ☐ V hlavičke kliknite na **Môj účet** – otvorí sa stránka **Prihlásenie**.
+- ☐ Kliknite na **Poslať prihlasovací odkaz** – v e-maile príde odkaz na prihlásenie.
+- ☐ Otvorte prihlasovací odkaz v e-maile – mali by ste sa prihlásiť bez zadania hesla.
+- ☐ Skontrolujte, že odkaz funguje len raz a po chvíli expiroje.
+- ☐ Skontrolujte, že po prihlásení vidíte svoje údaje a aj **Môj účet** v menu.
 
-### 5.2 Prihlásenie odkazom (bez hesla)
-- ☐ Na prihlasovacej stránke zvoľte **Poslať prihlasovací odkaz**.
-- ☐ V e-maile otvorte prihlasovací odkaz – mali by ste sa prihlásiť bez zadania hesla.
-- ☐ Skontrolujte, že odkaz funguje len raz a po určitom čase prestane platiť.
-
-### 5.3 Objednávky a materiály
-- ☐ V účte otvorte **Objednávky** – vidíte svoju objednávku, jej stav a položky.
-- ☐ V účte otvorte **Materiály** – vidíte materiály k zakúpeným programom.
+### 5.2 Objednávky a materiály
+- ☐ V účte otvorte záložku **Objednávky** – vidíte svoju objednávku, jej stav a položky.
+- ☐ V účte otvorte záložku **Materiály** – vidíte materiály ku zakúpeným programom.
 - ☐ Skontrolujte, že po kúpe programu sa príslušný materiál objaví.
+
+### 5.3 Záložky v účte
+- ☐ Vľavo v účte nájdete záložky: **Prehľad**, **Moje programy**, **Konzultácie**, **Chat s Luciou**,
+  **Objednávky**, **Materiály**, **Môj profil** (a **Klub**, ak je v ponuke zapnutý).
+- ☐ Prejdite si ich postupne a skontrolujte, že sa každá otvorí.
 
 ### 5.4 RESET 40+ a Zrkadielko
 - ☐ V účte otvorte záložku **RESET 40+**.
 - ☐ Skontrolujte **vstupný dotazník** – odkaz sa otvorí v novom okne.
-- ☐ Rozbaľte **týždne 1 – 16**; ak obsah ešte nie je doplnený, má tam byť oznámenie
+- ☐ Rozbaľte **týždne 1 – 16**; ak obsah ešte nie je doplnený, má tam byť oznamenie
   „Obsah pripravujeme“.
 - ☐ V časti **Zrkadielko** kliknite na **Pridať záznam**:
   - ☐ vyberte dátum a týždeň,
   - ☐ hodnotenie 1 – 10 nastavíte ťuknutím na číslo,
   - ☐ záznam uložíte – objaví sa v tabuľke.
-- ☐ Záznam **upravíte** (tlačidlo Upraviť) a uložíte zmenenú hodnotu.
-- ☐ Záznam **zmažete** (tlačidlo Zmazať) – najprv sa zobrazí potvrdenie.
+- ☐ Záznam **upravíte** (tlačidlo **Upraviť**) a uložíte zmenenú hodnotu.
+- ☐ Záznam **zmážete** (tlačidlo **Zmazať**) – najprv sa zobrazí potvrdenie.
 - ☐ Na mobile má tabuľka prejsť na karty a nesmie sa roztiahnuť do strany.
 
 ---
@@ -121,9 +126,10 @@ položky sa zľava neuplatní).
 ## 6. Konzultácie a chat
 
 ### 6.1 Rezervácia konzultácie
-- ☐ Otvorte **Konzultácie** a vyberte typ konzultácie (napr. Online zdravotná konzultácia, Supervízia,
-  Astrologický profil).
-- ☐ Vyberte termín, vyplňte údaje a rezerváciu potvrďte.
+- ☐ Otvorte **KONZULTÁCIE** v hlavičke.
+- ☐ Vyberte typ konzultácie (napr. **Online zdravotná konzultácia**, **Supervízia**,
+  **Astrologický profil**) a kliknite na **Vybrať termín konzultácie**.
+- ☐ Na stránke **„Vyberte si termín.“** vyberte dátum a čas, vyplňte údaje a rezerváciu potvrďte.
 - ☐ Skontrolujte, že sa rezervácia zobrazí v účte v záložke **Konzultácie**.
 
 ### 6.2 Chat s Luciou
@@ -137,13 +143,14 @@ položky sa zľava neuplatní).
 ### 7.1 Právne stránky
 - ☐ Otvorte **Obchodné podmienky**, **Reklamačné pravidlá**, **Ochrana osobných údajov**,
   **Odstúpenie od zmluvy** a **Cookies** (nájdete ich v pätičke).
-- ☐ Na každej stránke skontrolujte, že sa dá prejsť po nadpisoch a text je čitateľný na mobile.
+- ☐ V každej stránke skontrolujte, že sa dá prejsť po nadpisoch a text je čitateľný na mobile.
 
 ### 7.2 Lišta cookies
-- ☐ Pri prvej návšteve sa Vám v spodnej časti obrazovky zobrazí **lišta cookies** s tromi tlačidlami.
-- ☐ Vyskúšajte **Odmietnuť voliteľné** – lišta zmizne a voliteľné kategórie zostanú vypnuté.
-- ☐ Vyskúšajte **Prijať všetky** a potom **Nastaviť** – v paneli nastavení vidíte kategórie
-  (nevyhnutné je vždy zapnuté, voliteľné sa dá vypnúť).
+- ☐ Na prvej návšteve Vás v spodnej časti obrazovky objaví **lišta cookies** s tromi tlačidlami:
+  **Odmietnuť voliteľné**, **Nastaviť**, **Prijať všetky**.
+- ☐ Skúšajte **Odmietnuť voliteľné** – lišta zmizne a voliteľné kategórie zostanú vypnuté.
+- ☐ Skúšajte **Prijať všetky** a potom **Nastaviť** – v panely nastavení vidíte kategórie
+  (nevyhnutné je vždy zapnuté, voliteľné sa dá vypnúť) a tlačidlá **Uložiť nastavenia** a **Zavrieť**.
 - ☐ Skontrolujte, že sa voľba **zachová** aj po obnovení stránky.
 - ☐ V pätičke nájdite odkaz **Nastavenia cookies** – otvorí ten istý panel.
 - ☐ Skontrolujte, že **platba kartou funguje aj bez súhlasu s cookies** (nevyhnutná technológia).
@@ -153,11 +160,11 @@ položky sa zľava neuplatní).
 - ☐ Vyplňte číslo objednávky, dátum, položky, e-mail, meno a dôvod, označte súhlas s informáciami
   o ochrane osobných údajov a kliknite na **Potvrdiť odstúpenie od zmluvy**.
 - ☐ Skontrolujte, že sa zobrazí potvrdenie a záznam sa uloží.
-- ☐ Vyskúšajte aj chybný vstup (napr. nevyplnený dátum alebo e-mail) – má sa zobraziť zrozumiteľná
+- ☐ Skúšajte aj chybný vstup (napr. nevyplnený dátum alebo e-mail) – má sa zobraziť zrozumiteľná
   hláška, nie prázdna stránka.
 
 ### 7.4 Reklamácie
-- ☐ Otvorte **Reklamačné pravidlá** a prečítajte si postup uplatnenia reklamácie.
+- ☐ Otvorte **Reklamačné pravidlá** a prejdite si nadpisy (napr. „1 Uplatnenie reklamácie“).
 - ☐ Skontrolujte, že je na stránke uvedený spôsob, ako reklamáciu nahlásiť.
 
 ---
@@ -166,7 +173,7 @@ položky sa zľava neuplatní).
 
 Otvorte `https://anastasia-test-admin.l-code-dynamics.com` a prejdite si všetky časti vľavo.
 
-- ☐ **Prehľad** – v hornej časti vidíte čísla na dnes a prehľad pripravenosti obchodu.
+- ☐ **Prehľad** – na hlavičke vidíte čísla na dnes a prehľad pripravenosti obchodu.
 - ☐ **Objednávky** – nájdete objednávku z testu, otvoríte jej detail, zmeníte stav a vidíte položky,
   platbu a rezerváciu.
 - ☐ **Produkty** – otvoríte produkt, zmeníte názov, cenu, popis alebo obrázok a uložíte; zmena je
@@ -195,8 +202,8 @@ Pri každej chybe pošlite, prosím, **tri veci**:
 
 1. **Snímku obrazovky** (na mobile aj na počítači, ak sa chyba prejavuje inak).
 2. **Adresu stránky**, na ktorej chyba nastala (aj s tým, čo ste mali v adrese).
-3. **Čo ste presne robili** – krok za krokom (napr. „Pridať do košíka → Košík → Prejsť do pokladne“).
+3. **Čo ste presne robili** – krok za krokom (napr. „klikol som na Pridať do košíka a potom na
+   pokladňu“).
 
 Pri chybe v administrácii pripíšte aj **meno časti v ľavom menu**, kde sa chyba stala.
 Priložte, prosím, aj text chybovej hlášky, ak sa zobrazila.
-
