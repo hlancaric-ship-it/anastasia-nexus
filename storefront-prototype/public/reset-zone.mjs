@@ -4,7 +4,8 @@
 // 16 týždňov, pracovné listy po dňoch, záverečné zhrnutie, vstupný dotazník a zoznam
 // metrík. Nič sa nevymýšľa – keď obsah chýba, zobrazí sa jemný stav „obsah pripravujeme“.
 // Názvy tlačidiel a stĺpcov pochádzajú zo starého webu (pozri API popis v release větve).
-import {escape as e} from '/components.mjs';
+// Vlastná escape (bez importu) – modul musí byť importovateľný aj v node testoch.
+const e = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 const PREPARING = 'Obsah pripravujeme.';
 
