@@ -434,6 +434,13 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-top__side--right{display:flex;gap:14px}
   .lh-top__side--right>a:not(.lh-top__menu){font-size:11px}
 }
+/* Úzký telefon: lišta se musí vejít do šířky displeje, jinak ho prohlížeč oddálí. */
+@media (max-width:480px){
+  .lh-top{padding:12px 14px;gap:10px}
+  .lh-top__side--right{gap:8px;min-width:0}
+  .lh-top__side--right>a:not(.lh-top__menu):not([href*="kosik"]){display:none}
+  .lh-top__menu{padding:0 14px;gap:8px}
+}
 
 /* --- Kategorie se objevují jedna po druhé kolem slova --------------------- */
 .lh-intro__cats{position:absolute;inset:0;pointer-events:none}

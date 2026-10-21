@@ -268,6 +268,8 @@ ${HOME_CSS}
 :is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:64px!important;min-height:64px!important;padding-block:8px!important}
 :is(.dc-root,.dc-chrome) header [data-menu-open]{height:40px!important;font-size:13px!important;gap:12px!important}
 :is(.dc-root,.dc-chrome) .header-account{display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
+/* Nic nesmí stránku rozšířit do strany (mobil by ji oddálil a „ujížděla“). */
+html,body{overflow-x:clip}
 /* Mobilní menu: celé na jednom displeji (zbytek dorovná fitMenu v app.mjs i při zvětšeném písmu). */
 @media(max-width:760px){#dc-top-menu{top:max(8px,env(safe-area-inset-top))!important;left:8px!important;right:8px!important;width:auto!important;max-height:calc(100dvh - 16px)!important;padding:16px 18px 18px!important;gap:14px!important}
 #dc-top-menu{overflow-x:hidden!important}
