@@ -1,5 +1,5 @@
 // QR is a saved link, never a second coupon balance or a client price calculation.
-export function qrAgenda({ api, esc, fmtDate, freshView }) {
+export function qrAgenda({ api, esc, fmtDate, freshView, openPrintHtml }) {
   return async function openQr(view) {
     view = freshView(view);
     let offset = 0, query = '';
@@ -55,7 +55,8 @@ export function qrAgenda({ api, esc, fmtDate, freshView }) {
           ${r.coupon ? `<p>Použitia: ${esc(r.coupon.used)} · Limit: ${r.coupon.limit == null ? 'Bez obmedzenia' : esc(r.coupon.limit)}</p><p>Platnosť: ${r.coupon.starts_at ? esc(fmtDate(r.coupon.starts_at)) : 'Bez dátumu začiatku'} – ${r.coupon.ends_at ? esc(fmtDate(r.coupon.ends_at)) : 'Bez dátumu konca'}</p>` : ''}
           ${!r.product_available || !r.coupon?.available ? message('Odkaz si môžete stiahnuť, ale produkt alebo kupón teraz nie je dostupný. Stiahnutie kupón nezapne.') : '<p>Podmienky a konečnú zľavu vždy overí košík.</p>'}
           <label for="qr-url">Pôvodný odkaz</label><input id="qr-url" readonly value="${esc(r.url)}">
-          <div class="row"><button type="button" class="btn gold" data-download="svg">Stiahnuť SVG</button><button type="button" class="btn ghost" data-download="png">Stiahnuť PNG</button></div><div data-qr></div>
+          <div class="row"><button type="button" class="btn gold" data-download="svg">Stiahnuť SVG</button><button type="button" class="btn ghost" data-download="png">Stiahnuť PNG</button>
+            <button type="button" class="btn ghost" data-print="a4">Tlačiť A4</button><button type="button" class="btn ghost" data-print="sticker">Tlačiť nálepku</button></div><div data-qr></div>
           ${r.coupon && r.coupon.status !== 'inactive' ? `<details style="margin-top:20px"><summary>Vypnúť kupón</summary><p>Vypnutie platí pre VŠETKY QR kódy aj iné odkazy používajúce tento kupón. Už dokončené nákupy sa nemenia.</p><form data-disable><label for="qr-confirm">Na potvrdenie opíšte kód kupónu</label><input id="qr-confirm" required autocomplete="off"><button class="btn ghost" type="submit">Potvrdiť vypnutie kupónu</button></form></details>` : ''}`);
         view.querySelectorAll('[data-download]').forEach(b => b.onclick = async () => {
           b.disabled = true;
@@ -65,6 +66,20 @@ export function qrAgenda({ api, esc, fmtDate, freshView }) {
             const src = `data:${result.qr.mime_type};base64,${result.qr.base64}`;
             view.querySelector('[data-qr]').innerHTML = `<img width="220" height="220" alt="QR kód pôvodného odkazu" src="${src}">`;
             const a = document.createElement('a'); a.href = src; a.download = `qr-${id}.${format}`; view.append(a); a.click(); a.remove();
+          } catch (error) { fail(error); } finally { b.disabled = false; }
+        });
+        view.querySelectorAll('[data-print]').forEach((b) => b.onclick = async () => {
+          b.disabled = true;
+          try {
+            const result = await api(`/admin/coupon-links/${encodeURIComponent(id)}/qr?format=png`);
+            if (!result.qr?.base64 || !/^[A-Za-z0-9+/=]+$/.test(result.qr.base64)) throw new Error('QR kód sa nepodarilo pripraviť. Skúste to znova.');
+            const src = `data:${result.qr.mime_type || 'image/png'};base64,${result.qr.base64}`;
+            const info = [
+              ['Produkt', r.product_title || r.sku],
+              ['Kupón', r.coupon_code],
+              ['Platnosť', r.coupon?.ends_at ? fmtDate(r.coupon.ends_at) : 'bez dátumu konca'],
+            ].filter(([, v]) => v);
+            openPrintHtml('QR kód – ANASTASIA', qrPrintHtml(b.dataset.print, src, info, esc), QR_PRINT_CSS);
           } catch (error) { fail(error); } finally { b.disabled = false; }
         });
         const form = view.querySelector('[data-disable]');
@@ -98,4 +113,26 @@ export function qrAgenda({ api, esc, fmtDate, freshView }) {
     }
     await list();
   };
+}
+
+// --- Tlač QR kódu: A4 list so záluskou alebo samostatná nálepka ---
+const QR_PRINT_CSS = `
+@page{margin:0}*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 Outfit,Arial,sans-serif;color:#2c2a23;background:#fff;padding:10mm}
+.qr-sheet{width:190mm;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:6mm;padding:12mm;border:1px solid #c9a44a;border-radius:8px;background:#f8f3e6}
+.qr-sheet img{width:90mm;height:90mm;image-rendering:pixelated}
+.qr-brand{font-size:15px;letter-spacing:5px;color:#203b32}
+.qr-kind{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#7c2438}
+.qr-info{width:100%;border-top:1px solid rgba(185,138,47,.6);padding-top:5mm;display:grid;grid-template-columns:1fr 1fr;gap:3mm 8mm;font-size:12px}
+.qr-info b{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7a6a44;font-weight:500}
+.qr-sticker{width:80mm;height:80mm;margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2mm;border:1px dashed #c9a44a;border-radius:6mm;background:#f8f3e6;page-break-after:always}
+.qr-sticker img{width:55mm;height:55mm;image-rendering:pixelated}
+.qr-sticker .qr-brand{font-size:11px;letter-spacing:3px}
+`;
+function qrPrintHtml(kind, src, info, esc) {
+  const rows = info.map(([k, v]) => `<div><b>${esc(k)}</b>${esc(String(v))}</div>`).join('');
+  if (kind === 'sticker') {
+    return `<section class="qr-sticker"><img src="${src}" alt="QR kód"><span class="qr-brand">ANASTASIA</span></section>`;
+  }
+  return `<section class="qr-sheet"><span class="qr-brand">ANASTASIA</span><span class="qr-kind">QR kód na zľavu</span><img src="${src}" alt="QR kód"><div class="qr-info">${rows}</div></section>`;
 }

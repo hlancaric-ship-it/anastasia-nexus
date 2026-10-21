@@ -71,13 +71,6 @@ export const TOUR = [
     how: 'Otvorte konverzáciu a napíšte odpoveď. Zákazníčka dostane e-mailové upozornenie. Konverzáciu môžete uzavrieť, stlmiť alebo zákazníčke zablokovať písanie.',
   },
   {
-    id: 'klub', target: '.sidebar .nav-item[href="#/klub"]', sidebar: true,
-    title: 'Klub',
-    what: 'Členky Klubu ANASTASIA, nákupy členstva, produkty zaradené do Klubu a obnovy platieb.',
-    why: 'Vidíte, kto má aktívne členstvo, dokedy platí a či sa obnovuje.',
-    how: 'Členstvo sa platí kartou a obnovuje automaticky. Pri členke môžete obnovu zastaviť, zaplatené obdobie jej ostáva. Platby rieši systém sám, nič neúčtujete ručne.',
-  },
-  {
     id: 'poukazy', target: '.sidebar .nav-item[href="#/poukazy"]', sidebar: true,
     title: 'Poukazy a zľavy',
     what: 'Zľavové kupóny, darčekové poukazy a ich nastavenie.',
@@ -119,7 +112,7 @@ export const GUIDE_GROUPS = [
   { id: 'objednavky', label: 'Objednávky' },
   { id: 'produkty', label: 'Produkty' },
   { id: 'zakaznicky', label: 'Zákazníčky a komunikácia' },
-  { id: 'konzultacie', label: 'Konzultácie a Klub' },
+  { id: 'konzultacie', label: 'Konzultácie' },
   { id: 'poukazy', label: 'Poukazy a zľavy' },
   { id: 'nastavenia', label: 'Nastavenia' },
 ];
@@ -443,28 +436,6 @@ export const GUIDES = [
     ],
   },
   {
-    id: 'klub', group: 'konzultacie', icon: 'star', href: '#/klub', hrefLabel: 'Otvoriť Klub',
-    title: 'Ako funguje Klub ANASTASIA',
-    summary: 'Členky, produkty Klubu, obnovy platieb a ich zastavenie.',
-    why: 'Klub je platené členstvo s prístupom na určité obdobie. Platby a obnovy rieši systém sám. V administrácii ich sledujete a podľa potreby obnovu zastavíte.',
-    steps: [
-      'Záložka Členky: kto má členstvo, jeho stav, prístup k obsahu, dokedy platí a či sa obnovuje. Hľadať môžete podľa ID zákazníčky.',
-      'Kliknite na členku. Tlačidlom Zastaviť automatickú obnovu zrušíte ďalšie platby.',
-      'Záložka Produkty Klubu: produkt zaradíte do Klubu tak, že zadáte dĺžku obdobia v dňoch a verziu podmienok a kliknete na Zaradiť do Klubu.',
-      'Záložka Obnovy platieb: priebeh pravidelných platieb. Pri nedokončenej obnove môžete kliknúť na Dohľadať platbu.',
-      'Záložka Nákupy členstva: prehľad nákupov členstva.',
-    ],
-    after: [
-      'Po zastavení obnovy má členka prístup do konca zaplateného obdobia. Ďalšia platba sa už nespustí.',
-      'Dohľadať platbu len overí existujúcu platbu. Nikdy nespustí novú platbu ani nestrhne peniaze znova.',
-    ],
-    careful: [
-      'Pri zmene dĺžky obdobia zadajte aj novú verziu podmienok. Existujúce členky ostávajú na pôvodných podmienkach a pri ďalšej obnove ich systém pošle na kontrolu.',
-      '„Čaká na overenie kartou“ znamená, že banka žiada potvrdenie. Členka ho dokončí vo svojom účte.',
-      'Ak pri produkte vidíte „nastavenie je poškodené“, nič neprepisujte a napíšte na podporu.',
-    ],
-  },
-  {
     id: 'kupony', group: 'poukazy', icon: 'gift', href: '#/poukazy', hrefLabel: 'Otvoriť Poukazy a zľavy',
     title: 'Ako vytvoriť zľavový kupón',
     summary: 'Kód so zľavou v percentách alebo eurách na celý nákup.',
@@ -643,12 +614,6 @@ export const PAGE_HELP = {
     text: 'Konverzácie so zákazníčkami. Otvorením sa konverzácia označí ako prečítaná, odpoveď napíšete dole.',
     points: ['Zákazníčke po odpovedi príde e-mailové upozornenie.', 'Vybavenú konverzáciu uzavrite, dá sa znova otvoriť.'],
     guides: ['spravy'],
-  },
-  klub: {
-    title: 'Ako funguje Klub',
-    text: 'Prehľad členiek, nákupov členstva, produktov Klubu a obnov platieb. Platby rieši systém sám.',
-    points: ['Zastavenie obnovy neodoberie zaplatené obdobie.', 'Dohľadať platbu nikdy nespustí novú platbu.'],
-    guides: ['klub'],
   },
   poukazy: {
     title: 'Ako fungujú Poukazy a zľavy',
