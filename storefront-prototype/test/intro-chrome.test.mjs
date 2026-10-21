@@ -71,6 +71,20 @@ test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', asy
     return el ? el.getAttribute('mask') === 'url(#lhWordInv)' : false;
   });
   assert.ok(wordTintHasMask, '#lh-word-tint má správnou masku pro animaci');
+
+  // --- Test 2b: v motion.mjs je #lh-word-tint animován PŘED #lh-word-g (pořadí v timeline)
+  const motionContent = await page.evaluate(() => {
+    const scripts = [...document.querySelectorAll('script[src]')];
+    return scripts.map(s => s.src);
+  });
+  // Načteme zdroj motion.mjs a ověříme pořadí animací v timeline
+  const motionSource = await fetch(base + '/motion.mjs').then(r => r.text());
+  assert.ok(motionSource.includes('.to(\'#lh-word-tint\', {opacity: 0'), 'motion.mjs obsahuje animaci #lh-word-tint na opacity 0');
+  // Kontrola pořadí: #lh-word-tint musí být v timeline před #lh-word-g
+  const tintIndex = motionSource.indexOf('.to(\'#lh-word-tint\', {opacity: 0');
+  const gIndex = motionSource.indexOf('.to(\'#lh-word-g\', {scale: 110');
+  assert.ok(tintIndex > 0 && gIndex > 0 && tintIndex < gIndex, 
+    '#lh-word-tint je v motion.mjs animován PŘED #lh-word-g v timeline');
   
   // --- Test 3: .lh-cat na desktopu má top vypočítaný přes calc(50% + …) ---
   const cat1 = await page.$('.lh-cat--1');
