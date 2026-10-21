@@ -14,6 +14,7 @@ repo = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--booking-only', action='store_true', help='Run booking HTTP checks with the same isolated infrastructure')
 parser.add_argument('--gift-voucher-only', action='store_true', help='Run only the K8 gift voucher HTTP checks with the same isolated infrastructure')
+parser.add_argument('--spec', default='integration-tests/http/safeorder-persistence.spec.ts', help='Integration spec to run in the synthetic cluster (relative to backend/)')
 args = parser.parse_args()
 backend = repo / 'backend'
 evidence_out = os.environ.get('WAVE1_EVIDENCE_OUT')
@@ -107,7 +108,7 @@ process.on('SIGTERM',()=>{server.closeAllConnections();server.close(()=>process.
     env.update({'DB_HOST': 'localhost', 'DB_PORT': str(pg_port), 'DB_USERNAME': 'wave1_synthetic', 'DB_PASSWORD': '', 'DB_TEMP_NAME': 'anastasia_dev_wave1', 'DATABASE_URL': f'postgres://wave1_synthetic@127.0.0.1:{pg_port}/anastasia_dev_wave1', 'WAVE1_PG_DATA': str(pg_data), 'WAVE1_SYNTHETIC_ROOT': str(root), 'WAVE1_WORKER_BASE': worker_base, 'NEXUS_PRICING_URL': worker_base + '/api/nexus/pricing', 'NEXUS_SAFEORDER_URL': worker_base + '/api/nexus/safeorder', 'NEXUS_PRICING_API_KEY': 'synthetic-service-key', 'NEXUS_TENANT_ID': 'anastasia', 'JWT_SECRET': 'synthetic-test-jwt-secret-only', 'COOKIE_SECRET': 'synthetic-test-cookie-secret-only', 'TEST_TYPE': 'integration:http', 'NODE_OPTIONS': '--experimental-vm-modules --dns-result-order=ipv4first'})
     print(f'Synthetic evidence directory: {root}', flush=True)
     with (root / 'medusa-test.log').open('w') as test_log:
-        result = subprocess.run([str(backend / 'node_modules/.bin/jest'), '--runInBand', '--forceExit', '--runTestsByPath', 'integration-tests/http/safeorder-persistence.spec.ts'], cwd=backend, env=env, stdout=test_log, stderr=subprocess.STDOUT, timeout=900)
+        result = subprocess.run([str(backend / 'node_modules/.bin/jest'), '--runInBand', '--forceExit', '--runTestsByPath', args.spec], cwd=backend, env=env, stdout=test_log, stderr=subprocess.STDOUT, timeout=900)
     print('\n'.join((root / 'medusa-test.log').read_text().splitlines()[-14:]), flush=True)
     raise SystemExit(result.returncode)
 finally:

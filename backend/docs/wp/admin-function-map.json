@@ -4794,6 +4794,7 @@
     "backend/integration-tests/http/protected-library-admin-http-checks.ts",
     "backend/integration-tests/http/qr-registry.spec.ts",
     "backend/integration-tests/http/reset-journal-http-checks.ts",
+    "backend/integration-tests/http/reset-journal.spec.ts",
     "backend/integration-tests/http/safeorder-persistence.spec.ts",
     "backend/integration-tests/http/shipping-settings-http-checks.ts",
     "backend/integration-tests/http/stock-availability-http-checks.ts",

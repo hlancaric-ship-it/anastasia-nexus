@@ -31,7 +31,7 @@ export async function verifyResetJournal({ api, container, options, evidence }: 
     },
   }])
   const entitlements = container.resolve("entitlement")
-  await entitlements.grant({ customer_id: owner.id, product_id: program.id, source: "admin", dedupe_key: `zrk:${owner.id}:${program.id}` })
+  await entitlements.grant({ customer_id: owner.id, product_id: program.id, source: "admin", dedupe_key: `zrk:${owner.id}:${program.id}`, tenant_id: "default" })
   const optOwner = as(owner.id)
   const optOther = as(other.id)
 
@@ -63,7 +63,7 @@ export async function verifyResetJournal({ api, container, options, evidence }: 
   record("VALIDATION_REJECTS")
 
   // 4) Cudzí zákazník s vlastným prístupom nevidí cudzí záznam a nezmení ho.
-  await entitlements.grant({ customer_id: other.id, product_id: program.id, source: "admin", dedupe_key: `zrk:${other.id}:${program.id}` })
+  await entitlements.grant({ customer_id: other.id, product_id: program.id, source: "admin", dedupe_key: `zrk:${other.id}:${program.id}`, tenant_id: "default" })
   const otherList = await api.get("/store/reset-journal", optOther)
   expect(otherList.status).toBe(200)
   expect(otherList.data.entries.length).toBe(0)

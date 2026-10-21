@@ -1,0 +1,73 @@
+name: Reset journal (member zone)
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'backend/src/modules/reset-journal/**'
+      - 'backend/src/lib/reset-program/**'
+      - 'backend/src/api/store/reset-journal/**'
+      - 'backend/src/api/store/reset-program/**'
+      - 'backend/integration-tests/http/reset-journal*'
+      - '.github/workflows/reset-journal.yml'
+permissions:
+  contents: read
+jobs:
+  reset-journal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.6-bookworm
+        env:
+          POSTGRES_USER: reset_journal_synthetic
+          POSTGRES_PASSWORD: reset_journal_synthetic_only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U reset_journal_synthetic -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+      - name: Install locked dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
+      - name: Check types and Zrkadielko unit tests
+        id: checks
+        working-directory: backend
+        env:
+          TEST_TYPE: unit
+          MEDUSA_TELEMETRY_DISABLED: 'true'
+          NODE_OPTIONS: --experimental-vm-modules
+        run: |
+          ./node_modules/.bin/tsc --noEmit
+          ./node_modules/.bin/jest --runTestsByPath \
+            src/modules/reset-journal/__tests__/policy.unit.spec.ts \
+            src/modules/reset-journal/__tests__/service.unit.spec.ts \
+            src/lib/reset-program/__tests__/config.unit.spec.ts \
+            src/lib/reset-program/__tests__/structure.unit.spec.ts \
+            src/api/store/reset-journal/__tests__/route.unit.spec.ts \
+            --runInBand --forceExit
+      - name: Verify Zrkadielko over actual Medusa HTTP and PostgreSQL
+        if: ${{ !cancelled() && steps.checks.outcome == 'success' }}
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          CI: 'true'
+          MEDUSA_TELEMETRY_DISABLED: 'true'
+          NODE_OPTIONS: --experimental-vm-modules --dns-result-order=ipv4first
+          TEST_TYPE: integration:http
+          DB_HOST: localhost
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+          DB_USERNAME: reset_journal_synthetic
+          DB_PASSWORD: reset_journal_synthetic_only
+          DB_TEMP_NAME: anastasia_reset_journal_ci
+          DATABASE_URL: postgres://reset_journal_synthetic:reset_journal_synthetic_only@localhost:${{ job.services.postgres.ports[5432] }}/anastasia_reset_journal_ci
+          JWT_SECRET: synthetic-reset-journal-jwt-only
+          COOKIE_SECRET: synthetic-reset-journal-cookie-only
+        run: ./node_modules/.bin/jest --runTestsByPath integration-tests/http/reset-journal.spec.ts --runInBand --forceExit

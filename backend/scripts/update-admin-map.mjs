@@ -150,6 +150,7 @@ const newTests = [
   'backend/src/modules/reset-journal/__tests__/service.unit.spec.ts',
   'backend/src/api/store/reset-journal/__tests__/route.unit.spec.ts',
   'backend/integration-tests/http/reset-journal-http-checks.ts',
+  'backend/integration-tests/http/reset-journal.spec.ts',
   'backend/src/lib/digital-products/__tests__/categories.unit.spec.ts',
   'backend/src/api/admin/products/[id]/protected-media/__tests__/library-upload.unit.spec.ts',
   'backend/src/api/admin/products/[id]/protected-media/__tests__/delete-key-routing.unit.spec.ts',

@@ -124,8 +124,7 @@ Bez aktívneho entitlementu na program je odpoveď **403** (nie 404 – klientka
 |---|---|
 | `GET /store/reset-journal` | vlastné záznamy + konfigurácia metrik (`?limit=`, `?offset=`) |
 | `POST /store/reset-journal` | nový záznam: `{ "date": "YYYY-MM-DD", "week": 1..16, "metrics": { "energia": 7 } }` |
-| `PATCH /store/reset-journal/:id` | úprava vlastného záznamu (`date`, `week`, `metrics`) |
-| `DELETE /store/reset-journal/:id` | zmazanie vlastného záznamu |
+| `PATCH /store/reset-journal/:id` | úprava vlastného záznamu (`date`, `week`, `metrics`) || `DELETE /store/reset-journal/:id` | zmazanie vlastného záznamu |
 | `GET /store/reset-program` | štruktúra programu (16 týždňov, pracovné listy, záverečné zhrnutie, vstupný dotazník) + metriky |
 
 Príklad odpovede `GET /store/reset-journal`:
@@ -200,16 +199,20 @@ Nové testy:
 | `backend/src/lib/reset-program/__tests__/structure.unit.spec.ts` | kostra 16 týždňov, dni 2–7, sanitizácia, `content_ready` |
 | `backend/src/api/store/reset-journal/__tests__/route.unit.spec.ts` | 401/403/404, vlastné záznamy, cudzí záznam |
 | `backend/integration-tests/http/reset-journal-http-checks.ts` | skutočné HTTP + PostgreSQL: izolácia zákazníčiek, validácia, export, výmaz |
+| `backend/integration-tests/http/reset-journal.spec.ts` | samostatný integračný beh (Medusa + Postgres) pre CI |
 
 ### 6.2 Integrácia (HTTP + PostgreSQL)
 
-`backend/integration-tests/http/reset-journal-http-checks.ts` je zapojená do sériového behu
-`backend/integration-tests/http/safeorder-persistence.spec.ts` a spúšťa sa cez
-`backend/scripts/verify-safeorder-local.py` (súkromný syntetický Postgres cluster).
+Scenár `backend/integration-tests/http/reset-journal-http-checks.ts` beží nad **skutočným
+Medusa HTTP a PostgreSQL** (migrácia modulu, entitlement, export, výmaz).
 
-**Stav integrácie v tomto balíku: `IMPLEMENTED_UNVERIFIED`** – scenár je zapísaný, ale v tomto
-prostredí nebol spustený (vyžaduje syntetický cluster a NEXUS worker). Overenie patrí do
-CI behu `verify-safeorder-local.py`.
+* samostatný špec: `backend/integration-tests/http/reset-journal.spec.ts` (iba syntetické údaje,
+  vlastná dočasná databáza),
+* CI: `.github/workflows/reset-journal.yml` (Postgres služba `reset_journal_synthetic`,
+  databáza `anastasia_reset_journal_ci`),
+* lokálne (súkromný syntetický cluster):
+  `python3 backend/scripts/verify-safeorder-local.py --spec integration-tests/http/reset-journal.spec.ts`,
+* scenár je zapojený aj do sériového behu `backend/integration-tests/http/safeorder-persistence.spec.ts`.
 
 ### 6.3 Čo je overené a čo nie
 
@@ -217,9 +220,25 @@ CI behu `verify-safeorder-local.py`.
 |---|---|
 | Jednotkové testy politiky, služby, konfigurácie a tras prechádzajú | `VERIFIED` (spustené) |
 | `tsc --noEmit` bez chyby | `VERIFIED` (spustené) |
-| Izolácia zákazníčiek a výmaz v skutočnom HTTP + PG | `IMPLEMENTED_UNVERIFIED` (scenár zapísaný, beh nespustený) |
+| Izolácia zákazníčiek, validácia, export a výmaz v skutočnom HTTP + PG | `VERIFIED` (spustené v syntetickom clusteri) |
+| Migrácia modulu vytvorí tabuľku a indexy | `VERIFIED` (beh nad čistou databázou) |
 | Obsah programu (texty, pracovné listy) | `NOT_IMPLEMENTED` – dodá Lucia |
 | Právny základ (súhlas) | `NOT_IMPLEMENTED` – potvrdenie od Lucie (bod 17) |
+| Frontend členskej zóny | `NOT_IMPLEMENTED` – iný balík |
+
+### 6.4 Nálezy mimo balíka (pre informáciu, neopravené)
+
+Pri behu integračných scenárov na veteve `release/predani-faze1` sa potvrdili dve **predchádzajúce**
+(problémy mimo balíka Zrkadielko):
+
+1. `backend/integration-tests/http/safeorder-persistence.spec.ts` – zlyháva v scenári
+   „C3_CONCURRENT_SINGLE_USE“ (`expect(arrivals).toBe(2)`), teda ešte pred dosiahnutím scenárov
+   Zrkadielka. **Overené na základnom commite `6398912` aj s mojimi zmenami** → nejde o regresiu
+   balíka Zrkadielko.
+2. `backend/src/modules/entitlement/service.ts` vyžaduje pri `grant()` `tenant_id`, ale
+   `backend/src/lib/membership/access.ts` ho neposiela a `entitlement-isolation-http-checks.ts`
+   ho taktiež neposiela → club prístup a tento integračný scenár sú na veteve rozbité.
+   Patrí to balíku entitlement/tenanta, nie Zrkadielku.
 
 ---
 
@@ -281,8 +300,11 @@ backend/src/modules/reset-journal/__tests__/service.unit.spec.ts
 backend/src/lib/customer-privacy/export.ts                          (export: reset_journal)
 backend/src/modules/customer-privacy/erase.ts                       (výmaz: natvrdo)
 backend/integration-tests/http/reset-journal-http-checks.ts
+backend/integration-tests/http/reset-journal.spec.ts
 backend/integration-tests/http/safeorder-persistence.spec.ts        (zapojenie scenára)
 backend/scripts/update-admin-map.mjs                                (nové routy v mape administrácie)
+backend/scripts/verify-safeorder-local.py                           (voliteľný --spec pre vlastný scenár)
 backend/docs/wp/admin-function-map.json                            (mapa administrácie)
+.github/workflows/reset-journal.yml                                (CI: vlastný Postgres + špec)
 anastasia-admin/PRAVNE-TEXTY-DOPLNIT.md                             (bod 17 – právny základ)
 ```
