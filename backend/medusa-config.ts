@@ -269,5 +269,10 @@ module.exports = defineConfig({
       cookieSecret,
     }
   },
+  // Klientka používa vlastnú administráciu (anastasia-admin/). Medusa Admin (/app) je skrytý
+  // a zapína sa len pre vývoj premennou MEDUSA_ADMIN_ENABLED=true.
+  admin: {
+    disable: process.env.MEDUSA_ADMIN_ENABLED !== "true",
+  },
   modules,
 })
