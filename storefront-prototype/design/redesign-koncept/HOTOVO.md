@@ -75,7 +75,21 @@ Používame mužský/neutrálny rod („zákazníci“), nikdy „zákazníčky�
 | `c2dfa67` | koncept – paleta, typografia, tlačidlá a karty |
 | (tento) | `design/redesign-koncept/HOTOVO.md` |
 
-## 7. Čo treba rozhodnúť pred produkciou
+## 7. Kolo 2 (`OPRAVY-k2.md`) – čo sa zmenilo
+
+| Bod | Riešenie |
+|---|---|
+| 1. Hero ako montáž | Hero je **produkčné hero video** (`public/media/hero-1080p.mp4` – ten istý súbor ako vo webe) **vrstvený s rýchlymi prestrihmi vlastných záberov** (`night-sky.jpg`, `legacy-483537f470c4.jpg`, `lucia-portrait.jpg`, `learning.jpg`, `hero-forest.jpg`; kríženie 650 ms, 2,8 s na záber). Žiadne pôvodné lesné video ako samostatná podstata. |
+| 2. Značka len raz | V hlavičke je **logo-znak** (`logo-mark.png`) + **jeden nápis** („ANASTASIA / LIGHT FOR THE FUTURE“). Pôvodný obrázok s textom bol nahradený znakom, eyebrow v hero („ANASTASIA · Light for the Future“) je **zrušený**. |
+| 3. Mobilný hero | Tlačidlo „Vstúpte do zdravého sveta“ má **odstup ≥ 28 px** (34 px na mobile). Dlhý odstavec sa na mobile vizuálne skráti na **5 riadkov** + tlačidlo **„Čítať viac“** (text odstavca sa nemení, mení sa len rozloženie). |
+| 4. Ovládanie v hlavičke | „KOŠÍK“ aj tlačidlo menu majú **jediný štýl** – pilulka s okrajom a priehľadným pozadím: **svetlá nad videom, tmavá na svetlom pozadí**. Žiadny čierny obrys ani zdvojený okraj. |
+| 5. paleta.html | Hlavička je na krémovom pozadí **plná od začiatku** (`body.k-solid-header`) – nápis ANASTASIA je čitateľný. |
+| 6. Rytmus stránky | Pod hero je **sekcia s parallaxom na plnú šírku** (`zdravy-svet-luka.jpg`) a sekcia programov má **levanduľový akent** (svetlý pás + levanduľový eyebrow). Pridané **fullPage screenshoty** 390 a 1440 všetkých troch stránok (`shots/*-full.png`). |
+
+Commity kola 2: `0fa6fde` (montáž, značka raz, mobilný hero, tlačidlá),
+`c04180d` (kontrast, parallax sekcia, levanduľový pás, paleta hlavička, fullPage shoty).
+
+## 8. Čo treba rozhodnúť pred produkciou
 
 1. Potvrdiť mätovú a levanduľovú (obidve navrhnuté v koncepte) a definitívne
    odsúhlasiť bordó v zone účtu.
