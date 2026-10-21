@@ -121,6 +121,12 @@ a **na uplatnenie kupónu musíte byť prihlásený**.
 - ☐ Záznam **zmážete** (tlačidlo **Zmazať**) – najprv sa zobrazí potvrdenie.
 - ☐ Na mobile má tabuľka prejsť na karty a nesmie sa roztiahnuť do strany.
 
+### 5.5 Klub ANASTASIA
+- ☐ V pätičke kliknite na **Klub** – otvorí sa stránka **Členstvo Klubu**.
+- ☐ Bez prihlásenia sa má zobraziť výzva **Prihlásiť sa**.
+- ☐ Po prihlásení si prezrite ponuku členstva a podmienky.
+- ☐ V účte otvorte záložku **Klub** – v časti **Moje členstvo** vidíte stav svojho členstva.
+
 ---
 
 ## 6. Konzultácie a chat

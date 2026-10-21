@@ -9,7 +9,7 @@ dát. Pred samotným testovaním zákazníka ich preveríme.
 
 | Bod | Výsledok |
 |---|---|
-| **Klub / členstvo** | **Nedostupné.** `/klub` sa presmeruje (301) na `/eshop/` – na živom teste sa zobrazí obchod, nie ponuka členstva. V kóde je Klub zapnutý prepínačom `ANASTASIA_CLUB=1` (`src/club.mjs`) a vtedy pribudne záložka **Klub** v účte a odkaz **Klub** v pätičke. **Treba rozhodnúť, či Klub v Fáze 1 vôbec patrí do testu.** |
+| **Klub / členstvo** | **Zapnutý 21. 10. (schválil Lucky).** `/klub` 200, odkaz v pätičke, záložka Klub v účte. Doplnený scenár 5.5. Ponuku po prihlásení overiť s testovacím účtom. |
 | **Presmerovania starých adres a QR kódov (301)** | **Funguje.** Overené 21. 10. (Claude): všetkých 20 ciest z `public/_redirects` vracia 301 na správny cieľ, QR odkaz `/eshop/kosik?produkt=…&kupon=…&ks=…` zachová parametre. Adresy typu `/index.php?page=14` v mape nie sú (neboli v GSC). Presmerovanie hostu `anastasiaoz.eu` → `www` rieši NEXUS Worker až na produkčnej doméne. |
 
 ## 2. Overiť s prihláseným testovacím účtom
