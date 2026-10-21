@@ -366,3 +366,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 /* r12/5: nadpis „Zdravý svet“ sa nesmie strieť vpravo. */
 .zs-statement h2,.zs-opening h1{overflow-wrap:break-word;word-break:normal;hyphens:auto;max-width:100%}
 @media(max-width:760px){.zs-statement h2{font-size:clamp(26px,7vw,40px)!important;line-height:1.12!important}}
+
+/* r12/6: v astrológii nesmú cez nadpis a text prechádzať vodorovné linky,
+   tlačidlo „Objaviť profil“ nemá zvýraznený obdélník za textom. */
+.lh-sky__txt h2,.lh-sky__txt p{border:0!important;background-image:none!important;box-shadow:none!important;text-shadow:none!important}
+.lh-sky__txt .lh-cta--gold{background:transparent!important;border-color:currentColor!important;color:var(--site-cream,#EFE5C7)!important;box-shadow:none!important}
+.lh-sky__txt .lh-cta--gold:hover{background:rgba(255,255,255,.12)!important}
