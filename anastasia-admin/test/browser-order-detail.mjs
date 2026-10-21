@@ -51,6 +51,10 @@ const orderHandler = async (route) => {
     state.updated = req.postDataJSON() || {};
     return apiJson(route, { order: { ...order, ...state.updated } });
   }
+  if (req.method() === 'POST' && /\/admin\/nexus\/orders\/order_1\/refund/.test(url.pathname)) {
+    state.refund = req.postDataJSON() || {};
+    return apiJson(route, { order_id: 'order_1', refunded: state.refund.amount, restocked: state.refund.restock ? 2 : 0 });
+  }
   if (req.method() === 'POST' && /\/admin\/payments\/pay_1\/refund/.test(url.pathname)) {
     state.refund = req.postDataJSON() || {};
     return apiJson(route, { payment: { id: 'pay_1' } });
@@ -130,9 +134,13 @@ try {
     assert((await page.locator('#omsg').innerText()).includes('dôvod vrátenia'), 'chýba upozornenie na dôvod vrátenia');
     assert(!state.refund, 'vrátenie prebehlo bez dôvodu');
     await page.fill('[data-refreason="pay_1"]', 'reklamácia – zákazník vracia tovar');
+    await page.check('[data-refrestock="pay_1"]');
     await refBtn.click();
     await page.waitForTimeout(700);
     assert(state.refund && state.refund.note === 'reklamácia – zákazník vracia tovar', 'dôvod vrátenia sa neposlal: ' + JSON.stringify(state.refund));
+    assert(state.refund && state.refund.restock === true, 'vrátenie na sklad sa neposlalo');
+    assert(state.refund && state.refund.payment_id === 'pay_1', 'platba sa neposlala');
+    assert(state.refund && state.refund.amount > 0, 'suma vrátenia sa neposlala');
   }
 
   console.log(JSON.stringify({ checks, status: 'PASS' }));

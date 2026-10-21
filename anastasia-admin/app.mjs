@@ -1383,7 +1383,9 @@ async function vOrderDetail(view, id, notice) {
     return `<div class="task"><div><b>${fmtEur(p.amount)}</b> <span class="muted">${esc(PAY_METHOD[p.provider_id]?.label || p.provider_id || '')}</span>
       <p class="muted">Prijaté ${fmtEur(cap)} · vrátené ${fmtEur(ref)}</p>
       ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div>
-        <div><label>Dôvod vrátenia (povinný)</label><input data-refreason="${esc(p.id)}" maxlength="500" placeholder="napr. reklamácia – zákazník vracia tovar"></div></div>` : ''}</div>
+        <div><label>Dôvod vrátenia (povinný)</label><input data-refreason="${esc(p.id)}" maxlength="500" placeholder="napr. reklamácia – zákazník vracia tovar"></div>
+        <div><label style="display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-refrestock="${esc(p.id)}" style="width:auto"> Vrátiť tovar na sklad</label>
+          <p class="muted" style="font-size:12px;margin:4px 0 0">Zapnuté, ak tovar fyzicky vraciate späť do skladu.</p></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
   view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<div class="card-h-act">
@@ -1488,9 +1490,10 @@ async function vOrderDetail(view, id, notice) {
   view.querySelectorAll('[data-ref]').forEach(b => b.onclick = () => {
     const amt = Number(view.querySelector(`[data-refamt="${CSS.escape(b.dataset.ref)}"]`)?.value), max = Number(b.dataset.max);
     const reason = (view.querySelector(`[data-refreason="${CSS.escape(b.dataset.ref)}"]`)?.value || '').trim();
+    const restock = view.querySelector(`[data-refrestock="${CSS.escape(b.dataset.ref)}"]`)?.checked === true;
     if (!(amt > 0) || amt > max) { view.querySelector('#omsg').innerHTML = `<div class="err">Zadajte sumu od 0,01 do ${esc(fmtEur(max))}.</div>`; return; }
     if (!reason) { view.querySelector('#omsg').innerHTML = '<div class="err">Napíšte dôvod vrátenia.</div>'; return; }
-    run(b, `Naozaj vrátiť ${fmtEur(amt)} zákazníkovi? Túto akciu nemožno vrátiť späť.`, () => api(`/admin/payments/${b.dataset.ref}/refund`, { method: 'POST', body: { amount: amt, note: reason } }), `Vrátenie ${fmtEur(amt)} bolo odoslané. Dôvod: ${reason}`);
+    run(b, `Naozaj vrátiť ${fmtEur(amt)} zákazníkovi? Túto akciu nemožno vrátiť späť.`, () => api(`/admin/nexus/orders/${id}/refund`, { method: 'POST', body: { payment_id: b.dataset.ref, amount: amt, note: reason, restock } }), `Vrátenie ${fmtEur(amt)} bolo odoslané.${restock ? ' Tovar je vrátený na sklad.' : ''} Dôvod: ${reason}`);
   });
   const cb = view.querySelector('#o-cancel');
   if (cb) cb.onclick = () => {
@@ -2995,6 +2998,7 @@ const AUDIT_LABEL = {
   'admin.media.add': 'Pridanie obrázka do knihovny',
   'admin.media.delete': 'Zmažanie obrázka z knihovny',
   'order.cancel': 'Zrušenie objednávky',
+  'order.refund': 'Vrátenie peňazí z objednávky',
   'order.note_created': 'Poznámka k objednávke',
   'chat.conversation.start': 'Nová správa zákazníkovi',
   'chat_customer.block': 'Zablokovanie chatu zákazníka',

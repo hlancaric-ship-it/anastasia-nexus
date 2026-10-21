@@ -38,6 +38,17 @@
 
 ---
 
+## 0a. r8 (21. 10. 2026) – hotové rýchle položky
+
+| # | Položka | Stav |
+|---|---|---|
+| 1.7 | Vrátenie tovaru na sklad po refundácii (prepínač v dialógu, inventúra, audit) | hotovo |
+| 14.3 | E-mail správcovi o novej objednávke (Resend, adresa z nastavenia, šablona v administrácii) | hotovo (push/SMS zostáva otvorené) |
+| 3.1 | Zoznam zákazníkov bez orezu na 100 (stránkovanie) | bolo hotové už v r5 – overené |
+| 3.3 | História objednávok v detaile zákazníka | bolo hotové už v r5 – overené |
+
+---
+
 ## 0b. r7 (21. 10. 2026) – hotové rýchle položky
 
 | # | Položka | Stav |
@@ -60,7 +71,7 @@
 | 1.4 | Storno objednávky | **MÁ** (r7) – dôvod je povinný: vlastná trasa `POST /admin/nexus/orders/:id/cancel` zruší objednávku, uloží dôvod, kto a kedy do `order.metadata.anastasia_cancel` a zapíše audit `order.cancel`. Návrat tovaru na sklad po storne stále **CHÝBA** (zostáva v rámci 1.7) | `backend/src/api/admin/nexus/orders/[id]/cancel/route.ts`, `anastasia-admin/app.mjs` (formulár „Dôvod zrušenia“) | — | — |
 | 1.5 | Čiastočné vrátenie peňazí | **MÁ** — vstup sumy s `max` = nezrefundovaný zvyšok, validácia 0,01–max, `POST /admin/payments/:id/refund` | `app.mjs:1162`, `:1217-1221` | — | — |
 | 1.6 | Plné vrátenie peňazí | **MÁ** — default = zostávajúca suma, `:1162` | `app.mjs:1159-1163` | — | — |
-| 1.7 | Vrátenie tovaru na sklad po refundácii | **CHÝBA** — repo-wide grep `restock\|inventory.*refund` = 0 hitov. Vrátený tovar sa nikde nevráti do skladu | — | **P0** | M |
+| 1.7 | Vrátenie tovaru na sklad po refundácii | **MÁ** (r8) – v dialógu vrátenia je voliteľný prepínač „Vrátiť tovar na sklad“. Trasa `POST /admin/nexus/orders/:id/refund` po jadlovom vrátení peňazí zvýši `stocked_quantity` a uvoľní `reserved_quantity` v inventúre (podľa SKU variantu) a zapíše audit `order.refund` | `backend/src/api/admin/nexus/orders/[id]/refund/route.ts`, `anastasia-admin/app.mjs` (záložka Platby) | — | — |
 | 1.8 | Dobropis (credit note) | **CHÝBA** — grep `dobropis\|credit_note\|credit note` = 0 hitov v celom repo | — | **P0** | L |
 | 1.9 | Dôvod vrátenia / reklamácie | **MÁ** (r7) – v dialógu vrátenia je povinné pole „Dôvod vrátenia“, posiela sa ako `note` (core validátor `AdminCreatePaymentRefund` ho prijíma) | `anastasia-admin/app.mjs` (tabuľka Platby, `data-refreason`) | — | — |
 | 1.9b | Kontrola meny pri vrátení | **CHÝBA** — `fmtEur` je natvrdo EUR (`app.mjs:7`), `o.currency_code` sa pri refunde neporovnáva s menou platby | `app.mjs:7`, `:1220` | P1 | S |
@@ -104,9 +115,9 @@
 
 | # | Položka | Stav | Kde v kóde | Priorita | Odhad |
 |---|---|---|---|---|---|
-| 3.1 | Zoznam zákazníkov | **ČI** — `limit=100`, **bez stránkovania a bez vyhľadávania**. Nad 100 zákazníkov zostane väčšina neviditeľná. **Bug:** e-mail sa karta vôbec nezobrazí, ak zákazníka nemá meno (`app.mjs:1232`); **telefón sa ani nestahuje** → nemožno hľadať podľa telefónu | `app.mjs:1225-1236` | **P0** | S |
+| 3.1 | Zoznam zákazníkov | **MÁ** (r5, overené r8) – stránkovanie po 25 zákazníkov, vyhľadávanie podľa mena a e-mailu, jednotné ID zákazníka, filter podľa vernostnej úrovne | `anastasia-admin/app.mjs` (`vCustomers`) | — | — |
 | 3.2 | Detail zákazníka (meno, e-mail, hosť/účet) + úprava mena | **MÁ** | `app.mjs:1237-1262`, save `:1253-1262` | — | — |
-| 3.3 | História objednávok zákazníka | **CHÝBA** — v deteile zákazníka nie sú objednávky, žiadny filter zoznamu objednávok podľa `customer_id` | `app.mjs:1237-1250` | **P0** | M |
+| 3.3 | História objednávok zákazníka | **MÁ** (r5, overené r8) – v detaile zákazníka je záložka Objednávky (história objednávok aj stav platby a vybavenia) | `anastasia-admin/app.mjs` (`vCustomerDetail`) | — | — |
 | 3.4 | História akcií / priznámky ku zákazníkovi | **CHÝBA v UI** — API existuje (`GET/POST/DELETE /admin/customers/:id/notes`, audit `customer.note_created`), **ale admin ho nikde nepoužíva** | `backend/src/api/admin/customers/[id]/notes/route.ts` (orphan) | P1 | S |
 | 3.5 | GDPR export (právo na prístup) | **ČI** — self-service pre zákazníka existuje (`GET /store/customers/me/export`), **v adminovi chýba akcia „export údajov zákazníka“** | `backend/src/api/store/customers/me/export/route.ts`, `backend/src/lib/customer-privacy/export.ts` | P1 | S |
 | 3.6 | GDPR výmaz (právo na zabudnutie) | **ČI / P0** — backend admin API existuje a je funkčné (`GET /admin/customer-erasures`, `POST /admin/customer-erasures/:id/execute`, s auditom `customer.erasure`), **ale je to „orphan“ route — v SPA nie je naň žiadny odkaz**. Bez UI sa žiadosť o výmaz nedá vybaviť. **Pozor: ide o anonymizáciu, nie o úplné zmazanie** — riadok `customer` zostáva, **všetky objednávky a účtovné záznamy zostávajú zachované** (`orders_preserved`), chat je natvrdo zablokovaný | `backend/src/api/admin/customer-erasures/*` (orphan), `backend/src/modules/customer-privacy/erase.ts:3,11,17,21-23,46` | **P0** | S |
@@ -299,7 +310,7 @@
 |---|---|---|---|---|---|
 | 14.1 | Upozornenie v prehliadači (Notification API, polling 120 s) | **MÁ** | `app.mjs:322-366` | — | — |
 | 14.2 | Badge „Na vybavenie“ v navigácii + dashboard | **MÁ** | `app.mjs:97`, `:268` | — | — |
-| 14.3 | **E-mail / push / SMS obchodníkovi o novej objednávke** | **CHÝBA / P0** — existuje iba `chat-admin-digest` pre chat. **Ak Lucia nemá otvorený prehliadač, o novej objednávke sa nedozvie.** Neexistuje žiadny admin-user notifikačný kanál (grep `admin.*email\|notif.*objedn` = 0 hitov v `subscribers/`) | `backend/src/jobs/chat-admin-digest.ts` (len chat) | **P0** | M |
+| 14.3 | **E-mail / push / SMS obchodníkovi o novej objednávke** | **MÁ** (r8) – e-mail správcovi pri novej objednávke: subscriber `admin-order-placed` (udalosť `order.placed`) posiela šablónu „order-placed-admin“ na adresu z `ORDER_NOTIFY_EMAIL` (bez nej `CHAT_ADMIN_NOTIFY_EMAIL`). Šablóna je v zozname e-mailových šablón v administrácii a dá sa vypnúť. Push/SMS zostáva **CHÝBA** | `backend/src/subscribers/admin-order-placed.ts`, `backend/src/modules/notification-zeptomail/templates.ts` | — | — |
 | 14.4 | Upozornenie na nízky sklad (e-mail/Slack) | **CHÝBA** | — | P1 | M |
 | 14.5 | Upozornenie na žiadosť o odstúpenie / výmaz údajov / novú reklamáciu | **CHÝBA** | — | **P0** | M |
 | 14.6 | Upozornenie na chybnú platbu (napr. `refund_manual_review`) | **ČI** — event sa zapíše do `ops_events`, **žiadna notifikácia ani UI** | `backend/src/subscribers/compensation-payment-refunded.ts:17` | P1 | M |
