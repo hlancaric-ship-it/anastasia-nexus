@@ -6,6 +6,18 @@ import {createApi} from '/lib/api/index.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit} from '/i18n.mjs';
+import {initCookieConsent,requireDecision,hasConsentDecision} from '/consent.mjs';
+import {initWithdrawalForm} from '/withdrawal-form.mjs';
+// Lišta cookies a panel nastavení: bez rozhodnutia zákazníka sa nenačíta žiadny skript tretej strany.
+// Beží pred pripojením k obchodu – súhlas nesmie závisieť od dostupnosti backendu.
+initCookieConsent();
+// Stripe je jediný skript tretej strany na webe (platobná brána). Načíta sa až potom,
+// čo zákazník rozhodne o cookies – do tej chvíle web nenačíta nič cudzie.
+const loadStripeScript=async()=>{
+  if(window.Stripe)return window.Stripe;
+  await requireDecision();
+  return new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
+};
 let storage;try{storage=window.sessionStorage;}catch{}
 const api=createApi(storage);
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
@@ -372,7 +384,7 @@ if(checkoutForm){
     const el=checkoutForm.elements;
     const contact=()=>({firstName:el.firstName?.value||'',lastName:el.lastName?.value||'',email:el.email?.value||'',street:el.street?.value||'',city:el.city?.value||'',postalCode:el.postalCode?.value||'',country:el.country?.value||'sk'});
     const deliveryValue=()=>options?.requiresDelivery?(checkoutForm.querySelector('[name=delivery]:checked')?.value||''):'digital';
-    const loadStripe=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
+    const loadStripe=()=>loadStripeScript();
     const toggleAddress=()=>{const courier=deliveryValue()==='courier';$('#address-fields').hidden=!courier;$$('#address-fields input').forEach(input=>{input.required=courier;input.disabled=!courier;});};
     const renderDelivery=()=>{
       const box=$('#delivery-options');if(!box)return;
@@ -407,6 +419,7 @@ if(checkoutForm){
       info.textContent=PAY_INFO[r.payment]||'';
       if(r.payment!=='card'){paymentReady=true;return;}
       if(!cfg?.stripePublishableKey||!r.clientSecret){info.textContent='Platobná brána nie je nakonfigurovaná.';return;}
+      if(!hasConsentDecision())info.textContent='Pred platbou kartou dokončite nastavenia cookies.';
       try{const Stripe=await loadStripe();if(ticket!==selecting)return;stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:r.clientSecret});elements.create('payment',{defaultValues:{billingDetails:{email:el.email?.value||undefined,address:{country:(el.country?.value||'sk').toUpperCase()}}}}).mount(host);paymentReady=true;}
       catch{info.textContent='Platobnú bránu sa nepodarilo načítať.';}
     };
@@ -451,9 +464,11 @@ if($('#magic-confirm')){
   if(r.ok&&/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%]*)?$/.test(back))$('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button(back,'Pokračovať v rezervácii')}</div>`);
 }
 $('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=$('button[type=submit]',form),status=$('.form-status',form);if(button.disabled)return;button.disabled=true;status.textContent='Odosielam…';let r;try{r=await api.sendContact(Object.fromEntries(new FormData(form)));}catch{r={ok:false,message:'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.'};}status.textContent=r.message;if(r.ok)form.reset();button.disabled=false;});
+// Online odstúpenie od zmluvy: prihlásenému zákazníkovi predvyplníme e-mail a meno z účtu.
+initWithdrawalForm(api);
 // Klub ANASTASIA: ponuka a cena len zo servera; Payment Element iba autorizuje, zachytenie robí backend po SafeOrder.
 const runtimeConfig=()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}};
-const loadStripeJs=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
+const loadStripeJs=()=>loadStripeScript();
 const loggedInNow=async()=>typeof api.isLoggedIn==='function'&&Boolean(await api.isLoggedIn());
 const loginPrompt=text=>`<div class="empty-state"><h2>${e(text)}</h2>${button('/prihlasenie','Prihlásiť sa')}</div>`;
 if($('#klub-view')){
@@ -482,6 +497,7 @@ if($('#klub-view')){
       if(!elements){
         const cfg=runtimeConfig();if(!cfg?.stripePublishableKey){say('Platobná brána nie je dostupná.','ERROR');return;}
         say('Pripravujem platbu…','REVIEW');
+        if(!hasConsentDecision())say('Pred platbou kartou dokončite nastavenia cookies.','REVIEW');
         const r=await api.startMembershipCheckout({terms_accepted:form.elements.terms.checked,privacy_acknowledged:form.elements.privacy.checked,auto_renew:form.elements.auto_renew.checked});
         if(!r.ok){say(r.message,'ERROR');return;}
         try{const Stripe=await loadStripeJs();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:r.clientSecret});payBox.hidden=false;payBox.textContent='';const email=typeof api.getCustomerEmail==='function'?await api.getCustomerEmail().catch(()=>''):'';elements.create('payment',{defaultValues:{billingDetails:{...(email?{email}:{}),address:{country:'SK'}}}}).mount(payBox);}

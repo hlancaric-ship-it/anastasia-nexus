@@ -116,6 +116,10 @@ const P = {
   conversations: { key: "pocet_konverzacii", label: "Počet konverzácií" },
   tracking: { key: "cislo_zasielky", label: "Číslo zásielky" },
   received: { key: "datum_prijatia", label: "Dátum prijatia" },
+  email: { key: "email", label: "E-mail zákazníka" },
+  items: { key: "polozky", label: "Položky odstúpenia" },
+  orderDate: { key: "datum_objednavky", label: "Dátum objednávky" },
+  receivedTime: { key: "cas_prijatia", label: "Čas prijatia" },
 } satisfies Record<string, PlaceholderDef>
 
 type Vars = Record<string, string | null>
@@ -503,6 +507,97 @@ const CATALOG: Entry[] = [
       blocks: [...p(t("intro") ?? "Prijali sme Vaše odstúpenie od zmluvy."), ...p(t("outro"))],
       button: button(r("button"), data.url),
     }),
+  },
+  {
+    name: "contract-withdrawal-received-sk",
+    label: "Potvrdenie doručenia odstúpenia od zmluvy",
+    description: "Potvrdenie doručenia oznámenia o odstúpení od zmluvy poslaného formulárom na webe (VOP čl. 9.2). Obsahuje obsah oznámenia, dátum a čas doručenia. Nedá sa vypnúť.",
+    required: true,
+    audience: "customer",
+    placeholders: [P.order, P.received, P.receivedTime, P.items, P.orderDate, P.name],
+    slots: [
+      SUBJECT("Potvrdenie doručenia odstúpenia od zmluvy č. {cislo_objednavky}"),
+      HEADING("Odstúpenie od zmluvy je prijaté"),
+      text("intro", "Úvodný text", "Dňa {datum_prijatia} o {cas_prijatia} sme prijali Vaše odstúpenie od zmluvy k objednávke č. {cislo_objednavky}."),
+      line("label_order", "Označenie čísla objednávky", "Číslo objednávky"),
+      line("label_items", "Označenie položiek", "Položky"),
+      line("label_order_date", "Označenie dátumu objednávky", "Dátum objednávky"),
+      line("label_reason", "Označenie dôvodu", "Dôvod"),
+      text("outro", "Záverečný text", "Vrátenie peňazí alebo výmenu tovaru vybavíme podľa podmienok odstúpenia od zmluvy. Ak máte otázky, odpovedzte na tento e-mail.", true),
+    ],
+    sample: {
+      order_number: "2026-0142",
+      items: ["Kurz RESET 40+"],
+      order_date: "2026-10-12T00:00:00.000Z",
+      received_at: "2026-10-21T08:00:00.000Z",
+      first_name: "Jana",
+    },
+    vars: data => ({
+      cislo_objednavky: str(data.order_number) ?? str(data.order_display_id),
+      polozky: Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items),
+      datum_objednavky: formatDate(data.order_date),
+      datum_prijatia: formatDate(data.received_at),
+      cas_prijatia: formatTime(data.received_at),
+      meno: str(data.first_name),
+    }),
+    build: (data, t, r) => {
+      const rows: Row[] = []
+      const order = str(data.order_number) ?? str(data.order_display_id)
+      if (order) rows.push({ label: r("label_order"), value: order })
+      const items = Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items)
+      if (items) rows.push({ label: r("label_items"), value: items })
+      const orderDate = formatDate(data.order_date)
+      if (orderDate) rows.push({ label: r("label_order_date"), value: orderDate })
+      const reason = str(data.reason)
+      if (reason) rows.push({ label: r("label_reason"), value: reason })
+      return {
+        subject: r("subject"),
+        heading: r("heading"),
+        blocks: [...p(t("intro") ?? "Prijali sme Vaše odstúpenie od zmluvy."), ...(rows.length ? [{ kind: "rows" as const, rows }] : []), ...p(t("outro"))],
+      }
+    },
+  },
+  {
+    name: "contract-withdrawal-admin",
+    label: "Nové odstúpenie od zmluvy (pre Vás)",
+    description: "Interný e-mail pre správkyňu, keď zákazník odstúpi od zmluvy formulárom na webe.",
+    required: false,
+    audience: "admin",
+    placeholders: [P.order, P.email, P.name, P.items, P.received],
+    slots: [
+      SUBJECT("Nové odstúpenie od zmluvy č. {cislo_objednavky}"),
+      HEADING("Nové odstúpenie od zmluvy"),
+      text("intro", "Úvodný text", "Dňa {datum_prijatia} prijal/a odstúpenie od zmluvy k objednávke č. {cislo_objednavky}."),
+      line("label_email", "Označenie e-mailu", "E-mail zákazníka"),
+      line("label_items", "Označenie položiek", "Položky"),
+      text("outro", "Záverečný text", "Spracujte odstúpenie v administrácii (Odstúpenia od zmluvy).", true),
+    ],
+    sample: {
+      order_number: "2026-0142",
+      items: ["Kurz RESET 40+"],
+      email: "zakaznik@example.test",
+      first_name: "Jana",
+      received_at: "2026-10-21T08:00:00.000Z",
+    },
+    vars: data => ({
+      cislo_objednavky: str(data.order_number) ?? str(data.order_display_id),
+      email: str(data.email),
+      meno: str(data.first_name),
+      polozky: Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items),
+      datum_prijatia: formatDate(data.received_at),
+    }),
+    build: (data, t, r) => {
+      const rows: Row[] = []
+      const email = str(data.email)
+      if (email) rows.push({ label: r("label_email"), value: email })
+      const items = Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items)
+      if (items) rows.push({ label: r("label_items"), value: items })
+      return {
+        subject: r("subject"),
+        heading: r("heading"),
+        blocks: [...p(t("intro") ?? "Prišlo nové odstúpenie od zmluvy."), ...(rows.length ? [{ kind: "rows" as const, rows }] : []), ...p(t("outro"))],
+      }
+    },
   },
   {
     name: "booking-confirmed-sk",

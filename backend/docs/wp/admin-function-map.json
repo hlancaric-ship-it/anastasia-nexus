@@ -570,7 +570,8 @@
       "sources": [
         "backend/src/lib/order-self-cancel/cancel.ts",
         "backend/src/api/admin/withdrawals/[id]/route.ts",
-        "backend/src/subscribers/compensation-payment-refunded.ts"
+        "backend/src/subscribers/compensation-payment-refunded.ts",
+        "backend/src/api/admin/contract-withdrawals/route.ts"
       ],
       "remaining": "Native returns/claims/exchanges existují; vlastní workflow musí propojit stav, skutečné peníze, sklad, nároky a oznámení.",
       "acceptance": "Změna statusu odstoupení neposílá peníze; duplicitní refund nic nezdvojí; rozlišit kartu a kredit poukazu."
@@ -1928,6 +1929,34 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/admin/contract-withdrawals",
+      "methods": [
+        "GET"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/admin/contract-withdrawals/route.ts",
+      "sha256": "c4010e027b6862d29d979c71b23c0a9feb5e7175e0ab1376fa4121b18d34fc3a"
+    },
+    {
+      "path": "/admin/contract-withdrawals/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/admin/contract-withdrawals/[id]/route.ts",
+      "sha256": "b11895bd9a44cf5088cd72c80c02399c5409d910649f29ccd79155bbdf8e88a9"
+    },
+    {
+      "path": "/store/contract-withdrawal",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/store/contract-withdrawal/route.ts",
+      "sha256": "7e735e1fdfd9bb9aacd49d224a8f5336ebbe8446f63b0a053625a01ecbf8e989"
     }
   ],
   "native_medusa_version": "2.19.0",
@@ -4494,6 +4523,7 @@
       "backend/src/modules/gift-voucher/models/gift-voucher-transaction.ts",
       "backend/src/modules/gift-voucher/models/gift-voucher.ts",
       "backend/src/modules/legal/models/legal-consent.ts",
+      "backend/src/modules/legal/models/legal-contract-withdrawal.ts",
       "backend/src/modules/legal/models/legal-withdrawal.ts",
       "backend/src/modules/legal/models/newsletter-consent-event.ts",
       "backend/src/modules/legal/models/newsletter-consent.ts",
@@ -4809,6 +4839,7 @@
     "backend/src/modules/gift-voucher/__tests__/issuance-delivery.unit.spec.ts",
     "backend/src/modules/gift-voucher/__tests__/policy.unit.spec.ts",
     "backend/src/modules/legal/__tests__/checkout.unit.spec.ts",
+    "backend/src/modules/legal/__tests__/contract-withdrawal.unit.spec.ts",
     "backend/src/modules/legal/__tests__/newsletter.unit.spec.ts",
     "backend/src/modules/legal/__tests__/policy.unit.spec.ts",
     "backend/src/modules/legal/__tests__/routes.unit.spec.ts",

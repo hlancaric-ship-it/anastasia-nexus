@@ -6,6 +6,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {escape} from './components.mjs';
 import {menuGroups} from './lib/menu-navigation.mjs';
+import {cookieSettingsLink} from './cookie-consent.mjs';
 
 const read = name => readFileSync(fileURLToPath(new URL(`../design/${name}`, import.meta.url)), 'utf8');
 const SOURCES = {home: read('homepage-v2.dc.html'), about: read('o-lucii.dc.html')};
@@ -175,6 +176,12 @@ const FOOTER_GROUPS = {
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravá lekáreň', '/zdrava-lekaren'], ['Denný stacionár Vyšná Slaná', '/denny-stacionar-vysna-slana'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
 const FOOTER_BRANDS = {'ANASTASIA.ACADEMY': '/ai-anastasia-academy', 'AI ANASTASIA': '/ai-anastasia'};
+// Odkaz „Nastavenia cookies“ v pätičke (názov je z textu klientky): otvorí panel, kde sa voľba zmení.
+// Vkláda sa až po přepisu odkazů, aby si návrhový text zůstal 1:1.
+function withCookieSettings(html) {
+  if (!html.includes('<a href="/cookies">Cookies</a>')) throw new Error('dc: v patičce chybí odkaz Cookies');
+  return html.replace('<a href="/cookies">Cookies</a>', `<a href="/cookies">Cookies</a>${cookieSettingsLink()}`);
+}
 function footerLinks(html) {
   let out = html;
   for (const [title, links] of Object.entries(FOOTER_GROUPS)) {
@@ -208,7 +215,7 @@ export function chrome(page) {
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
   return {
     header: convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">'),
-    footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
+    footer: bleed(withCookieSettings(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),

@@ -19,4 +19,7 @@ export const legalMiddlewares:MiddlewareRoute[]=[
  {matcher:"/store/newsletter/unsubscribe",method:["POST"],middlewares:[legalRate("newsletter")],bodyParser:{sizeLimit:"2kb"}},
  {matcher:"/admin/newsletter",method:["GET"],middlewares:[admin]},
  {matcher:"/admin/withdrawals*",middlewares:[admin],bodyParser:{sizeLimit:"4kb"}},
+ // Online odstúpenie od zmluvy (časť C právnych textov): verejné, obmedzené podľa IP (5 pokusov / 10 min).
+ {matcher:"/store/contract-withdrawal",method:["POST"],middlewares:[legalRate("contract-withdrawal",5,600)],bodyParser:{sizeLimit:"16kb"}},
+ {matcher:"/admin/contract-withdrawals*",middlewares:[admin],bodyParser:{sizeLimit:"4kb"}},
 ]
