@@ -305,6 +305,8 @@ backend/integration-tests/http/safeorder-persistence.spec.ts        (zapojenie s
 backend/scripts/update-admin-map.mjs                                (nové routy v mape administrácie)
 backend/scripts/verify-safeorder-local.py                           (voliteľný --spec pre vlastný scenár)
 backend/docs/wp/admin-function-map.json                            (mapa administrácie)
+backend/docs/wp/ADMIN-FUNKCE-A-POKRYTI.md                          (agenda access)
+backend/docs/wp/reset-zrkadielko.md                                 (tento dokument)
 .github/workflows/reset-journal.yml                                (CI: vlastný Postgres + špec)
 anastasia-admin/PRAVNE-TEXTY-DOPLNIT.md                             (bod 17 – právny základ)
 ```

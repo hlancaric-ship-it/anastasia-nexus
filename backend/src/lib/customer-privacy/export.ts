@@ -19,7 +19,8 @@ export async function exportCustomerData(db:any,customerId:string) {
   const bookings=await read("booking",{customer_id:customerId},["id","product_id","order_id","status","starts_at","ends_at","notes","cancel_reason","created_at"])
   const entitlements=await read("entitlement",{customer_id:customerId},["id","product_id","variant_id","order_id","status","source","granted_at","expires_at","revoked_at"])
   // Zrkadielko (RESET 40+): údaje o energii, spánku a strese patria zákazníkovi – musia byť v jeho exporte.
-  const resetJournal=await read("reset_journal_entry",{customer_id:customerId},["id","program","week","entry_date","metrics","created_at"])
+  // Tabuľka môže chýbať, kým nie je nasadená migrácia – export právo zákazníka nesmie spadnúť.
+  const resetJournal=await tx.schema.hasTable("reset_journal_entry")?await read("reset_journal_entry",{customer_id:customerId},["id","program","week","entry_date","metrics","created_at"]):[]
   const conversations=await read("chat_conversation",{customer_id:customerId},["id","subject","order_id","booking_id","status","created_at","closed_at"])
   const messages=await read("chat_message",{customer_id:customerId},["id","conversation_id","author_type","body","created_at"])
   const consents=await read("legal_consent",{customer_id:customerId},["id","cart_id","order_id","terms_version","privacy_version","accepted_at"])
