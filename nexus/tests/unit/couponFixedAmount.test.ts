@@ -5,7 +5,7 @@ import { CouponDiscountRule } from '../../domains/pricing/CouponDiscountRule.js'
 // Pevná zľava (EUR) na jednu položku košíku. Alokaci mezi položkami dělá
 // Medusa (zná celý košík); Worker jen odečte přidělený podíl a nikdy nepod 0.
 describe('CouponDiscountRule – pevná zľava', () => {
-    const rule = new CouponDiscountRule({ tenantId: 'synthetic', ruleId: 'coupon-test' });
+    const rule = new CouponDiscountRule({ tenantId: 'synthetic', ruleId: 'coupon-test', ruleVersion: '1' });
 
     it('odečte pevnú sumu od ceny', () => {
         const result = rule.evaluate({ currentPrice: new Decimal(168), fixedAmount: new Decimal(20) });

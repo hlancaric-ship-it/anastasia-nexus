@@ -1197,7 +1197,7 @@
       ],
       "feature": "media",
       "source": "backend/src/api/admin/media/route.ts",
-      "sha256": "4f7d0f9ee0624f55a276de7f4263abe0e3e5c6d2fbf806100904899c4741897d"
+      "sha256": "d52e24231b1173185e057c4e725bcbf54e5ae034ec7859346500333eabde4967"
     },
     {
       "path": "/admin/media/:key",
@@ -1626,7 +1626,7 @@
       ],
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/apply/route.ts",
-      "sha256": "d029cbb7061794af1bc1965b48f8369a3d3b787540627575b660e5756e815257"
+      "sha256": "d8c15cc8342d2c1425c34f048cc3e0b7d257b94751a9d6aaef7975ff42466ec0"
     },
     {
       "path": "/store/gift-vouchers/recipients",
@@ -1635,7 +1635,7 @@
       ],
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/recipients/route.ts",
-      "sha256": "767edba6701cb8577f3ef4f3f7c357f7d6995b5d44e9a0f653a0664e88528e77"
+      "sha256": "aa6cfe57a0446f4e60443ccf7daae9a09018dd407dee3b2525d752a6ce515011"
     },
     {
       "path": "/store/gift-vouchers/remove",
@@ -1644,7 +1644,7 @@
       ],
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/remove/route.ts",
-      "sha256": "4450ff2df0337f48d4e379679d7931ede71e7b31a4d53e6a87e21b163ae3adf4"
+      "sha256": "e706b9e53f5d6c20c9bbd0d2dc70df9a5b586c83a5690c48f36036beb80e32ce"
     },
     {
       "path": "/store/chat/conversations",
