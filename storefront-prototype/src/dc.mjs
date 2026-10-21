@@ -268,6 +268,25 @@ ${HOME_CSS}
 :is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:64px!important;min-height:64px!important;padding-block:8px!important}
 :is(.dc-root,.dc-chrome) header [data-menu-open]{height:40px!important;font-size:13px!important;gap:12px!important}
 :is(.dc-root,.dc-chrome) .header-account{display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
+/* Mobilní menu: celé na jednom displeji (zbytek dorovná fitMenu v app.mjs i při zvětšeném písmu). */
+@media(max-width:760px){#dc-top-menu{top:max(8px,env(safe-area-inset-top))!important;left:8px!important;right:8px!important;width:auto!important;max-height:calc(100dvh - 16px)!important;padding:16px 18px 18px!important;gap:14px!important}
+#dc-top-menu{overflow-x:hidden!important}
+#dc-top-menu>div:nth-child(3){flex-wrap:nowrap!important;gap:8px!important}
+#dc-top-menu>div:nth-child(3)>div:first-child{gap:10px!important;min-width:0}
+#dc-top-menu .menu-brand-mark{width:40px;height:40px}
+#dc-top-menu>div:nth-child(3)>div:first-child span[style*="font-size:20px"]{font-size:14px!important;letter-spacing:3px!important}
+#dc-top-menu>div:nth-child(3)>div:first-child span[style*="font-size:7px"]{display:none!important}
+#dc-top-menu>div:nth-child(3)>div:last-child{gap:2px!important;flex-shrink:0}
+#dc-top-menu>div:nth-child(4)>div,#dc-top-menu>div:nth-child(4) a{min-width:0;overflow-wrap:break-word;white-space:normal!important}
+#dc-top-menu>div:nth-child(4) a span{max-width:100%;white-space:normal!important}
+#dc-top-menu>div:nth-child(4){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;row-gap:14px!important;column-gap:18px!important}
+#dc-top-menu>div:nth-child(4)>div{padding:0!important;border:0!important;gap:0!important}
+#dc-top-menu>div:nth-child(4) [style*="font-size:25px"]{font-size:19px!important;margin-bottom:2px!important}
+#dc-top-menu>div:nth-child(4) a[style*="font-size:14px"]{padding:5px 0!important}
+#dc-top-menu>div:nth-child(5){grid-template-columns:1fr!important;gap:10px!important;padding-top:12px!important}
+#dc-top-menu>div:nth-child(5)>div:first-child{gap:10px!important}
+#dc-top-menu>div:nth-child(5)>div:nth-child(2){display:none!important}
+#dc-top-menu>div:nth-child(5) a[style*="font-size:30px"]{font-size:21px!important}}
 :is(.dc-root,.dc-chrome) .header-account svg{width:16px;height:16px}
 :is(.dc-root,.dc-chrome) [role="dialog"] a[aria-label="Môj účet"]>span{transform:scale(.8)}
 @media(max-width:999.98px){:is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:60px!important;min-height:60px!important}}

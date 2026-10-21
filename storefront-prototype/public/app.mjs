@@ -126,6 +126,17 @@ const root=document.documentElement,shell=$('#page-shell'),reducedMotion=window.
 root.classList.add('ana-booted');
 const MENU={side:{o:'--side-o',p:'--side-p',t:'--side-t',open:'translate(0,-50%)',closed:'translate(-24px,-50%)'},top:{o:'--top-o',p:'--top-p',t:'--top-t',open:'translateY(0)',closed:'translateY(-16px)'}};
 let lenis=null,menuOpen=null,previousFocus=null;
+// Na telefonu se menu musí vejít na jeden displej i se zvětšeným písmem: obsah se úměrně zmenší.
+function fitMenu(panel){
+  if(!panel)return;const kids=[...panel.children];kids.forEach(k=>{k.style.zoom='';});
+  if(!matchMedia('(max-width: 760px)').matches)return;
+  const fits=f=>{kids.forEach(k=>{k.style.zoom=f===1?'':String(f);});return panel.scrollHeight<=panel.clientHeight+1;};
+  if(fits(1))return;
+  // Půlení intervalu: zalamování textu dělá závislost nelineární, prostý poměr přestřeluje.
+  let lo=.4,hi=1;if(fits(lo)){for(let i=0;i<7;i++){const mid=(lo+hi)/2;if(fits(mid))lo=mid;else hi=mid;}}
+  fits(lo);
+}
+addEventListener('resize',()=>{if(menuOpen)fitMenu($(`#dc-${menuOpen}-menu`));});
 function setMenu(kind){
   const prev=menuOpen;if(prev===kind)return;
   for(const [name,m] of Object.entries(MENU)){const on=name===kind;root.style.setProperty(m.o,on?'1':'0');root.style.setProperty(m.p,on?'auto':'none');root.style.setProperty(m.t,on?m.open:m.closed);const panel=$(`#dc-${name}-menu`);if(panel){panel.inert=!on;panel.setAttribute('aria-hidden',String(!on));}}
@@ -133,7 +144,8 @@ function setMenu(kind){
   $$('[data-menu-open]').forEach(t=>t.setAttribute('aria-expanded',String(t.dataset.menuOpen===kind)));
   shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
   menuOpen=kind;
-  if(kind){if(!prev)previousFocus=document.activeElement;lenis?lenis.stop():root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>$('[data-menu-close],a[href]',panel)?.focus({preventScroll:true}));}
+  if(kind)fitMenu($(`#dc-${kind}-menu`));
+  if(kind){if(!prev)previousFocus=document.activeElement;lenis?lenis.stop():root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
   else{lenis?lenis.start():root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
 }
 document.addEventListener('click',event=>{
