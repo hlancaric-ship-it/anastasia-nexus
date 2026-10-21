@@ -1299,6 +1299,56 @@ async function vOrderDetail(view, id, notice) {
   const bAddr = (o.billing_address || {});
   const billAddr = [[bAddr.first_name, bAddr.last_name].filter(Boolean).join(' '), bAddr.address_1, bAddr.address_2, [bAddr.postal_code, bAddr.city].filter(Boolean).join(' '), (bAddr.country_code || '').toUpperCase()].filter(Boolean).map(esc).join('<br>');
   const billDiffers = Boolean(billAddr) && billAddr !== addr;
+  // Poznámky k objednávke (autor + čas) a staršia jediná poznámka v metadátach.
+  const notes = Array.isArray(o.metadata?.anastasia_notes) ? o.metadata.anastasia_notes : [];
+  const legacyNote = String(o.metadata?.anastasia_note || '').trim();
+  const notesHtml = notes.length
+    ? `<div class="rc-grid">${notes.map(n => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(n.body || '')}</div>
+        <div class="rc-fields"><span class="rc-f"><em>Autor</em>${esc(n.by_email || n.by || 'neznámy')}</span><span class="rc-f"><em>Čas</em>${fmtDate(n.at)}</span></div></div></div>`).join('')}</div>`
+    : legacyNote
+      ? `<div class="rc-grid"><div class="rc"><div class="rc-body"><div class="rc-title">${esc(legacyNote)}</div>
+        <div class="rc-fields"><span class="rc-f"><em>Autor</em><span class="muted">uložené pred zavedením autorstva</span></span></div></div></div></div>`
+      : '';
+  // Formulár na úpravu doručovacej a fakturačnej adresy.
+  const addrEdit = `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+    <b>Adresy objednávky</b>
+    <p class="muted" style="font-size:12px;margin:4px 0 8px">Ak si zákazník povedal inú adresu, upravte ju tu.</p>
+    <details><summary>Upraviť doručovaciu a fakturačnú adresu</summary>
+      <div class="row" style="margin-top:10px">
+        <div><label for="ad-first">Meno</label><input id="ad-first" value="${esc(a.first_name || '')}"></div>
+        <div><label for="ad-last">Priezvisko</label><input id="ad-last" value="${esc(a.last_name || '')}"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label for="ad-1">Ulica</label><input id="ad-1" value="${esc(a.address_1 || '')}"></div>
+        <div><label for="ad-2">Ulica 2 (voliteľné)</label><input id="ad-2" value="${esc(a.address_2 || '')}"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label for="ad-pc">PSČ</label><input id="ad-pc" value="${esc(a.postal_code || '')}"></div>
+        <div><label for="ad-city">Mesto</label><input id="ad-city" value="${esc(a.city || '')}"></div>
+        <div><label for="ad-cc">Krajina (2 písmená)</label><input id="ad-cc" maxlength="2" value="${esc(a.country_code || '')}"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label for="ad-phone">Telefón (voliteľné)</label><input id="ad-phone" value="${esc(a.phone || '')}"></div>
+        <div><label style="display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" id="ad-same" ${billDiffers ? '' : 'checked'} style="width:auto"> Fakturačná adresa je rovnaká ako doručovacia</label></div>
+      </div>
+      <div id="ad-bill" ${billDiffers ? '' : 'hidden'} style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+        <b style="font-size:13px">Fakturačná adresa</b>
+        <div class="row" style="margin-top:8px">
+          <div><label for="bf-first">Meno</label><input id="bf-first" value="${esc(bAddr.first_name || '')}"></div>
+          <div><label for="bf-last">Priezvisko</label><input id="bf-last" value="${esc(bAddr.last_name || '')}"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div><label for="bf-1">Ulica</label><input id="bf-1" value="${esc(bAddr.address_1 || '')}"></div>
+          <div><label for="bf-2">Ulica 2 (voliteľné)</label><input id="bf-2" value="${esc(bAddr.address_2 || '')}"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div><label for="bf-pc">PSČ</label><input id="bf-pc" value="${esc(bAddr.postal_code || '')}"></div>
+          <div><label for="bf-city">Mesto</label><input id="bf-city" value="${esc(bAddr.city || '')}"></div>
+          <div><label for="bf-cc">Krajina (2 písmená)</label><input id="bf-cc" maxlength="2" value="${esc(bAddr.country_code || '')}"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px"><button type="button" class="btn gold" id="o-addr-save">Uložiť adresy</button> <span class="muted" id="o-addr-msg" style="font-size:12px"></span></div>
+    </details></div>`;
   const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(history.placed_at || o.created_at)}</div></div></div>
     <div class="row"><div><label>Platba</label><div><span class="pill">${esc(payState)}</span>${method ? `<div style="margin-top:4px"><b>${esc(method.label)}</b></div>` : ''}</div></div>
     <div><label>Vybavenie</label><div><span class="pill">${esc(history.status || (archived ? 'Archív' : FUL_LABEL[o.fulfillment_status] || o.fulfillment_status) || '—')}</span>${canceled ? ' <span class="pill off">objednávka zrušená</span>' : ''}</div></div></div>
@@ -1307,9 +1357,13 @@ async function vOrderDetail(view, id, notice) {
     <div class="row"><div><label>Fakturačná adresa</label><div>${billAddr || '<span class="muted">žiadna (rovná sa doručeniu)</span>'}</div></div>
     <div><label>Rozdiel</label><div>${billDiffers ? '<span class="pill warn">iná než doručovacia</span>' : '<span class="muted">rovná sa doručovacej</span>'}</div></div></div>
     <div style="margin-top:10px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>
+    ${archived ? '' : addrEdit}
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <label for="o-note">Poznámka k objednávke (vidíte len vy)</label>
-      <textarea id="o-note" rows="2" placeholder="napr. zákazník si želá zabalenie daru">${esc(String(o.metadata?.anastasia_note || ''))}</textarea>
+      <b>Poznámky k objednávke</b>
+      <p class="muted" style="font-size:12px;margin:4px 0 8px">Vidí ich len tím administrácie. Ku každej poznámke sa eviduje autor a čas.</p>
+      ${notesHtml}
+      <label for="o-note">Nová poznámka</label>
+      <textarea id="o-note" rows="2" maxlength="2000" placeholder="napr. zákazník si želá zabalenie daru"></textarea>
       <div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button type="button" class="btn ghost" id="o-note-save">Uložiť poznámku</button><span class="muted" id="o-note-msg" style="font-size:12px"></span></div>
     </div>
     ${manual && o.payment_status === 'authorized' && !canceled ? `<div class="notice" style="margin-top:10px">${method.key === 'bank_transfer' ? `Prevod: skontrolujte vo výpise Tatra banky platbu s variabilným symbolom <b>${esc(String(o.display_id || ''))}</b> a sumou <b>${fmtEur(o.total)}</b>. Potom v záložke Platby kliknite „Prijať platbu“ – až vtedy sa sprístupní digitálny obsah.` : 'Dobierka: zákazník platí kuriérovi pri prevzatí. Keď vám dopravca peniaze pripíše, v záložke Platby kliknite „Prijať platbu“.'}</div>` : ''}`;
@@ -1328,7 +1382,8 @@ async function vOrderDetail(view, id, notice) {
   const platby = `${payments.map(p => { const cap = sum(p.captures), ref = sum(p.refunds), left = Math.round((cap - ref) * 100) / 100;
     return `<div class="task"><div><b>${fmtEur(p.amount)}</b> <span class="muted">${esc(PAY_METHOD[p.provider_id]?.label || p.provider_id || '')}</span>
       <p class="muted">Prijaté ${fmtEur(cap)} · vrátené ${fmtEur(ref)}</p>
-      ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div><div></div></div>` : ''}</div>
+      ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div>
+        <div><label>Dôvod vrátenia (povinný)</label><input data-refreason="${esc(p.id)}" maxlength="500" placeholder="napr. reklamácia – zákazník vracia tovar"></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
   view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<div class="card-h-act">
@@ -1344,7 +1399,13 @@ async function vOrderDetail(view, id, notice) {
         return voucherHtml({ value: gv.initial_amount, currency: gv.currency_code, code: gv.code, expires_at: gv.expires_at, recipient_name: r.name, message: r.message });
       }).join('')}</div>
       <p class="muted" style="font-size:12px;margin-top:10px">Kód je maskovaný – plný kód dostal každý obdarovaný e-mailom. Hodnotu a platnosť overuje backend.</p></div></div>` : ''}
-    ${!canceled && !archived && !anyShipped ? '<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><button class="btn ghost" id="o-cancel">Zrušiť objednávku</button></div>' : ''}
+    ${!canceled && !archived && !anyShipped ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px">
+      <button class="btn ghost" id="o-cancel">Zrušiť objednávku</button>
+      <div id="o-cancel-box" hidden style="margin-top:12px">
+        <label for="o-cancel-reason">Dôvod zrušenia (povinný)</label>
+        <textarea id="o-cancel-reason" rows="2" maxlength="500" placeholder="napr. zákazník zrušil objednávku telefonicky"></textarea>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn gold" id="o-cancel-go">Zrušiť objednávku</button><span class="muted" style="font-size:12px">Zaplatená suma sa zákazníkovi vráti cez platobnú bránu. Dôvod zostane v objednávke.</span></div>
+      </div></div>` : ''}
   </div></div><aside class="detail-help panel" aria-label="Nápoveda k objednávke"><div class="panel-head"><h2>Ako postupovať</h2></div><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
   wireTabs(view);
   const orderHelp = {
@@ -1367,18 +1428,45 @@ async function vOrderDetail(view, id, notice) {
   };
   view.querySelector('#o-print-label').onclick = () => printOrders([id], 'label');
   view.querySelector('#o-print-slip').onclick = () => printOrders([id], 'slip');
-  // Poznámka k objednávke: uloží sa do metadát objednávky (vidí ju len tím, kto má prístup do admina).
+  // Poznámka k objednávke: server ju uloží s autorom a časom a zapíše do auditu.
   const noteBtn = view.querySelector('#o-note-save');
   if (noteBtn) noteBtn.onclick = async () => {
     const noteMsg = view.querySelector('#o-note-msg');
-    const text = view.querySelector('#o-note').value.trim();
+    const text = (view.querySelector('#o-note')?.value || '').trim();
+    if (!text) { noteMsg.innerHTML = '<span style="color:#8a2436">Napíšte poznámku.</span>'; return; }
     noteMsg.textContent = 'Ukladám…'; noteBtn.disabled = true;
     try {
-      await api(`/admin/orders/${id}`, { method: 'POST', body: { metadata: { ...(o.metadata || {}), anastasia_note: text } } });
-      noteMsg.innerHTML = '<span style="color:#2c6b3f">Poznámka je uložená.</span>';
+      await api(`/admin/nexus/orders/${id}/notes`, { method: 'POST', body: { body: text } });
+      await vOrderDetail(view, id, 'Poznámka je uložená.');
     } catch (e) {
       if (e.message !== '401') noteMsg.innerHTML = `<span style="color:#8a2436">${esc(e.message)}</span>`;
     } finally { noteBtn.disabled = false; }
+  };
+  // Adresy: doručovacia a fakturačná sa dajú upraviť priamo v objednávke.
+  const sameBox = view.querySelector('#ad-same');
+  if (sameBox) sameBox.onchange = () => { const box = view.querySelector('#ad-bill'); if (box) box.hidden = sameBox.checked; };
+  const addrSave = view.querySelector('#o-addr-save');
+  if (addrSave) addrSave.onclick = async () => {
+    const msg = view.querySelector('#o-addr-msg');
+    const val = (sel) => (view.querySelector(sel)?.value || '').trim();
+    const ship = {
+      first_name: val('#ad-first'), last_name: val('#ad-last'), address_1: val('#ad-1'), address_2: val('#ad-2'),
+      postal_code: val('#ad-pc'), city: val('#ad-city'), country_code: val('#ad-cc').toUpperCase(), phone: val('#ad-phone'),
+    };
+    if (!ship.address_1 || !ship.city || !ship.postal_code) { msg.innerHTML = '<span style="color:#8a2436">Vyplňte ulicu, mesto a PSČ.</span>'; return; }
+    const same = view.querySelector('#ad-same')?.checked;
+    const bill = same ? ship : {
+      first_name: val('#bf-first'), last_name: val('#bf-last'), address_1: val('#bf-1'), address_2: val('#bf-2'),
+      postal_code: val('#bf-pc'), city: val('#bf-city'), country_code: val('#bf-cc').toUpperCase(),
+    };
+    addrSave.disabled = true; msg.textContent = 'Ukladám…';
+    try {
+      await api(`/admin/orders/${id}`, { method: 'POST', body: { shipping_address: ship, billing_address: bill } });
+      await vOrderDetail(view, id, 'Adresy sú uložené.');
+    } catch (e) {
+      if (e.message !== '401') msg.innerHTML = `<span style="color:#8a2436">${esc(e.message)}</span>`;
+      addrSave.disabled = false;
+    }
   };
   const run = async (btn, question, fn, done) => {
     if (!confirm(question)) return;
@@ -1399,11 +1487,34 @@ async function vOrderDetail(view, id, notice) {
   view.querySelectorAll('[data-cap]').forEach(b => b.onclick = () => run(b, PAY_METHOD[payments.find(p => p.id === b.dataset.cap)?.provider_id]?.manual ? 'Potvrdiť, že peniaze prišli? Zákazníkovi sa sprístupní digitálny obsah a odíde e-mail o prijatí platby.' : 'Prijať (strhnúť) túto platbu?', () => api(`/admin/payments/${b.dataset.cap}/capture`, { method: 'POST', body: {} }), 'Platba je prijatá.'));
   view.querySelectorAll('[data-ref]').forEach(b => b.onclick = () => {
     const amt = Number(view.querySelector(`[data-refamt="${CSS.escape(b.dataset.ref)}"]`)?.value), max = Number(b.dataset.max);
+    const reason = (view.querySelector(`[data-refreason="${CSS.escape(b.dataset.ref)}"]`)?.value || '').trim();
     if (!(amt > 0) || amt > max) { view.querySelector('#omsg').innerHTML = `<div class="err">Zadajte sumu od 0,01 do ${esc(fmtEur(max))}.</div>`; return; }
-    run(b, `Naozaj vrátiť ${fmtEur(amt)} zákazníkovi? Túto akciu nemožno vrátiť späť.`, () => api(`/admin/payments/${b.dataset.ref}/refund`, { method: 'POST', body: { amount: amt } }), `Vrátenie ${fmtEur(amt)} bolo odoslané.`);
+    if (!reason) { view.querySelector('#omsg').innerHTML = '<div class="err">Napíšte dôvod vrátenia.</div>'; return; }
+    run(b, `Naozaj vrátiť ${fmtEur(amt)} zákazníkovi? Túto akciu nemožno vrátiť späť.`, () => api(`/admin/payments/${b.dataset.ref}/refund`, { method: 'POST', body: { amount: amt, note: reason } }), `Vrátenie ${fmtEur(amt)} bolo odoslané. Dôvod: ${reason}`);
   });
   const cb = view.querySelector('#o-cancel');
-  if (cb) cb.onclick = () => run(cb, 'Naozaj zrušiť celú objednávku? Zaplatená suma sa zákazníkovi automaticky vráti cez platobnú bránu.', () => api(`/admin/orders/${id}/cancel`, { method: 'POST', body: {} }), 'Objednávka je zrušená.');
+  if (cb) cb.onclick = () => {
+    const box = view.querySelector('#o-cancel-box');
+    if (!box) return;
+    box.hidden = !box.hidden;
+    if (!box.hidden) view.querySelector('#o-cancel-reason')?.focus();
+  };
+  const cbg = view.querySelector('#o-cancel-go');
+  if (cbg) cbg.onclick = async () => {
+    const msg = view.querySelector('#omsg'); msg.innerHTML = '';
+    const reason = (view.querySelector('#o-cancel-reason')?.value || '').trim();
+    if (!reason) { msg.innerHTML = '<div class="err">Napíšte dôvod zrušenia.</div>'; return; }
+    if (!confirm('Naozaj zrušiť celú objednávku? Zaplatená suma sa zákazníkovi automaticky vráti cez platobnú bránu.')) return;
+    cbg.disabled = true;
+    try {
+      await api(`/admin/nexus/orders/${id}/cancel`, { method: 'POST', body: { reason } });
+      await vOrderDetail(view, id, `Objednávka je zrušená. Dôvod: ${reason}`);
+    } catch (e) {
+      if (e.message === '401') return;
+      cbg.disabled = false;
+      msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    }
+  };
 }
 async function vCustomers(view) {
   view = freshView(view);
@@ -2883,6 +2994,11 @@ const AUDIT_LABEL = {
   'admin.page.reset': 'Obnovenie pôvodného textu stránky',
   'admin.media.add': 'Pridanie obrázka do knihovny',
   'admin.media.delete': 'Zmažanie obrázka z knihovny',
+  'order.cancel': 'Zrušenie objednávky',
+  'order.note_created': 'Poznámka k objednávke',
+  'chat.conversation.start': 'Nová správa zákazníkovi',
+  'chat_customer.block': 'Zablokovanie chatu zákazníka',
+  'chat_customer.unblock': 'Odblokovanie chatu zákazníka',
 };
 async function vAuditLog(view) {
   view = freshView(view);
