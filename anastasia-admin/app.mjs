@@ -3251,7 +3251,7 @@ async function route() {
   await loadAdminRole();
   root.innerHTML = shell(key in ROUTES ? key : '', r[0], r[1]);
   loadTheme().then(applyTheme);
-  root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); renderLogin(); };
+  root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); ADMIN_ROLE_LOADED = false; ADMIN_ROLE = 'owner'; renderLogin(); };
   wireMobileNav();
   loadMe().then(setUserChip);
   refreshBadges();
