@@ -7,6 +7,7 @@ import { adminActor, auditAdminChange } from '../../../lib/observability/audit'
 import { pageDefinitions, isPageSlug, validatePageHtml } from '../../../lib/pages/policy'
 import { seedPage } from '../../../lib/content/policy'
 import { readPages, readStore, writePages, writeStoreMetadata } from '../../../lib/pages/store'
+import { REVISION_CONFLICT_MESSAGE, isRevisionConflict, revisionOf } from '../../../lib/revision'
 
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   res.setHeader('Cache-Control', 'no-store')
@@ -29,6 +30,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
             is_default: !stored,
             updated_at: stored?.updated_at ?? null,
             updated_by: stored?.updated_by ?? null,
+            revision: revisionOf(stored?.updated_at),
           }
         }),
     })
@@ -41,7 +43,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   res.setHeader('Cache-Control', 'no-store')
   const actor = adminActor(req)
   if (!actor) return res.status(401).json({ message: 'Prihláste sa do administrácie.' })
-  const body = (req.body ?? {}) as { slug?: unknown; html?: unknown }
+  const body = (req.body ?? {}) as { slug?: unknown; html?: unknown; revision?: unknown }
   if (!isPageSlug(body.slug)) return res.status(400).json({ message: 'Neznámy text stránky.' })
   const validated = validatePageHtml(body.html)
   if (!validated.ok) return res.status(400).json({ message: validated.message })
@@ -49,6 +51,11 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const store = await readStore(req.scope)
     if (!store) return res.status(503).json({ message: 'Text stránky sa teraz nedá uložiť. Skúste to znova.' })
     const before = readPages(store.metadata)
+    // Ochrana proti súbežnému ukladaniu: ak sa stránka medzitým zmenila, uloženie sa odmietne.
+    const currentRevision = revisionOf(before[body.slug]?.updated_at)
+    if (isRevisionConflict(body.revision, currentRevision)) {
+      return res.status(409).json({ message: REVISION_CONFLICT_MESSAGE })
+    }
     const pages = { ...before, [body.slug]: { html: validated.html, updated_at: new Date().toISOString(), updated_by: actor } }
     await writeStoreMetadata(req.scope, store.id, writePages(store.metadata, pages))
     const verified = readPages((await readStore(req.scope))?.metadata)

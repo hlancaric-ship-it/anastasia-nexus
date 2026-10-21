@@ -4,9 +4,10 @@
  */
 import type { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { adminActor, auditAdminChange } from '../../../lib/observability/audit'
-import { findSeedField, mergeContent, validateFieldValue } from '../../../lib/content/policy'
+import { contentRevision, findSeedField, mergeContent, validateFieldValue } from '../../../lib/content/policy'
 import { applyFieldChange, readContentOverrides, writeContentOverrides } from '../../../lib/content/store'
 import { readStore, writeStoreMetadata } from '../../../lib/pages/store'
+import { REVISION_CONFLICT_MESSAGE, isRevisionConflict } from '../../../lib/revision'
 
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   res.setHeader('Cache-Control', 'no-store')
@@ -40,6 +41,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
             label_text: field.label_text ?? null,
             updated_at: field.updated_at ?? null,
             updated_by: field.updated_by ?? null,
+            revision: contentRevision(field.updated_at),
             history: (field.history ?? []).map((h) => ({ value: h.value, updated_at: h.updated_at, updated_by: h.updated_by })),
           })),
         })),
@@ -54,7 +56,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   res.setHeader('Cache-Control', 'no-store')
   const actor = adminActor(req)
   if (!actor) return res.status(401).json({ message: 'Prihláste sa do administrácie.' })
-  const body = (req.body ?? {}) as { page?: unknown; field?: unknown; value?: unknown }
+  const body = (req.body ?? {}) as { page?: unknown; field?: unknown; value?: unknown; revision?: unknown }
   const pageKey = String(body.page ?? '').trim().toLowerCase()
   const fieldKey = String(body.field ?? '').trim()
   const found = findSeedField(pageKey, fieldKey)
@@ -65,13 +67,18 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const store = await readStore(req.scope)
     if (!store) return res.status(503).json({ message: 'Text sa teraz nedá uložiť. Skúste to znova.' })
     const overrides = readContentOverrides(store.metadata)
+    // Ochrana proti súbežnému ukladaniu: ak sa pole medzitým zmenilo, uloženie sa odmietne.
+    const currentRevision = contentRevision(overrides.fields[fieldKey]?.updated_at)
+    if (isRevisionConflict(body.revision, currentRevision)) {
+      return res.status(409).json({ message: REVISION_CONFLICT_MESSAGE })
+    }
     const before = overrides.fields[fieldKey]?.value ?? found.field.fallback
     const next = applyFieldChange(overrides, fieldKey, validated.value, actor)
     await writeStoreMetadata(req.scope, store.id, writeContentOverrides(store.metadata, next))
     const verified = readContentOverrides((await readStore(req.scope))?.metadata)
     if (verified.fields[fieldKey]?.value !== validated.value) throw new Error('CONTENT_READBACK_MISMATCH')
     await auditAdminChange(req, 'admin.content.update', 'store', store.id, { page: pageKey, field: fieldKey }, { page: pageKey, field: fieldKey })
-    return res.json({ ok: true, field: fieldKey, value: validated.value })
+    return res.json({ ok: true, field: fieldKey, value: validated.value, revision: contentRevision(verified.fields[fieldKey]?.updated_at) })
   } catch {
     return res.status(503).json({ message: 'Text sa nepodarilo uložiť. Skúste to znova.' })
   }

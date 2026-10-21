@@ -5,6 +5,7 @@ import type { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/frame
 import { adminActor, auditAdminChange } from '../../../../lib/observability/audit'
 import { isPageSlug, pageDefault } from '../../../../lib/pages/policy'
 import { readPages, readStore, writePages, writeStoreMetadata } from '../../../../lib/pages/store'
+import { REVISION_CONFLICT_MESSAGE, isRevisionConflict, revisionOf } from '../../../../lib/revision'
 
 export async function DELETE(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   res.setHeader('Cache-Control', 'no-store')
@@ -17,6 +18,11 @@ export async function DELETE(req: AuthenticatedMedusaRequest, res: MedusaRespons
     if (!store) return res.status(503).json({ message: 'Text stránky sa teraz nedá obnoviť. Skúste to znova.' })
     const before = readPages(store.metadata)
     if (!before[slug]) return res.status(404).json({ message: 'Tento text stránky ešte nikto nemenil.' })
+    // Ochrana proti súbežnému ukladaniu: ak sa stránka medzitým zmenila, obnovenie sa odmietne.
+    const revision = ((req.body ?? {}) as { revision?: unknown }).revision
+    if (isRevisionConflict(revision, revisionOf(before[slug].updated_at))) {
+      return res.status(409).json({ message: REVISION_CONFLICT_MESSAGE })
+    }
     const pages = { ...before }
     delete pages[slug]
     await writeStoreMetadata(req.scope, store.id, writePages(store.metadata, pages))
