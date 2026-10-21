@@ -24,7 +24,7 @@ export function chatNotifier(container: MedusaContainer): ChatNotifier {
   const notification = (() => {
     try { return container.resolve(Modules.NOTIFICATION) } catch { return null }
   })()
-  const adminUrl = env("CHAT_ADMIN_URL") || `${env("BACKEND_PUBLIC_URL") || "http://localhost:9000"}/app/chat`
+  const adminUrl = env("CHAT_ADMIN_URL") || `${(env("ADMIN_CORS") || "http://localhost:5173").split(",")[0].trim().replace(/\/+$/, "")}/#/spravy`
   const storefrontUrl = env("CHAT_STOREFRONT_URL")
 
   return {

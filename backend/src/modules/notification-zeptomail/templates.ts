@@ -726,7 +726,7 @@ const CATALOG: Entry[] = [
       text("intro", "Text", "Neprečítané správy: {pocet_sprav}, konverzácie: {pocet_konverzacii}."),
       line("button", "Tlačidlo", "Otvoriť chat"),
     ],
-    sample: { messages: 3, conversations: 2, url: "https://admin.anastasiaoz.eu/app/chat" },
+    sample: { messages: 3, conversations: 2, url: "https://admin.anastasiaoz.eu/#/spravy" },
     vars: data => ({ pocet_sprav: String(num(data.messages) ?? 0), pocet_konverzacii: String(num(data.conversations) ?? 0) }),
     build: (data, t, r) => ({
       subject: r("subject"),

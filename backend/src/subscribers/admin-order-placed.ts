@@ -29,7 +29,8 @@ export default async function adminOrderPlacedHandler({ event, container }: Subs
     const total = new Intl.NumberFormat("sk-SK", { style: "currency", currency: order.currency_code || "eur" }).format(Number(order.total ?? 0))
     const payment = (order.payment_collections ?? []).flatMap((pc: any) => pc.payment_sessions ?? []).map((ps: any) => ps.provider_id ?? ps.id).filter(Boolean)
     const shipping = (order.shipping_methods ?? []).map((m: any) => m.name).filter(Boolean).join(", ")
-    const adminUrl = env("ADMIN_URL") || `${env("BACKEND_PUBLIC_URL") || "http://localhost:9000"}/app/orders`
+    // Vlastná administrácia (Medusa /app je vypnutý); bez ADMIN_URL prvý pôvod z ADMIN_CORS.
+    const adminUrl = env("ADMIN_URL") || `${(env("ADMIN_CORS") || "http://localhost:5173").split(",")[0].trim().replace(/\/+$/, "")}/#/objednavky`
     await sendEmail(container, {
       to,
       template: "order-placed-admin",
