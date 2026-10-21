@@ -108,6 +108,9 @@ if(giftForm){
 
 // Chování převzaté z handoff návrhů (design/*.dc.html): menu, Lenis, reveal, parallax, tón lišty, text roll.
 const root=document.documentElement,shell=$('#page-shell'),reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+// DOM je připravený – teprve teď se smí ukázat lišta a hlavička (do té doby je
+// chrome skrytý CSS, aby při načítání neprobleskla zelená plocha).
+root.classList.add('ana-booted');
 const MENU={side:{o:'--side-o',p:'--side-p',t:'--side-t',open:'translate(0,-50%)',closed:'translate(-24px,-50%)'},top:{o:'--top-o',p:'--top-p',t:'--top-t',open:'translateY(0)',closed:'translateY(-16px)'}};
 let lenis=null,menuOpen=null,previousFocus=null;
 function setMenu(kind){

@@ -17,7 +17,7 @@
 // smíchat jazyky se nesmí.
 
 export const LANGS = ['sk', 'en', 'ru'];
-export const LANG_KEY = 'ana-lang';
+export const LANG_KEY = 'ana-lang-manual';
 
 export const DICT = {
   // --- Navigace, hlavička, lišta, menu -----------------------------------
@@ -64,6 +64,7 @@ export const DICT = {
   'Recenzie produktov': ['Product reviews', 'Отзывы о товарах'],
   'Recenzie zákazníkov': ['Customer reviews', 'Отзывы клиентов'],
   'Cookies': ['Cookies', 'Cookies'],
+  'EN / RU už čoskoro': ['EN / RU coming soon', 'EN / RU скоро'],
   'AI ANASTASIA ACADEMY': ['AI ANASTASIA ACADEMY', 'AI ANASTASIA ACADEMY'],
   'ACADEMY': ['ACADEMY', 'ACADEMY'],
   'BIOKOZMETIKA': ['BIOCOSMETICS', 'БИОКОСМЕТИКА'],
@@ -176,8 +177,10 @@ export function countryLang() {
   return 'en';
 }
 
+// Výchozí jazyk je vždy SK. Detekce podle prohlížeče a země je zrušená,
+// EN/RU se zapínají až ručním přepnutím (a do té doby jsou přepínače vypnuté).
 export function detectLang() {
-  return storedLang() || browserLang() || countryLang() || 'sk';
+  return storedLang() || 'sk';
 }
 
 export function getLang() {
@@ -291,11 +294,16 @@ function switchCode(el) {
 export function init() {
   try {
     for (const el of switchEls()) {
-      el.style.cursor = 'pointer';
-      el.setAttribute('role', 'button');
-      el.setAttribute('tabindex', '0');
       const code = switchCode(el);
-      el.title = { SK: 'Slovenčina', EN: 'English', RU: 'Русский' }[code] || el.title;
+      if (code !== 'SK') {
+        // EN/RU čekají na schválení překladů – přepínač zatím nefunguje.
+        el.title = { EN: 'Angličtina — až po schválení překladů', RU: 'Ruština — až po schválení překladů' }[code] || el.title;
+        el.setAttribute('aria-disabled', 'true');
+        continue;
+      }
+      el.style.cursor = 'default';
+      el.setAttribute('aria-current', 'true');
+      el.title = 'Slovenčina';
       el.dataset.i18nSwitch = '1';
       const go = (e) => { e.preventDefault(); setLang(code.toLowerCase()); };
       el.addEventListener('click', go);

@@ -216,9 +216,7 @@ export function chrome(page) {
     footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
-    // Jazykové přepínače jsou živé (SK/EN/RU), poznámka „už čoskoro“ neplatí.
-    menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'}))
-      .replace(/<span style="font-size:9px;opacity:0\.7">EN \/ RU už čoskoro<\/span>/, ''),
+    menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
   };
 }
 
@@ -314,7 +312,8 @@ html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto !important}
 .lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
 .lenis.lenis-stopped{overflow:hidden}
-html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
+/* Tělo je krémové – zelená by při načítání prolínala. Sekce nesou barvu vlastní. */
+html:has(body.dc-page),body.dc-page{margin:0;background:#F5F2E8}
 .dc-root *,.dc-chrome *{box-sizing:border-box}
 .dc-root a,.dc-chrome a{color:inherit;text-decoration:none}.dc-root a:hover,.dc-chrome a:hover{color:#C9A355}
 :root{--field-surface:#F7F5ED;--field-ink:var(--ink,#283020)}

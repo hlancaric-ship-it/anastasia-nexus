@@ -109,7 +109,7 @@ export function homeSections(products = []) {
   const hero = `
 <section class="lh-intro" id="lh-intro" aria-labelledby="lh-ih">
   <div class="lh-intro__stage">
-    <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="auto" poster="${IMG.hero}" aria-hidden="true">
+    <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
       <source src="/media/hero-1080p.mp4" type="video/mp4">
     </video>
     <div class="lh-intro__veil" aria-hidden="true"></div>
@@ -173,6 +173,7 @@ export function homeSections(products = []) {
       <span class="lh-say__note">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.</span>
     </h1>
     <div class="lh-say lh-say--two">
+      <p class="lh-eyebrow">Zdravý svet</p>
       <p class="lh-display">Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.</p>
       <a class="lh-cta lh-cta--gold" href="/zdravy-svet">Vstúpte do zdravého sveta ${arrow}</a>
     </div>
@@ -327,7 +328,7 @@ export const HOME_CSS = `
 /* Po prvním přehrání je úvod hero sekcí: bez zoomu, bez kategorií. */
 html.lh-hero-mode .lh-intro{height:100svh;min-height:640px}
 html.lh-hero-mode .lh-intro__cats{display:none}
-.lh-intro__stage{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--site-deep,#26321E) url(${IMG.hero}) center/cover no-repeat}
+.lh-intro__stage{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--lh-paper,#F5F2E8)}
 .lh-intro__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease}
 .lh-intro__video.lh-ready{opacity:1}
 .lh-intro__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,22,16,.42),rgba(16,22,16,.06) 45%,rgba(16,22,16,.62))}
@@ -381,8 +382,10 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-say--one{left:var(--lh-gut,16px);bottom:14vh;max-width:min(92vw,1100px);display:none}
 .motion .lh-say--one{display:block;opacity:0}
 .lh-say--two{left:6vw;right:auto;top:auto;bottom:14vh;text-align:left;max-width:560px}
-.lh-say--two .lh-display{font-size:clamp(28px,2.6vw,44px);max-width:560px}
+.lh-say--two .lh-eyebrow{margin:0 0 14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--lh-muted,#6E7468)}
+.lh-say--two .lh-display{font-size:clamp(28px,2.6vw,44px);line-height:1.22;max-width:560px;font-weight:300}
 .lh-say--two .lh-cta{margin-top:26px}
+@media (prefers-reduced-motion:reduce){.lh-say--two{display:none}}
 .motion .lh-say{opacity:0}
 .motion .lh-say--one,.motion .lh-say--two{opacity:0}
 .lh-vid-btn{position:absolute;right:var(--lh-gut,16px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.15);color:#fff;font:inherit;font-size:13px;cursor:pointer;opacity:0}
