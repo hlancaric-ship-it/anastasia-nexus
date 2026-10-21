@@ -139,6 +139,47 @@ Zaručenie, ktoré dnešný kód naozaj dáva:
 Úprava testu je v `backend/integration-tests/http/safeorder-persistence.spec.ts` (scenár C3),
 s popisom v kóme.
 
+### Nový C3 a jeho výsledok
+Scenár bol prepísaný na dnešné zaručenie (bariéra zosúladí príchod ku **read-only kontrole
+limitu** `couponLimitState`, počítadlo ani zámok sa nemockuje):
+
+1. oba súbežné checkouty narazia na kontrolu limitu naraz (`arrivals === 2`),
+2. obe objednávky vzniknú a obe majú zľavnenú cenu 45 € (zľava sa počíta pri repricingu košíka),
+3. `promotion.used` je **1** – limit sa nikdy neprekročí (atomický CTE s podmienkou `used < limit`),
+4. presne jedna objednávka je započítaná (`coupon.used`), druhá je označená
+   `coupon.limit_exhausted` (admin ju vidí v prehľade) – hotová objednávka zostáva stáť,
+5. vyčerpaný kupón sa ďalej neudelí: ďalší košík s tým istým kódom dostane `400 COUPON_INVALID`.
+
+**Výsledok: `safeorder-persistence.spec.ts` PASS 1/1 (350 s)** v syntetickom PostgreSQL klustre
+(`scripts/verify-safeorder-local.py`) so skutočným NEXUS Workerom.
+
+### Ďalšie chyby, ktoré sa odhalili po oprave C3 (a stav)
+
+Po oprave C3 sa spustili aj scenáre, ktoré predtým test ukončil ešte pred nimi. Prešli tri ďalšie
+zistenia – dve boli zastarané testy, **jedna je chyba produkčného kódu**:
+
+| Zistenie | Druh | Stav |
+|---|---|---|
+| `booking.tenant_id` chýbal v tabuľke `booking` – každé vytvorenie rezervácie skončilo `500 column "tenant_id" of relation "booking" does not exist` | **chyba kódu** (chýbala migrácia) | opravené: `backend/src/modules/booking/migrations/Migration20261021160000.ts` |
+| `gift-voucher-http-checks.ts` volal `/store/gift-vouchers/*` bez prihlásenia, hoci od `79fb2f6` routy overujú vlastníka košíka → `404 CART_NOT_FOUND` namiesto `400 GIFT_VOUCHER_RECIPIENT_EMAIL_INVALID` | zastaraný test | opravené (volania používajú `buyerOptions`) |
+| `shipping-settings-http-checks.ts` čakal, že prípravu platby pre fyzický košík len s digitálnou dopravou prejde; poistka `requireShippingBeforePayment` ju správne blokuje (`409 SHIPPING_REQUIRED`) | zastaraný test | opravené (test počíta s 409 a s tým, že checkout odmietne košík bez platby) |
+
+**Prečo `booking.tenant_id` nebolo v DB:** SQL súbory `0001_booking_exclusion_*.sql` a
+`0002_booking_tenant_id_*.sql` v `src/modules/booking/migrations/` sa **nikdy nespúšťajú** –
+Medusa beží len MikroORM migrácie (`Migration*.ts`) a na tie .sql súbory nikde neodkazuje.
+Tabuľku `booking` založila `Migration20261009130000` (bez `tenant_id`), `Migration20261013192849`
+pridala `calendar_id`. Nová `Migration20261021160000` doplní `tenant_id` a indexy modelu
+(idempotentne, `down` ich tiež odstráni).
+
+**Dopad na produkciu:** rezervácie (K9) boli na nasadených DB rozbité – každé vytvorenie
+rezervácie skončilo 500. Pred nasadením treba spustiť migrácie (na teste aj na produkcii).
+
+**Nález mimo rozsahu (na rozhodnutie Luckyho):** použitie kupónu zapisuje len trasa
+`/store/nexus-checkout` (`recordCouponUsage` v `api/store/nexus-checkout/route.ts`). Natívna trasa
+`/store/carts/:id/complete` použitie nezapisuje → jednorazový kupón sa cez ňu dá použiť
+neobmedzene (počítadlo zostáva na 0). Web používa len `/store/nexus-checkout`, takže zákazník
+na webe naraziť nemôže; oprava by znamenala zápis použitia aj pre natívnu trasu.
+
 ---
 
 ## 4. Stav a čo ďalej
@@ -147,10 +188,21 @@ s popisom v kóme.
 |---|---|
 | Klub: `tenant_id` do `entitlement.grant()` | **opravené** (37198dc) + dve ďalšie integračné kontroly opravené |
 | Unit test na grant s `tenant_id` | **pridaný** (chytí regresiu, overené) |
-| Prehľad ďalších služieb s `tenant_id` | **hotovo** (booking/reset-journal/coupon-link majú default, entitlement je jediný striktný) |
+| Prehľad ďalších služieb s `tenant_id` | **hotovo** – entitlement je jediný striktný; **booking potreboval migráciu** (`Migration20261021160000`), reset-journal a coupon-link majú vlastný default |
 | `membership-state.spec.ts` podľa CI | **PASS 4/4** |
 | `membership-checkout-e2e.spec.ts` podľa CI | **PASS 1/1** |
-| SafeOrder C3 | príčina nájdená (zastaraný test po `fa6a892`) – oprava testu v samostatnom kroku |
-| Všetky unit testy | **PASS** (144 sád / 1457 testov) |
+| SafeOrder C3 | príčina nájdená (zastaraný test po `fa6a892`) → **scenár prepísaný na dnešné zaručenie, PASS 1/1** |
+| `booking.tenant_id` (chýbajúca migrácia) | **opravené** novou migráciou `Migration20261021160000` |
+| `gift-voucher-http-checks.ts` (vlastník košíka) | **opravené** |
+| `shipping-settings-http-checks.ts` (poistka platby) | **opravené** |
+| `npx tsc --noEmit` | **0 diagnostik** (aj po `medusa build`) |
+| `python3 backend/scripts/check-admin-function-map.py` | **PASS** |
+| Všetky unit testy | **PASS** (144 sád / 1457 testov, 399 s) |
 
-Nasadenie na test/produkciu sa nemení – ide o testy a ich opravu.
+### Pred nasadením na test/produkciu
+1. Spustiť migrácie – **nová `Migration20261021160000` opraví rezervácie** (do tejto chvíle zlyhalo
+   každé vytvorenie rezervácie s 500).
+2. Rozhodnúť o náleze „natívna trasa `/store/carts/:id/complete` nezapisuje použitie kupónu“ –
+   web ju nepoužíva, ale oprava znamená zápis použitia aj pre ňu.
+
+Nasadenie na test/produkciu sa nemení – ide o testy, ich opravu a jednu chýbajúcu migráciu.
