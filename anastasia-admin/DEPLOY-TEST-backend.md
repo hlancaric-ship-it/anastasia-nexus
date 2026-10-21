@@ -245,12 +245,12 @@ lokálny storefront na `localhost:4187`), **nie na produkcii a nie na teste**.
 | Overenie | Príkaz | Výsledok |
 |---|---|---|
 | Typy backendu (čistý checkout, bez `.medusa/types`) | `cd backend && npx tsc --noEmit` | **0 diagnostik** |
-| Typy backendu po `medusa build` (stav ako v Docker obraze) | `cd backend && npx tsc --noEmit` | **1 chyba** – `integration-tests/http/admin-c5.spec.ts:34` (pozri R10) |
-| Build backendu (príkaz z Dockerfile) | `cd backend && npx medusa build` | `Backend build completed successfully` – nasadenie neblokuje |
+| Typy backendu po `medusa build` (stav ako v Docker obraze) | `cd backend && npx tsc --noEmit` | **0 diagnostik** (po oprave R10) |
+| Build backendu (príkaz z Dockerfile) | `cd backend && npx medusa build` | `Backend build completed successfully` |
 | Unit testy backendu | `cd backend && npm run test:unit` | 139 sád / 1424 testov – všetky prešli |
 | Testy storefrontu | `cd storefront-prototype && node --test "test/*.test.mjs"` | 112 testov – všetky prešli |
 | E2E platby kartou bez súhlasu s cookies (Stripe fix) | `node storefront-prototype/test/browser-checkout-stripe.mjs` | PASS (5 kontrol) |
-| QA cookie lišty a formuláru odstúpenia | `node storefront-prototype/test/browser-legal-qa.mjs` | 8 z 9 kontrol OK (1 známy defekt – R3) |
+| QA cookie lišty a formuláru odstúpenia | `node storefront-prototype/test/browser-legal-qa.mjs` | **9/9 kontrol OK** (po oprave R3) |
 | Migrácia `up()` – idempotencia | 2× `npx medusa db:migrate` na prázdnej DB | 2. beh: „Database already up-to-date“, žiadna chyba |
 | Migrácia `up()` – dáta zostávajú | opakované `up()` cez syntentické záznamy | `legal_consent`, `legal_withdrawal`, `newsletter_consent`, `newsletter_consent_event`, `legal_rate_limit` – počty nezmenené |
 | Migrácia `down()` – rollback | `down()` na syntentických dátach | zhodil **len** `legal_contract_withdrawal`; ostatné tabuľky a ich dáta nedotknuté |
@@ -262,15 +262,17 @@ lokálny storefront na `localhost:4187`), **nie na produkcii a nie na teste**.
 
 ## 7. Nalezené problémy a rizika (pred nasadením prečítať)
 
-**R1 – Zmeny textu v admine môžu po nasadení „zmiznúť“ (kľúče semena sú indexové).**
+**R1 – Zmeny textu v admine môžu po nasadení „zmiznúť“ (kľúče semena sú indexové). — ZATIAľ BEZPREMENY**
 Kľúče polí v `seed.json` majú tvar `<stranka>__<sekcia>__<index>-<typ>`. Commit `95c6df3` prepísal
 stránky `vop`, `reklamacie` a `gdpr` z klienta: pri porovnaní semena pred a po je
 **77 kľúčov odstránených, 105 pridaných, 59 kľúčov má iný text**. Ak Lucia na teste už upravila
 pole s kľúčom, ktorý v novom seode neexistuje, jej zmena sa po nasadení zobrazí ako pôvodný text
 (seed) a v `store.metadata` zostane ako osamotený záznam.
-*Ochrana:* krok 2.2 (záloha metadát) + po nasadení porovnať kľúče `anastasia_content.fields`
-s kľúčmi v `seed.json`; osamotené kľúče prepísať ručne cez admin (POST `/admin/content`).
-*Ďalšie:* pri každej regenerácii semena (`scripts/generate-content-seed.mjs`) treba kľúče skontrolovať.
+*Stav (rozhodnutie 21. 10. 2026):* Lucia na teste zatím nič neupravovala → riziko sa v tejto
+vlnie nerieši. Krok 2.2 (záloha metadát) ostáva odporúčaný, lebo je zároveň východisková bodka
+pre prípadnú obnovu.
+*Do budúcnosti:* pri každej regenerácii semena (`scripts/generate-content-seed.mjs`) treba kľúče
+skontrolovať; v opačnom prípade treba zmeny z adminu preniesť ručne.
 
 **R2 – E-mail zákazníkovi sa na teste neposlanie (je to zamýšľané).**
 `EMAIL_RECIPIENT_ALLOWLIST=@l-code-dynamics.com` zablokuje potvrdenie doručenia zákazníkovi
@@ -280,15 +282,14 @@ Záznam odstúpenia sa uloží aj tak, e-mail pre správcu (`CONTACT_NOTIFY_EMAI
 Na ostré nasadenie allowlist zrušiť (priechodnosť e-mailov pre zákazníkov) – vidí
 `docs/launch/DEPLOY-RUNBOOK-2026-10-23.md` §Príloha A.
 
-**R3 – Odkaz „Nastavenia cookies“ v pätičke neotvorí panel, ale preskočí na `/cookies`.**
+**R3 – Odkaz „Nastavenia cookies“ v pätičke neotvorí panel, ale preskočí na `/cookies`. — OPRAVENÉ**
 `storefront-prototype/public/app.mjs` (obsluha kliknutí na `a[href]`, okolo riadku 273-281)
-ignoruje `event.defaultPrevented` a po 220 ms volá `location.assign(url.href)`.
+ignoroval `event.defaultPrevented` a po 220 ms volal `location.assign(url.href)`.
 Obsluha súhlasu v `public/consent.mjs` síce volá `preventDefault()`, ale odoslanie odkazu
-sa tým nezastaví. Reprodukované v QA (`browser-legal-qa.mjs`, kontrola „odkaz v pätičke“).
-*Dopad:* zákazník si cez odkaz v pätičke panel nezobrazí (musí kliknúť „Nastaviť“ v lište).
-*Fix (malý, 1 riadok):* v `app.mjs` pred `preventDefault()` overiť `if(event.defaultPrevented)return;`
-alebo v `consent.mjs` počítať s tým, že navigácia prebehne. **Nezmenené** – patrí do ďalšej opravy,
-aby sa do testu nedostala neodsúhlasená zmena.
+sa tým nezastavilo. Reprodukované v QA (`browser-legal-qa.mjs`, kontrola „odkaz v pätičke“).
+*Oprava:* v `public/app.mjs` pribudla kontrola `if(event.defaultPrevented)return;` pred navigáciou –
+klik, ktorý už zrušil iný obslužník (panel súhlasu s cookies), sa neprevedie na navigáciu.
+*Overené:* `node test/browser-legal-qa.mjs` → **9/9 kontrol OK** (pred opravou 8/9).
 
 **R4 – Limit formulára odstúpenia: 5 pokusov / 10 min / IP (`legalRate`).**
 Kontrolné curl-y sa môžu skončiť `429` s hlavičkou `Retry-After`.
@@ -318,29 +319,46 @@ Pri zmene znenia treba zvýšiť verziu v `backend.env`, inak staré súhlasy v 
 Po zmene adresy testovacieho webu treba CORS na backende upraviť, inak web hlási
 „blocked by CORS policy“ a katalog aj formulár odstúpenia nepracujú (overené pri lokálnom behu).
 
-**R10 – `npx tsc --noEmit` je zelený len v čistom checkoute; po `medusa build` hlási 1 chybu.**
-Chyba je v `backend/integration-tests/http/admin-c5.spec.ts:34`
+**R10 – `npx tsc --noEmit` je zelený len v čistom checkoute; po `medusa build` hlási 1 chybu. — OPRAVENÉ**
+Chyba bola v `backend/integration-tests/http/admin-c5.spec.ts:34`
 (`const setId=data[0].price_set.id` → `TS2531: Object is possibly 'null'`).
 Príčina: `medusa build`/`medusa develop` vygeneruje `.medusa/types/query-entry-points.d.ts`,
 v ktorom je `price_set` typ `Maybe<PriceSet>` (môže byť `null`), a `query.graph()` potom vracia
-typovaný výsledok. Pred generovaním typov je `tsc --noEmit` úplne zelený (overené).
-*Dopad na nasadenie:* **žiadny** – `npx medusa build` (príkaz z `ops/test-server/Dockerfile`)
-prebehne úspešne, `integration-tests/` sa do buildu servera nekompiluje. Chyba sa prejaví len
-pri ručnom `npx tsc --noEmit` po builde a pri typechecku v CI.
-*Stav:* chyba nie je z právnych textov ani z cookie lišty (vznikla v komite `f38a0eb` – admin C5),
-preto v tejto úlohe **opravená nebola** (mimo rozsahu). Fix je jedna zmenená značka v tomto teste
-(napr. `data[0]?.price_set?.id`) – rozhodne Lucky.
+typovaný výsledok. Pred generovaním typov bol `tsc --noEmit` úplne zelený.
+*Oprava:* `data?.[0]?.price_set?.id` + kontrola `if(!setId)throw new Error(...)` – test zostáva prísny
+(variant bez `price_set.id` test ukončí), no `tsc` už nespôsobuje chybu.
+*Overené:* `npx tsc --noEmit` po `npx medusa build` → **0 diagnostik**.
+Poznámka: chyba vznikla v komite `f38a0eb` (admin C5), nie v právnych textoch; oprava je v integračnom
+teste a nemení chovanie aplikácie.
 
 ---
 
 ## 8. Čo treba od Luckyho pred nasadením
 
-1. Potvrdenie, že sa smie nasadiť na test (krok 2.5 + 2.6) – bez toho sa nenasádza nič.
-2. Rozhodnutie, či sa pred nasadením opraví R3 (odkaz v pätičke) – odporúčam opraviť, je to 1 riadok.
-3. Informácia, či už boli na teste robené zmeny textu v admine (R1) – ak áno, treba export metadát
-   a porovnanie kľúčov pred nasadením.
-4. Rozhodnutie o R10 (typecheck v integračnom teste) – nasadenie neblokuje, dá sa odložiť.
-5. Kto a kedy doplní placeholdery `[doplní prevádzkovateľ]` (R5) – bez nich je lišta a texty neúplné.
+Rozhodnutia z 21. 10. 2026 (Luky): **R3 opravené, R10 opravené, R1 sa nerieši** – Lucia na teste
+zatím nič neupravovala, takže sieti kľúčov semena nie je potrebné porovnávať pred nasadením.
+
+1. **Potvrdenie, že sa smie nasadiť na test** (krok 2.5 + 2.6) – bez toho sa nenasádza nič.
+2. Kto a kedy doplní placeholdery `[doplní prevádzkovateľ]` (R5) – bez nich je lišta a texty neúplné.
+3. Informácia, či sa má pred nasadením vrátiť späť aj oprava R3 (odkaz v pätičke) – odporúčam
+   nechať opravu vo veji (je súčasťou tejto vetvy).
+4. Pri ostré nasadenie (nie test) zrušiť `EMAIL_RECIPIENT_ALLOWLIST` (R2) a prepnúť Stripe na `live`
+   podľa `docs/launch/DEPLOY-RUNBOOK-2026-10-23.md`.
+
+### Stav ostatných rizík po rozhodnutí
+
+| Riziko | Stav |
+|---|---|
+| R1 (kľúče semena) | nerieši sa – Lucia na teste neupravovala texty |
+| R2 (e-mail zákazníkovi) | platí, na teste je to zamýšľané |
+| R3 (odkaz v pätičke) | **opravené** a overené 9/9 |
+| R4 (limit 5/10 min) | platí, len pri testovaní |
+| R5 (placeholders) | otvorené – čaká sa na doplnenie od klientky |
+| R6 (texty idú zo statického webu) | platí, v poriadku pre Fázu 1 |
+| R7 (verzie právnych textov) | platí, treba zvýšiť verziu pri zmene znenia |
+| R8 (kľúče pre build) | platí, `deploy.sh` kontroluje |
+| R9 (CORS) | platí, treba skontrolovať pri zmene adresy webu |
+| R10 (typecheck po builde) | **opravené** – `tsc --noEmit` je zelený |
 
 ## 9. Čo sa na test NEZMENÍ (bez nového rozhodnutia)
 
