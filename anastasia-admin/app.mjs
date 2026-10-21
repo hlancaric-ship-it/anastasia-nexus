@@ -1371,6 +1371,7 @@ async function vCustomers(view) {
       const plain = await api(`/admin/customers?${params}&fields=id,email,first_name,last_name,has_account,created_at`);
       loyalty = false;
       customers = plain.customers || [];
+      data = { count: Number(plain.count) || 0 };
     }
     count = Number(data?.count ?? 0) || customers.length;
     if (tierSel) {
