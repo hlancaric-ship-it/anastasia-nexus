@@ -212,6 +212,29 @@ export const GUIDES = [
     ],
   },
   {
+    id: 'objednavka-prevod-dobierka', group: 'objednavky', icon: 'bag', href: '#/objednavky', hrefLabel: 'Otvoriť Objednávky',
+    title: 'Ako spárovať platbu prevodom a dobierku',
+    summary: 'Objednávky zaplatené prevodom na účet alebo na dobierku potvrdíte ručne, keď peniaze prídu.',
+    why: 'Prevod a dobierka nejdú cez platobnú bránu. Objednávka preto vznikne so stavom „čaká na platbu“ a digitálny obsah sa zákazníčke sprístupní až potom, ako platbu prijmete. Doprava kuriérom stojí 6 €, od 60 € je zadarmo; dobierka je o 2 € drahšia a dá sa zvoliť len pri kuriérovi a fyzickom tovare.',
+    steps: [
+      'V Objednávkach otvorte objednávku so stavom platby „čaká na platbu (prevod)“ alebo „čaká na platbu (dobierka)“. Spôsob platby vidíte v Prehľade.',
+      'Prevod: vo výpise z účtu v Tatra banke (IBAN SK17 1100 0000 0026 2409 8906) nájdite platbu, ktorej variabilný symbol je číslo objednávky. Skontrolujte, že suma sedí s „Celkom“ v objednávke.',
+      'Dobierka: tovar pripravte a odošlite kuriérom. Keď vám dopravca vyplatí vybranú sumu, nájdite objednávku podľa čísla na výpise od dopravcu.',
+      'V záložke Platby kliknite na Prijať platbu a potvrďte.',
+    ],
+    after: [
+      'Stav platby sa zmení na „zaplatená“.',
+      'Zákazníčke sa sprístupní zakúpený digitálny obsah a odíde jej e-mail o prijatí platby.',
+      'Pri osobnom odbere (Sokolská 88, Zvolen) zákazníčka platí prevodom alebo kartou vopred; tovar odovzdajte až po prijatí platby.',
+    ],
+    careful: [
+      'Platbu prijmite až vtedy, keď peniaze naozaj prišli na účet. Tlačidlo nič nesťahuje, len zaznamená úhradu.',
+      'Ak suma alebo variabilný symbol nesedí, platbu neprijímajte a ozvite sa zákazníčke.',
+      'Pri vrátení peňazí za prevod alebo dobierku pošlite peniaze zákazníčke sami prevodom; v objednávke sumu len zaznamenáte cez Vrátiť peniaze.',
+      'Nezaplatenú objednávku, ktorá na platbu čaká priveľa dní, môžete zrušiť.',
+    ],
+  },
+  {
     id: 'objednavka-zrusit', group: 'objednavky', icon: 'bag', href: '#/objednavky', hrefLabel: 'Otvoriť Objednávky',
     title: 'Ako zrušiť objednávku',
     summary: 'Zrušenie neodoslanej objednávky s automatickým vrátením peňazí.',
@@ -588,8 +611,8 @@ export const PAGE_HELP = {
   objednavky: {
     title: 'Ako fungujú Objednávky',
     text: 'Každá karta je jedna objednávka so stavom platby a vybavenia. Kliknutím otvoríte detail so záložkami Prehľad, Položky, Odoslanie a Platby.',
-    points: ['Pripraviť a Označiť ako odoslanú nájdete v záložke Odoslanie. Zákazníčke potom odíde e-mail.', 'Prijať platbu a Vrátiť peniaze nájdete v záložke Platby.', 'Každú akciu pred vykonaním potvrdíte.'],
-    guides: ['objednavka-vybavit', 'objednavka-platby', 'objednavka-zrusit'],
+    points: ['Pripraviť a Označiť ako odoslanú nájdete v záložke Odoslanie. Zákazníčke potom odíde e-mail.', 'Prijať platbu a Vrátiť peniaze nájdete v záložke Platby. Prevod a dobierku potvrdíte ručne, keď peniaze prídu.', 'Každú akciu pred vykonaním potvrdíte.'],
+    guides: ['objednavka-vybavit', 'objednavka-platby', 'objednavka-prevod-dobierka', 'objednavka-zrusit'],
   },
   produkty: {
     title: 'Ako fungujú Produkty',

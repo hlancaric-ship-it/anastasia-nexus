@@ -730,6 +730,12 @@ async function vOrders(view) {
 // Akcie objednávky cez natívne Admin API jadra (spúšťajú existujúce subscribery: e-maily, prístupy, kompenzácie).
 // Každá zmena má potvrdenie; sumy a stavy overuje jadro, SPA len ponúka to, čo dáva zmysel.
 const ORDER_FIELDS = 'id,metadata,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,*items,*items.detail,*fulfillments,*fulfillments.items,*fulfillments.labels,*payment_collections,*payment_collections.payments,*payment_collections.payments.refunds,*payment_collections.payments.captures,*shipping_address,*shipping_methods';
+const PAY_METHOD = {
+  pp_cod_cod: { key: 'cod', label: 'Na dobierku', short: 'dobierka', manual: true },
+  pp_bank_transfer_bank_transfer: { key: 'bank_transfer', label: 'Prevodom na účet', short: 'prevod', manual: true },
+  pp_stripe_stripe: { key: 'card', label: 'Kartou online', short: 'karta', manual: false },
+  pp_membership_stripe_membership: { key: 'card', label: 'Kartou – Klub', short: 'karta', manual: false },
+};
 const PAY_LABEL = { captured: 'zaplatená', authorized: 'autorizovaná (čaká na prijatie)', partially_refunded: 'čiastočne vrátená', refunded: 'vrátená', not_paid: 'nezaplatená', awaiting: 'čaká na platbu', canceled: 'zrušená', partially_captured: 'čiastočne zaplatená', requires_action: 'čaká na overenie' };
 const FUL_LABEL = { not_fulfilled: 'nevybavená', fulfilled: 'pripravená na odoslanie', partially_fulfilled: 'čiastočne pripravená', shipped: 'odoslaná', partially_shipped: 'čiastočne odoslaná', delivered: 'doručená', canceled: 'zrušená' };
 const sum = (arr, k = 'amount') => (arr || []).reduce((a, x) => a + Number(x?.[k] || 0), 0);
@@ -745,14 +751,19 @@ async function vOrderDetail(view, id, notice) {
   const payments = (archived ? [] : o.payment_collections || []).flatMap(pc => pc.payments || []).filter(p => !p.canceled_at);
   const canceled = o.status === 'canceled';
   const anyShipped = fulfillments.some(f => f.shipped_at);
+  // Spôsob platby podľa providera: dobierka a prevod sú manuálne – objednávka čaká, kým platbu prijmete.
+  const method = PAY_METHOD[payments.find(p => p.provider_id)?.provider_id] || null;
+  const manual = method && method.manual;
+  const payState = (!history.payment_status && manual && o.payment_status === 'authorized') ? `čaká na platbu (${method.short})` : (history.payment_status || PAY_LABEL[o.payment_status] || o.payment_status || '—');
   const a = (o.shipping_address || {});
   const addr = [[a.first_name, a.last_name].filter(Boolean).join(' '), a.address_1, a.address_2, [a.postal_code, a.city].filter(Boolean).join(' '), (a.country_code || '').toUpperCase()].filter(Boolean).map(esc).join('<br>');
   const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(history.placed_at || o.created_at)}</div></div></div>
-    <div class="row"><div><label>Platba</label><div><span class="pill">${esc(history.payment_status || PAY_LABEL[o.payment_status] || o.payment_status || '—')}</span></div></div>
+    <div class="row"><div><label>Platba</label><div><span class="pill">${esc(payState)}</span>${method ? `<div style="margin-top:4px"><b>${esc(method.label)}</b></div>` : ''}</div></div>
     <div><label>Vybavenie</label><div><span class="pill">${esc(history.status || (archived ? 'Archív' : FUL_LABEL[o.fulfillment_status] || o.fulfillment_status) || '—')}</span>${canceled ? ' <span class="pill off">objednávka zrušená</span>' : ''}</div></div></div>
     <div class="row"><div><label>Doručenie</label><div>${addr || '<span class="muted">bez adresy (digitálny obsah)</span>'}</div></div>
     <div><label>Doprava</label><div>${(o.shipping_methods || []).map(m => `${esc(m.name)} · ${fmtEur(m.total ?? m.amount)}`).join('<br>') || '—'}</div></div></div>
-    <div style="margin-top:10px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>`;
+    <div style="margin-top:10px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>
+    ${manual && o.payment_status === 'authorized' && !canceled ? `<div class="notice" style="margin-top:10px">${method.key === 'bank_transfer' ? `Prevod: skontrolujte vo výpise Tatra banky platbu s variabilným symbolom <b>${esc(String(o.display_id || ''))}</b> a sumou <b>${fmtEur(o.total)}</b>. Potom v záložke Platby kliknite „Prijať platbu“ – až vtedy sa sprístupní digitálny obsah.` : 'Dobierka: zákazníčka platí kuriérovi pri prevzatí. Keď vám dopravca peniaze pripíše, v záložke Platby kliknite „Prijať platbu“.'}</div>` : ''}`;
   const polozky = `<div class="rc-grid">${items.map(it => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(it.title || it.product_title || '')}</div><div class="rc-fields">
       <span class="rc-f"><em>Kusov</em>${it.quantity}</span><span class="rc-f"><em>Suma</em>${fmtEur(it.total)}</span>
       <span class="rc-f"><em>Pripravené</em>${Number(it.detail?.fulfilled_quantity || 0)} / ${it.quantity}</span>
@@ -766,11 +777,11 @@ async function vOrderDetail(view, id, notice) {
     ${!toFulfill.length && !fulfillments.length ? '<p class="muted">Nie je čo pripraviť.</p>' : ''}
     <p class="muted" style="font-size:12px;margin-top:10px">Po označení odoslania jadro pošle zákazníčke e-mail o odoslaní.</p>`;
   const platby = `${payments.map(p => { const cap = sum(p.captures), ref = sum(p.refunds), left = Math.round((cap - ref) * 100) / 100;
-    return `<div class="task"><div><b>${fmtEur(p.amount)}</b> <span class="muted">${esc(p.provider_id || '')}</span>
+    return `<div class="task"><div><b>${fmtEur(p.amount)}</b> <span class="muted">${esc(PAY_METHOD[p.provider_id]?.label || p.provider_id || '')}</span>
       <p class="muted">Prijaté ${fmtEur(cap)} · vrátené ${fmtEur(ref)}</p>
       ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div><div></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
-    <p class="muted" style="font-size:12px;margin-top:10px">Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.</p>`;
+    <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníčke sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
   view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
     <div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
     ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }, { id: 'o', label: 'Odoslanie', html: odoslanie }, { id: 'pl', label: 'Platby', html: platby }])}
@@ -803,7 +814,7 @@ async function vOrderDetail(view, id, notice) {
     if (tn || tu) body.labels = [{ tracking_number: tn || '-', tracking_url: tu || '#', label_url: '#' }];
     run(b, 'Označiť zásielku ako odoslanú? Zákazníčke odíde e-mail.', () => api(`/admin/orders/${id}/fulfillments/${f.id}/shipments`, { method: 'POST', body }), 'Zásielka je označená ako odoslaná.');
   });
-  view.querySelectorAll('[data-cap]').forEach(b => b.onclick = () => run(b, 'Prijať (strhnúť) túto platbu?', () => api(`/admin/payments/${b.dataset.cap}/capture`, { method: 'POST', body: {} }), 'Platba je prijatá.'));
+  view.querySelectorAll('[data-cap]').forEach(b => b.onclick = () => run(b, PAY_METHOD[payments.find(p => p.id === b.dataset.cap)?.provider_id]?.manual ? 'Potvrdiť, že peniaze prišli? Zákazníčke sa sprístupní digitálny obsah a odíde e-mail o prijatí platby.' : 'Prijať (strhnúť) túto platbu?', () => api(`/admin/payments/${b.dataset.cap}/capture`, { method: 'POST', body: {} }), 'Platba je prijatá.'));
   view.querySelectorAll('[data-ref]').forEach(b => b.onclick = () => {
     const amt = Number(view.querySelector(`[data-refamt="${CSS.escape(b.dataset.ref)}"]`)?.value), max = Number(b.dataset.max);
     if (!(amt > 0) || amt > max) { view.querySelector('#omsg').innerHTML = `<div class="err">Zadajte sumu od 0,01 do ${esc(fmtEur(max))}.</div>`; return; }
@@ -1390,7 +1401,7 @@ const vObsah = (view) => subnav(view, [
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
-const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_stripe_stripe: 'Platobná karta (Stripe)', pp_membership_stripe_membership: 'Platobná karta – Klub', manual_manual: 'Vlastná doprava' };
+const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (+2 €)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta (Stripe)', pp_membership_stripe_membership: 'Platobná karta – Klub', manual_manual: 'Vlastná doprava' };
 const provLabel = (id) => PROVIDER_LABEL[id] || id || '—';
 async function vDopravaPlatby(view) {
   view = freshView(view);
