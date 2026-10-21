@@ -44,10 +44,11 @@
 4. **Voliteľné kategórie sú vypnuté od začiatku** a uložená voľba sa číta z `localStorage`
    (`anastasia.consent`). Kým zákazník nerozhodne, `anastasiaConsent.granted()` vracia `false`
    pre všetko okrem „necessary“ – voliteľný skript sa nenačíta.
-5. **Stripe (jediný skript tretej strany) sa načíta až po rozhodnutí zákazníka.** `loadStripeScript()`
-   v `public/app.mjs` najprv čaká na `requireDecision()`. Do tej chvíle web nenačíta nič cudzie
-   (overené: pri načítaní stránky nie je žiadny externý request). V pokladni sa zákazníkovi
-   pri výbere platby kartou zobrazí „Pred platbou kartou dokončite nastavenia cookies.“
+5. **Stripe (jediný skript tretej strony) je nevyhnutná technológia a nečaká na súhlas.**
+   `loadStripeScript()` v `public/app.mjs` načíta `https://js.stripe.com/v3` až v pokladni pri výbere
+   platby kartou (nie skôr a nikde inde na webe). Súhlas s cookies sa pri platbe **nevyžaduje** a
+   platba sa ním **nesmie blokovať** – oprava z `anastasia-admin/HANDOFF-stripe-cookies-fix.md`
+   (blokovanie bolo odstránené 21. 10. 2026 večer).
 6. **Limit 40 % displeja je v CSS, nie v heuristike:** `max-height:40vh` + `max-height:40svh`
    (menšia z dvoch hodnôt, bezpečnejšie pri adresnom riadku prehliadača) + `overflow-y:auto`.
    Overené v prehliadači na 360×640: lišta = 249 px = **38,9 %** displeja, obsah sa neposúva.
@@ -147,9 +148,10 @@ Overené v prehliadači (Playwright, 360×640 a 1280×900):
   lištu prejsť na informačnú (dokument klientky to v časti E výslovne povoľuje).
 - **Nová tabuľka vyžaduje migráciu.** `Migration20261021100000` v module `legal` sa musí spustiť
   pred nasadením trasy (medusa db:migrate). Bez tabuľky trasa vráti 503.
-- **Platie kartou čaká na rozhodnutie o cookies.** Ak zákazník vyberie kartu a nevyberie nastavenia,
-  platobná bráňa sa nenačíta a v pokladni vidí hlásenie. Je to zámerné („žiadny skript tretej strany
-  pred súhlasom“), ale treba to vedieť pri testovaní pokladne.
+- **Platie kartou už nečaká na rozhodnutie o cookies.** Opravené 21. 10. 2026 večer: platobná brána
+  Stripe je nevyhnutná technológia, načíta sa v pokladni pri výbere platby kartou a platba sa
+  súhlasom s cookies neblokuje. Zostáva otvorené: zaradenie Stripe medzi nevyhnutné technológie
+  treba potvrdiť s klientkou (`PRAVNE-TEXTY-DOPLNIT.md`, bod 16).
 - **Admin UI nebola overená za behu** (backend s databázou v tejto úlohe nebežal) – typovo a prehliadačom
   je skompilovaná (`tsc --noEmit` čistý), ale kliknutie v živom adminovi overiť treba pri nasadení.
 - **Formulár nesúvisí s objednávkou v databáze.** Zákazník píše číslo objednávky ručne (môže byť
@@ -160,7 +162,7 @@ Overené v prehliadači (Playwright, 360×640 a 1280×900):
 
 ## Ďalší krok
 
-1. Klientka doplní body 1–5 a 15 v `anastasia-admin/PRAVNE-TEXTY-DOPLNIT.md`.
+1. Klientka doplní body 1–5, 15 a 16 v `anastasia-admin/PRAVNE-TEXTY-DOPLNIT.md`.
 2. V prostredí: `EMAIL_RECIPIENT_ALLOWLIST=@l-code-dynamics.com` (test) a `CONTACT_NOTIFY_EMAIL`
    (adresát hlásenia o odstúpení), potom spustiť migráciu `medusa db:migrate`.
-3. Ručne overiť v živom adminovi zoznam odstúpení a v pokladni hlásenie o cookies.
+3. Ručne overiť v živom adminovi zoznam odstúpení a platbu kartou v pokladni (bez kliknutia na lištu cookies).

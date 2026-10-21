@@ -21,9 +21,10 @@
 - **Voľba sa uloží** v prehliadači (`localStorage`) a pretrváva medzi návštevami.
 - **Odkaz „Nastavenia cookies“ je v pätičke** na každej stránke; otvorí ten istý panel s
   jednotlivými kategóriami (bez JavaScriptu vedie na stránku `/cookies`).
-- **Žiadny skript tretej strany sa pred súhlasom nenačíta.** Web načítal výhradne vlastné súbory;
-  jediný externý skript (Stripe, platobná brána) sa načíta až potom, čo zákazník rozhodne
-  o cookies. V pokladni vidí hlásenie „Pred platbou kartou dokončite nastavenia cookies.“
+- **Žiadny skript tretej strany sa pred súhlasom nenačíta.** Web načítal výhradne vlastné súbory.
+  Jediný externý skript (Stripe, platobná brána) patrí medzi **nevyhnutné** technológie: načíta sa
+  až v pokladni pri výbere platby kartou a **nečaká na rozhodnutie o cookies** (platba kartou sa
+  súhlasom nesmie blokovať). Oprava: `anastasia-admin/HANDOFF-stripe-cookies-fix.md`.
 - **Mobil 360 px:** lišta zaberá 249 px z 640 px = **38,9 % displeja** (limit 40 % je v CSS:
   `max-height: 40svh`, prípadný prebytok sa listuje vnútri lišty). Obsah sa na 360 × 640 neposúva.
 
@@ -68,6 +69,7 @@ v `anastasia-admin/PRAVNE-TEXTY-DOPLNIT.md`:
 | 2 a 3 (VOP čl. 9.2 a poučení na `/odstupenie`) | online funkcia **už existuje** na `/odstupenie` – treba len rozhodnúť, či do textu napísať konkrétnu adresu |
 | 4 a 5 (zoznam cookies a účely voliteľných cookies) | stále chýbajú; **placeholder je teraz viditeľný v živej lište** – doplniť pred spuštěním webu |
 | 15 (nový) | názvy voliteľných kategórií v paneli: teraz „Analytické“ a „Marketingové“, dokument hovorí o „analytických a reklamných“ – potvrdiť |
+| 16 (nový) | platobná brána Stripe je nevyhnutná technológia – **text časti E sa nemení**, treba iba potvrdiť zaradenie |
 
 ---
 
@@ -90,7 +92,6 @@ otvorenie panelu z pätičky, uloženie kategórií, výška lišty na 360 × 64
 request pred súhlasom.
 
 **Čo zostalo overiť pri nasazení:** kliknutie v živém adminu (stránka „Odstúpenia od zmluvy“),
-správanie pokladne pri platbe kartou pred rozhodnutím o cookies, spustenie migrácie
-`Migration20261021100000` (tabuľka `legal_contract_withdrawal`).
+spustenie migrácie `Migration20261021100000` (tabuľka `legal_contract_withdrawal`).
 
-**Čo potrebuje od klientky:** doplnenie bodov 1–5 a 15 v `PRAVNE-TEXTY-DOPLNIT.md`.
+**Čo potrebuje od klientky:** doplnenie bodov 1–5 a 15 a 16 v `PRAVNE-TEXTY-DOPLNIT.md`.
