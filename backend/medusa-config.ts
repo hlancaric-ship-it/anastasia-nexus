@@ -183,6 +183,8 @@ const modules: Array<Record<string, unknown>> = [
     },
   },
   { resolve: "./src/modules/entitlement" },
+  // Zrkadielko: záznamy zákazníčky v členskej zóne RESET 40+ (tabuľka reset_journal_entry).
+  { resolve: "./src/modules/reset-journal" },
   { resolve: "./src/modules/booking" },
   { resolve: "./src/modules/gift-voucher" },
   { resolve: "./src/modules/chat" },

@@ -1,5 +1,6 @@
 import { defineMiddlewares } from "@medusajs/framework/http"
 import { entitlementStoreMiddlewares } from "./store/entitlements/middlewares"
+import { resetJournalStoreMiddlewares } from "./store/reset-journal/middlewares"
 import { bookingStoreMiddlewares } from "./store/bookings/middlewares"
 import { couponLinkMiddlewares } from "./admin/coupon-links/middlewares"
 import { giftVoucherAdminMiddlewares } from "./admin/vouchers/middlewares"
@@ -34,6 +35,8 @@ export default defineMiddlewares({
     ...customerPrivacyMiddlewares,
     ...authMagicLinkMiddlewares,
     ...entitlementStoreMiddlewares,
+    // Zrkadielko a štruktúra programu RESET 40+: len prihlásený zákazník s aktívnym prístupom.
+    ...resetJournalStoreMiddlewares,
     ...bookingStoreMiddlewares,
     ...couponLinkMiddlewares,
     ...giftVoucherAdminMiddlewares,
