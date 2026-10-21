@@ -271,7 +271,7 @@ ${HOME_CSS}
 /* Nic nesmí stránku rozšířit do strany (mobil by ji oddálil a „ujížděla“). */
 html,body{overflow-x:clip}
 /* Mobilní menu: celé na jednom displeji (zbytek dorovná fitMenu v app.mjs i při zvětšeném písmu). */
-@media(max-width:760px){#dc-top-menu{top:max(8px,env(safe-area-inset-top))!important;left:8px!important;right:8px!important;width:auto!important;max-height:calc(100dvh - 16px)!important;padding:16px 18px 18px!important;gap:14px!important}
+@media(max-width:760px){#dc-top-menu{top:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;max-height:none!important;border-radius:0!important;padding:16px 18px 18px!important;gap:14px!important}
 #dc-top-menu{overflow-x:hidden!important}
 #dc-top-menu>div:nth-child(3){flex-wrap:nowrap!important;gap:8px!important}
 #dc-top-menu>div:nth-child(3)>div:first-child{gap:10px!important;min-width:0}

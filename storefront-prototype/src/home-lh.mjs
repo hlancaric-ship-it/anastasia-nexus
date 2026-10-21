@@ -404,8 +404,8 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 @media (prefers-reduced-motion:reduce){.lh-scroll-cue i{animation:none}}
 
 /* --- Hlavička nad úvodem: barva podle toho, kde je scroll ------------------ */
-.lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
-.lh-top{position:absolute;left:0;right:0;top:0;z-index:4;opacity:1;transform:none;pointer-events:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;padding:26px clamp(20px,4vw,64px);border-bottom:1px solid rgba(201,163,85,.28);color:var(--lh-ink,#1E281C);background:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft),color .4s ease,background-color .4s ease}
+.lh-top{position:fixed;left:0;right:0;top:0;z-index:40;opacity:1;transform:none;pointer-events:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;padding:14px clamp(16px,4vw,64px);border-bottom:1px solid rgba(201,163,85,.28);color:var(--lh-ink,#1E281C);background:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft),color .4s ease,background-color .4s ease}
+.lh-top{background:transparent;border:0;border-radius:0;box-shadow:none}
 .lh-top__side{display:flex;align-items:center;gap:clamp(18px,2.4vw,40px);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;font-weight:400}
 .lh-top__side--right{justify-content:flex-end}
 .lh-top__side a{color:inherit;text-decoration:none}
@@ -419,7 +419,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-top__burger i{width:20px;height:1px;background:currentColor}
 /* Hlavička je vidět na všech stránkách. Skrytá je jen na úvodu webu (preloader),
    kde se s chromem objeví až za úvodem. */
-.lh-intro-page:not(.lh-chrome-in) .lh-top{opacity:0;transform:translateY(-14px);pointer-events:none}
+.lh-intro-page:not(.lh-chrome-in) 
 .lh-chrome-in .lh-top{opacity:1;transform:none;pointer-events:auto}
 /* Boční lišta se na začátku úvodu schová a po prvním skrolu se vrátí. */
 .lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft)}
@@ -454,6 +454,15 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-cat--3{top:30vh;right:13%}
 .lh-cat--4{bottom:15vh;left:12%}
 @media (max-width:760px){
+  /* r12/1: na mobilu logo vľavo, košík a Menu vpravo, hlavička fixná. */
+  .lh-top{grid-template-columns:auto minmax(0,1fr);gap:10px;padding:9px 14px}
+  .lh-top>nav:first-child{display:none}
+  .lh-top__brand{align-items:flex-start;gap:0}
+  .lh-top__brand span{display:none}
+  .lh-top__brand img{width:30px;height:30px}
+  .lh-top__side--right{gap:10px;font-size:11px}
+  .lh-top__side--right>a:not([aria-label="Košík"]){display:none}
+  .lh-top__menu{height:36px;padding:0 14px;gap:8px;font-size:11px;letter-spacing:1.2px}
   .lh-intro__cats{position:absolute;left:0;right:0;top:auto;bottom:20vh;height:0;display:block}
   .lh-cat{position:absolute;left:0;right:0;top:auto;bottom:0;width:100%;font-size:21px;white-space:normal;text-align:center;line-height:1.2}
   .lh-intro__meta .k{font-size:10px;letter-spacing:.22em}
