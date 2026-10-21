@@ -21,7 +21,7 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
     { title: "Synthetic isolation A", status: "published", metadata: { entitlement: true, protected_media: [{ key: keyA }] } },
     { title: "Synthetic isolation B", status: "published", metadata: { entitlement: true, protected_media: [{ key: keyB }] } },
   ])
-  const grant = (customer: any, product: any) => entitlements.grant({ customer_id: customer.id, product_id: product.id, source: "admin", dedupe_key: `a02:${customer.id}:${product.id}` })
+  const grant = (customer: any, product: any) => entitlements.grant({ customer_id: customer.id, product_id: product.id, source: "admin", dedupe_key: `a02:${customer.id}:${product.id}`, tenant_id: "default" })
   const { entitlement: entA } = await grant(a, productA)
   const { entitlement: entB } = await grant(b, productB)
   const optA = as(jwt(a.id, "customer"))

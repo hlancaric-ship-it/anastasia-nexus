@@ -47,7 +47,7 @@ export async function verifyProtectedLibraryAdmin({api,container,options,evidenc
   const winner=raced.find((r:any)=>r.status===200).data
   expect((await api.get(path,admin)).data.media).toEqual(winner.media)
   record('CONCURRENT_EDITS_ACCEPT_ONE_WITHOUT_SILENT_OVERWRITE')
-  await container.resolve('entitlement').grant({customer_id:customer.id,product_id:product.id,source:'admin',dedupe_key:`library-admin:${customer.id}:${product.id}`})
+  await container.resolve('entitlement').grant({customer_id:customer.id,product_id:product.id,source:'admin',dedupe_key:`library-admin:${customer.id}:${product.id}`,tenant_id:'default'})
   const library=await api.get('/store/entitlements',buyer)
   expect(library.status).toBe(200)
   expect(library.data.entitlements.find((e:any)=>e.product_id===product.id).product.media).toEqual(winner.media)
