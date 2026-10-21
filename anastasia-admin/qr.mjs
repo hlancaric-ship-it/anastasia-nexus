@@ -1,4 +1,14 @@
 // QR is a saved link, never a second coupon balance or a client price calculation.
+import { qrSvg } from './qr-encode.mjs';
+
+/**
+ * QR kód pre dvojfaktorové overenie (TOTP) – z odkazu otpauth://.
+ * Generuje sa priamo v prehliadači, tajomstvo nikdy neodchádza zo zariadenia.
+ */
+export function qrOtpSvg(otpauthUrl, opts = {}) {
+  return qrSvg(otpauthUrl, { label: 'QR kód pre dvojfaktorové overenie', ...opts });
+}
+
 export function qrAgenda({ api, esc, fmtDate, freshView, openPrintHtml }) {
   return async function openQr(view) {
     view = freshView(view);
