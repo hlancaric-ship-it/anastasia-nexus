@@ -399,23 +399,73 @@ async function clearVariantSale(ref) {
 }
 // Základná EUR cena bez cenníka a pravidiel (akciový cenník má vlastnú cenu na tom istom variante).
 const basePrice = (v) => (v?.prices || []).find(x => x.currency_code === 'eur' && !x.price_list_id && !(x.rules_count > 0));
+// --- Produkty: serverové stránkovanie, vyhľadávanie a filter stavu (jadro filtruje aj počíta) ---
+const PRODUCT_PAGE_SIZE = 50;
+const PRODUCT_STATUS = { published: ['zverejnený', 'ok'], draft: ['koncept', 'warn'] };
 async function vProducts(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
   const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
-  const { products } = await api('/admin/products?limit=100&order=-created_at&fields=id,title,status,handle,thumbnail,metadata,*variants.prices');
-  listView(view, {
-    title: 'Produkty', rows: products,
-    cols: [
-      { h: '', v: p => p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>' },
-      { h: 'Názov', v: p => esc(p.title) },
-      { h: 'Stav', v: p => `<span class="pill ${p.status === 'published' ? 'ok' : 'warn'}">${p.status === 'published' ? 'zverejnený' : 'koncept'}</span>` },
-      { h: 'Cena', v: p => { const pr = basePrice(p.variants?.[0]); return fmtEur(pr?.amount); } },
-      { h: 'Akcia', v: p => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; } },
-    ],
-    onRow: p => vProductDetail(view, p.id),
-  });
+  let offset = 0, query = '', status = '', count = 0, busy = false, pending = false;
+  const fields = 'id,title,status,handle,thumbnail,metadata,*variants.prices';
+  const row = p => `<tr data-id="${esc(p.id)}" tabindex="0">
+      <td class="ot-img lv-media">${p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>'}</td>
+      <td class="lv-title">${esc(p.title)}</td>
+      <td><span class="pill ${PRODUCT_STATUS[p.status]?.[1] || 'warn'}">${esc(PRODUCT_STATUS[p.status]?.[0] || p.status || '—')}</span></td>
+      <td>${fmtEur(basePrice(p.variants?.[0])?.amount)}</td>
+      <td>${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
+      <td class="ot-act"><span class="btn ghost sm">Otvoriť ${navIcon('arrow')}</span></td></tr>`;
+  view.innerHTML = `<section class="card ot-card"><div class="ot-head">
+      <h2>Produkty <span class="muted" id="p-count"></span></h2>
+      <div class="ot-head-act">
+        <input class="rc-search" type="search" placeholder="Hľadať produkt…" aria-label="Hľadať produkty">
+        <select class="rc-select" id="p-status" aria-label="Filter podľa stavu">
+          <option value="">Všetky stavy</option>
+          <option value="published">Zverejnené</option>
+          <option value="draft">Koncepty</option>
+        </select>
+      </div>
+    </div>
+    <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Cena</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
+    <div class="ot-foot"><span class="muted" id="p-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
+  </section>`;
+  const body = view.querySelector('#p-body');
+  const load = async () => {
+    // Ak už beží požiadavka, nezahadzujeme novú – po skončení sa zopakuje s poslednými údajmi.
+    if (busy) { pending = true; return; }
+    busy = true; body.innerHTML = '<tr><td colspan="6" class="empty">Načítavam…</td></tr>';
+    try {
+      const params = new URLSearchParams({ limit: String(PRODUCT_PAGE_SIZE), offset: String(offset), order: '-created_at', fields });
+      if (query) params.set('q', query);
+      if (status) params.append('status[]', status);
+      const data = await api(`/admin/products?${params}`);
+      const products = data.products || [];
+      count = Number(data.count) || 0;
+      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="6" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
+      body.querySelectorAll('tr[data-id]').forEach(tr => {
+        const open = () => vProductDetail(view, tr.dataset.id);
+        tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+      });
+      const from = count ? offset + 1 : 0, to = Math.min(offset + products.length, count);
+      view.querySelector('#p-count').textContent = `(${count})`;
+      view.querySelector('#p-range').textContent = count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadne produkty';
+      view.querySelector('[data-pg="prev"]').disabled = offset <= 0;
+      view.querySelector('[data-pg="next"]').disabled = offset + PRODUCT_PAGE_SIZE >= count;
+    } catch (e) {
+      if (e.message !== '401') body.innerHTML = `<tr><td colspan="6" class="empty">${esc(e.message)}</td></tr>`;
+    } finally {
+      busy = false;
+      if (pending) { pending = false; load(); }
+    }
+  };
+  view.querySelector('[data-pg="prev"]').onclick = () => { if (offset <= 0) return; offset = Math.max(0, offset - PRODUCT_PAGE_SIZE); load(); };
+  view.querySelector('[data-pg="next"]').onclick = () => { if (offset + PRODUCT_PAGE_SIZE >= count) return; offset += PRODUCT_PAGE_SIZE; load(); };
+  let timer = null;
+  const search = view.querySelector('.rc-search');
+  search.oninput = () => { clearTimeout(timer); timer = setTimeout(() => { query = search.value.trim(); offset = 0; load(); }, 350); };
+  view.querySelector('#p-status').onchange = (e) => { status = e.target.value; offset = 0; load(); };
+  load();
 }
 const SKU_RE = /^[A-Z0-9][A-Z0-9._-]{1,63}$/;
 const skuFrom = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
@@ -693,9 +743,32 @@ async function vCategoryDetail(view, id) {
     catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   };
 }
+// --- Objednávky: načítanie po stránkach (jadro vracia aj celkový počet) ---
+const ORDER_LIST_FIELDS = 'id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata,*items,*customer';
+const ORDER_LOAD_PAGE = 100;
+/** Poistka proti ťažkému načítaniu; nad tento počet sa zobrazí upozornenie (staršie hľadaj cez vyhľadávanie). */
+const ORDER_LOAD_CAP = 1000;
+/** Koľko objednávok sa zobrazí na jednu stranu v prehľade. */
+const ORDER_PAGE_SIZE = 50;
+async function loadOrders() {
+  const q = `limit=${ORDER_LOAD_PAGE}&order=-created_at&fields=${ORDER_LIST_FIELDS}`;
+  const first = await api(`/admin/orders?${q}`);
+  let orders = first.orders || [];
+  const total = Number(first.count) || orders.length;
+  while (orders.length < Math.min(total, ORDER_LOAD_CAP)) {
+    const next = await api(`/admin/orders?${q}&offset=${orders.length}`);
+    const more = next.orders || [];
+    if (!more.length) break;
+    orders = orders.concat(more);
+  }
+  return { orders, total, truncated: total > orders.length };
+}
 async function vOrders(view) {
   view = freshView(view);
-  const { orders = [] } = await api('/admin/orders?limit=100&order=-created_at&fields=id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata,*items,*customer,*shipping_methods');
+  // Objednávky sa načítajú po stránkach a filtrujú až tu – filtry „Na vybavenie“ a „Čaká na platbu“
+  // závisia od stavu platby a vybavenia, ktoré jadro nefiltruje na serveri. Cap 1 000 objednávok
+  // je poistka proti ťažkému načítaniu; nad to sa v prehľade zobrazí upozornenie.
+  const { orders = [], total = 0, truncated = false } = await loadOrders();
   const payPill = (s) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc(PAY_LABEL[s] || s || '—')}</span>`;
   const fulPill = (s) => `<span class="pill ${s === 'fulfilled' || s === 'shipped' || s === 'delivered' ? 'ok' : 'warn'}">${esc(FUL_LABEL[s] || s || 'nevybavená')}</span>`;
   const legacy = o => o.metadata?.legacy_customer_migration;
@@ -728,38 +801,52 @@ async function vOrders(view) {
         <span class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</span>
       </div></td></tr>`;
   };
-  let filter = 'all', query = '', visible = [];
+  let filter = 'all', query = '', visible = [], page = 0;
   view.innerHTML = `<section class="card ot-card"><div class="ot-head">
       <h2>Objednávky <span class="muted">(${orders.length})</span></h2>
       <div class="ot-head-act">
-        ${orders.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať číslo, meno, e-mail, produkt…" aria-label="Hľadať v objednávkach">' : ''}
+        <input class="rc-search" type="search" placeholder="Hľadať číslo, meno, e-mail, produkt…" aria-label="Hľadať v objednávkach">
         <button type="button" class="btn gold" id="o-print-all" hidden>Vytlačiť štítky (0)</button>
       </div>
     </div>
     ${FILTERS.length > 1 ? `<div class="ot-filters" role="tablist">${FILTERS.map(([k, l, f]) => `<button type="button" role="tab" data-f="${k}" aria-selected="${k === filter}">${esc(l)} <span>${orders.filter(f).length}</span></button>`).join('')}</div>` : ''}
+    ${truncated ? `<div class="notice" style="margin:14px 24px 0">V prehľade je prvých ${orders.length} z ${total} objednávok. Staršie objednávky hľadaj cez vyhľadávanie podľa e-mailu.</div>` : ''}
     <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazníčka</th><th>Položky</th><th class="ot-num">Suma</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+    <div class="ot-foot"><span class="muted" id="o-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('tbody');
   const bulk = view.querySelector('#o-print-all');
+  const range = view.querySelector('#o-range');
   const draw = () => {
     const f = FILTERS.find(x => x[0] === filter)?.[2] || (() => true);
     const list = orders.filter(f).filter(o => !query || JSON.stringify([o.display_id, o.email, name(o), (o.items || []).map(i => i.title)]).toLowerCase().includes(query));
     visible = list;
-    body.innerHTML = list.length ? list.map(row).join('') : `<tr><td colspan="8" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
+    const pages = Math.max(1, Math.ceil(list.length / ORDER_PAGE_SIZE));
+    page = Math.min(Math.max(0, page), pages - 1);
+    const slice = list.slice(page * ORDER_PAGE_SIZE, (page + 1) * ORDER_PAGE_SIZE);
+    body.innerHTML = slice.length ? slice.map(row).join('') : `<tr><td colspan="8" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
     body.querySelectorAll('tr[data-id]').forEach(tr => {
       const open = () => vOrderDetail(view, tr.dataset.id);
       tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
       tr.querySelectorAll('[data-print]').forEach(b => b.onclick = (e) => { e.stopPropagation(); printOrders([tr.dataset.id], b.dataset.print); });
     });
+    const from = list.length ? page * ORDER_PAGE_SIZE + 1 : 0, to = Math.min((page + 1) * ORDER_PAGE_SIZE, list.length);
+    if (range) range.textContent = list.length ? `${from}–${to} z ${list.length}` : 'Žiadne objednávky';
+    const prev = view.querySelector('[data-pg="prev"]'), next = view.querySelector('[data-pg="next"]');
+    if (prev) prev.disabled = page <= 0;
+    if (next) next.disabled = (page + 1) * ORDER_PAGE_SIZE >= list.length;
     // Hromadná tlač štítkov je k dispozícii pri filtri „Na vybavenie“ – presne pre tie objednávky, ktoré sa chystajú.
     if (bulk) { bulk.hidden = !(filter === 'todo' && list.length); bulk.textContent = `Vytlačiť štítky (${list.length})`; }
   };
   view.querySelectorAll('.ot-filters button').forEach(b => b.onclick = () => {
-    filter = b.dataset.f; view.querySelectorAll('.ot-filters button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw();
+    filter = b.dataset.f; page = 0; view.querySelectorAll('.ot-filters button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw();
   });
+  const prev = view.querySelector('[data-pg="prev"]'), next = view.querySelector('[data-pg="next"]');
+  if (prev) prev.onclick = () => { if (page > 0) { page--; draw(); } };
+  if (next) next.onclick = () => { page++; draw(); };
   if (bulk) bulk.onclick = () => printOrders(visible.map(o => o.id), 'label');
   const s = view.querySelector('.rc-search');
-  if (s) s.oninput = () => { query = s.value.toLowerCase().trim(); draw(); };
+  if (s) s.oninput = () => { query = s.value.toLowerCase().trim(); page = 0; draw(); };
   draw();
 }
 // Akcie objednávky cez natívne Admin API jadra (spúšťajú existujúce subscribery: e-maily, prístupy, kompenzácie).
@@ -961,15 +1048,22 @@ async function tryList(view, { title, endpoint, key, cols, note }) {
   }
 }
 function stub(view, title, note) {
+  view = freshView(view);
   view.innerHTML = `<div class="empty"><div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">${esc(title)} — pripravujeme</div>${esc(note)}</div>`;
 }
 
 // sub-prepínač v topbare (pills) — jedna obrazovka, viac pohľadov
+// `view` je pôvodný uzol #view; po každej výmene ho nahradí `freshView`. Prepodávať musíme
+// ten NAJŽIVŠI uzol, inak by sa pohľad vykreslil do odpojeného uzlu a na obrazovke by sa nič nezmenilo.
+function liveView(view) {
+  let cur = view; while (cur && cur._next) cur = cur._next;
+  return cur && cur.isConnected ? cur : freshView(view);
+}
 function subnav(view, items, idx = 0) {
   const a = document.querySelector('#actions');
   if (a) a.innerHTML = `<div class="pills">${items.map((it, i) => `<button class="pill ${i === idx ? 'on' : ''}" data-i="${i}">${esc(it.label)}</button>`).join('')}</div>`;
   if (a) a.querySelectorAll('.pill').forEach(b => b.onclick = () => { if (+b.dataset.i !== idx) subnav(view, items, +b.dataset.i); });
-  items[idx].run(view);
+  items[idx].run(liveView(view));
 }
 // --- spoločné: stránkovaný zoznam kariet so záložkami stavu ---
 const PAGE_LIMIT = 12;

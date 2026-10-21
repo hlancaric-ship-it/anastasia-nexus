@@ -124,17 +124,17 @@ V backende ani v admine nie je žiadny XML feed. V obchode s 30 produktami a 8 k
 
 **P0 — urobiť teraz (blokuje obchod)**
 
-| # | Vecnosť | Kde |
-|---|---|---|
-| P0-1 | Opraviť prepínanie záložiek (`stub()` musí použiť `freshView()`) | `anastasia-admin/app.mjs` |
-| P0-2 | Stránkovanie objednávok aj produktov (serverové, nie cez limit) | `anastasia-admin/app.mjs` |
-| P0-3 | Zapnúť tlač: štítok + dodací list (zoznam aj detail), `print.mjs` do buildu | `anastasia-admin/app.mjs`, `build.mjs` |
-| P0-4 | Verejné feedy Heureka + Google Merchant | `backend/src/api/store/feeds/*` |
-| P0-5 | Správa dopravcov (výber, kľúč šifrovaný serverom, stav „nepripojené“) | `backend/src/api/admin/carriers/*`, `anastasia-admin/app.mjs` |
+| # | Vecnosť | Kde | Stav 21. 10. 2026 |
+|---|---|---|---|
+| P0-1 | Opraviť prepínanie záložiek (`stub()` musí použiť `freshView()`) | `anastasia-admin/app.mjs` | **opravené** – `subnav()` posiela živý uzol, `stub()` kreslí cez `freshView()` |
+| P0-2 | Stránkovanie objednávok aj produktov (serverové, nie cez limit) | `anastasia-admin/app.mjs` | **opravené** – objednávky: načítanie po stránkach (cap 1 000) + stránkovanie po 50, hľadanie viditeľné vždy; produkty: serverové stránkovanie, vyhľadávanie a filter stavu |
+| P0-3 | Zapnúť tlač: štítok + dodací list (zoznam aj detail), `print.mjs` do buildu | `anastasia-admin/app.mjs`, `build.mjs` | **opravené** – tlačidlá v riadku aj v hlavičke detailu, hromadná tlač pri filtri „Na vybavenie“ |
+| P0-4 | Verejné feedy Heureka + Google Merchant | `backend/src/api/store/feeds/*` | **opravené** – `GET /feeds/heureka.xml` a `GET /feeds/google.xml` (správne: `backend/src/api/feeds/*`) |
+| P0-5 | Správa dopravcov (výber, kľúč šifrovaný serverom, stav „nepripojené“) | `backend/src/api/admin/carriers/*`, `anastasia-admin/app.mjs` | **opravené** – `GET/POST /admin/carriers`, kľúč šifrovaný (AES-256-GCM) v metadátach obchodu |
 
 **P1 — do nasledujúcej vlny**
 
-Hromadné akcie a CSV export objednávok · filtre produktov a stĺpec skladu · cena s DPH v zoznamoch · prehľad tržieb a nízkeho skladu · audit log v UI · RBAC a 2FA · metódy dopravy s cenovými hladinami · údaj „Doprava“ a „Adresa“ a spôsob platby v zozname objednávok · konzistentné hľadanie a počet celkom vo všetkých zoznamoch · úprava kupónu (typ zľavy, hodnota, limit) · poznámka k objednávke.
+Hromadné akcie a CSV export objednávok · filtre produktov a stĺpec skladu · cena s DPH v zoznamoch · prehľad tržieb a nízkeho skladu · audit log v UI · RBAC a 2FA · metódy dopravy s cenovými hladinami · údaj „Doprava“ a „Adresa“ a spôsob platby v zozname objednávok · úprava kupónu (typ zľavy, hodnota, limit) · poznámka k objednávke.
 
 **P2 — neskôr**
 
@@ -146,7 +146,8 @@ Hromadná úprava produktov · notifikácie a pravidlá · šablóny odpovedí v
 
 - Průchod urobený prihlásením do testovacieho adminu (heslá v `backend/data-private/test-admin.env`, **nikdy nevypísané ani nezapísané do repozitára**).
 - Overené v prehliadači: 12 hlavných sekcií, 15 podstránok v záložkách, 6 detailných obrazoviek; pri každom kroku sa kontrolovala konzola prehliadača, zlyhané požiadavky a HTTP stavy.
+- **Opravené po audite (21. 10. 2026):** záložky v podsekciách, stránkovanie objednávok aj produktov, tlač štítka a dodacieho listu, produktové feedy, správa dopravcov. Overené v prehliadači (tlač 17 kontrol, záložky a stránkovanie 22 kontrol, pripojenia 18 kontrol) a na reálnych dátach cez `medusa exec`.
 - Overené proti kódu: `anastasia-admin/app.mjs`, `build.mjs`, `print.mjs`; `backend/src/api/**` (feed ani dopravcovo API neexistujú).
-- **Nepodarilo sa:** snímky obrazovky (prehrávač v tomto prostredí zablokoval `page.screenshot` po 8–30 s) a testovanie na reálnom dátach väčšieho objemu (testovacie prostredie má 1 objednávku, 30 produktov, 3 zákazníčky, 1 kupón, 0 konzultácií, 0 členiek Klubu, 0 správ).
-- **Nedoverené:** správanie pri >100 objednávkach (P0-2) a pri reálnom toku dopravcu — overí sa až po nasadení.
+- **Nepodarilo sa:** snímky obrazovky (prehrávač v tomto prostredí zablokoval `page.screenshot` po 8–30 s) a testovanie na reálnom dátach väčšieho objemu (testovacie prostredie má 1 objednávku, 30 produktov, 3 zákazníčky, 1 kupón, 0 konzultácií, 0 členiek Klubu, 0 správ). Stránkovanie sa preto overilo na lokálnom jadre s 10 objednávkami (4 na stranu).
+- **Nedoverené:** správanie pri >1 000 objednávkach (cap načítania) a pri reálnom toku dopravcu – overí sa až po nasadení.
 - Ceny: feed musí používať `calculated_price` s region kontextom (vzor `backend/src/api/store/nexus-cart/route.ts`, riadky ~140–152), nie klientský výpočet.

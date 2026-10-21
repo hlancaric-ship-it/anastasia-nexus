@@ -386,6 +386,8 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
 .ot .ot-acts{display:flex;gap:6px;align-items:center;justify-content:flex-end}
 .ot .ot-head-act{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .ot .ot-head-act .rc-search{max-width:360px;width:100%}
+.ot-foot{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px 24px;border-top:1px solid var(--line)}
+.rc-select{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px;font:inherit;font-size:13px;color:var(--ink);min-height:36px}
 .ot .btn.sm{padding:6px 12px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
 .ot .pill{margin-left:0}
 @media (max-width:900px){
