@@ -7,7 +7,7 @@ jest.mock("../../../../lib/observability/audit", () => ({
 
 const sendAdminMessage = jest.fn()
 const emit = jest.fn(async () => null)
-const graph = jest.fn(async () => ({ data: [] }))
+const graph = jest.fn(async (): Promise<{ data: any[] }> => ({ data: [] }))
 const auditAdminChange = jest.fn(async () => "audit_1")
 
 function fixture(actorId: string | null = "user_1", body: unknown = {}, customers: any[] = []) {
