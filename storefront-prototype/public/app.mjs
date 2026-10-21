@@ -356,13 +356,13 @@ if($('#cart-view')){
   renderCart();
 }
 
-// Digitálny produkt smie kúpiť len prihlásená zákazníčka (rovnaké pravidlo má server).
+// Digitálny produkt smie kúpiť len prihlásený zákazník (rovnaké pravidlo má server).
 const cartHasDigitalProduct=async cart=>{try{const products=await api.getProducts();const digital=new Set(products.filter(p=>p.digital).map(p=>p.slug));return cart.lines.some(line=>digital.has(line.slug));}catch{return false;}};
 const checkoutForm=$('#checkout-form');
 if(checkoutForm){
   const cart=await api.getCart();$('#checkout-summary').innerHTML=summary(cart);
   if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
-  else if(!api.isLoggedIn()&&await cartHasDigitalProduct(cart)){checkoutForm.innerHTML=`<div class="empty-state"><h2>Prihláste sa, aby ste si mohli kúpiť digitálny produkt.</h2><p>Digitálne produkty — programy, nahrávky a dokumenty — kupuje prihlásená zákazníčka. Po prihlásení nájdete kúpený obsah v časti Môj účet → Knižnica.</p>${button('/prihlasenie','Prihlásiť sa alebo založiť účet')}</div>`;}
+  else if(!api.isLoggedIn()&&await cartHasDigitalProduct(cart)){checkoutForm.innerHTML=`<div class="empty-state"><h2>Prihláste sa, aby ste si mohli kúpiť digitálny produkt.</h2><p>Digitálne produkty — programy, nahrávky a dokumenty — kupuje prihlásený zákazník. Po prihlásení nájdete kúpený obsah v časti Môj účet → Knižnica.</p>${button('/prihlasenie','Prihlásiť sa alebo založiť účet')}</div>`;}
   else{
     const step=n=>{$$('fieldset[data-step]',checkoutForm).forEach(el=>{el.hidden=Number(el.dataset.step)!==n;el.disabled=el.hidden;});$$('[data-step-label]').forEach(el=>el.classList.toggle('current',Number(el.dataset.stepLabel)===n));const first=$(`fieldset[data-step="${n}"] input`,checkoutForm);first?.focus();};
     // Doprava a platba: možnosti a ceny vracia server (/store/nexus-checkout/options), klient len vyberá.

@@ -52,7 +52,7 @@ export const TOUR = [
   {
     id: 'zakaznicky', target: '.sidebar .nav-item[href="#/zakaznicky"]', sidebar: true,
     title: 'Zákazníci',
-    what: 'Zákazníci s registrovaným účtom aj tie, ktoré nakúpili bez účtu, a ich prístupy k digitálnemu obsahu.',
+    what: 'Zákazníci s registrovaným účtom aj tí, ktorí nakúpili bez účtu, a ich prístupy k digitálnemu obsahu.',
     why: 'Rýchlo nájdete, kto je kto, opravíte meno alebo skontrolujete, k čomu má zákazník prístup.',
     how: 'Kliknite na zákazníka a upravte jeho údaje alebo skupinu. V prepínači Prístupy a knižnica vidíte, čo si kto kúpil. Prístupy sa pridelia automaticky po zaplatení.',
   },
@@ -60,7 +60,7 @@ export const TOUR = [
     id: 'konzultacie', target: '.sidebar .nav-item[href="#/konzultacie"]', sidebar: true,
     title: 'Konzultácie',
     what: 'Rezervácie termínov, typy konzultácií s cenou a dĺžkou a váš voľný čas po týždňoch.',
-    why: 'Z toho, čo tu nastavíte, web zákazníkm ponúkne voľné termíny na rezerváciu.',
+    why: 'Z toho, čo tu nastavíte, web zákazníkom ponúkne voľné termíny na rezerváciu.',
     how: 'V Typoch konzultácií vytvoríte ponuku, v Dostupnosti zadáte, kedy máte čas. Zaplatené rezervácie uvidíte v Rezerváciách aj na Prehľade.',
   },
   {
@@ -80,7 +80,7 @@ export const TOUR = [
   {
     id: 'obsah', target: '.sidebar .nav-item[href="#/obsah"]', sidebar: true,
     title: 'Obsah a e-maily',
-    what: 'Náhľady e-mailov, ktoré obchod posiela zákazníkm, a zoznam prihlásení na newsletter.',
+    what: 'Náhľady e-mailov, ktoré obchod posiela zákazníkom, a zoznam prihlásení na newsletter.',
     why: 'Viete presne, čo zákazník dostane po objednávke, odoslaní alebo vrátení peňazí.',
     how: 'Kliknite na šablónu a pozrite si náhľad. E-maily odchádzajú automaticky, nemusíte ich posielať ručne.',
   },
@@ -316,7 +316,7 @@ export const GUIDES = [
     id: 'kategorie', group: 'produkty', icon: 'doc', href: '#/kategorie', hrefLabel: 'Otvoriť Kategórie',
     title: 'Ako spravovať kategórie',
     summary: 'Triedenie produktov, aby ich zákazníci ľahko našli.',
-    why: 'Kategórie pomáhajú zákazníkm nájsť produkty v ponuke. Produkt bez kategórie sa hľadá ťažko.',
+    why: 'Kategórie pomáhajú zákazníkom nájsť produkty v ponuke. Produkt bez kategórie sa hľadá ťažko.',
     steps: [
       'Otvorte stránku Kategórie (tlačidlo nižšie).',
       'Kliknite na + Nová kategória alebo na existujúcu kategóriu.',
@@ -415,7 +415,7 @@ export const GUIDES = [
     id: 'konzultacie-nastavit', group: 'konzultacie', icon: 'cal', href: '#/konzultacie', hrefLabel: 'Otvoriť Konzultácie',
     title: 'Ako nastaviť typy konzultácií a voľné termíny',
     summary: 'Ponuka konzultácií a váš voľný čas, z ktorého web ponúkne termíny.',
-    why: 'Web ponúka zákazníkm len termíny, ktoré vychádzajú z vašej dostupnosti a z dĺžky konzultácie. Preto treba nastaviť oboje.',
+    why: 'Web ponúka zákazníkom len termíny, ktoré vychádzajú z vašej dostupnosti a z dĺžky konzultácie. Preto treba nastaviť oboje.',
     steps: [
       'V Konzultáciách prepnite hore na Typy konzultácií a kliknite na Nový typ konzultácie.',
       'Zadajte názov, popis, cenu s DPH, formu (online alebo osobne), dĺžku a pauzu po konzultácii. Nechajte zaškrtnuté V ponuke na webe a kliknite na Vytvoriť.',
@@ -503,7 +503,7 @@ export const GUIDES = [
       'V Poukazoch a zľavách prepnite na Darčekové poukazy. Vidíte zostatok, stav a platnosť. Kód poukazu je z bezpečnosti skrytý.',
       'Kliknutím na poukaz otvoríte jeho históriu: vydanie, použitia v objednávkach a vrátenia.',
       'Ak treba poukaz zneplatniť, napríklad pri podvodnej objednávke, uveďte dôvod a kliknite na Zneplatniť poukaz.',
-      'Ak zákazník zaplátil objednávku poukazom a treba mu vrátiť peniaze, použite pod zoznamom poukazov formulár Vrátiť peniaze na poukaz: zadajte ID objednávky a sumu.',
+      'Ak zákazník zaplatil objednávku poukazom a treba mu vrátiť peniaze, použite pod zoznamom poukazov formulár Vrátiť peniaze na poukaz: zadajte ID objednávky a sumu.',
     ],
     after: [
       'Pri vrátení na poukaz sa suma pripíše späť a uvidíte nový zostatok.',

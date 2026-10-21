@@ -230,7 +230,7 @@ voľné termíny). Rezerváciu môžete zrušiť. V zozname je tlačidlo **Expor
 | Viete | Nejde (a prečo) |
 |---|---|
 | Spravovať objednávky, tlačiť štítky a dodací listy, exportovať CSV | Robiť platby ručne – platbu prijíma jadro, vy len potvrdíte, že prišla |
-| Meniť produkty, ceny, akcie, obrázky, sklad a kategórie | Mazať si digitálne súbory zákazníkm – chránia sa |
+| Meniť produkty, ceny, akcie, obrázky, sklad a kategórie | Mazať si digitálne súbory zákazníkom – chránia sa |
 | Vytvárať kupóny, QR kódy a darčekové poukazy | Robiť viac zľav naraz na jeden košík – poradie zľav určuje jadro |
 | Upravovať texty, obrázky a odkazy na webe | Meniť dizajn stránok – farby, písmo a rozloženie zostávajú také, aké sú |
 | Spravovať vernostné úrovne | Vyplácať provízie – to bude v druhej fáze |

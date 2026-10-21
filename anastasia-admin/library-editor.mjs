@@ -35,7 +35,7 @@ export async function mountLibraryEditor(host, {api, productId}) {
           <input type="file" id="library-file" class="sr-only" multiple accept=".mp4,.mp3,.m4a,.pdf,video/mp4,audio/mpeg,audio/mp4,application/pdf">
         </div>
         <div id="library-uploads" class="library-uploads" aria-live="polite"></div>`;
-    const filesHtml = rows.length ? `<p class="muted">Tieto súbory sa zobrazujú zákazníkm s prístupom k produktu. Názov aj poradie upravíte tu a potvrdíte tlačidlom Uložiť zmeny.</p>
+    const filesHtml = rows.length ? `<p class="muted">Tieto súbory sa zobrazujú zákazníkom s prístupom k produktu. Názov aj poradie upravíte tu a potvrdíte tlačidlom Uložiť zmeny.</p>
         <ol class="library-files" start="${page * size + 1}">${rows.slice(page * size, (page + 1) * size).map((r, j) => {
         const i = page * size + j, kind = saved.media.find(m => m.key === r.key)?.kind || r.kind;
         return `<li><div class="library-title"><label for="library-title-${i}">Názov ${kind === 'video' ? 'videa' : kind === 'audio' ? 'nahrávky' : 'dokumentu'} ${i+1}</label><input id="library-title-${i}" data-library-title="${i}" maxlength="200" required value="${escape(r.title)}"></div>

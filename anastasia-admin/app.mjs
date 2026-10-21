@@ -3069,7 +3069,7 @@ const ROUTES = {
   'kategorie': ['Kategórie', 'Stromy a zaradenie', vCategories],
   'zakaznicky': ['Zákazníci', 'Účty, história a prístupy', vZakaznicky],
   'konzultacie': ['Konzultácie', 'Rezervácie, typy konzultácií a dostupnosť', vKonzultacieMenu],
-  'spravy': ['Správy', 'Konverzácie so zákazníkami a šablóny odpovedí', vSpravyMenu],
+  'spravy': ['Správy', 'Konverzácie so zákazníkmi a šablóny odpovedí', vSpravyMenu],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
   'obsah': ['Obsah a e-maily', 'Stránky, texty, médiá a preklady', vObsah],
   'ambasadori': ['Ambasádori', 'Odporúčanie zákazníkov za províziu – Fáza 2, pripravujeme', vAmbasadori],
