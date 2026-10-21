@@ -187,6 +187,8 @@ if (gsap && ScrollTrigger) {
         .to('.lh-intro__meta', {opacity: 0, y: -30, duration: 0.12, ease: 'none'}, 0)
         .to('.lh-intro__brands', {opacity: 0, y: -30, duration: 0.12, ease: 'none'}, 0)
         .fromTo('#lh-intro-video', {scale: 1.35}, {scale: 1, duration: 0.62, ease: 'none'}, 0)
+        // Pod maskou ztmavené video (průhledná vrstva, ne filtr – levnější na mobilu), aby slovo ANASTASIA bylo čitelné i u světlých záběrů.
+        .to('.lh-intro__tint', {opacity: 0, duration: 0.4, ease: 'none'}, 0.12)
         .to('#lh-word-g', {scale: 110, svgOrigin: ox + ' ' + oy, duration: 0.5, ease: 'power3.in'}, 0.04)
         .to('.lh-intro__mask', {opacity: 0, duration: 0.08, ease: 'none'}, 0.46)
         .to('.lh-intro__veil,.lh-vid-btn', {opacity: 1, duration: 0.1, ease: 'none'}, 0.46)

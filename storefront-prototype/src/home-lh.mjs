@@ -117,6 +117,7 @@ export function homeSections(products = []) {
       <source data-lh-src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
     </video>
     <div class="lh-intro__veil" aria-hidden="true"></div>
+    <div class="lh-intro__tint" aria-hidden="true"></div>
     <div class="lh-intro__mask" aria-hidden="true">
       <svg id="lh-mask-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid meet">
         <defs>
@@ -133,7 +134,7 @@ export function homeSections(products = []) {
             <stop offset="1" stop-color="#F3E3B0" stop-opacity="0"/>
           </linearGradient>
         </defs>
-        <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.82" mask="url(#lhWord)"/>
+        <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.94" mask="url(#lhWord)"/>
         <rect id="lh-word-shine" x="-6000" y="-6000" width="13440" height="12900" fill="url(#lhShine)" mask="url(#lhWord)" opacity="0"/>
         <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
       </svg>
@@ -335,6 +336,8 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro__stage{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--lh-paper,#F5F2E8)}
 .lh-intro__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease}
 .lh-intro__video.lh-ready{opacity:1}
+.lh-intro__tint{display:none}
+.motion .lh-intro__tint{display:block;position:absolute;inset:0;background:rgba(14,20,13,.4)}
 .lh-intro__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,22,16,.42),rgba(16,22,16,.06) 45%,rgba(16,22,16,.62))}
 .motion .lh-intro__veil{opacity:0}
 .lh-intro__mask{position:absolute;inset:0;display:none}
