@@ -300,6 +300,10 @@ if (gsap && ScrollTrigger) {
   };
   const cue = $('#lh-scroll-cue');
   if (cue) cue.addEventListener('click', scrollIntro);
+  // r12/2: klik na VSTÚPTE je gestum – hudba sa spustí pri ňom (iOS/Android).
+  if (cue) cue.addEventListener('click', ()=>{
+    try{ if(window.anaSoundState&&!window.anaSoundState()&&window.anaToggleAmbient) window.anaToggleAmbient(); }catch{}
+  });
   addEventListener('keydown', event => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     const key = event.key;

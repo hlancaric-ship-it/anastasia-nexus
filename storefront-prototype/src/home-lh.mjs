@@ -463,6 +463,9 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-top__side--right{gap:10px;font-size:11px}
   .lh-top__side--right>a:not([aria-label="Košík"]){display:none}
   .lh-top__menu{height:36px;padding:0 14px;gap:8px;font-size:11px;letter-spacing:1.2px}
+  .lh-intro__brands{top:58px;gap:10px 18px}
+  .lh-brand--main{height:74px}
+  .lh-brand--academy,.lh-brand--ai{height:48px}
   .lh-intro__cats{position:absolute;left:0;right:0;top:auto;bottom:20vh;height:0;display:block}
   .lh-cat{position:absolute;left:0;right:0;top:auto;bottom:0;width:100%;font-size:21px;white-space:normal;text-align:center;line-height:1.2}
   .lh-intro__meta .k{font-size:10px;letter-spacing:.22em}
