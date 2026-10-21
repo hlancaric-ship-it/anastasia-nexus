@@ -2763,6 +2763,8 @@ const AUDIT_ENTITY = { store: 'nastavenia obchodu', user: 'účet správcu', cus
 const AUDIT_LABEL = {
   'admin.theme.update': 'Zmena farieb administrácie',
   'admin.carrier.update': 'Zmena dopravcu',
+  'admin.content.update': 'Zmena obsahu webu',
+  'admin.content.reset': 'Obnovenie pôvodného obsahu webu',
   'admin.page.update': 'Zmena textu stránky',
   'admin.page.reset': 'Obnovenie pôvodného textu stránky',
   'admin.media.add': 'Pridanie obrázka do knihovny',
