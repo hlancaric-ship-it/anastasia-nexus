@@ -41,7 +41,7 @@ export const DICT = {
   'Telefón': ['Phone', 'Телефон'],
   'O čom nám chcete napísať?': ['What would you like to write to us about?', 'О чём вы хотите нам написать?'],
   'Vaša správa': ['Your message', 'Ваше сообщение'],
-  'Prečítal/a som si': ['I have read', 'Я прочитал'],
+  'Prečítal som si': ['I have read', 'Я прочитал'],
   'Prehľad': ['Overview', 'Обзор'],
   'Moje programy': ['My programmes', 'Мои программы'],
   'Chat s Luciou': ['Chat with Lucia', 'Чат с Люцией'],
