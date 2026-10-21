@@ -20,7 +20,8 @@ export async function loadContent(pageKey, {timeout = 5000} = {}) {
   try {
     const response = await fetch(`${base}/store/content/${encodeURIComponent(pageKey)}`, {
       signal: controller ? controller.signal : undefined,
-      headers: {accept: 'application/json'},
+      // Store API Medusy bez publishable key odpovedá 400 – texty z administrácie by sa nikdy nenačítali.
+      headers: {accept: 'application/json', ...(config().publishableKey ? {'x-publishable-api-key': config().publishableKey} : {})},
     });
     if (!response.ok) return null;
     const data = await response.json();
