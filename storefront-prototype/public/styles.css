@@ -377,3 +377,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .lh-card__txt h3 small{text-decoration:none!important;font-variant-numeric:tabular-nums}
 .lh-card__txt h3 small::before,.lh-card__txt h3 small::after{content:none!important}
 .lh-card__txt h3 small s,.lh-card__txt h3 small del{text-decoration:none!important}
+
+/* r12/8: pätička na mobilu – jeden stĺpec, „Denný stacionár Vyšná Slaná“ sa nemačká. */
+@media(max-width:760px){
+  :is(.dc-root,.dc-chrome) footer>div:last-of-type>div{grid-template-columns:1fr!important;gap:22px!important}
+  :is(.dc-root,.dc-chrome) footer a{overflow-wrap:anywhere}
+}
