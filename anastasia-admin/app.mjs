@@ -574,14 +574,30 @@ async function vProducts(view) {
   setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
   const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
   let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false;
-  const row = p => `<tr data-id="${esc(p.id)}" tabindex="0" role="link">
+  const selected = new Set();
+  // Sklad: súčet zásob podľa SKU (inventory item má rovnaké SKU ako variant).
+  let stockBySku = new Map();
+  const stockOf = (p) => {
+    const skus = (p.variants || []).map(v => v.sku).filter(Boolean);
+    if (!skus.length) return null;
+    if (p.digital) return null;
+    let total = 0, known = false;
+    for (const sku of skus) { const v = stockBySku.get(sku); if (v !== undefined) { total += v; known = true; } }
+    return known ? total : null;
+  };
+  const row = p => {
+    const stock = stockOf(p);
+    return `<tr data-id="${esc(p.id)}" tabindex="0" role="link">
+      <td class="ot-check"><input type="checkbox" data-pick="${esc(p.id)}" aria-label="Označiť produkt ${esc(p.title)}"></td>
       <td class="ot-img lv-media">${p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>'}</td>
       <td class="lv-title">${esc(p.title)}</td>
       <td><span class="pill ${PRODUCT_STATUS[p.status]?.[1] || 'warn'}">${esc(PRODUCT_STATUS[p.status]?.[0] || p.status || '—')}</span></td>
       <td>${p.digital ? '<span class="pill ok">digitálny</span>' : '<span class="muted">fyzický</span>'}</td>
       <td>${fmtEur(basePrice(p.variants?.[0])?.amount)}</td>
+      <td>${stock === null ? '<span class="muted">—</span>' : stock <= 0 ? '<span class="pill off">vypredané</span>' : stock <= 5 ? `<span class="pill warn">${stock} ks</span>` : `<span>${stock} ks</span>`}</td>
       <td>${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
       <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
+  };
   view.innerHTML = `<section class="card ot-card"><div class="ot-head">
       <h2>Produkty <span class="muted" id="p-count"></span></h2>
       <div class="ot-head-act">
@@ -598,7 +614,13 @@ async function vProducts(view) {
         </select>
       </div>
     </div>
-    <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
+    <div class="ot-bulk" id="p-bulk" hidden><span class="muted" id="p-bulk-info">Žiadny označený produkt</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn ghost sm" id="p-bulk-publish">Zverejniť</button>
+        <button type="button" class="btn ghost sm" id="p-bulk-draft">Uložiť ako koncept</button>
+        <button type="button" class="btn ghost sm" id="p-bulk-clear">Zrušiť označenie</button>
+      </div></div>
+    <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena s DPH</th><th>Sklad</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="p-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('#p-body');
@@ -611,14 +633,32 @@ async function vProducts(view) {
       if (query) params.set('q', query);
       if (status) params.set('status', status);
       if (type) params.set('type', type);
-      const data = await api(`/admin/product-catalogue?${params}`);
+      const [data, inv] = await Promise.all([
+        api(`/admin/product-catalogue?${params}`),
+        api('/admin/inventory-items?limit=500&fields=id,sku,*inventory_levels').catch(() => null),
+      ]);
       const products = data.products || [];
       count = Number(data.count) || 0;
-      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="7" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
+      stockBySku = new Map((inv?.inventory_items || []).map(i => [i.sku, (i.inventory_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0)]));
+      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="9" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
       body.querySelectorAll('tr[data-id]').forEach(tr => {
         const open = () => vProductDetail(view, tr.dataset.id);
         tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+        const box = tr.querySelector('[data-pick]');
+        if (box) {
+          box.checked = selected.has(tr.dataset.id);
+          box.onclick = (e) => e.stopPropagation();
+          box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); drawBulk(); };
+        }
       });
+      const all = view.querySelector('#p-pick-all');
+      if (all) {
+        const ids = products.map(p => p.id);
+        all.checked = ids.length > 0 && ids.every(id => selected.has(id));
+        all.indeterminate = !all.checked && ids.some(id => selected.has(id));
+        all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); load(); };
+      }
+      drawBulk();
       const from = count ? offset + 1 : 0, to = Math.min(offset + products.length, count);
       view.querySelector('#p-count').textContent = `(${count})`;
       view.querySelector('#p-range').textContent = count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadne produkty';
@@ -631,6 +671,46 @@ async function vProducts(view) {
       if (pending) { pending = false; load(); }
     }
   };
+  const bulkBar = view.querySelector('#p-bulk'), bulkInfo = view.querySelector('#p-bulk-info');
+  const drawBulk = () => {
+    if (!bulkBar) return;
+    bulkBar.hidden = !selected.size;
+    if (bulkInfo) bulkInfo.textContent = selected.size ? `Označené produkty: ${selected.size}` : 'Žiadny označený produkt';
+  };
+  const bulkStatus = async (status) => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    const msg = view.querySelector('#p-msg') || document.createElement('div');
+    const skipped = [];
+    let done = 0;
+    for (const id of ids) {
+      try {
+        const d = (await api(`/admin/products/${id}?fields=id,title,*variants.prices,*variants.sku,*sales_channels`)).product;
+        const hasPrice = (d.variants || []).some(v => (v.prices || []).some(p => p.currency_code === 'eur' && Number(p.amount) > 0));
+        const hasChannel = (d.sales_channels || []).length > 0;
+        const hasSku = (d.variants || []).every(v => !!v.sku);
+        if (status === 'published' && !(hasPrice && hasChannel && hasSku)) {
+          skipped.push(`${d.title || id}${!hasPrice ? ' (chýba cena)' : !hasChannel ? ' (chýba predajný kanál)' : ' (chýba kód produktu)'}`);
+          continue;
+        }
+        await api(`/admin/products/${id}`, { method: 'POST', body: { status } });
+        done++;
+      } catch (e) { skipped.push(`${id}: ${e.message}`); }
+    }
+    selected.clear();
+    await load();
+    const note = document.createElement('div');
+    note.className = skipped.length ? 'notice' : 'ok';
+    note.innerHTML = skipped.length
+      ? `Zmenených: ${done}. Preskočené: ${esc(skipped.join(', '))}`
+      : `Zmenených produktov: ${done}`;
+    const host = view.querySelector('.ot-head');
+    host?.insertAdjacentElement('afterend', note);
+  };
+  const bp = view.querySelector('#p-bulk-publish'), bd = view.querySelector('#p-bulk-draft'), bc = view.querySelector('#p-bulk-clear');
+  if (bp) bp.onclick = () => bulkStatus('published');
+  if (bd) bd.onclick = () => bulkStatus('draft');
+  if (bc) bc.onclick = () => { selected.clear(); load(); };
   view.querySelector('[data-pg="prev"]').onclick = () => { if (offset <= 0) return; offset = Math.max(0, offset - PRODUCT_PAGE_SIZE); load(); };
   view.querySelector('[data-pg="next"]').onclick = () => { if (offset + PRODUCT_PAGE_SIZE >= count) return; offset += PRODUCT_PAGE_SIZE; load(); };
   let timer = null;
@@ -722,6 +802,9 @@ async function vProductDetail(view, id, opts = {}) {
     <label style="margin-top:12px">Pridať obrázky (JPG, PNG, WebP do 5 MB)</label><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple>
     <p class="muted" style="font-size:12px">Hlavný obrázok sa zobrazuje v zozname produktov a vo výsledkoch vyhľadávania. Zmeny sa uložia tlačidlom Uložiť.</p>`;
   const predaj = `<label>Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" maxlength="64" autocomplete="off"><p class="muted" style="font-size:12px">Kód môžete zmeniť. Pozor: QR kódy vytvorené pre starý kód prestanú fungovať a treba ich vytvoriť znova.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}
+    <div class="row"><div><label for="p-ean">EAN (čiarový kód)</label><input id="p-ean" value="${esc(String(variant?.barcode || variant?.ean || ''))}" maxlength="64" inputmode="numeric" autocomplete="off" placeholder="napr. 5901234123457"></div>
+    <div><label for="p-weight">Hmotnosť (kg)</label><input id="p-weight" type="number" min="0" step="0.001" value="${esc(String(variant?.weight ?? ''))}" placeholder="napr. 0.25"></div></div>
+    <p class="muted" style="font-size:12px;margin-top:6px">EAN a hmotnosť sa doplnia do feedov pre porovnávače a do dopravných údajov.</p>
     <label>Typ produktu (doprava)</label><select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select>
     <p class="muted" style="margin-top:14px">Produkt sa v obchode zobrazí len v označených predajných kanáloch.</p>
     <div>${channels.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}</label>`).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`;
@@ -830,7 +913,14 @@ async function vProductDetail(view, id, opts = {}) {
     try { libraryEditor.validate(); } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
     btn.disabled = true;
     try {
-      if (newSku) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { sku: newSku } });
+      const eanIn = (view.querySelector('#p-ean')?.value || '').trim();
+      const weightIn = view.querySelector('#p-weight')?.value.trim();
+      const eanChanged = variant && eanIn !== String(variant.barcode || variant.ean || '');
+      const weightChanged = variant && weightIn !== String(variant.weight ?? '');
+      if (newSku || eanChanged || weightChanged) {
+        const body = { ...(newSku ? { sku: newSku } : {}), ...(eanChanged ? { barcode: eanIn || null } : {}), ...(weightChanged ? { weight: weightIn === '' ? null : Number(weightIn) } : {}) };
+        await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body });
+      }
       const chosen = [...inC].map(id => ({ id }));
       const desc = cleanRichText(view.querySelector('#p-desc').innerHTML);
       const np = view.querySelector('#p-price').value;
@@ -1021,7 +1111,7 @@ async function vOrders(view) {
       </div>
     </div>
     ${truncated ? `<div class="notice" style="margin:14px 24px 0">V prehľade je prvých ${orders.length} z ${total} objednávok. Staršie objednávky hľadaj cez vyhľadávanie podľa e-mailu.</div>` : ''}
-    <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazníčka</th><th>Doručenie</th><th>Položky</th><th class="ot-num">Suma</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+    <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazníčka</th><th>Doručenie</th><th>Položky</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="o-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('tbody');
@@ -2161,7 +2251,7 @@ async function vDopravaPlatby(view) {
   const soft = (e) => { if (e.message === '401') throw e; return null; };
   const [rg, so, sl] = await Promise.all([
     api('/admin/regions?limit=50&fields=id,name,currency_code,automatic_taxes,*countries,*payment_providers').catch(soft),
-    api('/admin/shipping-options?limit=100&fields=id,name,price_type,provider_id,*prices,*service_zone,*type,*rules').catch(soft),
+    api('/admin/shipping-options?limit=100&fields=id,name,price_type,provider_id,*prices,*prices.price_rules,*service_zone,*type,*rules').catch(soft),
     api('/admin/stock-locations?limit=50&fields=id,name,*address').catch(soft),
   ]);
   const blk = (title, body) => `<div class="card" style="margin-bottom:16px"><div class="card-h">${esc(title)}</div><div class="card-b">${body}</div></div>`;
@@ -2172,9 +2262,18 @@ async function vDopravaPlatby(view) {
       <span class="rc-f"><em>Krajiny</em>${esc((r.countries || []).map(c => (c.iso_2 || '').toUpperCase()).join(', ') || '—')}</span>
       <span class="rc-f"><em>Platby</em>${(r.payment_providers || []).map(pp => `<span class="pill ${pp.is_enabled === false ? 'off' : 'ok'}">${esc(provLabel(pp.id))}</span>`).join(' ') || '<span class="pill off">žiadna platobná metóda</span>'}</span></div></div></div>`).join('') || '<div class="empty">Žiadny predajný región. Bez neho sa nedá nakupovať.</div>'}</div>`;
   const eurPrice = (o) => (o.prices || []).find(x => x.currency_code === 'eur' && !(x.price_rules?.length || x.rules_count > 0));
+  const regionName = (id) => regions.find(r => r.id === id)?.name || String(id || '—');
+  // Cenové hladiny: každá cena s vlastným pravidlom (región) – takto vidno, kde koľko stojí.
+  const levelsOf = (o) => (o.prices || []).map(p => {
+    const rule = (p.price_rules || [])[0];
+    const where = rule?.attribute === 'region_id' ? regionName(rule.value) : 'všeobecná cena';
+    return { amount: Number(p.amount) || 0, where, currency: p.currency_code };
+  }).filter(l => l.currency === 'eur');
   const optionsHtml = !so ? unread : `<div class="rc-grid">${options.map(o => { const pr = eurPrice(o), ret = (o.rules || []).some(x => x.attribute === 'is_return' && String(x.value) === 'true');
+    const levels = levelsOf(o);
     return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(o.name)}</div><div class="rc-fields">
       <span class="rc-f"><em>Cena</em>${o.price_type === 'calculated' ? 'počíta dopravca' : pr ? (Number(pr.amount) === 0 ? 'zadarmo' : fmtEur(pr.amount)) : '<span class="pill warn">bez ceny v EUR</span>'}</span>
+      ${levels.length > 1 ? `<span class="rc-f"><em>Cenové hladiny</em>${levels.map(l => `${esc(l.where)}: ${fmtEur(l.amount)}`).join(' · ')}</span>` : ''}
       <span class="rc-f"><em>Dopravca</em>${esc(provLabel(o.provider_id))}</span>
       <span class="rc-f"><em>Oblasť</em>${esc(o.service_zone?.name || '—')}</span>
       ${ret ? '<span class="pill off">len pre vrátenie</span>' : ''}</div></div></div>`; }).join('') || '<div class="empty">Žiadny spôsob dopravy. Fyzický tovar sa nedá odoslať.</div>'}</div>`;

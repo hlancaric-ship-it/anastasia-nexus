@@ -132,13 +132,32 @@ V backende ani v admine nie je žiadny XML feed. V obchode s 30 produktami a 8 k
 | P0-4 | Verejné feedy Heureka + Google Merchant | `backend/src/api/store/feeds/*` | **opravené** – `GET /feeds/heureka.xml` a `GET /feeds/google.xml` (správne: `backend/src/api/feeds/*`) |
 | P0-5 | Správa dopravcov (výber, kľúč šifrovaný serverom, stav „nepripojené“) | `backend/src/api/admin/carriers/*`, `anastasia-admin/app.mjs` | **opravené** – `GET/POST /admin/carriers`, kľúč šifrovaný (AES-256-GCM) v metadátach obchodu |
 
-**P1 — do nasledujúcej vlny**
+**P1 — stav 21. 10. 2026**
 
-Hromadné akcie a CSV export objednávok · filtre produktov a stĺpec skladu · cena s DPH v zoznamoch · prehľad tržieb a nízkeho skladu · audit log v UI · RBAC a 2FA · metódy dopravy s cenovými hladinami · údaj „Doprava“ a „Adresa“ a spôsob platby v zozname objednávok · úprava kupónu (typ zľavy, hodnota, limit) · poznámka k objednávke.
+| Vecnosť | Stav |
+|---|---|
+| Hromadné akcie a CSV export objednávok | **hotovo** – označenie viacerých objednávok, hromadná tlač štítkov a dodacích listov, export CSV |
+| Filtre produktov a stĺpec skladu | **hotovo** – filter typu a stavu, stĺpec skladu zo zásob, hromadné zverejnenie / uloženie ako koncept |
+| Cena s DPH v zoznamoch | **hotovo** – hlavičky „Cena s DPH“ a „Suma s DPH“ (ceny v obchode sú hrubé) |
+| Prehľad tržieb a nízkeho skladu | **hotovo** – tržby dnes/týždeň/mesiac, najpredávanejšie produkty, upozornenie na nízky sklad |
+| Audit log v UI | **hotovo** – Nastavenia → História zmien |
+| Údaj „Doprava“ a „Adresa“ a spôsob platby v zozname objednávok | **hotovo** |
+| Úprava kupónu (typ zľavy, hodnota, limit) | **hotovo** + počet použití |
+| Poznámka k objednávke | **hotovo** |
+| Metódy dopravy s cenovými hladinami | **hotovo** – cena podľa regiónu v doprave |
+| RBAC (roly) a 2FA | **odložené** – roly aj dvojfaktorové prihlásenie vyžadujú zapnúť RBAC/MFA provider v `medusa-config.ts`, ktorý patrí inému agentovi; polovica hotového riešenia by bola horšia než žiadne. Kto smie čo, ostáva na rozhodnutí majiteľa obchodu |
 
-**P2 — neskôr**
+**P2 — stav 21. 10. 2026**
 
-Hromadná úprava produktov · notifikácie a pravidlá · šablóny odpovedí v chate · export konzultácií (.ics) · detail členky Klubu · EAN a hmotnosť · tmavý režim, skratky, prehliadačové notifikácie.
+| Vecnosť | Stav |
+|---|---|
+| Hromadná úprava produktov | **hotovo** – hromadné zverejnenie / uloženie ako koncept (s kontrolou úplnosti pred zverejnením) |
+| Notifikácie a pravidlá | **hotovo** – upozornenia v prehliadači na novú objednávku a správu; e-mailové šablóny a ich zapínanie už boli v E-mailoch |
+| Šablóny odpovedí v chate | **hotovo** – Správy → Šablóny odpovedí, vloženie jedným kliknutím |
+| Export konzultácií (.ics) | **hotovo** |
+| Detail členky Klubu | **hotovo** (detail už existoval; doplnené ID zákazníčky a posledná objednávka) |
+| EAN a hmotnosť | **hotovo** – polia v editore produktu, ukladajú sa na variant |
+| Tmavý režim, skratky, prehliadačové notifikácie | **hotovo** – tmavý režim v Nastaveniach, skratky („/“ hľadanie, „g“ + písmeno sekcia, „?“ nápoveda), upozornenia v prehliadači |
 
 ---
 
