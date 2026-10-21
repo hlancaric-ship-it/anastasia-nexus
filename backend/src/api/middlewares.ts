@@ -18,6 +18,7 @@ import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
 import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
 import { carrierAdminMiddlewares } from "./admin/carriers/middlewares"
+import { protectAdminRoleMetadata, protectAdminUserCreation } from "../lib/admin/role-guard"
 import { pageAdminMiddlewares } from "./admin/pages/middlewares"
 import { mediaAdminMiddlewares } from "./admin/media/middlewares"
 import { contentAdminMiddlewares } from "./admin/content/middlewares"
@@ -54,5 +55,17 @@ export default defineMiddlewares({
     ...pageAdminMiddlewares,
     ...mediaAdminMiddlewares,
     ...contentAdminMiddlewares,
+    // Rola administrátora (metadata.anastasia_role) a zakladanie nových účtov:
+    // iba vlastník. Bez toho by asistent prepísal metadáta a zvýšil si práva.
+    {
+      matcher: "/admin/users/:id",
+      method: ["POST"],
+      middlewares: [protectAdminRoleMetadata],
+    },
+    {
+      matcher: "/admin/users",
+      method: ["POST"],
+      middlewares: [protectAdminUserCreation],
+    },
   ],
 })

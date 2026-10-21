@@ -141,11 +141,27 @@ Kľúčový bod pre SPA: **odpoveď `mfa_required` nie je chyba** – je to výz
 `IMPLEMENTED_UNVERIFIED` – kód a testy sú overené lokálne; zapnutie TOTP providera
 (vrátane `MFA_ENCRYPTION_KEY`) patrí integrátorovi a UI administrácie paralelná session.
 
-## Známe obmedzenie (revízia Claude, 2026-10-21)
+## Vyriešené obmedzenie: zápis metadát administrátora (21. 10. 2026)
 
-Rola je v `user.metadata.anastasia_role`. Natívna trasa Medusy `POST /admin/users/:id`
+~~Rola je v `user.metadata.anastasia_role`. Natívna trasa Medusy `POST /admin/users/:id`
 dovoľuje prihlásenému administrátorovi meniť metadáta, takže asistent by si mohol
-rolu prepísať na `owner`. Kým sa nezapne natívny RBAC (`MEDUSA_FF_RBAC`) alebo sa
-`POST /admin/users/:id` neobalí middlewarom, ktorý zmenu `anastasia_role` povolí len
-vlastníkovi, berte role ako ochranu pred omylom, nie ako bezpečnostnú hranicu.
-Pre Fázu 1 má administráciu iba vlastník (Lucia), preto to nie je blokujúce.
+rolu prepísať na `owner`.~~
+
+**VYRIEŠENÉ.** `POST /admin/users/:id` (aj `POST /admin/users/me`) je teraz obalené
+middlewarom `protectAdminRoleMetadata` (`backend/src/lib/admin/role-guard.ts`):
+
+- zápis `metadata` administrátora smie **iba vlastník**; asistent dostane `403`,
+- odmietnutý je aj zápis metadát **bez kľúča `anastasia_role`** – Medusa pri aktualizácii
+  metadáta nenásobí (nahrádza ich), takže by sa rola zrušila,
+- bez zápisu metadát prejde (meno, e-mail a podobné údaje smie meniť aj asistent),
+- rola sa číta z databázy, takže ju klient nepodvrhuje.
+
+Navyše `POST /admin/users` (založenie nového účtu) smie iba vlastník
+(`protectAdminUserCreation`) – nový účet má predvolenú rolu `owner`, takže by inak
+asistent mohol založiť kolegu s plnými právami.
+
+Test: `backend/src/lib/admin/__tests__/role-guard.unit.spec.ts` (zápis roly asistentom,
+odstránenie roly, vlastník, bez zápisu metadát, neprihlásený, zakladanie účtov).
+
+Kým sa nezapne natívny RBAC (`MEDUSA_FF_RBAC`), je toto vlastná bezpečnostná hranica
+rolí v našom backende (nie len ochrana pred omylom).
