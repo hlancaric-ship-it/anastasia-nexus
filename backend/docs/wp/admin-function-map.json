@@ -847,6 +847,21 @@
       ],
       "remaining": "Storefront znenie zatiaľ nenačítava (pripravená trasa GET /store/pages/:slug); zapojenie do webu je na strane frontendu.",
       "acceptance": "Uložený text sa zobrazí v náhľade, prejde cez sanitizáciu a dá sa vrátiť na pôvodné znenie."
+    },
+    {
+      "id": "chat-templates",
+      "label_sk": "Šablóny odpovedí",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia si pripraví šablóny opakovaných odpovedí v chate a vloží ich jedným kliknutím; texty sa ukladajú na serveri.",
+      "sources": [
+        "backend/src/lib/chat-templates.ts",
+        "backend/src/api/admin/chat/templates/route.ts"
+      ],
+      "remaining": "Šablóny sa neposielajú automaticky zákazníčkam, len sa vložia do pripravenej odpovede.",
+      "acceptance": "Šablóna sa dá vložiť do odpovede v chate a po obnovení stránky zostáva uložená."
     }
   ],
   "custom_routes": [
@@ -1103,6 +1118,25 @@
       "feature": "chat",
       "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
       "sha256": "5abbd64540840c170d89e8706be2470048081b2a1cc6fa58eb650d9b25ef1c4f"
+    },
+    {
+      "path": "/admin/chat/templates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat-templates",
+      "source": "backend/src/api/admin/chat/templates/route.ts",
+      "sha256": "815925231432c117d99ee5b8aa34a97bd3ab67075776a6ce3699565d532dfe51"
+    },
+    {
+      "path": "/admin/chat/templates/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "chat-templates",
+      "source": "backend/src/api/admin/chat/templates/[id]/route.ts",
+      "sha256": "f562f9257cc4aa766006a586ce276db8c593cd8ced12a7f02c893e017980a65c"
     },
     {
       "path": "/admin/media",
@@ -4534,6 +4568,7 @@
     "backend/src/lib/__tests__/admin-function-map.unit.spec.ts",
     "backend/src/lib/admin-theme/__tests__/policy.unit.spec.ts",
     "backend/src/lib/carriers/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/chat-templates/__tests__/templates.unit.spec.ts",
     "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
     "backend/src/lib/digital-products/__tests__/categories.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
