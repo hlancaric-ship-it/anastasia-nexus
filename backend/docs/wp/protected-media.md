@@ -15,6 +15,12 @@ Stav: backend `IMPLEMENTED_UNVERIFIED` (unit testy), doručovací Worker `NOT_IM
 - Limit souběžných přehrávání na zákaznici (Durable Object nebo KV podle `nonce`), záznam přístupů.
 - CORS jen na naší doméně.
 
+## PDF (dokument) – náhľad, ne stahování
+- PDF se doručuje **stejným podepsaným krátkodobým odkazem** jako video (max. 900 s) a **jen s oprávněním** (entitlement + `media_key` v registru produktu).
+- `Content-Type: application/pdf` a `Content-Disposition: inline` → prohlížeč otevře náhled. Bez `application/pdf` by prohlížeč soubor **stáhl** (`application/octet-stream`).
+- Chyba v Workeri (2026-10-21): `contentType()` v `nexus/workers/api/routes/mediaDelivery.ts` neznal `pdf`, takže se PDF z knihovnice stáhlo jako neznámý binární soubor. Opravené + test `nexus/tests/unit/MediaDocumentDelivery.test.ts` (náhled, HEAD bez těla, bez podpisu 403, podpis na jiný objekt 403, vypršený podpis 403).
+- Test na straně backendu: `backend/src/api/store/media-access/__tests__/document-access.unit.spec.ts` (registr PDF jako `document`, odkaz s vodoznakem, bez oprávnění 403, mimo registru 403, bez přihlášení 401).
+
 ## Hranice ochrany
 Zabrání veřejné adrese, stahování jedním odkazem a sdílení odkazu. Nezabrání natáčení obrazovky ani kamerou; k tomu je jen DRM (Widevine/FairPlay), které je volitelný placený krok po ocenění. Komunikovat jako „ochrana proti neoprávněnému přístupu a sdílení“.
 
