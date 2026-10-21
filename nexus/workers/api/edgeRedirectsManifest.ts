@@ -14,5 +14,24 @@ export const EDGE_REDIRECT_MANIFEST: EdgeRedirectManifest = {
         "GET",
         "HEAD"
     ],
-    "redirects": []
+    "redirects": [
+        {
+            "from": "/eshop/kategoria/Podkategoria31",
+            "to": "/eshop/kategoria/podkategoria31",
+            "status": 301,
+            "preserve_query": true
+        },
+        {
+            "from": "/eshop/kategoria/Podkategoria41",
+            "to": "/eshop/kategoria/podkategoria41",
+            "status": 301,
+            "preserve_query": true
+        },
+        {
+            "from": "/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku",
+            "to": "/eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku",
+            "status": 301,
+            "preserve_query": true
+        }
+    ]
 };
