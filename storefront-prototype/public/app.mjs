@@ -275,6 +275,9 @@ document.addEventListener('click',async event=>{
   if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='#C9A355';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
   const a=event.target.closest('a[href]');
   if(!a||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
+  // Iný obslužník kliku už klik zrušil (napr. panel súhlasu s cookies v public/consent.mjs).
+  // Bez tejto kontroly by sa odkaz „Nastavenia cookies“ otvoril ako bežná navigácia.
+  if(event.defaultPrevented)return;
   const url=new URL(a.href,location.href);
   if(url.origin!==location.origin||url.pathname===location.pathname&&url.search===location.search&&url.hash||reducedMotion.matches)return;
   event.preventDefault();$('.page-transition').classList.add('active');setTimeout(()=>location.assign(url.href),220);

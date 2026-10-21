@@ -31,7 +31,8 @@ medusaIntegrationTestRunner({dbName:'anastasia_c5_ci',testSuite:({api,getContain
   const pricing=container.resolve(Modules.PRICING)
   const query=container.resolve('query')
   const {data}=await query.graph({entity:'product_variant',fields:['id','price_set.id'],filters:{id:variant.id}})
-  const setId=data[0].price_set.id
+  const setId=data?.[0]?.price_set?.id
+  if(!setId)throw new Error('C5: variant nemá price_set.id – test nemôže pokračovať')
   const [list]=await pricing.createPriceLists([{title:'C5 personal list',description:'Synthetic preservation check',type:'sale',status:'active',prices:[{price_set_id:setId,currency_code:'eur',amount:45}]}])
   const before=await pricing.listPrices({price_set_id:[setId]},{relations:['price_list'],take:null})
   expect(before.some((p:any)=>p.price_list?.id===list.id)).toBe(true)
