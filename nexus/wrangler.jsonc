@@ -37,6 +37,24 @@
   ],
 
   // ---------------------------------------------------------------------
+  // KV -- cenová politika poslaná z databáze Medusa (věrnostní úrovně).
+  //
+  // Binding je Záměrně s PLACEHOLDEREM: namespace se založí příkazem
+  //   wrangler kv namespace create "nexus-pricing-policy-<env>"
+  // a ID se doplní sem (a do každého `env.*` – bindings se NEZDĚDÍ).
+  // Dokud ID není skutečné, `wrangler deploy` skončí chybou (lépe než tichý
+  // fallback na jinou politiku). Bez bindingu Worker použije
+  // `MEDUSA_PRICING_POLICY_JSON` – viz routes/nexusPricing.ts.
+  // ---------------------------------------------------------------------
+  "kv_namespaces": [
+    {
+      "binding": "PRICING_POLICY",
+      "id": "REPLACE_WITH_KV_NAMESPACE_ID",
+      "preview_id": "REPLACE_WITH_KV_PREVIEW_NAMESPACE_ID"
+    }
+  ],
+
+  // ---------------------------------------------------------------------
   // Durable Object -- replay protection (§6.2) + rate limit (§4).
   // Třída `SecurityCoordinator` je v workers/api/SecurityCoordinator.ts
   // a MUSÍ být re-exportovaná z `main` (workers/api/index.ts), jinak ji
@@ -104,7 +122,15 @@
             "class_name": "SecurityCoordinator"
           }
         ]
-      }
+      },
+      // ZOPAKOVÁNO ZÁMĚRNĚ -- `kv_namespaces` se z top-level NEDĚDÍ.
+      "kv_namespaces": [
+        {
+          "binding": "PRICING_POLICY",
+          "id": "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID",
+          "preview_id": "REPLACE_WITH_PRODUCTION_KV_PREVIEW_NAMESPACE_ID"
+        }
+      ]
     },
 
     // Testovací předání ANASTASIA (19. 10. 2026) na subdoménách L-Code: vlastní Worker, vlastní D1 a vlastní DO stav,
@@ -134,7 +160,15 @@
             "class_name": "SecurityCoordinator"
           }
         ]
-      }
+      },
+      // ZOPAKOVÁNO ZÁMĚRNĚ -- `kv_namespaces` se z top-level NEDĚDÍ.
+      "kv_namespaces": [
+        {
+          "binding": "PRICING_POLICY",
+          "id": "REPLACE_WITH_ANASTASIA_TEST_KV_NAMESPACE_ID",
+          "preview_id": "REPLACE_WITH_ANASTASIA_TEST_KV_PREVIEW_NAMESPACE_ID"
+        }
+      ]
     }
   }
 

@@ -52,6 +52,8 @@ export default defineConfig({
       // `wrangler: { configPath: "./wrangler.jsonc" }` a tenhle blok zmizí.
       miniflare: {
         d1Databases: ["DB"],
+        // KV pro cenovou politiku (loyaltyTiers poslaná z databáze Medusa).
+        kvNamespaces: ["PRICING_POLICY"],
         bindings: {
           // Serializovatelný payload -- pole { name, queries[] }.
           TEST_MIGRATIONS: migrations,

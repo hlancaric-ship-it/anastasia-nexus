@@ -162,6 +162,16 @@ export interface R2BucketLike {
     head(key: string): Promise<{ size: number; httpEtag?: string } | null>;
 }
 
+/**
+ * Minimální rozhraní KV -- jen to, co potřebuje cenová politika.
+ * Není to `@cloudflare/workers-types` (ten balík v repu není), stejně jako u D1.
+ */
+export interface KVNamespaceLike {
+    get(key: string): Promise<string | null>;
+    put(key: string, value: string): Promise<void>;
+    delete(key: string): Promise<void>;
+}
+
 export interface Env {
     readonly ENVIRONMENT?: string;
     /** D1 binding dle wrangler.jsonc (`d1_databases[].binding = "DB"`). */
@@ -179,6 +189,12 @@ export interface Env {
     readonly NEXUS_EXECUTION_TIMEOUT_MS?: string;
     /** Full tenant pricing policy JSON; never fall back to another tenant's defaults. */
     readonly MEDUSA_PRICING_POLICY_JSON?: string;
+    /**
+     * KV s cenovou politikou poslanou z databáze Medusa (věrnostní úrovně).
+     * Bez bindingu (nebo bez uložené hodnoty) Worker použije `MEDUSA_PRICING_POLICY_JSON`
+     * -- fallback na env je vždy bezpečný, protože jde o tutéž tenantskou politiku.
+     */
+    readonly PRICING_POLICY?: KVNamespaceLike;
     /** Dedicated Medusa Cloud webhook signing secret; do not reuse HMAC_SECRET. */
     readonly MEDUSA_WEBHOOK_SECRET?: string;
     /** Explicit Medusa booking synchronization capability; absent URL disables the consumer. */

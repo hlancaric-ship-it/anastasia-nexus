@@ -6,6 +6,7 @@ import { createNexusPricingCalculator } from '../../../domains/pricing/createNex
 import { StaticPricingConfigurationProvider } from '../../../domains/pricing/StaticPricingConfigurationProvider.js';
 import type { PolicyConfig } from '../../../domains/pricing/PricingConfigurationProvider.js';
 import type { TenantContext } from '../../../core/tenant/types.js';
+import { readStoredLoyaltyTiers } from '../pricing-policy-store.js';
 
 export async function handleNexusPricing(request: Request, env: Env): Promise<Response> {
     const apiKey = env.MEDUSA_PRICING_API_KEY;
@@ -14,7 +15,7 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
     if (!apiKey || !tenantId || !constantTimeEqual(authorization, `Bearer ${apiKey}`)) {
         throw new ApiError('REJECT_SIGNATURE', 401, 'Neplatné přihlašovací údaje pricing služby.');
     }
-    const policyConfig = readTenantPolicy(env.MEDUSA_PRICING_POLICY_JSON);
+    const policyConfig = await resolveTenantPolicy(env);
     let body: unknown;
     try {
         body = await request.json();
@@ -88,6 +89,19 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
         },
         timestamp: new Date().toISOString(),
     });
+}
+
+/**
+ * Politika tenantu: zákony a limity z env varu, věrnostní úrovně z KV
+ * (poslané z databáze Medusa podepsaným webhookem). Bez KV – nebo bez uložené
+ * hodnoty – zůstává v platnosti env politika (fallback, ne výpadek služby).
+ * Env politika je VŽDY povinná: bez ní by chyběly limity značek a kategorií.
+ */
+export async function resolveTenantPolicy(env: Env): Promise<PolicyConfig> {
+    const base = readTenantPolicy(env.MEDUSA_PRICING_POLICY_JSON);
+    const stored = await readStoredLoyaltyTiers(env);
+    if (!stored) return base;
+    return { ...base, loyaltyTiers: stored };
 }
 
 function readTenantPolicy(raw: string | undefined): PolicyConfig {
