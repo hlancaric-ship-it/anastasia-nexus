@@ -56,19 +56,24 @@ body.k-solid-header .k-head{background:rgba(245,242,232,.94);backdrop-filter:blu
 .k-hero__cuts img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.07);transition:opacity .65s ease}
 .k-hero__cuts img.is-on{opacity:1}
 .k-hero__media video,.k-hero__media img{width:100%;height:100%;object-fit:cover}
-.k-hero__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(32,38,28,.42) 0%,rgba(32,38,28,.12) 34%,rgba(24,30,22,.62) 58%,rgba(16,21,15,.92) 100%)}
+.k-hero__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(32,38,28,.34) 0%,rgba(32,38,28,.10) 24%,rgba(22,28,20,.58) 44%,rgba(14,19,13,.88) 66%,rgba(9,13,8,.96) 100%)}
 .k-hero__body{position:relative;padding:0 var(--okraj) clamp(64px,12vh,140px);max-width:1080px}
 .k-eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--zlato);margin:0 0 18px}
-.k-hero h1{font-size:clamp(52px,13vw,168px);font-style:italic}
-.k-hero p{max-width:52ch;margin:22px 0 0;font-size:clamp(15px,1.6vw,19px);color:rgba(245,242,232,.88)}
+.k-hero h1{font-size:clamp(52px,13vw,168px);font-style:italic;text-shadow:0 4px 30px rgba(9,13,8,.5)}
+.k-hero p{max-width:52ch;margin:22px 0 0;font-size:clamp(15px,1.6vw,19px);color:rgba(245,242,232,.94);text-shadow:0 2px 18px rgba(9,13,8,.55)}
 .k-hero .k-btn{margin-top:30px;background:var(--krem);color:var(--les);border-color:var(--krem)}
-.k-more{display:none;width:fit-content;margin-top:16px;background:none;border:0;color:inherit;font:inherit;font-size:12px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;padding:0}
+.k-more{display:none;width:fit-content;margin-top:16px;background:none;border:0;color:rgba(245,242,232,.9);text-shadow:0 2px 14px rgba(9,13,8,.6);font:inherit;font-size:12px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;padding:0}
 .k-hero .k-btn:hover{background:var(--mata);border-color:var(--mata)}
 .k-scrollcue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:rgba(245,242,232,.7)}
 
 /* --- sekcie ----------------------------------------------------------- */
 .k-section{padding:clamp(72px,11vw,150px) var(--okraj)}
 .k-section--mata{background:var(--mata-svetla)}
+.k-section--lavanda{background:linear-gradient(180deg,var(--lavanda-svetla),#EFEAF6)}
+.k-section--lavanda .k-eyebrow{color:#7E6A93}
+.k-section--flush{padding:0;margin:0}
+.k-parallax--full{border-radius:0;margin:0}
+.k-parallax--full img{height:clamp(320px,62vw,760px)}
 .k-section--krem2{background:var(--krem-2)}
 .k-headline{font-size:clamp(30px,5vw,62px);max-width:18ch}
 .k-lead{max-width:52ch;margin-top:18px;font-size:clamp(15px,1.4vw,18px)}
