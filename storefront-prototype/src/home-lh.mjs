@@ -391,7 +391,7 @@ export const HOME_CSS = `
 
 /* --- Hlavička nad úvodem: barva podle toho, kde je scroll ------------------ */
 .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
-.lh-top{position:absolute;left:0;right:0;top:0;z-index:4;opacity:0;transform:translateY(-14px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;padding:26px clamp(20px,4vw,64px);border-bottom:1px solid rgba(201,163,85,.28);color:var(--lh-ink,#1E281C);background:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft),color .4s ease,background-color .4s ease}
+.lh-top{position:absolute;left:0;right:0;top:0;z-index:4;opacity:1;transform:none;pointer-events:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;padding:26px clamp(20px,4vw,64px);border-bottom:1px solid rgba(201,163,85,.28);color:var(--lh-ink,#1E281C);background:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft),color .4s ease,background-color .4s ease}
 .lh-top__side{display:flex;align-items:center;gap:clamp(18px,2.4vw,40px);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;font-weight:400}
 .lh-top__side--right{justify-content:flex-end}
 .lh-top__side a{color:inherit;text-decoration:none}
@@ -403,10 +403,13 @@ export const HOME_CSS = `
 .lh-top__menu:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32)}
 .lh-top__burger{display:flex;flex-direction:column;gap:4px}
 .lh-top__burger i{width:20px;height:1px;background:currentColor}
-.lh-chrome-in .lh-top{opacity:1;transform:none}
+/* Hlavička je vidět na všech stránkách. Skrytá je jen na úvodu webu (preloader),
+   kde se s chromem objeví až za úvodem. */
+.lh-intro-page:not(.lh-chrome-in) .lh-top{opacity:0;transform:translateY(-14px);pointer-events:none}
+.lh-chrome-in .lh-top{opacity:1;transform:none;pointer-events:auto}
 /* Boční lišta se na začátku úvodu schová a po prvním skrolu se vrátí. */
-.lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft)}
-.lh-intro-page.lh-chrome-in #ana-rail{opacity:1;transform:none}
+.lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft)}
+.lh-intro-page.lh-chrome-in #ana-rail{opacity:1;transform:none;pointer-events:auto}
 /* Obsah úvodu je přes celou šířku; až s lištou se odsadí. Ostatní stránky
    drží odsazení pořád, jako předtím. */
 .lh-intro-page .dc-root{padding-left:0;transition:padding-left .6s var(--ana-ease-soft)}

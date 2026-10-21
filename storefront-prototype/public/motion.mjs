@@ -47,9 +47,20 @@ if (gsap && ScrollTrigger) {
   const darks = $$('.lh-card,#lh-obloha,#lh-reset,.lh-split--dark');
   // Hlavička a boční lišta jsou na začátku skryté a objeví se po prvním
   // skrolu nebo kliku na „Posuňte nadol". Pak už zůstávají.
+  // Během preloaderu je hlavička i lišta skrytá a neaktivní: na neviditelný
+  // „Menu“ se nesmí dát kliknout ani se na něj nesmí dostat tabem.
+  const chromeInteractive = on => {
+    for (const el of [document.querySelector('#ana-rail'), document.querySelector('#lh-top')]) {
+      if (!el) continue;
+      el.inert = !on;
+      el.setAttribute('aria-hidden', String(!on));
+    }
+  };
+  if (intro) chromeInteractive(false);
   const showChrome = () => {
     if (document.body.classList.contains('lh-chrome-in')) return;
     document.body.classList.add('lh-chrome-in');
+    chromeInteractive(true);
     // Obsah úvodu je přes celou šířku; s lištou se odsadí. Padding je inline
     // z ROOT_STYLE, proto se musí nastavit tady.
     const root = document.querySelector('.dc-root');
