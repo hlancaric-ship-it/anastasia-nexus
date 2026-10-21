@@ -308,7 +308,18 @@ if (gsap && ScrollTrigger) {
 
   // --- Videa: hrají jen na obrazovce, hlavní se dá zastavit ----------------
   const videos = [$('#lh-intro-video'), $('#lh-sky-video')].filter(Boolean);
-  // Video má fetchpriority=low – kým sa sťahujú CSS a skripty, je to priorita nižšia.
+  // Úvodné video sa načíta až po prvej kresbe (LCP) a pri slabom pripojení
+  // alebo úspore dát vôbec – ostane krémová plocha so slovom.
+  const connection=navigator.connection||{};
+  const heavy=Boolean(connection.saveData)||/^(slow-2g|2g)$/.test(String(connection.effectiveType||''));
+  const loadIntroVideo=()=>{
+    const video=$('#lh-intro-video');if(!video||heavy)return;
+    for(const source of video.querySelectorAll('source[data-lh-src]')){
+      if(!source.src)source.setAttribute('src',source.dataset.lhSrc);
+    }
+    video.load();video.play().catch(()=>{});
+  };
+  if('requestIdleCallback' in window)requestIdleCallback(loadIntroVideo,{timeout:2500});else setTimeout(loadIntroVideo,600);
   // Rozměry po nabití videa se přepočítají, ale ne během skrolu.
   let refreshed = false;
   // Bez souboru (media/ je zatím prázdná) video kreslí černou a poster se

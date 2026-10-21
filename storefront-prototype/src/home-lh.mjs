@@ -8,6 +8,7 @@
 // který Lucia vybere v adminu, platí i tady.
 
 import {escape as e, arrow} from './components.mjs';
+import {picture} from './webp.mjs';
 
 const CREAM = '#EFE5C7';
 const PAPER = '#F4F1EB';
@@ -111,9 +112,9 @@ export function homeSections(products = []) {
 <section class="lh-intro" id="lh-intro" aria-labelledby="lh-ih">
   <div class="lh-intro__stage">
     <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="none" fetchpriority="low" aria-hidden="true">
-      <source src="/media/hero-480p.mp4" media="(max-width: 600px)" type="video/mp4">
-      <source src="/media/hero-720p.mp4" media="(max-width: 1024px)" type="video/mp4">
-      <source src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
+      <source data-lh-src="/media/hero-480p.mp4" media="(max-width: 600px)" type="video/mp4">
+      <source data-lh-src="/media/hero-720p.mp4" media="(max-width: 1024px)" type="video/mp4">
+      <source data-lh-src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
     </video>
     <div class="lh-intro__veil" aria-hidden="true"></div>
     <div class="lh-intro__mask" aria-hidden="true">
@@ -196,12 +197,12 @@ export function homeSections(products = []) {
     <p class="lh-lead" data-content="home__manifest__2-rich">Kde veci nemusia byť urýchľované, vysvetľované ani riadené. Priestor pre zdravie, poznanie a vedomý život — bez tlaku a bez zbytočného ruchu.</p>
     <a class="lh-cta" href="/zdravy-svet">Zdravý svet ${arrow}</a>
   </div>
-  <div class="lh-split__media"><img data-par="8" src="${IMG.sky}" alt="Nočná obloha nad tmavou krajinou" loading="lazy"></div>
+  <div class="lh-split__media">${picture(IMG.sky,"Nočná obloha nad tmavou krajinou",'data-par="8" loading="lazy"')}</div>
 </section>`;
 
   const collection = `
 <section class="lh-split lh-split--flip lh-split--dark lh-split--narrow-text lh-split--tall" id="kolekcia" data-sk-only data-screen-label="03 Kolekcia">
-  <div class="lh-split__media"><img data-par="9" src="${IMG.tree}" alt="Strom v krajine" loading="lazy"></div>
+  <div class="lh-split__media">${picture(IMG.tree,"Strom v krajine",'data-par="9" loading="lazy"')}</div>
   <div class="lh-split__text">
     <p class="lh-eyebrow">Kolekcia</p>
     ${duo('Vybrané', 'PRE VÁS.',{a:'home__kolekcia__0-text',b:'home__kolekcia__1-text'})}
@@ -218,7 +219,7 @@ export function homeSections(products = []) {
     <p class="lh-lead" data-content="home__program__2-rich">Šestnásť tematických týždňov. Jednorazový vzdelávací program vo vlastnom tempe — bez zbytočného zhonu a bez strachu, že niečo zmeškáte.</p>
     <a class="lh-cta" href="/eshop/produkt/reset-40-plus">Objaviť RESET 40+ ${arrow}</a>
   </div>
-  <div class="lh-split__media"><img data-par="10" src="${IMG.hero}" alt="Světlo v lese" loading="lazy"></div>
+  <div class="lh-split__media">${picture(IMG.hero,"Světlo v lese",'data-par="10" loading="lazy"')}</div>
   <div class="lh-stats">
     <div><strong>16</strong><span>týždňov</span></div>
     <div><strong>∞</strong><span>vlastné tempo</span></div>
@@ -267,8 +268,8 @@ export function homeSections(products = []) {
   const consultations = `
 <section class="lh-split lh-split--flip lh-split--wide-text lh-split--low" id="konzultacie" data-sk-only data-screen-label="06 Konzultácie">
   <div class="lh-lucia">
-    <div class="lh-lucia__frame"><img data-par="8" src="${IMG.lucia}" alt="Mgr. Lucia Rogožanová, zakladateľka ANASTASIA" loading="lazy"></div>
-    <div class="lh-lucia__float" data-speed="-90"><img data-par="10" src="${IMG.tree}" alt="" loading="lazy"></div>
+    <div class="lh-lucia__frame">${picture(IMG.lucia,"Mgr. Lucia Rogožanová, zakladateľka ANASTASIA",'data-par="8" loading="lazy"')}</div>
+    <div class="lh-lucia__float" data-speed="-90">${picture(IMG.tree,"",'data-par="10" loading="lazy"')}</div>
   </div>
   <div class="lh-split__text" data-speed="50">
     <p class="lh-eyebrow">Sprevádzanie</p>
