@@ -11,6 +11,7 @@ export default {
   async fetch(request, env, ctx) {
     const url0 = new URL(request.url);
     if (url0.pathname.startsWith('/media/')) return media(request, env);
+    if (url0.pathname.startsWith('/backend-media/static/')) return backendMedia(request, env, url0);
     const response = await env.ASSETS.fetch(request);
     const type = response.headers.get('content-type') || '';
     if (!type.includes('text/html')) return response;
@@ -29,6 +30,27 @@ export default {
     return new Response(patched, {status: response.status, headers});
   },
 };
+
+// Obrázky nahraté v administrácii: storefront ich kvôli CSP (img-src 'self') načítava z vlastnej domény
+// cez /backend-media/static/… a Worker ich preberá z /static/… backendu (API_ORIGIN). Len GET/HEAD a len
+// jeden súbor bez podadresárov, takže sa cez proxy nedá dostať na iné cesty backendu.
+async function backendMedia(request, env, url) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, {status: 405, headers: {allow: 'GET, HEAD'}});
+  const name = url.pathname.slice('/backend-media/static/'.length);
+  let decoded = '';
+  try { decoded = decodeURIComponent(name); } catch { decoded = '/'; }
+  if (!env.API_ORIGIN || !name || /[\/\\]/.test(decoded) || decoded.includes('..')) return new Response('Not found', {status: 404});
+  try {
+    const upstream = await fetch(new URL('/static/' + name, env.API_ORIGIN), {method: request.method, redirect: 'error', cf: {cacheTtl: 86400, cacheEverything: true}});
+    const headers = new Headers();
+    for (const h of ['content-type', 'content-length', 'etag', 'last-modified']) { const v = upstream.headers.get(h); if (v) headers.set(h, v); }
+    headers.set('cache-control', upstream.ok ? 'public, max-age=86400' : 'no-store');
+    headers.set('x-content-type-options', 'nosniff');
+    return new Response(upstream.ok ? upstream.body : null, {status: upstream.ok ? 200 : upstream.status === 404 ? 404 : 502, headers});
+  } catch {
+    return new Response(null, {status: 502, headers: {'cache-control': 'no-store'}});
+  }
+}
 
 // Videá a hudba: statické assety Cloudflare nevracajú 206 na hlavičku Range. iPhone (Safari) bez nej
 // video vôbec nespustí a skok v ambiente (pokračovanie skladby na inej stránke) sa zasekne.
