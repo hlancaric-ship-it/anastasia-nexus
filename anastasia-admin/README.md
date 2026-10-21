@@ -29,9 +29,9 @@ node build.mjs        # → dist/
 - **Prehľad** – čísla + karta *Pripravenosť obchodu* z `GET /admin/readiness` (blokery, doporučení, „nedá sa overiť“ – nikdy falešné OK).
 - **Produkty** – výpis, nový produkt (jediný predajný kanál automaticky), úprava: cena přes `POST /admin/shop-prices/:variantId` s `expected_amount`, akcia, obrázky (`/admin/uploads`, hlavný obrázok), kategórie, predajné kanály, sklad (inventory items + počty po skladoch), kontrola úplnosti – bez ceny a kanála sa produkt nedá zverejniť. Kategórie.
 - **Objednávky** – zoznam so stránkovaním (50 na stranu), filtre (Všetky / Na vybavenie / Čaká na platbu / Odoslané / Zrušené / Archív) a hľadaním; stĺpce doručenia a spôsobu platby; hromadné akcie (tlač štítkov a dodacích listov, export CSV) a poznámka k objednávke; detail v záložkách (Prehľad / Položky / Odoslanie / Platby) vrátane fakturačnej adresy; pripraviť na odoslanie, odoslať s číslom zásielky, prijať platbu, vrátiť peniaze (aj čiastočne), zrušiť. **Tlač:** adresný štítok (A6) a dodací list (A4) v zozname aj v detaile objednávky, hromadná tlač štítkov pre filter „Na vybavenie“ (`print.mjs`; okno sa otvára synchronne v kliknutí, údaje z `/admin/orders?id[]=…`).
-- **Zákazníčky** – stránkovanie, hľadanie podľa mena a e-mailu, jednotné ID zákazníčky; detail so záložkami Základné / Skupiny / Objednávky / Prístupy / Ochrana údajov, ručným pridelením prístupu a GDPR výmazom (s potvrdením).
+- **Zákazníci** – stránkovanie, hľadanie podľa mena a e-mailu, jednotné ID zákazníci; detail so záložkami Základné / Skupiny / Objednávky / Prístupy / Ochrana údajov, ručným pridelením prístupu a GDPR výmazom (s potvrdením).
 - **Produkty** – serverové stránkovanie, vyhľadávanie a filter stavu (zverejnené / koncepty).
-- **Zákazníčky** + prístupy ku knižnici.
+- **Zákazníci** + prístupy ku knižnici.
 - **Konzultácie** – stavy, detail, zrušenie termínu (`/admin/bookings*`).
 - **Správy** – konverzácie, odpoveď, uzavrieť/otvoriť, stlmiť, blokovať chat (`/admin/chat/*`).
 - **Klub/predplatné** – v Fáze 1 mimo rozsahu: sekcia je v administrácii skrytá (návody aj prihliadka).

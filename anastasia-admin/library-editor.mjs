@@ -29,13 +29,13 @@ export async function mountLibraryEditor(host, {api, productId}) {
     if (note) message = note;
     const pages = Math.max(1, Math.ceil(rows.length / size)); page = Math.min(page, pages - 1);
     const dropZone = `<div class="library-drop" id="library-drop">
-          <p class="library-drop-title">Nahrajte súbory pre zákazníčky</p>
+          <p class="library-drop-title">Nahrajte súbory pre zákazníkov</p>
           <p class="muted">Preťiahnite súbory sem alebo vyberte zo zariadenia. Povolené: MP4 (video), MP3 a M4A (nahrávka), PDF (dokument).</p>
           <button type="button" class="btn gold" id="library-pick">Vybrať súbory</button>
           <input type="file" id="library-file" class="sr-only" multiple accept=".mp4,.mp3,.m4a,.pdf,video/mp4,audio/mpeg,audio/mp4,application/pdf">
         </div>
         <div id="library-uploads" class="library-uploads" aria-live="polite"></div>`;
-    const filesHtml = rows.length ? `<p class="muted">Tieto súbory sa zobrazujú zákazníčkam s prístupom k produktu. Názov aj poradie upravíte tu a potvrdíte tlačidlom Uložiť zmeny.</p>
+    const filesHtml = rows.length ? `<p class="muted">Tieto súbory sa zobrazujú zákazníkm s prístupom k produktu. Názov aj poradie upravíte tu a potvrdíte tlačidlom Uložiť zmeny.</p>
         <ol class="library-files" start="${page * size + 1}">${rows.slice(page * size, (page + 1) * size).map((r, j) => {
         const i = page * size + j, kind = saved.media.find(m => m.key === r.key)?.kind || r.kind;
         return `<li><div class="library-title"><label for="library-title-${i}">Názov ${kind === 'video' ? 'videa' : kind === 'audio' ? 'nahrávky' : 'dokumentu'} ${i+1}</label><input id="library-title-${i}" data-library-title="${i}" maxlength="200" required value="${escape(r.title)}"></div>
@@ -43,7 +43,7 @@ export async function mountLibraryEditor(host, {api, productId}) {
       }).join('')}</ol>
       ${pages > 1 ? `<div class="library-pagination"><button type="button" class="btn ghost" data-library-page="-1" ${!page?'disabled':''}>Predchádzajúce</button><span aria-live="polite">${page+1} / ${pages}</span><button type="button" class="btn ghost" data-library-page="1" ${page===pages-1?'disabled':''}>Ďalšie</button></div>` : ''}
       <p class="muted">Úprava názvu alebo poradia nemení zakúpené prístupy. Pôvodné súbory zostávajú chránené.</p>`
-      : '<p class="muted">Tento produkt zatiaľ nemá priradené súkromné súbory.</p><p class="muted">Verejné fotografie vyššie nenahrádzajú obsah pre zákazníčky.</p>';
+      : '<p class="muted">Tento produkt zatiaľ nemá priradené súkromné súbory.</p><p class="muted">Verejné fotografie vyššie nenahrádzajú obsah pre zákazníkov.</p>';
     host.innerHTML = `<div class="library-feedback" role="status">${message ? `<p class="muted">${escape(message)}</p>` : ''}</div>
       ${unavailable ? '<p>Obsah sa nepodarilo načítať. Ostatné údaje produktu môžete upraviť; súbory zostanú zachované.</p>' : dropZone + filesHtml}
       <button type="button" class="btn ghost" data-library-reload>Načítať uložený obsah</button>`;
@@ -154,7 +154,7 @@ export async function mountLibraryEditor(host, {api, productId}) {
       } catch { purchases = -1; }
     }
     const bought = purchases > 0
-      ? `\n\nTento produkt už kúpilo ${purchases} zákazníčiek. Po odobratí im súbor zmizne z knižnice.`
+      ? `\n\nTento produkt už kúpilo ${purchases} zákazníkov. Po odobratí im súbor zmizne z knižnice.`
       : '';
     if (!confirm(`Odobrať súbor „${row.title}“ z tohto produktu?${bought}`)) return;
     const restore = disableControls();

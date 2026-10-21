@@ -37,11 +37,11 @@ stránkovanie:
 |---|---|
 | Všetky | Všetky objednávky |
 | **Na vybavenie** | Objednávky zaplatené, ktoré ešte treba poslať – toto je váš denný zoznam |
-| Čaká na platbu | Objednávky, ktoré zákazníčka nezaplatila (dobierka, prevod) |
+| Čaká na platbu | Objednávky, ktoré zákazník nezaplatil (dobierka, prevod) |
 | Odoslané | Už odoslané |
 | Zrušené / Archív | Zrušené a historické objednávky |
 
-Do **vyhľadávacieho poľa** napíšte číslo objednávky, e-mail zákazníčky alebo názov produktu.
+Do **vyhľadávacieho poľa** napíšte číslo objednávky, e-mail zákazníci alebo názov produktu.
 Keď označíte viac objednávok (zaškrtávadlo vľavo), objaví sa lišta **Označené objednávky**:
 viac štítkov naraz, viac dodacích listov naraz a **Export CSV** (tabuľka do Excelu).
 
@@ -59,12 +59,12 @@ a povoľte „Povoliť vyskakovacie okná“ pre túto stránku.
 
 Kliknutím na riadok sa otvorí detail so záložkami:
 
-- **Prehľad** – zákazníčka, stav platby, doručovacia a **fakturačná adresa**,
+- **Prehľad** – zákazník, stav platby, doručovacia a **fakturačná adresa**,
   **poznámka k objednávke** (vidíte len vy – napr. „zabalené darčekovo“).
-- **Položky** – čo zákazníčka kúpila.
+- **Položky** – čo zákazník kúpil.
 - **Odoslanie** – tlačidlo **Pripraviť** (označí položky ako pripravené) a potom
-  **Označiť ako odoslanú** + číslo zásielky. Keď potvrdíte, zákazníčka dostane e-mail.
-- **Platby** – pri prevode a dobierke tlačidlo **Prijať platbu** (až vtedy sa zákazníčke
+  **Označiť ako odoslanú** + číslo zásielky. Keď potvrdíte, zákazník dostane e-mail.
+- **Platby** – pri prevode a dobierke tlačidlo **Prijať platbu** (až vtedy sa zákazníkovi
   sprístupní digitálny obsah). **Vrátiť peniaze** vráti sumu.
 
 ---
@@ -79,7 +79,7 @@ typ dopravy (fyzický tovar / digitálny produkt / služba), kategórie a predaj
 Pri úprave existujúceho produktu nájdete v záložke **Základné údaje** aj:
 
 - **EAN (čiarový kód)** a **Hmotnosť (kg)** – použijú sa v feede pre porovnávače a pri doprave.
-- **Cena s DPH** – ceny v obchode sú vrátane DPH, takže ich zákazníčka vidí v rovnakej výške.
+- **Cena s DPH** – ceny v obchode sú vrátane DPH, takže ich zákazník vidí v rovnakej výške.
 
 Záložka **Sklad** ukazuje, koľko kusov je na sklade; zoznam produktov má stĺpec **Sklad**
 a zvýrazní **vypredané** a nízky zásobný stav. V **Nastavenia → Doprava a platby** vidíte
@@ -93,7 +93,7 @@ zverejniť alebo uložiť ako koncepty.
 
 Pri novom digitálnom produkte (typ dopravy *Digitálny produkt*) vás administrácia po vytvorení
 odrazu prevedie na záložku **Zakúpený obsah** – nahrajete súbory (MP4, MP3, PDF), ktoré
-zákazníčka dostane po zaplatení. Súbory sa chránia: zákazníčka si ich môže prehrať,
+zákazník dostane po zaplatení. Súbory sa chránia: zákazník si ich môže prehrať,
 ale nevie si ich stiahnuť.
 
 ---
@@ -130,10 +130,10 @@ V detaile poukazu je **náhľad poukazu v značke ANASTASIA** a tlačidlo **Tla�
 
 ## 5. E-maily
 
-**Obsah a e-maily → E-maily**: zoznam e-mailov, ktoré odchádzajú zákazníčkám
+**Obsah a e-maily → E-maily**: zoznam e-mailov, ktoré odchádzajú zákazníkám
 (potvrdenie objednávky, prijatie platby, odoslanie zásielky, vrátenie peňazí, darčekový poukaz…).
 Kliknutím otvoríte editor: **predmet, nadpis, odseky, tlačidlo** – presne ako vo Worde.
-Vpravo vidíte **náhľad** e-mailu, takže hneď viete, čo zákazníčka dostane.
+Vpravo vidíte **náhľad** e-mailu, takže hneď viete, čo zákazník dostane.
 Texty zmeníte a stlačíte **Uložiť e-mail**. Prepínač hore zapína a vypína konkrétny e-mail.
 
 ---
@@ -178,30 +178,30 @@ nahrávať netreba. Keď kliknete *Otvoriť feed*, uvidíte, čo sa v ňom práv
 
 **Nastavenia → Vernostné úrovne**: pre každú úroveň (Bronze, Silver, Gold, VIP) nastavíte:
 
-- **názov**, ktorý uvidí zákazníčka,
+- **názov**, ktorý uvidí zákazník,
 - **zľavu v %** (0 – 50),
-- **prah zaplatené útraty** v € (od koľka útrat zákazníčka úroveň získa),
+- **prah zaplatené útraty** v € (od koľka útrat zákazník úroveň získa),
 - či je úroveň **zapnutá**.
 
-Uložíte tlačidlom **Uložiť zmeny**. Úroveň zákazníčky sa priradí automaticky podľa jej
-celkovej útraty; ak jej úroveň nastavíte ručne (v detaile zákazníčky, záložka
+Uložíte tlačidlom **Uložiť zmeny**. Úroveň zákazníci sa priradí automaticky podľa jej
+celkovej útraty; ak jeho úroveň nastavíte ručne (v detaile zákazníka, záložka
 *Vernostná úroveň*), automatika ju už nepremení. V zozname zákazníc je stĺpec **Úroveň**
 a filter úrovne; viac zákazníc môžete označiť a priradiť úroveň naraz.
 
 ---
 
-## 9. Zákazníčky
+## 9. Zákazníci
 
-**Zákazníčky**: hľadajte podľa mena alebo e-mailu, zoznam sa stránkuje.
-V detaile zákazníčky nájdete:
+**Zákazníci**: hľadajte podľa mena alebo e-mailu, zoznam sa stránkuje.
+V detaile zákazníci nájdete:
 
-- **Základné** – meno, e-mail, ID zákazníčky,
-- **Skupiny / tier** – skupiny, do ktorých zákazníčka patrí,
-- **Vernostná úroveň** – jej úroveň a možnosť ju zmeniť,
-- **Objednávky** – história jej nákupov,
+- **Základné** – meno, e-mail, ID zákazníci,
+- **Skupiny / tier** – skupiny, do ktorých zákazník patrí,
+- **Vernostná úroveň** – jeho úroveň a možnosť ju zmeniť,
+- **Objednávky** – história jeho nákupov,
 - **Prístupy** – ku ktorým digitálnym produktom má prístup + **Prideliť prístup ručne**
   (napr. po telefonáte alebo keď pošlete darček),
-- **Ochrana údajov** – ak zákazníčka požiadala o výmaz osobných údajov, tlačidlom
+- **Ochrana údajov** – ak zákazník požiadala o výmaz osobných údajov, tlačidlom
   **Vymazať osobné údaje** žiadosť potvrdíte (akcia sa nedá vrátiť).
 
 ---
@@ -230,7 +230,7 @@ voľné termíny). Rezerváciu môžete zrušiť. V zozname je tlačidlo **Expor
 | Viete | Nejde (a prečo) |
 |---|---|
 | Spravovať objednávky, tlačiť štítky a dodací listy, exportovať CSV | Robiť platby ručne – platbu prijíma jadro, vy len potvrdíte, že prišla |
-| Meniť produkty, ceny, akcie, obrázky, sklad a kategórie | Mazať si digitálne súbory zákazníčkam – chránia sa |
+| Meniť produkty, ceny, akcie, obrázky, sklad a kategórie | Mazať si digitálne súbory zákazníkm – chránia sa |
 | Vytvárať kupóny, QR kódy a darčekové poukazy | Robiť viac zľav naraz na jeden košík – poradie zľav určuje jadro |
 | Upravovať texty, obrázky a odkazy na webe | Meniť dizajn stránok – farby, písmo a rozloženie zostávajú také, aké sú |
 | Spravovať vernostné úrovne | Vyplácať provízie – to bude v druhej fáze |

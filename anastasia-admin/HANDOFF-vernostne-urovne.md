@@ -3,7 +3,7 @@
 **Pre:** admin MiniMax (session `anastasia-admin/*`) · **Od:** Claude Code · **Dátum:** 21. 10. 2026
 **Vetva:** `release/predani-faze1` (nepushnuté) · **Dokument balíku:** `backend/docs/wp/loyalty-tiers.md`
 
-Lucia si má sama nastaviť zľavy a prahy vernostných úrovní a ručne priradiť zákazníčku
+Lucia si má sama nastaviť zľavy a prahy vernostných úrovní a ručne priradiť zákazníka
 k úrovni. Backend, automatické priradenie podľa útraty aj posielanie percent do NEXUS
 Workera sú hotové a overené. V tejto fáze **nemeníte `backend/` ani `nexus/`** – iba
 `anastasia-admin/*` podľa špecifikácie nižšie.
@@ -14,11 +14,11 @@ Workera sú hotové a overené. V tejto fáze **nemeníte `backend/` ani `nexus/
 
 - **Politika žije v databáze** (nastavenia obchodu, `store.metadata.loyalty_policy`). Pred
   spustením obchodu je **prázdna** (žiadne úrovne, 0 %) – Lucia si ju nastaví sama.
-- **Úroveň zákazníčky je jej členstvo v skupine** (Bronze / Silver / Gold / VIP majú
+- **Úroveň zákazníci je jej členstvo v skupine** (Bronze / Silver / Gold / VIP majú
   `metadata.nexus_tier` = ZR1..ZR4). Rovnakú skupinu už číta cenový adapter, takže sa
   zľava v košíku prepojí **automaticky** – nič v UI na to netreba.
 - **Ručný zámok** je samostatná skupina „Věrnost – ruční zámok“. Automatické priradenie
-  podľa útraty ho nikdy neprepiše. Zákazníčka ho neprepíše ani sama (store API neumožňuje
+  podľa útraty ho nikdy neprepiše. Zákazník ho neprepíše ani sám (store API neumožňuje
   meniť skupiny ani si zapisovať metadáta, ktoré by úroveň ovplyvnili).
 - **Ceny počíta server.** Backend pošle Workeru iba kód úrovne (`ZR3`), **nie percentá**.
   Percentá idú do Workera podepsaným webhookom do KV a odtiaľ sa použijú pri výpočte ceny.
@@ -49,7 +49,7 @@ z `app.mjs` (automaticky prikladá `Authorization: Bearer …`).
 ```
 
 - `tiers` môže byť **prázdny zoznam** – to je platný stav („politika ešte nenastavená“).
-- `code` je kód úrovne (`ZR1`–`ZR4`), `name` je názov, ktorý vidí zákazníčka
+- `code` je kód úrovne (`ZR1`–`ZR4`), `name` je názov, ktorý vidí zákazník
   (voľný text, max. 60 znakov).
 - `discount_percent`: **číslo 0–50** (celé alebo desatinné). 0 = bez zľavy.
 - `spend_threshold_eur`: prah **celkovej zaplatené útraty** v € pre automatické priradenie,
@@ -81,7 +81,7 @@ Odpoveď = to isté ako `GET` + **`worker_sync`**:
   `Duplicitná úroveň ZR1.` / `Úroveň ZR1 neexistuje…`
 - Chyby: `401` (nie si prihlásená), `503` (uloženie sa nepodarilo).
 
-### 2.2 Zoznam zákazníčiek s úrovňou
+### 2.2 Zoznam zákazníkov s úrovňou
 
 **`GET /admin/nexus/loyalty-customers?tier=&q=&limit=&offset=`**
 
@@ -100,12 +100,12 @@ Odpoveď = to isté ako `GET` + **`worker_sync`**:
 }
 ```
 
-- `tier_code`/`tier_name` sú `null`, ak zákazníčka úroveň nemá.
+- `tier_code`/`tier_name` sú `null`, ak zákazník úroveň nemá.
 - `source`: `manual` (nastavil ste to vy) alebo `auto` (vypočítané z útraty).
 - `locked`: `true` = ručný zámok, automatické priradenie ju neprepiše.
 - `tiers` v odpovedi je zoznam existujúcich úrovní (z katalógu) – použite ho na filter.
 
-### 2.3 Zaradenie jednej zákazníčky
+### 2.3 Zaradenie jednej zákazníci
 
 **`POST /admin/nexus/customers/:id/tier`** – telo:
 
@@ -127,10 +127,10 @@ Odpoveď:
 
 - Ručné zaradenie (`ZR1`–`ZR4`) **vždy** nastaví ručný zámok.
 - `automatic` **zruší** ručný zámok a úroveň sa prepočíta podľa útraty pri najbližšej
-  zaplatenej objednávke (subscriber `payment.captured`). Ak zákazníčka nemá dosiahnutý prah,
+  zaplatenej objednávke (subscriber `payment.captured`). Ak zákazník nemá dosiahnutý prah,
   úroveň sa odoberie.
 - Chyby: `400` (`Neplatná úroveň. Použite napr. ZR1 až ZR4 alebo „automaticky“.`),
-  `404` (`Zákazníčka sa nenašla.`), `503`.
+  `404` (`Zákazník sa nenašiel.`), `503`.
 
 ### 2.4 Hromadné zaradenie
 
@@ -176,21 +176,21 @@ Nová podstránka v `vNastavenia` (subnav v `app.mjs`), ktorá načíta
     Skúste to uložiť znova alebo to oznámte podpore.` (tón: neutrálny, nie panika – zľava v košíku
     zatiaľ počíta podľa starého nastavenia).
 - **Prázdny stav** (ešte nič nenastavené): `Vernostné úrovne ešte nie sú nastavené.
-  Nastavte zľavu a prah, aby zákazníčky dostávali zľavu.` + tlačidlo „Uložiť“.
+  Nastavte zľavu a prah, aby zákazníci dostávali zľavu.` + tlačidlo „Uložiť“.
 - **Vysvetlenie pre Luciu** (malý text pod tabuľkou):
   `Zľava sa počíta na serveri pri nákupe. Úroveň sa priradí automaticky podľa celkovej
-  útraty zákazníčky. Ak jej úroveň nastavíte ručne, automatické priradenie ju už nepremení.`
+  útraty zákazníci. Ak jej úroveň nastavíte ručne, automatické priradenie ju už nepremení.`
 
-### 3.2 Detail zákazníčky → výber úrovne
+### 3.2 Detail zákazníci → výber úrovne
 
-V `vCustomerDetail` (detail zákazníčky) pridajte **sekciu „Vernostná úroveň“**:
+V `vCustomerDetail` (detail zákazníci) pridajte **sekciu „Vernostná úroveň“**:
 
 - Načítajte `GET /admin/nexus/loyalty-customers?tier=…`? Nie – jednoduchšie: v detailu
-  zákazníčky načítajte `GET /admin/nexus/loyalty-customers?q=<email>&limit=1` a nájdite
-  zákazníčku podľa `id`, alebo si pridajte do detailu **voliteľný endpoint**: použite
+  zákazníci načítajte `GET /admin/nexus/loyalty-customers?q=<email>&limit=1` a nájdite
+  zákazníka podľa `id`, alebo si pridajte do detailu **voliteľný endpoint**: použite
   existujúce `GET /admin/customers/:id` + `GET /admin/customer-groups` a dopočítajte úroveň
   podľa `metadata.nexus_tier` skupín. **Odporúčané:** použite `GET /admin/nexus/loyalty-customers`
-  s `q=<email>&limit=5` a vyberte zákazníčku podľa `id`.
+  s `q=<email>&limit=5` a vyberte zákazníka podľa `id`.
 - UI: select `Vernostná úroveň` s možnosťami `Bez úrovne` + úrovne z `tiers`
   (napr. `Bronze (ZR1)`) + `Automaticky podľa útraty`.
 - Tlačidlo **Uložiť** → `POST /admin/nexus/customers/:id/tier` s `{ "tier_code": "ZR3" }`
@@ -199,9 +199,9 @@ V `vCustomerDetail` (detail zákazníčky) pridajte **sekciu „Vernostná úrov
   `Nastavené ručne – automatické priradenie podľa útraty to nepremení.`
 - Ak je `source: "auto"`, štítok `automaticky`.
 
-### 3.3 Zoznam zákazníčiek → stĺpec a filter
+### 3.3 Zoznam zákazníkov → stĺpec a filter
 
-- **Stĺpec „Úroveň“** v tabuľke zákazníčiek: hodnota `Gold` (alebo `—`), prípadne štítok
+- **Stĺpec „Úroveň“** v tabuľke zákazníkov: hodnota `Gold` (alebo `—`), prípadne štítok
   `ručné`, ak je `locked`.
 - **Filter úrovne** nad tabuľkou: `Všetky` / `Bronze` / `Silver` / `Gold` / `VIP` /
   `Bez úrovne`. Implementujte ho cez `GET /admin/nexus/loyalty-customers?tier=ZR3`
@@ -225,7 +225,7 @@ V `vCustomerDetail` (detail zákazníčky) pridajte **sekciu „Vernostná úrov
 | Chyba | Zľava musí byť medzi 0 a 50 %. |
 | Chyba | Prah útraty musí mať 0 alebo viac. |
 | Chyba (server) | Nastavenie sa nepodarilo uložiť. Skúste to znova. |
-| Info o automatike | Úroveň sa priradí automaticky podľa celkovej útraty zákazníčky. Ručne nastavenú úroveň už automatika nepremení. |
+| Info o automatike | Úroveň sa priradí automaticky podľa celkovej útraty zákazníci. Ručne nastavenú úroveň už automatika nepremení. |
 
 ---
 
@@ -235,11 +235,11 @@ V `vCustomerDetail` (detail zákazníčky) pridajte **sekciu „Vernostná úrov
    zľavu v košíku počíta NEXUS Worker.
 2. **Pred spustením obchodu môže zostať politika prázdna** – zľava je potom 0 % a
    automatické priradenie nič nemení.
-3. **Ručné priradenie je chránené.** Ak zákazníčka raz nastavíte úroveň ručne, automatika ju
+3. **Ručné priradenie je chránené.** Ak zákazník raz nastavíte úroveň ručne, automatika ju
    už nepremení, kým ju nevrátite na „Automaticky“.
 4. **Úrovne sú v katalógu už teraz** (Bronze/Silver/Gold/VIP). Ak v Nastaveniach vytvoríte
    úroveň s novým kódom (ZR5…), backend ju odmietne s `400` – kód musí byť `ZR1`–`ZR4`.
-5. **Údaje o zákazníčkách neukladajte do prehliadača** (localStorage) – načítajte ich
+5. **Údaje o zákazníkách neukladajte do prehliadača** (localStorage) – načítajte ich
    z API, ako je zvykom v tejto aplikácii.
 
 ## 6. Overenie

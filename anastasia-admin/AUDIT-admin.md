@@ -1,7 +1,7 @@
 # AUDIT administrace ANASTASIA (testovací prostředí)
 
 **Kdy:** 21. 10. 2026 · **Prostředí:** `https://anastasia-test-admin.l-code-dynamics.com` (testovací předání, jadro `https://anastasia-test-api.l-code-dynamics.com`)
-**Metoda:** průchod všemi 12 sekcemi vlevo v postupníku, podstránky v záložkách, detail objednávky / produktu / kategorie / zákazníčky / kupónu / e-mailu, kontrola konzoly a HTTP stavov.
+**Metoda:** průchod všemi 12 sekcemi vlevo v postupníku, podstránky v záložkách, detail objednávky / produktu / kategorie / zákazníka / kupónu / e-mailu, kontrola konzoly a HTTP stavov.
 **Omezení:** v tomto prostředí sa nepodarilo spraviť snímky obrazovky (prehrávač ich zablokoval) — audit je založený na DOM-e, texte a kóde. Viz `Metóda a obmedzenia` na konci.
 
 Referenčný vizuál: `~/Downloads/Centrální správa produktů OKfish.png` (tabuľky s miniaturami, farebné stavy, panely, záložky, bočný panel s prepojenými kanálmi).
@@ -110,7 +110,7 @@ V backende ani v admine nie je žiadny XML feed. V obchode s 30 produktami a 8 k
 - Karta „Pripravenosť obchodu“ (10 z 10) nepovie, **čo konkrétne** sa má skontrolovať, keď niečo nie je v poriadku.
 - Bočný panel nemá **vyhľadávanie**; pri 30 produktoch a stovkách objednávok je nutné prepínať sekcie.
 - „Obsah → Médiá / Stránky a texty / Preklady“ a „Nastavenia → Účtovníctvo“ sú len texty „pripravujeme“ (a kvôli P0-1 sa ani nezobrazia).
-- Chýba **jednotné označenie** zákazníčky v celom UI — v tabuľke je email, v detailoch email, v Klube meno; bez jedného ID sa to nedá skutočne prepojiť.
+- Chýba **jednotné označenie** zákazníka v celom UI — v tabuľke je email, v detailoch email, v Klube meno; bez jedného ID sa to nedá skutočne prepojiť.
 
 **Prístupnosť a drobnosti**
 - Tlačidlá v tabuľkách sú `<span class="btn">Otvoriť</span>`, nie skutočné tlačidlá — nepracujú s klávesnicou a neoznamujú sa čítačkám obrazovky.
@@ -155,7 +155,7 @@ V backende ani v admine nie je žiadny XML feed. V obchode s 30 produktami a 8 k
 | Notifikácie a pravidlá | **hotovo** – upozornenia v prehliadači na novú objednávku a správu; e-mailové šablóny a ich zapínanie už boli v E-mailoch |
 | Šablóny odpovedí v chate | **hotovo** – Správy → Šablóny odpovedí, vloženie jedným kliknutím |
 | Export konzultácií (.ics) | **hotovo** |
-| Detail členky Klubu | **hotovo** (detail už existoval; doplnené ID zákazníčky a posledná objednávka) |
+| Detail členky Klubu | **hotovo** (detail už existoval; doplnené ID zákazníka a posledná objednávka) |
 | EAN a hmotnosť | **hotovo** – polia v editore produktu, ukladajú sa na variant |
 | Tmavý režim, skratky, prehliadačové notifikácie | **hotovo** – tmavý režim v Nastaveniach, skratky („/“ hľadanie, „g“ + písmeno sekcia, „?“ nápoveda), upozornenia v prehliadači |
 
@@ -167,6 +167,6 @@ V backende ani v admine nie je žiadny XML feed. V obchode s 30 produktami a 8 k
 - Overené v prehliadači: 12 hlavných sekcií, 15 podstránok v záložkách, 6 detailných obrazoviek; pri každom kroku sa kontrolovala konzola prehliadača, zlyhané požiadavky a HTTP stavy.
 - **Opravené po audite (21. 10. 2026):** záložky v podsekciách, stránkovanie objednávok aj produktov, tlač štítka a dodacieho listu, produktové feedy, správa dopravcov. Overené v prehliadači (tlač 17 kontrol, záložky a stránkovanie 22 kontrol, pripojenia 18 kontrol) a na reálnych dátach cez `medusa exec`.
 - Overené proti kódu: `anastasia-admin/app.mjs`, `build.mjs`, `print.mjs`; `backend/src/api/**` (feed ani dopravcovo API neexistujú).
-- **Nepodarilo sa:** snímky obrazovky (prehrávač v tomto prostredí zablokoval `page.screenshot` po 8–30 s) a testovanie na reálnom dátach väčšieho objemu (testovacie prostredie má 1 objednávku, 30 produktov, 3 zákazníčky, 1 kupón, 0 konzultácií, 0 členiek Klubu, 0 správ). Stránkovanie sa preto overilo na lokálnom jadre s 10 objednávkami (4 na stranu).
+- **Nepodarilo sa:** snímky obrazovky (prehrávač v tomto prostredí zablokoval `page.screenshot` po 8–30 s) a testovanie na reálnom dátach väčšieho objemu (testovacie prostredie má 1 objednávku, 30 produktov, 3 zákazníci, 1 kupón, 0 konzultácií, 0 členiek Klubu, 0 správ). Stránkovanie sa preto overilo na lokálnom jadre s 10 objednávkami (4 na stranu).
 - **Nedoverené:** správanie pri >1 000 objednávkach (cap načítania) a pri reálnom toku dopravcu – overí sa až po nasadení.
 - Ceny: feed musí používať `calculated_price` s region kontextom (vzor `backend/src/api/store/nexus-cart/route.ts`, riadky ~140–152), nie klientský výpočet.

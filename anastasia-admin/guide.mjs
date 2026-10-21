@@ -32,43 +32,43 @@ export const TOUR = [
     id: 'pripravenost', target: '[data-tour="readiness"]',
     title: 'Pripravenosť obchodu',
     what: 'Kontrola vecí, bez ktorých sa v obchode nedá nakupovať, alebo ktoré odporúčame doplniť, napríklad produkt bez ceny, obrázka či kategórie.',
-    why: 'Predídete situácii, keď zákazníčka produkt nevidí alebo ho nemôže kúpiť.',
+    why: 'Predídete situácii, keď zákazník produkt nevidí alebo ho nemôže kúpiť.',
     how: 'Body „bráni predaju“ riešte ako prvé, „odporúčame doplniť“ zlepší dojem z obchodu. Tlačidlo Vyriešiť vás zavedie na správne miesto.',
   },
   {
     id: 'objednavky', target: '.sidebar .nav-item[href="#/objednavky"]', sidebar: true,
     title: 'Objednávky',
     what: 'Všetky objednávky s platbou, stavom vybavenia a dátumom. V detaile objednávku pripravíte, odošlete, prijmete platbu, vrátite peniaze alebo ju zrušíte.',
-    why: 'Tu sa z nákupu stáva odoslaný balík. O každom kroku sa zákazníčka dozvie e-mailom automaticky.',
+    why: 'Tu sa z nákupu stáva odoslaný balík. O každom kroku sa zákazník dozvie e-mailom automaticky.',
     how: 'Otvorte objednávku, v záložke Odoslanie kliknite na Pripraviť a potom na Označiť ako odoslanú. Každú akciu najprv potvrdíte. Číslo pri položke ukazuje, koľko objednávok čaká.',
   },
   {
     id: 'produkty', target: '.sidebar .nav-item[href="#/produkty"]', sidebar: true,
     title: 'Produkty',
     what: 'Váš katalóg: názvy, ceny, akcie, obrázky, kategórie, sklad a popis.',
-    why: 'Čo tu zverejníte, to zákazníčky vidia a kupujú na webe.',
+    why: 'Čo tu zverejníte, to zákazníci vidia a kupujú na webe.',
     how: 'Tlačidlom Pridať produkt založíte nový produkt, kliknutím na kartu ho upravíte. Kým chýba niečo potrebné (cena, predajný kanál, typ produktu, kód), produkt sa nedá zverejniť a administrácia vám presne povie, čo doplniť. Konečnú cenu v košíku vždy prepočíta systém automaticky na serveri.',
   },
   {
     id: 'zakaznicky', target: '.sidebar .nav-item[href="#/zakaznicky"]', sidebar: true,
-    title: 'Zákazníčky',
-    what: 'Zákazníčky s registrovaným účtom aj tie, ktoré nakúpili bez účtu, a ich prístupy k digitálnemu obsahu.',
-    why: 'Rýchlo nájdete, kto je kto, opravíte meno alebo skontrolujete, k čomu má zákazníčka prístup.',
-    how: 'Kliknite na zákazníčku a upravte jej údaje alebo skupinu. V prepínači Prístupy a knižnica vidíte, čo si kto kúpil. Prístupy sa pridelia automaticky po zaplatení.',
+    title: 'Zákazníci',
+    what: 'Zákazníci s registrovaným účtom aj tie, ktoré nakúpili bez účtu, a ich prístupy k digitálnemu obsahu.',
+    why: 'Rýchlo nájdete, kto je kto, opravíte meno alebo skontrolujete, k čomu má zákazník prístup.',
+    how: 'Kliknite na zákazníka a upravte jeho údaje alebo skupinu. V prepínači Prístupy a knižnica vidíte, čo si kto kúpil. Prístupy sa pridelia automaticky po zaplatení.',
   },
   {
     id: 'konzultacie', target: '.sidebar .nav-item[href="#/konzultacie"]', sidebar: true,
     title: 'Konzultácie',
     what: 'Rezervácie termínov, typy konzultácií s cenou a dĺžkou a váš voľný čas po týždňoch.',
-    why: 'Z toho, čo tu nastavíte, web zákazníčkam ponúkne voľné termíny na rezerváciu.',
+    why: 'Z toho, čo tu nastavíte, web zákazníkm ponúkne voľné termíny na rezerváciu.',
     how: 'V Typoch konzultácií vytvoríte ponuku, v Dostupnosti zadáte, kedy máte čas. Zaplatené rezervácie uvidíte v Rezerváciách aj na Prehľade.',
   },
   {
     id: 'spravy', target: '.sidebar .nav-item[href="#/spravy"]', sidebar: true,
     title: 'Správy',
-    what: 'Konverzácie so zákazníčkami, ktoré vám píšu zo svojho účtu na webe.',
+    what: 'Konverzácie so zákazníkmi, ktoré vám píšu zo svojho účtu na webe.',
     why: 'Celá komunikácia je na jednom mieste, aj s objednávkou alebo konzultáciou, ktorej sa týka.',
-    how: 'Otvorte konverzáciu a napíšte odpoveď. Zákazníčka dostane e-mailové upozornenie. Konverzáciu môžete uzavrieť, stlmiť alebo zákazníčke zablokovať písanie.',
+    how: 'Otvorte konverzáciu a napíšte odpoveď. Zákazník dostane e-mailové upozornenie. Konverzáciu môžete uzavrieť, stlmiť alebo zákazníkovi zablokovať písanie.',
   },
   {
     id: 'poukazy', target: '.sidebar .nav-item[href="#/poukazy"]', sidebar: true,
@@ -80,8 +80,8 @@ export const TOUR = [
   {
     id: 'obsah', target: '.sidebar .nav-item[href="#/obsah"]', sidebar: true,
     title: 'Obsah a e-maily',
-    what: 'Náhľady e-mailov, ktoré obchod posiela zákazníčkam, a zoznam prihlásení na newsletter.',
-    why: 'Viete presne, čo zákazníčka dostane po objednávke, odoslaní alebo vrátení peňazí.',
+    what: 'Náhľady e-mailov, ktoré obchod posiela zákazníkm, a zoznam prihlásení na newsletter.',
+    why: 'Viete presne, čo zákazník dostane po objednávke, odoslaní alebo vrátení peňazí.',
     how: 'Kliknite na šablónu a pozrite si náhľad. E-maily odchádzajú automaticky, nemusíte ich posielať ručne.',
   },
   {
@@ -111,7 +111,7 @@ export const GUIDE_GROUPS = [
   { id: 'start', label: 'Začíname' },
   { id: 'objednavky', label: 'Objednávky' },
   { id: 'produkty', label: 'Produkty' },
-  { id: 'zakaznicky', label: 'Zákazníčky a komunikácia' },
+  { id: 'zakaznicky', label: 'Zákazníci a komunikácia' },
   { id: 'konzultacie', label: 'Konzultácie' },
   { id: 'poukazy', label: 'Poukazy a zľavy' },
   { id: 'nastavenia', label: 'Nastavenia' },
@@ -128,7 +128,7 @@ export const GUIDES = [
     steps: [
       'Hore vidíte čísla: objednávky na vybavenie, nové správy a dnešné konzultácie. Kliknutím na číslo prejdete na danú agendu.',
       'V časti Čomu sa venovať sú úlohy, ktoré práve čakajú. Každá má odkaz, kde ju vybavíte.',
-      'V časti Dnes vás čaká sú dnešné potvrdené konzultácie s časom a menom zákazníčky.',
+      'V časti Dnes vás čaká sú dnešné potvrdené konzultácie s časom a menom zákazníci.',
       'Pod úlohami je Pripravenosť obchodu, kontrola toho, či sa dá v obchode nakupovať.',
     ],
     after: ['Čísla sa načítajú pri každom otvorení stránky. Najnovší stav uvidíte po obnovení stránky.'],
@@ -138,7 +138,7 @@ export const GUIDES = [
     id: 'pripravenost', group: 'start', icon: 'check', href: '#/', hrefLabel: 'Otvoriť Prehľad',
     title: 'Čo znamená Pripravenosť obchodu',
     summary: 'Kontrola, či má obchod všetko potrebné na predaj.',
-    why: 'Systém kontroluje, či má obchod všetko, čo potrebuje na predaj. Odhalí napríklad zverejnený produkt bez ceny, ktorý by zákazníčka nemohla kúpiť.',
+    why: 'Systém kontroluje, či má obchod všetko, čo potrebuje na predaj. Odhalí napríklad zverejnený produkt bez ceny, ktorý by zákazník nemohol kúpiť.',
     steps: [
       'Na Prehľade nájdite kartu Pripravenosť obchodu. Vpravo hore vidíte, koľko kontrol je v poriadku.',
       'Body označené „bráni predaju“ riešte ako prvé. Kým platia, niečo sa v obchode nedá kúpiť.',
@@ -163,7 +163,7 @@ export const GUIDES = [
     id: 'objednavka-vybavit', group: 'objednavky', icon: 'bag', href: '#/objednavky', hrefLabel: 'Otvoriť Objednávky',
     title: 'Ako vybaviť objednávku',
     summary: 'Od zaplateného nákupu po odoslaný balík v dvoch krokoch.',
-    why: 'Vybavenie objednávky je cesta od zaplateného nákupu k balíku u zákazníčky. Administrácia vás prevedie dvoma krokmi a zákazníčku informuje e-mailom.',
+    why: 'Vybavenie objednávky je cesta od zaplateného nákupu k balíku u zákazníka. Administrácia vás prevedie dvoma krokmi a zákazníka informuje e-mailom.',
     steps: [
       'Otvorte Objednávky a kliknite na objednávku, ktorá má v poli Vybavenie označenie nevybavená.',
       'V záložke Prehľad skontrolujte adresu doručenia, dopravu a platbu.',
@@ -172,13 +172,13 @@ export const GUIDES = [
       'Každú akciu potvrďte v okne, ktoré sa zobrazí.',
     ],
     after: [
-      'Po označení odoslania dostane zákazníčka e-mail, že objednávka je na ceste, aj s číslom zásielky a odkazom na sledovanie, ak ste ich zadali.',
-      'V e-maile má zákazníčka odkaz na svoju objednávku.',
+      'Po označení odoslania dostane zákazník e-mail, že objednávka je na ceste, aj s číslom zásielky a odkazom na sledovanie, ak ste ich zadali.',
+      'V e-maile má zákazník odkaz na svoju objednávku.',
       'Číslo pri položke Objednávky v bočnom paneli sa zníži.',
     ],
     careful: [
       'Odkaz na sledovanie musí začínať https://.',
-      'Pri digitálnom obsahu (objednávka bez adresy doručenia) sa nič neposiela poštou. Prístup sa zákazníčke pridelí automaticky po zaplatení.',
+      'Pri digitálnom obsahu (objednávka bez adresy doručenia) sa nič neposiela poštou. Prístup sa zákazníkovi pridelí automaticky po zaplatení.',
       'Kým nie je nič odoslané, objednávku sa dá zrušiť. Po odoslaní už tlačidlo Zrušiť objednávku nie je k dispozícii.',
     ],
   },
@@ -186,7 +186,7 @@ export const GUIDES = [
     id: 'objednavka-platby', group: 'objednavky', icon: 'bag', href: '#/objednavky', hrefLabel: 'Otvoriť Objednávky',
     title: 'Ako prijať platbu alebo vrátiť peniaze',
     summary: 'Prijatie čakajúcej platby a celé alebo čiastočné vrátenie peňazí.',
-    why: 'Niektoré platby sa najprv len autorizujú, peniaze sú vtedy zablokované na karte a treba ich prijať. Keď zákazníčka niečo vráti alebo nastane chyba, vrátite jej peniaze priamo z objednávky.',
+    why: 'Niektoré platby sa najprv len autorizujú, peniaze sú vtedy zablokované na karte a treba ich prijať. Keď zákazník niečo vráti alebo nastane chyba, vrátite mu peniaze priamo z objednávky.',
     steps: [
       'Otvorte objednávku a prejdite do záložky Platby.',
       'Ak platba ešte nie je prijatá, uvidíte tlačidlo Prijať platbu. Kliknite naň a potvrďte.',
@@ -195,9 +195,9 @@ export const GUIDES = [
     ],
     after: [
       'Peniaze sa vrátia cez platobnú bránu na pôvodný spôsob platby.',
-      'Zákazníčka dostane e-mail o vrátení peňazí so sumou.',
-      'Ak objednávka obsahovala digitálny obsah, systém sám upraví jej prístupy.',
-      'Po prijatí platby dostane zákazníčka e-mail o prijatí platby, ak jej potvrdenie objednávky odišlo ešte ako nezaplatené.',
+      'Zákazník dostane e-mail o vrátení peňazí so sumou.',
+      'Ak objednávka obsahovala digitálny obsah, systém sám upraví jeho prístupy.',
+      'Po prijatí platby dostane zákazník e-mail o prijatí platby, ak jeho potvrdenie objednávky odišlo ešte ako nezaplatené.',
     ],
     careful: [
       'Vrátenie peňazí sa nedá vziať späť. Sumu si pred potvrdením skontrolujte.',
@@ -208,7 +208,7 @@ export const GUIDES = [
     id: 'objednavka-prevod-dobierka', group: 'objednavky', icon: 'bag', href: '#/objednavky', hrefLabel: 'Otvoriť Objednávky',
     title: 'Ako spárovať platbu prevodom a dobierku',
     summary: 'Objednávky zaplatené prevodom na účet alebo na dobierku potvrdíte ručne, keď peniaze prídu.',
-    why: 'Prevod a dobierka nejdú cez platobnú bránu. Objednávka preto vznikne so stavom „čaká na platbu“ a digitálny obsah sa zákazníčke sprístupní až potom, ako platbu prijmete. Doprava kuriérom stojí 6 €, od 60 € je zadarmo; dobierka je o 2 € drahšia a dá sa zvoliť len pri kuriérovi a fyzickom tovare.',
+    why: 'Prevod a dobierka nejdú cez platobnú bránu. Objednávka preto vznikne so stavom „čaká na platbu“ a digitálny obsah sa zákazníkovi sprístupní až potom, ako platbu prijmete. Doprava kuriérom stojí 6 €, od 60 € je zadarmo; dobierka je o 2 € drahšia a dá sa zvoliť len pri kuriérovi a fyzickom tovare.',
     steps: [
       'V Objednávkach otvorte objednávku so stavom platby „čaká na platbu (prevod)“ alebo „čaká na platbu (dobierka)“. Spôsob platby vidíte v Prehľade.',
       'Prevod: vo výpise z účtu v Tatra banke (IBAN SK17 1100 0000 0026 2409 8906) nájdite platbu, ktorej variabilný symbol je číslo objednávky. Skontrolujte, že suma sedí s „Celkom“ v objednávke.',
@@ -217,13 +217,13 @@ export const GUIDES = [
     ],
     after: [
       'Stav platby sa zmení na „zaplatená“.',
-      'Zákazníčke sa sprístupní zakúpený digitálny obsah a odíde jej e-mail o prijatí platby.',
-      'Pri osobnom odbere (Sokolská 88, Zvolen) zákazníčka platí prevodom alebo kartou vopred; tovar odovzdajte až po prijatí platby.',
+      'Zákazníkovi sa sprístupní zakúpený digitálny obsah a odíde mu e-mail o prijatí platby.',
+      'Pri osobnom odbere (Sokolská 88, Zvolen) zákazník platí prevodom alebo kartou vopred; tovar odovzdajte až po prijatí platby.',
     ],
     careful: [
       'Platbu prijmite až vtedy, keď peniaze naozaj prišli na účet. Tlačidlo nič nesťahuje, len zaznamená úhradu.',
-      'Ak suma alebo variabilný symbol nesedí, platbu neprijímajte a ozvite sa zákazníčke.',
-      'Pri vrátení peňazí za prevod alebo dobierku pošlite peniaze zákazníčke sami prevodom; v objednávke sumu len zaznamenáte cez Vrátiť peniaze.',
+      'Ak suma alebo variabilný symbol nesedí, platbu neprijímajte a ozvite sa zákazníkovi.',
+      'Pri vrátení peňazí za prevod alebo dobierku pošlite peniaze zákazníkovi sami prevodom; v objednávke sumu len zaznamenáte cez Vrátiť peniaze.',
       'Nezaplatenú objednávku, ktorá na platbu čaká priveľa dní, môžete zrušiť.',
     ],
   },
@@ -231,15 +231,15 @@ export const GUIDES = [
     id: 'objednavka-zrusit', group: 'objednavky', icon: 'bag', href: '#/objednavky', hrefLabel: 'Otvoriť Objednávky',
     title: 'Ako zrušiť objednávku',
     summary: 'Zrušenie neodoslanej objednávky s automatickým vrátením peňazí.',
-    why: 'Ak zákazníčka nákup zruší alebo objednávku nemôžete splniť, zrušením ju uzavriete a zaplatená suma sa vráti automaticky.',
+    why: 'Ak zákazník nákup zruší alebo objednávku nemôžete splniť, zrušením ho uzavriete a zaplatená suma sa vráti automaticky.',
     steps: [
       'Otvorte objednávku.',
       'Úplne dole kliknite na Zrušiť objednávku a potvrďte.',
     ],
     after: [
-      'Zaplatená suma sa zákazníčke automaticky vráti cez platobnú bránu.',
-      'Zákazníčka dostane e-mail o zrušení objednávky.',
-      'Ak bola v objednávke konzultácia, termín sa zruší a uvoľní pre ostatné zákazníčky. Zákazníčke odíde aj e-mail o zrušení termínu.',
+      'Zaplatená suma sa zákazníkovi automaticky vráti cez platobnú bránu.',
+      'Zákazník dostane e-mail o zrušení objednávky.',
+      'Ak bola v objednávke konzultácia, termín sa zruší a uvoľní pre ostatných zákazníkov. Zákazníkovi odíde aj e-mail o zrušení termínu.',
     ],
     careful: [
       'Zrušiť sa dá len objednávka, z ktorej ešte nič nebolo odoslané.',
@@ -260,7 +260,7 @@ export const GUIDES = [
       'Otvorí sa úprava produktu, kde doplníte obrázky, popis, kategórie a sklad.',
     ],
     after: [
-      'Produkt v stave Koncept zákazníčky nevidia. Na webe bude až po zverejnení.',
+      'Produkt v stave Koncept zákazníci nevidia. Na webe bude až po zverejnení.',
       'Pri digitálnom produkte sa sklad nesleduje, takže sa dá kúpiť vždy.',
     ],
     careful: [
@@ -285,7 +285,7 @@ export const GUIDES = [
     ],
     after: [
       'Zverejnený produkt sa zobrazí v obchode v označených predajných kanáloch.',
-      'Novú cenu systém použije pri ďalšom nákupe. Konečnú sumu v košíku vždy prepočíta systém automaticky na serveri, takže zákazníčka zaplatí presne to, čo je v katalógu.',
+      'Novú cenu systém použije pri ďalšom nákupe. Konečnú sumu v košíku vždy prepočíta systém automaticky na serveri, takže zákazník zaplatí presne to, čo je v katalógu.',
       'Pri fyzickom tovare so sledovaním skladu systém nedovolí predať viac kusov, než je na sklade.',
     ],
     careful: [
@@ -298,7 +298,7 @@ export const GUIDES = [
     id: 'produkt-akcia', group: 'produkty', icon: 'box', href: '#/produkty', hrefLabel: 'Otvoriť Produkty',
     title: 'Ako nastaviť akciovú cenu (výpredaj)',
     summary: 'Dočasne nižšia cena bez prepisovania bežnej ceny.',
-    why: 'Akciou dočasne znížite cenu bez toho, aby ste prepisovali bežnú cenu. Zákazníčka vidí zľavu oproti bežnej cene.',
+    why: 'Akciou dočasne znížite cenu bez toho, aby ste prepisovali bežnú cenu. Zákazník vidí zľavu oproti bežnej cene.',
     steps: [
       'Otvorte produkt a nájdite časť Cena a akcia.',
       'Zaškrtnite Vo výpredaji / akcia.',
@@ -308,15 +308,15 @@ export const GUIDES = [
     ],
     after: [
       'V zozname produktov sa pri produkte zobrazí akčná cena.',
-      'Zákazníčka na webe zaplatí akčnú cenu. Bežná cena ostáva uložená na čas po akcii.',
+      'Zákazník na webe zaplatí akčnú cenu. Bežná cena ostáva uložená na čas po akcii.',
     ],
     careful: ['Dátum Platí do je vaša pripomienka. Akcia sa k tomuto dňu sama nevypne, po skončení ju vypnite ručne.'],
   },
   {
     id: 'kategorie', group: 'produkty', icon: 'doc', href: '#/kategorie', hrefLabel: 'Otvoriť Kategórie',
     title: 'Ako spravovať kategórie',
-    summary: 'Triedenie produktov, aby ich zákazníčky ľahko našli.',
-    why: 'Kategórie pomáhajú zákazníčkam nájsť produkty v ponuke. Produkt bez kategórie sa hľadá ťažko.',
+    summary: 'Triedenie produktov, aby ich zákazníci ľahko našli.',
+    why: 'Kategórie pomáhajú zákazníkm nájsť produkty v ponuke. Produkt bez kategórie sa hľadá ťažko.',
     steps: [
       'Otvorte stránku Kategórie (tlačidlo nižšie).',
       'Kliknite na + Nová kategória alebo na existujúcu kategóriu.',
@@ -328,12 +328,12 @@ export const GUIDES = [
     careful: ['Kategóriu, ktorú dočasne nechcete ukazovať, radšej nastavte ako neaktívnu.'],
   },
   {
-    id: 'zakaznicky', group: 'zakaznicky', icon: 'users', href: '#/zakaznicky', hrefLabel: 'Otvoriť Zákazníčky',
-    title: 'Ako nájsť zákazníčku a skontrolovať jej prístupy',
-    summary: 'Údaje zákazníčky, skupiny a prístupy k digitálnemu obsahu.',
-    why: 'Na jednom mieste zistíte, kto u vás nakupuje, opravíte meno a skontrolujete, k akému obsahu má zákazníčka prístup.',
+    id: 'zakaznicky', group: 'zakaznicky', icon: 'users', href: '#/zakaznicky', hrefLabel: 'Otvoriť Zákazníci',
+    title: 'Ako nájsť zákazníka a skontrolovať jeho prístupy',
+    summary: 'Údaje zákazníka, skupiny a prístupy k digitálnemu obsahu.',
+    why: 'Na jednom mieste zistíte, kto u vás nakupuje, opravíte meno a skontrolujete, k akému obsahu má zákazník prístup.',
     steps: [
-      'V Zákazníčkach nájdite zákazníčku. Pri dlhom zozname použite pole Hľadať.',
+      'V Zákazníkch nájdite zákazníka. Pri dlhom zozname použite pole Hľadať.',
       'Na karte vidíte, či má registrovaný účet, alebo nakúpila ako hosť.',
       'Kliknite na ňu. V záložke Základné opravíte meno a priezvisko, v záložke Skupiny / tier ju zaradíte do skupiny.',
       'Kliknite na Uložiť.',
@@ -341,15 +341,15 @@ export const GUIDES = [
     ],
     after: ['Prístupy k digitálnemu obsahu sa pridelia automaticky po zaplatení a pri vrátení peňazí sa samy upravia.'],
     careful: [
-      'E-mail zákazníčky sa v administrácii nemení, je to jej prihlasovací údaj.',
-      'Odobratie prístupu v detaile prístupu sa prejaví hneď, bez ďalšieho potvrdenia. Zákazníčka stratí prístup k obsahu.',
+      'E-mail zákazníka sa v administrácii nemení, je to jeho prihlasovací údaj.',
+      'Odobratie prístupu v detaile prístupu sa prejaví hneď, bez ďalšieho potvrdenia. Zákazník stratí prístup k obsahu.',
     ],
   },
   {
     id: 'spravy', group: 'zakaznicky', icon: 'chat', href: '#/spravy', hrefLabel: 'Otvoriť Správy',
-    title: 'Ako odpovedať zákazníčke v správach',
+    title: 'Ako odpovedať zákazníkovi v správach',
     summary: 'Odpoveď, uzavretie konverzácie, stlmenie a blokovanie.',
-    why: 'Zákazníčky vám píšu zo svojho účtu na webe. Odpoveď z administrácie ostane v histórii konverzácie, takže sa k nej kedykoľvek vrátite.',
+    why: 'Zákazníci vám píšu zo svojho účtu na webe. Odpoveď z administrácie ostane v histórii konverzácie, takže sa k nej kedykoľvek vrátite.',
     steps: [
       'V Správach vidíte otvorené konverzácie. Neprečítané majú bodku a označenie neprečítaná.',
       'Kliknite na konverzáciu. Označí sa ako prečítaná.',
@@ -357,18 +357,18 @@ export const GUIDES = [
       'Keď je vec vybavená, kliknite na Uzavrieť konverzáciu. Neskôr ju môžete znova otvoriť.',
     ],
     after: [
-      'Zákazníčka dostane e-mailové upozornenie, že má novú odpoveď. Ak predchádzajúce upozornenie ešte nečítala, ďalšie jej neposielame, aby nebola zahltená.',
-      'Keď vám zákazníčky napíšu, dostanete súhrnný e-mail o nových správach, najviac raz za hodinu.',
+      'Zákazník dostane e-mailové upozornenie, že má novú odpoveď. Ak predchádzajúce upozornenie ešte nečítal, ďalšie mu neposielame, aby nebol zahltený.',
+      'Keď vám zákazníci napíšu, dostanete súhrnný e-mail o nových správach, najviac raz za hodinu.',
       'Pri konverzácii vidíte aj objednávku alebo konzultáciu, ktorej sa týka.',
     ],
     careful: [
       'Stlmiť upozornenia: konverzácia sa nebude počítať medzi nové správy a nebude v súhrnnom e-maile.',
-      'Zablokovať chat zákazníčky: zákazníčka vám nebude môcť písať nové správy. Dá sa to kedykoľvek vrátiť.',
+      'Zablokovať chat zákazníka: zákazník vám nebude môcť písať nové správy. Dá sa to kedykoľvek vrátiť.',
     ],
   },
   {
     id: 'emaily', group: 'zakaznicky', icon: 'doc', href: '#/obsah', hrefLabel: 'Otvoriť Obsah a e-maily',
-    title: 'Aké e-maily dostávajú zákazníčky a kto odoberá newsletter',
+    title: 'Aké e-maily dostávajú zákazníci a kto odoberá newsletter',
     summary: 'Náhľady automatických e-mailov a prihlásenia na newsletter.',
     why: 'Obchod posiela e-maily automaticky pri dôležitých udalostiach. Nemusíte ich písať ani odosielať ručne. Tu si pozriete, ako vyzerajú.',
     steps: [
@@ -377,7 +377,7 @@ export const GUIDES = [
       'Kliknite na šablónu a zobrazí sa náhľad e-mailu.',
       'Prepínač Newsletter ukazuje, kto sa prihlásil na odber, stav súhlasu a odkiaľ prihlásenie prišlo.',
     ],
-    extra: { title: 'Kedy zákazníčke odíde e-mail', items: [
+    extra: { title: 'Kedy zákazníkovi odíde e-mail', items: [
       'potvrdenie objednávky',
       'prijatie platby, ak potvrdenie objednávky odišlo ako nezaplatené',
       'odoslanie zásielky',
@@ -402,12 +402,12 @@ export const GUIDES = [
       'Zaplatený termín v objednávke zrušíte zrušením objednávky. Odkaz na ňu je priamo v detaile rezervácie.',
     ],
     after: [
-      'Pri zrušení potvrdeného termínu dostane zákazníčka e-mail o zrušení.',
-      'Zrušený termín sa uvoľní pre ostatné zákazníčky.',
+      'Pri zrušení potvrdeného termínu dostane zákazník e-mail o zrušení.',
+      'Zrušený termín sa uvoľní pre ostatných zákazníkov.',
       'Pri zrušení objednávky sa zaplatená suma vráti automaticky.',
     ],
     careful: [
-      '„Čaká na platbu“ znamená, že zákazníčka má termín v rozpracovanej pokladni. Ak nezaplatí, termín sa sám uvoľní.',
+      '„Čaká na platbu“ znamená, že zákazník má termín v rozpracovanej pokladni. Ak nezaplatí, termín sa sám uvoľní.',
       'Ak potvrdený termín zrušíte samostatne, peniaze vráťte v detaile objednávky v záložke Platby.',
     ],
   },
@@ -415,7 +415,7 @@ export const GUIDES = [
     id: 'konzultacie-nastavit', group: 'konzultacie', icon: 'cal', href: '#/konzultacie', hrefLabel: 'Otvoriť Konzultácie',
     title: 'Ako nastaviť typy konzultácií a voľné termíny',
     summary: 'Ponuka konzultácií a váš voľný čas, z ktorého web ponúkne termíny.',
-    why: 'Web ponúka zákazníčkam len termíny, ktoré vychádzajú z vašej dostupnosti a z dĺžky konzultácie. Preto treba nastaviť oboje.',
+    why: 'Web ponúka zákazníkm len termíny, ktoré vychádzajú z vašej dostupnosti a z dĺžky konzultácie. Preto treba nastaviť oboje.',
     steps: [
       'V Konzultáciách prepnite hore na Typy konzultácií a kliknite na Nový typ konzultácie.',
       'Zadajte názov, popis, cenu s DPH, formu (online alebo osobne), dĺžku a pauzu po konzultácii. Nechajte zaškrtnuté V ponuke na webe a kliknite na Vytvoriť.',
@@ -426,7 +426,7 @@ export const GUIDES = [
     after: [
       'Termíny na webe sa aktualizujú hneď po uložení.',
       'Web rozdelí váš čas na termíny podľa dĺžky a pauzy každého typu konzultácie.',
-      'Zákazníčka si termín vyberie a zaplatí. Potom ho uvidíte v Rezerváciách aj na Prehľade.',
+      'Zákazník si termín vyberie a zaplatí. Potom ho uvidíte v Rezerváciách aj na Prehľade.',
     ],
     careful: [
       'Časy sú v bratislavskom čase.',
@@ -439,7 +439,7 @@ export const GUIDES = [
     id: 'kupony', group: 'poukazy', icon: 'gift', href: '#/poukazy', hrefLabel: 'Otvoriť Poukazy a zľavy',
     title: 'Ako vytvoriť zľavový kupón',
     summary: 'Kód so zľavou v percentách alebo eurách na celý nákup.',
-    why: 'Kupón je kód, ktorý zákazníčka zadá v košíku a dostane zľavu na celý nákup. Hodí sa na akcie, newsletter či sociálne siete.',
+    why: 'Kupón je kód, ktorý zákazník zadá v košíku a dostane zľavu na celý nákup. Hodí sa na akcie, newsletter či sociálne siete.',
     steps: [
       'V Poukazoch a zľavách je prvý prepínač Kupóny a zľavy. Kliknite na + Nový kupón.',
       'Zadajte kód, napríklad JAR26.',
@@ -447,7 +447,7 @@ export const GUIDES = [
       'Kliknite na Vytvoriť. Kupón je hneď aktívny.',
       'Kupón vypnete tak, že ho otvoríte, zmeníte stav na inactive a uložíte.',
     ],
-    after: ['Zľavu systém prepočíta automaticky na serveri pri nákupe. Zákazníčka ju vidí v košíku.'],
+    after: ['Zľavu systém prepočíta automaticky na serveri pri nákupe. Zákazník ju vidí v košíku.'],
     careful: [
       'Stavy: active znamená, že kupón platí, inactive je vypnutý, draft je rozpracovaný a neplatí.',
       'Pri existujúcom kupóne sa dá meniť len stav. Ak chcete inú zľavu, vytvorte nový kupón s novým kódom.',
@@ -457,8 +457,8 @@ export const GUIDES = [
   {
     id: 'qr-kody', group: 'poukazy', icon: 'gift', href: '#/poukazy', hrefLabel: 'Otvoriť Poukazy a zľavy',
     title: 'Ako vytvoriť QR kód na leták alebo obal',
-    summary: 'QR, ktorý zákazníčku privedie k produktu so zľavou z kupónu.',
-    why: 'QR kód vytlačený na letáku, vizitke či obale otvorí zákazníčke produkt na webe a rovno uplatní zľavu z kupónu. Zákazníčka nemusí nič opisovať.',
+    summary: 'QR, ktorý zákazníka privedie k produktu so zľavou z kupónu.',
+    why: 'QR kód vytlačený na letáku, vizitke či obale otvorí zákazníkovi produkt na webe a rovno uplatní zľavu z kupónu. Zákazník nemusí nič opisovať.',
     steps: [
       'Najprv si v prepínači Kupóny a zľavy vytvorte kupón (alebo použite existujúci).',
       'Prepnite na QR kódy a kliknite na Vytvoriť QR kód.',
@@ -479,7 +479,7 @@ export const GUIDES = [
     id: 'darcekove-poukazy', group: 'poukazy', icon: 'gift', href: '#/poukazy', hrefLabel: 'Otvoriť Poukazy a zľavy',
     title: 'Ako nastaviť darčekové poukazy',
     summary: 'Hodnoty, platnosť, doručenie a kde sa dá poukaz použiť.',
-    why: 'Darčekový poukaz si zákazníčka kúpi na webe ako darček. Obdarovaná ním potom zaplatí nákup. Zostatky stráži systém, takže sa nedá minúť viac, než je na poukaze.',
+    why: 'Darčekový poukaz si zákazník kúpi na webe ako darček. Obdarovaná ním potom zaplatí nákup. Zostatky stráži systém, takže sa nedá minúť viac, než je na poukaze.',
     steps: [
       'V Poukazoch a zľavách prepnite na Nastavenie poukazov.',
       'Zaškrtnite Poukazy sú v predaji na webe.',
@@ -498,12 +498,12 @@ export const GUIDES = [
     id: 'poukazy-sprava', group: 'poukazy', icon: 'gift', href: '#/poukazy', hrefLabel: 'Otvoriť Poukazy a zľavy',
     title: 'Ako skontrolovať poukaz, zneplatniť ho alebo vrátiť peniaze na poukaz',
     summary: 'Zostatky, história použitia, zneplatnenie a vrátenie na poukaz.',
-    why: 'Pri otázke zákazníčky rýchlo zistíte, koľko jej na poukaze ostáva a kde ho použila. V prípade problému poukaz zneplatníte alebo jej peniaze vrátite späť na poukaz.',
+    why: 'Pri otázke zákazníka rýchlo zistíte, koľko mu na poukaze ostáva a kde ho použil. V prípade problému poukaz zneplatníte alebo mu peniaze vrátite späť na poukaz.',
     steps: [
       'V Poukazoch a zľavách prepnite na Darčekové poukazy. Vidíte zostatok, stav a platnosť. Kód poukazu je z bezpečnosti skrytý.',
       'Kliknutím na poukaz otvoríte jeho históriu: vydanie, použitia v objednávkach a vrátenia.',
       'Ak treba poukaz zneplatniť, napríklad pri podvodnej objednávke, uveďte dôvod a kliknite na Zneplatniť poukaz.',
-      'Ak zákazníčka zaplatila objednávku poukazom a treba jej vrátiť peniaze, použite pod zoznamom poukazov formulár Vrátiť peniaze na poukaz: zadajte ID objednávky a sumu.',
+      'Ak zákazník zaplátil objednávku poukazom a treba mu vrátiť peniaze, použite pod zoznamom poukazov formulár Vrátiť peniaze na poukaz: zadajte ID objednávky a sumu.',
     ],
     after: [
       'Pri vrátení na poukaz sa suma pripíše späť a uvidíte nový zostatok.',
@@ -548,7 +548,7 @@ export const GUIDES = [
     ],
     after: [
       'Farby sa uložia k vášmu účtu, takže ich uvidíte na každom zariadení. Ostatní správcovia majú vlastné nastavenie.',
-      'Web pre zákazníčky sa tým nemení.',
+      'Web pre zákazníkov sa tým nemení.',
     ],
     careful: ['Vyberte farby s dostatočným kontrastom, aby bol text v bočnom paneli dobre čitateľný.'],
   },
@@ -582,7 +582,7 @@ export const PAGE_HELP = {
   objednavky: {
     title: 'Ako fungujú Objednávky',
     text: 'Každá karta je jedna objednávka so stavom platby a vybavenia. Kliknutím otvoríte detail so záložkami Prehľad, Položky, Odoslanie a Platby.',
-    points: ['Pripraviť a Označiť ako odoslanú nájdete v záložke Odoslanie. Zákazníčke potom odíde e-mail.', 'Prijať platbu a Vrátiť peniaze nájdete v záložke Platby. Prevod a dobierku potvrdíte ručne, keď peniaze prídu.', 'Každú akciu pred vykonaním potvrdíte.'],
+    points: ['Pripraviť a Označiť ako odoslanú nájdete v záložke Odoslanie. Zákazníkovi potom odíde e-mail.', 'Prijať platbu a Vrátiť peniaze nájdete v záložke Platby. Prevod a dobierku potvrdíte ručne, keď peniaze prídu.', 'Každú akciu pred vykonaním potvrdíte.'],
     guides: ['objednavka-vybavit', 'objednavka-platby', 'objednavka-prevod-dobierka', 'objednavka-zrusit'],
   },
   produkty: {
@@ -594,11 +594,11 @@ export const PAGE_HELP = {
   kategorie: {
     title: 'Ako fungujú Kategórie',
     text: 'Kategórie triedia produkty v ponuke. Kliknutím na kategóriu ju upravíte, tlačidlom Nová kategória pridáte ďalšiu.',
-    points: ['Produkt do kategórie zaradíte v úprave produktu.', 'Neaktívnu kategóriu zákazníčky v ponuke nevidia.'],
+    points: ['Produkt do kategórie zaradíte v úprave produktu.', 'Neaktívnu kategóriu zákazníka v ponuke nevidia.'],
     guides: ['kategorie'],
   },
   zakaznicky: {
-    title: 'Ako fungujú Zákazníčky',
+    title: 'Ako fungujú Zákazníci',
     text: 'Zoznam zákazníčok s registrovaným účtom aj tých, ktoré nakúpili ako hosť. Prepínačom Prístupy a knižnica uvidíte ich digitálne prístupy.',
     points: ['V detaile opravíte meno a zaradenie do skupiny.', 'Prístupy sa pridelia automaticky po zaplatení.'],
     guides: ['zakaznicky'],
@@ -606,13 +606,13 @@ export const PAGE_HELP = {
   konzultacie: {
     title: 'Ako fungujú Konzultácie',
     text: 'Tri prepínače: Rezervácie (termíny zákazníčok), Typy konzultácií (čo ponúkate a za koľko) a Dostupnosť (kedy máte čas).',
-    points: ['Web ponúkne termíny len z vašej dostupnosti, podľa dĺžky a pauzy typu konzultácie.', 'Pri zrušení potvrdeného termínu dostane zákazníčka e-mail.'],
+    points: ['Web ponúkne termíny len z vašej dostupnosti, podľa dĺžky a pauzy typu konzultácie.', 'Pri zrušení potvrdeného termínu dostane zákazník e-mail.'],
     guides: ['konzultacie-rezervacie', 'konzultacie-nastavit'],
   },
   spravy: {
     title: 'Ako fungujú Správy',
-    text: 'Konverzácie so zákazníčkami. Otvorením sa konverzácia označí ako prečítaná, odpoveď napíšete dole.',
-    points: ['Zákazníčke po odpovedi príde e-mailové upozornenie.', 'Vybavenú konverzáciu uzavrite, dá sa znova otvoriť.'],
+    text: 'Konverzácie so zákazníkmi. Otvorením sa konverzácia označí ako prečítaná, odpoveď napíšete dole.',
+    points: ['Zákazníkovi po odpovedi príde e-mailové upozornenie.', 'Vybavenú konverzáciu uzavrite, dá sa znova otvoriť.'],
     guides: ['spravy'],
   },
   poukazy: {

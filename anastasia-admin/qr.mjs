@@ -28,7 +28,7 @@ export function qrAgenda({ api, esc, fmtDate, freshView, openPrintHtml }) {
       } catch (e) { fail(e); }
     }
     function generate() {
-      frame('Vytvoriť QR kód', `<p>QR nasmeruje zákazníčku na produkt s existujúcim kupónom. Novú zľavu tým nevytvárate.</p><form data-create>
+      frame('Vytvoriť QR kód', `<p>QR nasmeruje zákazníka na produkt s existujúcim kupónom. Novú zľavu tým nevytvárate.</p><form data-create>
         <label for="qr-sku">Kód produktu</label><input id="qr-sku" required maxlength="128">
         <label for="qr-code">Kód kupónu</label><input id="qr-code" required maxlength="128" autocomplete="off">
         <label for="qr-qty">Počet kusov</label><input id="qr-qty" type="number" min="1" max="999" step="1" required value="1">

@@ -1345,7 +1345,7 @@ async function vCustomers(view) {
   let offset = 0, query = '', count = 0, tierFilter = '', tierOptions = [], loyalty = false, selected = new Set();
   const PAGE = 25;
   view.innerHTML = `<section class="card ot-card"><div class="ot-head">
-      <h2>Zákazníčky</h2>
+      <h2>Zákazníci</h2>
       <div class="ot-head-act">
         <select class="rc-select" id="cu-tier" aria-label="Filter podľa vernostnej úrovne"><option value="">Všetky úrovne</option></select>
         <input class="rc-search" type="search" placeholder="Hľadať meno alebo e-mail…" aria-label="Hľadať zákazničky">
@@ -1367,7 +1367,7 @@ async function vCustomers(view) {
       tierOptions = data.tiers || [];
     } catch (e) {
       if (e.message === '401') throw e;
-      // Bez vernostných úrovní (jadro ich ešte neobsluhuje) použijeme bežný zoznam zákazníčiek.
+      // Bez vernostných úrovní (jadro ich ešte neobsluhuje) použijeme bežný zoznam zákazníkov.
       const plain = await api(`/admin/customers?${params}&fields=id,email,first_name,last_name,has_account,created_at`);
       loyalty = false;
       customers = plain.customers || [];
@@ -1389,7 +1389,7 @@ async function vCustomers(view) {
         ? `<b>${esc(tier)}</b>${c.locked ? ' <span class="pill">ručné</span>' : c.source === 'auto' ? ' <span class="muted">automaticky</span>' : ''}`
         : '<span class="muted">—</span>';
       return `<tr data-id="${esc(c.id)}" tabindex="0" role="link">
-        <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákazníčku" ${selected.has(c.id) ? 'checked' : ''}></td>
+        <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákazníka" ${selected.has(c.id) ? 'checked' : ''}></td>
         <td class="ot-img lv-media"><span class="thumb" style="display:grid;place-items:center;font-weight:600;color:var(--forest)">${esc(av)}</span></td>
         <td class="lv-title">${esc(nm || c.email)}</td>
         <td>${esc(c.email)}</td>
@@ -1403,7 +1403,7 @@ async function vCustomers(view) {
         <select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(t.name || t.code)}</option>`).join('')}</select>
         <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>
         <button type="button" class="btn ghost sm" id="cu-pick-clear">Zrušiť označenie</button></div></div>` : ''}
-      <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazníčka</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Žiadne zákazničky.</td></tr>'}</tbody></table></div>
+      <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Žiadne zákazničky.</td></tr>'}</tbody></table></div>
       <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Žiadne zákazničky'}</span>
       <div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev" ${offset <= 0 ? 'disabled' : ''}>← Predchádzajúce</button><button class="btn ghost" data-pg="next" ${offset + PAGE >= count ? 'disabled' : ''}>Ďalšie →</button></div></div>`;
     body.querySelectorAll('tr[data-id]').forEach((tr) => {
@@ -2214,7 +2214,7 @@ async function vConversation(view, id, back, notice) {
     const blocked = !cu.chat_blocked;
     if (!confirm(blocked ? 'Zablokovať zákazníkovi písanie do chatu? Dá sa to kedykoľvek vrátiť.' : 'Odblokovať zákazníkovi chat?')) return;
     bb.disabled = true;
-    try { await api(`/admin/chat/customers/${encodeURIComponent(cu.id)}/block`, { method: 'POST', body: { blocked } }); await vConversation(view, id, back, blocked ? 'Chat zákazníčky je zablokovaný.' : 'Chat zákazníčky je odblokovaný.'); }
+    try { await api(`/admin/chat/customers/${encodeURIComponent(cu.id)}/block`, { method: 'POST', body: { blocked } }); await vConversation(view, id, back, blocked ? 'Chat zákazníci je zablokovaný.' : 'Chat zákazníci je odblokovaný.'); }
     catch (err) { fail(bb, err); }
   };
 }
@@ -2763,12 +2763,12 @@ async function vLoyaltyPolicy(view) {
     <div id="lp-msg"></div>
     ${tiers.length ? `<div class="loyalty-head"><span>Názov</span><span>Zľava</span><span>Prah útraty (€)</span><span>Zapnuté</span><span>Kód</span></div>
       <div id="lp-rows">${tiers.map(row).join('')}</div>`
-      : '<div class="notice">Vernostné úrovne ešte nie sú nastavené. Nastavte zľavu a prah, aby zákazníčky dostávali zľavu.</div>'}
+      : '<div class="notice">Vernostné úrovne ešte nie sú nastavené. Nastavte zľavu a prah, aby zákazníci dostávali zľavu.</div>'}
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
       <button type="button" class="btn ghost" id="lp-add">+ Pridať úroveň</button>
       <button type="button" class="btn gold" id="lp-save">Uložiť zmeny</button>
     </div>
-    <p class="muted" style="font-size:12px;margin-top:12px">Zľava sa počíta na serveri pri nákupe. Úroveň sa priradí automaticky podľa celkovej útraty zákazníčky. Ak jej úroveň nastavíte ručne, automatické priradenie ju už nepremení.</p>
+    <p class="muted" style="font-size:12px;margin-top:12px">Zľava sa počíta na serveri pri nákupe. Úroveň sa priradí automaticky podľa celkovej útraty zákazníci. Ak jej úroveň nastavíte ručne, automatické priradenie ju už nepremení.</p>
   </div></div>`;
   const rows = view.querySelector('#lp-rows');
   const msg = view.querySelector('#lp-msg');
