@@ -359,9 +359,9 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .motion .lh-intro__brands{color:var(--lh-ink,#1E281C)}
 .lh-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:inherit;pointer-events:auto;opacity:1}
 .motion .lh-brand{opacity:0}
-.lh-brand--academy{order:1;height:78px}
-.lh-brand--main{order:2;height:126px}
-.lh-brand--ai{order:3;height:78px}
+.lh-brand--academy{order:1;height:96px}
+.lh-brand--main{order:2;height:96px}
+.lh-brand--ai{order:3;height:96px}
 .lh-brand__lock{position:relative;display:flex;align-items:center;justify-content:center;height:100%}
 .lh-brand__lock--mark{height:auto;width:46px}
 .lh-brand__mark{height:100%;width:auto;display:block}
@@ -468,9 +468,13 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-top__side--right{gap:10px;font-size:11px}
   .lh-top__side--right>a:not([aria-label="Košík"]){display:none}
   .lh-top__menu{height:36px;padding:0 14px;gap:8px;font-size:11px;letter-spacing:1.2px}
-  .lh-intro__brands{top:58px;gap:10px 18px}
-  .lh-brand--main{height:74px}
-  .lh-brand--academy,.lh-brand--ai{height:48px}
+  .lh-intro__brands{top:62px;gap:0 14px;flex-wrap:nowrap;justify-content:center}
+  .lh-brand--main,.lh-brand--academy,.lh-brand--ai{height:58px;flex:0 0 auto}
+  .lh-brand__lock--mark{width:26px}
+  .lh-brand__name{font-size:11px;letter-spacing:.18em;padding-left:.18em}
+  .lh-brand__sub{font-size:8px;letter-spacing:.22em;padding-left:.22em;gap:5px}
+  .lh-brand__sub i{width:9px}
+  .lh-brand__stem{height:10px}
   .lh-intro__cats{position:absolute;left:0;right:0;top:auto;bottom:20vh;height:0;display:block}
   .lh-cat{position:absolute;left:0;right:0;top:auto;bottom:0;width:100%;font-size:21px;white-space:normal;text-align:center;line-height:1.2}
   .lh-intro__meta .k{font-size:10px;letter-spacing:.22em}
