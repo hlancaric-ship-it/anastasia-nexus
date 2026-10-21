@@ -65,7 +65,8 @@ const topics = [
   ['08', 'Dýchanie', 'Ako dych ovplyvňuje telo, myseľ a reakciu na stres.'],
 ];
 
-const duo = (italic, caps) => `<span class="lh-display">${italic}</span><span class="lh-caps">${caps}</span>`;
+// duo(nadpis, zvýraznený nadpis) + kľúče polí pre obsah z administrácie.
+const duo = (italic, caps, keys = {}) => `<span class="lh-display"${keys.a?` data-content="${keys.a}"`:''}>${italic}</span><span class="lh-caps"${keys.b?` data-content="${keys.b}"`:''}>${caps}</span>`;
 
 // Vlastní hlavička úvodu. Designová reference ji kreslí inline styly a přebírá
 // průhlednou plochu z railu — nad krémovým úvodem pak vypadá jako šedý pruh.
@@ -169,13 +170,13 @@ export function homeSections(products = []) {
       </div>
     </div>
     <h1 class="lh-say lh-say--one" id="lh-ih">
-      <span class="lh-display">Vitajte.</span>
-      <span class="lh-say__note">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.</span>
+      <span class="lh-display" data-content="home__uvod__0-text">Vitajte.</span>
+      <span class="lh-say__note" data-content="home__uvod__1-rich">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.</span>
     </h1>
     <div class="lh-say lh-say--two">
       <p class="lh-eyebrow">Zdravý svet</p>
       <p class="lh-display">Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.</p>
-      <a class="lh-cta lh-cta--gold" href="/zdravy-svet">Vstúpte do zdravého sveta ${arrow}</a>
+      <a class="lh-cta lh-cta--gold" href="/zdravy-svet" data-content="home__uvod__2-text">Vstúpte do zdravého sveta ${arrow}</a>
     </div>
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
     <button class="lh-intro__sound" type="button" data-lh-sound aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk">
@@ -189,8 +190,8 @@ export function homeSections(products = []) {
 <section class="lh-split lh-split--paper lh-split--wide-text" id="manifest" data-sk-only data-screen-label="02 Manifest">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Vitajte</p>
-    ${duo('Nie ako ponuka riešení.', 'ALE AKO PRIESTOR')}
-    <p class="lh-lead">Kde veci nemusia byť urýchľované, vysvetľované ani riadené. Priestor pre zdravie, poznanie a vedomý život — bez tlaku a bez zbytočného ruchu.</p>
+    ${duo('Nie ako ponuka riešení.', 'ALE AKO PRIESTOR',{a:'home__manifest__0-text',b:'home__manifest__1-text'})}
+    <p class="lh-lead" data-content="home__manifest__2-rich">Kde veci nemusia byť urýchľované, vysvetľované ani riadené. Priestor pre zdravie, poznanie a vedomý život — bez tlaku a bez zbytočného ruchu.</p>
     <a class="lh-cta" href="/zdravy-svet">Zdravý svet ${arrow}</a>
   </div>
   <div class="lh-split__media"><img data-par="8" src="${IMG.sky}" alt="Nočná obloha nad tmavou krajinou" loading="lazy"></div>
@@ -201,7 +202,7 @@ export function homeSections(products = []) {
   <div class="lh-split__media"><img data-par="9" src="${IMG.tree}" alt="Strom v krajine" loading="lazy"></div>
   <div class="lh-split__text">
     <p class="lh-eyebrow">Kolekcia</p>
-    ${duo('Vybrané', 'PRE VÁS.')}
+    ${duo('Vybrané', 'PRE VÁS.',{a:'home__kolekcia__0-text',b:'home__kolekcia__1-text'})}
     <div class="lh-list">${items.map(p => listRow(p.n, p.name, p.price, `/eshop/produkt/${p.slug}`)).join('')}</div>
     <a class="lh-cta" href="/eshop">Celý obchod ${arrow}</a>
   </div>
@@ -211,8 +212,8 @@ export function homeSections(products = []) {
 <section class="lh-split lh-split--paper lh-split--wide-media" id="program" data-sk-only data-screen-label="04 Program">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Program RESET 40+</p>
-    ${duo('Nová kapitola', 'SA ZAČÍNA VAMI.')}
-    <p class="lh-lead">Šestnásť tematických týždňov. Jednorazový vzdelávací program vo vlastnom tempe — bez zbytočného zhonu a bez strachu, že niečo zmeškáte.</p>
+    ${duo('Nová kapitola', 'SA ZAČÍNA VAMI.',{a:'home__program__0-text',b:'home__program__1-text'})}
+    <p class="lh-lead" data-content="home__program__2-rich">Šestnásť tematických týždňov. Jednorazový vzdelávací program vo vlastnom tempe — bez zbytočného zhonu a bez strachu, že niečo zmeškáte.</p>
     <a class="lh-cta" href="/eshop/produkt/reset-40-plus">Objaviť RESET 40+ ${arrow}</a>
   </div>
   <div class="lh-split__media"><img data-par="10" src="${IMG.hero}" alt="Světlo v lese" loading="lazy"></div>
@@ -254,7 +255,7 @@ export function homeSections(products = []) {
     </div>
     <div class="lh-sky__txt">
       <p class="lh-eyebrow">Pod hviezdami · Konzultácia</p>
-      <h2 id="lh-skh">${duo('Čo o vás vie', 'OBLOHA')}</h2>
+      <h2 id="lh-skh">${duo('Čo o vás vie', 'OBLOHA',{a:'home__obloha__0-text'})}</h2>
       <p>Astrologický profil zdravia a vitality – jedna zo štyroch Luciiných konzultácií.</p>
       <a class="lh-cta lh-cta--gold" href="/eshop/produkt/astrologia-zdravie-predispozicia">Objaviť profil ${arrow}</a>
     </div>
@@ -299,8 +300,8 @@ export function homeSections(products = []) {
   const contact = `
 <section class="lh-contact" data-sk-only data-screen-label="08 Kontakt">
   <p class="lh-eyebrow">Kontakt</p>
-  ${duo('Potrebujete', 'POMOC?')}
-  <p class="lh-lead lh-lead--center">Či už viete, čo hľadáte, alebo práve neviete, odkiaľ začať — napíšte nám. Ozveme sa osobne.</p>
+  ${duo('Potrebujete', 'POMOC?',{a:'home__kontakt__0-text',b:'home__kontakt__1-text'})}
+  <p class="lh-lead lh-lead--center" data-content="home__kontakt__2-rich">Či už viete, čo hľadáte, alebo práve neviete, odkiaľ začať — napíšte nám. Ozveme sa osobne.</p>
   <a class="lh-cta" href="/kontakt">Napíšte nám ${arrow}</a>
 </section>`;
 

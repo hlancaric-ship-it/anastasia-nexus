@@ -1,16 +1,16 @@
 {
- "generated_at": "2026-10-21T04:10:04.106Z",
+ "generated_at": "2026-10-21T09:53:55.990Z",
  "source": "/Users/lucky/anastasia-nexus-codex-storefront-design/storefront-prototype",
  "stats": {
-  "pages": 18,
-  "sections": 70,
-  "fields": 1512,
+  "pages": 19,
+  "sections": 77,
+  "fields": 1529,
   "byType": {
-   "text": 285,
+   "text": 298,
    "image": 20,
    "link": 115,
    "video": 1,
-   "rich": 1091
+   "rich": 1095
   }
  },
  "pages": [
@@ -390,6 +390,232 @@
        "max_length": 500,
        "lang": "sk",
        "hint": "Odporúčaný rozmer 1920 × 1080 px (MP4, do 20 MB)."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "home",
+   "title": "Domovská stránka",
+   "path": "/",
+   "sections": [
+    {
+     "key": "uvod",
+     "title": "Úvod",
+     "order": 0,
+     "fields": [
+      {
+       "key": "home__uvod__0-text",
+       "type": "text",
+       "label": "Úvod – nadpis",
+       "value": "Vitajte.",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__uvod__1-rich",
+       "type": "rich",
+       "label": "Úvod – poznámka",
+       "value": "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.",
+       "max_length": 2000,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__uvod__2-text",
+       "type": "text",
+       "label": "Úvod – tlačidlo",
+       "value": "Vstúpte do zdravého sveta",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      }
+     ]
+    },
+    {
+     "key": "manifest",
+     "title": "Manifest",
+     "order": 1,
+     "fields": [
+      {
+       "key": "home__manifest__0-text",
+       "type": "text",
+       "label": "Manifest – nadpis",
+       "value": "Nie ako ponuka riešení.",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__manifest__1-text",
+       "type": "text",
+       "label": "Manifest – zvýraznený nadpis",
+       "value": "ALE AKO PRIESTOR",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__manifest__2-rich",
+       "type": "rich",
+       "label": "Manifest – text",
+       "value": "Kde veci nemusia byť urýchľované, vysvetľované ani riadené. Priestor pre zdravie, poznanie a vedomý život — bez tlaku a bez zbytočného ruchu.",
+       "max_length": 2000,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      }
+     ]
+    },
+    {
+     "key": "kolekcia",
+     "title": "Kolekcia",
+     "order": 2,
+     "fields": [
+      {
+       "key": "home__kolekcia__0-text",
+       "type": "text",
+       "label": "Kolekcia – nadpis",
+       "value": "Vybrané",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__kolekcia__1-text",
+       "type": "text",
+       "label": "Kolekcia – zvýraznený nadpis",
+       "value": "PRE VÁS.",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      }
+     ]
+    },
+    {
+     "key": "program",
+     "title": "Program",
+     "order": 3,
+     "fields": [
+      {
+       "key": "home__program__0-text",
+       "type": "text",
+       "label": "Program – nadpis",
+       "value": "Nová kapitola",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__program__1-text",
+       "type": "text",
+       "label": "Program – zvýraznený nadpis",
+       "value": "SA ZAČÍNA VAMI.",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__program__2-rich",
+       "type": "rich",
+       "label": "Program – text",
+       "value": "Šestnásť tematických týždňov. Jednorazový vzdelávací program vo vlastnom tempe — bez zbytočného zhonu a bez strachu, že niečo zmeškáte.",
+       "max_length": 2000,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      }
+     ]
+    },
+    {
+     "key": "reset",
+     "title": "RESET 40+",
+     "order": 4,
+     "fields": [
+      {
+       "key": "home__reset__0-text",
+       "type": "text",
+       "label": "RESET 40+ – nadpis",
+       "value": "Šestnásť týždňov.",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__reset__1-text",
+       "type": "text",
+       "label": "RESET 40+ – podnadpis",
+       "value": "Vlastné tempo.",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      }
+     ]
+    },
+    {
+     "key": "obloha",
+     "title": "Obloha",
+     "order": 5,
+     "fields": [
+      {
+       "key": "home__obloha__0-text",
+       "type": "text",
+       "label": "Obloha – nadpis",
+       "value": "Čo o vás vie",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      }
+     ]
+    },
+    {
+     "key": "kontakt",
+     "title": "Kontakt",
+     "order": 6,
+     "fields": [
+      {
+       "key": "home__kontakt__0-text",
+       "type": "text",
+       "label": "Kontakt – nadpis",
+       "value": "Potrebujete",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__kontakt__1-text",
+       "type": "text",
+       "label": "Kontakt – zvýraznený nadpis",
+       "value": "POMOC?",
+       "max_length": 160,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
+      },
+      {
+       "key": "home__kontakt__2-rich",
+       "type": "rich",
+       "label": "Kontakt – text",
+       "value": "Či už viete, čo hľadáte, alebo práve neviete, odkiaľ začať — napíšte nám. Ozveme sa osobne.",
+       "max_length": 2000,
+       "lang": "sk",
+       "hint": null,
+       "alt": null
       }
      ]
     }

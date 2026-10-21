@@ -1,0 +1,132 @@
+{
+  "_comment": "Obsah úvodnej stránky, ktorý môže Lucia meniť v administrácii. Backend z toho generuje stránku 'home' v semene obsahu (backend/scripts/generate-content-seed.mjs). Kľúče polí: home__<sekcia>__<index>-<typ>.",
+  "sections": [
+    {
+      "key": "uvod",
+      "title": "Úvod",
+      "fields": [
+        {
+          "type": "text",
+          "label": "Úvod – nadpis",
+          "value": "Vitajte."
+        },
+        {
+          "type": "rich",
+          "label": "Úvod – poznámka",
+          "value": "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené."
+        },
+        {
+          "type": "text",
+          "label": "Úvod – tlačidlo",
+          "value": "Vstúpte do zdravého sveta"
+        }
+      ]
+    },
+    {
+      "key": "manifest",
+      "title": "Manifest",
+      "fields": [
+        {
+          "type": "text",
+          "label": "Manifest – nadpis",
+          "value": "Nie ako ponuka riešení."
+        },
+        {
+          "type": "text",
+          "label": "Manifest – zvýraznený nadpis",
+          "value": "ALE AKO PRIESTOR"
+        },
+        {
+          "type": "rich",
+          "label": "Manifest – text",
+          "value": "Kde veci nemusia byť urýchľované, vysvetľované ani riadené. Priestor pre zdravie, poznanie a vedomý život — bez tlaku a bez zbytočného ruchu."
+        }
+      ]
+    },
+    {
+      "key": "kolekcia",
+      "title": "Kolekcia",
+      "fields": [
+        {
+          "type": "text",
+          "label": "Kolekcia – nadpis",
+          "value": "Vybrané"
+        },
+        {
+          "type": "text",
+          "label": "Kolekcia – zvýraznený nadpis",
+          "value": "PRE VÁS."
+        }
+      ]
+    },
+    {
+      "key": "program",
+      "title": "Program",
+      "fields": [
+        {
+          "type": "text",
+          "label": "Program – nadpis",
+          "value": "Nová kapitola"
+        },
+        {
+          "type": "text",
+          "label": "Program – zvýraznený nadpis",
+          "value": "SA ZAČÍNA VAMI."
+        },
+        {
+          "type": "rich",
+          "label": "Program – text",
+          "value": "Šestnásť tematických týždňov. Jednorazový vzdelávací program vo vlastnom tempe — bez zbytočného zhonu a bez strachu, že niečo zmeškáte."
+        }
+      ]
+    },
+    {
+      "key": "reset",
+      "title": "RESET 40+",
+      "fields": [
+        {
+          "type": "text",
+          "label": "RESET 40+ – nadpis",
+          "value": "Šestnásť týždňov."
+        },
+        {
+          "type": "text",
+          "label": "RESET 40+ – podnadpis",
+          "value": "Vlastné tempo."
+        }
+      ]
+    },
+    {
+      "key": "obloha",
+      "title": "Obloha",
+      "fields": [
+        {
+          "type": "text",
+          "label": "Obloha – nadpis",
+          "value": "Čo o vás vie"
+        }
+      ]
+    },
+    {
+      "key": "kontakt",
+      "title": "Kontakt",
+      "fields": [
+        {
+          "type": "text",
+          "label": "Kontakt – nadpis",
+          "value": "Potrebujete"
+        },
+        {
+          "type": "text",
+          "label": "Kontakt – zvýraznený nadpis",
+          "value": "POMOC?"
+        },
+        {
+          "type": "rich",
+          "label": "Kontakt – text",
+          "value": "Či už viete, čo hľadáte, alebo práve neviete, odkiaľ začať — napíšte nám. Ozveme sa osobne."
+        }
+      ]
+    }
+  ]
+}
