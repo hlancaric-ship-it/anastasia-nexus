@@ -25,6 +25,7 @@ const additions = [
   { path: '/admin/nexus/admin-2fa', methods: ['GET', 'POST', 'DELETE'], source: 'backend/src/api/admin/nexus/admin-2fa/route.ts', feature: 'roles' },
   { path: '/admin/nexus/admin-2fa/verify', methods: ['POST'], source: 'backend/src/api/admin/nexus/admin-2fa/verify/route.ts', feature: 'roles' },
   { path: '/admin/nexus/admin-2fa/recovery-codes', methods: ['POST'], source: 'backend/src/api/admin/nexus/admin-2fa/recovery-codes/route.ts', feature: 'roles' },
+  { path: '/admin/chat/conversations', methods: ['GET', 'POST'], source: 'backend/src/api/admin/chat/conversations/route.ts', feature: 'chat' },
 ]
 
 for (const addition of additions) {

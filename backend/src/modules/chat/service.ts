@@ -187,8 +187,63 @@ class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, C
     return { conversation, message }
   }
 
-  /** Uzavřít / znovu otevřít / ztlumit / zrušit ztlumení. Vše vratné. */
+  /**
+   * Nová zpráva od administrace: pokud zákazník už má otevřenou konverzaci, zpráva se přidá do ní,
+   * jinak se založí konverzace nová. Zpráva je od textu, limity zákazníka se neuplatní.
+   */
   @InjectTransactionManager()
+  async sendAdminMessage(input: { customer_id: string; admin_id: string; body: unknown; subject?: unknown }, @MedusaContext() context: Context = {}): Promise<{ conversation: ChatConversationRow; message: ChatMessageRow }> {
+    const body = normalizeMessageBody(input.body, MAX_ADMIN_MESSAGE_LENGTH)
+    if (!body.ok) {
+      throw new ChatPolicyError(
+        body.error.type,
+        body.error.type === "message_empty" ? "Správa nemôže byť prázdna." : `Správa je príliš dlhá (najviac ${MAX_ADMIN_MESSAGE_LENGTH} znakov).`,
+      )
+    }
+    const subject = normalizeSubject(input.subject)
+    if (!subject.ok) throw new ChatPolicyError("invalid_subject", `Popis správy môže mať najviac 120 znakov.`)
+    const knex = this.transactionKnex(context)
+    await this.lockCustomer(knex, input.customer_id)
+    if (await this.isBlockedTx(knex, input.customer_id)) {
+      throw new ChatPolicyError("admin_message_blocked")
+    }
+    const now = new Date()
+    const [existing] = (await this.listChatConversations(
+      { customer_id: input.customer_id, status: "open" },
+      { take: 1, order: { last_message_at: "DESC" } },
+      context,
+    )) as unknown as ChatConversationRow[]
+    let conversation: ChatConversationRow
+    if (existing) {
+      conversation = (await this.updateChatConversations({
+        id: existing.id, last_message_at: now, last_admin_message_at: now, admin_last_read_at: now,
+      }, context)) as unknown as ChatConversationRow
+    } else {
+      conversation = (await this.createChatConversations({
+        customer_id: input.customer_id,
+        subject: subject.value ?? "Správa z administrácie",
+        order_id: null,
+        booking_id: null,
+        status: "open",
+        muted: false,
+        last_message_at: now,
+        last_admin_message_at: now,
+        admin_last_read_at: now,
+        created_at: now,
+      } as any, context)) as unknown as ChatConversationRow
+    }
+    const message = (await this.createChatMessages({
+      conversation_id: conversation.id,
+      customer_id: input.customer_id,
+      author_type: "admin",
+      author_id: input.admin_id,
+      body: body.value,
+      created_at: now,
+    } as any, context)) as unknown as ChatMessageRow
+    return { conversation, message }
+  }
+
+  /** Uzavřít / znovu otevřít / ztlumit / zrušit ztlumení. Vše vratné. */  @InjectTransactionManager()
   async applyConversationAction(id: string, action: ConversationAction, @MedusaContext() context: Context = {}): Promise<ChatConversationRow> {
     const knex = this.transactionKnex(context)
     const current = await this.conversationForUpdate(knex, id)

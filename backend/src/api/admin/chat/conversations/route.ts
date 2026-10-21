@@ -1,9 +1,10 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { sortForAdmin, isUnreadByAdmin } from "../../../../modules/chat"
-import { toAdminConversationDTO } from "../../../../modules/chat/dto"
+import { CHAT_EVENTS, sortForAdmin, isUnreadByAdmin } from "../../../../modules/chat"
+import { toAdminConversationDTO, toMessageDTO } from "../../../../modules/chat/dto"
 import type { ChatConversationRow } from "../../../../modules/chat/service"
-import { chatService, requireActor, sendChatError } from "../../../chat-helpers"
+import { adminNewMessageSchema, chatService, emitChatEvent, parseBody, requireActor, sendChatError } from "../../../chat-helpers"
 import { loadCustomers } from "../helpers"
+import { auditAdminChange } from "../../../../lib/observability/audit"
 
 const STATUSES = ["open", "closed", "all"] as const
 
@@ -30,5 +31,38 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     })
   } catch (error) {
     return sendChatError(req, res, error, "GET /admin/chat/conversations")
+  }
+}
+
+/**
+ * POST /admin/chat/conversations { customer_id, body, subject? } – nová zpráva pro zákazníka.
+ * Pokud zákazník už má otevřenou konverzaci, zpráva se přidá do ní, jinak se založí nová.
+ * Zákazníkovi odejde i e-mail (stejná šablona jako u odpovědi).
+ */
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  const adminId = requireActor(req, res, "user")
+  if (!adminId) return
+  const input = parseBody(adminNewMessageSchema, req, res)
+  if (!input) return
+  try {
+    const customers = await loadCustomers(req.scope, [input.customer_id])
+    if (!customers.has(input.customer_id)) {
+      return res.status(404).json({ type: "not_found", message: "Zákazník sa nenašiel." })
+    }
+    const { conversation, message } = await chatService(req).sendAdminMessage({
+      customer_id: input.customer_id,
+      admin_id: adminId,
+      body: input.body,
+      subject: input.subject,
+    })
+    await emitChatEvent(req, CHAT_EVENTS.ADMIN_REPLY, { conversation_id: conversation.id, message_id: message.id, customer_id: conversation.customer_id })
+    await auditAdminChange(req, "chat.conversation.start", "customer", input.customer_id, null, {
+      conversation_id: conversation.id,
+      subject: conversation.subject,
+      created: true,
+    })
+    return res.status(201).json({ conversation_id: conversation.id, message: toMessageDTO(message) })
+  } catch (error) {
+    return sendChatError(req, res, error, "POST /admin/chat/conversations")
   }
 }

@@ -1133,11 +1133,12 @@
     {
       "path": "/admin/chat/conversations",
       "methods": [
-        "GET"
+        "GET",
+        "POST"
       ],
       "feature": "chat",
       "source": "backend/src/api/admin/chat/conversations/route.ts",
-      "sha256": "7fa3cf85cceaf0b560b4bdd66de8e64cd5202720dbd446d5b06d77068f067447"
+      "sha256": "6b619b11dce6dc57fee2af1b4ae194505919394ad2c04ee5f2041d4012347345"
     },
     {
       "path": "/admin/chat/conversations/:id",

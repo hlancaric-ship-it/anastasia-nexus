@@ -22,6 +22,7 @@ export type ChatErrorCode =
   | "conversation_closed"
   | "chat_consecutive_limit"
   | "chat_daily_limit"
+  | "admin_message_blocked"
 
 const STATUS: Record<ChatErrorCode, number> = {
   invalid_message: 400,
@@ -33,6 +34,7 @@ const STATUS: Record<ChatErrorCode, number> = {
   conversation_closed: 409,
   chat_consecutive_limit: 429,
   chat_daily_limit: 429,
+  admin_message_blocked: 409,
 }
 
 const MESSAGES: Record<ChatErrorCode, string> = {
@@ -45,6 +47,8 @@ const MESSAGES: Record<ChatErrorCode, string> = {
   conversation_closed: "Tato konverzace je uzavřená. Pokud potřebujete, začněte prosím novou.",
   chat_consecutive_limit: `Napsali jste ${MAX_CONSECUTIVE_CUSTOMER_MESSAGES} zprávy po sobě. Počkejte prosím na odpověď Lucie.`,
   chat_daily_limit: `Dnes jste odeslali ${DAILY_CUSTOMER_MESSAGE_LIMIT} zpráv, což je denní maximum. Zítra můžete psát znovu.`,
+  // Zpráva pro administraci (slovenština – texty v administraci jsou slovenské).
+  admin_message_blocked: "Zákazník má zablokovaný chat – novú správu mu nemožno poslať.",
 }
 
 /** Porušení pravidel chatu; `type` je stabilní kód pro storefront, `message` srozumitelný text. */
