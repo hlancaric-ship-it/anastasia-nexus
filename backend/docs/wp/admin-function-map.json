@@ -1495,7 +1495,17 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "35df396755c37b183d3a41bfed0381c7cad537761e93f4d18089deca9783ea38"
+      "sha256": "98fb8b90f3933839746621042e45c8004b491ec74db0326b5f88a268655ee86a"
+    },
+    {
+      "path": "/store/nexus-checkout/options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/store/nexus-checkout/options/route.ts",
+      "sha256": "05ce2422270e23373a065cadf53f78322ac75dfdc56d3abf86bc829536826c18"
     },
     {
       "path": "/store/orders/:id/cancel",

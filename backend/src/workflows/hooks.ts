@@ -27,6 +27,8 @@ import { prepareGiftVoucherCheckout } from "./gift-voucher-checkout"
 
 import { assertMembershipCheckoutCart } from "../lib/membership/checkout-guard"
 import { assertCartConsent } from "../lib/legal/checkout"
+import { assertDeliveryPaymentConsistency, loadCartShape, safeOrderPaymentMethod } from "../lib/checkout/delivery-payment"
+import { assertNoCompensatedSession } from "../lib/checkout/payment-compensation"
 
 type CheckoutCompensation = {
     bookingClaim?: Awaited<ReturnType<typeof claimCartBooking>>
@@ -47,6 +49,8 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
     const cart = snapshot as any
     await assertCartConsent(container, cart)
     await assertMembershipCheckoutCart(container, cart)
+    // Vrátená/zrušená platba (kompenzácia) už objednávku nedokončí.
+    assertNoCompensatedSession(cart)
     const total = amountValue(cart?.total)
     // Košík celý uhrazený poukazem: Medusa platbu přeskočí (total 0, kredit ≥ 0), SafeOrder
     // nemá co posoudit. Výše kreditu se ověří níž proti zůstatku a způsobilé částce.
@@ -65,10 +69,16 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
     if (!coveredByVoucher) {
         const processable = sessions.filter((session: any) => ["pending", "requires_more", "authorized", "captured", "pending_authorization"].includes(session.status))
         if (!processable.length) throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
+        // Dobierka len s kuriérom „na dobierku“ a len pri fyzickom tovare (typy z DB, nie z klienta).
+        const shape = await loadCartShape(container as any, {
+            profileIds: (cart.items || []).map((item: any) => item?.variant?.product?.shipping_profile?.id).filter(Boolean),
+            shippingOptionIds: (cart.shipping_methods || []).map((method: any) => method?.shipping_option_id).filter(Boolean),
+        })
+        assertDeliveryPaymentConsistency(shape, processable.map((session: any) => session.provider_id))
         // Check every processable provider: a benign first session must not hide a COD session.
         for (const session of processable) {
             try {
-                const verdict = await assertSafeOrderAllows({ orderSum: total, paymentMethod: session.provider_id, customerEmail: cart.email })
+                const verdict = await assertSafeOrderAllows({ orderSum: total, paymentMethod: safeOrderPaymentMethod(session.provider_id), customerEmail: cart.email })
                 await recordEvent(container as any, "info", "safeorder", "decision", { cart_id: cart.id, customer_id: cart.customer_id ?? null, decision: "ALLOW", score: verdict.score, factors: verdict.factors, payment_provider: session.provider_id, order_sum: total })
             } catch (error) {
                 const code = error instanceof SafeOrderError ? error.code : "SAFEORDER_UNAVAILABLE"

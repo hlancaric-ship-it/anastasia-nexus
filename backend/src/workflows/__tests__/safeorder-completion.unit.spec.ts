@@ -62,6 +62,18 @@ describe("SafeOrder guard on every completeCartWorkflow path", () => {
     await expect(run(cart)).rejects.toMatchObject({ code: "SAFEORDER_REVIEW_REQUIRED" })
     expect(global.fetch).toHaveBeenCalledTimes(2)
   })
+  it("COD session without physical goods and the COD courier never reaches SafeOrder", async () => {
+    const cart = snapshot(); cart.payment_collection.payment_sessions[0].provider_id = "pp_cod_cod"
+    global.fetch = jest.fn() as any
+    await expect(run(cart)).rejects.toThrow("COD_NOT_AVAILABLE")
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+  it("a refunded/canceled (compensated) card payment cannot complete the order", async () => {
+    const cart: any = snapshot(); cart.metadata = { compensated_payment_intents: ["pi_123"] }; cart.payment_collection.payment_sessions[0].data = { id: "pi_123" }
+    global.fetch = jest.fn() as any
+    await expect(run(cart)).rejects.toThrow("PAYMENT_COMPENSATED")
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
 })
 
 

@@ -8,6 +8,8 @@ import {
   parseCountries,
   pickPaymentProviders,
   MEMBERSHIP_PROVIDER_ID,
+  COD_PROVIDER_ID,
+  BANK_TRANSFER_PROVIDER_ID,
 } from "../anastasia-bootstrap"
 
 describe("anastasia-bootstrap config", () => {
@@ -26,6 +28,26 @@ describe("anastasia-bootstrap config", () => {
     expect(pickPaymentProviders([SYSTEM_PROVIDER_ID], false)).toEqual([SYSTEM_PROVIDER_ID])
     expect(() => pickPaymentProviders([SYSTEM_PROVIDER_ID], true)).toThrow(/STRIPE_API_KEY/)
     expect(pickPaymentProviders([STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID, SYSTEM_PROVIDER_ID], true)).toEqual([STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID])
+  })
+
+  it("adds cash on delivery and bank transfer to the region when registered", () => {
+    expect(pickPaymentProviders([STRIPE_PROVIDER_ID, COD_PROVIDER_ID, BANK_TRANSFER_PROVIDER_ID], true)).toEqual([STRIPE_PROVIDER_ID, COD_PROVIDER_ID, BANK_TRANSFER_PROVIDER_ID])
+    expect(pickPaymentProviders([SYSTEM_PROVIDER_ID, BANK_TRANSFER_PROVIDER_ID], false)).toEqual([SYSTEM_PROVIDER_ID, BANK_TRANSFER_PROVIDER_ID])
+  })
+
+  it("prices COD courier as courier + 2 EUR fee and pickup at 0 EUR like the legacy shop", () => {
+    const options = buildShippingOptionInputs({ regionId: "reg_1", physicalZoneId: "zone_p", digitalZoneId: "zone_d", physicalProfileId: "sp_p", digitalProfileId: "sp_d", freeShippingFromEur: 60 })
+    const byCode = Object.fromEntries(options.map((o) => [o.type.code, o]))
+    expect(Object.keys(byCode).sort()).toEqual(["courier", "courier_cod", "digital", "pickup"])
+    const base = (o: any) => o.prices.filter((p: any) => !p.rules).map((p: any) => p.amount)
+    const free = (o: any) => o.prices.filter((p: any) => p.rules?.[0]?.attribute === "item_total" && p.rules[0].value === 60).map((p: any) => p.amount)
+    expect(base(byCode.courier)).toEqual([6, 6])
+    expect(free(byCode.courier)).toEqual([0, 0])
+    expect(base(byCode.courier_cod)).toEqual([8, 8])
+    expect(free(byCode.courier_cod)).toEqual([2, 2])
+    expect(base(byCode.pickup)).toEqual([0, 0])
+    expect(byCode.pickup.name).toContain("Sokolská 88, 960 01 Zvolen")
+    expect(byCode.courier_cod.shipping_profile_id).toBe("sp_p")
   })
 
   it("has exactly one default VAT rate (23 %) and unique codes", () => {
@@ -69,11 +91,13 @@ describe("anastasia-bootstrap config", () => {
   })
 
   it("parses the free shipping threshold strictly", () => {
-    expect(parseFreeShippingThreshold(undefined)).toBeNull()
-    expect(parseFreeShippingThreshold("  ")).toBeNull()
+    // Starý web: doprava zdarma od 60 € (ecSysConst.freeTransportPrice); "0" ju vypne.
+    expect(parseFreeShippingThreshold(undefined)).toBe(60)
+    expect(parseFreeShippingThreshold("  ")).toBe(60)
+    expect(parseFreeShippingThreshold("0")).toBeNull()
     expect(parseFreeShippingThreshold("50")).toBe(50)
     expect(parseFreeShippingThreshold("49.90")).toBe(49.9)
-    for (const bad of ["0", "-5", "50,00", "1e3", "50.123", "abc", "1234567"]) {
+    for (const bad of ["-5", "50,00", "1e3", "50.123", "abc", "1234567"]) {
       expect(() => parseFreeShippingThreshold(bad)).toThrow("ANASTASIA_FREE_SHIPPING_FROM_EUR")
     }
   })

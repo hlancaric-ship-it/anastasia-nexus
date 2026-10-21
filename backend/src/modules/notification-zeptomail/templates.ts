@@ -254,6 +254,38 @@ function orderRows(data: Data, r: R): Row[] {
   return rows
 }
 
+const PAYMENT_LABEL: Record<string, string> = { cod: "Na dobierku", card: "Kartou online", bank_transfer: "Prevodom na účet" }
+
+function methodRows(data: Data, r: R): Block[] {
+  const rows: Row[] = []
+  const shipping = str(data.shipping_method)
+  const payment = PAYMENT_LABEL[str(data.payment_method) ?? ""]
+  if (shipping) rows.push({ label: r("label_shipping_method"), value: oneLine(shipping) })
+  if (payment) rows.push({ label: r("label_payment_method"), value: payment })
+  return rows.length ? [{ kind: "rows", rows }] : []
+}
+
+/** Text o platbe: zaplatené / prevod s platobnými údajmi / dobierka / iné nezaplatené. */
+function paymentBlocks(data: Data, t: T): Block[] {
+  if (data.paid === true) return p(t("paid"))
+  const transfer = data.bank_transfer && typeof data.bank_transfer === "object" ? data.bank_transfer as Data : null
+  if (data.payment_method === "bank_transfer" && transfer && str(transfer.iban) && str(transfer.variable_symbol)) {
+    return [
+      ...p(t("bank_transfer") ?? t("unpaid")),
+      { kind: "rows", rows: [
+        { label: "Príjemca", value: oneLine(str(transfer.beneficiary) ?? "") },
+        { label: "Banka", value: oneLine(str(transfer.bank) ?? "") },
+        { label: "IBAN", value: oneLine(str(transfer.iban)!) },
+        ...(str(transfer.swift) ? [{ label: "SWIFT/BIC", value: oneLine(str(transfer.swift)!) }] : []),
+        { label: "Variabilný symbol", value: oneLine(str(transfer.variable_symbol)!) },
+        { label: "Suma", value: oneLine(str(transfer.amount) ?? ""), strong: true },
+      ].filter(row => row.value) },
+    ]
+  }
+  if (data.payment_method === "cod") return p(t("cod") ?? t("unpaid"))
+  return p(t("unpaid"))
+}
+
 const button = (label: string, url: unknown) => (safeUrl(url) ? { label, url: safeUrl(url)! } : null)
 const p = (value: string | null): Block[] => (value ? [{ kind: "p", text: value }] : [])
 
@@ -323,11 +355,16 @@ const CATALOG: Entry[] = [
       text("intro", "Úvodný text", "Vašu objednávku č. {cislo_objednavky} sme prijali."),
       text("paid", "Text pri zaplatenej objednávke", "Platbu vo výške {suma} sme prijali, objednávku pripravujeme.", true),
       text("unpaid", "Text pri nezaplatenej objednávke", "Objednávku vybavíme hneď po prijatí platby vo výške {suma}.", true),
+      text("bank_transfer", "Text pri platbe prevodom", "Prosíme, uhraďte {suma} prevodom na účet nižšie do 48 hodín. Ako variabilný symbol uveďte číslo objednávky {cislo_objednavky}. Objednávku vybavíme a digitálny obsah sprístupníme hneď po pripísaní platby.", true),
+      text("cod", "Text pri platbe na dobierku", "Platíte pri prevzatí zásielky: {suma}.", true),
+      text("pickup", "Text pri osobnom odbere", "Objednávku si vyzdvihnete osobne: Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen. Keď bude pripravená, ozveme sa Vám.", true),
       text("outro", "Záverečný text", "Stav objednávky nájdete kedykoľvek vo svojom účte.", true),
       line("label_subtotal", "Riadok: medzisúčet", "Medzisúčet"),
       line("label_shipping", "Riadok: doprava", "Doprava"),
       line("label_discount", "Riadok: zľava", "Zľava"),
       line("label_total", "Riadok: spolu", "Spolu"),
+      line("label_shipping_method", "Riadok: spôsob dopravy", "Doprava"),
+      line("label_payment_method", "Riadok: spôsob platby", "Platba"),
       line("button", "Tlačidlo", "Moja objednávka"),
     ],
     sample: ORDER_SAMPLE,
@@ -340,7 +377,9 @@ const CATALOG: Entry[] = [
         blocks: [
           ...p(t("intro") ?? "Vašu objednávku sme prijali."),
           ...(rows.length ? [{ kind: "rows" as const, rows }] : []),
-          ...p(data.paid === true ? t("paid") : t("unpaid")),
+          ...methodRows(data, r),
+          ...paymentBlocks(data, t),
+          ...(str(data.shipping_method)?.startsWith("Osobný odber") ? p(t("pickup")) : []),
           ...p(t("outro")),
         ],
         button: button(r("button"), data.url),

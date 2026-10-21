@@ -1,6 +1,8 @@
 jest.mock("../../../../lib/legal/checkout", () => ({ assertCartConsent: jest.fn(async () => {}), loadConsentCart: jest.fn(async () => ({id:"cart_test",customer_id:"cust_owner"})) }))
 jest.mock("../../nexus-cart/route", () => ({ repriceCart: jest.fn() }))
 jest.mock("@medusajs/medusa/core-flows", () => ({ completeCartWorkflow: jest.fn() }))
+jest.mock("../../../../lib/checkout/payment-compensation", () => ({ compensateUnfinishedCheckout: jest.fn(async () => ({ status: "refunded", payment_intents: [] })) }))
+import { compensateUnfinishedCheckout } from "../../../../lib/checkout/payment-compensation"
 
 import { assertCartConsent, loadConsentCart } from "../../../../lib/legal/checkout"
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
@@ -61,7 +63,7 @@ describe("checkout auth gate", () => {
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
     await POST({ body: { cart_id: "synthetic-cart" }, scope: { resolve: () => ({ warn: jest.fn(), error: jest.fn() }) }, auth_context: AUTH } as any, res)
     expect(res.status).toHaveBeenCalledWith(403)
-    expect(res.json).toHaveBeenCalledWith({ ok: false, error: "CART_ACCESS_DENIED" })
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: "CART_ACCESS_DENIED" }))
     expect(completeCartWorkflow).not.toHaveBeenCalled()
   })
 })
@@ -80,7 +82,7 @@ describe("checkout workflow error transport", () => {
       const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
       await POST({ body: { cart_id: "synthetic-cart" }, scope, auth_context: AUTH } as any, res)
       expect(res.status).toHaveBeenCalledWith(status)
-      expect(res.json).toHaveBeenCalledWith({ ok: false, error: code })
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: code }))
       expect(JSON.parse(logger.warn.mock.calls[0][0])).toMatchObject({ domain: "safeorder", event: code.toLowerCase(), cart_id: "synthetic-cart" })
       expect(events.createOpsEvents).toHaveBeenCalledWith(expect.objectContaining({ level: "warn", domain: "safeorder", cart_id: "synthetic-cart" }))
       expect(logger.error).not.toHaveBeenCalled()
@@ -97,5 +99,32 @@ describe("checkout workflow error transport", () => {
     expect(logger.warn).not.toHaveBeenCalled()
     const line = JSON.parse(logger.error.mock.calls[0][0])
     expect(line).toMatchObject({ domain: "checkout", event: "failed", error_code: "CHECKOUT_FAILED" })
+  })
+})
+
+describe("checkout failure after card payment", () => {
+  it("objednávka nevznikla (napr. chýba doprava) → platba sa vráti a klient to vie", async () => {
+    jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: false } as any)
+    jest.mocked(completeCartWorkflow).mockReturnValue({ run: jest.fn().mockRejectedValue({ message: "The cart items require shipping profiles that are not satisfied by the current shipping methods" }) } as any)
+    const { scope } = makeScope()
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
+    await POST({ body: { cart_id: "cart_test" }, scope, auth_context: AUTH } as any, res)
+    expect(compensateUnfinishedCheckout).toHaveBeenCalledWith(scope, "cart_test", "CHECKOUT_FAILED")
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, payment_compensation: "refunded" }))
+  })
+  it("zmena ceny po zaplatení → platba sa vráti", async () => {
+    jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: true, tenantId: "anastasia", items: [] } as any)
+    const { scope } = makeScope()
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
+    await POST({ body: { cart_id: "cart_test" }, scope, auth_context: AUTH } as any, res)
+    expect(res.status).toHaveBeenCalledWith(409)
+    expect(compensateUnfinishedCheckout).toHaveBeenCalledWith(scope, "cart_test", "PRICE_CHANGED")
+  })
+  it("cudzí košík nikdy nekompenzuje", async () => {
+    jest.mocked(loadConsentCart).mockResolvedValueOnce({ id: "cart_test", customer_id: "cust_foreign" })
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
+    await POST({ body: { cart_id: "cart_test" }, scope: makeScope().scope, auth_context: AUTH } as any, res)
+    expect(compensateUnfinishedCheckout).not.toHaveBeenCalled()
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ payment_compensation: "none" }))
   })
 })

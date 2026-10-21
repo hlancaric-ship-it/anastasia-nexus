@@ -35,11 +35,13 @@ export async function handleNexusSafeOrder(request: Request, env: Env): Promise<
         throw new ApiError('VALIDATION_ERROR', 400, 'Chybí platební metoda.');
     }
     const paymentMethod = input.paymentMethod.toLowerCase();
-    const codMethods = ['cod', 'dobierka', 'platba pri prevzatí', 'platba na dobierku'];
+    const codMethods = ['cod', 'pp_cod_cod', 'dobierka', 'platba pri prevzatí', 'platba na dobierku'];
+    // Prevod na účet: tovar ani digitálny obsah sa nevydá pred pripísaním platby (bez rizika nevyzdvihnutia).
+    const bankTransferMethods = ['bank_transfer', 'pp_bank_transfer_bank_transfer', 'prevod', 'prevod na účet'];
     // pp_membership_stripe_membership: Klub ANASTASIA, kartová platba přes Stripe (manuální capture až po ALLOW).
     const onlineMethods = ['stripe', 'pp_stripe_stripe', 'pp_membership_stripe_membership', 'cardpay', 'cardpay platobná karta'];
     const isTestPayment = paymentMethod === 'pp_system_default' && ['development', 'test'].includes(env.ENVIRONMENT || '');
-    if (!codMethods.includes(paymentMethod) && !onlineMethods.includes(paymentMethod) && !isTestPayment) {
+    if (!codMethods.includes(paymentMethod) && !onlineMethods.includes(paymentMethod) && !bankTransferMethods.includes(paymentMethod) && !isTestPayment) {
         throw new ApiError('VALIDATION_ERROR', 400, 'Nepodporovaná platební metoda.');
     }
     if (typeof input.customerEmail !== 'string' || input.customerEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.customerEmail)) {
@@ -60,6 +62,8 @@ export async function handleNexusSafeOrder(request: Request, env: Env): Promise<
             score += 35;
             factors.push(`Dobierka nad limit ${codLimit} € (+35)`);
         }
+    } else if (bankTransferMethods.includes(paymentMethod)) {
+        factors.push('Prevod na účet – vybavenie až po pripísaní platby');
     } else {
         factors.push('Bezpečná online platba CardPay / Stripe (-10)');
         score = Math.max(0, score - 10);

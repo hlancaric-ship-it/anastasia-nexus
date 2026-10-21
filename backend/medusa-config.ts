@@ -189,12 +189,21 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/membership" },
 ]
 
-if (stripeApiKey) {
+// Dobierka a prevod na účet (manuálne, bez brány): objednávka vznikne nezaplatená, platbu prijme admin.
+const manualPaymentProviders = [
+  { resolve: "./src/modules/payment-manual/cod", id: "cod" },
+  { resolve: "./src/modules/payment-manual/bank-transfer", id: "bank_transfer" },
+]
+
+if (!stripeApiKey) {
+  modules.push({ key: Modules.PAYMENT, resolve: "@medusajs/medusa/payment", options: { providers: manualPaymentProviders } })
+} else {
   modules.push({
     key: Modules.PAYMENT,
     resolve: "@medusajs/medusa/payment",
     options: {
       providers: [
+        ...manualPaymentProviders,
         {
           // Provider ID v Medusa: pp_stripe_stripe, webhook: POST /hooks/payment/stripe_stripe
           resolve: "@medusajs/medusa/payment-stripe",
