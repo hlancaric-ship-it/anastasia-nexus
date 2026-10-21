@@ -10,13 +10,36 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 // Krátky, čitateľný kód zákazníka (prvých 8 znakov ID) – rovnaký sa používa v celom administrácii.
 const custCode = (id) => { const s = String(id ?? ''); return s.length > 12 ? `${s.slice(0, 10)}…` : s; };
 
-import { qrAgenda } from './qr.mjs';
+import { qrAgenda, qrOtpSvg } from './qr.mjs';
 
 import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mjs';
 import { mountLibraryEditor } from './library-editor.mjs';
 import { openPrintWindow, fillPrintWindow, openPrintHtml, PRINT_FIELDS } from './print.mjs';
 import { voucherHtml, voucherListHtml, VOUCHER_CSS } from './voucher.mjs';
 import { contentPages, contentPage, wireContentPage } from './content.mjs';
+import { securityView } from './security.mjs';
+
+// --- Rola administrátora: vlastník (všetko) alebo asistent (denná práca bez peňazí a rolí) ---
+// Rolu číta server (GET /admin/nexus/admin-roles); klient si ju len zobrazuje.
+// Ak trasa nie je nasadená, zostáva predvolené „vlastník“ – jadro aj tak odmietne zákaz.
+let ADMIN_ROLE = 'owner';
+let ADMIN_ROLE_LOADED = false;
+const isOwner = () => ADMIN_ROLE === 'owner';
+// Sekcie, ktoré asistent nevidí.
+const OWNER_ONLY_SECTIONS = { poukazy: 'Poukazy a zľavy' };
+async function loadAdminRole() {
+  if (ADMIN_ROLE_LOADED) return;
+  ADMIN_ROLE_LOADED = true;
+  try {
+    const data = await api('/admin/nexus/admin-roles');
+    const id = data?.current_user_id || (ME && ME.id) || '';
+    const me = (data?.admins || []).find(a => a.id === id);
+    if (me?.role === 'assistant') ADMIN_ROLE = 'assistant';
+  } catch (e) {
+    if (e.message === '401') throw e;
+    console.warn('[admin] rolu administrátora sa nepodarilo načítať:', e?.detail || e?.message);
+  }
+}
 
 // --- API klient ---
 let token = localStorage.getItem('ana_token') || '';
@@ -53,8 +76,20 @@ async function api(path, { method = 'GET', body } = {}) {
 async function login(email, password) {
   const res = await fetch(API + '/auth/user/emailpass', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) });
   const d = await res.json().catch(() => ({}));
-  if (!res.ok || !d.token) throw new Error(d?.message || 'Prihlásenie zlyhalo.');
+  if (!res.ok) throw new Error(d?.message || 'Prihlásenie zlyhalo.');
+  // Pri zapnutom dvojfaktorovom overení jadro vráti výzvu na kód (nie chybu).
+  if (d.mfa_required) return { challenge: d.mfa_challenge || {} };
+  if (!d.token) throw new Error(d?.message || 'Prihlásenie zlyhalo.');
   token = d.token; localStorage.setItem('ana_token', token);
+  return { token };
+}
+// Overenie kódu z aplikácie (alebo záložného kódu) po prihlásení.
+async function verifyMfa(challengeId, code, method) {
+  const res = await fetch(API + `/auth/mfa/challenges/${encodeURIComponent(challengeId)}/verify`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ method: method || 'totp', code: String(code || '').trim() }) });
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok || !d.token) throw new Error(d?.message || 'Kód sa nepodarilo overiť. Skúte to znova.');
+  token = d.token; localStorage.setItem('ana_token', token);
+  return d;
 }
 
 // --- tlač štítka a dodacieho listu ---
@@ -120,7 +155,7 @@ let BADGES = {};
 function shell(active, title, sub) {
   const cur = (k) => active === k ? ' active" aria-current="page' : '';
   const item = (n) => `<a class="nav-item${cur(n.k)}" href="#/${n.k}">${navIcon(n.icon)}<span>${esc(n.label)}</span>${n.phase2 ? '<span class="nav-phase">Fáza 2</span>' : ''}${n.badge ? `<span class="counter" data-badge="${n.badge}" ${BADGES[n.badge] ? '' : 'hidden'}>${BADGES[n.badge] || ''}</span>` : ''}</a>`;
-  const nav = NAV.filter(n => n.ready).map(item).join('');
+  const nav = NAV.filter(n => n.ready && (isOwner() || !OWNER_ONLY_SECTIONS[n.k])).map(item).join('');
   const crumb = active === '' ? 'Prehľad' : (title || '');
   // Prehľad: dátum + pozdrav (meno dopĺňa setUserChip z /admin/users/me); ostatné agendy: názov a popis z ROUTES.
   const d = new Date(), today = `${d.toLocaleDateString('sk-SK', { weekday: 'long' })}, ${d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' })}`;
@@ -816,13 +851,13 @@ async function vProductDetail(view, id, opts = {}) {
   const saleOn = !!sale.active;
   const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
     <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>`;
-  const cena = `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
+  const cena = isOwner() ? `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
     <div><label>Akcia</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:auto"> Vo výpredaji / akcia</label></div></div>
     <div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">
       <div class="row"><div><label>Akčná cena (EUR)</label><input id="p-sale-price" type="number" step="0.01" value="${sale.akcna_cena ?? ''}"></div>
       <div><label>Platí do (voliteľné)</label><input id="p-sale-to" type="date" value="${esc(sale.do || '')}"></div></div>
       <div class="muted" style="font-size:12px;margin-top:6px">Akčná cena sa prejaví ako zľava oproti bežnej cene (číta ju cenový engine jadra).</div>
-    </div>`;
+    </div>` : '<p class="muted" style="margin-top:0">Ceny a akcie spravuje vlastník administrácie. Ak treba cenu zmeniť, obráťte sa na neho.</p>';
   const kategorie = `<label for="p-category">Pridať kategóriu</label><select id="p-category" ${catsR ? '' : 'disabled'}><option value="">Vyberte kategóriu…</option>${cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select><div id="p-categories" class="category-chips"></div><a class="subtle-link" href="#/kategorie">Spravovať kategórie →</a>${catsR ? '' : '<p class="muted">Kategórie sa nepodarilo načítať. Pôvodné zaradenie zostane zachované.</p>'}`;
   const popis = wysiwygHtml('p-desc', p.description || '');
   const obrazky = `<div id="p-imgs" class="rc-grid"></div>
@@ -843,7 +878,7 @@ async function vProductDetail(view, id, opts = {}) {
         <span class="rc-f"><em>Na sklade</em><input type="number" min="0" step="1" data-loc="${esc(l.id)}" data-has="${lv ? 1 : 0}" value="${lv ? lv.stocked_quantity : ''}" placeholder="0" style="max-width:110px"></span>
         ${lv ? `<span class="rc-f"><em>Rezervované</em>${lv.reserved_quantity ?? 0}</span>` : ''}</div></div></div>`; }).join('')}</div>`) : ''}`;
   const completeness = () => {
-    const np = Number(view.querySelector('#p-price')?.value);
+    const np = Number(view.querySelector('#p-price')?.value ?? price?.amount);
     const chosenCh = [...view.querySelectorAll('[data-ch]')].some(cb => cb.checked), chosenCat = inC.size > 0;
     return [
       { ok: !!variant && np > 0, block: true, t: 'Cena v EUR' },
@@ -950,18 +985,21 @@ async function vProductDetail(view, id, opts = {}) {
       }
       const chosen = [...inC].map(id => ({ id }));
       const desc = cleanRichText(view.querySelector('#p-desc').innerHTML);
-      const np = view.querySelector('#p-price').value;
+      const np = view.querySelector('#p-price')?.value ?? '';
       // Základná cena len cez /admin/shop-prices (zámok, kontrola pôvodnej sumy, audit) – nikdy natívne prices[],
       // ktoré by prepísalo celý price set (iné meny, pravidlá).
-      if (variant && np !== '' && Number(np) !== price?.amount) {
+      if (isOwner() && variant && np !== '' && Number(np) !== price?.amount) {
         if (!price?.id) throw new Error('Variant zatiaľ nemá základnú cenu v EUR. Obnovte údaje alebo kontaktujte podporu.');
         await api(`/admin/shop-prices/${variant.id}`, { method: 'POST', body: { price_id: price.id, amount: Number(np), expected_amount: Number(price.amount) } });
       }
       let ref = { price_list_id: sale.price_list_id, price_id: sale.price_id };
-      const wantSale = view.querySelector('#p-sale-on').checked, sp = view.querySelector('#p-sale-price').value;
-      let saleMeta;
-      if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
-      else { await clearVariantSale(ref); saleMeta = { active: false }; }
+      let saleMeta = sale;
+      if (isOwner()) {
+        // Ceny a akcie upravuje iba vlastník – asistent ich nemení.
+        const wantSale = view.querySelector('#p-sale-on').checked, sp = view.querySelector('#p-sale-price').value;
+        if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
+        else { await clearVariantSale(ref); saleMeta = { active: false }; }
+      }
       const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
       // Registry changes use the revision-checked endpoint; never overwrite it from a stale product snapshot.
       delete metadata.protected_media;
@@ -1427,8 +1465,8 @@ async function vCustomers(view) {
     }).join('');
     const from = count ? offset + 1 : 0, to = Math.min(offset + customers.length, count);
     body.innerHTML = `${selected.size ? `<div class="ot-bulk"><span class="muted">Označení zákazníci: ${selected.size}</span><div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(t.name || t.code)}</option>`).join('')}</select>
-        <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>
+        ${isOwner() ? `<select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(t.name || t.code)}</option>`).join('')}</select>
+        <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>` : ''}
         <button type="button" class="btn ghost sm" id="cu-pick-clear">Zrušiť označenie</button></div></div>` : ''}
       <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Zatiaľ žiadni zákazníci.</td></tr>'}</tbody></table></div>
       <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadni zákazníci'}</span>
@@ -1508,10 +1546,11 @@ async function vCustomerDetail(view, id) {
       <span class="rc-f"><em>Pridelené</em>${fmtDate(e.granted_at)}</span></div></div></div>`).join('')}</div>` : '<div class="empty">Zákazník nemá prístup k žiadnemu digitálnemu obsahu.</div>'}
     <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
       <b>Prideliť prístup ručne</b>
-      <p class="muted" style="font-size:12px">Prístup udelíte konkrétnej zákazníkovi ku konkrétnemu produktu (napr. po telefonáte alebo darčeku).</p>
+      ${isOwner() ? `<p class="muted" style="font-size:12px">Prístup udelíte konkrétnemu zákazníkovi ku konkrétnemu produktu (napr. po telefonáte alebo darčeku).</p>
       <div class="row"><div><label for="ent-product">Produkt</label><select id="ent-product">${products.map((p) => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('') || '<option value="">— žiadny produkt —</option>'}</select></div>
       <div><label for="ent-expires">Platí do (voliteľné)</label><input id="ent-expires" type="date"></div></div>
-      <div class="row" style="margin-top:10px"><div><label for="ent-reason">Dôvod</label><input id="ent-reason" maxlength="200" placeholder="napr. darček od rodiny"></div><div><button type="button" class="btn gold" id="ent-grant">Prideliť prístup</button></div></div>
+      <div class="row" style="margin-top:10px"><div><label for="ent-reason">Dôvod</label><input id="ent-reason" maxlength="200" placeholder="napr. darček od rodiny"></div><div><button type="button" class="btn gold" id="ent-grant">Prideliť prístup</button></div></div>`
+        : '<p class="muted" style="font-size:12px">Pridanie prístupu ručne spravuje vlastník administrácie.</p>'}
     </div>`;
   const ochrana = `<p class="muted" style="margin-top:0">Žiadosť o výmaz osobných údajov (GDPR) musí pred vymazaním potvrdiť správca. Po potvrdení sa údaje zákazníka v jadre odstránia.</p>
     ${erasures.length ? `<div class="rc-grid">${erasures.map((r) => `<div class="rc"><div class="rc-body"><div class="rc-title">Žiadosť ${esc(r.id)}</div>
@@ -1899,6 +1938,8 @@ async function vVoucherSettings(view, notice) {
   };
 }
 const vQr = qrAgenda({ api, esc, fmtDate, freshView, openPrintHtml });
+// --- Zabezpečenie administrácie: 2FA a role vlastník/asistent ---
+const vZabezpecenie = securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isOwner });
 const vPoukazy = (view) => subnav(view, [{ label: 'Kupóny a zľavy', run: vCoupons }, { label: 'QR kódy', run: vQr }, { label: 'Darčekové poukazy', run: vVouchers }, { label: 'Nastavenie poukazov', run: vVoucherSettings }]);
 // --- Konzultácie (/admin/bookings*) — termíny drží rezervačné jadro, tu prehľad a zrušenie ---
 const B_STATUS = { held: ['čaká na platbu', 'warn'], confirmed: ['potvrdená', 'ok'], canceled: ['zrušená', 'off'], completed: ['prebehla', 'ok'] };
@@ -2861,11 +2902,12 @@ const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
   { label: 'Pripojenia', run: vPripojenia },
   { label: 'Doprava a platby', run: vDopravaPlatby },
-  { label: 'Vernostné úrovne', run: vLoyaltyPolicy },
+  { label: 'Vernostné úrovne', run: vLoyaltyPolicy, ownerOnly: true },
   { label: 'Používatelia', run: (v) => vPouzivatelia(v) },
+  { label: 'Zabezpečenie', run: (v) => vZabezpecenie(v), ownerOnly: true },
   { label: 'História zmien', run: vAuditLog },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', `Prepojenie s účtovníctvom (POHODA alebo Money S3) pripravujeme. Dovtedy si objednávky môžete pozrieť v časti Objednávky. Otázky posielajte na ${SUPPORT_EMAIL}.`) },
-]);
+].filter(it => isOwner() || !it.ownerOnly));
 // --- sprievodca: centrum nápovedy (#/pomoc, #/pomoc/<návod>), pomoc na stránke a úvodná prehliadka ---
 // Obsah je v guide.mjs; tu je len zobrazenie. Všetok text ide cez esc().
 const normText = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -3099,7 +3141,8 @@ async function vEntitlementDetail(view, e) {
     <div class="row"><div><label>Stav</label><div><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status === 'active' ? 'Aktívny' : e.status === 'revoked' ? 'Odobratý' : 'Neaktívny')}</span></div></div>
     <div><label>Platí do</label><div>${e.expires_at ? fmtDate(e.expires_at) : 'trvalý'}</div></div></div>
     <p class="muted" style="margin-top:12px">${e.source === 'migration' ? 'Prístup prenesený zo starého obchodu.' : e.source === 'admin' ? 'Prístup pridelený v administrácii.' : 'Prístup k zakúpenému produktu.'}</p>
-    ${e.status === 'active' ? '<div style="margin-top:16px"><button class="btn ghost" id="e-revoke">Odobrať prístup</button></div>' : ''}
+    ${e.status === 'active' && isOwner() ? '<div style="margin-top:16px"><button class="btn ghost" id="e-revoke">Odobrať prístup</button></div>' : ''}
+    ${e.status === 'active' && !isOwner() ? '<p class="muted" style="margin-top:16px">Pridanie a odobratie prístupu spravuje vlastník administrácie.</p>' : ''}
   </div></div>`;
   view.querySelector('#e-back').onclick = () => vEntitlements(view);
   const rb = view.querySelector('#e-revoke');
@@ -3205,6 +3248,7 @@ async function route() {
   if (!token) return renderLogin();
   const key = parts[0];
   const r = ROUTES[key] || ROUTES[''];
+  await loadAdminRole();
   root.innerHTML = shell(key in ROUTES ? key : '', r[0], r[1]);
   loadTheme().then(applyTheme);
   root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); renderLogin(); };
@@ -3213,7 +3257,15 @@ async function route() {
   refreshBadges();
   wireCtxHelp();
   const view = root.querySelector('#view');
-  try { await r[2](view); } catch (e) { if (e.message !== '401') view.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  const blocked = !isOwner() && OWNER_ONLY_SECTIONS[key];
+  if (blocked) {
+    view.innerHTML = `<section class="card"><div class="card-b">
+      <h2 style="margin-top:0">${esc(OWNER_ONLY_SECTIONS[key])}</h2>
+      <p>Na túto časť nemáte prístup. Ceny, zľavy, vernostné úrovne a pridávanie prístupov spravuje vlastník administrácie.</p>
+      <p class="muted">Ak potrebujete niečo zmeniť, obráťte sa na vlastníka administrácie.</p></div></section>`;
+  } else {
+    try { await r[2](view); } catch (e) { if (e.message !== '401') view.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  }
   applyPendingSearch(view);
   wireNotifyCard(view);
   wireShortcuts();
@@ -3227,19 +3279,36 @@ function authShell(form) {
     <main class="login-main">${form}</main>
   </div>`;
 }
-function renderLogin(msg) {
+function renderLogin(msg, challenge) {
   root.innerHTML = authShell(`<form class="box" id="lf">
-    <p class="eyebrow">Administrácia</p><h1>Prihlásenie</h1><p class="intro">Prihláste sa do svojho pracovného priestoru.</p>
+    <p class="eyebrow">Administrácia</p><h1>${challenge ? 'Overenie kódom' : 'Prihlásenie'}</h1><p class="intro">${challenge ? 'Vložte šesťmiestny kód z aplikácie, v ktorej máte zapnuté dvojfaktorové overenie.' : 'Prihláste sa do svojho pracovného priestoru.'}</p>
     ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
-    <label for="l-email">E-mail</label><input id="l-email" type="email" value="admin@anastasia.local" autocomplete="username">
-    <label for="l-pass">Heslo</label><input id="l-pass" type="password" autocomplete="current-password">
-    <button class="btn primary" type="submit">Prihlásiť sa</button>
+    ${challenge ? `<label for="l-code">Kód z aplikácie</label><input id="l-code" inputmode="numeric" autocomplete="one-time-code" maxlength="20" placeholder="napr. 123456" autofocus>
+      <p class="muted" style="font-size:12px">Ak nemáte telefón s aplikáciou, vložte jeden zo záložných kódov, ktoré ste si uložili.</p>
+      <button class="btn primary" type="submit">Overiť a prihlásiť sa</button>`
+    : `<label for="l-email">E-mail</label><input id="l-email" type="email" value="admin@anastasia.local" autocomplete="username">
+      <label for="l-pass">Heslo</label><input id="l-pass" type="password" autocomplete="current-password">
+      <button class="btn primary" type="submit">Prihlásiť sa</button>`}
     <p class="api-note">Jadro: ${esc(API)}</p>
   </form>`);
   root.querySelector('#lf').onsubmit = async (e) => {
     e.preventDefault();
-    try { await login(root.querySelector('#l-email').value, root.querySelector('#l-pass').value); location.hash = '#/'; route(); }
-    catch (err) { renderLogin(err.message); }
+    const button = e.currentTarget.querySelector('button[type=submit]');
+    button.disabled = true;
+    try {
+      if (challenge) {
+        const code = root.querySelector('#l-code').value.trim();
+        const method = challenge.methods?.includes('recovery_code') && code.length > 6 ? 'recovery_code' : 'totp';
+        await verifyMfa(challenge.id, code, method);
+        location.hash = '#/'; route();
+      } else {
+        const result = await login(root.querySelector('#l-email').value, root.querySelector('#l-pass').value);
+        if (result.challenge) { renderLogin('', result.challenge); return; }
+        location.hash = '#/'; route();
+      }
+    } catch (err) {
+      renderLogin(err.message, challenge);
+    }
   };
 }
 window.addEventListener('hashchange', route);
