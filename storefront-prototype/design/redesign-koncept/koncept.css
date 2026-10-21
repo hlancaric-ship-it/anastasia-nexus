@@ -77,7 +77,8 @@ body.k-solid-header .k-head{background:rgba(245,242,232,.94);backdrop-filter:blu
 .k-section--krem2{background:var(--krem-2)}
 .k-headline{font-size:clamp(30px,5vw,62px);max-width:18ch}
 .k-lead{max-width:52ch;margin-top:18px;font-size:clamp(15px,1.4vw,18px)}
-.k-parallax{position:relative;overflow:hidden;border-radius:28px 28px 28px 6px;margin-top:clamp(32px,5vw,64px);isolation:isolate}
+.k-parallax{position:relative;overflow:hidden;border-radius:28px 28px 28px 6px;margin-top:clamp(32px,5vw,64px);isolation:isolate;background:var(--krem-2)}
+.k-parallax::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(32,38,28,.14),rgba(32,38,28,.28));pointer-events:none}
 .k-parallax img{width:100%;height:clamp(260px,42vw,520px);object-fit:cover;transform:translate3d(0,var(--shift,0),0) scale(1.08);will-change:transform}
 .k-parallax figcaption{position:absolute;left:24px;bottom:20px;color:var(--krem);font-size:12px;letter-spacing:.18em;text-transform:uppercase;z-index:2;text-shadow:0 2px 18px rgba(32,38,28,.6)}
 
@@ -131,6 +132,12 @@ body.k-solid-header .k-head{background:rgba(245,242,232,.94);backdrop-filter:blu
 .k-foot ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14px}
 .k-foot a:hover{color:var(--mata)}
 .k-foot__bottom{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;margin-top:clamp(36px,6vw,80px);padding-top:22px;border-top:1px solid rgba(201,163,85,.28);font-size:12px;color:rgba(245,242,232,.7)}
+
+/* --- odhalenie pri scrolle (s fallbackom, bez pevne skrytého obsahu) -------- */
+.k-reveal{opacity:1;transform:none}
+.k-reveal.is-armed{opacity:0;transform:translateY(20px)}
+.k-reveal.is-in{opacity:1;transform:none;transition:opacity .7s ease,transform .7s ease}
+@media(prefers-reduced-motion:reduce){.k-reveal.is-armed{opacity:1;transform:none}}
 
 /* --- paleta ----------------------------------------------------------- */
 .k-swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:16px;margin-top:26px}

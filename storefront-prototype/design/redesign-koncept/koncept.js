@@ -37,16 +37,17 @@
   });
   doc.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
 
-  // --- parallax na obrázkoch
+  // --- parallax na obrázkoch (posun je obmedzený, aby obrázok nikdy neodhalil prázdno)
   const layers = [...doc.querySelectorAll('.k-parallax img')];
-  if (layers.length && !reduce) {
+  if (layers.length) {
     let ticking = false;
     const paint = () => {
       ticking = false;
       for (const layer of layers) {
         const box = layer.parentElement.getBoundingClientRect();
         const progress = (window.innerHeight - box.top) / (window.innerHeight + box.height);
-        const shift = Math.round((progress - 0.5) * 60);
+        const limit = Math.max(8, box.height * 0.04);
+        const shift = Math.round(Math.max(-limit, Math.min(limit, (progress - 0.5) * 120)));
         layer.style.setProperty('--shift', `${shift}px`);
       }
     };
@@ -99,6 +100,29 @@
   });
   window.addEventListener('resize', clamp);
   clamp();
+
+  // --- odhalenie pri scrolle: IntersectionObserver s fallbackom (bez JS = viditeľné)
+  const revealables = [...doc.querySelectorAll('.k-reveal')];
+  if (revealables.length) {
+    const show = element => element.classList.add('is-in');
+    if ('IntersectionObserver' in window && !reduce) {
+      const observer = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          show(entry.target);
+          observer.unobserve(entry.target);
+        }
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+      for (const element of revealables) {
+        element.classList.add('is-armed');
+        observer.observe(element);
+      }
+      // po istom čase sa odhalí všetko, nech nič nezostane prázdne
+      setTimeout(() => { for (const element of revealables) show(element); }, 2600);
+    } else {
+      for (const element of revealables) show(element);
+    }
+  }
 
   // --- hodnotenie 1–10 v Zrkadielku
   doc.addEventListener('click', event => {
