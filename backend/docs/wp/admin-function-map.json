@@ -231,7 +231,10 @@
         "backend/src/lib/protected-library/upload.ts",
         "backend/src/lib/protected-library/storage.ts",
         "backend/src/lib/digital-products/categories.ts",
-        "backend/docs/wp/digital-library-upload.md"
+        "backend/docs/wp/digital-library-upload.md",
+        "backend/src/api/admin/media/route.ts",
+        "backend/src/api/admin/media/[key]/route.ts",
+        "backend/src/lib/pages/store.ts"
       ],
       "remaining": "Nahrávanie nových chránených súborov, ich pripojenie a odpojenie aj filter Fyzické/Digitálne sú implementované a overené na lokálnej DB; chýba už len produkčný bucket R2 na účte klientky a CORS pravidlo pre presigned PUT.",
       "acceptance": "Placený súbor nie je verejný a nedá sa stiahnuť (povolené mp4/mp3/m4a/pdf); kľúč sa viaže len na vlastný produkt; cudzí kľúč je odmítnutý; pripojenie nového súboru nemení pôvodné kľúče; host bez prihlásenia nedokáže kúpiť digitálny produkt."
@@ -1127,7 +1130,7 @@
       ],
       "feature": "chat-templates",
       "source": "backend/src/api/admin/chat/templates/route.ts",
-      "sha256": "815925231432c117d99ee5b8aa34a97bd3ab67075776a6ce3699565d532dfe51"
+      "sha256": "502d647b6bca62c9eb6350e47e623ac6847a07ac915ddffc87d6510fb28b19c4"
     },
     {
       "path": "/admin/chat/templates/:id",
@@ -1144,7 +1147,7 @@
         "GET",
         "POST"
       ],
-      "feature": "media-library",
+      "feature": "media",
       "source": "backend/src/api/admin/media/route.ts",
       "sha256": "4f7d0f9ee0624f55a276de7f4263abe0e3e5c6d2fbf806100904899c4741897d"
     },
@@ -1153,7 +1156,7 @@
       "methods": [
         "DELETE"
       ],
-      "feature": "media-library",
+      "feature": "media",
       "source": "backend/src/api/admin/media/[key]/route.ts",
       "sha256": "23888f2e2a3a18a4ddbc427e23900d0e13824b01d78039b1b11d616d401beb7d"
     },

@@ -18,4 +18,6 @@ export const chatMiddlewares: MiddlewareRoute[] = [
   { matcher: "/admin/chat/conversations/:id/messages", method: ["POST"], middlewares: admin, bodyParser: { sizeLimit: "32kb" } },
   { matcher: "/admin/chat/conversations/:id/read", method: ["POST"], middlewares: admin, bodyParser: small },
   { matcher: "/admin/chat/customers/:id/block", method: ["POST"], middlewares: admin, bodyParser: small },
+  { matcher: "/admin/chat/templates", method: ["GET", "POST"], middlewares: admin, bodyParser: { sizeLimit: "32kb" } },
+  { matcher: "/admin/chat/templates/:id", method: ["DELETE"], middlewares: admin },
 ]
