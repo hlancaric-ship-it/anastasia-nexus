@@ -74,7 +74,7 @@
 | 1.14 | Export CSV | **ČI** — 11 stĺpcov, UTF-8 BOM, CRLF, korektné escaping. **Len pre označené objednávky na aktuálnej strane; chýba export celej/ filtrovanej množiny, chýba stĺpec DPH a čiastkového vrátenia** | `app.mjs:1083-1100`, `csvCell` `:944`, `downloadText` `:937` | P1 | S |
 | 1.15 | Tisk (A6 adresný štítok, A4 dodací list) | **MÁ** — single aj hromadný, aj z filtra „Na vybavenie“ | `app.mjs:996-999`, `:1015-1016`, `:1078-1082`, `printOrders` `:44-59`, `print.mjs` | — | — |
 | 1.16 | Balíkovací list / picking list pre viac objednávok | **CHÝBA** (dodací list existuje, ale nie je zoznam položiek na balenie) | `print.mjs` | P2 | M |
-| 1.17 | Flow vybavenia → odoslanie + sledovacie číslo | **MÁ** — prepare (`POST /admin/orders/:id/fulfillments`), ship + tracking number/URL, e-mail zákazníčke | `app.mjs:1151-1158`, `:1206-1215` | — | — |
+| 1.17 | Flow vybavenia → odoslanie + sledovacie číslo | **MÁ** — prepare (`POST /admin/orders/:id/fulfillments`), ship + tracking number/URL, e-mail zákazníkovi | `app.mjs:1151-1158`, `:1206-1215` | — | — |
 | 1.18 | Timeline / história udalostí objednávky | **CHÝBA** | — | P1 | M |
 | 1.19 | Zmena stavu objednávky adminom (ručne) | **CHÝBA** — stavy sa menia len akciami (capture/refund/cancel/ship), nie všeobecným status editorom | — | P2 | S |
 | 1.20 | Hromadné akcie (storno viacerých, export všetkých) | **ČI** — hromadný tlak a CSV export existujú, hromadné storno nie | `app.mjs:1012-1020` | P2 | S |
@@ -104,20 +104,20 @@
 
 | # | Položka | Stav | Kde v kóde | Priorita | Odhad |
 |---|---|---|---|---|---|
-| 3.1 | Zoznam zákazníčiek | **ČI** — `limit=100`, **bez stránkovania a bez vyhľadávania**. Nad 100 zákazníčiek zostane väčšina neviditeľná. **Bug:** e-mail sa karta vôbec nezobrazí, ak zákazníčka nemá meno (`app.mjs:1232`); **telefón sa ani nestahuje** → nemožno hľadať podľa telefónu | `app.mjs:1225-1236` | **P0** | S |
-| 3.2 | Detail zákazníčky (meno, e-mail, hosť/účet) + úprava mena | **MÁ** | `app.mjs:1237-1262`, save `:1253-1262` | — | — |
-| 3.3 | História objednávok zákazníčky | **CHÝBA** — v deteile zákazníčky nie sú objednávky, žiadny filter zoznamu objednávok podľa `customer_id` | `app.mjs:1237-1250` | **P0** | M |
-| 3.4 | História akcií / priznámky ku zákazníčke | **CHÝBA v UI** — API existuje (`GET/POST/DELETE /admin/customers/:id/notes`, audit `customer.note_created`), **ale admin ho nikde nepoužíva** | `backend/src/api/admin/customers/[id]/notes/route.ts` (orphan) | P1 | S |
-| 3.5 | GDPR export (právo na prístup) | **ČI** — self-service pre zákazníčku existuje (`GET /store/customers/me/export`), **v adminovi chýba akcia „export údajov zákazníčky“** | `backend/src/api/store/customers/me/export/route.ts`, `backend/src/lib/customer-privacy/export.ts` | P1 | S |
+| 3.1 | Zoznam zákazníkov | **ČI** — `limit=100`, **bez stránkovania a bez vyhľadávania**. Nad 100 zákazníkov zostane väčšina neviditeľná. **Bug:** e-mail sa karta vôbec nezobrazí, ak zákazníka nemá meno (`app.mjs:1232`); **telefón sa ani nestahuje** → nemožno hľadať podľa telefónu | `app.mjs:1225-1236` | **P0** | S |
+| 3.2 | Detail zákazníka (meno, e-mail, hosť/účet) + úprava mena | **MÁ** | `app.mjs:1237-1262`, save `:1253-1262` | — | — |
+| 3.3 | História objednávok zákazníka | **CHÝBA** — v deteile zákazníka nie sú objednávky, žiadny filter zoznamu objednávok podľa `customer_id` | `app.mjs:1237-1250` | **P0** | M |
+| 3.4 | História akcií / priznámky ku zákazníkovi | **CHÝBA v UI** — API existuje (`GET/POST/DELETE /admin/customers/:id/notes`, audit `customer.note_created`), **ale admin ho nikde nepoužíva** | `backend/src/api/admin/customers/[id]/notes/route.ts` (orphan) | P1 | S |
+| 3.5 | GDPR export (právo na prístup) | **ČI** — self-service pre zákazníčku existuje (`GET /store/customers/me/export`), **v adminovi chýba akcia „export údajov zákazníka“** | `backend/src/api/store/customers/me/export/route.ts`, `backend/src/lib/customer-privacy/export.ts` | P1 | S |
 | 3.6 | GDPR výmaz (právo na zabudnutie) | **ČI / P0** — backend admin API existuje a je funkčné (`GET /admin/customer-erasures`, `POST /admin/customer-erasures/:id/execute`, s auditom `customer.erasure`), **ale je to „orphan“ route — v SPA nie je naň žiadny odkaz**. Bez UI sa žiadosť o výmaz nedá vybaviť. **Pozor: ide o anonymizáciu, nie o úplné zmazanie** — riadok `customer` zostáva, **všetky objednávky a účtovné záznamy zostávajú zachované** (`orders_preserved`), chat je natvrdo zablokovaný | `backend/src/api/admin/customer-erasures/*` (orphan), `backend/src/modules/customer-privacy/erase.ts:3,11,17,21-23,46` | **P0** | S |
-| 3.7 | Súhlas s newsletterom | **ČI** — zoznam súhlasov je read-only, **bez stránkovania (limit 200), bez CSV (API `?format=csv` existuje, UI ho nepoužíva), bez súhlasu v detaile zákazníčky, bez odhlásenia zo strany admina** | `app.mjs:1917-1927`, `backend/src/api/admin/newsletter/route.ts` | P1 | S |
+| 3.7 | Súhlas s newsletterom | **ČI** — zoznam súhlasov je read-only, **bez stránkovania (limit 200), bez CSV (API `?format=csv` existuje, UI ho nepoužíva), bez súhlasu v detaile zákazníka, bez odhlásenia zo strany admina** | `app.mjs:1917-1927`, `backend/src/api/admin/newsletter/route.ts` | P1 | S |
 | 3.7b | Double opt-in pri newsletteri | **CHÝBA** — `legal/service.ts:30-41` zapíše `status:"subscribed"` **ihneď**, bez potvrdzovacieho e-mailu. Jediný mechanizmus je unsubscribe token | `backend/src/modules/legal/service.ts:30-41` | **P1** | M |
 | 3.8 | Odoberanie/prihlásenie newsletteru v admine | **CHÝBA** | — | P1 | S |
-| 3.9 | Skupiny zákazníčiek (segmenty) | **ČI** — možno priradiť existujúcu skupinu, **nemožno vytvoriť / premenovať / zmazať / definovať kritérium**; žiadny vliv na cenu či marketing | `app.mjs:1241-1259` | P1 | M |
-| 3.10 | Top zákazníčky / hodnota životného cyklu (LTV) | **CHÝBA** | — | P2 | M |
+| 3.9 | Skupiny zákazníkov (segmenty) | **ČI** — možno priradiť existujúcu skupinu, **nemožno vytvoriť / premenovať / zmazať / definovať kritérium**; žiadny vliv na cenu či marketing | `app.mjs:1241-1259` | P1 | M |
+| 3.10 | Top zákazníka / hodnota životného cyklu (LTV) | **CHÝBA** | — | P2 | M |
 | 3.10b | Vyhľadávanie v Klube (členky) | **ČI** — hľadá sa **iba podľa ID `cus_…`**, nie podľa mena alebo e-mailu | `app.mjs:2579` | P1 | S |
-| 3.11 | Ručné vytvorenie zákazníčky, reset hesla, pozvánka | **CHÝBA** | — | P1 | S |
-| 3.12 | Blokovanie zákazníčky | **ČI** — iba v chate (`POST /admin/chat/customers/:id/block`), nie ako vlastný atribút zákazníčky | `backend/src/api/admin/chat/customers/[id]/block/route.ts` | P2 | S |
+| 3.11 | Ručné vytvorenie zákazníka, reset hesla, pozvánka | **CHÝBA** | — | P1 | S |
+| 3.12 | Blokovanie zákazníka | **ČI** — iba v chate (`POST /admin/chat/customers/:id/block`), nie ako vlastný atribút zákazníka | `backend/src/api/admin/chat/customers/[id]/block/route.ts` | P2 | S |
 | 3.13 | Kreditný limit / dlh / záloha | **CHÝBA** | — | P2 | M |
 | 3.14 | Vernostné body (Klub) | **MÁ** — vlastný modul `backend/src/modules/membership`, admin `vKlub` | `app.mjs:2589+` | — | — |
 
@@ -143,7 +143,7 @@
 | 4.14 | URL (handle / slug) produktu a kategórie | **ČI** — **kategóriu** handle editovať možno (`app.mjs:904`), **produkt nie**: `handle` nie je v poliach načítaných v SPAni (`app.mjs:690`), **hoci API `/admin/product-catalogue` ho vracia** (`backend/src/api/admin/product-catalogue/route.ts:63, 76`) → oprava je S | `app.mjs:690` vs `:904`, `product-catalogue/route.ts:63,76` | P1 | S |
 | 4.15 | Presmerovania (redirects) pri zmene URL | **CHÝBA** | — | P1 | M |
 | 4.16 | Štítok „Akcia“ | **MÁ** — akčná cena cez samostatný Medusa price list `ANASTASIA výpredaj` (typ `sale`), zápis cez `applyVariantSale` | `app.mjs:540-564`, `:841-846` | — | — |
-| 4.17 | **Platnosť akčnej ceny („Platí do“)** | **ČI / P0** — dátum sa **zapisuje** do `metadata.vyprodej.do`, ale **repo-wide grep `vyprodej` v `backend/src` vracia 0 hitov**. Dátum sa **nikde nevyhodnocuje** → akčná cena platí navždy, aj po deadline. UI tak klamie zákazníčke aj obchodníkovi | zápis `app.mjs:844-846`; čítanie chýba | **P0** | M |
+| 4.17 | **Platnosť akčnej ceny („Platí do“)** | **ČI / P0** — dátum sa **zapisuje** do `metadata.vyprodej.do`, ale **repo-wide grep `vyprodej` v `backend/src` vracia 0 hitov**. Dátum sa **nikde nevyhodnocuje** → akčná cena platí navždy, aj po deadline. UI tak klamie zákazníkovi aj obchodníkovi | zápis `app.mjs:844-846`; čítanie chýba | **P0** | M |
 | 4.18 | Štítok „Novinka“ | **CHÝBA** — `is_new` / `is_action` / `is_sale` sa importujú do metadát (`backend/src/scripts/import-anastasia-catalog.ts:249-252`), **ale v admine sa nedajú prepnúť a žiadny kód v `nexus/`/`store` ich nečíta** (0 hitov) | — | P1 | S (admin) + M (storefront) |
 | 4.19 | Štítok „Odporúčame“ / zvýraznenie | **CHÝBA** — storefront používa natvrdo zoznam `FEATURED_SLUGS` mimo adminu | `storefront-prototype/src/lib/api/catalog.mjs:19` | P2 | S |
 | 4.20 | Sazby DPH na produkte | **CHÝBA** — sadzby sú len v bootstrap scripte; v admine sa nedá zvoliť ani vidieť sadzbu produktu. **Žiadny admin route nevypisuje Medusa tax sadzby** (grep `tax_rate\|taxes` v `backend/src/api/admin` = 0 hitov). Legacy: `metadata.legacy_vat_rate` | `backend/src/scripts/anastasia-bootstrap.ts:56-65` | **P0** | L |
@@ -274,7 +274,7 @@
 | # | Položka | Stav | Kde v kóde | Priorita | Odhad |
 |---|---|---|---|---|---|
 | 12.1 | Modul trvalého auditu + admin obrazovka „História zmien“ | **MÁ** | `backend/src/modules/ops-audit`, `app.mjs:2290-2324`, `backend/src/api/admin/ops/audit/route.ts` | — | — |
-| 12.2 | **Rozsah auditu** | **ČI / P0** — v UI je popsaných len 6 akcií (téma, dopravca, stránka, médiá). **Zmena ceny, zverejnenie produktu, refund, storno objednávky, zmena zákazníčky, zmena kupónu NIE SÚ v `AUDIT_LABEL`** – teda sa zapíšu do modulu, ale v obrazovke sa zobrazia ako surový `action` id, nečitateľne. Kontroluje to, či admin stornoval objednávku alebo vrátil peniaze, je dnes nemožné | `app.mjs:2282-2289` | **P0** | M |
+| 12.2 | **Rozsah auditu** | **ČI / P0** — v UI je popsaných len 6 akcií (téma, dopravca, stránka, médiá). **Zmena ceny, zverejnenie produktu, refund, storno objednávky, zmena zákazníka, zmena kupónu NIE SÚ v `AUDIT_LABEL`** – teda sa zapíšu do modulu, ale v obrazovke sa zobrazia ako surový `action` id, nečitateľne. Kontroluje to, či admin stornoval objednávku alebo vrátil peniaze, je dnes nemožné | `app.mjs:2282-2289` | **P0** | M |
 | 12.3 | Filter auditu (podľa entity/akcie/aktéra) v UI | **CHÝBA** — API filter existuje (`entity_type`, `entity_id`, `actor_id`, `action`), UI ho nepoužíva | `backend/src/api/admin/ops/audit/route.ts:20-30` | P1 | S |
 | 12.4 | Prehľad prevádzkových udalostí (`/admin/ops/events`) | **CHÝBA v UI** — orphan route | `backend/src/api/admin/ops/events/route.ts` | P1 | M |
 | 12.5 | Prehľad NEXUS prepojenia (`/admin/ops/nexus`) | **CHÝBA v UI** — orphan route | `backend/src/api/admin/ops/nexus/route.ts` | P2 | S |
@@ -288,7 +288,7 @@
 | 13.1 | Záloha DB (cloud / lokálna) | **MÁ, ale mimo admina** — CI skripty a GitHub workflow, nie obrazovka v admine | `backend/src/scripts/backup-cloud.mjs`, `backup-local.mjs`, `restore-local.mjs`, `restore-cloud.mjs` | — | — |
 | 13.2 | Obnova DB s bezpečnostnou poistkou (len prázdna DB) | **MÁ** — s `--confirm-empty-local-restore` guardom | `backend/src/scripts/restore-local.mjs:22-37` | — | — |
 | 13.3 | Prehľad stavu záloh v admine (posledná, veľkosť, overenie obnovy) | **CHÝBA** | — | P1 | M |
-| 13.4 | Export dát (objednávky, zákazníčky) na vlastný server / migrácia | **CHÝBA** | — | P1 | L |
+| 13.4 | Export dát (objednávky, zákazníka) na vlastný server / migrácia | **CHÝBA** | — | P1 | L |
 | 13.5 | Záloha nahratých médií a chránených súborov | **ČI** — existuje `protected-media/` a R2, ale nie je overené, že je v zálohe spolu s DB | `protected-media/` | P1 | M |
 
 ---
@@ -315,14 +315,14 @@
 | **3** | **RBAC + odstavenie admina** | Každý admin vie exportovať tržby, vracať peniaze, meniť ceny, spravovať poukazy. Jeden kompromitovaný účet = celý obchod. | XL | `app.mjs:2113`, `:2125` |
 | **4** | **UI pre odstúpenie od zmluvy a výmaz údajov** | Backend hotový, UI chýba → 14-dňové právo a právo na zabudnutie sa nedá vybaviť. | M | orphan routes |
 | **5** | **Varianty (viac ako 1) + hromadné úpravy produktov + CSV import/export** | Editor je viazaný na `variants[0]`; pri >1 variante sa nedá zmeniť cena/SKU/sklad druhého. Katalóg bez hromadných úprav = ručná práca. | L | `app.mjs:691`, `:575-582` |
-| **6** | **Enforcement platnosti akčnej ceny** | Dátum sa zapisuje, ale nijaký kód ho nečíta → akčná cena platí navždy. Obchodník verí UI, zákazníčka dostane inú cenu. | M | `app.mjs:714`, `:844` |
+| **6** | **Enforcement platnosti akčnej ceny** | Dátum sa zapisuje, ale nijaký kód ho nečíta → akčná cena platí navždy. Obchodník verí UI, zákazníka dostane inú cenu. | M | `app.mjs:714`, `:844` |
 | **7** | **Doprava a platby spraviteľné z admina + napojenie dopravcu** | Ceny dopravy sa nedajú zmeniť bez developera; API dopravcu je „nepripojené“; hmotnostná sadzba neexistuje. | L / XL | `app.mjs:2085-2112`, `:2254` |
 | **8** | **Právne texty (VOP + GDPR) + cookies lišta + reklamičný formulár** | VOP stále obsahuje Pilulka.sk a prázdne `..............`; GDPR hovorí „nemenoval zodpovednú osobu“; cookies lišta v repu nie je; VOP slúľubuje formulár pre reklamácie, ktorý na webe nie je. | M | `defaults.ts:4-116`, `:128-144` |
-| **9** | **História objednávok zákazníčky + stránkovanie/vyhľadávanie zákazníčiek + poznámky ku zákazníčke** | Detail zákazníčky = 2 záložky (meno + skupiny). Zoznam orezaný na 100 bez stránkovania; e-mail sa schová pri zákazníčke bez mena; telefón sa nestahuje. | M | `app.mjs:1225-1263` |
-| **10** | **Newsletter: rozosielanie + double opt-in + súhlas v detaile zákazníčky + CSV + testovací e-mail + prehľad odoslaných** | Existuje len zoznam súhlasov; rozosielanie v repu **neexistuje vôbec**; súhlas sa zapisuje ako „subscribed“ bez potvrdenia. | L | `app.mjs:1917-1927`, `legal/service.ts:30-41` |
+| **9** | **História objednávok zákazníka + stránkovanie/vyhľadávanie zákazníkov + poznámky ku zákazníkovi** | Detail zákazníka = 2 záložky (meno + skupiny). Zoznam orezaný na 100 bez stránkovania; e-mail sa schová pri zákazníkovi bez mena; telefón sa nestahuje. | M | `app.mjs:1225-1263` |
+| **10** | **Newsletter: rozosielanie + double opt-in + súhlas v detaile zákazníka + CSV + testovací e-mail + prehľad odoslaných** | Existuje len zoznam súhlasov; rozosielanie v repu **neexistuje vôbec**; súhlas sa zapisuje ako „subscribed“ bez potvrdenia. | L | `app.mjs:1917-1927`, `legal/service.ts:30-41` |
 
 **Rýchle víťazstvá (S–M, bez rizika, hneď):**
-`4` (orphan routes → UI) · `6` (cenový engine číta `vyprodej.do`) · `9` (stránkovanie + vyhľadávanie zákazníčiek + oprava skrytého e-mailu) · `1.9` (poslať `note` pri refunde — core to prijíma) · `1.12b` (pridať `*billing_address` do `ORDER_FIELDS`) · `6.2` (posielať `is_tax_inclusive`) · `6.3` (kupóny: `starts_at`/`ends_at` — Medusa to podporuje) · `4.14` (zobraziť `handle` — API ho už vracia) · `3.7` (CSV súhlasov — API už funguje) · `3.7b` (double opt-in v `legal/service.ts`) · `12.2` (doplniť `AUDIT_LABEL` pre objednávky/refundy/ceny) · `1.11b` (`/complete`, `/archive` trasy) · `4.21` (stav `proposed`/`rejected`) · `8.5` (testovací e-mail) · `10.1` (tržby z celej DB namiesto 200 riadkov) · `7.12` (vytvorenie skladu v UI) · `4.22` (produktový CSV export)
+`4` (orphan routes → UI) · `6` (cenový engine číta `vyprodej.do`) · `9` (stránkovanie + vyhľadávanie zákazníkov + oprava skrytého e-mailu) · `1.9` (poslať `note` pri refunde — core to prijíma) · `1.12b` (pridať `*billing_address` do `ORDER_FIELDS`) · `6.2` (posielať `is_tax_inclusive`) · `6.3` (kupóny: `starts_at`/`ends_at` — Medusa to podporuje) · `4.14` (zobraziť `handle` — API ho už vracia) · `3.7` (CSV súhlasov — API už funguje) · `3.7b` (double opt-in v `legal/service.ts`) · `12.2` (doplniť `AUDIT_LABEL` pre objednávky/refundy/ceny) · `1.11b` (`/complete`, `/archive` trasy) · `4.21` (stav `proposed`/`rejected`) · `8.5` (testovací e-mail) · `10.1` (tržby z celej DB namiesto 200 riadkov) · `7.12` (vytvorenie skladu v UI) · `4.22` (produktový CSV export)
 
 ---
 
@@ -334,7 +334,7 @@ Overené skriptom: každá `route.ts` v `backend/src/api/admin` bola porovnaná 
 |---|---|---|
 | `GET/POST /admin/withdrawals`, `POST /admin/withdrawals/:id` | Zoznam + zmena stavu žiadostí o odstúpenie od zmluvy | **CHÝBA** |
 | `GET /admin/customer-erasures`, `POST /admin/customer-erasures/:id/execute` | Výbavovanie žiadostí o výmaz osobných údajov | **CHÝBA** |
-| `GET/POST/DELETE /admin/customers/:id/notes` | Poznámky ku zákazníčke (audit `customer.note_created`) | **CHÝBA** |
+| `GET/POST/DELETE /admin/customers/:id/notes` | Poznámky ku zákazníkovi (audit `customer.note_created`) | **CHÝBA** |
 | `GET /admin/ops/events` | Prevádzkové udalosti (chyby platieb, refund manual review) | **CHÝBA** |
 | `GET /admin/ops/nexus` | Prehľad prepojenia na NEXUS cenový engine | **CHÝBA** |
 | `GET /admin/newsletter?format=csv` | CSV export súhlasov | **API funguje, UI ho nepoužíva** |
@@ -372,7 +372,7 @@ Overené skriptom: každá `route.ts` v `backend/src/api/admin` bola porovnaná 
 
 ### C.3 Dve paralelné administrácie (riziko rozporu)
 - `anastasia-admin/app.mjs` — hlavná SPA (2851 riadkov), to je to, čo používa Lucia.
-- `backend/src/admin/routes/sprava-obchodu/Shop.tsx` + `backend/src/admin/lib/shop.ts` — menší admin plugin vnútri Medusa backendu. Má vlastný formulár zákazníčky (`shop.ts:96-98`) a jednoduchý produktový formulár, **ale nemá** varianty, sklad, SEO, DPH, import/export ani GDPR a **nie je prepojený zo SPA**. `shop.ts:185` navyše tvrdí, že „ceny s osobitnými pravidlami tento editor nemení“.
+- `backend/src/admin/routes/sprava-obchodu/Shop.tsx` + `backend/src/admin/lib/shop.ts` — menší admin plugin vnútri Medusa backendu. Má vlastný formulár zákazníka (`shop.ts:96-98`) a jednoduchý produktový formulár, **ale nemá** varianty, sklad, SEO, DPH, import/export ani GDPR a **nie je prepojený zo SPA**. `shop.ts:185` navyše tvrdí, že „ceny s osobitnými pravidlami tento editor nemení“.
 - `nexus/` je prototyp, nie runtime — jeho entity `Invoice`, `CustomerGroup` atď. **nesmú sa používať ako dôkaz existujúcej funkcie.**
 
 ### C.4 Čo už v repu je a dá sa znovu použiť (znižuje odhady práce)
