@@ -53,16 +53,22 @@ neobsluhujú (404). Screenshoty: `shots/eshop-390.png`, `shots/zdrava-lekaren-39
 
 ---
 
-## 4. STREDNÉ – orezaný text v sekciách úvodu a v kartách
+## 4. STREDNÉ – orezaný text v sekciách úvodu a v kartách → **preverené 21. 10. 2026: všetky zámerné, bez chyby**
 
-| | |
-|---|---|
-| **URL** | `/` (úvod), `/o-lucii` |
-| **Šírka** | 320 px (najviac), rovnako 390 a 1440 px |
-| **Selektory** | `div.lh-intro__stage` (376 px > 320), `div.lh-sky__stage` (400 > 320), `div.lh-lucia` (330 > 320), `section#lh-reset.lh-reset` (3 333 > 1 388 na 1440), `article.lh-card.lh-card--light` / `article.lh-card.lh-card--dark` (1 471 > 1 388), `/o-lucii`: `section` (1 526 > 1 440) |
-| **Prejav** | Obsah je širší ako rám sekcie a rám ho má `overflow: hidden` – časť textu sa **orezne** a nevidí (nie je to len skryté, obsah sa nedá zobraziť). Na úvode je to najmä v 320 px. |
+Skontrolované na živom teste aj na lokálnom builde (390 a 1440 px, `waitUntil: load`),
+pričom sa porovnával rám prvku s obdĺžnikmi textových potomkov. **V žiadnom prípade sa neorezal
+text, ktorý má zákazník vidieť celý** – preto nič neopravujeme.
 
-Screenshoty: `shots/domov-320.png`, `shots/domov-390.png`, `shots/domov-1440.png`,
+| Prvok | 390 px | 1440 px | Verdikt |
+|---|---|---|---|
+| `div.lh-intro__stage` | 458 > 390 | 1 692 > 1 440 | **Zámerné** – parallax scéna s maskou a tieňom, text sa neorezuje (orezané: žiadne) |
+| `div.lh-sky__stage` | 488 > 390 | 1 800 > 1 440 | **Zámerné** – parallax oblohy, text sa neorezuje |
+| `div.lh-lucia` | 402 > 390 | 902 > 835 | **Zámerné** – zaoblená fotografia Lucie (`overflow:hidden` na ráme), nejde o text |
+| `section#lh-reset.lh-reset` | – | 3 335 > 1 440 | **Zámerné** – vodorovná bežiaci pás (`div.lh-track`, obsah `width:max-content`), ktorý sa pri scrolle posúva; tretia téma („Stres“) je na okraji rámu a dojazdí sa ňou počas scrollu |
+| `article.lh-card.lh-card--light` / `article.lh-card.lh-card--dark` | – | 1 526 > 1 440 | **Zámerné** – karta s dekoratívnym prepľavom, text v karte sa neorezuje (orezané: žiadne) |
+| `/o-lucii` → `section` | – | 1 526 > 1 440 | **Zámerné** – sekcia s obrázkom, text sa neorezuje |
+
+Screenshoty z pôvodného merania: `shots/domov-320.png`, `shots/domov-390.png`, `shots/domov-1440.png`,
 `shots/o-lucii-1440.png`.
 
 ---
