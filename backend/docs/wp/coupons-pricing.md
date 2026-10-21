@@ -118,6 +118,28 @@ cd nexus && npm test
 `tests/unit/couponFixedAmount.test.ts` – pevná suma, ochrana pod 0, kombinácia
 s percentom, zachovanie pôvodnej sémantiky percent.
 
+### Lokálny e2e scenár: nákup digitálneho produktu s kupónom Montelope a vernostnou úrovňou
+
+```
+cd backend
+DATABASE_URL=postgres://localhost/anastasia_dev_wave1 \
+LEGAL_TERMS_VERSION=2026-10-01 LEGAL_PRIVACY_VERSION=2026-10-01 \
+MEDIA_TOKEN_SECRET=... \
+npx medusa exec ./src/scripts/e2e-digital-coupon-loyalty.ts stub
+```
+
+- Scenár prejde celý nákup: politika úrovní v DB → košík s digitálnymi produktmi
+  (EP.002 + EP.001) → kupón Montelope → cena → objednávka → zachytenie platby →
+  udelenie prístupu → podpísaný krátkodobý odkaz na obsah.
+  Overí, že zľava kupónu platí **len na EP.002** (168 € − 10 % úroveň ZR3 − 20 €
+  = 131,20 €) a druhý produkt kupón nedostane (38 € − 10 % = 34,20 €).
+- Argument `stub` spustí lokálnu náhradu NEXUS služieb (pricing + SafeOrder) –
+  Worker na macOS 12 nespustí (workerd vyžaduje 13.5+). Bez argumentu sa použije
+  skutočný Worker z `NEXUS_PRICING_URL` (a platba Stripe TEST cez
+  `E2E_PAYMENT_PROVIDER_ID=pp_stripe_stripe`).
+- Politika úrovní si scenár na dobu behu nastaví a **obnoví pôvodnú** – obchod
+  sa nemení. Výsledok: `backend/ci-evidence/e2e-digital-coupon-loyalty.json`.
+
 ## Čo treba dorobiť pred produkciou
 
 1. **UI administrácie** – podľa `anastasia-admin/HANDOFF-kupony-ceny.md`:

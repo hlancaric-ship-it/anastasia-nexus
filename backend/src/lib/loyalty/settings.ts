@@ -91,3 +91,15 @@ export async function saveLoyaltySettingsToStore(
   if (verified.tiers.length !== settings.tiers.length) throw new Error("LOYALTY_READBACK_MISMATCH")
   return verified
 }
+
+/**
+ * Odstráni politiku z nastavení obchodu (vráti do prázdneho stavu).
+ * Používa e2e scenár, ktorý si politiku na dobu behu nastaví a potom ju obnoví.
+ */
+export async function clearLoyaltySettings(scope: MedusaContainer): Promise<void> {
+  const [store] = await storeService(scope).listStores({}, { take: 1 })
+  if (!store) return
+  const metadata = { ...(store.metadata ?? {}) }
+  delete metadata[LOYALTY_POLICY_KEY]
+  await storeService(scope).updateStores(store.id, { metadata })
+}
