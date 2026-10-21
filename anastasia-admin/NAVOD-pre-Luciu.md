@@ -41,7 +41,7 @@ stránkovanie:
 | Odoslané | Už odoslané |
 | Zrušené / Archív | Zrušené a historické objednávky |
 
-Do **vyhľadávacieho poľa** napíšte číslo objednávky, e-mail zákazníci alebo názov produktu.
+Do **vyhľadávacieho poľa** napíšte číslo objednávky, e-mail zákazníka alebo názov produktu.
 Keď označíte viac objednávok (zaškrtávadlo vľavo), objaví sa lišta **Označené objednávky**:
 viac štítkov naraz, viac dodacích listov naraz a **Export CSV** (tabuľka do Excelu).
 

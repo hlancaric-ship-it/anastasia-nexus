@@ -105,7 +105,7 @@ Odpoveď = to isté ako `GET` + **`worker_sync`**:
 - `locked`: `true` = ručný zámok, automatické priradenie ju neprepiše.
 - `tiers` v odpovedi je zoznam existujúcich úrovní (z katalógu) – použite ho na filter.
 
-### 2.3 Zaradenie jednej zákazníci
+### 2.3 Zaradenie jedného zákazníka
 
 **`POST /admin/nexus/customers/:id/tier`** – telo:
 
@@ -225,7 +225,7 @@ V `vCustomerDetail` (detail zákazníci) pridajte **sekciu „Vernostná úrove�
 | Chyba | Zľava musí byť medzi 0 a 50 %. |
 | Chyba | Prah útraty musí mať 0 alebo viac. |
 | Chyba (server) | Nastavenie sa nepodarilo uložiť. Skúste to znova. |
-| Info o automatike | Úroveň sa priradí automaticky podľa celkovej útraty zákazníci. Ručne nastavenú úroveň už automatika nepremení. |
+| Info o automatike | Úroveň sa priradí automaticky podľa celkovej útraty zákazníka. Ručne nastavenú úroveň už automatika nepremení. |
 
 ---
 
