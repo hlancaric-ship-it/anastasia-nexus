@@ -64,6 +64,7 @@ export const DICT = {
   'Recenzie zákazníkov': ['Customer reviews', 'Отзывы клиентов'],
   'Cookies': ['Cookies', 'Cookies'],
   'EN / RU už čoskoro': ['EN / RU coming soon', 'EN / RU скоро'],
+  'Košík (': ['Cart (', 'Корзина ('],
   'AI ANASTASIA Academy': ['AI ANASTASIA Academy', 'AI ANASTASIA Academy'],
   'Biokozmetika': ['Biocometics', 'Биокосметика'],
   // Texty úvodu 1:1 podľa pôvodného webu.
