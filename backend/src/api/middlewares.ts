@@ -15,6 +15,7 @@ import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
 import { authMagicLinkMiddlewares } from "./auth-magic-link-middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
+import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
 import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
@@ -48,6 +49,13 @@ export default defineMiddlewares({
     ...legalMiddlewares,
     ...orderSelfCancelMiddlewares,
     ...nexusCartMiddlewares,
+    // Natívne dokončenie košíka s kupónom sa zakáže (409 USE_NEXUS_CHECKOUT): použitie kupónu
+    // zapisuje len /store/nexus-checkout, inak by sa jednorazový kupón dal použiť opakovane.
+    {
+      matcher: "/store/carts/:id/complete",
+      method: ["POST"],
+      middlewares: [requireNexusCheckoutForCouponCart],
+    },
     ...contactStoreMiddlewares,
     // Klub: všechny /store/memberships* jen přihlášený zákazník (session/bearer).
     ...membershipStoreMiddlewares,

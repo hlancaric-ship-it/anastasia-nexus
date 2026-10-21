@@ -147,6 +147,24 @@ export function couponAppliesToProduct(
   return coupon.product_ids.includes(productId)
 }
 
+/**
+ * Kód kupónu uloženého v metadátach košíka (`cart.metadata.nexus_coupon`), ak je platný.
+ *
+ * Uložený kupón znamená, že košík má zľavu a použitie kupónu sa musí započítať – natívna
+ * trasa dokončenia košíka to nezapisuje, preto sa pre ňu košík s kupónom zakáže
+ * (pozri `api/store/carts/complete-guard.ts`).
+ */
+export function storedCouponCode(metadata: unknown): string | null {
+  const source = (metadata && typeof metadata === "object" ? metadata : {}) as Record<string, unknown>
+  const raw = source.nexus_coupon
+  if (!raw || typeof raw !== "object") return null
+  const entry = raw as Record<string, unknown>
+  const code = typeof entry.code === "string" ? entry.code.trim() : ""
+  const promotionId = typeof entry.promotion_id === "string" ? entry.promotion_id.trim() : ""
+  if (!code || !promotionId) return null
+  return code
+}
+
 export type CouponAllocationItem = {
   /** id položky košíka */
   id: string

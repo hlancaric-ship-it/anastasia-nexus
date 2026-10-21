@@ -191,15 +191,26 @@ medusaIntegrationTestRunner({
       // Bariéra iba zosúladí príchod ku kontrole limitu – počítadlo ani zámok sa nemockuje.
       const promotions = container.resolve<IPromotionModuleService>(Modules.PROMOTION)
       // Použitie kupónu zapisuje trasa, ktorú používa web (/store/nexus-checkout). Natívna trasa
-      // /store/carts/:id/complete použitie nezapisuje – zistenie 21. 10. 2026 (pozri
-      // anastasia-admin/MEMBERSHIP-SAFEORDER-HOTOVO.md, bod 3); web ju nepoužíva.
-      const couponEndpoints = endpoints.filter((endpoint) => endpoint === "custom")
-      for (const endpoint of couponEndpoints) {
+      // /store/carts/:id/complete použitie nezapisuje, preto je pre košík s kupónom zamietnutá
+      // (409 USE_NEXUS_CHECKOUT – pozri api/store/carts/complete-guard.ts).
+      for (const endpoint of endpoints) {
         const code = `SYNTHETIC-C3-${endpoint}`
         const promotion = await promotions.createPromotions({ code, type: "standard", status: "active", limit: 1,
           application_method: { type: "percentage", value: 10, target_type: "items", allocation: "across" } })
         const ids = await Promise.all([newCart(50, false, code), newCart(50, false, code)])
         const before = await countOrders()
+        if (endpoint === "standard") {
+          // Natívna trasa dokončenia sa pre košík s kupónom nepustí (409 USE_NEXUS_CHECKOUT):
+          // jednorazový kupón sa inak dal použiť opakovane (počítadlo by zostalo na nule).
+          const native = await Promise.all(ids.map(id => api.post(`/store/carts/${id}/complete`, {}, cartOptions.get(id))))
+          expect(native.map(response => response.status)).toEqual([409, 409])
+          expect(native.map(response => response.data.error)).toEqual(["USE_NEXUS_CHECKOUT", "USE_NEXUS_CHECKOUT"])
+          expect(await countOrders()).toBe(before)
+          expect((await promotions.retrievePromotion(promotion.id)).used).toBe(0)
+          for (const id of ids) expect((await dbConnection.raw('SELECT completed_at FROM cart WHERE id = ?', [id])).rows[0].completed_at).toBeNull()
+          evidence.push({ endpoint, scenario: "C3_NATIVE_COMPLETE_WITH_COUPON_REJECTED", statuses: native.map(response => response.status), orderDelta: 0, used: 0 })
+          continue
+        }
         // Bariéra na read-only kontrole limitu (`couponLimitState` pred objednávkou): oba checkouty
         // musia naraziť na kontrolu naraz, kým sa použitie kupónu zapíše.
         const originalGraph = query.graph.bind(query)
@@ -219,7 +230,7 @@ medusaIntegrationTestRunner({
         })
         let responses: any[]
         try {
-          responses = await Promise.all(ids.map(id => api.post(endpoint === "standard" ? `/store/carts/${id}/complete` : "/store/nexus-checkout", endpoint === "standard" ? {} : { cart_id: id }, cartOptions.get(id))))
+          responses = await Promise.all(ids.map(id => api.post("/store/nexus-checkout", { cart_id: id }, cartOptions.get(id))))
         } finally { graph.mockRestore() }
         expect(arrivals).toBe(2)
         // Obidve objednávky vzniknú: limit sa kontroluje až po vytvorení objednávky.
