@@ -110,7 +110,9 @@ export function homeSections(products = []) {
   const hero = `
 <section class="lh-intro" id="lh-intro" aria-labelledby="lh-ih">
   <div class="lh-intro__stage">
-    <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+    <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="none" fetchpriority="low" aria-hidden="true">
+      <source src="/media/hero-480p.mp4" media="(max-width: 600px)" type="video/mp4">
+      <source src="/media/hero-720p.mp4" media="(max-width: 1024px)" type="video/mp4">
       <source src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
     </video>
     <div class="lh-intro__veil" aria-hidden="true"></div>
@@ -248,8 +250,8 @@ export function homeSections(products = []) {
   <div class="lh-sky__stage">
     <p class="lh-sky__pre" aria-hidden="true">Pozrite sa hore</p>
     <div class="lh-sky__win">
-      <img class="lh-sky__poster" src="${IMG.sky}" alt="Nočná obloha nad tmavou krajinou">
-      <video id="lh-sky-video" muted loop playsinline preload="metadata" aria-hidden="true">
+      <img loading="lazy" decoding="async" class="lh-sky__poster" src="${IMG.sky}" alt="Nočná obloha nad tmavou krajinou">
+      <video id="lh-sky-video" muted loop playsinline preload="none" fetchpriority="low" aria-hidden="true">
         <source src="/media/night-sky.mp4" type="video/mp4">
       </video>
     </div>

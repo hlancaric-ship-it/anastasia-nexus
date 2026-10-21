@@ -21,6 +21,16 @@ export default {
     );
     const headers = new Headers(response.headers);
     headers.set('content-length', String(new TextEncoder().encode(patched).length));
+    // Statické súbory s verziou (?v=…) a assety sú nemenné – dlhá cache.
+    const url = new URL(request.url);
+    const versioned = /\?v=/.test(url.search);
+    if (/^\/assets\//.test(url.pathname) || versioned) {
+      headers.set('cache-control', 'public, max-age=31536000, immutable');
+    } else if (url.pathname.endsWith('.html') || url.pathname === '/') {
+      headers.set('cache-control', 'public, max-age=0, must-revalidate');
+    } else {
+      headers.set('cache-control', 'public, max-age=86400');
+    }
     return new Response(patched, {status: response.status, headers});
   },
 };

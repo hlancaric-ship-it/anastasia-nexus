@@ -308,6 +308,7 @@ if (gsap && ScrollTrigger) {
 
   // --- Videa: hrají jen na obrazovce, hlavní se dá zastavit ----------------
   const videos = [$('#lh-intro-video'), $('#lh-sky-video')].filter(Boolean);
+  // Video má fetchpriority=low – kým sa sťahujú CSS a skripty, je to priorita nižšia.
   // Rozměry po nabití videa se přepočítají, ale ne během skrolu.
   let refreshed = false;
   // Bez souboru (media/ je zatím prázdná) video kreslí černou a poster se
