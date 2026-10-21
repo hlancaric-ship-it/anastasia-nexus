@@ -295,7 +295,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .sk-only-note{margin:0 0 22px;padding:12px 16px;border:1px solid currentColor;border-radius:2px;opacity:.7;font-size:13px;line-height:1.6;letter-spacing:.02em}
 
 /* Štítok NOVINKA na karte produktu. */
-.product-badge{position:absolute;top:14px;left:14px;z-index:2;padding:6px 12px;border-radius:2px;background:var(--olive);color:var(--cream);font-size:10px;font-weight:400;letter-spacing:.16em;text-transform:uppercase}
+.product-badge{display:inline-block;margin:0 0 8px;padding:4px 10px;border:1px solid var(--olive);border-radius:2px;color:var(--olive);font-size:10px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;line-height:1.5}
 /* KÓD produktu a audio ukážka „Nič nemusíš“. */
 .pd-sku{margin:6px 0 0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#69705e}
 .pd-audio-sample{margin:22px 0;padding:20px;border:1px solid var(--line);border-radius:2px}
