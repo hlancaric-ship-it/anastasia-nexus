@@ -24,7 +24,15 @@ const state = {
   calls: [],
 };
 
-const apiJson = (route, body) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+const CORS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-headers': 'authorization,content-type',
+  'access-control-allow-methods': 'GET,POST,DELETE,OPTIONS',
+  'access-control-max-age': '600',
+};
+const apiJson = (route, body) => route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(body) });
+// Pre-flight (OPTIONS) musí prejsť, inak by prehliadač zablokoval požiadavku.
+const preflight = (route) => route.fulfill({ status: 204, headers: CORS, body: '' });
 const admins = () => ([
   { id: 'user_test', email: 'lucia@anastasia.sk', first_name: 'Lucia', last_name: 'Horská', role: state.role },
   { id: 'user_asistent', email: 'asistent@anastasia.sk', first_name: 'Peter', last_name: 'Novák', role: 'assistant' },
@@ -180,6 +188,36 @@ try {
     await page.waitForTimeout(400);
     assert(await page.locator('#cu-assign').count() === 0, 'asistent vidí priraďovanie úrovne');
   }
+
+  // --- prihlásenie s kódom (2FA) ---
+  // Jadro pri zapnutom 2FA vráti výzvu na kód; administrácia má pýtať kód a overiť ho.
+  const clean = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
+  const cleanPage = await clean.newPage();
+  await cleanPage.route('**/auth/user/emailpass', async (route) => {
+    if (route.request().method() === 'OPTIONS') return preflight(route);
+    return apiJson(route, { mfa_required: true, mfa_challenge: { id: 'ch_test', methods: ['totp', 'recovery_code'] } });
+  });
+  await cleanPage.route('**/auth/mfa/challenges/**', async (route) => {
+    if (route.request().method() === 'OPTIONS') return preflight(route);
+    const body = route.request().postDataJSON() || {};
+    if (String(body.code || '').trim() !== '123456') return route.fulfill({ status: 401, contentType: 'application/json', headers: CORS, body: JSON.stringify({ message: 'Kód sa nepodarilo overiť.' }) });
+    return apiJson(route, { token: loginData.token });
+  });
+  await cleanPage.goto(base + '/');
+  await cleanPage.fill('#l-email', email);
+  await cleanPage.fill('#l-pass', pass);
+  await cleanPage.click('#lf button[type=submit]');
+  await cleanPage.waitForSelector('#l-code', { timeout: 15000 });
+  assert((await cleanPage.locator('#lf h1').innerText()).includes('Overenie'), 'krok s kódom sa nezobrazil');
+  await cleanPage.fill('#l-code', '000000');
+  await cleanPage.click('#lf button[type=submit]');
+  await cleanPage.waitForTimeout(1200);
+  assert((await cleanPage.locator('#lf').innerText()).includes('Kód sa nepodarilo overiť'), 'chybný kód pri prihlásení bez hlásky');
+  await cleanPage.fill('#l-code', '123456');
+  await cleanPage.click('#lf button[type=submit]');
+  await cleanPage.waitForSelector('#logout', { timeout: 15000 });
+  assert(true, 'prihlásenie s kódom prejde');
+  await clean.close();
 
   console.log(JSON.stringify({ checks, status: 'PASS' }));
 } finally { await browser.close(); }
