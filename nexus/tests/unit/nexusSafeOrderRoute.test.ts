@@ -24,7 +24,9 @@ describe('SafeOrder security boundary', () => {
         expect(cod).toMatchObject({ decision: 'ALLOW', score: 30 });
         expect(cod.factors).toContain('Platba na dobierku (+20)');
         const codHigh = await (await handleNexusSafeOrder(request({ ...valid, paymentMethod: 'pp_cod_cod', orderSum: 150 }), env)).json() as any;
-        expect(codHigh).toMatchObject({ decision: 'REVIEW' });
+        // Bez limitu dobierky: 150 € je stále bežná dobierka (posudzuje sa všeobecné pravidlo pre sumu > 300 €).
+        expect(codHigh).toMatchObject({ decision: 'ALLOW', score: 30 });
+        expect(codHigh.factors.join(' ')).not.toContain('limit');
         for (const paymentMethod of ['bank_transfer', 'pp_bank_transfer_bank_transfer']) {
             const transfer = await (await handleNexusSafeOrder(request({ ...valid, paymentMethod }), env)).json() as any;
             expect(transfer).toMatchObject({ decision: 'ALLOW', score: 10 });

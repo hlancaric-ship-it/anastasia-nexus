@@ -48,8 +48,6 @@ export async function handleNexusSafeOrder(request: Request, env: Env): Promise<
         throw new ApiError('VALIDATION_ERROR', 400, 'Neplatný e-mail.');
     }
     const customerEmail = input.customerEmail.toLowerCase();
-    // Preserve the existing server policy; never accept a caller-selected limit.
-    const codLimit = 120;
 
     let score = 10;
     const factors: string[] = [];
@@ -58,10 +56,8 @@ export async function handleNexusSafeOrder(request: Request, env: Env): Promise<
     if (isCod) {
         score += 20;
         factors.push('Platba na dobierku (+20)');
-        if (orderSum > codLimit) {
-            score += 35;
-            factors.push(`Dobierka nad limit ${codLimit} € (+35)`);
-        }
+        // Bez pevného limitu na dobierku (rozhodnutie majiteľa obchodu 21. 10. 2026): hodnota objednávky
+        // sa posudzuje všeobecne (pravidlo pre sumu > 300 €), nie osobitným limitom dobierky.
     } else if (bankTransferMethods.includes(paymentMethod)) {
         factors.push('Prevod na účet – vybavenie až po pripísaní platby');
     } else {
