@@ -1,10 +1,10 @@
-import { CONTENT_MAX_HISTORY, contentRevision, findSeedField, mergeContent, seedPage, seedPages, validateFieldValue } from '../policy'
+import { seedPage, seedPages } from '../policy'
 
 describe('Obsah webu – návrhové stránky v semene', () => {
   it('seed obsahuje stránky home a eshop s textami a dĺžkami', () => {
     const pages = seedPages()
     for (const key of ['home', 'eshop']) {
-      expect(pages.some((p: { key: string }) => p.key === key), `chýba stránka ${key}`).toBe(true)
+      expect(pages.some((p: { key: string }) => p.key === key)).toBe(true)
       const page = seedPage(key)!
       const fields = page.sections.flatMap((s: { fields: unknown[] }) => s.fields)
       expect(fields.length).toBeGreaterThan(0)
