@@ -37,9 +37,11 @@ body.k-solid-header .k-head{background:rgba(245,242,232,.94);backdrop-filter:blu
 .k-btn{font:inherit;cursor:pointer;border:1px solid currentColor;background:transparent;border-radius:999px;padding:11px 20px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;transition:background .3s ease,color .3s ease,border-color .3s ease}
 .k-btn:hover{background:rgba(239,229,199,.14)}
 .k-head.is-solid .k-btn:hover{background:rgba(49,60,43,.08)}
-.k-burger{display:none;width:44px;height:44px;border:1px solid currentColor;background:transparent;border-radius:999px;align-items:center;justify-content:center;cursor:pointer}
-.k-burger i{display:block;width:18px;height:1px;background:currentColor;box-shadow:0 6px 0 currentColor,0 -6px 0 currentColor}
-.k-cart{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.k-burger{display:none;width:44px;height:44px;border:1px solid rgba(245,242,232,.42);background:rgba(255,255,255,.09);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:999px;align-items:center;justify-content:center;cursor:pointer}
+.k-head.is-solid .k-burger,body.k-solid-header .k-head .k-burger{border-color:rgba(49,60,43,.28);background:rgba(49,60,43,.05)}
+.k-burger i{display:block;width:18px;height:1px;background:currentColor;box-shadow:0 6px 0 currentColor,0 -6px 0 currentColor;transition:transform .3s ease}
+.k-cart{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(245,242,232,.42);background:rgba(255,255,255,.09);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.k-head.is-solid .k-cart,body.k-solid-header .k-head .k-cart{border-color:rgba(49,60,43,.28);background:rgba(49,60,43,.05)}
 
 /* --- bočná lišta ------------------------------------------------------ */
 .k-rail{position:fixed;left:0;top:0;bottom:0;width:var(--rail);z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:rgba(32,38,28,.94);color:var(--krem);opacity:0;transform:translateX(-16px);pointer-events:none;transition:opacity .4s ease,transform .4s ease}
@@ -50,13 +52,17 @@ body.k-solid-header .k-head{background:rgba(245,242,232,.94);backdrop-filter:blu
 /* --- úvod ------------------------------------------------------------- */
 .k-hero{position:relative;min-height:100svh;display:grid;align-items:end;color:var(--krem);overflow:hidden}
 .k-hero__media{position:absolute;inset:0}
+.k-hero__cuts{position:absolute;inset:0;z-index:1}
+.k-hero__cuts img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.07);transition:opacity .65s ease}
+.k-hero__cuts img.is-on{opacity:1}
 .k-hero__media video,.k-hero__media img{width:100%;height:100%;object-fit:cover}
-.k-hero__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(32,38,28,.55) 0%,rgba(32,38,28,.15) 42%,rgba(32,38,28,.86) 100%)}
+.k-hero__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(32,38,28,.42) 0%,rgba(32,38,28,.12) 34%,rgba(24,30,22,.62) 58%,rgba(16,21,15,.92) 100%)}
 .k-hero__body{position:relative;padding:0 var(--okraj) clamp(64px,12vh,140px);max-width:1080px}
 .k-eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--zlato);margin:0 0 18px}
 .k-hero h1{font-size:clamp(52px,13vw,168px);font-style:italic}
 .k-hero p{max-width:52ch;margin:22px 0 0;font-size:clamp(15px,1.6vw,19px);color:rgba(245,242,232,.88)}
 .k-hero .k-btn{margin-top:30px;background:var(--krem);color:var(--les);border-color:var(--krem)}
+.k-more{display:none;width:fit-content;margin-top:16px;background:none;border:0;color:inherit;font:inherit;font-size:12px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;padding:0}
 .k-hero .k-btn:hover{background:var(--mata);border-color:var(--mata)}
 .k-scrollcue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:rgba(245,242,232,.7)}
 
@@ -139,6 +145,9 @@ body.k-solid-header .k-head{background:rgba(245,242,232,.94);backdrop-filter:blu
 /* --- mobil ------------------------------------------------------------ */
 @media(max-width:860px){
   .k-head{gap:12px;padding:12px 18px}
+  .k-hero p.is-clamped{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+  .k-more{display:flex}
+  .k-hero .k-btn{margin-top:34px}
   .k-nav{display:none}
   .k-burger{display:flex}
   .k-head__word{font-size:13px;letter-spacing:.26em}

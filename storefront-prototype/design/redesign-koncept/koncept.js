@@ -70,6 +70,36 @@
   for (const tab of tabs) tab.addEventListener('click', () => show(tab.dataset.accountTab));
   if (tabs.length) show(tabs[0].dataset.accountTab);
 
+  // --- hero: montáž z rýchlych záberov (vlastné súbory, žiadne cudzie médiá)
+  const cuts = [...doc.querySelectorAll('[data-cut]')];
+  if (cuts.length) {
+    let index = -1;
+    const show = () => {
+      cuts.forEach(img => img.classList.remove('is-on'));
+      index = (index + 1) % cuts.length;
+      cuts[index].classList.add('is-on');
+    };
+    show();
+    if (!reduce) setInterval(show, 2800);
+  }
+
+  // --- „Čítať viac“: na mobile zobrazíme max. 5 riadkov odstavca
+  const more = doc.querySelector('[data-more]');
+  const paragraph = more ? more.previousElementSibling : null;
+  const clamp = () => {
+    if (!paragraph) return;
+    const narrow = window.innerWidth <= 860;
+    paragraph.classList.toggle('is-clamped', narrow && !paragraph.dataset.open);
+    if (more) more.hidden = !narrow || Boolean(paragraph.dataset.open);
+  };
+  more?.addEventListener('click', () => {
+    if (!paragraph) return;
+    paragraph.dataset.open = '1';
+    clamp();
+  });
+  window.addEventListener('resize', clamp);
+  clamp();
+
   // --- hodnotenie 1–10 v Zrkadielku
   doc.addEventListener('click', event => {
     const value = event.target.closest('[data-value]');

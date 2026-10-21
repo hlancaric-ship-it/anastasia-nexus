@@ -22,7 +22,7 @@
 <!-- Hlavička -->
 <header class="k-head">
   <a class="k-head__logo" href="index.html">
-    <img src="../../public/assets/lucia-logo.png" alt="ANASTASIA OZ — Light for the Future" width="38" height="38">
+    <img src="../../public/assets/logo-mark.png" alt="ANASTASIA OZ — Light for the Future" width="38" height="38">
     <span class="k-head__word">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
   </a>
   <nav class="k-nav" aria-label="Hlavná navigácia">
@@ -53,16 +53,22 @@
 <!-- Úvod: video z vlastných médií, bez cudzích zdrojov -->
 <section class="k-hero">
   <div class="k-hero__media">
-    <video autoplay muted loop playsinline preload="metadata" poster="../../public/assets/hero-forest.jpg">
-      <source src="../../public/media/hero-720p.mp4" media="(max-width: 1024px)" type="video/mp4">
+    <video autoplay muted loop playsinline preload="auto" poster="../../public/assets/night-sky.jpg">
       <source src="../../public/media/hero-1080p.mp4" type="video/mp4">
     </video>
+    <div class="k-hero__cuts" aria-hidden="true">
+      <img src="../../public/assets/night-sky.jpg" alt="" data-cut>
+      <img src="../../public/media/legacy-483537f470c4.jpg" alt="" data-cut>
+      <img src="../../public/assets/lucia-portrait.jpg" alt="" data-cut>
+      <img src="../../public/media/learning.jpg" alt="" data-cut>
+      <img src="../../public/assets/hero-forest.jpg" alt="" data-cut>
+    </div>
   </div>
   <div class="k-hero__veil"></div>
   <div class="k-hero__body">
-    <p class="k-eyebrow">ANASTASIA · Light for the Future</p>
     <h1>Vitajte.</h1>
-    <p>Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.</p>
+    <p class="is-clamped">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.</p>
+    <button class="k-more" type="button" data-more hidden>Čítať viac</button>
     <a class="k-btn" href="#manifest">Vstúpte do zdravého sveta</a>
   </div>
   <p class="k-scrollcue">Rolujte</p>
