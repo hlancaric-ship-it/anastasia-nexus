@@ -554,3 +554,6 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
   .reset-table td::before{content:attr(data-label);color:var(--center-muted);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
   .reset-row-actions{padding-top:8px}
 }
+/* r22: v zákazníckej zóne je hlavička na bordó ploche – odkazy, logo, účet a košík svetlé (pri scrolle na krémovej ploche ostávajú tmavé). */
+.customer-page .lh-top:not(.lh-top--solid),.customer-page .lh-top:not(.lh-top--solid) a,.customer-page .lh-top:not(.lh-top--solid) button,.customer-page .lh-top:not(.lh-top--solid) small{color:#EFE5C7!important}
+.customer-page .lh-top:not(.lh-top--solid) svg{stroke:currentColor}
