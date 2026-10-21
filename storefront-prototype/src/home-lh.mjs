@@ -436,6 +436,9 @@ html.lh-hero-mode .lh-intro__cats{display:none}
    kde se s chromem objeví až za úvodem. */
 .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{opacity:0;visibility:hidden}
 .lh-chrome-in .lh-top{opacity:1;transform:none;pointer-events:auto}
+/* Počas úvodu (preloader) nie je hlavička vidieť vôbec; plynulo príde až s bočnou lištou po zoskrolovaní úvodu. */
+.lh-intro-page .lh-top{transition:opacity .5s var(--ana-ease-soft),transform .5s var(--ana-ease-soft)}
+.lh-intro-page:not(.lh-chrome-in) .lh-top{opacity:0;transform:translateY(-10px);pointer-events:none}
 /* Boční lišta se na začátku úvodu schová a po prvním skrolu se vrátí. */
 .lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .4s var(--ana-ease-soft),transform .4s var(--ana-ease-soft)}
 .lh-intro-page.lh-chrome-in #ana-rail{opacity:1;transform:none;pointer-events:auto}
@@ -475,7 +478,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-cat--3{top:30vh;right:13%}
 .lh-cat--4{bottom:15vh;left:12%}
 /* r17/3: rotujúca kategória je pod slovom ANASTASIA, centrovaná, plná farba. */
-@media (min-width:761px) and (pointer:fine){.lh-cat--1,.lh-cat--2,.lh-cat--3,.lh-cat--4{top:62vh;left:0;right:0;text-align:center;color:#313C2B;background-image:none!important;-webkit-text-fill-color:#313C2B}}
+@media (min-width:761px) and (pointer:fine){.lh-cat--1,.lh-cat--2,.lh-cat--3,.lh-cat--4{top:calc(50% + min((100vw - 2*var(--lh-gut,16px))*.135,15svh*1.35) + 12px);left:0;right:0;text-align:center;color:#313C2B;background-image:none!important;-webkit-text-fill-color:#313C2B}}
 @media (max-width:760px){
   /* r12/1: na mobilu logo vľavo, košík a Menu vpravo, hlavička fixná. */
   .lh-top{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:9px 14px}

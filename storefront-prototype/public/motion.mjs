@@ -215,6 +215,8 @@ if (gsap && ScrollTrigger) {
         .fromTo('#lh-intro-video', {scale: 1.35}, {scale: 1, duration: 0.62, ease: 'none'}, 0)
         // Pod maskou ztmavené video (průhledná vrstva, ne filtr – levnější na mobilu), aby slovo ANASTASIA bylo čitelné i u světlých záběrů.
         .to('.lh-intro__tint', {opacity: 0, duration: 0.4, ease: 'none'}, 0.12)
+        // Tmavá výplň písmen je mimo zväčšovanej skupiny: pri zoome musí zmiznúť, inak je slovo ANASTASIA dvakrát cez seba.
+        .to('#lh-word-tint', {opacity: 0, duration: 0.05, ease: 'none'}, 0.04)
         .to('#lh-word-g', {scale: 110, svgOrigin: ox + ' ' + oy, duration: 0.5, ease: 'power3.in'}, 0.04)
         .to('.lh-intro__mask', {opacity: 0, duration: 0.08, ease: 'none'}, 0.46)
         .to('.lh-intro__veil,.lh-vid-btn', {opacity: 1, duration: 0.1, ease: 'none'}, 0.46)
