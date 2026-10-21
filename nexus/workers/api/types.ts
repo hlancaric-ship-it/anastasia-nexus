@@ -262,4 +262,10 @@ export interface Env {
     readonly OPS_INGEST_SECRET?: string;
     /** Tenant, jehož události se přeposílají (= MEDUSA_PRICING_TENANT_ID). Jiné tenanty se neposílají. */
     readonly OPS_INGEST_TENANT_ID?: string;
+    /**
+     * Klíč AI poskytovatele pro `/api/ai/query` (Fáza 2).
+     * NIKDY ve `vars` ani ve wrangler.jsonc -- jen `wrangler secret put AI_API_KEY`.
+     * Bez klíče endpoint vrací 503 a AI se nevolá.
+     */
+    readonly AI_API_KEY?: string;
 }
