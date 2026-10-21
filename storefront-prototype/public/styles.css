@@ -393,3 +393,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
   .product-grid{grid-template-columns:1fr!important}
   .catalog-section .product-card .product-info{position:relative!important;inset:auto!important}
 }
+
+/* r12/1 (doplnenie): hlavička má priehľadné pozadie – zlatý pás z návrhu neprekrýva video. */
+.lh-top{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.lh-top--solid{background:rgba(245,242,232,.9)!important;border-bottom:1px solid rgba(201,163,85,.28)!important}
