@@ -106,6 +106,7 @@ const newTests = [
   'backend/src/api/store/nexus-checkout/__tests__/digital-guest-checkout.unit.spec.ts',
   'backend/src/api/store/nexus-cart/__tests__/loyalty-pricing.unit.spec.ts',
   'backend/src/scripts/e2e-digital-library.ts',
+  'backend/src/scripts/e2e-loyalty-tiers.ts',
   'backend/src/lib/loyalty/__tests__/policy.unit.spec.ts',
   'backend/src/lib/loyalty/__tests__/settings.unit.spec.ts',
   'backend/src/lib/loyalty/__tests__/auto-assign.unit.spec.ts',
