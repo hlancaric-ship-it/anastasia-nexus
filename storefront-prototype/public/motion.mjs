@@ -56,6 +56,13 @@ if (gsap && ScrollTrigger) {
 
   const intro = $('#lh-intro');
   const top = $('#lh-top');
+  // r12/2a: mobilný úvod – bez scrollovania, iba tlačidlo Vstúpte.
+  const mobileIntro = Boolean(intro) && matchMedia('(max-width:768px), (pointer:coarse)').matches;
+  if (mobileIntro) {
+    document.documentElement.classList.add('lh-locked');
+    document.documentElement.classList.add('lh-mobile-intro');
+    if (window.__anaLenis) window.__anaLenis.stop();
+  }
   const introP = {value: 0};
   // Úvod je přes celou šířku. Padding je inline v ROOT_STYLE, proto ho tady
   // zrušíme; s lištou se pak vrátí.
@@ -177,7 +184,7 @@ if (gsap && ScrollTrigger) {
       }
 
       // V hero režimu je úvod statická hero sekce – zoom se nepřehrává.
-      const timeline = heroMode ? gsap.timeline() : gsap.timeline({
+      const timeline = heroMode || mobileIntro ? gsap.timeline() : gsap.timeline({
         scrollTrigger: {
           trigger: intro, start: 'top top', end: 'bottom bottom', scrub: 1,
           onUpdate: s => { introP.value = s.progress; head(); },
@@ -201,6 +208,15 @@ if (gsap && ScrollTrigger) {
       // Texty zůstávají skryté, dokud maska neodstoupí. Nastavíme to až po
       // vytvoření timeline, aby je scrub přepsal jen v okamžiku, kdy mají přijít.
       gsap.set(['.lh-say--one', '.lh-say--two'], {opacity: 0, y: 80});
+      if (mobileIntro) {
+        // r12/2a: na mobilu sa úvod prehrá sám po Vstúpte (3–4 s).
+        window.__anaIntroTimeline = timeline;
+        const unlock = () => {
+          document.documentElement.classList.remove('lh-locked');
+          if (window.__anaLenis) window.__anaLenis.start();
+        };
+        timeline.eventCallback('onComplete', () => { unlock(); markIntroSeen(); });
+      }
     };
     (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
       buildIntro();
@@ -300,6 +316,12 @@ if (gsap && ScrollTrigger) {
   };
   const cue = $('#lh-scroll-cue');
   if (cue) cue.addEventListener('click', scrollIntro);
+  if (cue) cue.addEventListener('click', () => {
+    if (!mobileIntro) return;
+    const t = window.__anaIntroTimeline;
+    if (!t) { document.documentElement.classList.remove('lh-locked'); if (window.__anaLenis) window.__anaLenis.start(); return; }
+    if (!t.isActive()) t.play(0);
+  });
   // r12/2: klik na VSTÚPTE je gestum – hudba sa spustí pri ňom (iOS/Android).
   if (cue) cue.addEventListener('click', ()=>{
     try{ if(window.anaSoundState&&!window.anaSoundState()&&window.anaToggleAmbient) window.anaToggleAmbient(); }catch{}

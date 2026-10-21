@@ -487,6 +487,15 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 @media (prefers-reduced-motion:reduce){.lh-enter__arrow{animation:none}}
 
 /* --- Zvuk v úvodu, dokud není vidět lišta ------------------------------- */
+/* r12/2a: na mobile je úvod bez scrollu – iba tlačidlo Vstúpte. */
+html.lh-locked,html.lh-locked body{overflow:hidden!important;height:100%;overscroll-behavior:none}
+html.lh-mobile-intro .lh-intro{height:100svh!important;min-height:560px!important}
+html.lh-mobile-intro .lh-intro__stage{height:100svh!important}
+@media (max-width:768px),(pointer:coarse){
+  .lh-or{display:none!important}
+  .lh-enter{height:64px;padding:0 34px;font-size:15px;letter-spacing:.22em}
+  .lh-enter-wrap{bottom:34px}
+}
 .lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s}
 .lh-intro__sound .media-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .lh-chrome-in .lh-intro__sound{opacity:0;pointer-events:none}
