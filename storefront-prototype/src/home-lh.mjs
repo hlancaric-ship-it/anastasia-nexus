@@ -390,6 +390,7 @@ export const HOME_CSS = `
 @media (prefers-reduced-motion:reduce){.lh-scroll-cue i{animation:none}}
 
 /* --- Hlavička nad úvodem: barva podle toho, kde je scroll ------------------ */
+.lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
 .lh-top{position:absolute;left:0;right:0;top:0;z-index:4;opacity:0;transform:translateY(-14px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;padding:26px clamp(20px,4vw,64px);border-bottom:1px solid rgba(201,163,85,.28);color:var(--lh-ink,#1E281C);background:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:opacity .6s var(--ana-ease-soft),transform .6s var(--ana-ease-soft),color .4s ease,background-color .4s ease}
 .lh-top__side{display:flex;align-items:center;gap:clamp(18px,2.4vw,40px);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;font-weight:400}
 .lh-top__side--right{justify-content:flex-end}

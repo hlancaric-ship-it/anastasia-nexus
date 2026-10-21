@@ -55,8 +55,11 @@ if (gsap && ScrollTrigger) {
     const root = document.querySelector('.dc-root');
     if (root && intro) root.style.paddingLeft = 'var(--rail-pad)';
   };
+  // Hlavička a boční lišta jsou součástí preloaderu? Ne: na úvodu nejsou vidět
+  // vůbec a objeví se až za ním, když už je člověk v obsahu.
+  const chromeAt = () => (intro ? Math.max(0, intro.offsetHeight - window.innerHeight) : 10);
   const head = () => {
-    if (window.scrollY > 10) showChrome();
+    if (window.scrollY > chromeAt()) showChrome();
     if (!top || !intro) return;
     const past = window.scrollY > intro.offsetHeight - window.innerHeight * 0.4;
     let dark = false;
