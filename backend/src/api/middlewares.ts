@@ -67,5 +67,27 @@ export default defineMiddlewares({
       method: ["POST"],
       middlewares: [protectAdminUserCreation],
     },
+    // Pozvánka založí účet s predvolenou rolou `owner` a zmazaním by asistent
+    // mohol odstrániť vlastníka – oboje iba vlastník (accept rieši pozvaný sám).
+    {
+      matcher: "/admin/invites",
+      method: ["POST"],
+      middlewares: [protectAdminUserCreation],
+    },
+    {
+      matcher: "/admin/invites/:id",
+      method: ["POST", "DELETE"],
+      middlewares: [protectAdminUserCreation],
+    },
+    {
+      matcher: "/admin/invites/:id/resend",
+      method: ["POST"],
+      middlewares: [protectAdminUserCreation],
+    },
+    {
+      matcher: "/admin/users/:id",
+      method: ["DELETE"],
+      middlewares: [protectAdminUserCreation],
+    },
   ],
 })
