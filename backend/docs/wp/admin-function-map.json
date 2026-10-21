@@ -1232,7 +1232,7 @@
       ],
       "feature": "media",
       "source": "backend/src/api/admin/media/route.ts",
-      "sha256": "d52e24231b1173185e057c4e725bcbf54e5ae034ec7859346500333eabde4967"
+      "sha256": "f3f04e2432aebff34864e90d676d75636b3272a0b1ed17d66deee35382dd2b1c"
     },
     {
       "path": "/admin/media/:key",
