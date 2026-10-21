@@ -362,3 +362,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
   .product-info .button{width:100%!important;min-height:48px!important}
   .category-tag{position:absolute!important;top:12px!important;left:12px!important}
 }
+
+/* r12/5: nadpis „Zdravý svet“ sa nesmie strieť vpravo. */
+.zs-statement h2,.zs-opening h1{overflow-wrap:break-word;word-break:normal;hyphens:auto;max-width:100%}
+@media(max-width:760px){.zs-statement h2{font-size:clamp(26px,7vw,40px)!important;line-height:1.12!important}}
