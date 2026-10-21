@@ -62,7 +62,7 @@ Opakovaný běh už odstraněný obsah znovu nepřepisuje. Otevřený ani nedáv
 
 Text se nahradí slovenským oznámením o odstranění. ID, autor/role, časové značky a vazby na
 objednávku zůstávají zachované: jejich odstranění by změnilo limity zpráv napříč konverzacemi.
-Jde o retenci obsahu, **nikoli úplnou anonymizaci zákaznického účtu ani vyřešení celého GDPR**.
+Jde o retenci obsahu, **nikoli úplnou anonymizaci zákazníka účtu ani vyřešení celého GDPR**.
 Znovuotevření obnoví možnost odpovědi, nikdy odstraněný text. Log obsahuje pouze souhrnné počty.
 Deset unit testů PASS; nový HTTP scénář kontroluje skutečný obsah, idempotenci a zachované limity.
 

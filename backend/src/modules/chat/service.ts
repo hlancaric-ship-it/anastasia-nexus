@@ -44,7 +44,7 @@ export type SendCustomerMessageInput = {
   /** Existující konverzace; bez ní se založí nová (s volitelným předmětem a vazbou). */
   conversation_id?: string
   subject?: unknown
-  /** Vazby musí route předem ověřit proti vlastnictví zákaznice. */
+  /** Vazby musí route předem ověřit proti vlastnictví zákazník. */
   order_id?: string | null
   booking_id?: string | null
 }
@@ -53,7 +53,7 @@ export type ConversationAction = "close" | "reopen" | "mute" | "unmute"
 
 export const ADMIN_DIGEST_KEY = "admin_digest"
 
-/** Konverzace neexistuje nebo nepatří zákaznici (obojí navenek 404). */
+/** Konverzace neexistuje nebo nepatří zákazníci (obojí navenek 404). */
 export class ConversationNotFoundError extends Error {
   constructor() { super("CHAT_CONVERSATION_NOT_FOUND") }
 }
@@ -72,7 +72,7 @@ class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, C
   }
 
   /**
-   * Transakční zámek na zákaznici: serializuje všechny zápisy jejích zpráv (i Luciiny odpovědi a blokaci),
+   * Transakční zámek na zákazníci: serializuje všechny zápisy jejích zpráv (i Luciiny odpovědi a blokaci),
    * takže souběžné požadavky nemohou přečíst stejné počty a obejít limity.
    */
   protected async lockCustomer(knex: any, customerId: string) {
@@ -94,7 +94,7 @@ class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, C
     return Boolean(row?.blocked)
   }
 
-  /** Počty pro limity, čtené pod zámkem zákaznice. */
+  /** Počty pro limity, čtené pod zámkem zákazník. */
   protected async countersTx(knex: any, customerId: string, now: Date): Promise<SendCounters> {
     const lastAdmin = knex("chat_message").where({ customer_id: customerId, author_type: "admin" }).whereNull("deleted_at").max("created_at")
     const [today, consecutive] = await Promise.all([
@@ -107,8 +107,8 @@ class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, C
   }
 
   /**
-   * Zpráva zákaznice (nová konverzace nebo odpověď do existující). Ověření a zápis běží v jedné
-   * transakci pod zámkem zákaznice: blokace, stav konverzace, max zpráv po sobě, denní strop.
+   * Zpráva zákazník (nová konverzace nebo odpověď do existující). Ověření a zápis běží v jedné
+   * transakci pod zámkem zákazník: blokace, stav konverzace, max zpráv po sobě, denní strop.
    * Oprávnění psát (objednávka/rezervace/předplatné) a vlastnictví vazeb ověřuje route předem.
    */
   @InjectTransactionManager()
@@ -202,7 +202,7 @@ class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, C
     return (await this.updateChatConversations({ id, ...patch }, context)) as unknown as ChatConversationRow
   }
 
-  /** Zablokovat / odblokovat chat zákaznice (jeden řádek na zákaznici, přepíná se). */
+  /** Zablokovat / odblokovat chat zákazník (jeden řádek na zákazníci, přepíná se). */
   @InjectTransactionManager()
   async setCustomerBlocked(input: { customer_id: string; blocked: boolean; admin_id: string; reason?: string | null }, @MedusaContext() context: Context = {}) {
     const knex = this.transactionKnex(context)
@@ -224,7 +224,7 @@ class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, C
     return new Set(rows.map((r) => r.customer_id))
   }
 
-  /** Aktuální počty pro zobrazení zákaznici (informativní; závazná kontrola je v sendCustomerMessage). */
+  /** Aktuální počty pro zobrazení zákazníci (informativní; závazná kontrola je v sendCustomerMessage). */
   @InjectTransactionManager()
   async customerCounters(customerId: string, @MedusaContext() context: Context = {}): Promise<SendCounters & { blocked: boolean }> {
     const knex = this.transactionKnex(context)
@@ -267,7 +267,7 @@ class ChatModuleService extends MedusaService({ ChatConversation, ChatMessage, C
     return { conversations: Number(pending?.conversations ?? 0), messages }
   }
 
-  /** E-mail zákaznici o odpovědi: jen pokud si předchozí upozornění už přečetla (nezahlcovat). */
+  /** E-mail zákazníci o odpovědi: jen pokud si předchozí upozornění už přečetla (nezahlcovat). */
   @InjectTransactionManager()
   async claimCustomerReplyNotification(conversationId: string, @MedusaContext() context: Context = {}): Promise<ChatConversationRow | null> {
     const knex = this.transactionKnex(context)

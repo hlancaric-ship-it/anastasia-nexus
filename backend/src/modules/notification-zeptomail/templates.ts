@@ -27,7 +27,7 @@ export type TemplateDef = {
   name: string
   label: string
   description: string
-  /** Zákaznice ho potřebuje vždy (přihlášení, doručení poukazu) – v adminu nejde vypnout. */
+  /** Zákazník ho potřebuje vždy (přihlášení, doručení poukazu) – v adminu nejde vypnout. */
   required: boolean
   audience: "customer" | "admin"
   placeholders: PlaceholderDef[]
@@ -421,7 +421,7 @@ const CATALOG: Entry[] = [
   {
     name: "order-canceled-sk",
     label: "Zrušenie objednávky",
-    description: "Keď je objednávka zrušená (zákazníčkou alebo v administrácii).",
+    description: "Keď je objednávka zrušená (zákazníkom alebo v administrácii).",
     required: false,
     audience: "customer",
     placeholders: [P.order],
@@ -500,7 +500,7 @@ const CATALOG: Entry[] = [
       HEADING("Konzultácia bola zrušená"),
       text("intro", "Úvodný text", "Termín {termin} je zrušený."),
       text("reason_order_canceled", "Dôvod: zrušená objednávka", "Konzultácia bola zrušená spolu s objednávkou.", true),
-      text("reason_customer_request", "Dôvod: na žiadosť zákazníčky", "Konzultáciu sme zrušili na Vašu žiadosť.", true),
+      text("reason_customer_request", "Dôvod: na žiadosť zákazníkov", "Konzultáciu sme zrušili na Vašu žiadosť.", true),
       text("reason_admin_canceled", "Dôvod: zrušené z našej strany", "Konzultáciu sme z organizačných dôvodov museli zrušiť.", true),
       text("reason_other", "Iný dôvod", "Ak máte otázky, odpovedzte na tento e-mail.", true),
       line("button", "Tlačidlo", "Moje konzultácie"),
@@ -604,7 +604,7 @@ const CATALOG: Entry[] = [
   {
     name: "chat-admin-reply",
     label: "Odpoveď v chate",
-    description: "Zákazníčka dostane upozornenie, že máte pre ňu odpoveď. Text správy sa do e-mailu nevkladá.",
+    description: "Zákazníka dostane upozornenie, že máte pre ňu odpoveď. Text správy sa do e-mailu nevkladá.",
     required: false,
     audience: "customer",
     placeholders: [P.name],

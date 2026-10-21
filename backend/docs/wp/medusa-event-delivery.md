@@ -4,7 +4,7 @@ Stav: IMPLEMENTED_UNVERIFIED před plným CI. Větev `codex/medusa-delivery`, z�
 
 ## Problém a nejmenší změna
 
-Worker uměl trvale přijmout podepsanou událost, ale Medusa ji neposílala. Nový nativní subscriber odebírá skutečné `order.placed` a `customer.created` a spouští uložený Medusa workflow. Nepřibývá obchodní databáze ani další frontový framework. Události mapují vytvoření objednávky a zákaznického účtu; jejich přijetí neznamená zaplacení nebo dokončení obchodních efektů.
+Worker uměl trvale přijmout podepsanou událost, ale Medusa ji neposílala. Nový nativní subscriber odebírá skutečné `order.placed` a `customer.created` a spouští uložený Medusa workflow. Nepřibývá obchodní databáze ani další frontový framework. Události mapují vytvoření objednávky a zákazníka účtu; jejich přijetí neznamená zaplacení nebo dokončení obchodních efektů.
 
 ## Kontrakt, bezpečnost, opakování
 

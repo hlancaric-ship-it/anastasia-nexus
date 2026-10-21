@@ -1,17 +1,17 @@
-# X2 — Export zákaznice, žádost o výmaz a interní poznámky
+# X2 — Export zákazník, žádost o výmaz a interní poznámky
 
 Větev `codex/customer-gdpr`, vlastní worktree, základ integrace 8cf9c86 + závislost X1 14df581.
 Žádné změny konfigurace/závislostí ani entitlement modulu. Backend bez UI.
 
 ## API a ochrana
 
-- `GET /store/customers/me/export`: přihlášená zákaznice, no-store, attachment JSON.
+- `GET /store/customers/me/export`: přihlášená zákazník, no-store, attachment JSON.
   Obsahuje profil/adresy, vlastní objednávky a jejich serverové součty/položky/adresy,
   rezervace, nároky, chat, souhlasy X1, odstoupení, newsletter včetně historie a poukazy.
   Cizí `customer_id` vrací404. Každý zdroj je omezen autoritou actor_id; žádné interní poznámky,
   auth secrets nebo libovolná metadata. Cizímu obdarovanému se nevypisuje plný kód ani osobní zpráva.
   Export nikdy nevrací plný kód poukazu; částky jsou označené jako minor units.
-  Vazby přes e-mail se čtou/mažou pouze pro ověřené magic-link identity zákaznice. Editovatelný
+  Vazby přes e-mail se čtou/mažou pouze pro ověřené magic-link identity zákazník. Editovatelný
   profilový e-mail není důkaz vlastnictví newsletteru ani poukazu; neověřený kontakt tak neodhalí
   ani neodstraní cizí údaje. Profil/objednávky zůstávají autorizované výhradně customer ID.
   Zahrnuje uchované soft-deleted osobní záznamy a text rezervace, ne jen aktivní chat.
@@ -25,10 +25,10 @@ Větev `codex/customer-gdpr`, vlastní worktree, základ integrace 8cf9c86 + zá
 - `POST /admin/customer-erasures/:id/execute`: pouze správce; tělo musí být
   `{confirm:true,customer_id:"přesné ID z žádosti"}`. Bez něj422, žádné destruktivní kroky.
   `requested → processing → completed`, řádkové/advisory zámky, retry completed beze změny.
-  Processing blokuje zákaznický přístup už před anonymizací; při chybě zůstává blokovaný
+  Processing blokuje zákazníkov přístup už před anonymizací; při chybě zůstává blokovaný
   a správce může bezpečně zopakovat stejný execute. Nikdy nevydá completed po chybě cache/DB.
 - `GET/POST /admin/customers/:id/notes`; `POST/DELETE /admin/customers/:id/notes/:note_id`.
-  Plain text1–5000, vždy vazba na zákaznici, cizí note404. CRUD audit obsahuje pouze ID/operaci,
+  Plain text1–5000, vždy vazba na zákazníci, cizí note404. CRUD audit obsahuje pouze ID/operaci,
   nikdy text poznámky. Žádný store endpoint ani export tyto poznámky nevrací.
 
 ## Provedení výmazu
@@ -46,12 +46,12 @@ Používá se společná PG instance jako u stávajícího magic-link SQL propoj
 oddělené databáze modulů by vyžadoval jiný koordinovaný workflow; není tímto podporovaný.
 
 Magic-link stav se spotřebuje veřejným Auth service API; auth identity a provider credentials
-zákaznice se zneplatní. Sdílené identity s admin rolí ponechávají admina a odstraní pouze customer vazbu.
+zákazník se zneplatní. Sdílené identity s admin rolí ponechávají admina a odstraní pouze customer vazbu.
 Middleware na **všech store a auth cestách** ověřuje trvalý tombstone, takže dříve vydané stateless
-JWT/session zákaznice nemají přístup ani refresh. Při DB chybě fail-closed. Přítomná session se čistí;
-není nutné plošně mazat session store jiných zákaznic. Krátkodobé hashe všech ověřených e-mailů blokují potvrzení
+JWT/session zákazník nemají přístup ani refresh. Při DB chybě fail-closed. Přítomná session se čistí;
+není nutné plošně mazat session store jiných zákazník. Krátkodobé hashe všech ověřených e-mailů blokují potvrzení
 rozeslaných magic-linků po dobu jejich15min TTL; cleanup je po dokončení odstraní. Obsah chatu se odstraňuje pod stejným zámkem
-zákaznice jako send a zákaznický chat se blokuje; nové interní poznámky po výmazu409.
+zákazník jako send a zákazníkov chat se blokuje; nové interní poznámky po výmazu409.
 
 Toto není potvrzení celkové právní shody GDPR: právní důvody/archivační lhůty musí potvrdit vlastník.
 Externí poskytovatelé plateb, zálohy a již vydané krátkodobé media URL mají vlastní retenční/revokační
@@ -67,7 +67,7 @@ stavu žádosti a technická ID. Zdravotní obsah nepatří do provozních logů
 3. Vyžaduje X1 modul/migraci a `legal_rate_limit`; žádná nová env konfigurace.
 4. V Actions zavolat `verifyCustomerGdpr({api,container,options,newCart,evidence})` z HTTP helperu.
    Ověřuje cizí export404, neveřejné poznámky, rate limit, explicitní potvrzení, opakovaný výmaz,
-   zachované součty, anonymizaci chatu/profilu, cizí zákaznici beze změny, odvolaný JWT/refresh a magic-link.
+   zachované součty, anonymizaci chatu/profilu, cizí zákazníci beze změny, odvolaný JWT/refresh a magic-link.
 
 ## Ověření
 

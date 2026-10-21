@@ -7,7 +7,7 @@ type Msg = { id: string; conversation_id: string; customer_id: string; author_ty
 const tick = () => new Promise((resolve) => setImmediate(resolve))
 
 /**
- * Služba nad in-memory úložištěm. Zámek zákaznice je skutečný mutex držený do konce „transakce“
+ * Služba nad in-memory úložištěm. Zámek zákazník je skutečný mutex držený do konce „transakce“
  * (jako pg_advisory_xact_lock), mezi čtením počtů a zápisem jsou záměrně await mezery.
  */
 function makeService(opts: { withLock?: boolean } = {}) {
@@ -99,7 +99,7 @@ describe("ChatModuleService – souběh a limity", () => {
     expect(store.messages.length).toBeGreaterThan(3)
   })
 
-  it("zámek je per zákaznice: jiná zákaznice není blokována", async () => {
+  it("zámek je per zákazník: jiná zákazník není blokována", async () => {
     const { svc } = makeService()
     const result = await settle([
       ...Array.from({ length: 4 }, () => svc.sendCustomerMessage({ customer_id: "cus_1", body: "a" })),

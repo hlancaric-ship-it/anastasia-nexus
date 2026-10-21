@@ -8,7 +8,7 @@ import type { NotifyResult } from "./index"
 
 /**
  * E-maily k objednávce a účtu (C-1). Stejná pravidla jako `notify` u rezervací:
- * adresát jen ze serveru (e-mail objednávky / zákaznice), idempotency_key = typ + ID,
+ * adresát jen ze serveru (e-mail objednávky / zákazník), idempotency_key = typ + ID,
  * do šablony jen čísla, částky, názvy položek a odkaz; nikdy nevyhodí.
  *
  * Zdvojení platba × objednávka: platba kartou se zachytí ještě před `order.placed`, potvrzení objednávky

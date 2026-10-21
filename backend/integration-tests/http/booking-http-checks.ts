@@ -152,7 +152,7 @@ async function verifySharedCalendarAdmin({ api, container, options, opts, produc
   const [user] = await container.resolve(Modules.USER).createUsers([{ email: "lucia-admin@example.test" }])
   const adminToken = generateJwtToken({ actor_id: user.id, actor_type: "user", auth_identity_id: `synthetic-${user.id}`, app_metadata: { user_id: user.id } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
   const admin = { ...options, headers: { Authorization: `Bearer ${adminToken}` } }
-  // Admin API nepřijme zákaznický token ani anonymní volání.
+  // Admin API nepřijme zákazníkov token ani anonymní volání.
   expect((await api.get("/admin/booking/types", opts[0])).status).toBe(401)
   expect((await api.get("/admin/booking/types", options)).status).toBe(401)
 
@@ -216,7 +216,7 @@ async function verifySharedCalendarAdmin({ api, container, options, opts, produc
   }
   evidence.push({ scenario: "K9_CROSS_TYPE_BUFFER", statuses: followStatuses })
 
-  // Admin vidí obsazené termíny se jménem zákaznice a typem.
+  // Admin vidí obsazené termíny se jménem zákazník a typem.
   const view = await api.get(`/admin/booking/availability?week_start=${date}`, admin)
   expect(view.status).toBe(200)
   expect(view.data.week_start).toBe(weekStart)

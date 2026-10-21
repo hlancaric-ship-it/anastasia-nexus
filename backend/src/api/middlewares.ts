@@ -24,7 +24,7 @@ export default defineMiddlewares({
     // Podpis dávky z NEXUS Workeru se ověřuje nad surovým tělem.
     { matcher: "/hooks/ops/edge-events", method: ["POST"], bodyParser: { preserveRawBody: true, sizeLimit: "300kb" } },
     { matcher: "/hooks/nexus/booking-order", method: ["POST"], bodyParser: { preserveRawBody: true, sizeLimit: "8kb" } },
-    // Tombstone vymazané zákaznice musí platit dřív než jakýkoli endpoint (X2).
+    // Tombstone vymazané zákazník musí platit dřív než jakýkoli endpoint (X2).
     ...customerPrivacyMiddlewares,
     ...authMagicLinkMiddlewares,
     ...entitlementStoreMiddlewares,
@@ -40,7 +40,7 @@ export default defineMiddlewares({
     ...orderSelfCancelMiddlewares,
     ...nexusCartMiddlewares,
     ...contactStoreMiddlewares,
-    // Klub: všechny /store/memberships* jen přihlášená zákaznice (session/bearer).
+    // Klub: všechny /store/memberships* jen přihlášená zákazník (session/bearer).
     ...membershipStoreMiddlewares,
   ],
 })

@@ -8,12 +8,12 @@
 | `payment-captured-sk` | `payment.captured` | `order.paid:<order_id>` | jen když potvrzení objednávky odešlo s `paid: false` (převod, ruční capture). Platba kartou se zachytí před `order.placed`, tak druhý e-mail nevzniká. Pokud potvrzení objednávky ještě neodešlo, přeskočí se (`ORDER_EMAIL_PENDING`) – potvrzení pak už uvidí zaplaceno. |
 | `order-shipped-sk` | `shipment.created` | `order.shipped:<fulfillment_id>` | respektuje `no_notification`; číslo a odkaz sledování z `fulfillment.labels` |
 | `order-refunded-sk` | `payment.refunded` | `order.refunded:<refund_id>` | jeden e-mail na každý refund (i částečný) |
-| `order-canceled-sk` | `order.canceled` | `order.canceled:<order_id>` | admin i storno zákaznicí (X3) – X3 vlastní e-mail neposílá |
+| `order-canceled-sk` | `order.canceled` | `order.canceled:<order_id>` | admin i storno zákazníkov (X3) – X3 vlastní e-mail neposílá |
 | `customer-welcome-sk` | `customer.created` | `customer.welcome:<customer_id>` | jen `has_account`, založen < 1 h, bez `metadata.legacy_customer_migration` |
 | `withdrawal-received-sk` | X1 (`sendEmail` z modulu legal) | `withdrawal.received:<withdrawal_id>` | data: `order_display_id`, `received_at` (ISO), `url`; `withdrawal_id`/`order_id` jen jako `resource_id` a klíč |
 | `magic-link-sk`, `gift-voucher-*`, `booking-*`, `chat-*` | beze změny | | povinné šablony (přihlášení, poukazy) nejde vypnout |
 
-Adresát je vždy ze serveru (e-mail objednávky / zákaznice). Subscribery nikdy nevyhodí; výsledek je v `ops_event`
+Adresát je vždy ze serveru (e-mail objednávky / zákazník). Subscribery nikdy nevyhodí; výsledek je v `ops_event`
 (domain `notification`: `sent`, `skipped` + `skip_reason`, `send_failed`, `duplicate_suppressed`, `template_disabled`).
 
 ## Odeslání

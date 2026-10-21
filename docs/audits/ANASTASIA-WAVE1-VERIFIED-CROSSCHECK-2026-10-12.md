@@ -67,7 +67,7 @@ Doporučení: při plánované P2 migraci rozlišit neutrální `AccountingDocum
 ## 4. Pořadí pokračování podle skutečných bran
 
 1. **P0 bezpečnostní akceptace:** vyřešit izolované `EACCES` (PR #1 jako kandidát), spustit kompletní workerd+NEXUS CI, navazující Medusa persistence E2E a uložit výsledky. Bez green+evidence zůstává P0 `BLOCKED`.
-2. **K6 Auth:** přihlášení migrovaných zákaznic, session/tenant/ownership, přístupy a historie; využít připravenou větev `codex/auth-magic-link` teprve po bezpečnostní bráně.
+2. **K6 Auth:** přihlášení migrovaných zákazník, session/tenant/ownership, přístupy a historie; využít připravenou větev `codex/auth-magic-link` teprve po bezpečnostní bráně.
 3. **K7 payment:** Stripe sandbox, podpisy webhooků, replay, amount/currency a navazující entitlement/booking testy.
 4. **Voucher/QR/restore:** D1 restart a SEC-03, voucher concurrency, QR sleva a certifikovaná izolovaná obnova; respektovat již zapsané požadavky, žádné produkční testování.
 5. **Administrace/storefront a smluvní akceptace Fáze 1:** podle `docs/REQUIREMENTS_MATRIX.md`, nikoli starého `STATUS.md`.

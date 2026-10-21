@@ -10,10 +10,10 @@ Doplňuje `docs/PROGRESS_LOG.md` (backend) — tento dokument popisuje jen to, c
 
 1. **Nákup produktu:** výběr produktu → košík → uplatnění slevového kupónu → platba kartou / Apple Pay / Google Pay přes Stripe → potvrzovací e-mail.
 2. **Nákup RESET 40+:** po zaplacení se obsah automaticky zpřístupní; bez zaplacení není dostupný.
-3. **Přihlášení migrované zákaznice:** účet, historie objednávek a dřívější přístupy (entitlementy) jsou po přihlášení vidět a zachované.
+3. **Přihlášení migrované zákazník:** účet, historie objednávek a dřívější přístupy (entitlementy) jsou po přihlášení vidět a zachované.
 4. **Staré adresy a vytištěné QR kódy** vedou na správné stránky nového webu (301).
 5. **Generátor QR kódů v administraci:** vytvoření kupónu → URL s automatickou slevou v košíku → stažitelný QR kód.
-6. **Administrace:** správa produktů, cen, kategorií, kupónů, objednávek a zákaznic Objednatelem.
+6. **Administrace:** správa produktů, cen, kategorií, kupónů, objednávek a zákazník Objednatelem.
 7. **Bezpečnostní rizika z auditu** prokazatelně odstraněna (to je backendová/infra položka, ne storefront — ale storefront nesmí žádné z nich znovu zavádět, např. klientský výpočet ceny/slevy).
 
 Scénář 6 (administrace) je samostatný balík C5, **0 %, ještě nezačatý** — není podmínkou pro 23. 10., ale je podmínkou finálního schválení Fáze 1 před veřejným spuštěním. Pokud na 23. 10. nebude hotový, musí to být v hlášení Lucii jasně napsané jako chybějící část, ne zamlčené.
@@ -26,18 +26,18 @@ Base URL Medusa serveru (lokálně `http://localhost:9100`, v NODE_ENV=developme
 
 ### Přihlášení (K6 — magic-link, HOTOVO, ověřeno živě)
 - `POST /auth/customer/magic-link` s `{ "email": "..." }` → vždy odpoví `{ success:false, error:"LINK_SENT" }` (storefront to zobrazí jako „pokud účet existuje, poslali jsme odkaz" — **nikdy neukazovat, jestli účet existuje**).
-- Odkaz z e-mailu vede na stránku storefrontu (`/prihlasenie/potvrdit?email=...&token=...`) — tu stránku musí storefront vytvořit; po načtení zavolá `POST /auth/customer/magic-link` s `{ email, token }`, dostane JWT, uloží ho a přihlásí zákaznici.
+- Odkaz z e-mailu vede na stránku storefrontu (`/prihlasenie/potvrdit?email=...&token=...`) — tu stránku musí storefront vytvořit; po načtení zavolá `POST /auth/customer/magic-link` s `{ email, token }`, dostane JWT, uloží ho a přihlásí zákazníci.
 - Žádné heslo. Staré heslo se nepřenáší nikdy (viz migrace).
 
 ### Entitlementy / přístupy k RESET 40+ (K3, HOTOVO)
-- `GET /store/entitlements` (přihlášená zákaznice) → vrátí seznam jejích aktivních oprávnění. Storefront podle toho ukazuje/skrývá obsah RESET 40+ — **nikdy nerozhodovat o přístupu jen podle toho, že produkt je v historii objednávek; vždy se ptát tohoto endpointu.**
+- `GET /store/entitlements` (přihlášená zákazník) → vrátí seznam jejích aktivních oprávnění. Storefront podle toho ukazuje/skrývá obsah RESET 40+ — **nikdy nerozhodovat o přístupu jen podle toho, že produkt je v historii objednávek; vždy se ptát tohoto endpointu.**
 
 ### Cena podle tier (K1, HOTOVO)
 - Tier se počítá server-side z `customer.metadata`/skupiny, storefront ho nikde sám nepočítá ani neukazuje slevu, kterou si sám spočítal — konečnou cenu vždy vrátí `/store/nexus-cart` (viz níže).
 
 ### Košík a SafeOrder (K2 HOTOVO, bezpečnostní oprava z `codex/wave1-security` ČEKÁ na sloučení)
 - `POST /store/nexus-cart` — přepočet košíku se zohledněním tier ceny/kupónu, server-side.
-- `POST /store/nexus-checkout` — SafeOrder: ALLOW/REVIEW(409)/BLOCK(403)/chyba(503). **Storefront musí každý z těchto čtyř stavů ukázat zákaznici srozumitelně** (např. REVIEW = „objednávku ještě ověřujeme, ozveme se"), ne jen generickou chybu.
+- `POST /store/nexus-checkout` — SafeOrder: ALLOW/REVIEW(409)/BLOCK(403)/chyba(503). **Storefront musí každý z těchto čtyř stavů ukázat zákazníci srozumitelně** (např. REVIEW = „objednávku ještě ověřujeme, ozveme se"), ne jen generickou chybu.
 - Upozornění: Worker route pro SafeOrder dnes (12. 10.) **nemá autentizaci** — oprava existuje na `codex/wave1-security`, ale ještě není sloučená do `wave1-base`. Storefront na to nemusí čekat, ale nasazení do testovacího prostředí 23. 10. by mělo počkat, až bude sloučená (jinak jde o known security gap v testovacím prostředí).
 
 ### QR kupóny (C3, HOTOVO až na jednu věc)

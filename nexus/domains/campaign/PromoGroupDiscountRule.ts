@@ -5,7 +5,7 @@
 //
 // POŘADÍ V CENOVÉM MODELU (kandidátní, NE řetězení procent; aktualizováno
 // dle Jose diagramu 2026-09-06):
-//   basePrice -> sale/akční cena -> loyalty/zákaznická sleva -> discount
+//   basePrice -> sale/akční cena -> loyalty/zákazníková sleva -> discount
 //   limits -> currentPrice -> [PromoGroup kandidát] -> [QuantityTier
 //   kandidát] -> X+X/promo kontext (datová závislost pro QuantityTier
 //   totalQuantity, NE třetí cenový kandidát, viz BestCandidatePriceRule.ts)

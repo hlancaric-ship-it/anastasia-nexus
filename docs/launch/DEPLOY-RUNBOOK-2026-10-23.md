@@ -234,7 +234,7 @@ Obě fáze běží na **stejném produkčním prostředí Cloudu** se stejnou DB
 `PAYMENTS_TEST_MODE` platí jen v produkčním prostředí. Live klíč config v tomto režimu odmítne, takže je nejde omylem zkombinovat.
 Přepínač je potřeba proto, že na Cloudu je produkce určená typem prostředí a `NODE_ENV=staging` tam nastavit nejde.
 
-Testovací karta `4242…` / 3DS `4000 0027 6000 3184`. Jen syntetické zákaznice s vlastními adresami týmu.
+Testovací karta `4242…` / 3DS `4000 0027 6000 3184`. Jen syntetické zákazník s vlastními adresami týmu.
 
 | # | Kontrola | Očekávání |
 |---|---|---|
@@ -252,7 +252,7 @@ Testovací karta `4242…` / 3DS `4000 0027 6000 3184`. Jen syntetické zákazni
 | 12 | Cloud → Logs: běží plánované joby (`membership-billing` a další) | záznamy jobů bez chyb |
 
 **Úklid po fázi A** (před fází B, schvaluje Lucky nebo Jose):
-- testovací objednávky, zákaznice a členství z fáze A v adminu zrušit;
+- testovací objednávky, zákazník a členství z fáze A v adminu zrušit;
 - testovací poukazy zneplatnit;
 - nikdy nemazat DB celou, je v ní bootstrap.
 Testovací platby ve Stripe zůstávají v testovacím režimu a s live nic nesdílí.

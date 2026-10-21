@@ -58,14 +58,14 @@ BASE → SALE/CLEARANCE/CUSTOMER TIER → DiscountLimit → CURRENT PRICE → Qu
 - **DiscountLimit zůstává PŘED QuantityTier**, ne po něm. Důvod: `DiscountLimit`
   je strop na *procentuální* slevu vůči `basePrice` (VAGNER pravidlo — chrání
   před přehnanou slevou na úrovni produktu/brandu/kategorie). QuantityTier je
-  navazující, nezávislá slevová vrstva aplikovaná na už-schválenou zákaznickou
+  navazující, nezávislá slevová vrstva aplikovaná na už-schválenou zákazníkom
   cenu. Kdyby QuantityTier běžel před DiscountLimit, mohl by cap-floor
   výpočet v DiscountLimit omylem zredukovat i množstevní slevu zpět —
   to by bylo nekonzistentní s tím, jak DiscountLimit dnes funguje (počítá
   vždy vůči `basePrice`, ne vůči libovolné mezihodnotě).
 
   > **ROZHODNUTÍ POTŘEBA:** Je tenhle vztah (DiscountLimit strop se **nikdy**
-  > netýká množstevní slevy, jen zákaznické/akční slevy) obchodně správný pro
+  > netýká množstevní slevy, jen zákazníkové/akční slevy) obchodně správný pro
   > Hecmanii? Nebo má existovat kombinovaný strop (např. "max. celková sleva
   > i s quantity tier nesmí přesáhnout X %")? Legacy pravidlo (VAGNER) tohle
   > neřeší, protože quantity tier v legacy nikdy neexistoval — je to čistě
@@ -124,7 +124,7 @@ jeden SKU.
   zákazník kombinuje barevné varianty stejného modelu a chce množstevní slevu
   za CELKOVÝ odběr, ne per barva.
 
-### Varianta B: Per-PriceList (per zákaznický tier)
+### Varianta B: Per-PriceList (per zákazníkov tier)
 Tier breakpointy jsou vlastností ceníku (H-KLUB, GUEST, ZR20, ...), ne
 produktu — každý zákazník na daném ceníku má stejné breakpointy napříč
 všemi produkty.
@@ -146,7 +146,7 @@ Breakpointy patří skupině, ne produktu ani ceníku.
 
 ### Návrh: C, s B jako fallback vrstvou
 
-Tvá hypotéza (`Produktová/promo skupina + zákaznický ceník → cena zákazníka
+Tvá hypotéza (`Produktová/promo skupina + zákazníkov ceník → cena zákazníka
 → QuantityTier`) dává smysl jako:
 
 ```
@@ -232,7 +232,7 @@ Oboje optional — neinvazivní rozšíření, stejný vzor jako přidání
 
 ## 5. Jak ceník vstupuje do QuantityTier
 
-Tvoje pracovní hypotéza: **ceník (zákaznický tier) je zdrojová cenová vrstva,
+Tvoje pracovní hypotéza: **ceník (zákazníkov tier) je zdrojová cenová vrstva,
 ne vlastnost tieru samotného.** Souhlasím s touto interpretací z technického
 hlediska — zapadá čistě do chainu (sekce 1): ceník už determinuje `sourcePrice`
 přes `HighestDiscountRule`, `QuantityTierRule` na to jen navazuje.
@@ -241,7 +241,7 @@ Nicméně jedna dílčí otázka zůstává otevřená:
 
 > **ROZHODNUTÍ POTŘEBA:** Mají **breakpointy samotné** (kolik % sleva na
 > jakém množství) být stejné napříč všemi ceníky, nebo se liší podle
-> zákaznického tieru? Např.:
+> zákazníka tieru? Např.:
 > - Stejné pro všechny: GUEST i H-KLUB zákazník dostane 8% od 8 ks (jen na
 >   jinou `sourcePrice`, protože H-KLUB už má nižší startovní cenu).
 > - Liší se: H-KLUB zákazník dostane agresivnější quantity tier (např. 10%
@@ -318,7 +318,7 @@ live voláním.
 
 ## 8. Shrnutí rozhodnutí potřebných od vás (Jan/Jose)
 
-1. **Sekce 1:** Má DiscountLimit strop platit jen na zákaznickou/akční slevu,
+1. **Sekce 1:** Má DiscountLimit strop platit jen na zákazníkom/akční slevu,
    nikdy na quantity tier, nebo má existovat kombinovaný strop?
 2. **Sekce 3:** Potvrdit variantu C (`QuantityTierGroup`) jako závaznou.
    Fallback chování bez group?
@@ -326,7 +326,7 @@ live voláním.
    definuje — ruční přiřazení, SKU konvence, nebo existující pole v master
    feedu? Existuje dnes v Hecmania feedu nějaké "toto je jeden model" pole?
 4. **Sekce 5:** Jsou breakpointy stejné napříč ceníky, nebo se liší podle
-   zákaznického tieru?
+   zákazníka tieru?
 5. **Sekce 6 (druhá nejdůležitější):** Co dělá batch Pricing Engine, když
    neznámá konkrétní množství z košíku — píše cenu za 1 ks a quantity tier
    je čistě live/frontend záležitost, nebo má batch vůbec quantity tier

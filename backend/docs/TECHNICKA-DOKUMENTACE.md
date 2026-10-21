@@ -2,7 +2,7 @@
 
 Datum: 15. 10. 2026. Zdrojový snapshot: `claude/backend-integration`,
 `5066672b391a862077f38f99a182517b301a3f51`. Dokumentace popisuje implementaci tohoto snapshotu,
-nikoli schválení produkčního provozu. Neobsahuje přístupové údaje ani skutečná zákaznická data.
+nikoli schválení produkčního provozu. Neobsahuje přístupové údaje ani skutečná zákazníková data.
 
 ## 1. Orientace a autorita dokumentů
 
@@ -47,7 +47,7 @@ jen hlásí varováním — provozní kontrola ho musí vyžadovat samostatně.
 
 NEXUS má širší doménové jádro, ale zapojení ANASTASIA používá konkrétní pricing/SafeOrder adaptéry.
 Existence jiné NEXUS domény neznamená, že je automaticky dostupná v tomto obchodě.
-Jedna Medusa instance odpovídá jednomu obchodu; zákaznické tabulky netvoří ověřenou sdílenou
+Jedna Medusa instance odpovídá jednomu obchodu; zákazníkové tabulky netvoří ověřenou sdílenou
 víceobchodovou databázi. Worker váže tenant na serverové pověření, nikoli na vstup storefrontu.
 
 ### Adresáře a odpovědnosti
@@ -61,31 +61,31 @@ víceobchodovou databázi. Worker váže tenant na serverové pověření, nikol
 | [`../src/subscribers`](../src/subscribers) | Návaznosti na order/payment/chat/auth události. |
 | [`../src/jobs`](../src/jobs) | Retence, údržba a dávkové notifikace. |
 | [`../src/lib`](../src/lib) | Sdílené guardy, e-maily a pozorovatelnost. |
-| [`../src/scripts`](../src/scripts) | Bootstrap, migrace katalogu/zákaznic a pomocné nástroje. |
+| [`../src/scripts`](../src/scripts) | Bootstrap, migrace katalogu/zákazník a pomocné nástroje. |
 | [`../integration-tests/http`](../integration-tests/http) | Skutečné HTTP scénáře nad syntetickou Medusou/PG. |
 | [`../../nexus/workers/api`](../../nexus/workers/api) | Edge API, média a přesměrování. |
 
 ## 3. Přihlášení, oprávnění a hranice důvěry
 
-Store API používá publishable API klíč a tam, kde to endpoint vyžaduje, zákaznickou Medusa identitu.
-Publishable klíč není důkaz přihlášení zákaznice. Admin API vyžaduje identitu typu `user`;
-zákaznický token nesmí získat administrátorský přístup. Detailní role pro jednotlivé agendy
+Store API používá publishable API klíč a tam, kde to endpoint vyžaduje, zákazníkom Medusa identitu.
+Publishable klíč není důkaz přihlášení zákazník. Admin API vyžaduje identitu typu `user`;
+zákazníkov token nesmí získat administrátorský přístup. Detailní role pro jednotlivé agendy
 nejsou tímto dokumentem prohlášeny za implementované.
 
 Provider [`auth-magic-link`](../src/modules/auth-magic-link/service.ts) ověřuje jednorázový token,
-uchovává jeho hash a propojuje ověřenou identitu se zákaznicí. Importovaný účet se aktivuje
+uchovává jeho hash a propojuje ověřenou identitu se zákazníkov. Importovaný účet se aktivuje
 teprve po ověření. Duplicitní nebo cizí vazba není důvodem k výběru „prvního“ účtu.
 Viz [auth dokumentace](wp/auth-magic-link.md); dnešní registrace provideru je v `medusa-config.ts`.
 
 Vlastnictví košíků, objednávek, konverzací a přístupů ověřuje server. U některých vlastnických
 kontrol cizí objekt vrací 404, aby se nerozlišovala jeho existence. Guest košík může mít nativně
-vytvořené `customer_id`; to samo neznamená registrovaný účet ani zákaznické přihlášení.
+vytvořené `customer_id`; to samo neznamená registrovaný účet ani zákazníkové přihlášení.
 Erasure middleware navíc odmítá dříve vydané tokeny anonymizovaných účtů.
 
 ## 4. Objednávka od košíku po následné události
 
-1. Storefront založí košík a mění jeho položky nativním Medusa API. Cenu ani zákaznickou úroveň neurčuje.
-2. `POST /store/nexus-cart { cart_id }` přečte skutečný katalog, množství, region a skupiny zákaznice,
+1. Storefront založí košík a mění jeho položky nativním Medusa API. Cenu ani zákazníkom úroveň neurčuje.
+2. `POST /store/nexus-cart { cart_id }` přečte skutečný katalog, množství, region a skupiny zákazník,
    ověří cenu u Workeru a uloží snapshot do košíku. NEXUS ceny se nesmějí znovu zlevnit nativní promotion logikou.
 3. Klient vybere dopravu z API. Platba se založí nativní payment collection/session cestou pro aktuální částku.
 4. Klient načte `GET /store/legal/versions` a uloží souhlas přes `POST /store/carts/:id/consents`.
@@ -126,11 +126,11 @@ Viz [sklad](wp/stock-availability.md), [doprava](wp/shipping-settings.md).
 | QR kupóny | Lokální SVG/PNG generátor, serverová validace kupónu a cenová pravidla. QR odkaz sám není uplatněná sleva. | [QR](wp/qr-redirects.md), [kupóny](wp/coupon-usage.md) |
 | Rezervace | `booking`, týdenní `booking_availability`, serverové typy konzultací, hold/confirm/cancel a kolize kalendáře. | [Booking](wp/booking-availability.md) |
 | Digitální nároky | `entitlement`: vlastník, produkt, zdroj a čas platnosti. Capture zpřístupňuje; storno/refund revokuje podle pravidel subscriberů. | [Ověření digitálního toku](wp/evidence/digital-checkout.json) |
-| Chat | Konverzace, zprávy, blokace a stav notifikací. Jen text; zákaznice 2000 znaků, správce 5000. Nezpůsobilost/blokace 403, uzavření 409, překročený limit 429. | [Chat](wp/chat.md) |
+| Chat | Konverzace, zprávy, blokace a stav notifikací. Jen text; zákazník 2000 znaků, správce 5000. Nezpůsobilost/blokace 403, uzavření 409, překročený limit 429. | [Chat](wp/chat.md) |
 | Souhlasy | `legal_consent`: serverová verze a vazba cart/order. Bez platného souhlasu completion vrací 422. Newsletter má aktuální stav a oddělenou historii změn. | [Souhlasy](wp/legal-consents.md) |
 | Odstoupení | `legal_withdrawal`: vlastní objednávka, lhůta, položky; received → accepted/rejected → refunded podle povolených přechodů. Stav refunded sám nespouští vrácení peněz. | [Legal](wp/legal-consents.md) |
 | Soukromí | `customer_erasure`, `customer_note`: export vlastních dat, žádost a potvrzené provedení anonymizace, revokace přístupu. Interní poznámky nejsou ve store exportu. | [GDPR](wp/customer-gdpr.md) |
-| Storno zákaznicí | Vlastní neodeslaná/nevyřízená objednávka bez zpřístupněného digitálního obsahu; booking lhůta; nativní storno a existující kompenzace. Vydaný bearer poukaz vyžaduje správce. | [Storno](wp/order-self-cancel.md) |
+| Storno zákazníkov | Vlastní neodeslaná/nevyřízená objednávka bez zpřístupněného digitálního obsahu; booking lhůta; nativní storno a existující kompenzace. Vydaný bearer poukaz vyžaduje správce. | [Storno](wp/order-self-cancel.md) |
 | E-mailové texty | `email_template_override`: přepisy textových slotů a enabled. Layout, odkazy a výpočty zůstávají v kódu; text se escapuje. | [E-maily](wp/c1-emails.md) |
 | Provoz a audit | `ops_event`, `ops_audit_entry`; odděleně od peněžních transakcí poukazů. | [Mapa pokrytí](wp/backend-admin-capabilities.md) |
 
@@ -145,7 +145,7 @@ již doručené e-maily a zákonné retenční rozhodnutí vyžadují samostatn�
 a klíč v `product.metadata.protected_media`. Vrací krátkodobý podepsaný odkaz, expiraci a watermark;
 nevrací přímou veřejnou R2 adresu. Pole registru může obsahovat `{ key, title }`.
 
-Backend podepisuje HMAC-SHA256 token pro konkrétní zákaznici, produkt a objekt. Výchozí TTL je 600 s,
+Backend podepisuje HMAC-SHA256 token pro konkrétní zákazníci, produkt a objekt. Výchozí TTL je 600 s,
 maximum 900 s. `MEDIA_DELIVERY_BASE_URL` musí odpovídat prefixu Workeru bez `/v1`, tedy
 `https://<worker-host>/api/media`; backend sám přidá `/v1/<encoded-key>?t=…`.
 Worker obsluhuje `GET/HEAD /api/media/v1/…`, kontroluje podpis/expiraci/klíč, podporuje Range
@@ -181,7 +181,7 @@ Nikdy je nevystavovat ve storefrontu, logu ani formuláři běžných obchodníc
 | `CHAT_RETENTION_DAYS`, `OPS_EVENT_RETENTION_DAYS`, `OPS_AUDIT_RETENTION_DAYS` | Retence obsahu, provozních událostí a auditu; rozsahy a chování níže. |
 | `OPS_INGEST_SECRET` | Podpis příchozích edge událostí; ingest dále ověřuje tenant kontext. |
 
-Obchodní nastavení v PostgreSQL: produkty/ceny/DPH/sklady/doprava, skupiny zákaznic a `metadata.nexus_tier`,
+Obchodní nastavení v PostgreSQL: produkty/ceny/DPH/sklady/doprava, skupiny zákazník a `metadata.nexus_tier`,
 booking typy a dostupnost, poukazová nastavení, přepisy e-mailů. Chat limity a část SafeOrder policy jsou
 zatím v kódu; neprezentovat je jako hotové admin nastavení. Kompletní přehled a detaily auditu poskytuje
 [mapa schopností](wp/backend-admin-capabilities.md).
@@ -190,7 +190,7 @@ zatím v kódu; neprezentovat je jako hotové admin nastavení. Kompletní přeh
 
 `order.placed` navazuje souhlasy, poukazy, booking, nároky a potvrzení objednávky. `payment.captured`
 potvrzuje placené doménové návaznosti; `order.canceled` a `payment.refunded` spouštějí příslušné
-kompenzace. Storno zákaznicí znovu neimplementuje refundy. Částečné vratky a již zpřístupněné digitální
+kompenzace. Storno zákazníkov znovu neimplementuje refundy. Částečné vratky a již zpřístupněné digitální
 instrumenty mají doménová omezení a případnou ruční kontrolu.
 
 Notifikace používají [`sendEmail`](../src/lib/email/send.ts), uložené textové přepisy a identifikátor
@@ -219,7 +219,7 @@ Tokeny, adresáti, kódy a obsah zpráv nesmějí být v diagnostických přílo
 `recordEvent` zapisuje také do `ops_event`. `GET /admin/ops/events` umožňuje filtry `request_id`,
 `order_id`, `cart_id`, `customer_id`, `entity_id`, `domain`, `level`, `event`, `from`, `to`, `limit`, `offset`.
 Admin audit `/admin/ops/audit` filtruje `entity_type`, `entity_id`, `actor_id`, `action`.
-Obě rozhraní jsou administrátorská; nejde o veřejný zákaznický přehled.
+Obě rozhraní jsou administrátorská; nejde o veřejný zákazníkov přehled.
 Edge dávky přijímá podepsaný `POST /hooks/ops/edge-events` s timestampem a podpisem, nikoli s customer JWT.
 
 Postup při incidentu:

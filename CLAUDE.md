@@ -27,8 +27,8 @@ Buď autonomní v analýze a implementaci:
 
 ## Bezpečnostní nepřekročitelné hranice
 
-- Žádné produkční API, databáze, platby, DNS, Worker deploy ani skutečné zákaznické e-maily. Pouze lokální/izolované prostředí a syntetická data, podle `AGENTS.md`.
-- Nečti, nevypisuj ani necommituj secrets, `.env`, hesla, tokeny, PII ani skutečná zákaznická data.
+- Žádné produkční API, databáze, platby, DNS, Worker deploy ani skutečné zákazníkové e-maily. Pouze lokální/izolované prostředí a syntetická data, podle `AGENTS.md`.
+- Nečti, nevypisuj ani necommituj secrets, `.env`, hesla, tokeny, PII ani skutečná zákazníková data.
 - Ceny, slevy, tenant, oprávnění a stav platby se důvěryhodně určují na serveru. Nikdy nevěř klientským částkám, stavu platby ani tenant ID.
 - Nikdy neuděluj entitlement na základě redirectu, objednávky bez ověřené platby nebo samotného rozhodnutí SafeOrder.
 - Fail closed při neznámém tenantovi, neplatné ceně, neověřeném podpisu, neznámém stavu nebo porušené invariantu.

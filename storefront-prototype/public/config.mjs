@@ -1,5 +1,5 @@
 // Runtime konfigurace storefrontu. Přepis přes window.__ANASTASIA__ (inline skript při nasazení)
-// Medusa i Stripe publishable key jsou veřejné. Zákaznický web nepoužívá ukázkový režim.
+// Medusa i Stripe publishable key jsou veřejné. Zákazníkov web nepoužívá ukázkový režim.
 const w = typeof window !== 'undefined' ? (window.__ANASTASIA__ || {}) : {};
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 export const config = {

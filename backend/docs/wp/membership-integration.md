@@ -4,7 +4,7 @@ Stav IMPLEMENTED_UNVERIFIED do skutečné společné CI a propojení storefrontu
 
 ## Storefront kontrakt
 
-Všechny cesty vyžadují autentizovanou zákaznici a no-store. Anonymní/neplatný actor401, cizí záznam404, změněné podmínky409, neplatné údaje422, nedostupné jádro503.
+Všechny cesty vyžadují autentizovanou zákazníci a no-store. Anonymní/neplatný actor401, cizí záznam404, změněné podmínky409, neplatné údaje422, nedostupné jádro503.
 
 1. Standardní vlastní cart+jediná variantu členského produktu, /store/nexus-cart a uložený souhlas /store/carts/:id/consents.
 2. GET /store/memberships/offer?cart_id vrací offer: cart_id, product_id,variant_id,title,version,period_days,amount_minor,currency,amount_label. Jen server vypočte cenu; při změně409 obnovit přes nexus-cart.
@@ -21,7 +21,7 @@ Všechny cesty vyžadují autentizovanou zákaznici a no-store. Anonymní/neplat
 
 Každá provider operace má předem uloženou hranici. Unknown se známou native session dohledá stejný intent přes stejný guarded checkout, nikdy nevytváří druhý. Bez dohledatelného native ID zůstává výsledek v karanténě k prověření; bezpečný systém nesmí tvrdit, že nezachycený response znamená neprovedenou platbu. Native Stripe off-session confirm/capture se provádí teprve v authorizePayment po core validation; requires_action zůstává ve stejném pokusu. Každá úspěšná obnova má nativní objednávku, capture ledger, receipt a omezený přístup.
 
-Vlastní anastasia-admin/ SPA dostává HTTP /admin/memberships* pro členství/přístupy, nedokončené nákupy, editor podmínek a Platby a obnovy. Podle rozhodnutí Jose/Claude byla prototypová nová /app/clenstva agenda odstraněna; zákaznice nemá používat Medusa Admin. Dohledání v adminu nikdy nespouští nové stržení. Stavy a chyby jsou slovensky a používají osobní vzhled adminu.
+Vlastní anastasia-admin/ SPA dostává HTTP /admin/memberships* pro členství/přístupy, nedokončené nákupy, editor podmínek a Platby a obnovy. Podle rozhodnutí Jose/Claude byla prototypová nová /app/clenstva agenda odstraněna; zákazník nemá používat Medusa Admin. Dohledání v adminu nikdy nespouští nové stržení. Stavy a chyby jsou slovensky a používají osobní vzhled adminu.
 
 Claude integruje globální membershipStoreMiddlewares a modul membership + samostatný provider membership-stripe(id membership, stejné Stripe credentials jako standardní provider, capture:true). Do jeho configu/middleware ani storefrontu tento balík samovolně nesahá. Žádný self-merge ani deploy.
 

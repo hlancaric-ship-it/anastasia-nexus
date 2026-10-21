@@ -20,7 +20,7 @@ Tento záznam aktualizuje předběžné stavy z backend/docs/wp/unified-integrat
 
 Zahrnuté větve a výjimky jsou v backend/docs/wp/unified-integration.md. Zachována autentizace magic linků, omezení kupónů, právní souhlasy, účetní základy a commitnuté návrhy storefrontu/adminu. Necommitnuté cizí rozpracované změny zůstávají ve svých worktree. PR #7 s reprodukcemi zranitelností zůstává oddělený.
 
-Vlastní NEXUS košík i checkout vyžadují přihlášení a přesného vlastníka. Cizí či nepřiřazený košík se nemění. Kontrola souhlasu v custom checkoutu následuje až po ověření přístupu. HTTP nákupy nyní používají skutečnou syntetickou zákaznici a nativní přiřazení košíku, negativní anonymní sondy zůstaly zachovány.
+Vlastní NEXUS košík i checkout vyžadují přihlášení a přesného vlastníka. Cizí či nepřiřazený košík se nemění. Kontrola souhlasu v custom checkoutu následuje až po ověření přístupu. HTTP nákupy nyní používají skutečnou syntetickou zákazníci a nativní přiřazení košíku, negativní anonymní sondy zůstaly zachovány.
 
 D1 ExecutionIntentStore nyní odvozuje povolené spuštění z kanonického stavového automatu. UNKNOWN nelze znovu spustit naslepo; nejprve se musí ověřit skutečný výsledek. Paralelní pokusy po prokázaném neprovedení mají jediného vítěze.
 

@@ -1,4 +1,4 @@
-// Browser E2E č. 4: admin založí produkt členstva a zaradí ho do Klubu → zákazníčka kúpi členstvo s 3DS → účet → admin Klub.
+// Browser E2E č. 4: admin založí produkt členstva a zaradí ho do Klubu → zákazníka kúpi členstvo s 3DS → účet → admin Klub.
 // Parametre: E2E_CARD (predvolene 4000002500003155 = 3DS pri nákupe, potom off-session bez overenia).
 import { chromium } from '/Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
 import { writeFileSync } from 'node:fs';
@@ -72,7 +72,7 @@ try {
   rec('admin-zaradenie-do-klubu', kmsg === 'Uložené.', { kmsg });
   await shot(admin, '30-admin-klub-produkt');
 
-  // B) Zákazníčka: prihlásenie a nákup
+  // B) Zákazníka: prihlásenie a nákup
   await page.goto(SF + '/prihlasenie');
   await page.fill('#login-form [name=email]', email);
   await page.click('#login-form [type=submit]');

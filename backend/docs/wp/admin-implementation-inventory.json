@@ -145,7 +145,7 @@
     },
     {
       "id": "notes",
-      "label_sk": "Interné poznámky zákazníčky",
+      "label_sk": "Interné poznámky zákazníkov",
       "routes": [
         {
           "path": "/admin/customers/:id/notes/:note_id",

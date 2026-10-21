@@ -1,4 +1,4 @@
-// Browser E2E č. 8: účet zákazníčky z backendu (bez ukážkových dát) + chat storefront ↔ admin Správy (odpoveď, e-mail, uzavretie).
+// Browser E2E č. 8: účet zákazníkov z backendu (bez ukážkových dát) + chat storefront ↔ admin Správy (odpoveď, e-mail, uzavretie).
 import { chromium } from '/Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
 import { writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -28,7 +28,7 @@ try {
   const anonTxt = await txt(anon, '.customer-center');
   rec('ucet-bez-prihlasenia', !DEMO.test(anonTxt) && /Pre zobrazenie účtu sa prihláste/.test(anonTxt));
 
-  // A) Zákazníčka s objednávkou a potvrdenou konzultáciou
+  // A) Zákazníka s objednávkou a potvrdenou konzultáciou
   const row = sql(`select c.id||'|'||c.email from booking b join customer c on c.id=b.customer_id where b.status='confirmed' and b.deleted_at is null and exists(select 1 from "order" o where o.customer_id=c.id and o.status not in ('canceled','draft')) order by (select count(*) from chat_message m where m.customer_id=c.id and m.created_at > now() - interval '1 day'), (select count(*) from notification n where n.template='magic-link-sk' and n."to"=c.email and n.created_at > now() - interval '15 minutes'), b.starts_at desc limit 1`).split('|');
   const [cusId, email] = row;
   const displayIds = sql(`select string_agg(display_id::text, ',') from "order" where customer_id='${cusId}'`).split(',');
@@ -50,7 +50,7 @@ try {
   rec('ucet-realne-data', !DEMO.test(whole) && displayIds.some(id => orders.includes(id)) && bookings.includes(bookingTitle) && profEmail === email,
     { orders: orders.slice(0, 160), bookings: bookings.slice(0, 160), bookingTitle, profOk: profEmail === email });
 
-  // B) Chat: zákazníčka píše
+  // B) Chat: zákazníka píše
   await p.goto(SF + '/ucet#chat'); await p.waitForSelector('#chat-form');
   const msg = `E2E otázka ${RUN}: ako dlho trvá doručenie?`;
   await p.fill('#chat-body', msg);
@@ -65,7 +65,7 @@ try {
   const thread1 = await txt(p, '#chat-messages');
   rec('chat-zakaznicka-odoslala', /pridaná/.test(sent) && thread1.includes(msg), { sent });
 
-  // C) Nespôsobilá zákazníčka (bez nákupu) nemôže písať
+  // C) Nespôsobilá zákazníka (bez nákupu) nemôže písať
   const fresh = await customerPage(`e2e.chat.bez.nakupu.${RUN}@example.com`);
   await fresh.goto(SF + '/ucet#chat'); await fresh.waitForFunction(() => document.querySelector('#chat-availability')?.textContent.trim().length > 0, null, { timeout: 15000 });
   await fresh.fill('#chat-body', 'test');
@@ -91,14 +91,14 @@ try {
   const mail = sql(`select template from notification where "to"='${email}' and template like '%chat%' order by created_at desc limit 1`);
   rec('admin-odpoved-a-email', /chat/.test(mail), { mail });
 
-  // E) Zákazníčka vidí odpoveď
+  // E) Zákazníka vidí odpoveď
   await p.reload();
   await p.waitForFunction((r) => (document.querySelector('#chat-messages')?.textContent || '').includes(r), reply, { timeout: 20000 });
   const thread2 = await txt(p, '#chat-messages');
   rec('zakaznicka-vidi-odpoved', /Lucia/.test(thread2) && thread2.includes(reply));
   await p.screenshot({ path: `${OUT}/73-ucet-chat-odpoved.png`, fullPage: true });
 
-  // F) Admin uzavrie; zákazníčka do uzavretej nenapíše
+  // F) Admin uzavrie; zákazníka do uzavretej nenapíše
   await a.click('[data-act="close"]'); await a.waitForFunction(() => /uzavretá/.test(document.querySelector('#cmsg')?.textContent || ''), null, { timeout: 15000 });
   await p.reload(); await p.waitForFunction((r) => (document.querySelector('#chat-messages')?.textContent || '').includes(r), reply, { timeout: 20000 });
   await p.fill('#chat-body', 'Ešte jedna otázka'); await p.waitForTimeout(500);

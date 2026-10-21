@@ -7,7 +7,7 @@ Balík obsahuje dva lokální skripty:
 - `src/scripts/parse-legacy-db.ts` načte SQL Server dump a exportuje jen katalogové tabulky do JSON.
 - `src/scripts/import-anastasia-catalog.ts` načte JSON a idempotentně doplní katalog do Medusa v2.
 
-Parser neexportuje zákaznice, účty, objednávky ani jejich osobní údaje. Do importéru se předává jen připravený soubor katalogu. Nejsou přidány žádné závislosti.
+Parser neexportuje zákazník, účty, objednávky ani jejich osobní údaje. Do importéru se předává jen připravený soubor katalogu. Nejsou přidány žádné závislosti.
 
 ## Postup
 

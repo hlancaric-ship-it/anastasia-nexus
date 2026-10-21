@@ -1,4 +1,4 @@
-// Browser E2E č. 6: admin API typ konzultácie + dostupnosť → zákazníčka (store API) termín → košík → pokladňa storefrontu (digitálne, Stripe 4242)
+// Browser E2E č. 6: admin API typ konzultácie + dostupnosť → zákazníka (store API) termín → košík → pokladňa storefrontu (digitálne, Stripe 4242)
 // → booking confirmed → vlastný admin Konzultácie (detail, zrušenie). Termín, súbeh, košík a expirácia cez UI storefrontu.
 import { chromium } from '/Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
 import { writeFileSync } from 'node:fs';
@@ -53,7 +53,7 @@ try {
   }
   const openSlots = async (p) => { await p.goto(`${SF}/konzultacie/rezervacia?typ=${encodeURIComponent(handle)}`); await p.waitForSelector('#booking-view .booking-slot, #booking-view .empty-state, #booking-view [data-state=ERROR]', { timeout: 30000 }); return p.locator('#booking-view .booking-slot').evaluateAll(b => b.map(x => x.dataset.slot)); };
 
-  // B) Nepřihlásená zákazníčka vidí termíny, pri výbere dostane prihlásenie s návratom
+  // B) Nepřihlásená zákazníka vidí termíny, pri výbere dostane prihlásenie s návratom
   const anonSlots = await openSlots(page);
   await page.locator('#booking-view .booking-slot').first().click();
   await page.waitForSelector('#booking-view a[href="/prihlasenie"], #booking-view .button', { timeout: 10000 });
@@ -124,7 +124,7 @@ try {
   const bk = sql(`select status||'|'||coalesce(order_id,'') from booking where id='${bookingId}'`);
   rec('platba-a-potvrdenie-terminu', state === 'ALLOW' && /^confirmed\|order_/.test(bk), { state, msg: (await page.textContent('#checkout-result')).trim().slice(0, 200), bk });
 
-  // F) Zákazníčka B: košík ukazuje termín bez množstva, odstránenie uvoľní termín
+  // F) Zákazníka B: košík ukazuje termín bez množstva, odstránenie uvoľní termín
   await pageB.goto(SF + '/kosik');
   await pageB.waitForSelector('.cart-line', { timeout: 20000 });
   const lineB = (await pageB.textContent('.cart-line')).replace(/\s+/g, ' ');

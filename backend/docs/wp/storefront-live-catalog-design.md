@@ -14,9 +14,9 @@ Stav: IMPLEMENTED; lokální ověření níže. Větev `codex/live-menu` navazuj
 
 Na výslovný pokyn uživatele porovnáno s veřejným aktuálním starým obchodem: 14 produktů, kategorie 5 / 2 / 7. V izolované lokální databázi `anastasia_catalog_local_20261019` publikováno těchto 14 původních produktů, dalších 16 archivních produktů zůstává draft. Původní produkty se nemažou. Známý syntetický testovací produkt není publikovaný.
 
-Přiřazeny tři sjednocené kategorie při zachování původních vazeb kvůli historii a existujícím pravidlům. Ceny, obrázky, popisy, zákaznice, objednávky a přístupy se touto operací nepřepisovaly. Dry-run předcházel apply; opakování měnilo 0 záznamů. Soukromá záloha původních stavů a kategorií je pouze v ignorovaném `backend/data-private/menu-catalog/before.json`.
+Přiřazeny tři sjednocené kategorie při zachování původních vazeb kvůli historii a existujícím pravidlům. Ceny, obrázky, popisy, zákazník, objednávky a přístupy se touto operací nepřepisovaly. Dry-run předcházel apply; opakování měnilo 0 záznamů. Soukromá záloha původních stavů a kategorií je pouze v ignorovaném `backend/data-private/menu-catalog/before.json`.
 
-Lokálně běží backend :9100, storefront :4174 a vlastní admin :4178. Externí odesílání e-mailů vypnuté; počet notifikací ověřen 0. Žádná zákaznická data ani přístupy nejsou součástí tohoto dokumentu či commitu.
+Lokálně běží backend :9100, storefront :4174 a vlastní admin :4178. Externí odesílání e-mailů vypnuté; počet notifikací ověřen 0. Žádná zákazníková data ani přístupy nejsou součástí tohoto dokumentu či commitu.
 
 ## Ověření
 

@@ -21,7 +21,7 @@ NEXUS Workeru (`:8787`), `stripe listen` v testovacím účtu, vlastní admin (`
 | Konzultace | 10/10 | admin typ + týdenní dostupnost, sloty, rezervace (held), připojení ke košíku, pokladna 40 €, platba → termín `confirmed`, admin seznam a detail, zrušení objednávky zruší termín + e-maily |
 | Poukazy – web | 8/8 | nabídka hodnot z backendu, nákup 50 €, vydání, e-mail obdarované s kódem, uplatnění v košíku, doplatek 9 €, čerpání na 0, admin seznam maskovaně, detail s pohyby |
 | Poukazy – admin | 4/4 | maskovaný seznam, historie pohybů, zneplatnění vyžaduje důvod, DB `void|0` |
-| Účet a chat | 8/8 | účet bez přihlášení zamčený, reálné objednávky a termíny, zákaznice píše, bez nákupu blokováno, admin vidí, odpověď + e-mail, zákaznice vidí, uzavřená konverzace |
+| Účet a chat | 8/8 | účet bez přihlášení zamčený, reálné objednávky a termíny, zákazník píše, bez nákupu blokováno, admin vidí, odpověď + e-mail, zákazník vidí, uzavřená konverzace |
 | Konzultace – web | browser E2E | výběr typu a termínu na `/konzultacie`, held termín v košíku, platba, `confirmed` (`969577f`) |
 | Admin – konzultace | browser E2E | typy (cena, délka, SKU), týdenní dostupnost a výjimky ve vlastním adminu (`2494903`) |
 | Admin – nastavení poukazů | browser E2E | hodnoty, platnost, doručení, rozsah kategorií, uložení a reload (`73c0145`, evidence 56–57) |
@@ -33,13 +33,13 @@ Klub obnova běží s posunutými hodinami procesu (simulace dne obnovy, `shift-
 `runMembershipBilling` stejně jako job). DB se ručně nemění.
 
 ### Bezpečnost (ověřeno proti běžícímu backendu)
-- **Admin RBAC:** 50 kombinací route × metoda ze všech vlastních `/admin/*` rout × (anonym, zákaznice) = 100 volání → 401/403, žádný únik.
-- **Store routy se zákaznickými daty bez přihlášení:** 16/16 → 401/403.
+- **Admin RBAC:** 50 kombinací route × metoda ze všech vlastních `/admin/*` rout × (anonym, zákazník) = 100 volání → 401/403, žádný únik.
+- **Store routy se zákazníkmi daty bez přihlášení:** 16/16 → 401/403.
 - **IDOR:** cizí chat, členství (stop/payment/reconcile), booking (cancel/cart), objednávka (cancel/detail) → nic neprojde, stav beze změny.
   Nalezeno a opraveno: nativní `GET /store/orders/:id` vracelo e-mail a adresu komukoli s ID → nyní jen přihlášená vlastnice, jinak 404 (`1e07e36`).
 - **Webhooky:** `/hooks/nexus/booking-order` bez secretu 503 (fail-closed), se špatným podpisem 401; `/hooks/ops/edge-events` 401;
   Stripe se špatným podpisem nevytvoří platbu (Medusa vrací 200 a ověřuje asynchronně).
-- **`shop-prices`:** zákaznice 401, záporná cena / 3 desetinná místa / pole navíc 400, stará `expected_amount` 409, cizí `price_id` 409, cena nezměněna.
+- **`shop-prices`:** zákazník 401, záporná cena / 3 desetinná místa / pole navíc 400, stará `expected_amount` 409, cizí `price_id` 409, cena nezměněna.
 - **Cena z klienta:** `unit_price` v line-itemu 400, `metadata` ignorována, cena zůstává serverová 26,50 €.
 - **Idempotence:** 3× replay stejného Stripe eventu → stále 1 objednávka, 1 platba, 1 capture.
 - **Tajemství:** v gitu ani v buildu nic; `.env`, `data-private`, `dist` gitignored; produkční `medusa-config` odmítne start se slabými secrety, ne-HTTPS CORS, testovacím Stripe klíčem nebo bez `whsec_`.
@@ -82,7 +82,7 @@ Klub obnova běží s posunutými hodinami procesu (simulace dne obnovy, `shift-
 - Obnovy během posunu hodin (DST) – ověřit 25. 10.; lokálně visí `mbr_01M56XY3A02CFZ0TFN6467ZDYQ` ve stavu `renewing` (syntetika, reconcile job).
 - `/admin/readiness` počítá do „bez obrázku/kategorie“ i servisní produkty (Klub, konzultace, poukazy).
 - Košík s poukazem: „Celkom 3,00 € / Vrátane DPH 9,91 €“ – DPH se počítá z ceny zboží (víceúčelový poukaz), právně správně, ale matoucí.
-- Admin Klub › Členky hledá podle zákaznice, ne podle `mbr_` ID.
+- Admin Klub › Členky hledá podle zákazník, ne podle `mbr_` ID.
 - Refund částečně zaplacené objednávky zapíše `refund_manual_review` (záměr – kontrola obsluhou).
 
 ## 4. CI a browser E2E s commity

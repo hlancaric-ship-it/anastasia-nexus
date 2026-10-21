@@ -18,7 +18,7 @@ export type RefundCompensation =
  * Kompenzace po vrácení platby kartou (payment.refunded) – obrácený tok checkoutu bez storna objednávky.
  *
  * Plný refund karty se chová jako ekonomické storno:
- *  - část objednávky uhrazená poukazem se vrátí zpět na poukaz (jinak by zákaznice o hodnotu poukazu přišla);
+ *  - část objednávky uhrazená poukazem se vrátí zpět na poukaz (jinak by zákazník o hodnotu poukazu přišla);
  *  - nevyčerpané poukazy koupené touto objednávkou se zneplatní (jinak by zůstal poukaz zdarma);
  *    už čerpané vrátí `issued_used` k ručnímu řešení;
  *  - přístupy (entitlementy) ruší samostatný subscriber `entitlement-payment-refunded`.

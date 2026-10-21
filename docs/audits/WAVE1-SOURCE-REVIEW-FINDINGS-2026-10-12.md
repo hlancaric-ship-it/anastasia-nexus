@@ -35,7 +35,7 @@
 ### Import / konfigurace
 - `backend/src/scripts/anastasia-bootstrap.ts`: EUR, region, shipping, payment provider preference Stripe, non-prod fallback `pp_system_default` (ne reálná platba).
 - `backend/src/scripts/import-anastasia-catalog.ts`: validation, plán/import + dry-run a explicitní update režimy.
-- `backend/src/scripts/migrate-legacy-customers-orders.ts`: validace schématu, idempotentní zákaznické a order ref mapování, vytváří pouze neodeslané návrhy resetu/přístupu; **K6 autentizaci neimplementuje**.
+- `backend/src/scripts/migrate-legacy-customers-orders.ts`: validace schématu, idempotentní zákazníkové a order ref mapování, vytváří pouze neodeslané návrhy resetu/přístupu; **K6 autentizaci neimplementuje**.
 - `backend/src/scripts/__tests__/customer-migration.unit.spec.ts`: testuje default dry-run, local DB only, zákaz hesel, soukromé soubory s mode 0600, idempotenci; **existence testu není nové spuštění**.
 - `backend/medusa-config.ts` a `backend/.env.template`: produkční kontrola silných secrets, CORS, PostgreSQL; Stripe se registruje podmíněně; e-mailový provider stále otevřený.
 

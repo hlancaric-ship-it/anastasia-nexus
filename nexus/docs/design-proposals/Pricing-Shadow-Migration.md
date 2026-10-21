@@ -37,7 +37,7 @@ okfish nemá jeden engine, ale **dva, které počítají cenu odlišným kódem*
 Volá ho `cloudflare-worker/src/shoptet-api/pricing-bridge.ts` → `calculateProductsPricing()` → `sync-orchestrator.ts`. Tohle je **batch cesta**: cron 5× denně (`12 6,10,14,18,22 * * *`) přepočítá katalog a zapíše ceny do Shoptet ceníků přes API.
 
 **B) Worker mini-engine** — `cloudflare-worker/src/engine/pricing.ts` → `calculateAllTierPrices()`, nativní `number`, žádný Decimal.
-Volá ho endpoint `GET /v1/product-discount/:code/:tier`. Tohle je **real-time zákaznická cesta**: frontend `vip_detail.js` na detailu produktu volá worker a vykreslí VIP badge se slevou.
+Volá ho endpoint `GET /v1/product-discount/:code/:tier`. Tohle je **real-time zákazníková cesta**: frontend `vip_detail.js` na detailu produktu volá worker a vykreslí VIP badge se slevou.
 
 Oba enginy čtou stejné `policy-v1.json`, ale mají **odlišnou implementaci i odlišné vstupy** (A čte produkty ze Shoptet API, B čte řádek z KV `product:${code}`). Historie souborů je plná fixů typu „stejný bug opraven potřetí v třetím enginu".
 
@@ -71,7 +71,7 @@ Musí stihnout ack do **4s timeoutu Shoptetu**. Registrované eventy: `order:cre
 
 **Skutečný cenový výpočet běží v GitHub Actions**, ne ve Workeru. `sync.yml` se spouští z `repository_dispatch` (typ `shoptet-webhook`), hodinového cronu jako záložky, nebo ručně. Tam běží `scripts/run-real-sync.ts` → `SyncOrchestrator` → `calculateProductsPricing()` (root engine) → zápis do Shoptet ceníků. `concurrency: shoptet-sync-job, cancel-in-progress: false`, timeout 60 min.
 
-**Worker mini-engine** (`calculateAllTierPrices`) běží jen v `/v1/product-discount/:code/:tier` — a to **JE** synchronní zákaznická cesta (frontend `vip_detail.js` na ni čeká při vykreslení badge).
+**Worker mini-engine** (`calculateAllTierPrices`) běží jen v `/v1/product-discount/:code/:tier` — a to **JE** synchronní zákazníková cesta (frontend `vip_detail.js` na ni čeká při vykreslení badge).
 
 Shrnuto:
 
@@ -238,7 +238,7 @@ Princip: jedna konstanta v configu + explicitní bariéra, která pokus o zápis
 **Doporučení: samostatný shadow Worker, NE zásah do okfish Workeru.**
 
 Důvody:
-- okfish je živý produkční systém, kde běží zákaznický badge. Jakýkoli deploy tam je riziko.
+- okfish je živý produkční systém, kde běží zákazníkov badge. Jakýkoli deploy tam je riziko.
 - NEXUS Rules jsou ESM/TypeScript s Decimal.js — vtlačit je do okfish bundlu znamená měnit jeho build.
 - Rollback samostatného workeru = smazat worker. Rollback in-process změny = redeploy okfishe.
 
@@ -285,7 +285,7 @@ Shadow Worker si data tahá sám: přečte KV `product:${code}` read-only (stejn
 
 Tohle je jediná varianta, kde je **fyzicky nemožné** ovlivnit zákazníka — shadow Worker není v jeho request path vůbec.
 
-Do request path okfishe (`ctx.waitUntil`) se jde až tehdy, když Fáze 1 běží čistě a chceme pokrýt reálný zákaznický traffic místo cronového vzorku.
+Do request path okfishe (`ctx.waitUntil`) se jde až tehdy, když Fáze 1 běží čistě a chceme pokrýt reálný zákazníkov traffic místo cronového vzorku.
 
 **Varianta B (proxy před okfishem)** se zamítá: vkládá nový single point of failure přímo mezi zákazníka a cenu.
 
@@ -327,7 +327,7 @@ Agregace `shadow_run` (run_id, ts_start, ts_end, compared, matched, match_pct, b
 Vrstvená obrana, ne jedna podmínka:
 
 0. **ŽÁDNÝ SHOPTET TOKEN** — nejsilnější vrstva. Offline replay ani shadow Worker nikdy nedostanou `SHOPTET_PRIVATE_API_TOKEN`. `ShoptetApiClient` bez tokenu **hází výjimku už v konstruktoru** (client.ts:119) — shadow tedy fyzicky nemůže zavolat ani čtecí, natož zápisový endpoint. Data si bere z veřejného feedu.
-1. **Architektonická** — offline replay běží mimo produkční infrastrukturu úplně. Varianta A: shadow Worker není v zákaznické request path.
+1. **Architektonická** — offline replay běží mimo produkční infrastrukturu úplně. Varianta A: shadow Worker není v zákazníkové request path.
 2. **Binding-level** — shadow Worker (až na něj dojde) má **jen** `VIP_KV` (čtení) + `SHADOW_DB` (D1 zápis). Žádný `VIP_KV` write, žádný R2 write, žádný Shoptet token.
 2b. **Zákaz importu writer vrstvy** — shadow nesmí importovat `pricelist-writer`, `customer-writer`, `coupon-sales-writer` ani `client.ts`. Vynuceno CI testem (bod 5).
 2c. **Nedotýkat se sync stavu** — shadow nesmí zapisovat do `.sync_state.json`, `.reconciliation_state.json` ani do KV klíčů, ze kterých sync čte. Zápis jen do vlastní shadow DB. Jinak bych rozbil diff-based idempotenci a vyrobil zbytečné PATCHe.
@@ -471,7 +471,7 @@ Uleví tomu jedna věc: kupónová pole jsou **oddělený výstup od ceny**. Cen
 | `manufacturer` | feed | ano |
 | `category` | `categoryText` | ano (ale 0 categoryLimits — mrtvá větev) |
 
-**Závěr: všechna data jsou offline dostupná z `MASTER_FEED_URL` / `products.csv`.** Zákaznická skupina (e-mail→tier) je pro cenový shadow zbytečná — počítám všech 10 tierů pro každý produkt, což je i tak úplnější než vzorek reálných zákazníků.
+**Závěr: všechna data jsou offline dostupná z `MASTER_FEED_URL` / `products.csv`.** Zákazníková skupina (e-mail→tier) je pro cenový shadow zbytečná — počítám všech 10 tierů pro každý produkt, což je i tak úplnější než vzorek reálných zákazníků.
 
 Chybějící kusy nejsou data, ale **transformační logika** (§3.1) — patří do adapteru v `connectors/`, ne do Rules.
 
@@ -503,7 +503,7 @@ Bod 4 je nejpraktičtější provozní kontrola: nevyžaduje nic navíc a je vid
 
 Shadow režim je **proveditelný a nic zásadního ho neblokuje**. Po ověření proti živému klonu je riziko dokonce **výrazně nižší**, než návrh původně předpokládal:
 
-- Cenový výpočet **neběží ve Workeru** na zákaznické cestě, ale v GitHub Actions (webhook jen odpálí `repository_dispatch`). Obavy o CPU limit a latenci odpovědi se batch cesty netýkají.
+- Cenový výpočet **neběží ve Workeru** na zákazníkové cestě, ale v GitHub Actions (webhook jen odpálí `repository_dispatch`). Obavy o CPU limit a latenci odpovědi se batch cesty netýkají.
 - Všechna vstupní data jsou dostupná offline z veřejného feedu, takže **první shadow běh nemusí sáhnout na produkci vůbec**.
 - `domains/pricing/` je prokazatelně izolované — chain táhne jen `decimal.js`, `fs`, čtyři Rules a typy z `core/canonical`. Minimální řez je čistý a nevyžaduje žádné odřezávání.
 

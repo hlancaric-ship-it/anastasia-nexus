@@ -87,7 +87,7 @@ void (async () => {
   await nav('Kupóny'); await open('Vytvoriť kupón'); fill('code','JAR20'); fill('value','101'); await tick(); const couponBefore=writes().length
   button('Uložiť zmeny').click(); await tick(); assert(writes().length===couponBefore,'over-100 percent is blocked')
   fill('value','20'); await tick(); await save(); assert(state.promotions[1].application_method.type==='percentage','supported coupon create')
-  await nav('Zákazníčky'); await open('Pridať zákazníčku'); fill('first_name','Nová'); fill('last_name','Ukážka'); fill('email','bad'); await tick(); button('Uložiť zmeny').click(); await tick()
+  await nav('Zákazníkov'); await open('Pridať zákazníka'); fill('first_name','Nová'); fill('last_name','Ukážka'); fill('email','bad'); await tick(); button('Uložiť zmeny').click(); await tick()
   assert(!!document.querySelector('[aria-invalid=true]'),'email validation appears at field')
   fill('email','new@example.test'); await tick(); await save(); assert(state.customers.length===2,'customer create and read back')
   await nav('Objednávky'); await open('Otvoriť objednávku'); fill('note','Poznámka obsluhy'); await tick(); await save()
@@ -96,7 +96,7 @@ void (async () => {
   const search=document.getElementById('shop-search') as HTMLInputElement
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(search,'NOT-FOUND');search.dispatchEvent(new Event('input',{bubbles:true}));await tick();button('Hľadať').click();await tick()
   await wait(() => document.body.textContent?.includes('nič nenašlo'));assert(!document.querySelector('tbody tr'),'empty search uses server result')
-  await nav('Zákazníčky'); await open('Pridať zákazníčku'); fill('first_name','Neistý');fill('last_name','Výsledok');fill('email','uncertain@example.test'); await tick()
+  await nav('Zákazníkov'); await open('Pridať zákazníka'); fill('first_name','Neistý');fill('last_name','Výsledok');fill('email','uncertain@example.test'); await tick()
   failWrite=true;const n=writes().length;button('Uložiť zmeny').click();await tick();await wait(() => button('Uložiť zmeny').disabled)
   assert(writes().length===n+1,'uncertain write is not repeated');assert(document.body.textContent?.includes('Výsledok uloženia nepoznáme'),'uncertain write explains verification')
   button('Obnoviť zoznam a overiť výsledok').click();failWrite=false;await tick();await nav('Prehľad')

@@ -112,7 +112,7 @@
     },
     {
       "id": "customers",
-      "label_sk": "Zákazníčky",
+      "label_sk": "Zákazníkov",
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
@@ -125,7 +125,7 @@
         "backend/docs/wp/evidence/admin-c5-ci.json"
       ],
       "remaining": "Základní C5 cesty VERIFIED, důkaz admin-c5-ci.json; širší rozsah této agendy zůstává PARTIAL. Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API.",
-      "acceptance": "Správná zákaznice má pouze vlastní vazby; poznámky se neobjeví v provozním logu."
+      "acceptance": "Správná zákazník má pouze vlastní vazby; poznámky se neobjeví v provozním logu."
     },
     {
       "id": "stock",
@@ -169,7 +169,7 @@
         "nexus/workers/api/routes/nexusPricing.ts"
       ],
       "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu.",
-      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika."
+      "acceptance": "Dvě zákazník mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika."
     },
     {
       "id": "booking",
@@ -234,7 +234,7 @@
         "backend/src/api/store/contact/policy.ts"
       ],
       "remaining": "Nové UI; limity dnes v kódu, žádný neexistující konfigurační přepínač.",
-      "acceptance": "Čistý text; 2000 znaků zákaznice/5000 admin; 403/409/429 slovensky; počítadlo a zachování rozepsané odpovědi."
+      "acceptance": "Čistý text; 2000 znaků zákazník/5000 admin; 403/409/429 slovensky; počítadlo a zachování rozepsané odpovědi."
     },
     {
       "id": "vouchers",
@@ -363,13 +363,13 @@
       "backend_layer": "missing",
       "backend_status": "NOT_IMPLEMENTED",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Společná správa anastasia.academy a aianastasia.com bez druhé databáze zákaznic.",
+      "request": "Společná správa anastasia.academy a aianastasia.com bez druhé databáze zákazník.",
       "sources": [
         "docs/NEXUS_AUTONOMY_SPEC.md",
         "backend/docs/wp/admin-phase1-scope.md"
       ],
-      "remaining": "Jedno jádro/jeden admin je závazná architektura nyní; doplnit registr webů, oprávnění, obsah a přepnutí kontextu. Nevytvářet druhou databázi zákaznic ani druhý platební tok.",
-      "acceptance": "Přepnutí webu nemíchá obsah; zákaznice/platby/přístupy zůstávají u jednoho vlastníka."
+      "remaining": "Jedno jádro/jeden admin je závazná architektura nyní; doplnit registr webů, oprávnění, obsah a přepnutí kontextu. Nevytvářet druhou databázi zákazník ani druhý platební tok.",
+      "acceptance": "Přepnutí webu nemíchá obsah; zákazník/platby/přístupy zůstávají u jednoho vlastníka."
     },
     {
       "id": "translations",
@@ -433,12 +433,12 @@
     },
     {
       "id": "customer-recovery",
-      "label_sk": "Pomoc s prihlásením zákazníčky",
+      "label_sk": "Pomoc s prihlásením zákazníkov",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Admin pomůže zákaznici obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo.",
+      "request": "Admin pomůže zákazníci obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo.",
       "sources": [
         "backend/src/modules/auth-magic-link/service.ts",
         "backend/src/modules/auth-security/index.ts"
@@ -527,7 +527,7 @@
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Zákaznické i admin storno, kartová/poukazová vratka, odstoupení, reklamace a výměny.",
+      "request": "Zákazníkové i admin storno, kartová/poukazová vratka, odstoupení, reklamace a výměny.",
       "sources": [
         "backend/src/lib/order-self-cancel/cancel.ts",
         "backend/src/api/admin/withdrawals/[id]/route.ts",
@@ -715,13 +715,13 @@
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
       "new_admin_status": "NOT_IMPLEMENTED",
-      "request": "Staré zákaznice, objednávky, přístupy, QR a odkazy dohledatelné v novém systému.",
+      "request": "Staré zákazník, objednávky, přístupy, QR a odkazy dohledatelné v novém systému.",
       "sources": [
         "backend/src/scripts/migrate-legacy-customers-orders.ts",
         "backend/src/scripts/export-edge-redirects.ts"
       ],
       "remaining": "CLI pro migraci existuje; chybí obslužný report s vazbami, doplnění registru QR a schválená migrační akce.",
-      "acceptance": "Dry-run bez změny; součty a počty se shodují; druhý běh nic nezdvojí; žádná skutečná zákaznická data v repu/logu."
+      "acceptance": "Dry-run bez změny; součty a počty se shodují; druhý běh nic nezdvojí; žádná skutečná zákazníková data v repu/logu."
     },
     {
       "id": "ambassadors",

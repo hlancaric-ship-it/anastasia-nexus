@@ -1,7 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { notifyOrderCanceled } from "../lib/notify/order"
 
-/** Zrušení objednávky (admin i storno zákaznicí – obě cesty končí `order.canceled`). */
+/** Zrušení objednávky (admin i storno zákazníkov – obě cesty končí `order.canceled`). */
 export default async function emailOrderCanceledHandler({ event, container }: SubscriberArgs<{ id: string }>) {
   await notifyOrderCanceled(container, event.data.id)
 }

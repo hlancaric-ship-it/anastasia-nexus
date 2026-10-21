@@ -1,7 +1,7 @@
 import { authenticate, type MiddlewareRoute } from "@medusajs/framework/http"
 
 /**
- * Autentizace zákaznice pro /store/nexus-cart a /store/nexus-checkout.
+ * Autentizace zákazník pro /store/nexus-cart a /store/nexus-checkout.
  *
  * SECURITY FIX (C1/C3/F3): tyto endpointy přijímají cart_id z klienta a
  * manipulují ceny / dokončují objednávky. Bez auth middleware může kdokoliv:

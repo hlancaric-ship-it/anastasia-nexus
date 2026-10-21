@@ -14,9 +14,9 @@ Stav: IMPLEMENTED_UNVERIFIED před plným CI. Vlastní větev `codex/booking-inb
 
 ## Rozhraní a oprávnění
 
-Nový úzce vymezený `POST /hooks/nexus/booking-order` má pouze režimy inspect/synchronize, nikoliv libovolný příkaz. Striktní tělo verze 1 obsahuje tenantId, operationId, orderId a mode; cena, paid, callback URL ani další pole nejsou povolené. Odpověď obsahuje pouze identitu operace/objednávky a ověřený stav, žádný zákaznický profil nebo platební částky.
+Nový úzce vymezený `POST /hooks/nexus/booking-order` má pouze režimy inspect/synchronize, nikoliv libovolný příkaz. Striktní tělo verze 1 obsahuje tenantId, operationId, orderId a mode; cena, paid, callback URL ani další pole nejsou povolené. Odpověď obsahuje pouze identitu operace/objednávky a ověřený stav, žádný zákazníkov profil nebo platební částky.
 
-Používá již zavedený HMAC-SHA256 protokol `x-nexus-timestamp`, `x-nexus-signature` přes timestamp.rawBody (±300 sekund), ale vlastní tajemství `NEXUS_BOOKING_SYNC_SECRET` min. 32 znaků. Nelze použít přihlášení zákaznice ani ops ingest secret jako náhradu. Backend váže požadavek na svůj `NEXUS_TENANT_ID`; Origin požadavky odmítá. Surové tělo má limit 8 KiB.
+Používá již zavedený HMAC-SHA256 protokol `x-nexus-timestamp`, `x-nexus-signature` přes timestamp.rawBody (±300 sekund), ale vlastní tajemství `NEXUS_BOOKING_SYNC_SECRET` min. 32 znaků. Nelze použít přihlášení zákazník ani ops ingest secret jako náhradu. Backend váže požadavek na svůj `NEXUS_TENANT_ID`; Origin požadavky odmítá. Surové tělo má limit 8 KiB.
 
 Worker potřebuje explicitní `MEDUSA_BOOKING_SYNC_URL` a `MEDUSA_BOOKING_SYNC_SECRET` odpovídající backendu. Bez URL se spotřebitel nezapne. Adresa je pouze HTTPS nebo testovací HTTP loopback, bez přesměrování, hesla, query či fragmentu. Žádná konfigurace produkce nebo cron rozvrhu se v balíku nemění. Reálné tajemství se do repozitáře nedoplňuje.
 
@@ -37,6 +37,6 @@ Cílené testy backendu kontrolují HMAC, cizí tenant, další pole, nezaplacen
 
 HTTP/PG scénáře používají skutečný route a modul rezervací: unsigned/cizí podpis/tenant/paid odmítnuté; nezaplacená rezervace zůstane held; po skutečném capture se simuluje vynechané potvrzení a nativně opraví; opakování nezaloží nový termín; zrušená se neoživí. Příjemce ve workerd testech je kontraktový fixture a Worker v HTTP testech se neoznačuje za živě propojenou Cloudflare D1. Produkční ani Redis restart E2E tím není prokázán. Plné běhy jen GitHub Actions.
 
-Operace pokrývá pouze konzistenci rezervace při order.placed. Původní Medusa subscribery nadále obsluhují platby, nároky a e-maily; tato oprava neposílá další e-mail. Samostatná spolehlivost zákaznických oznámení, payment.captured událostí, customer.created spotřebitele, další obchodní domény a obslužné akce nad nejistotou zůstávají dalšími body plánu. Žádná cena, capture, refund, poukaz nebo přístup se tímto endpointem nenastavuje.
+Operace pokrývá pouze konzistenci rezervace při order.placed. Původní Medusa subscribery nadále obsluhují platby, nároky a e-maily; tato oprava neposílá další e-mail. Samostatná spolehlivost zákazníkov oznámení, payment.captured událostí, customer.created spotřebitele, další obchodní domény a obslužné akce nad nejistotou zůstávají dalšími body plánu. Žádná cena, capture, refund, poukaz nebo přístup se tímto endpointem nenastavuje.
 
 Rollback: vypnout explicitní URL spotřebitele, vrátit kód; aditivní sloupce ponechat. Rozpracované operace a inbox nemažou historii. Přijetí události a existující Medusa business subscribery zůstávají nezávislé.

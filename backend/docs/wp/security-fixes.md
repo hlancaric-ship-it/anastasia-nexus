@@ -16,7 +16,7 @@ Provider ukládá do PostgreSQL SHA-256 normalizovaného e-mailu, hash náhodné
 Ověření používá jediný `DELETE ... WHERE id = ? AND token_hash = ? AND expires_at > now() RETURNING id`.
 Chybný pokus nic nemaže; dva souběžné správné pokusy nemohou oba spotřebovat tentýž záznam.
 Zůstává platný pouze nejnovější odkaz pro danou adresu. TTL zůstává 15 minut.
-Cache tokeny vydané před přechodem se nepřenášejí: zákaznice si musí vyžádat nový odkaz.
+Cache tokeny vydané před přechodem se nepřenášejí: zákazník si musí vyžádat nový odkaz.
 
 Middleware pro nativní GET/POST `/auth/:actor_type/:auth_provider` vyhodnocuje dekódovaný provider,
 ostatní providery ponechává beze změny a u magic-link povoluje pouze customer aktéra
@@ -48,20 +48,20 @@ která zakódovala celou cestu včetně lomítek. Zachovává query/fragment a n
 Token se nepřidává k absolutním ani protocol-relative externím URL. Podporované jsou také
 `URI="..."` odkazy na HLS klíče a variantní playlisty.
 
-Ověření podepsaného tokenu navíc vyžaduje zákaznici, produkt, nonce, celočíselnou expiraci a nejvýše
+Ověření podepsaného tokenu navíc vyžaduje zákazníci, produkt, nonce, celočíselnou expiraci a nejvýše
 900 sekund zbývající platnosti. Nejde o online revokaci: již vydaný token může fungovat do expirace
 (výchozí 600 sekund). Okamžité zneplatnění po refundu a DRM tento balík nepředstírá.
 
 ## Kupóny
 
 Současný NEXUS adaptér používá jednu procentní sazbu pro všechny položky. Proto nově odmítá
-nativní podmínky, které neumí přesně vynutit: zákaznická/cart pravidla, target/buy pravidla,
+nativní podmínky, které neumí přesně vynutit: zákazníková/cart pravidla, target/buy pravidla,
 množstevní omezení, jiný target než položky a jiný promotion typ než standard.
 Všechny potřebné relace se načtou před rozhodnutím. Neznámý nebo nepodporovaný kupón vrací
 `COUPON_INVALID`; žádná podmínka se nesmí zahodit a změnit v globální slevu.
 
 **Rozsah:** běžné nepodmíněné procentní kupóny zůstávají funkční. Podmíněné kupóny se nyní
-bezpečně odmítnou i u oprávněné zákaznice. Plná podpora těchto typů vyžaduje oddělené napojení
+bezpečně odmítnou i u oprávněné zákazník. Plná podpora těchto typů vyžaduje oddělené napojení
 nativního vyhodnocení pravidel do NEXUS cen, nikoli další ruční seznam částečně podporovaných operátorů.
 Původní audit neprokázal dokončení neoprávněné objednávky; oprava uzavírá prokázané chybné přecenění.
 

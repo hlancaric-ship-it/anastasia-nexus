@@ -53,7 +53,7 @@ describe("repriceCart ownership gate", () => {
 describe("POST /store/nexus-cart auth", () => {
   const res = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }) as any
 
-  it("vrátí 401 bez přihlášené zákaznice a nesáhne na scope", async () => {
+  it("vrátí 401 bez přihlášené zákazník a nesáhne na scope", async () => {
     const scope = { resolve: jest.fn(() => { throw new Error("scope must not be touched") }) }
     const r = res()
     await POST({ body: { cart_id: "cart_synthetic" }, scope, auth_context: undefined } as any, r)
@@ -62,7 +62,7 @@ describe("POST /store/nexus-cart auth", () => {
     expect(scope.resolve).not.toHaveBeenCalled()
   })
 
-  it("vrátí 403, když ověřená zákaznice míří na cizí košík", async () => {
+  it("vrátí 403, když ověřená zákazník míří na cizí košík", async () => {
     const r = res()
     await POST({ body: { cart_id: "cart_synthetic" }, scope: scopeWithCart("cust_other"), auth_context: { actor_type: "customer", actor_id: "cust_owner" } } as any, r)
     expect(r.status).toHaveBeenCalledWith(403)

@@ -962,7 +962,7 @@ document.addEventListener('ShoptetDataLayerUpdated', () => {
 
 **Zásadní rozhodnutí: ceny počítá Shoptet, ne my.**
 
-Shoptet nativně umí cenové hladiny zákaznických skupin. Věrnostní tier tedy **řešíme přiřazením zákazníka do skupiny přes API** (server-side, batch), ne přepisováním cen v prohlížeči.
+Shoptet nativně umí cenové hladiny zákazníkov skupin. Věrnostní tier tedy **řešíme přiřazením zákazníka do skupiny přes API** (server-side, batch), ne přepisováním cen v prohlížeči.
 
 Frontend dělá pouze **prezentaci**:
 - badge "Vaše úroveň: Stříbrná" v hlavičce,

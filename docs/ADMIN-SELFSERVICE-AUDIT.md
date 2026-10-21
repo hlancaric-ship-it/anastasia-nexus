@@ -20,7 +20,7 @@ brandSaleDiscounts: { DELPHIN: 0.15, MIVARDI: 0.10, MIKADO: 0.09 }
 Dvě věci k tomu:
 
 1. **Toto je v přímém rozporu s `PROGRESS_LOG.md` sekce 8**, kde je napsáno "slevové % se zatím vědomě nechávají na 0 %". V kódu reálné procento existuje a je defaultní hodnota, kterou `PricingConfigurationProvider` vrací, pokud nedostane jiný config.
-2. **`brandLimits`/`brandSaleDiscounts` obsahují značky rybářských potřeb (DELPHIN, MIVARDI, MIKADO, FISHING POINT)** — to jsou OKFISH značky, ne ANASTASIA. Soubor/konstanta se jmenuje `DEFAULT_ANASTASIA_PRICING_CONFIG`, ale obsah je zjevně zkopírovaný/sdílený z jiného (rybářského) tenantu. Pokud se tahle konfigurace reálně použije pro ANASTASIA bez úpravy, zákaznice uvidí nesmyslné značkové limity.
+2. **`brandLimits`/`brandSaleDiscounts` obsahují značky rybářských potřeb (DELPHIN, MIVARDI, MIKADO, FISHING POINT)** — to jsou OKFISH značky, ne ANASTASIA. Soubor/konstanta se jmenuje `DEFAULT_ANASTASIA_PRICING_CONFIG`, ale obsah je zjevně zkopírovaný/sdílený z jiného (rybářského) tenantu. Pokud se tahle konfigurace reálně použije pro ANASTASIA bez úpravy, zákazník uvidí nesmyslné značkové limity.
 
 **Závěr pro C5:** tahle konfigurace (tier %, brand limity, sale limity) musí jít z administrace, ne z TS konstanty nasazované přes deploy. Než admin existuje, je potřeba tenhle soubor přinejmenším vyčistit od OKFISH značek a ujasnit, jestli `0.04-0.25` jsou skutečně "0 %, nerozhodnuto", nebo starý testovací default, co zůstal v kódu.
 
@@ -51,13 +51,13 @@ Protože K9 je oficiálně mimo rozsah Fáze 1 dle smlouvy, tohle neblokuje 23. 
 
 ## 6. Klub ANASTASIA / předplatné — DŮLEŽITÉ ZJIŠTĚNÍ k otevřené otázce z chatu
 
-K otázce "zařazení zákaznic do klubu/předplatného" (viz `PROGRESS_LOG.md` sekce 9, otevřený konflikt se smlouvou):
+K otázce "zařazení zákazník do klubu/předplatného" (viz `PROGRESS_LOG.md` sekce 9, otevřený konflikt se smlouvou):
 
 - **[OVĚŘENO ČTENÍM KÓDU]** `admin-demo/STATUS.md:13` (datováno 9. 10. 2026) tvrdí: *"Klub ANASTASIA & Stripe Billing: Členská sekcia a predplatné (`/api/klub/subscribe`), R2/Stream ochrana. ✅"* — označeno jako HOTOVO.
 - **[OVĚŘENO ČTENÍM KÓDU]** Ale v `admin-demo/worker.js` (198 řádků, celý soubor) **žádný `klub` routing, string ani endpoint neexistuje.** Grep na "klub" nic nenašel. Tvrzení v STATUS.md o hotovém `/api/klub/subscribe` je nepodložené — přesně ten typ zápisu, před kterým `PROGRESS_LOG.md` sekce 5 varuje ("Nic se sem nezapisuje jako hotové na základě... tvrzení agenta").
-- **[OVĚŘENO ČTENÍM KÓDU]** `nexus/domains/billing/TenantSubscriptionPlanFlow.ts` a `SubscriptionLifecycleRule.ts` existují, ale řeší **NEXUS vlastní multi-tenant SaaS billing** (Tenant → Subscription → Plan, tedy NEXUS fakturující SVÉ tenanty/klienty jako platformu), **ne** zákaznické členství/klub pro nákupčí ANASTASIA e-shopu. Jose v komentáři (`TenantSubscriptionPlanFlow.ts:21`) výslovně píše, že "subscription payment flow" je "zatím vůbec neřešit".
+- **[OVĚŘENO ČTENÍM KÓDU]** `nexus/domains/billing/TenantSubscriptionPlanFlow.ts` a `SubscriptionLifecycleRule.ts` existují, ale řeší **NEXUS vlastní multi-tenant SaaS billing** (Tenant → Subscription → Plan, tedy NEXUS fakturující SVÉ tenanty/klienty jako platformu), **ne** zákazníkové členství/klub pro nákupčí ANASTASIA e-shopu. Jose v komentáři (`TenantSubscriptionPlanFlow.ts:21`) výslovně píše, že "subscription payment flow" je "zatím vůbec neřešit".
 
-**Závěr:** žádný funkční "klub/předplatné" kód pro zákaznice ANASTASIA nikde neexistuje, navzdory starému tvrzení v `admin-demo/STATUS.md`. Ten dokument je zastaralý/nespolehlivý a neměl by se brát jako zdroj pravdy (doporučuju ho buď smazat, nebo na začátek napsat varování, že je neověřený a předchází dnešnímu `PROGRESS_LOG.md`). Rozhodnutí o rozsahu (prostá segmentace vs. skutečné předplatné) z `PROGRESS_LOG.md` sekce 9 zůstává nutné, nic se tím nevyřešilo — spíš naopak, potvrzuje se, že se musí stavět od nuly.
+**Závěr:** žádný funkční "klub/předplatné" kód pro zákazník ANASTASIA nikde neexistuje, navzdory starému tvrzení v `admin-demo/STATUS.md`. Ten dokument je zastaralý/nespolehlivý a neměl by se brát jako zdroj pravdy (doporučuju ho buď smazat, nebo na začátek napsat varování, že je neověřený a předchází dnešnímu `PROGRESS_LOG.md`). Rozhodnutí o rozsahu (prostá segmentace vs. skutečné předplatné) z `PROGRESS_LOG.md` sekce 9 zůstává nutné, nic se tím nevyřešilo — spíš naopak, potvrzuje se, že se musí stavět od nuly.
 
 ---
 

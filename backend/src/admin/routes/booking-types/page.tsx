@@ -204,7 +204,7 @@ export default function BookingTypesPage() {
           <Drawer.Body className="flex flex-col gap-4 overflow-y-auto">
             <fieldset disabled={saving} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <Label htmlFor="bt-title">Název (uvidí ho zákaznice)</Label>
+                <Label htmlFor="bt-title">Název (uvidí ho zákazník)</Label>
                 <Input id="bt-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Úvodní konzultace" required />
               </div>
               <div className="grid grid-cols-2 gap-4">

@@ -5,7 +5,7 @@
 //
 // Vstup je záměrně `sourcePrice` (cena PO HighestDiscountRule +
 // DiscountLimitRule, PŘED RoundingRule), ne `basePrice` -- viz design
-// proposal §1: množstevní sleva se počítá ze zákaznické ceny, ne z
+// proposal §1: množstevní sleva se počítá ze zákazníkové ceny, ne z
 // originální ceny (250 -> 225 H-KLUB -> 207 quantity, ne 250 -> 230).
 //
 // Group membership (QuantityTierGroup.memberProductSkus) je zatím

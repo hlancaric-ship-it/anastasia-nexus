@@ -1,10 +1,10 @@
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
 
 /**
- * A-02 izolace přístupů (entitlementů) mezi zákaznicemi – skutečné HTTP + PostgreSQL.
- * Dvě syntetické zákaznice, každá s vlastním produktem; ověřuje se, že žádný parametr požadavku
+ * A-02 izolace přístupů (entitlementů) mezi zákazníkmi – skutečné HTTP + PostgreSQL.
+ * Dvě syntetické zákazník, každá s vlastním produktem; ověřuje se, že žádný parametr požadavku
  * (customer_id, stránkování, cizí product_id/media_key, cizí typ aktéra) nezpřístupní cizí knihovnu ani médium
- * a že admin zásah u jedné zákaznice nezmění přístupy druhé.
+ * a že admin zásah u jedné zákazník nezmění přístupy druhé.
  */
 export async function verifyEntitlementIsolation({ api, container, options, evidence }: any) {
   const productModule = container.resolve(Modules.PRODUCT)
@@ -57,7 +57,7 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   expect(new URL(issued.data.url).searchParams.get("t")).toBeTruthy()
   record("MEDIA_CROSS_CUSTOMER_DENIED")
 
-  // 3) Cizí typ aktéra (admin token, neplatný podpis, žádný token) na zákaznické API neprojde.
+  // 3) Cizí typ aktéra (admin token, neplatný podpis, žádný token) na zákazníkové API neprojde.
   const [user] = await container.resolve(Modules.USER).createUsers([{ email: "isolation-admin@example.test" }])
   const adminOpts = as(jwt(user.id, "user", { app_metadata: { user_id: user.id } }))
   expect((await api.get("/store/entitlements", adminOpts)).status).toBe(401)
@@ -67,7 +67,7 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   expect((await api.get("/store/entitlements", options)).status).toBe(401)
   record("NON_CUSTOMER_ACTORS_REJECTED")
 
-  // 4) Admin API je jen pro správce; zákaznický token ho nepoužije ani na čtení, ani na revoke.
+  // 4) Admin API je jen pro správce; zákazníkov token ho nepoužije ani na čtení, ani na revoke.
   expect((await api.get(`/admin/entitlements?customer_id=${b.id}`, optA)).status).toBe(401)
   expect((await api.post(`/admin/entitlements/${entB.id}/revoke`, {}, optA)).status).toBe(401)
   expect((await entitlements.retrieveEntitlement(entB.id)).status).toBe("active")

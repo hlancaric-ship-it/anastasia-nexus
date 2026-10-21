@@ -4,7 +4,7 @@ export const ENTITLEMENT_STATUSES = ["active", "revoked"] as const
 export const ENTITLEMENT_SOURCES = ["order", "admin", "migration"] as const
 
 /**
- * Přístup zákaznice k digitálnímu produktu.
+ * Přístup zákazník k digitálnímu produktu.
  * Jedna aktivní záznamová řada na (tenant, dedupe_key) je zaručena unikátním indexem.
  * Tenant izolace je řešena sloupcem tenant_id v databázi.
  */

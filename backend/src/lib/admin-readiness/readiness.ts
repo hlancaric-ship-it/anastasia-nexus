@@ -16,7 +16,7 @@ export const READINESS_CHECKS: Definition[] = [
   { id: 'products_without_price', title: 'Produkty bez ceny v EUR', severity: 'blocker', href: '#/produkty', hint: 'Zverejnený produkt bez základnej ceny v eurách nemožno kúpiť.' },
   { id: 'products_without_channel', title: 'Produkty mimo predajného kanála', severity: 'blocker', href: '#/produkty', hint: 'Zverejnený produkt bez predajného kanála sa v obchode nezobrazí.' },
   { id: 'products_without_image', title: 'Produkty bez obrázka', severity: 'warning', href: '#/produkty', hint: 'Produkt bez obrázka pôsobí v obchode nedokončene.' },
-  { id: 'products_without_category', title: 'Produkty bez kategórie', severity: 'warning', href: '#/produkty', hint: 'Produkt bez kategórie zákazníčka v ponuke ťažko nájde.' },
+  { id: 'products_without_category', title: 'Produkty bez kategórie', severity: 'warning', href: '#/produkty', hint: 'Produkt bez kategórie zákazníka v ponuke ťažko nájde.' },
 ]
 /** Hard cap on scanned products; above it product checks are reported as unknown (partial data is not proof). */
 export const READINESS_PRODUCT_CAP = 2000

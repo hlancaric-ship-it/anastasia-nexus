@@ -1,4 +1,4 @@
-// Barvy veřejného webu, které volí Lucia (zákaznická část má vlastní volbu, viz center-themes.mjs).
+// Barvy veřejného webu, které volí Lucia (zákazníková část má vlastní volbu, viz center-themes.mjs).
 // Návrhy (design/*.dc.html) i styles.css zůstávají beze změny: barvy značky se při buildu
 // převedou na CSS proměnné (tokenizeColors), takže přepnutí motivu je jen atribut na <html>
 // (preset) nebo inline --site-* proměnné (vlastní barvy). Přebarvení je okamžité, bez rebuildu.

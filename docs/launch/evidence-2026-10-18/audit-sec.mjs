@@ -32,7 +32,7 @@ const admin = (await call('/auth/user/emailpass', { method: 'POST', pk: false, b
 const cust = await customerToken(`audit.${RUN}@example.com`);
 rec('tokeny', !!admin && !!cust);
 
-// 1) Všetky vlastné admin routy: bez prihlásenia a s tokenom zákazníčky musia vrátiť 401/403.
+// 1) Všetky vlastné admin routy: bez prihlásenia a s tokenom zákazníkov musia vrátiť 401/403.
 const routes = JSON.parse(execFileSync('python3', ['-c', `import json;d=json.load(open('/Users/lucky/anastasia-nexus-claude-integration/backend/docs/wp/admin-function-map.json'));print(json.dumps([[r['path'],r['methods']] for r in d['custom_routes'] if 'custom_routes' in d] if 'custom_routes' in d else [[r['path'],r['methods']] for r in d['routes']]))`]).toString());
 const fill = p => p.replace(/:[a-z_]+/g, 'x_audit');
 const leaks = [];
@@ -57,7 +57,7 @@ const anonLeaks = [];
 for (const [m, p] of customerOnly) { const r = await call(p, { method: m }); if (![401, 403].includes(r.status)) anonLeaks.push({ m, p, status: r.status }); }
 rec('store-zakaznicke-routy-bez-prihlasenia', anonLeaks.length === 0, { checked: customerOnly.length, anonLeaks });
 
-// 3) IDOR: cudzia zákazníčka nesmie čítať/meniť cudzie záznamy.
+// 3) IDOR: cudzia zákazníka nesmie čítať/meniť cudzie záznamy.
 const conv = sql('select id from chat_conversation order by created_at desc limit 1');
 const mbr = sql("select id from membership where status='active' order by created_at desc limit 1");
 const bkg = sql("select id from booking where status='confirmed' order by created_at desc limit 1");
@@ -87,7 +87,7 @@ for (const [p, headers, body] of hooks) { const r = await call(p, { method: 'POS
 const fakeCaptured = sql("select count(*) from payment where data->>'id'='pi_fake'");
 rec('webhooky-bez-podpisu', hookRes.filter(h => h.p.startsWith('/hooks/nexus') || h.p.startsWith('/hooks/ops')).every(h => [400, 401, 403, 503].includes(h.status)) && fakeCaptured === '0', { hookRes, fakeCaptured });
 
-// 5) shop-prices: zákazníčka nie, admin len s presnou očakávanou cenou a platnou sumou.
+// 5) shop-prices: zákazníka nie, admin len s presnou očakávanou cenou a platnou sumou.
 const variant = sql("select pv.id from product_variant pv join product p on p.id=pv.product_id where p.title like 'E2E Ružový olej%' and pv.deleted_at is null order by pv.created_at desc limit 1");
 const price = sql(`select pr.id||'|'||pr.amount from price pr join product_variant_price_set vps on vps.price_set_id=pr.price_set_id where vps.variant_id='${variant}' and pr.price_list_id is null and pr.deleted_at is null limit 1`).split('|');
 const sp = async (body, token) => (await call(`/admin/shop-prices/${variant}`, { method: 'POST', pk: false, token, body })).status;

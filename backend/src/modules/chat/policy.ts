@@ -1,10 +1,10 @@
-/** Čistá pravidla chatu zákaznice ↔ Lucia (bez infrastruktury, testovatelná). Vše vynucuje server. */
+/** Čistá pravidla chatu zákazník ↔ Lucia (bez infrastruktury, testovatelná). Vše vynucuje server. */
 import { addDays, utcToLocalDate, zonedToUtc } from "../booking/slots"
 
 export const CHAT_TIMEZONE = "Europe/Bratislava"
-/** Max zpráv zákaznice po sobě bez Luciiny odpovědi (napříč jejími konverzacemi). */
+/** Max zpráv zákazník po sobě bez Luciiny odpovědi (napříč jejími konverzacemi). */
 export const MAX_CONSECUTIVE_CUSTOMER_MESSAGES = 3
-/** Max zpráv zákaznice za kalendářní den (Europe/Bratislava). */
+/** Max zpráv zákazník za kalendářní den (Europe/Bratislava). */
 export const DAILY_CUSTOMER_MESSAGE_LIMIT = 5
 export const MAX_CUSTOMER_MESSAGE_LENGTH = 2000
 export const MAX_ADMIN_MESSAGE_LENGTH = 5000
@@ -40,7 +40,7 @@ const MESSAGES: Record<ChatErrorCode, string> = {
   message_empty: "Zpráva je prázdná.",
   message_too_long: `Zpráva je příliš dlouhá (nejvýš ${MAX_CUSTOMER_MESSAGE_LENGTH} znaků).`,
   invalid_subject: `Předmět může mít nejvýš ${MAX_SUBJECT_LENGTH} znaků.`,
-  chat_not_eligible: "Psát Lucii mohou zákaznice, které už mají objednávku, rezervaci nebo předplatné.",
+  chat_not_eligible: "Psát Lucii mohou zákazník, které už mají objednávku, rezervaci nebo předplatné.",
   chat_blocked: "Chat je pro váš účet momentálně vypnutý.",
   conversation_closed: "Tato konverzace je uzavřená. Pokud potřebujete, začněte prosím novou.",
   chat_consecutive_limit: `Napsala jste ${MAX_CONSECUTIVE_CUSTOMER_MESSAGES} zprávy po sobě. Počkejte prosím na odpověď Lucie.`,
@@ -90,15 +90,15 @@ export function normalizeSubject(raw: unknown): { ok: true; value: string | null
 
 export type EligibilitySignals = { hasOrder: boolean; hasBooking: boolean; hasEntitlement: boolean }
 
-/** Psát smí jen zákaznice s aspoň jednou objednávkou, rezervací nebo aktivním přístupem/předplatným. */
+/** Psát smí jen zákazník s aspoň jednou objednávkou, rezervací nebo aktivním přístupem/předplatným. */
 export function isChatEligible(signals: EligibilitySignals): boolean {
   return signals.hasOrder || signals.hasBooking || signals.hasEntitlement
 }
 
 export type SendCounters = {
-  /** Zprávy zákaznice dnes (lokální den). */
+  /** Zprávy zákazník dnes (lokální den). */
   sentToday: number
-  /** Zprávy zákaznice od poslední Luciiny odpovědi (v kterékoli její konverzaci). */
+  /** Zprávy zákazník od poslední Luciiny odpovědi (v kterékoli její konverzaci). */
   consecutive: number
 }
 
@@ -107,7 +107,7 @@ export type SendPolicyInput = SendCounters & {
   conversation?: { status: string } | null
 }
 
-/** Rozhodne, zda smí zákaznice odeslat další zprávu. Pořadí: blokace, uzavřená konverzace, limity. */
+/** Rozhodne, zda smí zákazník odeslat další zprávu. Pořadí: blokace, uzavřená konverzace, limity. */
 export function evaluateCustomerSend(input: SendPolicyInput): ChatPolicyError | null {
   if (input.blocked) return new ChatPolicyError("chat_blocked")
   if (input.conversation && input.conversation.status !== "open") return new ChatPolicyError("conversation_closed")
@@ -116,7 +116,7 @@ export function evaluateCustomerSend(input: SendPolicyInput): ChatPolicyError | 
   return null
 }
 
-/** Kolik zpráv ještě smí zákaznice odeslat (pro storefront: „můžete napsat ještě 2 zprávy“). */
+/** Kolik zpráv ještě smí zákazník odeslat (pro storefront: „můžete napsat ještě 2 zprávy“). */
 export function remainingAllowance(counters: SendCounters): { today: number; in_row: number; now: number } {
   const today = Math.max(DAILY_CUSTOMER_MESSAGE_LIMIT - counters.sentToday, 0)
   const inRow = Math.max(MAX_CONSECUTIVE_CUSTOMER_MESSAGES - counters.consecutive, 0)
@@ -142,7 +142,7 @@ export function isDigestDue(lastSentAt: Date | string | null | undefined, now: D
 }
 
 /**
- * E-mail zákaznici o odpovědi: neposílat znovu, dokud si předchozí upozornění nepřečetla
+ * E-mail zákazníci o odpovědi: neposílat znovu, dokud si předchozí upozornění nepřečetla
  * (jinak by každá další Luciina zpráva znamenala další e-mail).
  */
 export function shouldNotifyCustomer(conv: { customer_notified_at?: Date | string | null; customer_last_read_at?: Date | string | null }): boolean {
@@ -151,7 +151,7 @@ export function shouldNotifyCustomer(conv: { customer_notified_at?: Date | strin
   return new Date(conv.customer_last_read_at).getTime() >= new Date(conv.customer_notified_at).getTime()
 }
 
-/** Nepřečtená pro Luciu = poslední zpráva zákaznice je novější než její poslední přečtení. */
+/** Nepřečtená pro Luciu = poslední zpráva zákazník je novější než její poslední přečtení. */
 export function isUnreadByAdmin(conv: { last_customer_message_at?: Date | string | null; admin_last_read_at?: Date | string | null }): boolean {
   if (!conv.last_customer_message_at) return false
   if (!conv.admin_last_read_at) return true

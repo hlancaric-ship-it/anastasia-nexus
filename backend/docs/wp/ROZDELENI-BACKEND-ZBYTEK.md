@@ -11,7 +11,7 @@ Admin UI a storefront se **nezačínají** – jen backend: moduly, workflows, s
 - Nesahat na `package.json`/lockfile, `medusa-config.ts`, `.env*` – potřeby zapsat do `docs/wp/<balik>.md`, zapojí integrátor.
 - Žádné produkční služby, žádný deploy, žádný skutečný e-mail ani platba. Jen syntetická data.
 - Ceny, slevy, nároky a stavy vynucuje **jen server**. Log bez osobních údajů (`formatLogLine`/`redact`).
-- Texty pro zákaznice slovensky. Dokumentace balíku česky v `docs/wp/<balik>.md`.
+- Texty pro zákazník slovensky. Dokumentace balíku česky v `docs/wp/<balik>.md`.
 - Hotovo = `npx tsc --noEmit` + unit testy balíku zelené lokálně; plná sada a HTTP runner běží na GitHub Actions.
   **PG/Medusa/Jest lokálně nikdy souběžně s druhým agentem** – kdo spouští HTTP runner, ohlásí to.
 - E-mail se posílá jen přes `notificationModuleService.createNotifications({ to, channel: "email", template, data })`
@@ -26,22 +26,22 @@ Admin UI a storefront se **nezačínají** – jen backend: moduly, workflows, s
    a přenese se do objednávky (metadata nebo vlastní tabulka – zdůvodnit).
 2. **Newsletter souhlas:** evidence přihlášení/odhlášení (e-mail, zdroj, verze textu, čas, stav), idempotentní,
    odhlášení tokenem bez přihlášení. Žádné rozesílání – jen evidence + admin API seznam/export CSV.
-3. **Formulář odstoupení (14 dní, SR):** `POST /store/withdrawals` (přihlášená zákaznice k vlastní objednávce;
+3. **Formulář odstoupení (14 dní, SR):** `POST /store/withdrawals` (přihlášená zákazník k vlastní objednávce;
    kontrola lhůty od doručení/zaplacení, položky, důvod nepovinný), stavy `received → accepted|rejected → refunded`,
    admin API pro změnu stavu s auditem (`ops-audit`). Refund se **nespouští automaticky** – jen stav a vazba na objednávku.
    E-mail potvrzení přijetí: šablona `withdrawal-received-sk` (data zdokumentovat).
 4. Testy: unit + HTTP scénáře (bez souhlasu 422 na obou cestách, cizí objednávka 404, po lhůtě 422, idempotence).
 
 ### X2 `codex/customer-gdpr` – export, výmaz a poznámky
-1. `GET /store/customers/me/export` – JSON všech údajů zákaznice (profil, adresy, objednávky, rezervace, nároky,
+1. `GET /store/customers/me/export` – JSON všech údajů zákazník (profil, adresy, objednávky, rezervace, nároky,
    poukazy bez plných kódů cizích obdarovaných, chat, souhlasy z X1 až po merge). Rate limit.
 2. Žádost o výmaz: `POST /store/customers/me/erasure-request` + admin API pro provedení. Provedení **anonymizuje**
    osobní údaje (jméno, e-mail, telefon, adresy, text chatu), objednávky a účetní data zachová (zákonná archivace),
    zruší aktivní přihlášení a magic-link tokeny. Idempotentní, s auditem, nevratné jen po potvrzení správcem.
-3. Interní poznámky správce k zákaznici: admin API CRUD (`/admin/customers/:id/notes`), audit, nikdy ve store API.
-4. Testy: izolace zákaznic (cizí export 404), anonymizace nezmění součty objednávek, opakované provedení beze změny.
+3. Interní poznámky správce k zákazníci: admin API CRUD (`/admin/customers/:id/notes`), audit, nikdy ve store API.
+4. Testy: izolace zákazník (cizí export 404), anonymizace nezmění součty objednávek, opakované provedení beze změny.
 
-### X3 `codex/order-self-cancel` – storno zákaznicí
+### X3 `codex/order-self-cancel` – storno zákazníkov
 1. `POST /store/orders/:id/cancel` – jen vlastní objednávka, jen dokud není odeslaná/vyřízená a digitální obsah
    nebyl zpřístupněný (pravidla zdokumentovat; konzultace podle lhůty – výchozí 24 h před termínem, konfigurovatelné).
 2. Použít existující Medusa `cancelOrderWorkflow` + existující kompenzace (poukaz, rezervace, nároky, refund kartou

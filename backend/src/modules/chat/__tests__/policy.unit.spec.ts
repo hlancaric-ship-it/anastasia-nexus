@@ -39,7 +39,7 @@ describe("chat policy – normalizace zprávy", () => {
 })
 
 describe("chat policy – oprávnění a limity", () => {
-  it("psát smí jen zákaznice s objednávkou, rezervací nebo předplatným", () => {
+  it("psát smí jen zákazník s objednávkou, rezervací nebo předplatným", () => {
     expect(isChatEligible({ hasOrder: false, hasBooking: false, hasEntitlement: false })).toBe(false)
     expect(isChatEligible({ hasOrder: true, hasBooking: false, hasEntitlement: false })).toBe(true)
     expect(isChatEligible({ hasOrder: false, hasBooking: true, hasEntitlement: false })).toBe(true)
@@ -90,14 +90,14 @@ describe("chat policy – upozornění a řazení", () => {
     expect(isDigestDue(new Date(now.getTime() - 60 * 60000), now)).toBe(true)
   })
 
-  it("e-mail zákaznici znovu až po přečtení předchozího upozornění", () => {
+  it("e-mail zákazníci znovu až po přečtení předchozího upozornění", () => {
     expect(shouldNotifyCustomer({})).toBe(true)
     expect(shouldNotifyCustomer({ customer_notified_at: now })).toBe(false)
     expect(shouldNotifyCustomer({ customer_notified_at: now, customer_last_read_at: new Date(now.getTime() - 1) })).toBe(false)
     expect(shouldNotifyCustomer({ customer_notified_at: now, customer_last_read_at: now })).toBe(true)
   })
 
-  it("nepřečtené pro Luciu i zákaznici", () => {
+  it("nepřečtené pro Luciu i zákazníci", () => {
     expect(isUnreadByAdmin({ last_customer_message_at: now })).toBe(true)
     expect(isUnreadByAdmin({ last_customer_message_at: now, admin_last_read_at: now })).toBe(false)
     expect(isUnreadByAdmin({})).toBe(false)

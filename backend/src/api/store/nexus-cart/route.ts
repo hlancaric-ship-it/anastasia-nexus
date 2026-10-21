@@ -47,7 +47,7 @@ async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  * rozdíl od `validateLink` v admin/coupon-links, který QR odkaz váže na
  * produkt). Vrací `undefined`, pokud kód neexistuje nebo není momentálně
  * dostupný (`codeAvailable`) -- volající rozhodne, jestli je to chyba
- * (nový kód od zákaznice) nebo tichý pokles (dřív uložený kód mezitím
+ * (nový kód od zákazník) nebo tichý pokles (dřív uložený kód mezitím
  * vypršel/došel limit).
  */
 async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promise<StoredCoupon | undefined> {
@@ -69,7 +69,7 @@ async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promis
 
 /**
  * Vyřeší kupón platný pro tenhle reprice:
- * - `couponCodeInput === null` -> zákaznice kupón explicitně odebírá.
+ * - `couponCodeInput === null` -> zákazník kupón explicitně odebírá.
  * - `couponCodeInput` je string -> nový/změněný kód, musí projít ověřením
  *   (jinak COUPON_INVALID -- na rozdíl od "tiše zmizelého" starého kódu).
  * - `couponCodeInput === undefined` -> žádná změna z klienta; použije se

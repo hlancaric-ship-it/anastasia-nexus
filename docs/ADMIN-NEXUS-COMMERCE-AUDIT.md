@@ -10,7 +10,7 @@ Tento audit doplňuje `docs/ADMIN-SELFSERVICE-AUDIT.md` (13. 10.) a `docs/REQUIR
 ## A. Současná architektura
 
 ```
- Prohlížeč Lucie                     Prohlížeč zákaznice
+ Prohlížeč Lucie                     Prohlížeč zákazník
  anastasia-admin/ (SPA, vanilla ESM)    storefront-prototype/ (statický build)
         │  JWT admin user                     │  publishable key + customer JWT
         ▼                                     ▼
@@ -55,8 +55,8 @@ Tento audit doplňuje `docs/ADMIN-SELFSERVICE-AUDIT.md` (13. 10.) a `docs/REQUIR
 | Ceny | **ČÁSTEČNĚ – RIZIKO** | Bezpečná route `/admin/shop-prices/:id` existuje, ale **SPA ji nepoužívá**: `app.mjs:273` píše cenu nativním `POST /admin/products/:id/variants/:vid` s `prices[]`. To přepíše celý price set (může smazat jiné měny nebo pravidla) a nezapíše se audit. Sale price list funguje. Chybí simulace a vysvětlení ceny z NEXUS. |
 | Promoce | **ČÁSTEČNĚ** | Nativní promotions (kupóny) jsou vidět. Chybí průvodce kampaní a detekce konfliktů. `coupon-links` aktivace = `PENDING_PRICING_INTEGRATION`. |
 | Sklad | **ČÁSTEČNĚ** [ODVOZENO] | Nativní inventory a stock-location jsou dostupné, existuje test `stock-availability-http-checks`. V SPA není žádná obrazovka skladu. |
-| Objednávky | **ČÁSTEČNĚ** | Seznam a detail jsou v SPA. Chybí akce fulfillment, shipment, refund a return v UI (nativní API existuje). Self-cancel zákaznice existuje. |
-| Zákaznice | **IMPLEMENTOVÁNO (základ)** | Seznam a detail jsou v SPA, k tomu poznámky (`/admin/customers/:id/notes`), GDPR výmazy a přístupy (entitlements). |
+| Objednávky | **ČÁSTEČNĚ** | Seznam a detail jsou v SPA. Chybí akce fulfillment, shipment, refund a return v UI (nativní API existuje). Self-cancel zákazník existuje. |
+| Zákazník | **IMPLEMENTOVÁNO (základ)** | Seznam a detail jsou v SPA, k tomu poznámky (`/admin/customers/:id/notes`), GDPR výmazy a přístupy (entitlements). |
 | Doprava | **ČÁSTEČNĚ** [ODVOZENO] | Fulfillment je manual a existuje test `shipping-settings-http-checks`. V SPA chybí obrazovka i průvodce. |
 | Platby | **ČÁSTEČNĚ** | Stripe provider s webhooky a ochranou live/test klíčů. Admin UI pro platby chybí, refund jde jen přes nativní API. |
 | Storefront / Visual Builder | **CHYBÍ** | Storefront je statický prototyp. Témata jsou v kódu (`site-themes.mjs`, `center-themes.mjs`). Chybí registr komponent, draft/publish i verze. |

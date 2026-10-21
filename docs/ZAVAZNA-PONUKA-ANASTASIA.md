@@ -14,7 +14,7 @@ děkuji za Vaše otázky. Jsou přesně ty správné a je vidět, že se rozhodu
 
 ## 1. Co budujeme
 
-Jeden prémiový systém, ve kterém se nakupuje a který si celý spravujete sama. Ostatní weby (obsahové stránky, leadové stránky, QR kampaně) k němu přivádějí zákaznice. Všechno řídíte z jedné administrace, kterou Vám upravíme přesně podle toho, jak pracujete — Vaše pojmy, Vaše pole, Váš postup.
+Jeden prémiový systém, ve kterém se nakupuje a který si celý spravujete sama. Ostatní weby (obsahové stránky, leadové stránky, QR kampaně) k němu přivádějí zákazník. Všechno řídíte z jedné administrace, kterou Vám upravíme přesně podle toho, jak pracujete — Vaše pojmy, Vaše pole, Váš postup.
 
 Technicky je to takzvané headless řešení: oddělený bezpečný backend na otevřené platformě Medusa a před ním Cloudflare na rychlost a bezpečnost. Díky tomu systém unese i velkou kampaň, data klientek jsou chráněná a celé to běží na základu, který nevlastníme my ani žádný dodavatel.
 

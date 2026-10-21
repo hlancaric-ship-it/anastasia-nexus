@@ -47,7 +47,7 @@ Všechny admin routy mají `authenticate("user")`, kontrolu `actor_type === "use
 
 ## Koupě
 
-1. Zákaznice vloží variantu poukazu do košíku. `repriceCart` u poukazu nevolá NEXUS: cena řádku = nominální hodnota a musí odpovídat `calculated_price`, jinak vrátí `GIFT_VOUCHER_PRODUCT_INVALID`.
+1. Zákazník vloží variantu poukazu do košíku. `repriceCart` u poukazu nevolá NEXUS: cena řádku = nominální hodnota a musí odpovídat `calculated_price`, jinak vrátí `GIFT_VOUCHER_PRODUCT_INVALID`.
 2. `POST /store/gift-vouchers/recipients` přijímá `{ cart_id, recipients: { [variant_id]: [{ name, email, message?, delivery_date? }] } }`. Server ověří jméno, e-mail, venování ≤ 300 znaků, datum (dnes podle Bratislavy až do konce platnosti) a počet obdarovaných vůči kusům. Výsledek uloží do `cart.metadata.gift_voucher_recipients`.
 3. Checkout hook (`prepareGiftVoucherCheckout`) totéž ověří **znovu nad zamčeným snapshotem**: prodej je zapnutý, hodnota je povolená, cena odpovídá a obdarovaní jsou kompletní.
 4. Vystavení probíhá **až po zaplacení** (`isOrderPaid`, sdílené s entitlementem). Spouští ho subscribery `order.placed` a `payment.captured`.

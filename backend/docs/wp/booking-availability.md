@@ -8,7 +8,7 @@
 
 ## API
 - `GET/POST /admin/booking/types`, `GET/POST /admin/booking/types/:id` (název, délka, buffer, cena EUR, popis, forma, aktivní, archiv).
-- `GET /admin/booking/availability?week_start=YYYY-MM-DD` vrací úseky týdne a aktivní rezervace (jméno zákaznice, typ).
+- `GET /admin/booking/availability?week_start=YYYY-MM-DD` vrací úseky týdne a aktivní rezervace (jméno zákazník, typ).
 - `POST /admin/booking/availability` `{week_start, days:[{date, ranges:[{start_time,end_time}]}]}` nahradí týden. Vrací 409 `availability_conflict`, pokud by smazání nebo zkrácení úseku vyřadilo aktivní rezervaci. „Zkopírovat minulý týden“ = GET minulého týdne + POST do aktuálního.
 - Store `GET /store/booking-slots` a `POST /store/bookings` čtou úseky z tabulky. Hold mimo úsek vrací 409 `slot_not_offered`.
 

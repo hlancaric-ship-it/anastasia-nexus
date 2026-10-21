@@ -4,7 +4,7 @@ export const CHAT_AUTHOR_TYPES = ["customer", "admin"] as const
 
 /**
  * Jedna zpráva. Tělo je čistý text (bez HTML, bez příloh); zobrazuje se vždy jako text, odkazy nejsou aktivní.
- * `customer_id` je duplikováno z konverzace kvůli atomickým limitům (počty za den / po sobě na zákaznici).
+ * `customer_id` je duplikováno z konverzace kvůli atomickým limitům (počty za den / po sobě na zákazníci).
  */
 const ChatMessage = model
   .define("chat_message", {

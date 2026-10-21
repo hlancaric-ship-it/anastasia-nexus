@@ -1,7 +1,7 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { chatService, requireActor, sendChatError } from "../../../../../chat-helpers"
 
-/** POST /store/chat/conversations/:id/read: zákaznice si přečetla odpovědi (obnoví e-mailová upozornění). */
+/** POST /store/chat/conversations/:id/read: zákazník si přečetla odpovědi (obnoví e-mailová upozornění). */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const customerId = requireActor(req, res, "customer")
   if (!customerId) return

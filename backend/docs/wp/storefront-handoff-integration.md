@@ -1,16 +1,16 @@
-# Propojený storefront a zákaznické centrum
+# Propojený storefront a zákazníkové centrum
 
 Zdroj: uživatelem dodaný `Figma document request (1).zip`, návrh `ANASTASIA Môj účet v2.dc.html` a přiložený README (kopie v `storefront-prototype/design/HANDOFF-v2.md`). Větev `codex/storefront-chat`.
 
 Homepage a O Lucii v balíku odpovídají původním návrhům; změna odkazů na účet je zapracována v převodníku rout. Zachované jsou schválené fotografie Zdravého světa, přebarvování lišty, zvukové ovladače a logo v hero.
 
-Zákaznické centrum využívá celou dostupnou šířku vedle navigace bez limitu 1320 px. Používá nativní HTML/CSS/ES moduly prototypu: burgundy paletu, pravé nadpisy, navigaci vlevo a mobilní posuvné navigační pilulky. Sedm propojených sekcí: Prehľad, Moje programy, Konzultácie, Chat s Luciou, Objednávky, Materiály a Môj profil. Hash v URL zachovává zvolenou sekci po reloadu a podporuje historii prohlížeče.
+Zákazníkové centrum využívá celou dostupnou šířku vedle navigace bez limitu 1320 px. Používá nativní HTML/CSS/ES moduly prototypu: burgundy paletu, pravé nadpisy, navigaci vlevo a mobilní posuvné navigační pilulky. Sedm propojených sekcí: Prehľad, Moje programy, Konzultácie, Chat s Luciou, Objednávky, Materiály a Môj profil. Hash v URL zachovává zvolenou sekci po reloadu a podporuje historii prohlížeče.
 
 Přehled, termíny, materiály a profil mají syntetický snapshot v mock API; další výběr produktů používá skutečný mock košík, stejný jako obchod. Profil se pouze validuje v náhledu, osobní údaje se neukládají. Materiály se filtrují, skutečné placené soubory ani faktury se nevydávají. Programy zůstávají zamknuté, dokud není výslovně zvolen náhled oprávnění. Chat zachovává stávající kontrakt, čistý text, 2000 znaků a slovenské chyby 403/429/409.
 
 Přihlašovací obrazovka dostala paletu centra, ale zachovává přihlášení přes e-mailový odkaz. Návrhové zadání hesla, automatické odemčení programu a automatické odpovědi Lucie nepřepisují zavedené backendové kontrakty. Hlavní logo v hero je větší, posunuté vlevo mimo horní menu a krátce se zavlní jednou za 12 sekund (bez posouvání nahoru/dolů). Horní hlavička přebírá všechny tři značky patičky. Boční rozbalovací menu má podle posledního požadavku logo odstraněné. Horní menu zachovává kruhovou část prvního původního loga ANASTASIA OZ (56 px) a text vedle. Jde o CSS výřez z `lucia-logo.png` bez horního/spodního nápisu; symbol AI ANASTASIA se v těchto menu nepoužívá. Texty hero mají vlastní obrys a stín pro čitelnost. Při systémovém `prefers-reduced-motion` animace neběží. Hero video nemá filtr, barevný blend ani tmavý celoplošný překryv; barvy zůstávají původní. Z návrhu se nepoužívá runtime `support.js` ani externí CDN; CSP zůstává `'self'`.
 
-Spoj zákaznického centra s patičkou má přechod pouze mezi původní vínovou a modrozelenou barvou; světlá plocha obsahu se nepřebarvuje.
+Spoj zákazníka centra s patičkou má přechod pouze mezi původní vínovou a modrozelenou barvou; světlá plocha obsahu se nepřebarvuje.
 
 Homepage: návaznost RESET 40+ → Konzultácie je řešená kompozicí. Samotný obraz oblohy přesahuje nad okraj sekce o 64 px (32 px na menších šířkách), text má vlastní odsazení 96/32 px ve světlé ploše. Výřez, přirozené barvy a 100% krytí videa se zachovávají. Nepoužívá se společná maska prolnutí. Na mobilu se obraz a text skládají pod sebe. Původní zaoblený roh tvoří propojení obrazu s lesem; odstraněný je celoplošný prázdný pás, zůstává prostor pro čtení v textovém sloupci. Zeleno-modrý přechod O Lucii do patičky zůstává.
 

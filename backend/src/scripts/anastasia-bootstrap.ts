@@ -27,7 +27,7 @@ import { resolveDeployEnv } from "../lib/deploy-env"
  *
  * Vytvoří: store (EUR), sales channel, publishable API klíč, region Slovensko (EUR, ceny
  * včetně DPH), daňové sazby SK, sklad, shipping profily + možnosti (zásilka, digitální
- * bez dopravy), zákaznické skupiny věrnostních úrovní.
+ * bez dopravy), zákazníkové skupiny věrnostních úrovní.
  *
  * Cenotvorba (slevy, věrnost) zde NENÍ - ta je výhradně na backendu přes NEXUS
  * (src/api/store/nexus-cart). Tento skript jen zakládá základní entity.
@@ -66,7 +66,7 @@ export const SK_VAT_RATES = [
 ] as const
 
 /**
- * Věrnostní úrovně jako zákaznické skupiny. POZOR: NEXUS adapter
+ * Věrnostní úrovně jako zákazníkové skupiny. POZOR: NEXUS adapter
  * (src/api/store/nexus-cart/route.ts) dnes rozpoznává úroveň jen z názvu skupiny
  * ve tvaru /^ZR\d+$/. Mapování na kód NEXUS tieru je proto uloženo v metadata.nexus_tier
  * a musí odpovídat klíčům loyaltyTiers v MEDUSA_PRICING_POLICY_JSON.
@@ -431,7 +431,7 @@ export default async function anastasiaBootstrap({ container }: { container: Med
     }
   })
 
-  // 10) Zákaznické skupiny (věrnostní úrovně)
+  // 10) Zákazníkové skupiny (věrnostní úrovně)
   await step(logger, "customer groups (loyalty)", async () => {
     const missing: Array<{ name: string; metadata: Record<string, unknown> }> = []
     for (const group of LOYALTY_GROUPS) {

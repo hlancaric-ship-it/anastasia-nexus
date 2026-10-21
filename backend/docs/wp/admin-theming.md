@@ -22,7 +22,7 @@ Volba se ukládá k autentizovanému Medusa userovi v PostgreSQL, nikoli pouze v
 
 `AdminThemeFrame`, `useAdminTheme` a sdílené styly jsou základ všech nově vznikajících vlastních obrazovek. Upravují plochu, text, navigaci, tlačítka, pole, autofill, chyby, potvrzení a fokus. Nativní historické/reference stránky Medusy se tímto balíkem globálně nepřebarvují. Osobní motiv obsluhy nemění brand/customer-facing barvy e-shopu a dalších webů; jejich editace má samostatnou agendu.
 
-Jeden admin musí spravovat e-shop, anastasia.academy a aianastasia.com s kontextem webu pro obsah; zákaznice, objednávky a přístupy zůstávají společné podle architektury. Uživatelka sama přidává kategorie, stránky a sekce a vizuálně upravuje texty, obrázky, pořadí a rozložení, s konceptem/náhledem/verzemi/publikací. Tento balík neposkytuje zatím chybějící CMS API a nevydává náhled vzhledu za vizuální editor webů. Úplné návaznosti: [mapa agend](ADMIN-FUNKCE-A-POKRYTI.md).
+Jeden admin musí spravovat e-shop, anastasia.academy a aianastasia.com s kontextem webu pro obsah; zákazník, objednávky a přístupy zůstávají společné podle architektury. Uživatelka sama přidává kategorie, stránky a sekce a vizuálně upravuje texty, obrázky, pořadí a rozložení, s konceptem/náhledem/verzemi/publikací. Tento balík neposkytuje zatím chybějící CMS API a nevydává náhled vzhledu za vizuální editor webů. Úplné návaznosti: [mapa agend](ADMIN-FUNKCE-A-POKRYTI.md).
 
 ## Ověření
 

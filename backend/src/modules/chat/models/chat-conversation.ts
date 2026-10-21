@@ -3,9 +3,9 @@ import { model } from "@medusajs/framework/utils"
 export const CHAT_CONVERSATION_STATUSES = ["open", "closed"] as const
 
 /**
- * Konverzace zákaznice s Luciou. Volitelně navázaná na objednávku nebo rezervaci (vlastnictví ověřuje API).
+ * Konverzace zákazník s Luciou. Volitelně navázaná na objednávku nebo rezervaci (vlastnictví ověřuje API).
  * Časové značky slouží k řazení (nepřečtené nahoře) a k souhrnným notifikacím.
- * `muted` = Lucia nechce upozornění na tuto konverzaci (zákaznice může psát dál v rámci limitů).
+ * `muted` = Lucia nechce upozornění na tuto konverzaci (zákazník může psát dál v rámci limitů).
  */
 const ChatConversation = model
   .define("chat_conversation", {

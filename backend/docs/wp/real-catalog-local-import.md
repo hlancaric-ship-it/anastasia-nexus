@@ -10,7 +10,7 @@ Použit existující importér `src/scripts/import-anastasia-catalog.ts` a soukr
 - 25 produktů zůstalo published, 5 draft podle původní viditelnosti. Import sám nezveřejňuje skryté produkty.
 - Vytvořeno 11 kategorií, 3 kolekce značek a 22 skladových záznamů pro fyzické produkty.
 - Staženo všech 30 původních produktových obrázků přes veřejné HTTPS; lokálně jsou v ignorovaném `backend/static/legacy-catalog/`. Admin je načítá z lokálního backendu.
-- Katalog, mediální podklady a snapshot jsou pouze v ignorovaném `backend/data-private/catalog-import-20261019/`. Žádná zákaznická data ani skutečné kupóny nejsou v commitu. Existující objednávky, zákaznice a jejich platby se neimportovaly ani neodstraňovaly.
+- Katalog, mediální podklady a snapshot jsou pouze v ignorovaném `backend/data-private/catalog-import-20261019/`. Žádná zákazníková data ani skutečné kupóny nejsou v commitu. Existující objednávky, zákazník a jejich platby se neimportovaly ani neodstraňovaly.
 
 Ověření: 293/293 kontrol přes nezávislé SQL čtení, autentizované Admin API a HTTP obrázků: názvy, handle, popisy, přesné ceny, URL obrázků, stavy, kategorie, kanál a fyzický sklad. V Admin API nalezeno všech 30 produktů. Opakovaný import bez přepisovacích voleb vytvořil 0 entit: 30 produktů, 11 kategorií, 3 kolekce a 22 skladových záznamů přeskočeno.
 

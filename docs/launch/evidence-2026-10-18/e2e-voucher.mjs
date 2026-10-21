@@ -1,5 +1,5 @@
 // Browser E2E č. 7: nákup darčekového poukazu (storefront, Stripe 4242) → vydanie a e-mail príjemkyni → uplatnenie kódu
-// v košíku inej zákazníčky (čiastočné čerpanie) → admin Poukazy (detail, pohyby, zneplatnenie zostatku).
+// v košíku inej zákazníkov (čiastočné čerpanie) → admin Poukazy (detail, pohyby, zneplatnenie zostatku).
 import { chromium } from '/Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';

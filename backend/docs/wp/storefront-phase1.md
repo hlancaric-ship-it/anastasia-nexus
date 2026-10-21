@@ -42,7 +42,7 @@ na Cloudflare Pages. Současná práce je lokální, žádný hosting nebyl vytv
 
 Kostra není hotový e-shop: všechna obchodní data a stavy jsou náhledy.
 Přístup do knihovny není bezpečnostní kontrola, ale explicitní demo přepínač
-bez skutečného placeného obsahu. Ukázkový účet neobsahuje migrované zákaznické údaje.
+bez skutečného placeného obsahu. Ukázkový účet neobsahuje migrované zákazníkové údaje.
 Potvrzení tokenu nevytváří relaci. Checkout nepřijímá karty a nikdy netvrdí,
 že byla provedena platba. Formuláře se neodesílají a jejich hodnoty se neukládají.
 

@@ -5,7 +5,7 @@ import {
 import { isCustomerChatEligible } from "../../../../modules/chat/eligibility"
 import { chatService, requireActor, sendChatError } from "../../../chat-helpers"
 
-/** GET /store/chat/status: smí zákaznice psát a kolik zpráv jí zbývá (informativní, závazně rozhoduje odeslání). */
+/** GET /store/chat/status: smí zákazník psát a kolik zpráv jí zbývá (informativní, závazně rozhoduje odeslání). */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const customerId = requireActor(req, res, "customer")
   if (!customerId) return

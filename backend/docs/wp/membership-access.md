@@ -2,7 +2,7 @@
 
 Stav: VERIFIED pro níže uvedený lifecycle přístupu a dohledání po výpadku. Závisí na PR#33–#35. Není to ještě checkout/automatické účtování ani storefront subscribe kontrakt.
 
-Reconciler pod zámkem členství načte jeho trvalý doklad a znovu ověří vlastní nativní objednávku a platbu. Přístup volá přes veřejné API existujícího entitlement modulu, jeho kód nemění. Používá stejný order+product dedupe key jako obecný handler, takže nevytváří druhé paralelní právo. Po uložení ověří zákaznici/produkt/variantu/objednávku/platnost a znovu nativní platbu. Perioda končí sjednaným časem od skutečné platby, nikoli opakovaným zpracováním.
+Reconciler pod zámkem členství načte jeho trvalý doklad a znovu ověří vlastní nativní objednávku a platbu. Přístup volá přes veřejné API existujícího entitlement modulu, jeho kód nemění. Používá stejný order+product dedupe key jako obecný handler, takže nevytváří druhé paralelní právo. Po uložení ověří zákazníci/produkt/variantu/objednávku/platnost a znovu nativní platbu. Perioda končí sjednaným časem od skutečné platby, nikoli opakovaným zpracováním.
 
 Plný refund nebo storno odebere současný přístup a zastaví obnovu. Částečný refund zachová dosavadní zaplacené období a zastaví další obnovu pro kontrolu. Ručně zrušený přístup se sám neobnoví; kratší ruční úprava nebo administrativní override se nepřepisují. Obecný omylem neomezený/delší order grant bez ručního override se pouze omezí na zaplacené období, neprodlouží. Nejasné čtení platby nehlásí úspěch ani naslepo neodebírá existující zaplacený přístup.
 

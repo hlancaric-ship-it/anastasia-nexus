@@ -1,6 +1,6 @@
 # Klub: hranice jednoho platebního jádra
 
-Rozhodnutí Claude/Jose 16. 10. 2026 přesouvá Klub/předplatné do fáze 1. Veškeré platby musí projít jednou Medusou + NEXUS, se společnou zákaznicí, objednávkou a přístupem. Starší dokumenty označující Klub mimo rozsah toto nové rozhodnutí nenahrazují.
+Rozhodnutí Claude/Jose 16. 10. 2026 přesouvá Klub/předplatné do fáze 1. Veškeré platby musí projít jednou Medusou + NEXUS, se společnou zákazníkov, objednávkou a přístupem. Starší dokumenty označující Klub mimo rozsah toto nové rozhodnutí nenahrazují.
 
 ## První balík: vyřazení druhého platebního toku
 

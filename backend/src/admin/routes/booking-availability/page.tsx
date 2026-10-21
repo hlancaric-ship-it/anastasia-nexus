@@ -152,7 +152,7 @@ export default function BookingAvailabilityPage() {
         days: view.days.map((d) => ({ date: d.date, ranges: (days[d.date] ?? []).map(({ start_time, end_time }) => ({ start_time, end_time })) })),
       }
       applyView(await request<WeekView>("/admin/booking/availability", { method: "POST", body: JSON.stringify(payload) }))
-      toast.success("Volné termíny jsou uložené. Zákaznice je hned uvidí na webu.")
+      toast.success("Volné termíny jsou uložené. Zákazník je hned uvidí na webu.")
     } catch (e) {
       const err = e as ApiError
       if (err.status === 409 && err.body?.type === "availability_conflict") {

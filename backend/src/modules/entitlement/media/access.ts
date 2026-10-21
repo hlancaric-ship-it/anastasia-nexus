@@ -54,7 +54,7 @@ export async function issueMediaAccess(
   return {
     url: `${base}/v1/${encodeURIComponent(input.mediaKey)}?t=${token}`,
     expires_at: expiresAt.toISOString(),
-    /** Text pro viditelný vodoznak v přehrávači (např. e-mail zákaznice). */
+    /** Text pro viditelný vodoznak v přehrávači (např. e-mail zákazník). */
     watermark: await deps.getCustomerEmail(input.customerId),
   }
 }

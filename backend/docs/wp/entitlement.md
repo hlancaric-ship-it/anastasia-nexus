@@ -8,7 +8,7 @@
 
 ## Úvod
 
-Modul `entitlement` řeší přístup zákaznice k digitálním produktům. Každý entitlement je jedinečný podle `(tenant_id, dedupe_key)` kombinace.
+Modul `entitlement` řeší přístup zákazník k digitálním produktům. Každý entitlement je jedinečný podle `(tenant_id, dedupe_key)` kombinace.
 
 ## Předchozí stav
 

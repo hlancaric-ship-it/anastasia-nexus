@@ -4,13 +4,13 @@ Stav: IMPLEMENTED_UNVERIFIED pro skutečné HTTP; cílené unit testy a TypeScri
 
 ## Chování
 
-`POST /store/nexus-cart` a `POST /store/nexus-checkout` vyžadují ověřenou zákaznici přes standardní Medusa session/bearer middleware. Bez přihlášení vrací 401. Cizí i nepřiřazený košík vrací 403 CART_ACCESS_DENIED. Checkout ověří vlastníka ještě před čtením souhlasů a přeceněním. Interní workflow může stále provést přecenění bez zákaznického HTTP kontextu.
+`POST /store/nexus-cart` a `POST /store/nexus-checkout` vyžadují ověřenou zákazníci přes standardní Medusa session/bearer middleware. Bez přihlášení vrací 401. Cizí i nepřiřazený košík vrací 403 CART_ACCESS_DENIED. Checkout ověří vlastníka ještě před čtením souhlasů a přeceněním. Interní workflow může stále provést přecenění bez zákazníka HTTP kontextu.
 
 Zachována oprava přenosu serializovaných chyb SafeOrder a redigované provozní události. I chybějící košík má dohledatelnou událost checkout.failed s korelačním ID. Žádné ceny ani rezervace poukazu se na klienta nepřesouvají.
 
 ## Testovací zákazníci
 
-Syntetické HTTP scénáře používají skutečnou zákaznici, lokálně podepsaný JWT ověřovaný skutečným middlewarem a nativní přiřazení košíku. Anonymní negativní sondy zůstávají anonymní. Zvlášť se kontroluje 401, 403 pro hosta/cizí zákaznici, vlastní přecenění a neměnnost cizího košíku i počtu objednávek. K8 má nadále vlastní produkt bez rezervace.
+Syntetické HTTP scénáře používají skutečnou zákazníci, lokálně podepsaný JWT ověřovaný skutečným middlewarem a nativní přiřazení košíku. Anonymní negativní sondy zůstávají anonymní. Zvlášť se kontroluje 401, 403 pro hosta/cizí zákazníci, vlastní přecenění a neměnnost cizího košíku i počtu objednávek. K8 má nadále vlastní produkt bez rezervace.
 
 Samostatný lokální smoke skript nyní potřebuje také MEDUSA_TEST_CUSTOMER_TOKEN a košík přiřazuje. Token se nevypisuje. Tento skript nebyl lokálně spuštěn; úplné pokrytí zajišťuje izolovaný CI runner.
 

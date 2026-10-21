@@ -23,10 +23,10 @@ DNS záznamy vytvoří Cloudflare sám při nasazení Workeru s custom domain. R
 |---|---|---|
 | Indexace vyhledávači | build bez `ANASTASIA_SITE_URL`: `meta robots noindex,nofollow`, `robots.txt Disallow: /`, bez sitemap, `X-Robots-Tag: noindex, nofollow`; admin totéž + `robots.txt` | `deploy.sh` build zastaví, když něco chybí; `--smoke` kontroluje hlavičky naživo |
 | Skutečná platba | storefront jen `pk_test_` (`deploy.sh` jiný odmítne); backend `PAYMENTS_TEST_MODE=1` + `sk_test_` (config live klíč s test módem odmítne) | suchý běh a negativní testy 18. 10. |
-| E-mail skutečné zákaznici | ZeptoMail posílá jen na `EMAIL_RECIPIENT_ALLOWLIST`; při `PAYMENTS_TEST_MODE=1` (a na stagingu/náhledech) platí vždy, **bez seznamu neodejde nic**. Mimo seznam: záznam `send_suppressed` v logu bez adresy | unit testy `zeptomail.unit.spec.ts` (19/19) |
+| E-mail skutečné zákazníci | ZeptoMail posílá jen na `EMAIL_RECIPIENT_ALLOWLIST`; při `PAYMENTS_TEST_MODE=1` (a na stagingu/náhledech) platí vždy, **bez seznamu neodejde nic**. Mimo seznam: záznam `send_suppressed` v logu bez adresy | unit testy `zeptomail.unit.spec.ts` (19/19) |
 | Záměna s doménou Lucie | `deploy.sh` a `nexus-secrets.sh` odmítnou cokoli s `anastasiaoz` | negativní testy 18. 10. |
 | Testovací data v produkčním NEXUS | samostatný Worker, D1 i DO stav; `wrangler … --env anastasia-test` | `--dry-run` 18. 10.: binding `nexus-voucher-anastasia-test` |
-| Zákaznická data | DB na Cloudu je nová a prázdná, jen bootstrap; skuteční zákazníci v ní nejsou | – |
+| Zákazníková data | DB na Cloudu je nová a prázdná, jen bootstrap; skuteční zákazníci v ní nejsou | – |
 
 ## 3. Postup nasazení (po souhlasu)
 

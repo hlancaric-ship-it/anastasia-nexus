@@ -15,7 +15,7 @@
 
 **Doporučení (řeší většinu nálezů najednou):** zavést autorizovaný base controller (`UmbracoAuthorizedApiController`) pro všechna administrativní API, košíkové operace vázat výhradně na session (ne na `quoteId`/`pk` z klienta), a pro Web API zavést jednotnou anti-CSRF ochranu (vlastní token v hlavičce) + převod stavových operací na POST.
 
-Pozitivní zjištění (ponechat): admin SurfaceControllery (`ProductController`, **`ProductPriceController` — ceny**, `CategoryController`, `CouponController`, `CustomerAdminController`, `QuoteAdminController`, `MemberController` admin akce, `CustomerDataController` zákaznické akce) mají konzistentně `[Authorize(Roles=...)]` + `[ValidateAntiForgeryToken]`. Jednotkové ceny a DPH se berou z DB. DB dotazy jsou převážně parametrizované.
+Pozitivní zjištění (ponechat): admin SurfaceControllery (`ProductController`, **`ProductPriceController` — ceny**, `CategoryController`, `CouponController`, `CustomerAdminController`, `QuoteAdminController`, `MemberController` admin akce, `CustomerDataController` zákazníkové akce) mají konzistentně `[Authorize(Roles=...)]` + `[ValidateAntiForgeryToken]`. Jednotkové ceny a DPH se berou z DB. DB dotazy jsou převážně parametrizované.
 
 ---
 
@@ -46,7 +46,7 @@ Pozitivní zjištění (ponechat): admin SurfaceControllery (`ProductController`
   - `GetQuotePdf(string id)` ř. 399–409 — anonymní stažení PDF (faktury, osobní údaje).
   - `QuoteSendStateNotification(string id)` ř. 389–397 — anonym spustí e-mailovou notifikaci k libovolné objednávce (mail/DoS, potvrzení existence).
 - `Controllers/Ecommerce/CustomerDataController.cs` `MyQuoteDetail(string id)` ř. 155–163 — **bez `[Authorize]`** (na rozdíl od sousedních akcí), `GetQuoteWithProducts(new Guid(id))` načte libovolnou objednávku.
-- **Oprava:** zákaznický detail/PDF → `[Authorize(Roles="EcommerceCustomer")]` + kontrola vlastnictví (porovnat s `CustomerModel.GetCurrentMemberId()` / `QuoteForListRepository.GetForUser`); admin varianty `[Authorize(Roles="EcommerceAdmin")]`; `QuoteSendStateNotification` jen admin + POST + anti-CSRF.
+- **Oprava:** zákazníkov detail/PDF → `[Authorize(Roles="EcommerceCustomer")]` + kontrola vlastnictví (porovnat s `CustomerModel.GetCurrentMemberId()` / `QuoteForListRepository.GetForUser`); admin varianty `[Authorize(Roles="EcommerceAdmin")]`; `QuoteSendStateNotification` jen admin + POST + anti-CSRF.
 
 ### BEZ-SECRET (NOVÝ) — plaintext produkční tajemství ve zdrojáku → NUTNÁ ROTACE
 Hodnoty zde záměrně neuvádím, jen umístění a typ. Vše v `web/Web.config`:

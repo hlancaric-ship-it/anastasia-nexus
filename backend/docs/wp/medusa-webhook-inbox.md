@@ -6,7 +6,7 @@ Stav: VERIFIED v izolovaném workerd/D1 a úplné regresi, CI 38819618651; PR #1
 
 Dřívější handler již zapisoval ID doručení před HTTP 200, ale nezachoval tenanta ani odkaz na obchodní záznam. Po restartu šlo jen poznat duplicitu; nešlo událost dohledat ke zpracování. Přitom asynchronní úloha pouze logovala „processed“, bez obchodní operace.
 
-Nejmenší bezpečná změna: zachovat existující podepisování, ukládat jen bezpečný odkaz a stav do trvalé fronty, deduplikovat podle zdrojem ověřeného tenanta, odstranit předstírané dokončení. Nekopírovat zákaznický profil ani objednávku do druhého obchodního jádra.
+Nejmenší bezpečná změna: zachovat existující podepisování, ukládat jen bezpečný odkaz a stav do trvalé fronty, deduplikovat podle zdrojem ověřeného tenanta, odstranit předstírané dokončení. Nekopírovat zákazníkov profil ani objednávku do druhého obchodního jádra.
 
 ## Kontrakt a data
 

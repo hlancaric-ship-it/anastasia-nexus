@@ -8,7 +8,7 @@ Navazuje na [soupis a API](ADMIN-SOUPIS.md).
 ## Jazyk a každodenní použití
 
 Rozhraní mluví běžnou slovenštinou. Názvy vycházejí z úkolů uživatelky, nikoli z modulů backendu.
-Zákaznice a produkt se vybírají podle jména/názvu, nikoli opisováním interního ID.
+Zákazník a produkt se vybírají podle jména/názvu, nikoli opisováním interního ID.
 Žádná běžná činnost nevyžaduje terminál, JSON, SQL, úpravu souboru nebo nové nasazení.
 
 | Technický pojem v podkladech | Text pro uživatelku |
@@ -33,7 +33,7 @@ Technický detail je volitelně v oddělené části pro podporu, s bezpečným 
 
 - Domovská stránka ukazuje, čemu je potřeba věnovat pozornost: objednávky, zprávy, dnešní termíny.
   Zobrazují se skutečné údaje; při chybě načtení žádné falešné nuly ani „vše v pořádku“.
-- Navigace podle práce: Prehľad, Objednávky, Produkty, Zákazníčky, Konzultácie, Správy,
+- Navigace podle práce: Prehľad, Objednávky, Produkty, Zákazníkov, Konzultácie, Správy,
   Poukazy a zľavy, Obsah a e-maily, Nastavenia. Ochrana údajov a technický provoz podle práv.
 - Každá stránka má zřetelný nadpis, jednu hlavní akci, návrat a nápovědu u složitých polí.
   Pokročilé volby se rozbalují až podle potřeby; důležité podmínky a dopady zůstávají viditelné.
@@ -64,10 +64,10 @@ Historické poznámky níže nejsou automaticky aktuální funkčnost; backendov
 | Produktové štítky | Novinka, bestseller, odporúčame bez vývojáře | Potřeba skutečný kontrakt uložení a vlivu na storefront, nestačí kosmetický přepínač |
 | Doprava a osobní odběr | Nastavit způsoby, ceny a hranice dopravy zdarma | Nativní Medusa API; nový lidský formulář, serverová validace, potvrdit obchodní hodnoty |
 | Sklad | Upravit zásobu, vidět vyprodání; neobejít rezervace posledního kusu | Medusa stav/reservace; ověřit nové UI proti skutečnému skladu |
-| Objednávky/storno/refund | Obsloužit objednávku a vrátit správný způsob platby | Rozlišit zákaznické storno, admin storno, kartovou a poukazovou vratku; neztotožnit status s penězi |
+| Objednávky/storno/refund | Obsloužit objednávku a vrátit správný způsob platby | Rozlišit zákazníkové storno, admin storno, kartovou a poukazovou vratku; neztotožnit status s penězi |
 | Konzultace | Sama vytvořit typ včetně délky, pauzy, ceny a formy | API existuje; nový editor, název/popis bez technických metadat |
 | Týdenní dostupnost | Ručně zadat týden, kopírovat minulý, vidět obsazení | Jeden společný kalendář pro všechny typy; nevyplněný den zavřený; obsazené časy nelze smazat |
-| Komunikace se zákaznicí | Číst a odpovídat v kontextu zákaznice/objednávky/rezervace | Chat API existuje; nový inbox, nárok/limity serverově, zavření/ztlumení/blokace vratně |
+| Komunikace se zákazníkov | Číst a odpovídat v kontextu zákazník/objednávky/rezervace | Chat API existuje; nový inbox, nárok/limity serverově, zavření/ztlumení/blokace vratně |
 | Poukazy | Sama upravit hodnoty, platnost, použití a doručení; dohledat pohyb/vratku | API existuje; nové úplné UI včetně historie a chyb částečného uložení |
 | QR | Vygenerovat a stáhnout QR přímo v adminu | První fáze; ověřit i aplikaci slevy, ne pouze obrázek; ambasadoři a provize druhá fáze |
 | Texty e-mailů | Upravit text a náhled, spravovat povolené zapnutí | API existuje; nový editor, povinné e-maily nelze vypnout, ověřit skutečnou nabídku šablon |
@@ -77,7 +77,7 @@ Historické poznámky níže nejsou automaticky aktuální funkčnost; backendov
 | Souhlasy a údaje | Evidence VOP/GDPR, historie, poznámky, žádosti a výmaz | Legal/privacy API; nepřepisovat historii souhlasů, účetní povinnosti respektovat |
 | Programy a obsah | Změnit platnost přístupu a přiřadit obsah bez JSON; spravovat jazykové texty | Nároky existují; editor obsahu, privátních médií a překladů potřebuje vlastní bezpečné API |
 | Logy a provoz | Poznat problém a další krok, dohledat změnu | Ops/audit API existují částečně; historie jobů/doručení/záloh a kompletní logy vyžadují doplnění |
-| Klub/předplatné | Nezaměnit zákaznickou skupinu za placené členství | Rozsah dosud nerozhodnutý; nevydávat NEXUS SaaS billing za zákaznický klub |
+| Klub/předplatné | Nezaměnit zákazníkom skupinu za placené členství | Rozsah dosud nerozhodnutý; nevydávat NEXUS SaaS billing za zákazníkov klub |
 
 ## Samoobsluha je i práce na backendu
 
@@ -96,7 +96,7 @@ Bezpečnostní limity mohou mít nepřekročitelný serverový rozsah; neumožni
 
 Cílová uživatelka dostane syntetické zadání bez technického školení a bez navigování programátorem.
 Ověříme vytvoření produktu a štítku, změnu ceny/skladu, nové konzultace a volného týdne,
-vyřízení objednávky, odpověď zákaznici, nastavení poukazu, QR, textu e-mailu, věrnostní úrovně,
+vyřízení objednávky, odpověď zákazníci, nastavení poukazu, QR, textu e-mailu, věrnostní úrovně,
 plánované akce a dopravy. U doplňovaných funkcí také obsah/překlad, newsletter a vyřízení požadavku na údaje.
 
 Každý úkol má splněný výsledek na serveru, správný dopad na storefront, srozumitelné potvrzení
@@ -128,7 +128,7 @@ Nejde o plnou funkční ani uživatelskou akceptaci adminu; žádné napojení n
 ### Doplnění proklikávání návrhu
 
 Všechny položky bočního menu otevírají vlastní obrazovku: přehled, objednávky, produkty,
-zákaznice, konzultace, zprávy, poukazy, obsah, nastavení a nápověda. Nastavení vedou také na dopravu,
+zákazník, konzultace, zprávy, poukazy, obsah, nastavení a nápověda. Nastavení vedou také na dopravu,
 věrnostní úrovně a e-maily; obsah na stránky, newsletter a QR. Celkem 17 ukázkových obrazovek.
 Seznamy podporují hledání, ukázkové detaily mají zavíratelný dialog, funguje návrat prohlížeče.
 Roztažené přepínače a souběžné zvýraznění dvou položek menu jsou opravené.

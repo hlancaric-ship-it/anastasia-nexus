@@ -58,7 +58,7 @@ Vyžaduje Medusa publishable key s prodejním kanálem. Vyhledá právě jednu v
 podle SKU, publikovaný produkt dostupný v kanálu a právě jeden aktivní neautomatický
 Medusa promotion code. Kontroluje limit použití a interval kampaně [start,end).
 Odpověď `code_valid: true` znamená výhradně `validation_scope: CODE_AVAILABILITY_ONLY`:
-nekontroluje pravidla celého košíku, rozpočet kampaně, zákaznický nárok ani atomické
+nekontroluje pravidla celého košíku, rozpočet kampaně, zákazníkov nárok ani atomické
 čerpání. Vždy `discount_applied: false`; vrací ID produktu/varianty, quantity a
 `destination: /kosik`. Nevrací částku slevy, nemění košík ani stav kupónu. 400 = chybný
 vstup, 401 = chybějící přístup, 422 = nedostupný produkt/kód, 503 = závislost selhala.
@@ -111,7 +111,7 @@ function canonicalRedirect(request) {
 
 301 je pouze kanonizace, nikdy aktivace slevy. `/eshop/kosik` na kanonickém hostu
 musí obsluhovat budoucí landing handler se zachovanými `produkt`, `kupon`, `ks`;
-nesmí se trvale cachovat úspěch konkrétní zákaznice. Ten přeloží kódy serverem,
+nesmí se trvale cachovat úspěch konkrétní zákazník. Ten přeloží kódy serverem,
 založí/ověří vlastní košík, přidá produkt, zavolá K8/K1 aktivaci a zobrazí `/kosik`
 s výsledkem serveru. Navigační redirect po mutaci má být 303/no-store, ne 301.
 Deduplikaci transportních retry a souběh řešit per košík v persistentním workflow;

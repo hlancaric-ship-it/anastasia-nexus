@@ -136,7 +136,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
       ...(input.canceled ? { canceled_at: new Date(), cancel_reason: "order_canceled" } : {}) }, context)
   }
   /**
-   * Zarezervuje termín na dobu holdu (výchozí 15 min, max 60), dokud zákaznice nezaplatí.
+   * Zarezervuje termín na dobu holdu (výchozí 15 min, max 60), dokud zákazník nezaplatí.
    * Transakční zámek kalendáře chrání překrývající se začátky a pauzy napříč všemi typy;
    * unikátní index (calendar_id, starts_at) zůstává další ochranou shodného termínu.
    */
@@ -182,7 +182,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
     return (await this.updateBookings({ id: input.id, status: "confirmed", order_id: input.order_id, held_until: null })) as unknown as BookingDTO
   }
 
-  /** Zrušení (zákaznicí, adminem nebo zrušením objednávky). Idempotentní. */
+  /** Zrušení (zákazníkov, adminem nebo zrušením objednávky). Idempotentní. */
   @InjectTransactionManager()
   async cancel(id: string, reason: string, @MedusaContext() context: Context = {}): Promise<BookingDTO> {
     const current = await this.lockedBooking(id, context)

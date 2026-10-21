@@ -23,7 +23,7 @@ neintegruje cizí větve a nic nenasazuje. Stav brány: **BLOCKED**, nikoli ACCE
 - Administrativní Worker issuance endpoint neměl autentizaci. Nyní vyžaduje
   stejnou service identitu a matching tenant před přístupem k voucher storage.
   Ověřená platba a atomické čerpání zůstávají samostatné následující brány.
-- P0 handler nevypisuje zákaznický e-mail ani credential; negativní test ověřuje
+- P0 handler nevypisuje zákazníkov e-mail ani credential; negativní test ověřuje
   logy Worker entrypointu. Stávající production CORS allowlist odmítá cizí origin.
   Medusa framework 2.19 má globální `/admin` auth; coupon-links má navíc explicitní
   middleware. Skutečná admin session/role acceptance se tímto neprokazuje.
@@ -74,7 +74,7 @@ obsahuje povinný syntetický HMAC binding. Produkční kód médií/webhooku ne
 
 1. Na tomto hostu workerd odmítá macOS 12.6 (minimum 13.5). Docker, Podman,
    Colima a Lima nejsou dostupné. Poskytnout schválený izolovaný Linux/CI nebo
-   novější Mac a přístup. Nesmí sdílet DB, zákaznická data ani klíče s produkcí.
+   novější Mac a přístup. Nesmí sdílet DB, zákazníková data ani klíče s produkcí.
 2. Na kompatibilním hostu spustit `cd nexus && npm run test:workers`; připraven
    nový SafeOrder runtime test. Selhání startupu zde znamená **0 spuštěných testů**.
 3. Syntetický Medusa + Worker + Postgres: oba HTTP completion endpointy musí

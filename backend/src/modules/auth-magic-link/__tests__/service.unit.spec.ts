@@ -85,7 +85,7 @@ describe("MagicLinkAuthService.authenticate", () => {
     expect(await svc.authenticate({ body: { email: "a@b.sk", token: "spatny" } }, auth)).toEqual({ success: false, error: "INVALID_OR_EXPIRED_TOKEN" })
   })
 
-  it("propojí existující migrovaný účet zákaznice přes SQL (CTE), jen pokud ještě není propojen", async () => {
+  it("propojí existující migrovaný účet zákazník přes SQL (CTE), jen pokud ještě není propojen", async () => {
     const { svc, calls } = makeProvider({
       pgRows: { "with c": [[{ app_metadata: { customer_id: "cus_1" }, customer_id: "cus_1" }]] },
     })
@@ -99,7 +99,7 @@ describe("MagicLinkAuthService.authenticate", () => {
   })
 
   it("žádný migrovaný zákazník (nebo nejednoznačný duplicitní e-mail): CTE nic nevrátí, přihlásí bez propojení", async () => {
-    // Stejná odpověď pro „žádný zákazník" i pro „víc zákaznic se stejným e-mailem" (HAVING count(*)=1
+    // Stejná odpověď pro „žádný zákazník" i pro „víc zákazník se stejným e-mailem" (HAVING count(*)=1
     // v reálné CTE obě situace sbalí na 0 řádků) — skutečnou SQL logiku ověřuje live e2e test, ne mock.
     const { svc, calls } = makeProvider({ pgRows: { "with c": [[]], "select": [[]] } })
     const auth = makeAuthIdentityProviderService()

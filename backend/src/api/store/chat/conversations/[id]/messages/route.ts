@@ -4,7 +4,7 @@ import { toCustomerConversationDTO, toMessageDTO } from "../../../../../../modul
 import { isCustomerChatEligible } from "../../../../../../modules/chat/eligibility"
 import { chatService, emitChatEvent, messageSchema, parseBody, requireActor, sendChatError } from "../../../../../chat-helpers"
 
-/** POST /store/chat/conversations/:id/messages { body }: další zpráva zákaznice (limity hlídá služba pod zámkem). */
+/** POST /store/chat/conversations/:id/messages { body }: další zpráva zákazník (limity hlídá služba pod zámkem). */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const customerId = requireActor(req, res, "customer")
   if (!customerId) return

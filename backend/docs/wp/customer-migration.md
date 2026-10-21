@@ -1,4 +1,4 @@
-# C2: Migrace zákaznic, objednávek a starých přístupů
+# C2: Migrace zákazník, objednávek a starých přístupů
 
 ## Stav a rozsah
 
@@ -10,7 +10,7 @@ Implementace: `src/scripts/migrate-legacy-customers-orders.ts`. Pokrývá A-15 a
 
 ## Ověřený vstup a příprava JSON
 
-C1 v této revizi vytváří **jen katalog** (`catalog.json`), nikoli zákaznický export. Adresář `data-private/legacy/` nebyl při převzetí ve worktree přítomen. C2 proto používá exportované funkce `decodeDump` a `parseInserts` z C1 a přidává vlastní explicitní export `--prepare-sql`. Parser C1 není upraven.
+C1 v této revizi vytváří **jen katalog** (`catalog.json`), nikoli zákazníkov export. Adresář `data-private/legacy/` nebyl při převzetí ve worktree přítomen. C2 proto používá exportované funkce `decodeDump` a `parseInserts` z C1 a přidává vlastní explicitní export `--prepare-sql`. Parser C1 není upraven.
 
 Zdrojové mapování bylo ověřeno proti C# ve `~/Downloads/anozeu/dufeksoft.ecommerce.web/dufeksoft.ecommerce-lib/`:
 
@@ -25,7 +25,7 @@ Zdrojové mapování bylo ověřeno proti C# ve `~/Downloads/anozeu/dufeksoft.ec
 | `Repositories/User2ProductRepository.cs`, `ecUser2Product` | Explicitní starý přístup podle `productKey` a `userLoginName` |
 | `Models/Ecommerce/User2ProductModel.cs` | Potvrzuje, že `userLoginName` pochází z e-mailu objednávky a tabulka přístupů neobsahuje ID objednávky |
 
-Export používá pouze vyjmenovaná pole. Nepřenáší hash hesla, cookies, poznámky zákaznic/objednávek, zdravotní údaje ani administrátorské role. Celé původní jméno zachovává v `first_name`; neodhaduje rozdělení jmen. Změnu e-mailu mezi členem a zákaznicí odmítne. Země se řeší přes číselník; neznámá země je chyba. Chybějící kontakt objednávky, osiřelé řádky, duplicitní ID, prázdný export a nesouhlas částek zastaví přípravu.
+Export používá pouze vyjmenovaná pole. Nepřenáší hash hesla, cookies, poznámky zákazník/objednávek, zdravotní údaje ani administrátorské role. Celé původní jméno zachovává v `first_name`; neodhaduje rozdělení jmen. Změnu e-mailu mezi členem a zákazníkov odmítne. Země se řeší přes číselník; neznámá země je chyba. Chybějící kontakt objednávky, osiřelé řádky, duplicitní ID, prázdný export a nesouhlas částek zastaví přípravu.
 
 ### Spuštění přípravy bez Medusy
 
@@ -51,7 +51,7 @@ Všechny objekty mají uzavřené schéma: neznámá pole (včetně hesel) jsou 
 | `addresses[]` | `legacy_id`, `first_name`, `last_name`, `company`, `address_1`, `address_2`, `city`, `postal_code`, `country_code`, `phone` |
 | `orders[]` | `legacy_id`, `customer_legacy_id`, `email`, `placed_at`, `number`, `status`, `payment_status`, `currency_code`, `total`, `items[]`, `billing_address`, `shipping_address` |
 | `orders[].items[]` | `legacy_id`, `product_legacy_id` nebo `null`, `title`, `quantity`, `unit_price`, `vat_rate` |
-| Adresy objednávky | Stejný objekt jako zákaznická adresa, nebo `null` |
+| Adresy objednávky | Stejný objekt jako zákazníková adresa, nebo `null` |
 | `accesses[]` | `legacy_id`, `customer_legacy_id`, `product_legacy_id`, `legacy_order_id` nebo `null`, `expires_at` (ISO datum s časovým pásmem nebo `null`) |
 | `excluded_unfinished_quotes` | Počet rozpracovaných košíků vynechaných při exportu |
 
@@ -77,12 +77,12 @@ Neznámé nebo opakované argumenty jsou chyba. Samotné `apply` bez pomlček ne
 
 Dry-run čte všechny stránky cílových dat a provede stejné předběžné kontroly jako zápis. Vypíše `source`, `target_before` a `planned`. `target_after` je `null`, `reconciled` je `false`: plán není důkaz provedené migrace. Návrhy e-mailů se při dry-run vytvoří pouze v paměti a zahodí, jejich obsah ani tokeny se nelogují.
 
-### Zákaznice a adresy
+### Zákazník a adresy
 
-- Shodný normalizovaný e-mail sjednotí aliasy původních ID na jednu Medusa zákaznici. Alias `customer-<pk>` má přednost při výběru profilu před samotným členem; adresy všech aliasů se zachovají.
-- Existující zákaznice se hledá podle e-mailu nebo uloženého původního ID. Více kandidátů či změna e-mailu u stejného ID je chyba; nevytváří se automatické rizikové propojení účtů.
-- Metadata `legacy_customer_migration.legacy_ids` tvoří trvalou mapu. Při připojení existující zákaznice se zachovají její profil, `has_account` a ostatní metadata.
-- Nová zákaznice má `has_account: false`, dokud autentizaci nepropojí K6. Nezakládá se auth identity s převzatým ani náhodným heslem.
+- Shodný normalizovaný e-mail sjednotí aliasy původních ID na jednu Medusa zákazníci. Alias `customer-<pk>` má přednost při výběru profilu před samotným členem; adresy všech aliasů se zachovají.
+- Existující zákazník se hledá podle e-mailu nebo uloženého původního ID. Více kandidátů či změna e-mailu u stejného ID je chyba; nevytváří se automatické rizikové propojení účtů.
+- Metadata `legacy_customer_migration.legacy_ids` tvoří trvalou mapu. Při připojení existující zákazník se zachovají její profil, `has_account` a ostatní metadata.
+- Nová zákazník má `has_account: false`, dokud autentizaci nepropojí K6. Nezakládá se auth identity s převzatým ani náhodným heslem.
 - Adresy používají původní ID a otisk obsahu v metadatech. Opakovaný import je nepřepisuje. Konflikt ID, vlastníka nebo obsahu je chyba. Nenastavují se nové výchozí adresy existujícího účtu.
 
 ### Historické objednávky a částky
@@ -93,9 +93,9 @@ Původní číslo, datum, stav, platební stav, částka a otisk vstupu jsou v `
 
 Produkt se připojuje přes C1 `product.metadata.legacy_id`. Chybějící produkt u historické položky ponechá čitelný snapshot bez vazby; udělení přístupu naopak vyžaduje jednoznačně nalezený digitální produkt katalogu C1.
 
-Součet `quantity × unit_price` se počítá pomocí celočíselné aritmetiky a porovnává s `total` na eurocent. Report uvádí součty EUR za všechny importované objednávky včetně historicky zrušených, počet zdrojových zákaznických řádků i sjednocených zákaznic, adres, objednávek, položek a přístupů. Zaokrouhlení se provádí až na součtu objednávky. Převod do nativních Medusa čísel probíhá přes desetinné řetězce.
+Součet `quantity × unit_price` se počítá pomocí celočíselné aritmetiky a porovnává s `total` na eurocent. Report uvádí součty EUR za všechny importované objednávky včetně historicky zrušených, počet zdrojových zákazníkov řádků i sjednocených zákazník, adres, objednávek, položek a přístupů. Zaokrouhlení se provádí až na součtu objednávky. Převod do nativních Medusa čísel probíhá přes desetinné řetězce.
 
-Po zápisu se zákaznice, adresy, objednávky a oprávnění nezávisle znovu načtou. Kontrolují se skutečné částky, měna, vlastníci, počty i obsah položek a adres. Report `target_after` tedy vychází z uložených dat. Při neshodě skript skončí chybou. Cizí data mimo vstupní dávku se do kontrolních součtů nezahrnují.
+Po zápisu se zákazník, adresy, objednávky a oprávnění nezávisle znovu načtou. Kontrolují se skutečné částky, měna, vlastníci, počty i obsah položek a adres. Report `target_after` tedy vychází z uložených dat. Při neshodě skript skončí chybou. Cizí data mimo vstupní dávku se do kontrolních součtů nezahrnují.
 
 ### Přístupy pouze přes entitlement
 
@@ -119,13 +119,13 @@ Přístup se nikdy neodvozuje jen z platebního stavu objednávky. Před zápise
 
 ### Příprava „nastav si heslo“
 
-Po úspěšné kontrole zápisu vznikne pro každou sjednocenou zákaznici jeden soukromý koncept v `data-private/legacy/password-drafts/<otisk-customer-id>.json`:
+Po úspěšné kontrole zápisu vznikne pro každou sjednocenou zákazníci jeden soukromý koncept v `data-private/legacy/password-drafts/<otisk-customer-id>.json`:
 
 - Slovenský předmět a text s placeholderem `{{SET_PASSWORD_URL}}`.
 - Náhodný token z `crypto.randomBytes(32)`, jeho SHA-256, čas vytvoření a expirace za 24 hodin.
 - `send: false`, `status: draft_requires_auth_binding`.
 
-Opakovaný běh ponechá stejný koncept a token, ani expirovaný token automaticky neobnovuje. Změnu adresáta odmítne. Tokeny nejsou v zákaznických metadatech, logu ani Gitu.
+Opakovaný běh ponechá stejný koncept a token, ani expirovaný token automaticky neobnovuje. Změnu adresáta odmítne. Tokeny nejsou v zákazníkov metadatech, logu ani Gitu.
 
 Jde o přípravu kampaně, **nikoli platný Medusa reset token**. C2 nepřidává vlastní autentizační endpoint a nemá mailer. K6 musí propojit účet s Medusa auth a při později schváleném odeslání vydat skutečný jednorázový token; připravený token se nesmí sám přijímat jako oprávnění ke změně hesla. Funkčnost přihlášení/odeslání se tímto balíkem netvrdí.
 
@@ -137,7 +137,7 @@ Modulové zápisy nejsou součástí jedné společné DB transakce; lock pouze 
 
 Předpoklad prostředí: vyhrazená lokální ANASTASIA DB, jedna neměnná dávka a žádné souběžné ruční změny importovaných dat. Medusa zde nemá obecný tenant sloupec. Skript není importér do sdílené databáze více obchodů. Lock koordinuje pouze tento skript; K4 musí plánovat migrační okno pro ostatní zapisující procesy.
 
-Chyby skriptu mají pevné kódy `CUSTOMER_MIGRATION_*`. Nevracejí původní SQL výjimky, cesty, e-maily, ID zákaznic, obsah validace ani tokeny. Diagnostika zdrojového konfliktu probíhá soukromou kontrolou vstupu; PII se nesmí kopírovat do ticketů či logu. Běžné chyby inicializace CLI/modulů nastávající před spuštěním skriptu nejsou touto hranicí zachytitelné.
+Chyby skriptu mají pevné kódy `CUSTOMER_MIGRATION_*`. Nevracejí původní SQL výjimky, cesty, e-maily, ID zákazník, obsah validace ani tokeny. Diagnostika zdrojového konfliktu probíhá soukromou kontrolou vstupu; PII se nesmí kopírovat do ticketů či logu. Běžné chyby inicializace CLI/modulů nastávající před spuštěním skriptu nejsou touto hranicí zachytitelné.
 
 ## Ověření a předání
 
@@ -151,4 +151,4 @@ npm run test:unit
 
 Výsledky 9. 10. 2026: `npx tsc --noEmit` exit 0; zaměřená sada C2 **36/36 PASS**; kompletní `npm run test:unit` **70/70 PASS v 8 sadách**. Samostatný smoke test přes `node -r ts-node/register src/scripts/migrate-legacy-customers-orders.ts --prepare-sql=…` ověřil nový export a odmítnutí přepsání: **2/2 PASS**, pouze dočasná syntetická data. `git diff --cached --check` bez nálezů.
 
-Ověření proti skutečnému PostgreSQL, běžící Meduse, finálnímu auth flow a kompletnímu schválenému exportu patří do K4/K6. V tomto balíku nebyla použita žádná produkční služba, produkční DB ani skutečná zákaznická data. Další krok: integrátor převezme větev a provede lokální integrační dry-run/apply/re-run se syntetickými daty, potom akceptaci migrace podle pravidel projektu.
+Ověření proti skutečnému PostgreSQL, běžící Meduse, finálnímu auth flow a kompletnímu schválenému exportu patří do K4/K6. V tomto balíku nebyla použita žádná produkční služba, produkční DB ani skutečná zákazníková data. Další krok: integrátor převezme větev a provede lokální integrační dry-run/apply/re-run se syntetickými daty, potom akceptaci migrace podle pravidel projektu.

@@ -7,7 +7,7 @@
 
 ## KLÍČOVÉ ZJIŠTĚNÍ: "Customer" znamená ve třech zdrojích TŘI NESLUČITELNÉ věci
 
-1. **Pricing Engine pohled** — Customer = trvalá entita s `guid`, `customerGroup`, `priceList`, `accounts[].email`. Identita je 1:1 se Shoptet zákaznickým účtem. Tenhle pohled potřebuje Pricing/Billing/B2B domény (§10, §14, §29 zadání).
+1. **Pricing Engine pohled** — Customer = trvalá entita s `guid`, `customerGroup`, `priceList`, `accounts[].email`. Identita je 1:1 se Shoptet zákazníkovm účtem. Tenhle pohled potřebuje Pricing/Billing/B2B domény (§10, §14, §29 zadání).
 
 2. **SafeOrder pohled (checkout-time)** — `RawCustomerIdentity` je surová PII (phone/email/street/city/zip) přijatá PŘI KAŽDÉM checkoutu, okamžitě normalizovaná (`canonicalizePhone`, `canonicalizeEmail`, ...) a HMAC blind-tokenizovaná. **Neexistuje "SafeOrder customer record"** — je to vstup do výpočtu, ne uchovávaná entita.
 

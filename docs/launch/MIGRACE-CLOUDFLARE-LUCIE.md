@@ -67,7 +67,7 @@ aby nic nevzniklo mezitím.
    na Lucii nemůže `nexus.anastasiaoz.eu` ukazovat na Worker v účtu L-Code. Řešení bez změny kódu:
    - NEXUS dostane hostname v zóně L-Code (např. `anastasia.nexus.l-code-dynamics.com`);
    - změní se jen backend env `NEXUS_PRICING_URL`, `NEXUS_MEDUSA_WEBHOOK_URL` a WAF pravidlo z runbooku §1 (přesune se do zóny L-Code);
-   - storefront NEXUS nevolá, zákaznice změnu nepozná.
+   - storefront NEXUS nevolá, zákazník změnu nepozná.
    **Rozhodnutí pro Luckyho:** použít hostname L-Code pro NEXUS už na launch 23. 10., a tím tento krok v Etapě 2 vynechat
    (doporučeno), nebo ho přepnout až při převodu zóny.
 

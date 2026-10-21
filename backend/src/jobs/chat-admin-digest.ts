@@ -6,7 +6,7 @@ import { chatNotifier } from "../modules/chat/notifier"
 
 /**
  * Doběh souhrnu: zprávy, které přišly během hodinové pauzy po posledním souhrnu, by jinak čekaly
- * na další zprávu zákaznice. Claim v DB zaručí max 1 souhrn/h i při souběhu se subscriberem.
+ * na další zprávu zákazník. Claim v DB zaručí max 1 souhrn/h i při souběhu se subscriberem.
  */
 export default async function chatAdminDigestJob(container: MedusaContainer) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)

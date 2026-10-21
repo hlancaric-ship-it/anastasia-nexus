@@ -13,8 +13,8 @@
 | S1-01 | Nový storefront | NOT_IMPLEMENTED | `docs/REQUIREMENTS_MATRIX.md` S1-01 | implementovat až po backend/payment/auth gate |
 | S1-02 | Katalog, import | VERIFIED (historický lokální důkaz) | `backend/src/scripts/import-anastasia-catalog.ts`, `backend/docs/wp/catalog-import.md`; v matici 30 importovaných produktů | kontrola platnosti proti staging a reálnému katalogu |
 | S1-03 | Košík, checkout, Stripe | PARTIAL | `backend/src/api/store/nexus-cart/route.ts`; `backend/src/api/store/nexus-checkout/route.ts`; `backend/src/workflows/hooks.ts`; `backend/medusa-config.ts` | K7 Stripe, webhooks, sandbox a E2E |
-| S1-04 | RESET 40+, entitlement | IMPLEMENTED_UNVERIFIED | `backend/src/modules/entitlement/service.ts`, `order-sync.ts`, `subscribers/entitlement-payment-captured.ts` | zákaznická auth a E2E: zaplaceno → grant → přístup, refund → revoke |
-| S1-05 | Přenos zákaznic/objednávek, SSO | PARTIAL | `backend/src/scripts/migrate-legacy-customers-orders.ts`; matrix dokládá 17 zákaznic / 10 objednávek / 18 grantů, lokální idempotentní import | K6 magic-link/passwordless dosud nedokončen; nepřenášet hesla, neposílat testovací emaily |
+| S1-04 | RESET 40+, entitlement | IMPLEMENTED_UNVERIFIED | `backend/src/modules/entitlement/service.ts`, `order-sync.ts`, `subscribers/entitlement-payment-captured.ts` | zákazníková auth a E2E: zaplaceno → grant → přístup, refund → revoke |
+| S1-05 | Přenos zákazník/objednávek, SSO | PARTIAL | `backend/src/scripts/migrate-legacy-customers-orders.ts`; matrix dokládá 17 zákazník / 10 objednávek / 18 grantů, lokální idempotentní import | K6 magic-link/passwordless dosud nedokončen; nepřenášet hesla, neposílat testovací emaily |
 | S1-06 | QR kupón admin | IMPLEMENTED_UNVERIFIED | `backend/src/api/admin/coupon-links/`; `backend/docs/wp/qr-redirects.md` | automatická aplikace kupónu v pricing/checkout E2E |
 | S1-07 | 301 staré URL a QR | PARTIAL | `backend/docs/wp/redirects-map.csv` (44 položek v matici) | nasazení a ověření směrování na staging |
 | S1-08 | Admin UI na míru | NOT_IMPLEMENTED | `admin-demo/` je demo; Medusa Admin není smluvní custom UI | správa v plném rozsahu podle smlouvy |
@@ -29,8 +29,8 @@
 | SafeOrder (Worker) | `nexusSafeOrder.ts`: service bearer, tenant binding, whitelist polí, risk policy | SOURCE + LATEST_CI | workerd 35/35 PASS, celá P0 gate není ACCEPTED |
 | SafeOrder (Medusa) | `safeorder.ts` výhradně důvěryhodné HTTPS/localhost, abort timeout 5s, `redirect:error`, přísná odpověď; `hooks.ts` `completeCartWorkflow.hooks.validate` | SOURCE + HISTORIC_RUNTIME | historických 12/12 skutečných persisted scénářů nepokrývá nových 38 |
 | Medusa dokončení | `nexus-checkout/route.ts` volá `completeCartWorkflow`; stejný validační hook pro standardní cestu | SOURCE + REPO_TEST | potvrdit obě cesty v PostgreSQL CI |
-| Entitlement | `entitlement/order-sync.ts` volá `isOrderPaid`, požaduje customer ID, idempotentní grant; event subscribers | SOURCE + REPO_TEST | bez K6 a platebního E2E nemá zákaznice kompletní přístup |
-| Bookings | `booking/service.ts` hold; `booking/order-sync.ts` používá `isOrderPaid`; `store/bookings/route.ts` kontroluje autorizovanou zákaznici a serverem nabízený slot | SOURCE + REPO_TEST + HISTORIC_RUNTIME(SQL) | concurrent HTTP hold vs unique index; potvrzení v reálném checkoutu |
+| Entitlement | `entitlement/order-sync.ts` volá `isOrderPaid`, požaduje customer ID, idempotentní grant; event subscribers | SOURCE + REPO_TEST | bez K6 a platebního E2E nemá zákazník kompletní přístup |
+| Bookings | `booking/service.ts` hold; `booking/order-sync.ts` používá `isOrderPaid`; `store/bookings/route.ts` kontroluje autorizovanou zákazníci a serverem nabízený slot | SOURCE + REPO_TEST + HISTORIC_RUNTIME(SQL) | concurrent HTTP hold vs unique index; potvrzení v reálném checkoutu |
 | Media | `store/media-access/route.ts` vyžaduje auth; `entitlement/media/access.ts` grant; `workers/api/routes/mediaDelivery.ts` token+HLS+Range | SOURCE + REPO_TEST | private R2/binding, vodoznak v playeru, souběhy, HTTP E2E |
 | Medusa webhook | `workers/api/routes/medusaWebhook.ts`: HMAC v production, D1 dedupe, pak `waitUntil` **pouze logy** pro order/customer | SOURCE + REPO_TEST | `PARTIAL`; skutečné downstream efekty, persistentní work state, retry/reconciliation nejsou zde doloženy |
 | Worker voucher | `workers/api/routes/voucher.ts`, `issuance.ts`, `SecurityCoordinator.ts`, D1/DO | SOURCE | zkontrolovat concurrency, restart persistence a scénáře |
@@ -49,7 +49,7 @@ P0 Worker authorization / pricing / SafeOrder code
   -> Medusa persistence job SKIPPED
   -> P0 BLOCKED (ne Accepted)
        |
-       +---> K6 Auth / migrované zákaznice  [čeká]
+       +---> K6 Auth / migrované zákazník  [čeká]
        +---> K7 Stripe/payment verification [čeká]
        +---> E2E RESET, refund, QR, frontend, admin [čeká]
 ```

@@ -41,7 +41,7 @@
 ## Co dělat dál
 1. Pro pokračování **nepoužívat tento starší master snapshot jako pracovní základ**. Směrodatná rozpracovaná větev je `codex/wave1-security`, v níž jsou novější auth/SafeOrder/pricing fixy a CI workflow.
 2. Dokončit zelený běh CI Wave 1 včetně odstranění problémů spuštění legacy mocků v `tmp` a následného Medusa persistence jobu.
-3. Po ověření opravit stavovou dokumentaci; pak navázat dalšími bránami dle REQUIREMENTS_MATRIX (auth, platby, migrace, zákaznické E2E), bez retroaktivního přepisování hotového NEXUS jádra.
+3. Po ověření opravit stavovou dokumentaci; pak navázat dalšími bránami dle REQUIREMENTS_MATRIX (auth, platby, migrace, zákazníkové E2E), bez retroaktivního přepisování hotového NEXUS jádra.
 
 ## Registr soubor po souboru
 Každý řádek znamená, že soubor byl skutečně **otevřen a přečten automatickým analyzátorem**; popis je klasifikace + nalezené symboly, ne manuálně potvrzená funkčnost.

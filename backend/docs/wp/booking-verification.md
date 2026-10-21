@@ -12,7 +12,7 @@ Větev `codex/booking-verification`, základ `44dbf33`. Pouze syntetické lokál
 
 ## API návaznost pro storefront
 
-1. Přihlášená zákaznice vybere slot a vytvoří hold přes `POST /store/bookings`.
+1. Přihlášená zákazník vybere slot a vytvoří hold přes `POST /store/bookings`.
 2. Košík se přiřadí účtu standardní Medusa routou `POST /store/carts/:id/customer` (Bearer/session). Samotná hlavička při vytvoření veřejného košíku toto přiřazení nezaručuje.
 3. `POST /store/bookings/:id/cart` s `{ cart_id }` propojí vlastní hold a košík. Přesun na jiný košík je dovolen jen před zahájením checkoutu, předchozí košík tím ztratí oprávnění rezervaci koupit.
 4. Následuje serverový přepočet, platební session a standardní nebo NEXUS completion. Bez rezervace nelze dokončit košík s produktem obsahujícím `metadata.booking`.
@@ -29,10 +29,10 @@ Stav: **VERIFIED lokálně**. Konečná regrese dokončena, bez nasazení.
 - Cílené unit testy: 42/42 PASS před posledním rozšířením.
 - `python3 backend/scripts/verify-safeorder-local.py --booking-only`: PASS, 10 zaznamenaných scénářů, 97,636 s. Důkaz: `/var/folders/l5/pzrmlcfd0wqchdb6_m1qmnnm0000gn/T/wave1-safeorder-1bfi_180/medusa-persistence-evidence.json`.
 - První kompletní unit běh: 216/217, známý timeout QR PNG při souběhu s integrací; neopravována implementace QR ani navyšován její timeout. Finální běhy byly spuštěny postupně a prošly.
-- Dva průběžné integrační běhy byly ukončeny během dalších změn, nejsou počítané jako PASS. První cílený běh odhalil chybějící standardní přiřazení zákaznice ke košíku v test fixture; druhý obecnou HTTP chybu místo pojmenovaného odmítnutí prošlého holdu. Obojí opraveno a cílený běh zopakován úspěšně.
+- Dva průběžné integrační běhy byly ukončeny během dalších změn, nejsou počítané jako PASS. První cílený běh odhalil chybějící standardní přiřazení zákazník ke košíku v test fixture; druhý obecnou HTTP chybu místo pojmenovaného odmítnutí prošlého holdu. Obojí opraveno a cílený běh zopakován úspěšně.
 
-Runner `python3 backend/scripts/verify-safeorder-local.py --booking-only` používá stejný bezpečnostně omezený, nově vytvořený PostgreSQL cluster jako celý runner. HTTP routy, Medusa workflows, booking service, platba `pp_system_default` a subscribers běží skutečně. Autentizované zákaznice mají syntetické JWT fixtures; toto není test přihlašovacího procesu. Bariéra pouze synchronizuje vstupy do skutečné služby. Při testu kompenzace je úmyslně vyvolána jedna chyba autorizace platby. NEXUS handler běží přes Node bridge, nikoli workerd.
+Runner `python3 backend/scripts/verify-safeorder-local.py --booking-only` používá stejný bezpečnostně omezený, nově vytvořený PostgreSQL cluster jako celý runner. HTTP routy, Medusa workflows, booking service, platba `pp_system_default` a subscribers běží skutečně. Autentizované zákazník mají syntetické JWT fixtures; toto není test přihlašovacího procesu. Bariéra pouze synchronizuje vstupy do skutečné služby. Při testu kompenzace je úmyslně vyvolána jedna chyba autorizace platby. NEXUS handler běží přes Node bridge, nikoli workerd.
 
 ## Zbývá v širším plánu
 
-Reálná testovací Stripe platba, zákaznické/admin notifikace, frontend rezervací a admin kalendář, integrovaná K4/C8 sada. Objednávky čekající na platbu se musí provozně rušit přes order lifecycle; tento balík nezavádí nový časový limit pro nezaplacené objednávky. Obnova workflow po pádu procesu a produkční Redis nejsou tímto lokálním během ověřené. Lokální hlavní checkout s rozpracovanými změnami zůstal nedotčený.
+Reálná testovací Stripe platba, zákazníkové/admin notifikace, frontend rezervací a admin kalendář, integrovaná K4/C8 sada. Objednávky čekající na platbu se musí provozně rušit přes order lifecycle; tento balík nezavádí nový časový limit pro nezaplacené objednávky. Obnova workflow po pádu procesu a produkční Redis nejsou tímto lokálním během ověřené. Lokální hlavní checkout s rozpracovanými změnami zůstal nedotčený.

@@ -4,7 +4,7 @@ import { ENTITLEMENT_MODULE } from "../../../modules/entitlement"
 import type EntitlementModuleService from "../../../modules/entitlement/service"
 import { issueMediaAccess, MediaAccessDenied } from "../../../modules/entitlement/media/access"
 
-/** POST /store/media-access { product_id, media_key }: krátkodobý odkaz na chráněné médium pro přihlášenou zákaznici. */
+/** POST /store/media-access { product_id, media_key }: krátkodobý odkaz na chráněné médium pro přihlášenou zákazníci. */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const auth = req.auth_context
   const customerId = auth?.actor_type === "customer" ? auth.actor_id : undefined

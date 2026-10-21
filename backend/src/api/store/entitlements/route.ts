@@ -9,7 +9,7 @@ function intParam(value: unknown, fallback: number): number {
   return Number.isFinite(n) ? Math.trunc(n) : fallback
 }
 
-/** GET /store/entitlements: aktivní přístupy přihlášené zákaznice. Bez autentizace 401. */
+/** GET /store/entitlements: aktivní přístupy přihlášené zákazník. Bez autentizace 401. */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const auth = req.auth_context
   const customerId = auth?.actor_type === "customer" ? auth.actor_id : undefined

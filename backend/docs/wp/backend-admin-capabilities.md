@@ -13,7 +13,7 @@ Stav `IMPLEMENTED_UNVERIFIED` v inventáři znamená nalezenou implementaci; nen
 |---|---|---|---|
 | Produkty, varianty, kategorie, kolekce | Medusa Product, nativní `/admin/products`, `/admin/product-categories`, `/admin/collections` | Medusa PostgreSQL; prodejní kanály, published/draft, SKU, metadata | Nativní admin existuje; katalogový import a jeho testy v `src/scripts`. Nejde o novou implementaci NEXUS. |
 | Základní ceny, daně, doprava a sklady | Nativní Medusa pricing/tax/fulfillment/inventory/stock-locations/regions | PostgreSQL, region EUR/SK, profily digitální/fyzické; bootstrap | Výslednou cenu určuje server. Daňové rozhodnutí k poukazům zůstává otevřené. |
-| Zákaznice a skupiny | Nativní Medusa zákazníci/skupiny; `nexus-cart/customer-tier.ts` | `customer_group.metadata.nexus_tier`, `rank` | Více skupin vybírá server; vstup klienta nikdy neurčuje tier. |
+| Zákazník a skupiny | Nativní Medusa zákazníci/skupiny; `nexus-cart/customer-tier.ts` | `customer_group.metadata.nexus_tier`, `rank` | Více skupin vybírá server; vstup klienta nikdy neurčuje tier. |
 | Passwordless přihlášení | Medusa auth provider `auth-magic-link` | Auth identity/state, hash jednorázového tokenu, konfigurovaný URL základ | Propojení migrovaného zákazníka a `has_account` je v integrovaném základu. Odesílání závisí na Notification provideru. |
 | NEXUS pricing | `POST /store/nexus-cart` → Worker `/api/nexus/pricing` | Serverový tenant/credential, policy JSON; product metadata `manufacturer`, `category`, `max_discount` | Přepočet pod kontrolou serveru; snapshot v košíku. Medusa promotions se nesmějí vrstvit přes autoritativní cenu. |
 | Checkout | `POST /store/nexus-checkout`, standardní cart complete, `workflows/hooks.ts` | Snapshot, platební session, kupón/rezervace/poukaz z PostgreSQL | Guard nad zamčeným košíkem, kompenzace, změna ceny invaliduje platbu. Plný lokální HTTP runner. |
@@ -31,7 +31,7 @@ Stav `IMPLEMENTED_UNVERIFIED` v inventáři znamená nalezenou implementaci; nen
 | Chat | `/admin/chat/**`, `/store/chat/**` | Conversation/message/block/notification-state v PG | Nárok ověřuje server; limity napříč konverzacemi. Existující admin `chat`. Text bez příloh. |
 | Retence chatu | `chat-retention` job, `redactExpiredContent` | `CHAT_RETENTION_DAYS` | Po uzavření odstraní starý obsah a předmět. Provozní ID/časy zůstávají pro limity; není úplná anonymizace účtu. |
 | Notifikace a joby | Medusa event subscribers/jobs, Notification adaptery | Provider a URL/recipient konfigurace | Lokální synthetic doručení není skutečné odeslání pošty. Claim/retry semantics nutno posuzovat po doménách. |
-| Migrace katalogu/zákaznic/objednávek | `src/scripts/import-anastasia-catalog.ts`, `migrate-legacy-customers-orders.ts` | Dry-run, legacy ID, důkazy/importní soubory | CLI, idempotence, bez osobních dat v veřejném inventáři. Není to frontendová admin akce. |
+| Migrace katalogu/zákazník/objednávek | `src/scripts/import-anastasia-catalog.ts`, `migrate-legacy-customers-orders.ts` | Dry-run, legacy ID, důkazy/importní soubory | CLI, idempotence, bez osobních dat v veřejném inventáři. Není to frontendová admin akce. |
 | Záloha/obnova | backup-local/restore-local/db-recovery | Jen schválená lokální databáze a artefakty | Runbook, guard lokální DB, restore drill; žádná automatická produkční obnova. |
 | Korelace, provozní události a audit změn | `lib/observability`, `/admin/ops/events`, `/admin/ops/audit`, `ops-audit` | PostgreSQL `ops_event`, `ops_audit_entry`, request ID | Trvalé čtení/filtry ověřeny skutečným HTTP; přesné pokrytí callerů níže. |
 
@@ -44,7 +44,7 @@ Stav `IMPLEMENTED_UNVERIFIED` v inventáři znamená nalezenou implementaci; nen
 | NEXUS propojení | URL, tenant string, secret | Backend `NEXUS_PRICING_URL`, `NEXUS_TENANT_ID`, `NEXUS_PRICING_API_KEY`; Worker dedicated credential/tenant | Secret hodnoty nepatří do adminu ani inventáře. |
 | Booking typy | Booking metadata dle `booking/offer.ts`, varianta a cena v PG | Správce přes booking types API | Společný admin audit v integrační větvi. |
 | Volný týden | Datum/úseky, Bratislava, serverová validace kolizí | Správce přes availability API →PG | Společný admin audit; obsazený čas nelze mlčky odstranit. |
-| Chat limity | 3 po sobě, 5/den, zákaznice 2000 znaků, správce 5000, předmět 120 | Konstanty `chat/policy.ts`; **zatím nejsou nastavitelné v adminu** | Změna kódu/git, nikoli DB nastavení. |
+| Chat limity | 3 po sobě, 5/den, zákazník 2000 znaků, správce 5000, předmět 120 | Konstanty `chat/policy.ts`; **zatím nejsou nastavitelné v adminu** | Změna kódu/git, nikoli DB nastavení. |
 | Retence obsahu | `CHAT_RETENTION_DAYS`, 365; celé 30–3650 | Serverová konfigurace; neplatná hodnota job bezpečně zastaví | Počty odstraněného obsahu do logu; env změna není admin audit. |
 | Chat upozornění | `CHAT_ADMIN_NOTIFY_EMAIL`, `CHAT_ADMIN_URL`, `CHAT_STOREFRONT_URL` | Serverová konfigurace, adapter Notification | E-mail a obsah zpráv se nesmějí stát provozním logem. |
 | Doručení poukazu | `GIFT_VOUCHER_DELIVERY`, aktivní pouze `notification` | Server + vybraný provider a šablony | Maskované provozní informace, delivery stav/pokusy v PG. |
@@ -52,7 +52,7 @@ Stav `IMPLEMENTED_UNVERIFIED` v inventáři znamená nalezenou implementaci; nen
 | Média | Bucket, token secret a serverové URL/TTL dle source inventory | Deployment vlastník, R2 a backend | Log token nikdy neobsahuje. |
 | Auth/CORS/DB/payment | Názvy env a poskytovatelé v `medusa-config.ts` | Deployment; běžné obchodní nastavení přes nativní Medusa admin | Žádné čtení `.env`, výpis secretů nebo klientský přepínač tenantu. |
 
-Všechny backend custom admin endpointy patří do Medusa `user` autority. Zákaznická autorita je jiná.
+Všechny backend custom admin endpointy patří do Medusa `user` autority. Zákazníková autorita je jiná.
 Konkrétní jemnější role („Lucia jen chat“, „účetní jen vratky“) zatím nejsou tímto inventářem
 prokázané. Nenabízet v UI práva, která backend ještě nevynucuje. Medusa instance je tenantově
 oddělená; Worker svazuje tenant s credentialem, ne s libovolným vstupem storefrontu.

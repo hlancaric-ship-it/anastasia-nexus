@@ -4,15 +4,15 @@ Větev `codex/integrated-checkout`, základ `719cdd4` (včetně K9). Stav: **lok
 
 ## Rozsah
 
-Existující izolovaný HTTP runner nově ověřuje návaznost skutečného checkoutu, payment workflow, entitlement subscriberů, zákaznické knihovny a vydávání podepsaných odkazů. Používá čerstvou syntetickou PostgreSQL databázi a oba completion endpointy; nemění implementaci entitlement ani NEXUS.
+Existující izolovaný HTTP runner nově ověřuje návaznost skutečného checkoutu, payment workflow, entitlement subscriberů, zákazníkové knihovny a vydávání podepsaných odkazů. Používá čerstvou syntetickou PostgreSQL databázi a oba completion endpointy; nemění implementaci entitlement ani NEXUS.
 
-Přidaných 14 technických kontrol pokrývá autentizaci knihovny/médií, zákaznici bez nákupu, nezaplacenou objednávku, automatické udělení po capture, vlastní knihovnu, pokus změnit customer_id, cizí médium, registr médií produktu, podpis a expiraci odkazu, souběžný replay udělení, částečný refund, plný refund a druhý nákup se stornem. Tyto kontroly **nejsou prohlášením splnění všech 14 akceptačních scénářů direktivy**. Navazují na T1-1/T1-2 a A-02/A-07 z `docs/REQUIREMENTS_MATRIX.md`.
+Přidaných 14 technických kontrol pokrývá autentizaci knihovny/médií, zákazníci bez nákupu, nezaplacenou objednávku, automatické udělení po capture, vlastní knihovnu, pokus změnit customer_id, cizí médium, registr médií produktu, podpis a expiraci odkazu, souběžný replay udělení, částečný refund, plný refund a druhý nákup se stornem. Tyto kontroly **nejsou prohlášením splnění všech 14 akceptačních scénářů direktivy**. Navazují na T1-1/T1-2 a A-02/A-07 z `docs/REQUIREMENTS_MATRIX.md`.
 
 ## Hranice důkazu
 
 - Produktem je syntetický digitální produkt; nejde o ověření produkčního katalogu nebo skutečných lekcí RESET 40+.
 - Platební provider je `pp_system_default`; žádná Stripe síťová platba ani Apple/Google Pay.
-- Identitu poskytují lokální JWT fixtures nad skutečnými syntetickými zákaznicemi. Přihlašování ani migrace nejsou tímto testem ověřené.
+- Identitu poskytují lokální JWT fixtures nad skutečnými syntetickými zákazníkmi. Přihlašování ani migrace nejsou tímto testem ověřené.
 - Capture, plný refund a storno čekají na skutečné subscribers a stav DB. Částečný refund navíc přímo ověřuje existující rozhodovací funkci nad reálnou objednávkou. Replay volá skutečnou synchronizaci oprávnění dvakrát souběžně.
 - Média: testuje se HTTP autorizace a vydání/ověření tokenu. URL na `media.example.test` se nestahuje; skutečné R2/Worker doručování, okamžité zneplatnění již vydaného tokenu a přehrávač nejsou ověřené. NEXUS běží přes Node bridge, nikoli workerd.
 - Zbývají skutečná Stripe platba, e-mail provider/notifikace, R2, kompletní akceptační sada a produkční konfigurace. Celé K4/C8 proto nelze označit za hotové.

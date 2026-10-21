@@ -7,9 +7,9 @@
 
 ## Poslední dokončený úkol
 
-Oprava C2 migrated customer → magic-link vazby: odstraněn chybný předpoklad `has_account=true`, e-mail kandidáti musí být jednoznační; `auth_identity.entity_id` musí odpovídat ověřenému e-mailu; vazba `app_metadata.customer_id` a aktivace `customer.has_account=true` jsou jeden atomický PostgreSQL statement. Opakované potvrzení validuje již existující vazbu, opraví pouze odpovídající zákaznici a DB chyby už nezamaskuje jako úspěšné přihlášení.
+Oprava C2 migrated customer → magic-link vazby: odstraněn chybný předpoklad `has_account=true`, e-mail kandidáti musí být jednoznační; `auth_identity.entity_id` musí odpovídat ověřenému e-mailu; vazba `app_metadata.customer_id` a aktivace `customer.has_account=true` jsou jeden atomický PostgreSQL statement. Opakované potvrzení validuje již existující vazbu, opraví pouze odpovídající zákazníci a DB chyby už nezamaskuje jako úspěšné přihlášení.
 
-Syntetický PostgreSQL test potvrdil, že zákaznická vazba nemění C2 `legacy_order` ani entitlement cizího/stejného customer ID. Duplicitní e-mail nevybere náhodný řádek. Test běžel v rollbackované transakci nad TEMP tabulkami na lokálním unix socketu DB `anastasia_dev_wave1`; nebyla čtena ani měněna trvalá zákaznická data.
+Syntetický PostgreSQL test potvrdil, že zákazníková vazba nemění C2 `legacy_order` ani entitlement cizího/stejného customer ID. Duplicitní e-mail nevybere náhodný řádek. Test běžel v rollbackované transakci nad TEMP tabulkami na lokálním unix socketu DB `anastasia_dev_wave1`; nebyla čtena ani měněna trvalá zákazníková data.
 
 ## Změněné soubory na `codex/auth-magic-link`
 
@@ -38,7 +38,7 @@ Plný `medusa build`, HTTP auth/browser, skutečné odeslání e-mailu, Stripe, 
 
 - Hlavní `/Users/lucky/anastasia-nexus` zůstává nedotčený s původními Claude změnami: `backend/.env.template`, `backend/medusa-config.ts` modified; provider module a subscriber untracked. Tyto soubory nebyly odstraněny ani přepsány. `medusa-config.ts`/`.env*` patří podle AGENTS integrátorovi; auth registraci musí samostatně review/merge.
 - Tenant schéma není v backendu. Aktuální C2 linker je bezpečný pro single-store e-mailovou identitu, ale netvrdí více-tenant izolaci.
-- Notification provider je `notification-local`, takže magic-link e-mail skutečně nedorazí zákaznici.
+- Notification provider je `notification-local`, takže magic-link e-mail skutečně nedorazí zákazníci.
 - C2 report aktualizuje reconciled skutečný dump dle `docs/REQUIREMENTS_MATRIX.md`, ale tento běh data znovu nečetl.
 - Remote rozpor: lokální origin je `hlancaric-ship-it/anastasia-nexus`; `L-Code-Dynamics-Dev/nexus` je jiné repo/historie. Lokálně není `apps/kar`. Nepushovat na nevyjasněný remote.
 
@@ -50,5 +50,5 @@ C7 je částečně implementován v samostatném worktree `/Users/lucky/anastasi
 
 1. Který Git remote je kanonický pro budoucí PR: současný `hlancaric-ship-it/anastasia-nexus` nebo `L-Code-Dynamics-Dev/nexus`?
 2. Výběr e-mail provideru a povolené test credentials před ověřením doručení.
-3. Tenant model, pokud systém bude sdílet zákaznickou DB napříč více obchody/doménami.
+3. Tenant model, pokud systém bude sdílet zákazníkom DB napříč více obchody/doménami.
 4. Produkční hosting, secrets, domény, Stripe live režim, databáze a Cloudflare/R2 přístupy — vše zůstává blokováno samostatným písemným schválením.

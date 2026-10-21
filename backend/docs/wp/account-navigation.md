@@ -1,6 +1,6 @@
 # Globální přihlášení a menu účtu
 
-VERIFIED lokálně 19. 10. 2026. Přihlášení je ve společné hlavičce každé stránky; přihlášené zákaznici odkaz vede do účtu. Neúspěšné načtení chatu už nezastaví inicializaci obou menu, navigace a dalších ovladačů stránky. API chybu uvidí jen chat. Opraveno vykreslování materiálů, které vrací API, bez vymyšlených odkazů na soubory.
+VERIFIED lokálně 19. 10. 2026. Přihlášení je ve společné hlavičce každé stránky; přihlášené zákazníci odkaz vede do účtu. Neúspěšné načtení chatu už nezastaví inicializaci obou menu, navigace a dalších ovladačů stránky. API chybu uvidí jen chat. Opraveno vykreslování materiálů, které vrací API, bez vymyšlených odkazů na soubory.
 
 Mock adapter pro explicitní ukázkový režim doplněn na současný kontrakt účtu (`ok`, přihlášení, dostupnost rezervací). Skutečný web dál používá HTTP adapter, mock je jen výslovný náhled/test. Browser regrese nastavuje mock pouze ve svém testovacím kontextu; samostatný kontext záměrně přeruší HTTP spojení a ověřuje otevření a zavření obou menu. Staré browser selektory aktualizované na skutečná dvě právní potvrzení, focusovatelný přepínač jazyka, knihovnu vedle Klubu a již existující routu živého detailu produktu.
 

@@ -1,11 +1,11 @@
-# X3 — Storno objednávky zákaznicí
+# X3 — Storno objednávky zákazníkov
 
 Větev `codex/order-self-cancel`, vlastní worktree, základ integrace8cf9c86 + závislosti X1/X2.
 Backend bez UI, žádné nové moduly/závislosti ani klientské výpočty.
 
 ## Kontrakt
 
-`POST /store/orders/:id/cancel` vyžaduje přihlášenou zákaznici. Z těla se nepřebírá vlastník,
+`POST /store/orders/:id/cancel` vyžaduje přihlášenou zákazníci. Z těla se nepřebírá vlastník,
 částka, status ani důvod pro obejití pravidel. Cizí/neexistující objednávka404; anonym401;
 no-store; serverový limit10/min/customer (X1 PG rate limiter), limit429 + Retry-After.
 

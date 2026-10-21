@@ -21,7 +21,7 @@ Objemy jsou na reálný e-shop **velmi malé** → pravděpodobně vývojová/p�
 | **ecPaymentType / ecTransportType** | 3 / 2 | platby / doprava |
 | **umbracoUser** | 4 | **admin účty** (vč. dodavatelského) |
 
-> **Důsledek:** data audit potvrzuje datový model a integritu, ale **produkční objemy a reálná zákaznická data z něj určit nelze** — na to by byl potřeba aktuální produkční dump (hosting Active24, `81.95.98.157`).
+> **Důsledek:** data audit potvrzuje datový model a integritu, ale **produkční objemy a reálná zákazníková data z něj určit nelze** — na to by byl potřeba aktuální produkční dump (hosting Active24, `81.95.98.157`).
 
 ## 3. Bezpečnostní nálezy z dumpu
 - 🔴 **DATA-1 — dump obsahuje `umbracoUser` (4 admin účty) vč. hashů hesel** a `cmsMember`/`ecCustomer` (PII zákazníků). Tento `DB.sql` koluje v repu/ke stažení → **únik hashů admin hesel + PII**. Repo s produkčním/dev dumpem = citlivé, nepatří do volně sdíleného balíku.

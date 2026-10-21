@@ -4,11 +4,11 @@ Stav: VERIFIED pro níže popsané základní demonstrační cesty šesti agend.
 
 ## Rozsah
 
-Nová stránka `/sprava-obchodu` má přehled se šesti klikacími kartami a záložky Produkty, Ceny, Kategórie, Kupóny, Objednávky, Zákazníčky. Seznamy mají hledání, stránkování po 12, načítání, prázdný stav, chybu a opakované čtení. Dialog ponechává ovládání přístupné i při malé výšce, obsah lze rolovat při zoomu/mobilu. Osobní motiv je načten z `/admin/my-theme`; všechna nová pole používají stejné tokeny včetně autofillu a nočního režimu.
+Nová stránka `/sprava-obchodu` má přehled se šesti klikacími kartami a záložky Produkty, Ceny, Kategórie, Kupóny, Objednávky, Zákazníkov. Seznamy mají hledání, stránkování po 12, načítání, prázdný stav, chybu a opakované čtení. Dialog ponechává ovládání přístupné i při malé výšce, obsah lze rolovat při zoomu/mobilu. Osobní motiv je načten z `/admin/my-theme`; všechna nová pole používají stejné tokeny včetně autofillu a nočního režimu.
 
 Produkty: vytvořit koncept s jednou variantou, bezpečnou cenou, kategoriemi, výslovným prodejním kanálem/profilem dopravy a sledováním skladu; text, stav a kategorie upravovat bez přepisu variant/metadata. Žádné automatické booking nastavení. Zveřejnění neobchází serverové skladové/checkout kontroly.
 
-Kategorie: vytvoření/úprava názvu, popisu, viditelnosti a rodiče přes Medusa API. Kupóny: pouze standardní nepodmíněné procentuální kupóny na položky, 0 < sleva <= 100 %, limit a aktivace. Složité kupóny jsou pouze vysvětlené, jejich pravidla se nemění. Zákaznice: vytvoření/úprava běžného profilu; nejde o nastavení hesla nebo zápis přístupových práv. Objednávka: skutečný detail s položkami, serverovou částkou a stavy; změna kontaktního e-mailu/interní poznámky zachovává ostatní metadata, nikdy nemění platbu.
+Kategorie: vytvoření/úprava názvu, popisu, viditelnosti a rodiče přes Medusa API. Kupóny: pouze standardní nepodmíněné procentuální kupóny na položky, 0 < sleva <= 100 %, limit a aktivace. Složité kupóny jsou pouze vysvětlené, jejich pravidla se nemění. Zákazník: vytvoření/úprava běžného profilu; nejde o nastavení hesla nebo zápis přístupových práv. Objednávka: skutečný detail s položkami, serverovou částkou a stavy; změna kontaktního e-mailu/interní poznámky zachovává ostatní metadata, nikdy nemění platbu.
 
 ## Bezpečnost cen a zápisů
 

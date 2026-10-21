@@ -52,6 +52,6 @@ node src/scripts/restore-local.mjs --file=/ABSOLUTE/PATH/TO/backend/data-private
 ## Stav a chybějící provozní rozhodnutí
 
 - Implementováno: lokální fail-closed `pg_dump`/`pg_restore` nástroje, dry-run, ochrana názvu/cesty/práv a cíle, testy ochranných helperů.
-- Neověřeno: skutečný backup/restore záměrně nebyl proveden, protože lokální databáze může obsahovat migrovaná zákaznická data a v tomto běhu nebyl dostupný potvrzený prázdný syntetický cíl. Jestli nástroj bude fungovat v čistém stagingu, musí potvrdit restore drill.
+- Neověřeno: skutečný backup/restore záměrně nebyl proveden, protože lokální databáze může obsahovat migrovaná zákazníková data a v tomto běhu nebyl dostupný potvrzený prázdný syntetický cíl. Jestli nástroj bude fungovat v čistém stagingu, musí potvrdit restore drill.
 - Blokuje produkční připravenost: hosting DB, poskytovatel a šifrování záloh, off-site kopie, retenční doba, přístupová politika, monitoring/alerty, RPO/RTO, vlastník obnovy a schválené staging credentials.
 - Nikdy neobnovuj lokální dump do produkce ani neprováděj restore do existující DB bez samostatného schváleného postupu.

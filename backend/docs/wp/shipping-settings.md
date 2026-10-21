@@ -10,7 +10,7 @@
 - Bootstrap je idempotentní podle názvu: u už existujícího kurýra hranici nepřidá – tam se nastaví v adminu
   (Nastavenia → Lokality a doprava → cena s podmínkou „Celková suma položiek“).
 - `item_total` je v Medusa 2 součet položek **s DPH a po slevách** (po přecenění NEXUS – věrnostní/kupónová sleva),
-  bez dopravy. Hranice se tedy porovnává s hrubou cenou zboží, kterou zákaznice skutečně platí. Při cenách zadaných
+  bez dopravy. Hranice se tedy porovnává s hrubou cenou zboží, kterou zákazník skutečně platí. Při cenách zadaných
   bez DPH (SK region daň přičítá) je 50 € bez DPH = 61,50 € v `item_total`.
 
 ## Testy

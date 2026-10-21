@@ -5,7 +5,7 @@ import { sendEmail } from "../email/send"
 import { recordEvent } from "../observability/events"
 
 /**
- * Jednotný vstup pro zákaznická upozornění z backendu.
+ * Jednotný vstup pro zákazníková upozornění z backendu.
  *
  * Pravidla:
  * - adresát se dohledá na serveru z vlastníka entity (nikdy ze vstupu klienta);

@@ -5,7 +5,7 @@ import { customerOwnsBooking, customerOwnsOrder, isCustomerChatEligible } from "
 import type { ChatConversationRow } from "../../../../modules/chat/service"
 import { chatService, customerNewConversationSchema, emitChatEvent, parseBody, requireActor, sendChatError } from "../../../chat-helpers"
 
-/** GET /store/chat/conversations: konverzace přihlášené zákaznice, nejnovější nahoře. */
+/** GET /store/chat/conversations: konverzace přihlášené zákazník, nejnovější nahoře. */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const customerId = requireActor(req, res, "customer")
   if (!customerId) return

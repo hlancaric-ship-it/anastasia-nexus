@@ -8,7 +8,7 @@ Stav: IMPLEMENTED; cílené unit testy 24/24, reálný Chrome 26 kontrol (1440 a
 
 ## Obrazovka `/app/clenstva`
 
-Osobní motiv z `/admin/my-theme` je společný s C5. Záložky Členstvá, Nedokončené nákupy a Členské produkty mají skutečné načítání, stránkování, prázdný a chybový stav. Zobrazuje nativní jméno zákaznice/název produktu, poslední objednávku a odděleně skutečný stav přístupu (aktivní/odebraný/vypršel/čeká/kontrola). Samotný membership.status nikdy neznamená aktivní přístup. Odkazy směřují na existující nativní detail zákaznice, produktu a objednávky.
+Osobní motiv z `/admin/my-theme` je společný s C5. Záložky Členstvá, Nedokončené nákupy a Členské produkty mají skutečné načítání, stránkování, prázdný a chybový stav. Zobrazuje nativní jméno zákazník/název produktu, poslední objednávku a odděleně skutečný stav přístupu (aktivní/odebraný/vypršel/čeká/kontrola). Samotný membership.status nikdy neznamená aktivní přístup. Odkazy směřují na existující nativní detail zákazník, produktu a objednávky.
 
 Stop vyžaduje potvrzení. Zachovává zaplacené období, nevydává refund a nepředstírá zastavení již rozběhnuté platby. Po nejasném zápisu je další zápis blokován až do úspěšného načtení. Žádná automatická platba ani opakovaný checkout z UI.
 
@@ -40,7 +40,7 @@ Potřebná integrace: membership module musí zapojit vlastník medusa-config a�
 
 ## Platby a obnovy — integrační doplnění
 
-Čtvrtá záložka zobrazuje skutečné MembershipBillingAttempt přes `listAndCountMembershipBillingAttempts`: pouze id, membership_id, stage jako bezpečný lidský popis, order_id, created_at/updated_at. Nikdy snapshot, platební session/metoda, Stripe zákazník nebo secret. `needs_action` vysvětluje požadavek potvrzení zákaznicí, unknown/review neoznačuje jako zaplaceno.
+Čtvrtá záložka zobrazuje skutečné MembershipBillingAttempt přes `listAndCountMembershipBillingAttempts`: pouze id, membership_id, stage jako bezpečný lidský popis, order_id, created_at/updated_at. Nikdy snapshot, platební session/metoda, Stripe zákazník nebo secret. `needs_action` vysvětluje požadavek potvrzení zákazníkov, unknown/review neoznačuje jako zaplaceno.
 
 `POST /admin/memberships/billing/:id/reconcile {}` vyžaduje admina, dohledá existující pokus a volá výhradně `reconcileMembershipBilling(scope,id)` z billing balíku (závislost54fa339). Tato funkce pouze čte existující order_cart/capture a aplikuje již ověřený doklad+přístup. Žádný nový košík, platba ani checkout retry. UI předem potvrdí účel akce. `RECONCILIATION_REQUIRED` zůstává otevřeným výsledkem a nesmí se zobrazit jako úspěšně zaplacené; SETTLED je pouze ověřená objednávka/platba, skutečný přístup zůstává samostatně zobrazený u členství. Akce se audituje bez citlivých platebních identifikátorů.
 
