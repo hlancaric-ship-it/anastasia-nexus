@@ -29,6 +29,10 @@ const additions = [
   { path: '/admin/nexus/orders/:id/cancel', methods: ['POST'], source: 'backend/src/api/admin/nexus/orders/[id]/cancel/route.ts', feature: 'orders' },
   { path: '/admin/nexus/orders/:id/notes', methods: ['GET', 'POST'], source: 'backend/src/api/admin/nexus/orders/[id]/notes/route.ts', feature: 'orders' },
   { path: '/admin/nexus/orders/:id/refund', methods: ['POST'], source: 'backend/src/api/admin/nexus/orders/[id]/refund/route.ts', feature: 'orders' },
+  { path: '/admin/reset-program', methods: ['GET'], source: 'backend/src/api/admin/reset-program/route.ts', feature: 'access' },
+  { path: '/store/reset-journal', methods: ['GET', 'POST'], source: 'backend/src/api/store/reset-journal/route.ts', feature: 'access' },
+  { path: '/store/reset-journal/:id', methods: ['PATCH', 'DELETE'], source: 'backend/src/api/store/reset-journal/[id]/route.ts', feature: 'access' },
+  { path: '/store/reset-program', methods: ['GET'], source: 'backend/src/api/store/reset-program/route.ts', feature: 'access' },
 ]
 
 for (const addition of additions) {
@@ -120,9 +124,32 @@ if (rolesFeature) {
   rolesFeature.backend_status = 'IMPLEMENTED_UNVERIFIED'
 }
 
+// Zrkadielko a štruktúra programu RESET 40+ (členská zóna) – backend hotový, obsah dodá Lucia.
+const accessFeature = map.features.find((feature) => feature.id === 'access')
+if (accessFeature) {
+  for (const source of [
+    'backend/src/api/store/reset-journal/route.ts',
+    'backend/src/api/store/reset-journal/[id]/route.ts',
+    'backend/src/api/store/reset-program/route.ts',
+    'backend/src/api/admin/reset-program/route.ts',
+    'backend/src/lib/reset-program/config.ts',
+    'backend/src/lib/reset-program/structure.ts',
+    'backend/src/lib/reset-program/access.ts',
+    'backend/docs/wp/reset-zrkadielko.md',
+  ]) if (!accessFeature.sources.includes(source)) accessFeature.sources.push(source)
+  if (!accessFeature.remaining.includes('Zrkadielko')) accessFeature.remaining = `${accessFeature.remaining} Zrkadielko (záznamy zákazníčky) a štruktúra programu sú v backende hotové; chýba obsah od Lucie (kompletný zoznam stĺpcov hodnotení, texty týždňov a pracovných listov) a právny základ súhlasu.`
+  if (!accessFeature.acceptance.includes('cudzí záznam')) accessFeature.acceptance = `${accessFeature.acceptance} Zrkadielko: záznam patrí zákazníčke – cudzí záznam sa nedá prečítať, upraviť ani zmazať; hodnotenie je 1–10 a dátum nie je v budúcnosti.`
+}
+
 const newTests = [
   'backend/src/lib/protected-library/__tests__/upload.unit.spec.ts',
   'backend/src/lib/protected-library/__tests__/storage.unit.spec.ts',
+  'backend/src/lib/reset-program/__tests__/config.unit.spec.ts',
+  'backend/src/lib/reset-program/__tests__/structure.unit.spec.ts',
+  'backend/src/modules/reset-journal/__tests__/policy.unit.spec.ts',
+  'backend/src/modules/reset-journal/__tests__/service.unit.spec.ts',
+  'backend/src/api/store/reset-journal/__tests__/route.unit.spec.ts',
+  'backend/integration-tests/http/reset-journal-http-checks.ts',
   'backend/src/lib/digital-products/__tests__/categories.unit.spec.ts',
   'backend/src/api/admin/products/[id]/protected-media/__tests__/library-upload.unit.spec.ts',
   'backend/src/api/admin/products/[id]/protected-media/__tests__/delete-key-routing.unit.spec.ts',
