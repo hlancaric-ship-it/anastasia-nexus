@@ -309,9 +309,13 @@ if (gsap && ScrollTrigger) {
     const sync = () => {
       const on = window.anaSoundState ? window.anaSoundState() : false;
       sound.setAttribute('aria-pressed', String(on));
+      sound.setAttribute('aria-label', on ? 'Vypnúť zvuk' : 'Zapnúť zvuk');
+      sound.setAttribute('title', on ? 'Vypnúť zvuk' : 'Zapnúť zvuk');
+      sound.classList.toggle('is-on', on);
       const label = sound.querySelector('.media-label');
       if (label) label.textContent = on ? 'Zvuk zapnutý' : 'Zvuk vypnutý';
     };
+    document.addEventListener('ana:sound', sync);
     sound.addEventListener('click', async () => {
       if (window.anaToggleAmbient) await window.anaToggleAmbient();
       sync();

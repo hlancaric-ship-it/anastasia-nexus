@@ -202,7 +202,7 @@ let ambOff=false;try{ambOff=localStorage.getItem(AMB_OFF)==='1';}catch{}
 const amb=createAmbient({createAudio:()=>new Audio(),raf:f=>requestAnimationFrame(f),caf:id=>cancelAnimationFrame(id),now:()=>performance.now(),storage,onChange:()=>soundLabel()});
 const videoLabel=()=>{if(!playBtn)return;const paused=heroVideo?heroVideo.paused:amb.paused,label=paused?(heroVideo?'Prehrať video':'Spustiť zvuk'):(heroVideo?'Pozastaviť video':'Pozastaviť zvuk');playBtn.setAttribute('aria-pressed',String(paused));playBtn.setAttribute('aria-label',label);playBtn.title=label;setLabel(playBtn,label);};
 const nextBtn=$('[data-sound-next]');
-const soundLabel=()=>{if(nextBtn)nextBtn.hidden=amb.paused;if(!soundBtn)return;const on=!amb.paused,label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
+const soundLabel=()=>{if(nextBtn)nextBtn.hidden=amb.paused;const on=!amb.paused;document.dispatchEvent(new CustomEvent('ana:sound',{detail:{on}}));if(!soundBtn)return;const label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
 const ambUnlockEvents=['pointerdown','keydown','touchend'];
 function ambUnlock(event){
   if(event.target.closest?.('[data-sound-toggle],[data-video-toggle]'))return;

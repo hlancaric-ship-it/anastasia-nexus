@@ -190,7 +190,8 @@ export function homeSections(products = []) {
     </div>
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
     <button class="lh-intro__sound" type="button" data-lh-sound aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path d="m9 17 6 6m0-6-6 6"/></svg>
+      <svg class="lh-sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg>
+      <svg class="lh-sound-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path d="m9 17 6 6m0-6-6 6"/></svg>
       <span class="media-label">Zvuk vypnutý</span>
     </button>
   </div>
@@ -506,6 +507,10 @@ html.lh-mobile-intro .lh-intro__stage{height:100svh!important}
 @supports (mask:url(#lhWord)){.lh-intro__fallback{display:none!important}}
 @media (max-width:768px),(pointer:coarse){.motion .lh-intro__mask rect{opacity:.6!important}}
 .lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s}
+.lh-intro__sound .lh-sound-on{display:none}
+.lh-intro__sound.is-on{background:var(--site-accent-light,#D8C598)!important;border-color:var(--site-accent,#C9A355)!important;color:#1E281C!important}
+.lh-intro__sound.is-on .lh-sound-on{display:block}
+.lh-intro__sound.is-on .lh-sound-off{display:none}
 .lh-intro__sound .media-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .lh-chrome-in .lh-intro__sound{opacity:0;pointer-events:none}
 
