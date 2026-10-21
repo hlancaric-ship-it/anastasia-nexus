@@ -9,6 +9,7 @@ dist
 build
 data-private/
 backend/data-private/
+.playwright-mcp/
 package-lock.json
 
 # Lokálne nahraté súbory (Medusa file-local)

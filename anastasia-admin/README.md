@@ -28,7 +28,7 @@ node build.mjs        # → dist/
 **Funkční proti Admin API (vše přes existující routy jádra, citlivé výpočty jen na backendu):**
 - **Prehľad** – čísla + karta *Pripravenosť obchodu* z `GET /admin/readiness` (blokery, doporučení, „nedá sa overiť“ – nikdy falešné OK).
 - **Produkty** – výpis, nový produkt (jediný predajný kanál automaticky), úprava: cena přes `POST /admin/shop-prices/:variantId` s `expected_amount`, akcia, obrázky (`/admin/uploads`, hlavný obrázok), kategórie, predajné kanály, sklad (inventory items + počty po skladoch), kontrola úplnosti – bez ceny a kanála sa produkt nedá zverejniť. Kategórie.
-- **Objednávky** – detail v záložkách; pripraviť na odoslanie, odoslať s číslom zásielky, prijať platbu, vrátiť peniaze (aj čiastočne), zrušiť. Každá akcia s potvrdením.
+- **Objednávky** – detail v záložkách; pripraviť na odoslanie, odoslať s číslom zásielky, prijať platbu, vrátiť peniaze (aj čiastočne), zrušiť. Každá akcia s potvrdením. **Tlač:** adresný štítok (A6) a dodací list (A4) v zozname aj v detaile objednávky, hromadná tlač štítkov pre filter „Na vybavenie“ (`print.mjs`; okno sa otvára synchronne v kliknutí, údaje z `/admin/orders?id[]=…`).
 - **Zákazníčky** + prístupy ku knižnici.
 - **Konzultácie** – stavy, detail, zrušenie termínu (`/admin/bookings*`).
 - **Správy** – konverzácie, odpoveď, uzavrieť/otvoriť, stlmiť, blokovať chat (`/admin/chat/*`).

@@ -379,6 +379,9 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
 .ot .ot-num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .ot td.ot-num{font-weight:500}
 .ot .ot-act{text-align:right;width:1%;white-space:nowrap}
+.ot .ot-acts{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+.ot .ot-head-act{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.ot .ot-head-act .rc-search{max-width:360px;width:100%}
 .ot .btn.sm{padding:6px 12px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
 .ot .pill{margin-left:0}
 @media (max-width:900px){
@@ -389,6 +392,9 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
   .ot td.ot-img{grid-row:span 4;width:auto}
   .ot td.ot-num{grid-column:3;grid-row:1;text-align:right}
   .ot td.ot-act{display:none}
+  .ot td.ot-act-print{display:flex;grid-column:1/-1;padding-top:12px}
+  .ot td.ot-act-print .ot-acts{justify-content:flex-start;flex-wrap:wrap}
+  .ot td.ot-act-print .open{display:none}
 }
 
 /* Hlavička stránky: „Ako to funguje“ vedľa hlavného tlačidla; nápoveda vždy ako panel vpravo */

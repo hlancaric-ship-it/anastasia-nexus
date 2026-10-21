@@ -12,6 +12,7 @@ import { qrAgenda } from './qr.mjs';
 
 import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mjs';
 import { mountLibraryEditor } from './library-editor.mjs';
+import { openPrintWindow, fillPrintWindow, PRINT_FIELDS } from './print.mjs';
 
 // --- API klient ---
 let token = localStorage.getItem('ana_token') || '';
@@ -31,6 +32,27 @@ async function login(email, password) {
   const d = await res.json().catch(() => ({}));
   if (!res.ok || !d.token) throw new Error(d?.message || 'Prihlásenie zlyhalo.');
   token = d.token; localStorage.setItem('ana_token', token);
+}
+
+// --- tlač štítka a dodacieho listu ---
+// Okno sa otvorí SYCHRÓNNE v kliknutí (prehliadač inak zablokuje pop-up),
+// údaje objednávok sa načítajú až potom z /admin/orders?id[]=…&fields=PRINT_FIELDS.
+// 'label' = adresný štítok A6, 'slip' = dodací list A4.
+const PRINT_KIND = { label: 'Štítok', slip: 'Dodací list' };
+async function printOrders(ids, kind) {
+  const list = [...new Set((ids || []).filter(Boolean))];
+  if (!list.length) return;
+  let w;
+  try { w = openPrintWindow(`${PRINT_KIND[kind] || 'Štítok'} – ANASTASIA`); }
+  catch (e) { alert(e.message); return; }
+  const q = list.map(id => 'id[]=' + encodeURIComponent(id)).join('&');
+  try {
+    const { orders = [] } = await api(`/admin/orders?${q}&limit=${Math.min(list.length, 1000)}&fields=${encodeURIComponent(PRINT_FIELDS)}`);
+    if (!orders.length) { w.document.body.innerHTML = '<p style="font:14px Arial">Pre tieto objednávky sa nepodarilo načítať údaje na tlač.</p>'; return; }
+    fillPrintWindow(w, orders, kind);
+  } catch (e) {
+    w.document.body.innerHTML = `<p style="font:14px Arial">Údaje na tlač sa nepodarilo načítať: ${esc(e.message)}</p>`;
+  }
 }
 
 // --- ikony (tenké line SVG zo schváleného návrhu admin-design-preview) ---
@@ -700,29 +722,42 @@ async function vOrders(view) {
       <td class="ot-num">${fmtEur(o.total)}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status)}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
-      <td class="ot-act"><span class="btn ghost sm">Otvoriť ${navIcon('arrow')}</span></td></tr>`;
+      <td class="ot-act ot-act-print"><div class="ot-acts">
+        <button type="button" class="btn ghost sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
+        <button type="button" class="btn ghost sm" data-print="slip" title="Vytlačiť dodací list (A4)">Dodací list</button>
+        <span class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</span>
+      </div></td></tr>`;
   };
-  let filter = 'all', query = '';
+  let filter = 'all', query = '', visible = [];
   view.innerHTML = `<section class="card ot-card"><div class="ot-head">
       <h2>Objednávky <span class="muted">(${orders.length})</span></h2>
-      ${orders.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať číslo, meno, e-mail, produkt…" aria-label="Hľadať v objednávkach">' : ''}
+      <div class="ot-head-act">
+        ${orders.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať číslo, meno, e-mail, produkt…" aria-label="Hľadať v objednávkach">' : ''}
+        <button type="button" class="btn gold" id="o-print-all" hidden>Vytlačiť štítky (0)</button>
+      </div>
     </div>
     ${FILTERS.length > 1 ? `<div class="ot-filters" role="tablist">${FILTERS.map(([k, l, f]) => `<button type="button" role="tab" data-f="${k}" aria-selected="${k === filter}">${esc(l)} <span>${orders.filter(f).length}</span></button>`).join('')}</div>` : ''}
     <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazníčka</th><th>Položky</th><th class="ot-num">Suma</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
   </section>`;
   const body = view.querySelector('tbody');
+  const bulk = view.querySelector('#o-print-all');
   const draw = () => {
     const f = FILTERS.find(x => x[0] === filter)?.[2] || (() => true);
     const list = orders.filter(f).filter(o => !query || JSON.stringify([o.display_id, o.email, name(o), (o.items || []).map(i => i.title)]).toLowerCase().includes(query));
+    visible = list;
     body.innerHTML = list.length ? list.map(row).join('') : `<tr><td colspan="8" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
     body.querySelectorAll('tr[data-id]').forEach(tr => {
       const open = () => vOrderDetail(view, tr.dataset.id);
       tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+      tr.querySelectorAll('[data-print]').forEach(b => b.onclick = (e) => { e.stopPropagation(); printOrders([tr.dataset.id], b.dataset.print); });
     });
+    // Hromadná tlač štítkov je k dispozícii pri filtri „Na vybavenie“ – presne pre tie objednávky, ktoré sa chystajú.
+    if (bulk) { bulk.hidden = !(filter === 'todo' && list.length); bulk.textContent = `Vytlačiť štítky (${list.length})`; }
   };
   view.querySelectorAll('.ot-filters button').forEach(b => b.onclick = () => {
     filter = b.dataset.f; view.querySelectorAll('.ot-filters button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw();
   });
+  if (bulk) bulk.onclick = () => printOrders(visible.map(o => o.id), 'label');
   const s = view.querySelector('.rc-search');
   if (s) s.oninput = () => { query = s.value.toLowerCase().trim(); draw(); };
   draw();
@@ -782,7 +817,11 @@ async function vOrderDetail(view, id, notice) {
       ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div><div></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníčke sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
-  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<button class="btn ghost" id="o-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<div class="card-h-act">
+      <button type="button" class="btn ghost" id="o-print-label">Vytlačiť štítok</button>
+      <button type="button" class="btn ghost" id="o-print-slip">Dodací list</button>
+      <button class="btn ghost" id="o-back">Späť</button>
+    </div></div><div class="card-b">
     <div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
     ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }, { id: 'o', label: 'Odoslanie', html: odoslanie }, { id: 'pl', label: 'Platby', html: platby }])}
     ${!canceled && !archived && !anyShipped ? '<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><button class="btn ghost" id="o-cancel">Zrušiť objednávku</button></div>' : ''}
@@ -798,6 +837,8 @@ async function vOrderDetail(view, id, notice) {
   showOrderHelp('p');
   view.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showOrderHelp(b.dataset.tab)));
   view.querySelector('#o-back').onclick = () => vOrders(view);
+  view.querySelector('#o-print-label').onclick = () => printOrders([id], 'label');
+  view.querySelector('#o-print-slip').onclick = () => printOrders([id], 'slip');
   const run = async (btn, question, fn, done) => {
     if (!confirm(question)) return;
     const msg = view.querySelector('#omsg'); msg.innerHTML = ''; btn.disabled = true;
