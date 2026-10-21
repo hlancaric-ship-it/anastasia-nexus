@@ -50,3 +50,34 @@ Ponech svou split sekci a čísla 16 / ∞ / 1×; pod ni přidej pinned vodorovn
 - Fotky produktů jsou nově nahrané v Medusa na testovacím API (`https://anastasia-test-api.l-code-dynamics.com/static/...`, pole `thumbnail` a `images`). Karty produktů mají používat je, ne ilustrace `product-*.svg`.
 - Storefront CSP má `img-src 'self' https://*.stripe.com data:` — přidej origin médií (`ANASTASIA_MEDIA_ORIGIN`, výchozí = API origin) do `img-src`, jinak se fotky nenačtou.
 - Složka `public/media/` je v gitignore; při nasazení se musí zkopírovat (hero video, night-sky, nature-ambient.mp3).
+
+
+---
+
+## Stav k 21. 10. 2026 (MiniMax) – co je hotovo a co se změnilo
+
+Vypracováno a commitnuto na větvi `codex/storefront-autorsky-design` (testy 78/78, build 70 stránek).
+Body 1–3 (hero, obloha, parallax) jsou hotové v `src/home-lh.mjs` + `public/motion.mjs`.
+
+### Změny oproti původnímu zadání (rozhodnutí Luckyho v průběhu)
+1. **Úvod je čistý preloader**: hlavička ani boční lišta na úvodu nejsou (a nejsou kliknutelné – inert); objeví se až za úvodem.
+   Na ostatních stránkách je hlavička vidět hned. Úvod se přehrává jen jednou v relaci; klik na „Domů“ vede na hero (`/?hero=1`).
+2. **Nad úvodem jsou tři loga** (stejné soubory jako v patičce): ANASTASIA OZ (126 px) uprostřed, ACADEMY a AI ANASTASIA (78 px) po stranách,
+   mezera 56 px, blok na středu viewportu. Mobil: hlavní nahoře, obě vedle sebe pod ním.
+3. **Text po přiblížení** už nie je „šílený“ veľký text vpravo: malý eyebrow „Zdravý svet“, jedna veta Outfit 300 (28–44 px),
+   max-width 560 px, vlevo dole (6vw / 14vh) a pod ním odkaz „Vstúpte do zdravého sveta“.
+4. **Jazyk je vždy SK** (detekce podle prohlížeče/země zrušená), EN/RU přepínače jsou vypnuté do schválení prekladov.
+   Slovník SK/EN/RU je pripravený v `public/i18n.mjs` (+ `test/i18n.test.mjs`).
+5. **Dělení sekci**: reference nemá pravidelnú 50/50 mriežku – teraz 58/42, 42/58, 36/64 a rôzne výšky sekci.
+6. **Audit 1:1 zo starým webom** (design/AUDIT-1to1.md): P0 hotovo; P1 – SKU produktov, „Skladom“, štítok NOVINKA, radenie podľa
+   legacy_rank, „KÓD“ v detaile, audio ukážka „Nič nemusíš“, menu AI ANASTASIA, fotky DS, H1 „Zdravý svet“, /nova-registracia/vyhody;
+   P2 – pätička (telefón, e-mail, Cookies), newsletter POST, darčekový poukaz skrytý, formulár s telefónom, 10 draftov = 404.
+7. **Bez zeleného flashu pri načítaní**: krémová plocha od prvého vykreslenia (inline `<style>` v `<head>`), chrome skrytý CSS do
+   `html.ana-booted`, video začína na krémovom podklade, assety verzované `?v=build`.
+
+### Čo zostalo (priorita pre dalsiu pracu)
+- **Bod 11 – výkon**: long tasky klesli zo 14 na ~5–6. Meria: `PerformanceObserver('longtask')` pri scrolle + CDP trace
+  (Layout / UpdateLayoutTree / RasterTask). Podozor: maska úvodu (`maskUnits=userSpaceOnUse` -6000..7440 = obrovská plocha).
+  **Pozor**: zmenšenie plochy masky rozbilo kreslenie papiera (maska mimo svoju oblasť element nekreslí vôbec) – vrátené.
+  Kandidáti: presun zoomu z obsahu masky na celý SVG (kompozitorový transform) alebo iná technika pre dieru v papieri.
+- Doladiť dělení sekci k referenci, skontrolovať navigáciu (košík, detail, prihlásenie, rezervácia, účet) a poslať Luckyovi shrnutie.
