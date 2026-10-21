@@ -275,6 +275,11 @@ document.addEventListener('click',async event=>{
   if(!a||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
   const url=new URL(a.href,location.href);
   if(url.origin!==location.origin||url.pathname===location.pathname&&url.search===location.search&&url.hash||reducedMotion.matches)return;
+  // „Domů“ nikdy nepřehrává preloader znovu: otevře hero sekci.
+  if(url.pathname==='/'&&!url.searchParams.has('hero')){
+    event.preventDefault();$('.page-transition').classList.add('active');
+    setTimeout(()=>location.assign('/?hero=1'),220);return;
+  }
   event.preventDefault();$('.page-transition').classList.add('active');setTimeout(()=>location.assign(url.href),220);
 });
 window.addEventListener('pageshow',()=>{$('.page-transition').classList.remove('active');if(menuOpen)setMenu(null);updateCount();});

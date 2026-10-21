@@ -16,6 +16,24 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
+// Čistý preloader: úvod se přehrává jen při prvním otevření webu v relaci.
+// Pak je to hero sekce (video + slovo), bez zoomu a bez kategorií.
+// Kliknutí na „Domů“ vede vždy na hero, nikoli na preloader.
+const heroMode = (() => {
+  const params = new URLSearchParams(location.search);
+  const asked = params.has('hero');
+  if (asked) {
+    params.delete('hero');
+    const query = params.toString();
+    history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+  }
+  let seen = false;
+  try { seen = sessionStorage.getItem('ana-intro-seen') === '1'; } catch {}
+  return asked || seen;
+})();
+if (heroMode) document.documentElement.classList.add('lh-hero-mode');
+const markIntroSeen = () => { try { sessionStorage.setItem('ana-intro-seen', '1'); } catch {} };
+
 // GSAP se načítá jako klasický defer skript, module až poté — start proto
 // čeká na DOMContentLoaded, aby gsap, ScrollTrigger i Lenis byly připravené.
 const start = () => {
@@ -61,6 +79,7 @@ if (gsap && ScrollTrigger) {
     if (document.body.classList.contains('lh-chrome-in')) return;
     document.body.classList.add('lh-chrome-in');
     chromeInteractive(true);
+    if (intro) markIntroSeen();
     // Obsah úvodu je přes celou šířku; s lištou se odsadí. Padding je inline
     // z ROOT_STYLE, proto se musí nastavit tady.
     const root = document.querySelector('.dc-root');
@@ -154,7 +173,8 @@ if (gsap && ScrollTrigger) {
           .to(wordShine, {opacity: 0, duration: 0.5, ease: 'sine.in'}, 1.25);
       }
 
-      const timeline = gsap.timeline({
+      // V hero režimu je úvod statická hero sekce – zoom se nepřehrává.
+      const timeline = heroMode ? gsap.timeline() : gsap.timeline({
         scrollTrigger: {
           trigger: intro, start: 'top top', end: 'bottom bottom', scrub: 1,
           onUpdate: s => { introP.value = s.progress; head(); },
@@ -233,7 +253,7 @@ if (gsap && ScrollTrigger) {
 
   // --- Kategorie se střídají jedna po druhé, dokud uživitel neskroluje ---
   const cats = $$('.lh-cat');
-  if (cats.length && !reduce) {
+  if (cats.length && !reduce && !heroMode) {
     const loop = gsap.timeline({repeat: -1});
     cats.forEach(cat => {
       // Náběh 1,4 s, ~4 s viditelná, odchod 1,4 s, krátká pauza.

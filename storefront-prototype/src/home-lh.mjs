@@ -185,7 +185,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const manifesto = `
-<section class="lh-split lh-split--paper" id="manifest" data-sk-only data-screen-label="02 Manifest">
+<section class="lh-split lh-split--paper lh-split--wide-text" id="manifest" data-sk-only data-screen-label="02 Manifest">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Vitajte</p>
     ${duo('Nie ako ponuka riešení.', 'ALE AKO PRIESTOR')}
@@ -196,7 +196,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const collection = `
-<section class="lh-split lh-split--flip lh-split--dark" id="kolekcia" data-sk-only data-screen-label="03 Kolekcia">
+<section class="lh-split lh-split--flip lh-split--dark lh-split--narrow-text lh-split--tall" id="kolekcia" data-sk-only data-screen-label="03 Kolekcia">
   <div class="lh-split__media"><img data-par="9" src="${IMG.tree}" alt="Strom v krajine" loading="lazy"></div>
   <div class="lh-split__text">
     <p class="lh-eyebrow">Kolekcia</p>
@@ -207,7 +207,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const programme = `
-<section class="lh-split lh-split--paper" id="program" data-sk-only data-screen-label="04 Program">
+<section class="lh-split lh-split--paper lh-split--wide-media" id="program" data-sk-only data-screen-label="04 Program">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Program RESET 40+</p>
     ${duo('Nová kapitola', 'SA ZAČÍNA VAMI.')}
@@ -261,7 +261,7 @@ export function homeSections(products = []) {
 </section>`;
 
   const consultations = `
-<section class="lh-split lh-split--flip" id="konzultacie" data-sk-only data-screen-label="06 Konzultácie">
+<section class="lh-split lh-split--flip lh-split--wide-text lh-split--low" id="konzultacie" data-sk-only data-screen-label="06 Konzultácie">
   <div class="lh-lucia">
     <div class="lh-lucia__frame"><img data-par="8" src="${IMG.lucia}" alt="Mgr. Lucia Rogožanová, zakladateľka ANASTASIA" loading="lazy"></div>
     <div class="lh-lucia__float" data-speed="-90"><img data-par="10" src="${IMG.tree}" alt="" loading="lazy"></div>
@@ -324,6 +324,9 @@ export const HOME_CSS = `
 /* --- Úvod: maska se slovem ANASTASIA, video prosvítá jen písmeny ---------- */
 .lh-intro{position:relative;height:100svh;min-height:640px}
 .motion .lh-intro{height:380svh}
+/* Po prvním přehrání je úvod hero sekcí: bez zoomu, bez kategorií. */
+html.lh-hero-mode .lh-intro{height:100svh;min-height:640px}
+html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro__stage{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--site-deep,#26321E) url(${IMG.hero}) center/cover no-repeat}
 .lh-intro__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease}
 .lh-intro__video.lh-ready{opacity:1}
@@ -461,6 +464,13 @@ export const HOME_CSS = `
 
 /* --- Split sekce ---------------------------------------------------------- */
 .lh-split{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:min(86vh,860px);background:var(--site-main,#283020);color:var(--site-cream,#EFE5C7);overflow:hidden}
+/* Každá sekce má jiný poměr – mřížka není pravidelná jako na referenci. */
+.lh-split--wide-text{grid-template-columns:minmax(0,58%) minmax(0,42%)}
+.lh-split--wide-media{grid-template-columns:minmax(0,42%) minmax(0,58%)}
+.lh-split--narrow-text{grid-template-columns:minmax(0,36%) minmax(0,64%)}
+.lh-split--tall{min-height:min(96vh,980px)}
+.lh-split--low .lh-split__text{justify-content:flex-end}
+.lh-split--high .lh-split__text{justify-content:flex-start;padding-top:clamp(40px,6vw,96px)}
 .lh-split--flip .lh-split__media{order:-1}
 .lh-split--paper{background:var(--lh-paper,#F4F1EB);color:var(--lh-ink,#1E281C)}
 .lh-split__text{display:flex;flex-direction:column;justify-content:center;gap:clamp(20px,2.4vw,34px);padding:clamp(56px,7vw,120px) clamp(28px,5vw,96px)}
