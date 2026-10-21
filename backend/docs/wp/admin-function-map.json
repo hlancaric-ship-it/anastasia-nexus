@@ -180,7 +180,7 @@
         "anastasia-admin/HANDOFF-vernostne-urovne.md"
       ],
       "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu. Politika úrovní, ručné aj automatické priradenie a synchronizácia do NEXUS Workera sú hotové; chýba KV binding v nasadenom Workeri (placeholder ID vo wrangler.jsonc) a UI administrácie. Osobné ceníky pre jednotlivé úrovne zostávajú samostatná požiadavka.",
-      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
+      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
     },
     {
       "id": "booking",
@@ -1807,7 +1807,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "9c4ffd315c5462efc88496704b0aed1b2eb1dce60d9bcfa3ca19a0269d81c527"
+      "sha256": "b1f94fd7f2436cfd6e2ceff697ac8682e106f4479f00be8469cdd79ddd7e59d4"
     },
     {
       "path": "/store/nexus-checkout",
@@ -1816,7 +1816,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "c7caf5c8985e009701e7aa6fde156c0c447b0b561ee611c8e4aa59af63b47075"
+      "sha256": "01a7fc812c06c5a865fb36d2cb03f15b6c8384e2f2c27e199543b82d7f15d8e1"
     },
     {
       "path": "/store/nexus-checkout/options",
