@@ -187,6 +187,33 @@ async function vDashboard(view) {
   }
   let names = null;
   if (todayB && todayB.length) { try { names = await namesFor(todayB.map(b => b.customer_id), todayB.map(b => b.product_id)); } catch (e) { if (e.message === '401') throw e; } }
+  // Tržby, najpredávanejšie produkty a nízky sklad – údaje z jadra, výpočet len na zobrazenie.
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); weekStart.setHours(0, 0, 0, 0);
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+  const [recentRes, invRes, prodRes] = await Promise.all([
+    soft('/admin/orders?limit=200&order=-created_at&fields=id,status,payment_status,fulfillment_status,created_at,total,*items'),
+    soft('/admin/inventory-items?limit=200&fields=id,sku,*inventory_levels'),
+    soft('/admin/products?limit=100&fields=id,title,*variants.sku'),
+  ]);
+  const recent = recentRes?.orders || [];
+  const paid = (o) => ['captured', 'paid', 'partially_captured'].includes(o.payment_status);
+  const sumPaid = (from) => recent.filter(o => paid(o) && new Date(o.created_at) >= from).reduce((a, o) => a + Number(o.total || 0), 0);
+  const revenue = { day: sumPaid(dayStart), week: sumPaid(weekStart), month: sumPaid(monthStart) };
+  const revenuePartial = (Number(recentRes?.count) || 0) > recent.length;
+  const counts = new Map();
+  for (const o of recent) for (const it of o.items || []) {
+    const key = it.title || it.product_title || '';
+    if (!key) continue;
+    const cur = counts.get(key) || { title: key, qty: 0, sum: 0 };
+    cur.qty += Number(it.quantity || 0); cur.sum += Number(it.total || 0);
+    counts.set(key, cur);
+  }
+  const top = [...counts.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
+  const titleBySku = new Map((prodRes?.products || []).flatMap(p => (p.variants || []).map(v => [v.sku, p.title])));
+  const lowStock = (invRes?.inventory_items || [])
+    .map(i => ({ sku: i.sku, title: titleBySku.get(i.sku) || i.sku, stock: (i.inventory_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0) }))
+    .filter(x => x.stock <= 5).sort((a, b) => a.stock - b.stock).slice(0, 5);
   const hm = (d) => new Date(d).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
   const now = Date.now(), next = todayB ? todayB.find(b => new Date(b.starts_at).getTime() >= now) : null;
   const plural = (n, one, few, many) => n === 1 ? one : n >= 2 && n <= 4 ? few : many;
@@ -216,10 +243,28 @@ async function vDashboard(view) {
       <section class="panel" data-tour="tasks"><div class="panel-head"><h2>Čomu sa venovať</h2>${tasks.length ? `<span class="tag">${ulohy(tasks.length)}</span>` : ''}</div>
         ${tasks.length ? tasks.map(taskHtml).join('') : `<p class="empty-task">${toFulfill == null && unread == null ? 'Úlohy sa teraz nedajú načítať. Skúste obnoviť stránku.' : 'Všetko máte vybavené. Nič nečaká na vašu pozornosť.'}</p>`}
       </section>
+      <section class="panel"><div class="panel-head"><h2>Tržby</h2><span class="tag">zaplatené objednávky</span></div>
+        <div class="stats" style="--n:3;margin:0 0 4px">
+          <div class="stat"><div class="stat-top">Dnes ${navIcon('bag')}</div><strong>${fmtEur(revenue.day)}</strong><small>${revenue.day ? 'zaplatené dnes' : 'dnes zatiaľ nič'}</small></div>
+          <div class="stat"><div class="stat-top">Tento týždeň ${navIcon('bag')}</div><strong>${fmtEur(revenue.week)}</strong><small>od pondelka</small></div>
+          <div class="stat"><div class="stat-top">Tento mesiac ${navIcon('bag')}</div><strong>${fmtEur(revenue.month)}</strong><small>od 1. dňa mesiaca</small></div>
+        </div>
+        ${revenuePartial ? '<p class="muted" style="font-size:12px;margin:0">Ukazujeme posledných 200 objednávok – staršie nie sú započítané.</p>' : ''}
+      </section>
       ${readinessCard(readiness)}
     </div>
     <div>
       ${schedule}
+      <section class="panel"><div class="panel-head"><h2>Najpredávanejšie produkty</h2></div>
+        ${top.length ? `<div class="rc-grid">${top.map(p => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(p.title)}</div>
+            <div class="rc-fields"><span class="rc-f"><em>Predané</em>${p.qty} ks</span><span class="rc-f"><em>Tržby</em>${fmtEur(p.sum)}</span></div></div></div>`).join('')}</div>`
+          : '<p class="empty-task">Zatiaľ nemáme údaje o predaji produktov.</p>'}
+      </section>
+      <section class="panel"><div class="panel-head"><h2>Nízky sklad</h2></div>
+        ${lowStock.length ? `<div class="rc-grid">${lowStock.map(p => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(p.title)}</div>
+            <div class="rc-fields"><span class="rc-f"><em>Na sklade</em>${p.stock <= 0 ? '<span class="pill off">vypredané</span>' : `<span class="pill warn">${p.stock} ks</span>`}</span><span class="rc-f"><em>Kód</em>${esc(p.sku || '—')}</span></div></div></div>`).join('')}</div>`
+          : '<p class="empty-task">Všetky produkty majú dostatok zásoby.</p>'}
+      </section>
       <aside class="help-card">${navIcon('help')}<h3>Všetko si nastavíte tu.</h3><p>Ceny, voľné termíny, poukazy aj texty e-mailov. Pri každom nastavení vysvetlíme, čo zmena ovplyvní.</p><a class="subtle-link" href="#/nastavenia">Otvoriť nastavenia →</a></aside>
       <div class="quick"><a class="btn" href="#/poukazy">${navIcon('gift')}Nastaviť poukazy</a><a class="btn" href="#/poukazy">${navIcon('plus')}Vytvoriť kupón</a></div>
     </div>
@@ -717,12 +762,13 @@ async function vProductDetail(view, id, opts = {}) {
 }
 async function vCategories(view) {
   view = freshView(view);
-  const { product_categories } = await api('/admin/product-categories?limit=200&fields=id,name,handle,is_active,parent_category_id');
+  const { product_categories } = await api('/admin/product-categories?limit=200&fields=id,name,handle,is_active,parent_category_id,products.id');
   setActions('<button class="btn gold" id="cat-new">+ Nová kategória</button>');
   const nb = document.querySelector('#cat-new'); if (nb) nb.onclick = () => vCategoryDetail(view, null);
   listView(view, { title: 'Kategórie', rows: product_categories, onRow: c => vCategoryDetail(view, c.id), cols: [
     { h: 'Názov', v: c => esc(c.name) }, { h: 'Adresa kategórie', v: c => `<span class="muted">${esc(c.handle)}</span>` },
     { h: 'Nadradená kategória', v: c => esc(product_categories.find(p => p.id === c.parent_category_id)?.name || 'Hlavná kategória') },
+    { h: 'Produkty', v: c => (c.products || []).length ? `<b>${(c.products || []).length}</b>` : '<span class="muted">0</span>' },
     { h: 'Aktívna', v: c => c.is_active ? '<span class="pill ok">áno</span>' : '<span class="pill off">nie</span>' }] });
 }
 async function vCategoryDetail(view, id) {
@@ -810,17 +856,23 @@ async function vOrders(view) {
     ['archive', 'Archív', o => archived(o)],
   ].filter(([k, , f]) => k === 'all' || orders.some(f));
   const name = o => [o.customer?.first_name, o.customer?.last_name].filter(Boolean).join(' ') || o.shipping_address?.first_name || '';
+  const shipping = o => (o.shipping_methods || []).map(m => m.name).join(', ') || '—';
+  const city = o => [o.shipping_address?.city, (o.shipping_address?.country_code || '').toUpperCase()].filter(Boolean).join(', ') || '—';
+  const provider = o => (o.payment_collections || []).flatMap(pc => pc.payment_sessions || []).map(s => s.provider_id).find(Boolean) || '';
   const row = o => {
     const items = o.items || [], first = items[0];
     const more = items.length > 1 ? ` <small>+ ${items.length - 1} ďalšie</small>` : '';
     const thumb = first?.thumbnail ? `<img src="${esc(first.thumbnail)}" alt="" loading="lazy">` : `<span class="ot-noimg">${navIcon('bag')}</span>`;
+    const method = PAY_METHOD[provider(o)];
     return `<tr data-id="${esc(o.id)}" tabindex="0">
+      <td class="ot-check"><input type="checkbox" data-pick="${esc(o.id)}" aria-label="Označiť objednávku ${esc(legacy(o)?.number || o.display_id || '')}"></td>
       <td class="ot-img">${thumb}</td>
       <td><b>#${esc(legacy(o)?.number || o.display_id || '')}</b><small>${fmtDate(legacy(o)?.placed_at || o.created_at)}</small></td>
       <td>${esc(name(o) || '—')}<small>${esc(o.email || '')}</small></td>
+      <td>${esc(shipping(o))}<small>${esc(city(o))}</small></td>
       <td class="ot-items">${esc(first?.title || first?.product_title || '—')}${more}</td>
       <td class="ot-num">${fmtEur(o.total)}</td>
-      <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status)}</td>
+      <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status)}${method ? `<small>${esc(method.label)}</small>` : ''}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
       <td class="ot-act ot-act-print"><div class="ot-acts">
         <button type="button" class="btn ghost sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
@@ -829,6 +881,7 @@ async function vOrders(view) {
       </div></td></tr>`;
   };
   let filter = 'all', query = '', visible = [], page = 0;
+  const selected = new Set();
   view.innerHTML = `<section class="card ot-card"><div class="ot-head">
       <h2>Objednávky <span class="muted">(${orders.length})</span></h2>
       <div class="ot-head-act">
@@ -837,13 +890,31 @@ async function vOrders(view) {
       </div>
     </div>
     ${FILTERS.length > 1 ? `<div class="ot-filters" role="tablist">${FILTERS.map(([k, l, f]) => `<button type="button" role="tab" data-f="${k}" aria-selected="${k === filter}">${esc(l)} <span>${orders.filter(f).length}</span></button>`).join('')}</div>` : ''}
+    <div class="ot-bulk" id="o-bulk" hidden>
+      <span class="muted" id="o-bulk-info">Žiadna označená objednávka</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn ghost sm" id="o-bulk-label">Vytlačiť štítky</button>
+        <button type="button" class="btn ghost sm" id="o-bulk-slip">Dodací list</button>
+        <button type="button" class="btn ghost sm" id="o-bulk-csv">Export CSV</button>
+        <button type="button" class="btn ghost sm" id="o-bulk-clear">Zrušiť označenie</button>
+      </div>
+    </div>
     ${truncated ? `<div class="notice" style="margin:14px 24px 0">V prehľade je prvých ${orders.length} z ${total} objednávok. Staršie objednávky hľadaj cez vyhľadávanie podľa e-mailu.</div>` : ''}
-    <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazníčka</th><th>Položky</th><th class="ot-num">Suma</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+    <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazníčka</th><th>Doručenie</th><th>Položky</th><th class="ot-num">Suma</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="o-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('tbody');
   const bulk = view.querySelector('#o-print-all');
   const range = view.querySelector('#o-range');
+  const bulkBar = view.querySelector('#o-bulk');
+  const bulkInfo = view.querySelector('#o-bulk-info');
+  const picked = () => orders.filter(o => selected.has(o.id));
+  const drawBulk = () => {
+    if (!bulkBar) return;
+    const list = picked();
+    bulkBar.hidden = !list.length;
+    if (bulkInfo) bulkInfo.textContent = list.length ? `Označené objednávky: ${list.length}` : 'Žiadna označená objednávka';
+  };
   const draw = () => {
     const f = FILTERS.find(x => x[0] === filter)?.[2] || (() => true);
     const list = orders.filter(f).filter(o => !query || JSON.stringify([o.display_id, o.email, name(o), (o.items || []).map(i => i.title)]).toLowerCase().includes(query));
@@ -851,12 +922,25 @@ async function vOrders(view) {
     const pages = Math.max(1, Math.ceil(list.length / ORDER_PAGE_SIZE));
     page = Math.min(Math.max(0, page), pages - 1);
     const slice = list.slice(page * ORDER_PAGE_SIZE, (page + 1) * ORDER_PAGE_SIZE);
-    body.innerHTML = slice.length ? slice.map(row).join('') : `<tr><td colspan="8" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
+    body.innerHTML = slice.length ? slice.map(row).join('') : `<tr><td colspan="10" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
     body.querySelectorAll('tr[data-id]').forEach(tr => {
       const open = () => vOrderDetail(view, tr.dataset.id);
       tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
       tr.querySelectorAll('[data-print]').forEach(b => b.onclick = (e) => { e.stopPropagation(); printOrders([tr.dataset.id], b.dataset.print); });
+      const box = tr.querySelector('[data-pick]');
+      if (box) {
+        box.checked = selected.has(tr.dataset.id);
+        box.onclick = (e) => e.stopPropagation();
+        box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); drawBulk(); };
+      }
     });
+    const all = view.querySelector('#o-pick-all');
+    if (all) {
+      const ids = slice.map(o => o.id);
+      all.checked = ids.length > 0 && ids.every(id => selected.has(id));
+      all.indeterminate = !all.checked && ids.some(id => selected.has(id));
+      all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); draw(); };
+    }
     const from = list.length ? page * ORDER_PAGE_SIZE + 1 : 0, to = Math.min((page + 1) * ORDER_PAGE_SIZE, list.length);
     if (range) range.textContent = list.length ? `${from}–${to} z ${list.length}` : 'Žiadne objednávky';
     const prev = view.querySelector('[data-pg="prev"]'), next = view.querySelector('[data-pg="next"]');
@@ -864,6 +948,7 @@ async function vOrders(view) {
     if (next) next.disabled = (page + 1) * ORDER_PAGE_SIZE >= list.length;
     // Hromadná tlač štítkov je k dispozícii pri filtri „Na vybavenie“ – presne pre tie objednávky, ktoré sa chystajú.
     if (bulk) { bulk.hidden = !(filter === 'todo' && list.length); bulk.textContent = `Vytlačiť štítky (${list.length})`; }
+    drawBulk();
   };
   view.querySelectorAll('.ot-filters button').forEach(b => b.onclick = () => {
     filter = b.dataset.f; page = 0; view.querySelectorAll('.ot-filters button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw();
@@ -872,6 +957,28 @@ async function vOrders(view) {
   if (prev) prev.onclick = () => { if (page > 0) { page--; draw(); } };
   if (next) next.onclick = () => { page++; draw(); };
   if (bulk) bulk.onclick = () => printOrders(visible.map(o => o.id), 'label');
+  const bulkLabel = view.querySelector('#o-bulk-label'), bulkSlip = view.querySelector('#o-bulk-slip'), bulkCsv = view.querySelector('#o-bulk-csv'), bulkClear = view.querySelector('#o-bulk-clear');
+  if (bulkLabel) bulkLabel.onclick = () => printOrders(picked().map(o => o.id), 'label');
+  if (bulkSlip) bulkSlip.onclick = () => printOrders(picked().map(o => o.id), 'slip');
+  if (bulkClear) bulkClear.onclick = () => { selected.clear(); draw(); };
+  if (bulkCsv) bulkCsv.onclick = () => {
+    const list = picked();
+    if (!list.length) return;
+    const head = ['Číslo', 'Dátum', 'Zákazníčka', 'E-mail', 'Adresa', 'Doprava', 'Položky', 'Suma (EUR)', 'Platba', 'Spôsob platby', 'Vybavenie'];
+    const lines = list.map(o => [
+      legacy(o)?.number || o.display_id || '',
+      new Date(legacy(o)?.placed_at || o.created_at).toLocaleString('sk-SK'),
+      name(o), o.email || '',
+      [o.shipping_address?.address_1, o.shipping_address?.postal_code, city(o)].filter(Boolean).join(' '),
+      shipping(o),
+      (o.items || []).map(i => `${i.title} × ${i.quantity}`).join(' | '),
+      Number(o.total || 0).toFixed(2),
+      PAY_LABEL[o.payment_status] || o.payment_status || '',
+      PAY_METHOD[provider(o)]?.label || '',
+      FUL_LABEL[o.fulfillment_status] || o.fulfillment_status || '',
+    ].map(csvCell).join(','));
+    downloadText(`objednavky-${new Date().toISOString().slice(0, 10)}.csv`, '﻿' + [head.map(csvCell).join(','), ...lines].join('\r\n'));
+  };
   const s = view.querySelector('.rc-search');
   if (s) s.oninput = () => { query = s.value.toLowerCase().trim(); page = 0; draw(); };
   draw();
@@ -912,6 +1019,11 @@ async function vOrderDetail(view, id, notice) {
     <div class="row"><div><label>Doručenie</label><div>${addr || '<span class="muted">bez adresy (digitálny obsah)</span>'}</div></div>
     <div><label>Doprava</label><div>${(o.shipping_methods || []).map(m => `${esc(m.name)} · ${fmtEur(m.total ?? m.amount)}`).join('<br>') || '—'}</div></div></div>
     <div style="margin-top:10px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <label for="o-note">Poznámka k objednávke (vidíte len vy)</label>
+      <textarea id="o-note" rows="2" placeholder="napr. zákazníčka si želá zabalenie daru">${esc(String(o.metadata?.anastasia_note || ''))}</textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button type="button" class="btn ghost" id="o-note-save">Uložiť poznámku</button><span class="muted" id="o-note-msg" style="font-size:12px"></span></div>
+    </div>
     ${manual && o.payment_status === 'authorized' && !canceled ? `<div class="notice" style="margin-top:10px">${method.key === 'bank_transfer' ? `Prevod: skontrolujte vo výpise Tatra banky platbu s variabilným symbolom <b>${esc(String(o.display_id || ''))}</b> a sumou <b>${fmtEur(o.total)}</b>. Potom v záložke Platby kliknite „Prijať platbu“ – až vtedy sa sprístupní digitálny obsah.` : 'Dobierka: zákazníčka platí kuriérovi pri prevzatí. Keď vám dopravca peniaze pripíše, v záložke Platby kliknite „Prijať platbu“.'}</div>` : ''}`;
   const polozky = `<div class="rc-grid">${items.map(it => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(it.title || it.product_title || '')}</div><div class="rc-fields">
       <span class="rc-f"><em>Kusov</em>${it.quantity}</span><span class="rc-f"><em>Suma</em>${fmtEur(it.total)}</span>
@@ -953,6 +1065,19 @@ async function vOrderDetail(view, id, notice) {
   view.querySelector('#o-back').onclick = () => vOrders(view);
   view.querySelector('#o-print-label').onclick = () => printOrders([id], 'label');
   view.querySelector('#o-print-slip').onclick = () => printOrders([id], 'slip');
+  // Poznámka k objednávke: uloží sa do metadát objednávky (vidí ju len tím, kto má prístup do admina).
+  const noteBtn = view.querySelector('#o-note-save');
+  if (noteBtn) noteBtn.onclick = async () => {
+    const noteMsg = view.querySelector('#o-note-msg');
+    const text = view.querySelector('#o-note').value.trim();
+    noteMsg.textContent = 'Ukladám…'; noteBtn.disabled = true;
+    try {
+      await api(`/admin/orders/${id}`, { method: 'POST', body: { metadata: { ...(o.metadata || {}), anastasia_note: text } } });
+      noteMsg.innerHTML = '<span style="color:#2c6b3f">Poznámka je uložená.</span>';
+    } catch (e) {
+      if (e.message !== '401') noteMsg.innerHTML = `<span style="color:#8a2436">${esc(e.message)}</span>`;
+    } finally { noteBtn.disabled = false; }
+  };
   const run = async (btn, question, fn, done) => {
     if (!confirm(question)) return;
     const msg = view.querySelector('#omsg'); msg.innerHTML = ''; btn.disabled = true;
@@ -1018,12 +1143,13 @@ async function vCustomerDetail(view, id) {
 }
 async function vCoupons(view) {
   view = freshView(view);
-  const { promotions } = await api('/admin/promotions?limit=100&fields=id,code,status,*application_method');
+  const { promotions } = await api('/admin/promotions?limit=100&fields=id,code,status,limit,used,*application_method');
   setActions('<button class="btn gold" id="promo-new">+ Nový kupón</button>');
   const nb = document.querySelector('#promo-new'); if (nb) nb.onclick = () => vCouponNew(view);
   listView(view, { title: 'Kupóny a zľavy', rows: promotions, onRow: p => vCouponDetail(view, p.id), empty: 'Zatiaľ žiadne kupóny.', cols: [
     { h: 'Kód', v: p => `<b>${esc(p.code)}</b>` }, { h: 'Stav', v: p => `<span class="pill ${p.status === 'active' ? 'ok' : p.status === 'inactive' ? 'off' : 'warn'}">${esc({ active: 'aktívny', inactive: 'vypnutý', draft: 'rozpracovaný' }[p.status] || p.status)}</span>` },
-    { h: 'Zľava', v: p => { const m = p.application_method; return m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'; } }] });
+    { h: 'Zľava', v: p => { const m = p.application_method; return m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'; } },
+    { h: 'Použitie', v: p => { const used = Number(p.used || 0); const limit = p.limit == null ? null : Number(p.limit); return `${used}${limit === null ? ' z neobmedzeného počtu' : ` z ${limit}`}`; } }] });
 }
 async function vCouponNew(view) {
   view = freshView(view);
@@ -1048,18 +1174,41 @@ async function vCouponNew(view) {
 async function vCouponDetail(view, id) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  const { promotion: p } = await api(`/admin/promotions/${id}?fields=id,code,status,*application_method`);
-  const m = p.application_method;
+  const { promotion: p } = await api(`/admin/promotions/${id}?fields=id,code,status,limit,used,is_tax_inclusive,*application_method`);
+  const m = p.application_method || {};
+  const isPct = (m.type || 'percentage') === 'percentage';
+  const used = Number(p.used || 0), limit = p.limit == null ? null : Number(p.limit);
   view.innerHTML = `<div class="card"><div class="card-h">Kupón ${esc(p.code)}<button class="btn ghost" id="pd-back">Späť</button></div><div class="card-b">
     <div id="pdmsg"></div>
     <label>Stav</label><select id="pd-status"><option value="active"${p.status === 'active' ? ' selected' : ''}>aktívny</option><option value="inactive"${p.status === 'inactive' ? ' selected' : ''}>inactive</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select>
-    <div class="muted" style="margin-top:10px">Zľava: ${m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'}</div>
+    <div class="row" style="margin-top:14px">
+      <div><label for="pd-type">Typ zľavy</label><select id="pd-type">
+        <option value="percentage"${isPct ? ' selected' : ''}>Percentuálna zľava (%)</option>
+        <option value="fixed"${!isPct ? ' selected' : ''}>Fixná suma (EUR)</option>
+      </select></div>
+      <div><label for="pd-value">Hodnota zľavy</label><input id="pd-value" type="number" min="0" step="${isPct ? '1' : '0.01'}" value="${esc(String(m.value ?? ''))}"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div><label for="pd-limit">Limit použití (0 = bez limitu)</label><input id="pd-limit" type="number" min="0" step="1" value="${esc(String(limit ?? 0))}"></div>
+      <div><label>Použitie</label><div>${used} ${limit === null ? 'z neobmedzeného počtu' : `z ${limit}`}${limit !== null && used >= limit ? ' <span class="pill off">limit dosiahnutý</span>' : ''}</div></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:10px">Zľava platí na celý nákup${m.currency_code ? ` (${esc(m.currency_code)})` : ''}. Zmeny sa uložia ihneď a platia pre nové objednávky.</p>
     <div style="margin-top:16px"><button class="btn gold" id="pd-save">Uložiť</button></div>
   </div></div>`;
   view.querySelector('#pd-back').onclick = () => vCoupons(view);
   view.querySelector('#pd-save').onclick = async () => {
     const msg = view.querySelector('#pdmsg'); msg.innerHTML = '';
-    try { await api(`/admin/promotions/${id}`, { method: 'POST', body: { status: view.querySelector('#pd-status').value } }); await vCoupons(view); }
+    const type = view.querySelector('#pd-type').value;
+    const value = Number(view.querySelector('#pd-value').value);
+    const limitRaw = Number(view.querySelector('#pd-limit').value);
+    if (!Number.isFinite(value) || value < 0) { msg.innerHTML = '<div class="err">Hodnota zľavy musí byť číslo nie menšie ako nula.</div>'; return; }
+    if (type === 'percentage' && value > 100) { msg.innerHTML = '<div class="err">Percentuálna zľava môže byť najviac 100 %.</div>'; return; }
+    const body = {
+      status: view.querySelector('#pd-status').value,
+      limit: Number.isFinite(limitRaw) && limitRaw > 0 ? Math.trunc(limitRaw) : null,
+      application_method: { type, value, currency_code: type === 'fixed' ? (m.currency_code || 'eur') : undefined },
+    };
+    try { await api(`/admin/promotions/${id}`, { method: 'POST', body }); await vCoupons(view); }
     catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   };
 }
@@ -1908,11 +2057,57 @@ async function vPripojenia(view) {
     };
   }
 }
+// --- Nastavenia → História zmien: čo kto v administrácii zmenil (z auditu jadra) ---
+const AUDIT_LABEL = {
+  'admin.theme.update': 'Zmena farieb administrácie',
+  'admin.carrier.update': 'Zmena dopravcu',
+  'admin.page.update': 'Zmena textu stránky',
+  'admin.page.reset': 'Obnovenie pôvodného textu stránky',
+  'admin.media.add': 'Pridanie obrázka do knihovny',
+  'admin.media.delete': 'Zmažanie obrázka z knihovny',
+};
+async function vAuditLog(view) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam historianiu…</div>';
+  let entries = [], count = 0, offset = 0;
+  try {
+    const data = await api(`/admin/ops/audit?limit=50&offset=${offset}`);
+    entries = data.entries || []; count = Number(data.count) || 0;
+  } catch (e) {
+    if (e.message === '401') throw e;
+    view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return;
+  }
+  const changed = (c) => {
+    if (!c || typeof c !== 'object') return '';
+    const keys = Object.keys(c);
+    if (!keys.length) return '';
+    return keys.map(k => `${k}: ${typeof c[k] === 'object' ? JSON.stringify(c[k]) : String(c[k])}`).join(' · ');
+  };
+  view.innerHTML = `<div class="card"><div class="card-h">História zmien<span class="muted">(${count})</span></div><div class="card-b">
+    <p class="muted" style="margin-top:0">Záznamy o tom, čo kto zmenil v administrácii. Píše sa to automaticky pri každej uloženej zmene.</p>
+    ${entries.length ? `<div class="rc-grid">${entries.map(en => `<div class="rc"><div class="rc-body">
+        <div class="rc-title">${esc(AUDIT_LABEL[en.action] || en.action)}</div>
+        <div class="rc-fields">
+          <span class="rc-f"><em>Kedy</em>${fmtDate(en.created_at)}</span>
+          <span class="rc-f"><em>Kto</em>${esc(en.actor_id || '—')}</span>
+          <span class="rc-f"><em>Čo</em>${esc(en.entity_type || '—')}${en.entity_id ? ` · ${esc(String(en.entity_id).slice(0, 24))}` : ''}</span>
+        </div>
+        ${changed(en.changes) ? `<p class="muted" style="font-size:12px;margin:8px 0 0;overflow-wrap:anywhere">${esc(changed(en.changes).slice(0, 300))}</p>` : ''}
+      </div></div>`).join('')}</div>` : '<div class="empty">Zatiaľ nie je zaznamenaná žiadna zmena.</div>'}
+    <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
+      <span class="muted">${count ? `${offset + 1}–${offset + entries.length} z ${count}` : 'Žiadne záznamy'}</span>
+      <div style="display:flex;gap:8px"><button class="btn ghost" id="au-prev" ${offset <= 0 ? 'disabled' : ''}>← Predchádzajúce</button><button class="btn ghost" id="au-next" ${offset + entries.length >= count ? 'disabled' : ''}>Ďalšie →</button></div>
+    </div>
+  </div></div>`;
+  view.querySelector('#au-prev').onclick = () => { if (offset > 0) { offset = Math.max(0, offset - 50); vAuditLog(view); } };
+  view.querySelector('#au-next').onclick = () => { if (offset + entries.length < count) { offset += 50; vAuditLog(view); } };
+}
 const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
   { label: 'Pripojenia', run: vPripojenia },
   { label: 'Doprava a platby', run: vDopravaPlatby },
   { label: 'Používatelia', run: (v) => vPouzivatelia(v) },
+  { label: 'História zmien', run: vAuditLog },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', `Prepojenie s účtovníctvom (POHODA alebo Money S3) pripravujeme. Dovtedy si objednávky môžete pozrieť v časti Objednávky. Otázky posielajte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- sprievodca: centrum nápovedy (#/pomoc, #/pomoc/<návod>), pomoc na stránke a úvodná prehliadka ---
