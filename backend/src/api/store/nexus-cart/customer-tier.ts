@@ -1,4 +1,4 @@
-// Vernostná úroveň zákazníčky – jediný zdroj pravdy pre čítanie tieru.
+// Vernostná úroveň zákazníka – jediný zdroj pravdy pre čítanie tieru.
 //
 // Zdroj je `metadata.nexus_tier` skupiny (Bronze/Silver/Gold/VIP -> ZR1..ZR4);
 // název skupiny ve tvaru ZR\d+ zostáva jako zpětně kompatibilní záloha.

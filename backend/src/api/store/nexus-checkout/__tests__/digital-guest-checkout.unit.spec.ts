@@ -2,7 +2,7 @@ import { grantEntitlementsForOrder } from "../../../../modules/entitlement/order
 import { isEntitlementProduct } from "../../../../modules/entitlement/policy"
 
 /**
- * Digitálny produkt smie kúpiť len prihlásená zákaznice.
+ * Digitálny produkt smie kúpiť len prihlásený zákazník.
  * Tieto testy overujú existujúce správanie jadra (bez zásahu do kódu modulu entitlement):
  *  - host (objednávka bez customer_id) nedostane žiadny prístup,
  *  - prístup sa udeľuje len produktu s dopravným profilom typu „digital“.
@@ -35,7 +35,7 @@ const makeContainer = (order: unknown) => {
 
 beforeEach(() => jest.clearAllMocks())
 
-describe("Digitálny produkt smie kúpiť len prihlásená zákaznice", () => {
+describe("Digitálny produkt smie kúpiť len prihlásený zákazník", () => {
   it("host nezíska prístup k digitálnemu produktu", async () => {
     const { container, entitlements, logger } = makeContainer(paidOrder(null))
     const summary = await grantEntitlementsForOrder(container, "order_1")
@@ -45,7 +45,7 @@ describe("Digitálny produkt smie kúpiť len prihlásená zákaznice", () => {
     expect(logger.warn).toHaveBeenCalled()
   })
 
-  it("prihlásená zákazníčka prístup dostane", async () => {
+  it("prihlásený zákazník prístup dostane", async () => {
     const { container, entitlements } = makeContainer(paidOrder("cust_owner"))
     const summary = await grantEntitlementsForOrder(container, "order_1")
     expect(summary.granted).toEqual(["ent_1"])

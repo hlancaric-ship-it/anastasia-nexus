@@ -160,7 +160,7 @@ function formatCode(body: string): string {
   return `GV-${body.match(/.{4}/g)!.join("-")}`
 }
 
-/** Normalizuje vstup zákaznice (mezery, pomlčky, malá písmena). Neplatný tvar -> null. */
+/** Normalizuje vstup zákazníka (mezery, pomlčky, malá písmena). Neplatný tvar -> null. */
 export function normalizeVoucherCode(input: unknown): string | null {
   if (typeof input !== "string" || input.length > 64) return null
   const compact = input.toUpperCase().replace(/[\s-]/g, "")

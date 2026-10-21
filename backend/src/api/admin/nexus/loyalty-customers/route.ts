@@ -6,7 +6,7 @@ import { resolveCustomerTier } from "../../../../lib/loyalty/tier"
 import { LOYALTY_LOCK_METADATA_KEY } from "../../../../lib/loyalty/assignment"
 
 /**
- * GET /admin/nexus/loyalty-customers – zákazníčky s vernostnou úrovňou.
+ * GET /admin/nexus/loyalty-customers – zákazníci s vernostnou úrovňou.
  *
  * Filtre: `tier` (kód úrovne alebo `none` = bez úrovne), `q` (meno/e-mail),
  * `limit`, `offset`. Výsledok je vždy serverovo filtrovaný a stránkovaný.
@@ -82,6 +82,6 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     })
   } catch (error) {
     req.scope.resolve(ContainerRegistrationKeys.LOGGER).error("GET /admin/nexus/loyalty-customers zlyhal", error as Error)
-    return res.status(503).json({ message: "Zákazníčky sa nepodarilo načítať. Skúste to znova." })
+    return res.status(503).json({ message: "Zákazníci sa nepodarilo načítať. Skúste to znova." })
   }
 }

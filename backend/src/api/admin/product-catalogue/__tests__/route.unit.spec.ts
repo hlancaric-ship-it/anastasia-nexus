@@ -35,7 +35,7 @@ function fixture(queryResult?: any) {
 beforeEach(() => jest.clearAllMocks())
 
 describe('Zoznam produktov s filtrom Fyzické / Digitálne', () => {
-  it('zamietne zákazníčku', async () => {
+  it('zamietne zákazníka', async () => {
     const f = fixture()
     f.req.auth_context = { actor_type: 'customer', actor_id: 'cus_test' }
     await GET(f.req, f.res)

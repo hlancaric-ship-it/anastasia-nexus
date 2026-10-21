@@ -4,7 +4,7 @@ import { assignCustomerTierAutomatically, orderCustomerId } from "../lib/loyalty
 import { recordEvent } from "../lib/observability/events"
 
 /**
- * Po zachytení platby sa prepočíta celková útrata zákazníčky a podľa prahov
+ * Po zachytení platby sa prepočíta celková útrata zákazníka a podľa prahov
  * v politike sa priradí vernostná úroveň. Ručný zámok (správca nastavil úroveň
  * ručne) automatické zaradenie nikdy neprepiše.
  */

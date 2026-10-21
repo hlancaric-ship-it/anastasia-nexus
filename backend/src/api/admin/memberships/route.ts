@@ -24,7 +24,7 @@ export async function GET(req:AuthenticatedMedusaRequest,res:MedusaResponse){
   if(items.length){
    const ids=[...new Set(items.map(row=>row.customer_id))]
    const customers=await (req.scope.resolve(Modules.CUSTOMER) as any).listCustomers({id:ids},{select:['id','first_name','last_name','email'],take:limit})
-   for(const item of items){const customer=customers.find((c:any)=>c.id===item.customer_id);item.customer_label=customer?[customer.first_name,customer.last_name].filter(Boolean).join(' ')||customer.email:'Zákazníčka už nie je dostupná'}
+   for(const item of items){const customer=customers.find((c:any)=>c.id===item.customer_id);item.customer_label=customer?[customer.first_name,customer.last_name].filter(Boolean).join(' ')||customer.email:'Zákazník už nie je dostupná'}
    if(tab==='memberships'){
     const products=await (req.scope.resolve(Modules.PRODUCT) as any).listProducts({id:[...new Set(items.map(row=>row.product_id))]},{select:['id','title'],take:limit})
     for(const item of items){item.title=products.find((p:any)=>p.id===item.product_id)?.title??'Členstvo k nedostupnému produktu';const right=await (req.scope.resolve('entitlement') as any).findByDedupeKey(orderDedupeKey(item.last_order_id,item.product_id));item.access_status=membershipAccessStatus(item,right)}

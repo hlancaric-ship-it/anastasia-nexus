@@ -76,7 +76,7 @@ describe('Automatické zaradenie podľa útraty', () => {
     expect(applyLoyaltyAssignment).toHaveBeenCalledWith(scope, { customerId: 'cus_1', tierCode: null, locked: false })
   })
 
-  it('zákazníčka bez úrovne sa pod prahom nemení', async () => {
+  it('zákazník bez úrovne sa pod prahom nemení', async () => {
     jest.mocked(readLoyaltySettingsFromStore).mockResolvedValue({
       tiers: [tier({ code: 'ZR2', rank: 1, enabled: true, spend_threshold_eur: 500 })],
       updated_at: null,
@@ -95,7 +95,7 @@ describe('Automatické zaradenie podľa útraty', () => {
     expect(applyLoyaltyAssignment).not.toHaveBeenCalled()
   })
 
-  it('zákazníčku objednávky nájde podľa objednávky', async () => {
+  it('zákazníka objednávky nájde podľa objednávky', async () => {
     expect(await orderCustomerId(scope, 'order_1')).toBe('cus_1')
   })
 })

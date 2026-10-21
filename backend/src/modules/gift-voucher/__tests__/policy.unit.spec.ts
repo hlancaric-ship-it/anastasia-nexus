@@ -52,7 +52,7 @@ describe("kódy poukazů", () => {
   it("odmítne krátký zdroj náhody", () => {
     expect(() => generateVoucherCode(() => new Uint8Array(4))).toThrow("GIFT_VOUCHER_RANDOM_FAILED")
   })
-  it("normalizuje vstup zákaznice a odmítne neplatný tvar", () => {
+  it("normalizuje vstup zákazníka a odmítne neplatný tvar", () => {
     expect(normalizeVoucherCode(" gv-abcd efgh-jkmn-pqrs ")).toBe("GV-ABCD-EFGH-JKMN-PQRS")
     expect(normalizeVoucherCode("GVABCDEFGHJKMNPQRS")).toBe("GV-ABCD-EFGH-JKMN-PQRS")
     for (const bad of ["", "GV-ABCD", "GV-ABCD-EFGH-JKMN-PQR0", "XX-ABCD-EFGH-JKMN-PQRS", 42, null, "G".repeat(65)]) expect(normalizeVoucherCode(bad)).toBeNull()

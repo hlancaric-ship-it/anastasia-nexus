@@ -12,10 +12,10 @@ import { readLoyaltySettingsFromStore } from "../lib/loyalty/settings"
  *
  *   npx medusa exec ./src/scripts/e2e-loyalty-tiers.ts
  *
- * Postup: uloží politiku, ručne priradí zákazníčku úroveň (so zámkom), overí
+ * Postup: uloží politiku, ručne priradí zákazníkovi úroveň (so zámkom), overí
  * členstvo v skupine, overí, že automatické priradenie zámok neprepisuje, a
  * overí, že zámok zrušený priradí úroveň podľa útraty. Na konci obnoví
- * pôvodnú politiku a zákazníčku zmaze.
+ * pôvodnú politiku a zákazníka zmaze.
  */
 
 const ADMIN = { actor_type: "user", actor_id: "user_e2e" } as const
@@ -62,12 +62,12 @@ export default async function e2eLoyaltyTiers({ container }: { container: Medusa
     await putPolicy({ body: { tiers: [{ code: "ZR1", name: "Bronze", discount_percent: 80, spend_threshold_eur: null, enabled: true }] }, query: {}, params: {}, auth_context: ADMIN, scope: container } as any, invalid.res)
     check(invalid.state.status === 400, "zľava nad 50 % sa odmietne")
 
-    // 2) Ručné priradenie zákazníčke.
+    // 2) Ručné priradenie zákazníkovi.
     const created = await customers.createCustomers([{ email: CUSTOMER_EMAIL, first_name: "E2E", last_name: "Loyalty" }])
     customerId = created[0].id
     const assigned = makeRes()
     await setTier({ body: { tier_code: "ZR3" }, query: {}, params: { id: customerId }, auth_context: ADMIN, scope: container } as any, assigned.res)
-    check(assigned.state.status === 200, "ručné priradenie zákazníčke prejde")
+    check(assigned.state.status === 200, "ručné priradenie zákazníkovi prejde")
     check(assigned.state.body?.locked === true && assigned.state.body?.tier_code === "ZR3", "ručné priradenie má zámok")
 
     const assignment = await readLoyaltyAssignment(container, customerId)
@@ -79,25 +79,25 @@ export default async function e2eLoyaltyTiers({ container }: { container: Medusa
       filters: { id: customerId },
     } as any)
     const groups = (customerRows?.[0]?.groups ?? []) as Array<{ name?: string; metadata?: Record<string, unknown> | null }>
-    check(groups.some((g) => g.metadata?.nexus_tier === "ZR3"), "zákazníčka je v skupine úrovne (cenový adapter ju uvidí)")
-    check(groups.some((g) => g.metadata?.loyalty_lock === true), "zákazníčka je v skupine ručného zámoku")
+    check(groups.some((g) => g.metadata?.nexus_tier === "ZR3"), "zákazník je v skupine úrovne (cenový adapter ho uvidí)")
+    check(groups.some((g) => g.metadata?.loyalty_lock === true), "zákazník je v skupine ručného zámoku")
 
     // 3) Automatické priradenie ručný zámok neprepisie.
     const automatic = await assignCustomerTierAutomatically(container, customerId)
     check(automatic.assigned === false && automatic.reason === "MANUAL_LOCK", "automatika ručný zámok neprepisie")
 
-    // 4) Po zrušení zámku sa úroveň prepočíta podľa útraty (zákazníčka nemá objednávky).
+    // 4) Po zrušení zámku sa úroveň prepočíta podľa útraty (zákazník nemá objednávky).
     const released = makeRes()
     await setTier({ body: { tier_code: "automatic" }, query: {}, params: { id: customerId }, auth_context: ADMIN, scope: container } as any, released.res)
     check(released.state.status === 200 && released.state.body?.locked === false, "zámok sa dá zrušiť")
     const afterRelease = await assignCustomerTierAutomatically(container, customerId)
     check(afterRelease.assigned === true && afterRelease.tier_code === "ZR1", "po zrušení zámku sa úroveň prepočíta podľa útraty (bez útraty = základná úroveň)")
 
-    // 5) Zoznam zákazníčiek s úrovňou (serverový filter).
+    // 5) Zoznam zákazníkov s úrovňou (serverový filter).
     const list = makeRes()
     await listCustomers({ body: {}, query: { tier: "ZR3", limit: "50", offset: "0" }, params: {}, auth_context: ADMIN, scope: container } as any, list.res)
-    check(list.state.status === 200, "zoznam zákazníčiek s úrovňou funguje")
-    check(Array.isArray(list.state.body?.customers), "zoznam vracia zákazníčky")
+    check(list.state.status === 200, "zoznam zákazníkov s úrovňou funguje")
+    check(Array.isArray(list.state.body?.customers), "zoznam vracia zákazníkov")
 
     console.log("E2E_LOYALTY_TIERS " + JSON.stringify({ status: "PASS", steps }, null, 1))
   } finally {

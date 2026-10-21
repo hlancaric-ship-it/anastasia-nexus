@@ -112,7 +112,7 @@
     },
     {
       "id": "customers",
-      "label_sk": "Zákazníčky",
+      "label_sk": "Zákazníci",
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
@@ -180,7 +180,7 @@
         "anastasia-admin/HANDOFF-vernostne-urovne.md"
       ],
       "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu. Politika úrovní, ručné aj automatické priradenie a synchronizácia do NEXUS Workera sú hotové; chýba KV binding v nasadenom Workeri (placeholder ID vo wrangler.jsonc) a UI administrácie. Osobné ceníky pre jednotlivé úrovne zostávajú samostatná požiadavka.",
-      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
+      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
     },
     {
       "id": "booking",
@@ -466,7 +466,7 @@
     },
     {
       "id": "customer-recovery",
-      "label_sk": "Pomoc s prihlásením zákazníčky",
+      "label_sk": "Pomoc s prihlásením zákazníci",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
@@ -874,7 +874,7 @@
         "backend/src/lib/chat-templates.ts",
         "backend/src/api/admin/chat/templates/route.ts"
       ],
-      "remaining": "Šablóny sa neposielajú automaticky zákazníčkam, len sa vložia do pripravenej odpovede.",
+      "remaining": "Šablóny sa neposielajú automaticky zákazníkm, len sa vložia do pripravenej odpovede.",
       "acceptance": "Šablóna sa dá vložiť do odpovede v chate a po obnovení stránky zostáva uložená."
     },
     {
@@ -905,7 +905,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/booking/availability/route.ts",
-      "sha256": "e5663fb316ed24a28eafca0d2ea305a8507ffc396a5045709bb88dcea30568da"
+      "sha256": "3f74045f237c9995088e14edd46eecf4d4e075ce5d1af732a7bdd6e7a51bf78b"
     },
     {
       "path": "/admin/booking/types",
@@ -943,7 +943,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/bookings/[id]/cancel/route.ts",
-      "sha256": "53b126b07f40b5bb3189dd0c583c3a51d481753093a62a343459b027ce079c8d"
+      "sha256": "afd30f74ab24adf2223441f15da1f5014ee308191d03cedec535457700b128de"
     },
     {
       "path": "/admin/carriers",
@@ -1104,7 +1104,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/admin/entitlements/route.ts",
-      "sha256": "8137f7c7700281de2275d9bb87c13d032abfe09ddba3e4681bc9588cc0ddc7a8"
+      "sha256": "ef396b30f5cf508cff102bb7cdbadc1f2e9b7e768a3b92508473dc700ab35293"
     },
     {
       "path": "/admin/entitlements/:id/revoke",
@@ -1141,7 +1141,7 @@
       ],
       "feature": "chat",
       "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
-      "sha256": "f4f2e8cf5e3d9e89e18de467180d5e997e397eadda043807d2f2059ab57f7663"
+      "sha256": "2bb21a27aa9cbc29414a54823b9d47c174f8e8464d39c875b612d2b9740b306e"
     },
     {
       "path": "/admin/chat/conversations/:id/messages",
@@ -1150,7 +1150,7 @@
       ],
       "feature": "chat",
       "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
-      "sha256": "c24915aa0d648ea334aadd015a1d7fcd67306fc34a10ce4a512337695e2195d3"
+      "sha256": "41410f9a4b3058d7dfa3a84a252e818cefb3f54f9d4b5ac22843b6d6a567ff92"
     },
     {
       "path": "/admin/chat/conversations/:id/read",
@@ -1168,7 +1168,7 @@
       ],
       "feature": "chat",
       "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
-      "sha256": "5abbd64540840c170d89e8706be2470048081b2a1cc6fa58eb650d9b25ef1c4f"
+      "sha256": "dfd606b696477809bc1760ac88812f04f88c0d55a747fe42bd38c504b08f1388"
     },
     {
       "path": "/admin/chat/templates",
@@ -1215,7 +1215,7 @@
       ],
       "feature": "club",
       "source": "backend/src/api/admin/memberships/route.ts",
-      "sha256": "b5eeee52ce6758d877b5e713e30d9abfa6cac63f52ff608a8408cad58785aa72"
+      "sha256": "e0e693d70d51bc6094b51569de9d4810dc17c29a6744db11a5e3abcce15e1520"
     },
     {
       "path": "/admin/memberships/:id/stop",
@@ -1270,7 +1270,7 @@
       ],
       "source": "backend/src/api/admin/nexus/customers/[id]/tier/route.ts",
       "feature": "loyalty",
-      "sha256": "db6882eafc58803055ff5411f63ba98d33e23804f06d37e2ad86b44b2f30f40e"
+      "sha256": "0ed2c61f84731839749478c5a59b71c469c68ca9f3dae0677d88624878046f4d"
     },
     {
       "path": "/admin/nexus/customers/tiers",
@@ -1279,7 +1279,7 @@
       ],
       "source": "backend/src/api/admin/nexus/customers/tiers/route.ts",
       "feature": "loyalty",
-      "sha256": "20093968984e1d07af6ece1908d1127df0713643563716bce1134acb6beb84af"
+      "sha256": "d46ba99ee1781e0897cb848294f9fd99fdea3df064c98e01ea67a2fbfa34f38a"
     },
     {
       "path": "/admin/nexus/loyalty-customers",
@@ -1288,7 +1288,7 @@
       ],
       "source": "backend/src/api/admin/nexus/loyalty-customers/route.ts",
       "feature": "loyalty",
-      "sha256": "88a0ab2dab12b3c77b21e0fbed1110f81a55674d37ba5ba0ffdff37f52196013"
+      "sha256": "5ef3af0a8c741761b5754a8603a3e0a5d5f0cb65b5e283b6dd738dc1912937ad"
     },
     {
       "path": "/admin/nexus/loyalty-policy",
@@ -1527,7 +1527,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/store/bookings/route.ts",
-      "sha256": "44788ee742c9010d2b7b800ae8eef0cd94e175bd7281894e5ec0da073a59c014"
+      "sha256": "314cb8fa5aed01d6551310e65fa1d6e269b459293570e30dfedd492509236cb2"
     },
     {
       "path": "/store/bookings/:id/cancel",
@@ -1536,7 +1536,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/store/bookings/[id]/cancel/route.ts",
-      "sha256": "b64e4b82aed9f565cd83e144b2963b3aeefaa1e0d83e46371c1824a3c610bbd0"
+      "sha256": "f2a9673d2c43560608a37ad131982cce5e66e793cea5947cbbcb9a2eb04c35f6"
     },
     {
       "path": "/store/bookings/:id/cart",
@@ -1617,7 +1617,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/entitlements/route.ts",
-      "sha256": "d6f23f4c866277a54dc057ebc8f96a7871b20249f457bbdbceac10dc70973d0f"
+      "sha256": "182a0b4bd2ab27ffa0c0bb8651481ba9672fe3788ea01c7ba0dce848f21a3b33"
     },
     {
       "path": "/store/gift-vouchers/apply",
@@ -1654,7 +1654,7 @@
       ],
       "feature": "chat",
       "source": "backend/src/api/store/chat/conversations/route.ts",
-      "sha256": "f188bf32480acab346ac804213e2fc9fcc91638dfc1042e96123427d942ce30e"
+      "sha256": "1ca69dc788935214dcda88f533e874e9b9037ea53033e41d17d154ff844f13d6"
     },
     {
       "path": "/store/chat/conversations/:id",
@@ -1672,7 +1672,7 @@
       ],
       "feature": "chat",
       "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
-      "sha256": "5e56d3086e8276a6ae52159eea94e6ea643b65821a8f1434dc5ae2c8902c5617"
+      "sha256": "a936d7eac0f5613c19f303a93c7881ae72428324bc9df4b74e68fbe851b2bb5c"
     },
     {
       "path": "/store/chat/conversations/:id/read",
@@ -1681,7 +1681,7 @@
       ],
       "feature": "chat",
       "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
-      "sha256": "955cb381122a69de33c940010fb5f9c551bcb175366a7bbdd0cfac76da63b904"
+      "sha256": "a18f82c0e40e861d24a210b0e88ba582ac7cd5168fa79edd7f94ece3b45cdb37"
     },
     {
       "path": "/store/chat/status",
@@ -1690,7 +1690,7 @@
       ],
       "feature": "chat",
       "source": "backend/src/api/store/chat/status/route.ts",
-      "sha256": "5543d0db72e470f1a2967368b025fdd6fd90c09b569a5d1ba93aed687392418e"
+      "sha256": "8a1d34caedb2916f2c6abf57ed3b851554ef164859a4700f48032bbc08c30ca6"
     },
     {
       "path": "/store/legal/versions",
@@ -1708,7 +1708,7 @@
       ],
       "feature": "media",
       "source": "backend/src/api/store/media-access/route.ts",
-      "sha256": "47f9fed3369d89dc8be66d4fb9228f9313d98dd74c467ca645c0bcb6be99748a"
+      "sha256": "7545d2b1562e56c92c85fe8ece95f969edf4541669489c3e6b763ad1dfe469ac"
     },
     {
       "path": "/store/memberships",
@@ -1807,7 +1807,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "b1f94fd7f2436cfd6e2ceff697ac8682e106f4479f00be8469cdd79ddd7e59d4"
+      "sha256": "9e25d421e9e9614e0e10d10ab6801ceace85628adbf705d59178d4eb1a22c39b"
     },
     {
       "path": "/store/nexus-checkout",
@@ -1816,7 +1816,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "01a7fc812c06c5a865fb36d2cb03f15b6c8384e2f2c27e199543b82d7f15d8e1"
+      "sha256": "63a728699200ae015687f569b7b8c264d38a3eea45d6dcc09009dbcea5325d9e"
     },
     {
       "path": "/store/nexus-checkout/options",
@@ -1826,7 +1826,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/options/route.ts",
-      "sha256": "05ce2422270e23373a065cadf53f78322ac75dfdc56d3abf86bc829536826c18"
+      "sha256": "637deba88a9f2891864ecdf6bf58ea2195dc1510aabd1aaff8aa22ee6f11c5b7"
     },
     {
       "path": "/store/orders/:id/cancel",

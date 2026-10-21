@@ -12,7 +12,7 @@ const tiers = [
   { id: 'grp_zr3', name: 'Gold', code: 'ZR3', rank: 3 },
 ]
 const graph = jest.fn(async (args: any) => {
-  // Dotaz na zákazníčky v skupinách úrovní (pre filter „bez úrovne“) žiada len ID.
+  // Dotaz na zákazníkov v skupinách úrovní (pre filter „bez úrovne“) žiada len ID.
   if (args.filters?.groups?.id && args.fields?.length === 1) {
     return { data: [{ id: 'cus_in_group' }], metadata: { count: 1, skip: 0, take: 50 } }
   }
@@ -32,7 +32,7 @@ beforeEach(() => {
 })
 
 describe('Zoznam zákazníčiek s vernostnou úrovňou (admin API)', () => {
-  it('zamietne zákazníčku', async () => {
+  it('zamietne zákazníka', async () => {
     const f = fixture()
     f.req.auth_context = { actor_type: 'customer', actor_id: 'cus_1' }
     await GET(f.req, f.res)
@@ -40,7 +40,7 @@ describe('Zoznam zákazníčiek s vernostnou úrovňou (admin API)', () => {
     expect(graph).not.toHaveBeenCalled()
   })
 
-  it('vráti zákazníčky s úrovňou a stránkovaním', async () => {
+  it('vráti zákazníkov s úrovňou a stránkovaním', async () => {
     const f = fixture()
     await GET(f.req, f.res)
     expect(f.res.status).toHaveBeenCalledWith(200)
@@ -58,7 +58,7 @@ describe('Zoznam zákazníčiek s vernostnou úrovňou (admin API)', () => {
     expect(body.customers[0]).toMatchObject({ tier_code: 'ZR3', tier_name: 'Gold', source: 'auto', locked: false })
   })
 
-  it('filtruje „bez úrovne“ a vynechá zákazníčky v skupinách úrovní', async () => {
+  it('filtruje „bez úrovne“ a vynechá zákazníkov v skupinách úrovní', async () => {
     const f = fixture({ tier: 'none' })
     await GET(f.req, f.res)
     const args = graph.mock.calls.at(-1)?.[0]

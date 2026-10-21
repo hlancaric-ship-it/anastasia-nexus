@@ -57,7 +57,7 @@ beforeEach(() => {
 })
 
 describe('Nahrávanie chránených súborov', () => {
-  it('zamietne zákazníčku a neprihláseného používateľa', async () => {
+  it('zamietne zákazníka a neprihláseného používateľa', async () => {
     for (const route of [UPLOAD_URL, ATTACH]) {
       const f = fixture()
       f.req.auth_context = { actor_type: 'customer', actor_id: 'cus_test' }

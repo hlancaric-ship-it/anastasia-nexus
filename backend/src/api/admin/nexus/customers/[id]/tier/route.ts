@@ -28,7 +28,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (!before.tier_code && !before.locked) {
       const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
       const { data } = await query.graph({ entity: "customer", fields: ["id"], filters: { id: customerId } })
-      if (!data?.length) return res.status(404).json({ message: "Zákazníčka sa nenašla." })
+      if (!data?.length) return res.status(404).json({ message: "Zákazník sa nenašiel." })
     }
     const automatic = tierCode === "AUTOMATIC"
     if (!automatic) {

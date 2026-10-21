@@ -1,5 +1,5 @@
 /**
- * Šablóny odpovedí v chate – krátke texty, ktoré Lucia posiela zákazníčkam opakovane.
+ * Šablóny odpovedí v chate – krátke texty, ktoré Lucia posiela zákazníkom opakovane.
  * Ukladajú sa v metadátach obchodu (jediný riadok tabuľky `store`), spolu s textami stránok a knihovnou.
  */
 import { readStore, writeStoreMetadata } from './pages/store'

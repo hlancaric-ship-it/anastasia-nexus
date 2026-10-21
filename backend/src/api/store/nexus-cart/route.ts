@@ -97,7 +97,7 @@ async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promis
 
 /**
  * Vyřeší kupón platný pro tenhle reprice:
- * - `couponCodeInput === null` -> zákaznice kupón explicitně odebírá.
+ * - `couponCodeInput === null` -> zákazník kupón explicitně odebírá.
  * - `couponCodeInput` je string -> nový/změněný kód, musí projít ověřením
  *   (jinak COUPON_INVALID -- na rozdíl od "tiše zmizelého" starého kódu).
  * - `couponCodeInput === undefined` -> žádná změna z klienta; použije se

@@ -16,13 +16,13 @@ export async function anonymizeCustomer(db:any,customer:any) {
  }
  await db("order").where({customer_id:id}).update({email:anonymous,no_notification:true,metadata:null,updated_at:now})
  await db("cart").where({customer_id:id}).update({email:anonymous,metadata:null,updated_at:now})
- await db("chat_message").where({customer_id:id}).update({body:"Obsah bol odstránený na žiadosť zákazníčky.",updated_at:now})
+ await db("chat_message").where({customer_id:id}).update({body:"Obsah bol odstránený na žiadosť zákazníka.",updated_at:now})
  await db("chat_conversation").where({customer_id:id}).update({subject:null,status:"closed",closed_at:now,muted:true,updated_at:now})
  const block=await db("chat_customer_block").where({customer_id:id}).whereNull("deleted_at").first("id")
  if(block) await db("chat_customer_block").where({id:block.id}).update({blocked:true,reason:null,updated_at:now})
  else await db("chat_customer_block").insert({id:`privacy_block_${id}`,customer_id:id,blocked:true,reason:null,changed_by:"privacy",changed_at:now})
  await db("booking").where({customer_id:id}).update({notes:null,cancel_reason:null,metadata:null,updated_at:now})
- await db("customer_note").where({customer_id:id}).update({body:"Obsah bol odstránený na žiadosť zákazníčky.",updated_at:now})
+ await db("customer_note").where({customer_id:id}).update({body:"Obsah bol odstránený na žiadosť zákazníka.",updated_at:now})
  await db("legal_withdrawal").where({customer_id:id}).update({reason:null,updated_at:now})
  for(const email of emails) {
   await db("newsletter_consent").whereRaw("lower(email) = ?",[email]).update({email:anonymous,status:"unsubscribed",token_hash:nullSafeHash(id),unsubscribed_at:now,updated_at:now})

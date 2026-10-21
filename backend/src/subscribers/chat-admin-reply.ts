@@ -5,7 +5,7 @@ import type ChatModuleService from "../modules/chat/service"
 import { chatNotifier } from "../modules/chat/notifier"
 import { recordEvent } from "../lib/observability/events"
 
-/** Luciina odpověď → e-mail zákaznici (jen pokud si předchozí upozornění už přečetla). */
+/** Luciina odpověď → e-mail zákazníkovi (jen pokud si předchozí upozornění už přečetl). */
 export default async function chatAdminReplyHandler({ event, container }: SubscriberArgs<ChatMessageEvent>) {
   try {
     const chat = container.resolve(CHAT_MODULE) as ChatModuleService

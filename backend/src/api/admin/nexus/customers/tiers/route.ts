@@ -8,7 +8,7 @@ import { LOYALTY_TIER_CODE_RE } from "../../../../../lib/loyalty/policy"
  * POST /admin/nexus/customers/tiers – hromadné zaradenie zákazníčiek.
  *
  * Tvar A: { tier_code: "ZR3", customer_ids: ["cus_1", "cus_2"] }  – jedna úroveň pre viac zákazníčiek.
- * Tvar B: { assignments: [{ customer_id: "cus_1", tier_code: "ZR3" }] } – každá zákazníčka iná úroveň.
+ * Tvar B: { assignments: [{ customer_id: "cus_1", tier_code: "ZR3" }] } – každý zákazník iná úroveň.
  * Hodnota "AUTOMATIC" v tvare B znamená "zrušiť ručný zámok a nechať prepočítať".
  */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -23,7 +23,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       const entry = (item ?? {}) as { customer_id?: unknown; tier_code?: unknown }
       const customerId = typeof entry.customer_id === "string" ? entry.customer_id.trim() : ""
       const tierCode = typeof entry.tier_code === "string" ? entry.tier_code.trim().toUpperCase() : ""
-      if (!customerId || !tierCode) return res.status(400).json({ message: "Každé priradenie musí mať zákazníčku a úroveň." })
+      if (!customerId || !tierCode) return res.status(400).json({ message: "Každé priradenie musí mať zákazníka a úroveň." })
       if (tierCode !== "AUTOMATIC" && !LOYALTY_TIER_CODE_RE.test(tierCode)) {
         return res.status(400).json({ message: `Neplatná úroveň ${tierCode}.` })
       }
@@ -41,7 +41,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       requested.push({ customer_id: customerId.trim(), tier_code: sharedTier })
     }
   }
-  if (!requested.length) return res.status(400).json({ message: "Vyberte aspoň jednu zákazníčku." })
+  if (!requested.length) return res.status(400).json({ message: "Vyberte aspoň jedného zákazníka." })
   if (requested.length > 200) return res.status(400).json({ message: "Naraz zaraďte najviac 200 zákazníčok naraz." })
 
   try {

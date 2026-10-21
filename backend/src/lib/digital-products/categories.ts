@@ -9,7 +9,7 @@
 export type DigitalProductGroup = {
   /** Stabilný identifikátor skupiny (pre URL a testy). */
   handle: string
-  /** Názov, ktorý vidí zákazníčka aj Lucia. */
+  /** Názov, ktorý vidí zákazník aj Lucia. */
   label: string
   /** Existujúce (alebo navrhované) kategórie, ktoré do skupiny patria. */
   categories: string[]

@@ -16,7 +16,7 @@ export const MAX_LOYALTY_THRESHOLD_EUR = 1_000_000
 export type LoyaltyTier = {
   /** Kód úrovne (ZR1..ZR4) – zhoduje s kľúčom `loyaltyTiers` v politike NEXUS. */
   code: string
-  /** Názov pre zákazníčku a administráciu (Bronze, Silver, Gold, VIP). */
+  /** Názov pre zákazníka a administráciu (Bronze, Silver, Gold, VIP). */
   name: string
   /** Zľava v percentách (0–50). */
   discount_percent: number
@@ -125,7 +125,7 @@ export function workerLoyaltyTiers(tiers: LoyaltyTier[]): Record<string, number>
   return result
 }
 
-/** Súčet zachytených platieb objednávok zákazníčky (refundy odpočítané). */
+/** Súčet zachytených platieb objednávok zákazníka (refundy odpočítané). */
 export function netSpendFromOrders(orders: Array<{ status?: string | null; total?: unknown; captured?: number; refunded?: number }>): number {
   let sum = 0
   for (const order of orders ?? []) {

@@ -9,7 +9,7 @@ import { applyLoyaltyAssignment, readLoyaltyAssignment } from "./assignment"
  *
  * Po zaplatení objednávky sa prepočíta celková útrata zákazníky a podľa prahov
  * v politike sa priradí úroveň. Ručný zámok (správca nastavil úroveň ručne)
- * sa NEPREPIŠE – automatické zaradenie zákazníčku nikdy nedemóduje.
+ * sa NEPREPIŠE – automatické zaradenie zákazníka nikdy nedemóduje.
  */
 
 export type AutoAssignResult = {
@@ -35,7 +35,7 @@ export async function customerSpendTotal(scope: MedusaContainer, customerId: str
   return netSpendFromOrders(orders)
 }
 
-/** Zákazníčka objednávky (na automatické zaradenie po zaplatení). */
+/** Zákazník objednávky (na automatické zaradenie po zaplatení). */
 export async function orderCustomerId(scope: MedusaContainer, orderId: string): Promise<string | null> {
   const query = scope.resolve(ContainerRegistrationKeys.QUERY) as any
   const { data } = await query.graph({ entity: "order", fields: ["id", "customer_id"], filters: { id: orderId } })

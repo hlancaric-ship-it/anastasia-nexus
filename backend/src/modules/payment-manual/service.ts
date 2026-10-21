@@ -13,7 +13,7 @@ import type {
  * session sa pri dokončení košíka len autorizuje, objednávka vznikne NEZAPLATENÁ a peniaze
  * „prijme“ až správkyňa v adminu (capture). Až capture spustí `payment.captured` → prístupy
  * k digitálnemu obsahu a e-mail o prijatí platby. Žiadne externé volania, žiadne tajomstvá.
- * Do `data` session sa zapisuje len typ metódy (audit), nikdy údaje zákazníčky.
+ * Do `data` session sa zapisuje len typ metódy (audit), nikdy údaje zákazníka.
  */
 abstract class ManualPaymentProvider extends AbstractPaymentProvider<Record<string, never>> {
   protected abstract readonly method: "cod" | "bank_transfer"

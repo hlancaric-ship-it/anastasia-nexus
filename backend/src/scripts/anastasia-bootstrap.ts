@@ -479,8 +479,8 @@ export default async function anastasiaBootstrap({ container }: { container: Med
     if (missing.length) {
       await createCustomerGroupsWorkflow(container).run({ input: { customersData: missing } })
     }
-    // Skupina ručního zámoku: zákaznice, které správce zařadil ručně.
-    // Automatické zařazení podle útraty ji nesmí přepsat.
+    // Skupina ručního zámoku: zákazníci, ktorých správca zaradil ručne.
+    // Automatické zařazení podle útraty ich nesmí přepsat.
     const lockGroup = await findFirst("customer_group", { name: LOYALTY_LOCK_GROUP_NAME })
     if (!lockGroup) {
       await createCustomerGroupsWorkflow(container).run({

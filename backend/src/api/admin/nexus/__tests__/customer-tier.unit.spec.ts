@@ -37,8 +37,8 @@ beforeEach(() => {
   }))
 })
 
-describe('Ručné zaradenie zákazníčky do vernostnej úrovne (admin API)', () => {
-  it('zamietne zákazníčku', async () => {
+describe('Ručné zaradenie zákazníka do vernostnej úrovne (admin API)', () => {
+  it('zamietne zákazníka', async () => {
     const f = fixture({ tier_code: 'ZR3' })
     f.req.auth_context = { actor_type: 'customer', actor_id: 'cus_1' }
     await SET_TIER(f.req, f.res)
@@ -80,7 +80,7 @@ describe('Ručné zaradenie zákazníčky do vernostnej úrovne (admin API)', ()
 })
 
 describe('Hromadné zaradenie (admin API)', () => {
-  it('zamietne zákazníčku', async () => {
+  it('zamietne zákazníka', async () => {
     const f = fixture({ tier_code: 'ZR3', customer_ids: ['cus_1'] })
     f.req.auth_context = { actor_type: 'customer', actor_id: 'cus_1' }
     await SET_TIERS(f.req, f.res)
@@ -95,7 +95,7 @@ describe('Hromadné zaradenie (admin API)', () => {
     expect(auditAdminChange).toHaveBeenCalledTimes(2)
   })
 
-  it('zaradí zákazníčky s rôznymi úrovňami', async () => {
+  it('zaradí zákazníkov s rôznymi úrovňami', async () => {
     const f = fixture({ assignments: [{ customer_id: 'cus_1', tier_code: 'ZR3' }, { customer_id: 'cus_2', tier_code: 'automatic' }] })
     await SET_TIERS(f.req, f.res)
     expect(applyLoyaltyAssignment).toHaveBeenNthCalledWith(1, scope, { customerId: 'cus_1', tierCode: 'ZR3', locked: true })

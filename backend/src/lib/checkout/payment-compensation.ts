@@ -5,7 +5,7 @@ import { STRIPE_PROVIDER_ID } from "./delivery-payment"
 
 /**
  * Kompenzácia platby kartou, keď objednávka po zaplatení nevznikla (zlyhalo dokončenie košíka,
- * zmena ceny, SafeOrder REVIEW…). Zákazníčka nesmie zostať bez peňazí aj bez objednávky:
+ * zmena ceny, SafeOrder REVIEW…). Zákazník nesmie zostať bez peňazí aj bez objednávky:
  * - autorizovaná platba (requires_capture) sa zruší,
  * - stiahnutá platba (succeeded) sa vráti celá (idempotentne, jeden refund na PaymentIntent).
  *
@@ -124,7 +124,7 @@ export async function compensateUnfinishedCheckout(container: Container, cartId:
     return result
   } catch (error) {
     const code = error instanceof Error && /^[A-Z][A-Z0-9_]{2,80}$/.test(error.message) ? error.message : "COMPENSATION_FAILED"
-    // Alert: zákazníčka mohla zaplatiť bez objednávky – vyžaduje ručnú kontrolu v Stripe.
+    // Alert: zákazník mohol zaplatiť bez objednávky – vyžaduje ručnú kontrolu v Stripe.
     await recordEvent(container as any, "error", "checkout", "payment_compensation_failed", { cart_id: cartId, reason, error_code: code, payment_intents: intents }).catch(() => undefined)
     return { status: "failed", payment_intents: result.payment_intents }
   }

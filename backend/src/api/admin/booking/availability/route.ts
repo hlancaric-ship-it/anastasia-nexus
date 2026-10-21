@@ -10,7 +10,7 @@ import { auditAdminChange } from "../../../../lib/observability/audit"
 
 type Scope = AuthenticatedMedusaRequest["scope"]
 
-/** Rezervace s jménem zákaznice a názvem typu pro přehled v adminu. */
+/** Rezervace s jménem zákazníka a názvem typu pro přehled v adminu. */
 async function describeBookings(scope: Scope, rows: CalendarBookingRow[]) {
   if (!rows.length) return []
   const query: any = scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -35,7 +35,7 @@ async function describeBookings(scope: Scope, rows: CalendarBookingRow[]) {
       ends_at: b.ends_at.toISOString(),
       held_until: b.held_until?.toISOString() ?? null,
       buffer_minutes: b.buffer_minutes,
-      customer: { id: b.customer_id, name: name || c?.email || "Zákaznice", email: c?.email ?? null },
+      customer: { id: b.customer_id, name: name || c?.email || "Zákazník", email: c?.email ?? null },
       product: { id: b.product_id, title: productById.get(b.product_id)?.title ?? "Neznámý typ" },
     }
   })

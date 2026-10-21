@@ -97,14 +97,14 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
   }
 
   /**
-   * Zákaznice migrované v C2 mají účet (Customer), ale žádnou identitu pro přihlášení.
+   * Zákazníci migrovaní v C2 mají účet (Customer), ale žádnou identitu pro přihlášení.
    * C2 záměrně nastavuje `has_account=false`; magic-link po ověření e-mailu je okamžik,
    * kdy se existující Customer propojí s AuthIdentity a účet aktivuje.
    *
    * Jeden SQL příkaz uzamkne kandidáty (`FOR UPDATE`), odmítne nejednoznačný e-mail
-   * (`HAVING count(*) = 1` — víc zákaznic se stejným e-mailem se nepropojí nazdařbůh)
+   * (`HAVING count(*) = 1` — víc zákazníků se stejným e-mailem se nepropojí nazdařbůh)
    * a atomicky aktualizuje AuthIdentity i `customer.has_account`. Souběžné požadavky
-   * tak nemohou přiřadit stejnou identitu k různým zákaznicím ani nechat napůl
+   * tak nemohou přiřadit stejnou identitu k různým zákazníkům ani nechat napůl
    * dokončený stav. Logika převzata z nezávislé implementace Codexu (`codex/auth-magic-link`,
    * 10. 10. 2026), jen s opravenými placeholdery (viz POZOR níže).
    *
@@ -156,7 +156,7 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
     if (linked[0]) return { ...authIdentity, app_metadata: linked[0].app_metadata }
 
     // Jiné paralelní potvrzení mohlo právě provést vazbu. Načteme ji z DB a
-    // ověříme, že stále patří odpovídající zákaznici podle e-mailu (`auth_identity`
+    // ověříme, že stále patří odpovídajícímu zákazníkovi podle e-mailu (`auth_identity`
     // nemá sloupec entity_id -- ten je jen v `provider_identity` -- identitu tedy
     // jednoznačně určuje `ai.id`, přiřazený touto AuthIdentityProviderService).
     const { rows: current } = await this.pg_.raw(

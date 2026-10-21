@@ -4,7 +4,7 @@ import { assertCartShippingReady, CheckoutChoiceError } from "../../../lib/check
 
 /**
  * Natívne Store API `POST /store/payment-collections/:id/payment-sessions` nesmie pripraviť platbu
- * pre košík bez platnej dopravy pre všetky prepravné profily (zákazníčka by zaplatila a objednávka
+ * pre košík bez platnej dopravy pre všetky prepravné profily (zákazník by zaplatil a objednávka
  * by nevznikla). Pokladňa používa /store/nexus-checkout/options; toto je poistka pre priame volanie.
  */
 export async function requireShippingBeforePayment(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
@@ -22,7 +22,7 @@ export async function requireShippingBeforePayment(req: MedusaRequest, res: Medu
 }
 
 /**
- * Autentizace zákaznice pro /store/nexus-cart a /store/nexus-checkout.
+ * Autentizace zákazníka pro /store/nexus-cart a /store/nexus-checkout.
  *
  * SECURITY FIX (C1/C3/F3): tyto endpointy přijímají cart_id z klienta a
  * manipulují ceny / dokončují objednávky. Bez auth middleware může kdokoliv:

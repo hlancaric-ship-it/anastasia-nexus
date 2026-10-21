@@ -153,7 +153,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       await addShippingMethodToCartWorkflow(req.scope).run({ input: { cart_id: cart.id, options: chosen.map((option) => ({ id: option.id })) } })
     }
 
-    // Bez platnej dopravy pre všetky profily sa platba vôbec nepripraví (inak by zákazníčka zaplatila bez objednávky).
+    // Bez platnej dopravy pre všetky profily sa platba vôbec nepripraví (inak by zákazník zaplatil bez objednávky).
     await assertCartShippingReady(req.scope, cart.id)
     // Ceny položiek (NEXUS) a suma platby sa prepočítajú až po zmene dopravy.
     await repriceCart(cart.id, req.scope, true, undefined, actorId)

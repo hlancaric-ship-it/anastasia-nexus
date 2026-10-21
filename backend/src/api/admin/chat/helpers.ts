@@ -3,7 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
 export type ChatCustomerInfo = { id: string; email: string | null; first_name: string | null; last_name: string | null }
 
-/** Jména a e-maily zákaznic pro admin seznam (jedním dotazem). */
+/** Jména a e-maily zákazníků pro admin seznam (jedním dotazem). */
 export async function loadCustomers(container: MedusaContainer, ids: string[]): Promise<Map<string, ChatCustomerInfo>> {
   const unique = [...new Set(ids)].filter(Boolean)
   if (!unique.length) return new Map()

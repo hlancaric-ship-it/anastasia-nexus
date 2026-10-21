@@ -66,7 +66,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const payment = order.payment_collections?.flatMap((collection: any) => collection.payments || []) || []
     const isPaid = payment.some((entry: any) => entry?.captured_at || entry?.status === "captured")
     const method = paymentMethodByProvider(payment.find((entry: any) => entry?.provider_id)?.provider_id)
-    // Len informácia pre zákazníčku – chyba tu nesmie zmeniť výsledok už vytvorenej objednávky.
+    // Len informácia pre zákazníka – chyba tu nesmie zmeniť výsledok už vytvorenej objednávky.
     const pickup = await loadCartShape(req.scope, { profileIds: [], shippingOptionIds: (order.shipping_methods || []).map((m: any) => m?.shipping_option_id).filter(Boolean) })
       .then((shape) => shape.methodTypes.includes("pickup")).catch(() => false)
     // Použitie kupónu sa započíta až po vytvorení objednávky (atomicky, s kontrolou limitu).

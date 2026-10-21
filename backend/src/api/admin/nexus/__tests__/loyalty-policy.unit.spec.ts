@@ -33,7 +33,7 @@ beforeEach(() => {
 })
 
 describe('Politika vernostných úrovní (admin API)', () => {
-  it('zamietne zákazníčku', async () => {
+  it('zamietne zákazníka', async () => {
     const f = fixture()
     f.req.auth_context = { actor_type: 'customer', actor_id: 'cus_1' }
     await GET(f.req, f.res)

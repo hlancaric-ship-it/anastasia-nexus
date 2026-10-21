@@ -4,7 +4,7 @@ const customer = [authenticate("customer", ["session", "bearer"])]
 const admin = [authenticate("user", ["session", "bearer"])]
 const small = { sizeLimit: "16kb" }
 
-/** C5 chat: zákaznice jen přihlášená, Lucia jen jako správce; těla malá (zpráva max 2000/5000 znaků). */
+/** C5 chat: zákazník jen přihlášený, Lucia jen jako správce; těla malá (zpráva max 2000/5000 znaků). */
 export const chatMiddlewares: MiddlewareRoute[] = [
   { matcher: "/store/chat/status", method: ["GET"], middlewares: customer },
   { matcher: "/store/chat/conversations", method: ["GET"], middlewares: customer },

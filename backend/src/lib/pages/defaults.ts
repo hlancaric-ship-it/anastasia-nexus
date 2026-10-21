@@ -173,7 +173,7 @@ export const PAGE_DEFAULTS: Record<string, { label: string; html: string }> = {
     html: `<h2>Doprava</h2>
 <p>Posielame cez kuriéra na adresu po Slovensku. Poštovné sa počíta podľa ceny objednávky v košíku a zobrazí sa vám ešte pred potvrdením objednávky.</p>
 <h3>Dobierka</h3>
-<p>Zvolíte si dobierku, kuriér vyberie zásielku a zákazníčka zaplatí priamo jemu.</p>
+<p>Zvolíte si dobierku, kuriér vyberie zásielku a zákazník zaplatí priamo jemu.</p>
 <h3>Osobný odber</h3>
 <p>Objednávku si môžete vyzdvihnúť osobne po dohode.</p>
 <h2>Platba</h2>

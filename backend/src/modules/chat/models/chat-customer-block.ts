@@ -1,6 +1,6 @@
 import { model } from "@medusajs/framework/utils"
 
-/** Vratné zablokování chatu zákaznice (jeden řádek na zákaznici, `blocked` se přepíná). */
+/** Vratné zablokování chatu zákazníka (jeden řádek na zákazníka, `blocked` se přepíná). */
 const ChatCustomerBlock = model
   .define("chat_customer_block", {
     id: model.id({ prefix: "chblk" }).primaryKey(),

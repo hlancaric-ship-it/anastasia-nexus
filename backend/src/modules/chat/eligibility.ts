@@ -49,14 +49,14 @@ export async function isCustomerChatEligible(container: MedusaContainer, custome
   return isChatEligible(await chatEligibilitySignals(container, customerId))
 }
 
-/** Vazba konverzace na objednávku: objednávka musí patřit zákaznici. */
+/** Vazba konverzace na objednávku: objednávka musí patřit zákazníkovi. */
 export async function customerOwnsOrder(container: MedusaContainer, customerId: string, orderId: string): Promise<boolean> {
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
   const { data } = await query.graph({ entity: "order", fields: ["id", "customer_id"], filters: { id: orderId } })
   return data[0]?.customer_id === customerId
 }
 
-/** Vazba konverzace na rezervaci: rezervace musí patřit zákaznici. */
+/** Vazba konverzace na rezervaci: rezervace musí patřit zákazníkovi. */
 export async function customerOwnsBooking(container: MedusaContainer, customerId: string, bookingId: string): Promise<boolean> {
   const bookings = container.resolve(BOOKING_MODULE) as any
   const [row] = await bookings.listBookings({ id: bookingId }, { take: 1, select: ["id", "customer_id"] })

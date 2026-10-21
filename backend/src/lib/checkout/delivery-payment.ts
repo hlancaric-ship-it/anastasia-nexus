@@ -93,7 +93,7 @@ export type CartShape = {
 
 /**
  * Z ID profilov položiek a ID zvolených možností dopravy zistí, čo je v košíku fyzické a čo
- * zvolila zákazníčka. Typy berie z DB (shipping_profile.type, shipping_option.type.code),
+ * zvolil zákazník. Typy berie z DB (shipping_profile.type, shipping_option.type.code),
  * nikdy z requestu.
  */
 export async function loadCartShape(container: Container, input: { profileIds: string[]; shippingOptionIds: string[] }): Promise<CartShape> {
@@ -169,7 +169,7 @@ export function freeShippingThreshold(prices: Array<{ amount?: unknown; currency
 /**
  * Rovnaké pravidlo ako Medusa validateShippingStep v completeCart: každá položka s `requires_shipping`
  * musí mať zvolenú dopravu pre svoj prepravný profil. Kontroluje sa PRED vytvorením platby,
- * aby zákazníčka nezaplatila za košík, z ktorého objednávka nemôže vzniknúť.
+ * aby zákazník nezaplatil za košík, z ktorého objednávka nemôže vzniknúť.
  */
 export function shippingSatisfied(
   items: Array<{ requires_shipping?: boolean | null; product?: { shipping_profile?: { id?: string | null } | null } | null } | null> | null | undefined,

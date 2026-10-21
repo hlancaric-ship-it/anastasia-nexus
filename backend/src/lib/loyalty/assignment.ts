@@ -3,16 +3,16 @@ import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { resolveCustomerTier } from "./tier"
 
 /**
- * Zaradenie zákazníky do vernostnej úrovně.
+ * Zaradenie zákazníka do vernostnej úrovně.
  *
- * Zdroj pravdy je zákaznícka skupina (Bronze/Silver/Gold/VIP mají
+ * Zdroj pravdy je skupina zákazníka (Bronze/Silver/Gold/VIP mají
  * `metadata.nexus_tier` = ZR1..ZR4) – rovnako ju číta cenový adapter pri
- * výpočtu ceny. Skupinu nevie zákazníčka zmieniť (store API skupiny neponúka),
- * takže si zákazníčka úroveň neudelí sama.
+ * výpočtu ceny. Skupinu nevie zákazník zmeniť (store API skupiny neponúka),
+ * takže si zákazník úroveň neudelí sám.
  *
  * Ručný zámok (správca nastavil úroveň ručne a automatické zaradenie ju nesmie
  * prebiť) je vlastná skupina `Věrnost – ruční zámok`. Zámok sa tak nedá
- * prejsť cez metadáta zákazníčky, ktoré vie zákazníčka zapisovať.
+ * prejsť cez metadáta zákazníka, ktoré vie zákazník zapisovať.
  */
 
 export const LOYALTY_LOCK_GROUP_NAME = "Věrnost – ruční zámok"
@@ -77,7 +77,7 @@ export async function ensureLoyaltyLockGroup(scope: MedusaContainer): Promise<{ 
   return { id: String(created?.id ?? ""), name: LOYALTY_LOCK_GROUP_NAME }
 }
 
-/** Skupiny zákazníčky a jej aktuálne zaradenie (úroveň + zámok). */
+/** Skupiny zákazníka a jeho aktuálne zaradenie (úroveň + zámok). */
 export async function readLoyaltyAssignment(scope: MedusaContainer, customerId: string): Promise<LoyaltyAssignment> {
   const query = scope.resolve(ContainerRegistrationKeys.QUERY) as any
   const { data } = await query.graph({
@@ -99,7 +99,7 @@ export async function readLoyaltyAssignment(scope: MedusaContainer, customerId: 
   }
 }
 
-/** Skupina s úrovní priamo zo zoznamu skupín zákazníčky (bez dotazu do DB). */
+/** Skupina s úrovní priamo zo zoznamu skupín zákazníka (bez dotazu do DB). */
 function loyaltyTierGroupsSync(groups: Array<{ id: string; name?: string; metadata?: Record<string, unknown> | null }>) {
   const withTier = groups
     .filter((group) => typeof group.metadata?.nexus_tier === "string" && String(group.metadata.nexus_tier).trim())
@@ -111,7 +111,7 @@ function loyaltyTierGroupsSync(groups: Array<{ id: string; name?: string; metada
 /**
  * Zapíše zaradenie: členstvo v skupine úrovne (to vidí cenový výpočet) a
  * prípadný ručný zámok. Ostatné skupiny úrovní sa odstránia, aby mala
- * zákazníčka vždy práve jednu úroveň.
+ * zákazník vždy práve jednu úroveň.
  */
 export async function applyLoyaltyAssignment(
   scope: MedusaContainer,
@@ -139,7 +139,7 @@ export async function applyLoyaltyAssignment(
     }
     if (current.has(tier.id)) await customers.removeCustomerFromGroup({ customer_id: input.customerId, customer_group_id: tier.id }).catch(() => undefined)
   }
-  // Ručný zámok: skupina existuje len vtedy, keď je zákaznícka zamknutá ručne.
+  // Ručný zámok: skupina existuje len vtedy, keď je zákazník zamknutý ručne.
   if (lockGroup) {
     if (input.locked) {
       if (!current.has(lockGroup.id)) await customers.addCustomerToGroup({ customer_id: input.customerId, customer_group_id: lockGroup.id }).catch(() => undefined)

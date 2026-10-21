@@ -69,7 +69,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   try {
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const { data: customers } = await query.graph({ entity: "customer", fields: ["id"], filters: { id: customerId } })
-    if (!customers?.length) return res.status(404).json({ type: "not_found", message: "Zákaznice neexistuje" })
+    if (!customers?.length) return res.status(404).json({ type: "not_found", message: "Zákazník neexistuje" })
     const { data: products } = await query.graph({ entity: "product", fields: ["id"], filters: { id: productId } })
     if (!products?.length) return res.status(404).json({ type: "not_found", message: "Produkt neexistuje" })
 

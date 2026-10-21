@@ -23,7 +23,7 @@ const makeScope = () => {
 beforeEach(() => jest.clearAllMocks())
 
 describe("checkout auth gate", () => {
-  it("vrátí 401 bez přihlášené zákaznice a nezavolá reprice ani workflow", async () => {
+  it("vrátí 401 bez přihlášeného zákazníka a nezavolá reprice ani workflow", async () => {
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
     await POST({ body: { cart_id: "synthetic-cart" }, scope: { resolve: jest.fn() }, auth_context: undefined } as any, res)
     expect(res.status).toHaveBeenCalledWith(401)

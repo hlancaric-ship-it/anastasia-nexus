@@ -65,7 +65,7 @@ describe("zľava podľa DB politiky vernostnej úrovne", () => {
     expect(result.items[0].unit_price).toBe(90)
   })
 
-  it("zákazníčka bez úrovne nezľavuje", async () => {
+  it("zákazník bez úrovne nezľavuje", async () => {
     let sent: any = null
     global.fetch = jest.fn(async (_url: string, options: any) => {
       sent = JSON.parse(options.body)

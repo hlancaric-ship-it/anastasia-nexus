@@ -1,7 +1,7 @@
 /**
  * Produktové feedy (Heureka XML, Google Merchant RSS) – čistá logika bez závislosti na databázi.
  *
- * Ceny: feed používá `calculated_price` s region kontextom (cena, ktorú zákazníčka platí).
+ * Ceny: feed používá `calculated_price` s region kontextom (cena, ktorú zákazník platí).
  * Keďže eshop pracuje s cenami vrátane DPH, `PRICE_VAT` je táto cena a `PRICE` (bez DPH)
  * sa dopočíta podľa sadzby DPH (FEED_VAT_RATE, štandardne 20 % pre Slovensko).
  *
@@ -31,7 +31,7 @@ export type FeedItem = {
   url: string
   image: string
   images: string[]
-  /** Cena s DPH – koľko zákazníčka zaplatí. */
+  /** Cena s DPH – koľko zákazník zaplatí. */
   price: number
   /** Cena bez DPH (pre Heuriku). */
   netPrice: number

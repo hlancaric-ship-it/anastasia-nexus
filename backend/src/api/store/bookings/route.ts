@@ -12,7 +12,7 @@ function requireCustomer(req: AuthenticatedMedusaRequest, res: MedusaResponse): 
   return id ?? null
 }
 
-/** GET /store/bookings: vlastní rezervace přihlášené zákaznice. */
+/** GET /store/bookings: vlastní rezervace přihlášeného zákazníka. */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const customerId = requireCustomer(req, res)
   if (!customerId) return

@@ -18,8 +18,8 @@ import type EntitlementModuleService from "../modules/entitlement/service"
  *
  * Postup: založí testovací digitálny produkt, nahrá malý MP3 cez presigned URL
  * do náhradného S3 (lokálny server v tomto skripte – žiadny R2 účet sa nechýba),
- * pripojí súbor k produktu, udeľí zákazníčke prístup a overí, že sa k obsahu
- * dá dostať cez podepsaný krátkodobý odkaz. Na konci produkt aj zákazníčku zmaže.
+ * pripojí súbor k produktu, udeľí zákazníkovi prístup a overí, že sa k obsahu
+ * dá dostať cez podepsaný krátkodobý odkaz. Na konci produkt aj zákazníka zmaže.
  *
  * Skript je idempotentní a vždy uprace svoj testovací produkt.
  */
@@ -147,13 +147,13 @@ export default async function e2eDigitalLibrary({ container }: { container: Medu
     const stored = (await query.graph({ entity: "product", fields: ["id", "metadata"], filters: { id: productId } })).data[0]
     check(JSON.stringify(stored.metadata?.protected_media ?? []).includes(target.key), "súbor je v metadata.protected_media")
 
-    // 6) Register súborov (to, čo vidí zákazníčka).
+    // 6) Register súborov (to, čo vidí zákazník).
     const library = makeRes()
     await libraryRoute(req(undefined), library.res)
     check(library.state.body?.media?.length === 1, "register obsahuje jeden súbor")
     check(library.state.body?.media?.[0]?.kind === "audio", "súbor je rozpoznaný ako nahrávka")
 
-    // 7) Zákazníčka s prístupom.
+    // 7) Zákazník s prístupom.
     const customer = await customers.createCustomers([{ email: CUSTOMER_EMAIL, first_name: "E2E", last_name: "Test" }])
     customerId = customer[0].id
     const entitlement = await entitlements.grant({
@@ -163,9 +163,9 @@ export default async function e2eDigitalLibrary({ container }: { container: Medu
       dedupe_key: `e2e:${customerId}:${productId}`,
       tenant_id: "default",
     })
-    check(Boolean(entitlement.entitlement?.id), "zákazníčka má prístup k produktu")
+    check(Boolean(entitlement.entitlement?.id), "zákazník má prístup k produktu")
 
-    // 8) Čo zákazníčka uvidí v Knižnici.
+    // 8) Čo zákazník uvidí v Knižnici.
     const storeRes = makeRes()
     await storeEntitlementsRoute({
       params: {}, query: {}, body: {},
@@ -188,9 +188,9 @@ export default async function e2eDigitalLibrary({ container }: { container: Medu
     }, { customerId, productId, mediaKey: target.key })
     check(String(access.url).includes(encodeURIComponent(target.key)), "odkaz na médium obsahuje kľúč")
     check(String(access.url).includes("?t="), "odkaz je podpísaný tokenom")
-    check(access.watermark === CUSTOMER_EMAIL, "odkaz obsahuje vodoznak zákazníčky")
+    check(access.watermark === CUSTOMER_EMAIL, "odkaz obsahuje vodoznak zákazníka")
 
-    // 10) Cudzí kľúč ani cudzia zákazníčka nedostanú prístup.
+    // 10) Cudzí kľúč ani cudzí zákazník nedostanú prístup.
     let denied = false
     try {
       await issueMediaAccess({
@@ -240,7 +240,7 @@ export default async function e2eDigitalLibrary({ container }: { container: Medu
 
     console.log("E2E_DIGITAL_LIBRARY " + JSON.stringify({ status: "PASS", product: productId, key: target.key, steps }, null, 1))
   } finally {
-    // 12) Úspecha: testovací produkt deaktivujeme a zákazníčku s prístupom odstránime.
+    // 12) Úspecha: testovací produkt deaktivujeme a zákazníka s prístupom odstránime.
     if (customerId) {
       const rows = await entitlements.listEntitlements({ customer_id: customerId }, { take: 50 }) as any[]
       const ids = (rows ?? []).map((row: any) => row.id).filter(Boolean)
