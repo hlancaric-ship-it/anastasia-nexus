@@ -16,6 +16,7 @@ import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mj
 import { mountLibraryEditor } from './library-editor.mjs';
 import { openPrintWindow, fillPrintWindow, openPrintHtml, PRINT_FIELDS } from './print.mjs';
 import { voucherHtml, voucherListHtml, VOUCHER_CSS } from './voucher.mjs';
+import { contentPages, contentPage, wireContentPage } from './content.mjs';
 
 // --- API klient ---
 let token = localStorage.getItem('ana_token') || '';
@@ -2055,27 +2056,28 @@ async function vNewsletter(view) {
 // --- Obsah → Stránky a texty: texty webových stránok editovateľné v rich texte ---
 async function vPageTexts(view) {
   view = freshView(view);
-  view.innerHTML = '<div class="muted">Načítavam texty stránok…</div>';
-  let pages = [];
-  try { pages = (await api('/admin/pages')).pages || []; }
-  catch (e) { if (e.message === '401') throw e; view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
-  const card = (p) => `<div class="rc"><div class="rc-body">
-      <div class="rc-title">${esc(p.label)}</div>
-      <div class="rc-fields">
-        <span class="rc-f"><em>Stav</em>${p.is_default ? '<span class="pill">predvolené znenie</span>' : '<span class="pill ok">upravené</span>'}</span>
-        ${p.updated_at ? `<span class="rc-f"><em>Zmenené</em>${fmtDate(p.updated_at)}</span>` : ''}
-      </div>
-      <p class="muted" style="font-size:12px;margin:8px 0 0">${esc(p.description || '')}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-        <button type="button" class="btn ghost sm" data-edit="${esc(p.slug)}">Upraviť text</button>
-        <a class="btn ghost sm" href="#/store/pages/${esc(p.slug)}" target="_blank" rel="noopener">Ako sa zobrazí na webe</a>
-      </div></div></div>`;
-  view.innerHTML = `<div class="card" style="margin-bottom:16px"><div class="card-h">Texty stránok webu</div><div class="card-b">
-      <p class="muted" style="margin-top:0">Upravte text stránky priamo tu. Znenie sa uloží na server a web si ho prečíta podľa adresy
-      <code class="rc-code">/store/pages/...</code>. Pôvodné znenie môžete kedykoľvek obnoviť.</p>
-      <div class="rc-grid">${pages.map(card).join('')}</div>
-    </div></div>`;
-  view.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => vPageTextEdit(view, b.dataset.edit));
+  view.innerHTML = '<div class="muted">Načítavam obsah webu…</div>';
+  try {
+    view.innerHTML = await contentPages(api, esc);
+  } catch (e) {
+    if (e.message === '401') throw e;
+    view.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    return;
+  }
+  view.querySelectorAll('[data-page]').forEach(b => b.onclick = () => vContentPage(view, b.dataset.page));
+  view.querySelectorAll('[data-extra]').forEach(b => b.onclick = () => vPageTextEdit(view, b.dataset.extra));
+}
+async function vContentPage(view, key) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam stránku…</div>';
+  try {
+    view.innerHTML = await contentPage(api, key, esc);
+  } catch (e) {
+    if (e.message === '401') throw e;
+    view.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    return;
+  }
+  wireContentPage(view, api, key, { reload: () => vContentPage(view, key), back: () => vPageTexts(view) });
 }
 async function vPageTextEdit(view, slug) {
   view = freshView(view);

@@ -865,6 +865,24 @@
       ],
       "remaining": "Šablóny sa neposielajú automaticky zákazníčkam, len sa vložia do pripravenej odpovede.",
       "acceptance": "Šablóna sa dá vložiť do odpovede v chate a po obnovení stránky zostáva uložená."
+    },
+    {
+      "id": "web-content",
+      "label_sk": "Obsah webu (bloky)",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia upraví ľubovoľný text, nadpis, obrázok, video alebo odkaz na webe po sekciách; pôvodné znenie zostáva v zálohe, dá sa obnoviť a existujú verzie.",
+      "sources": [
+        "backend/src/lib/content/policy.ts",
+        "backend/src/lib/content/store.ts",
+        "backend/src/api/admin/content/route.ts",
+        "backend/src/api/store/content/[page]/route.ts",
+        "anastasia-admin/HANDOFF-storefront-content.md"
+      ],
+      "remaining": "Storefront zatiaľ obsah nenačítava (trasa GET /store/content/:page je pripravená); jazyky EN/RU sú v modeli vyhradené, ale zatiaľ prázdne.",
+      "acceptance": "Úprava poľa sa uloží, vráti sa vo verejnej trase, pôvodné znenie sa dá obnoviť a staršiu verziu vrátiť."
     }
   ],
   "custom_routes": [
@@ -925,6 +943,25 @@
       "feature": "carriers",
       "source": "backend/src/api/admin/carriers/route.ts",
       "sha256": "f6920a3ca428c2d379910f1f7b154237520b12d4b0de6c1307acd70f2cfaac84"
+    },
+    {
+      "path": "/admin/content",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "web-content",
+      "source": "backend/src/api/admin/content/route.ts",
+      "sha256": "bef819e6c782f3e123a773e4d018e30db9876c561242d6a0bf25c786601b715f"
+    },
+    {
+      "path": "/admin/content/reset",
+      "methods": [
+        "POST"
+      ],
+      "feature": "web-content",
+      "source": "backend/src/api/admin/content/reset/route.ts",
+      "sha256": "8703c7ce3f89ffdcc1493b00af0bb107347911dfb1d8e47d0745c302a86f5581"
     },
     {
       "path": "/admin/coupon-links",
@@ -1479,6 +1516,15 @@
       "feature": "chat",
       "source": "backend/src/api/store/contact/route.ts",
       "sha256": "1a6697c571e72c6af63cc55a2028f8694d2cd5f69577b1d6ae0fef1ca933db94"
+    },
+    {
+      "path": "/store/content/:page",
+      "methods": [
+        "GET"
+      ],
+      "feature": "web-content",
+      "source": "backend/src/api/store/content/[page]/route.ts",
+      "sha256": "7c2e94fe472f3b3f5c6437f2e88506356e7ec2067394111631688f8800c80a24"
     },
     {
       "path": "/store/coupon-links",
@@ -4573,6 +4619,7 @@
     "backend/src/lib/carriers/__tests__/policy.unit.spec.ts",
     "backend/src/lib/chat-templates/__tests__/templates.unit.spec.ts",
     "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
+    "backend/src/lib/content/__tests__/content.unit.spec.ts",
     "backend/src/lib/digital-products/__tests__/categories.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",

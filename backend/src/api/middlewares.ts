@@ -20,6 +20,7 @@ import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
 import { carrierAdminMiddlewares } from "./admin/carriers/middlewares"
 import { pageAdminMiddlewares } from "./admin/pages/middlewares"
 import { mediaAdminMiddlewares } from "./admin/media/middlewares"
+import { contentAdminMiddlewares } from "./admin/content/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -49,8 +50,9 @@ export default defineMiddlewares({
     // Produktové feedy a dopravci: len přihlášený správce.
     ...feedAdminMiddlewares,
     ...carrierAdminMiddlewares,
-    // Texty stránok a knihovna obrázkov: len přihlášený správce.
+    // Texty stránok, knihovna obrázkov a obsah webu: len přihlášený správce.
     ...pageAdminMiddlewares,
     ...mediaAdminMiddlewares,
+    ...contentAdminMiddlewares,
   ],
 })

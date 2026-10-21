@@ -5,6 +5,7 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { adminActor, auditAdminChange } from '../../../lib/observability/audit'
 import { pageDefinitions, isPageSlug, validatePageHtml } from '../../../lib/pages/policy'
+import { seedPage } from '../../../lib/content/policy'
 import { readPages, readStore, writePages, writeStoreMetadata } from '../../../lib/pages/store'
 
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -14,19 +15,22 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     const store = await readStore(req.scope)
     const pages = readPages(store?.metadata)
     return res.json({
-      pages: pageDefinitions().map((def) => {
-        const stored = pages[def.slug]
-        return {
-          slug: def.slug,
-          label: def.label,
-          description: def.description,
-          html: stored?.html ?? def.default_html,
-          default_html: def.default_html,
-          is_default: !stored,
-          updated_at: stored?.updated_at ?? null,
-          updated_by: stored?.updated_by ?? null,
-        }
-      }),
+      // Stránky, ktoré sú už v obsahu webu (seed zo storefrontu), sa tu neopakujú – edited sú v /admin/content.
+      pages: pageDefinitions()
+        .filter((def) => !seedPage(def.slug))
+        .map((def) => {
+          const stored = pages[def.slug]
+          return {
+            slug: def.slug,
+            label: def.label,
+            description: def.description,
+            html: stored?.html ?? def.default_html,
+            default_html: def.default_html,
+            is_default: !stored,
+            updated_at: stored?.updated_at ?? null,
+            updated_by: stored?.updated_by ?? null,
+          }
+        }),
     })
   } catch {
     return res.status(503).json({ message: 'Texty stránok sa teraz nedajú načítať. Skúste to znova.' })
