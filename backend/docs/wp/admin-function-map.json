@@ -180,7 +180,7 @@
         "anastasia-admin/HANDOFF-vernostne-urovne.md"
       ],
       "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu. Politika úrovní, ručné aj automatické priradenie a synchronizácia do NEXUS Workera sú hotové; chýba KV binding v nasadenom Workeri (placeholder ID vo wrangler.jsonc) a UI administrácie. Osobné ceníky pre jednotlivé úrovne zostávajú samostatná požiadavka.",
-      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
+      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
     },
     {
       "id": "booking",
