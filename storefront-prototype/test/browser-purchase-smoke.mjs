@@ -25,7 +25,7 @@ try{
   await page.locator('[data-next="2"]').click();assert.equal(await page.locator('fieldset[data-step="1"]').isVisible(),true);checks++;
   // Deliberately unsubmitted local form input; no customer/address API is called before authentication.
   await page.fill('[name=firstName]','Kontrola');await page.fill('[name=lastName]','Bez uloženia');await page.fill('#checkout-form [name=email]','inspection@example.invalid');await page.click('[data-next="2"]');
-  await page.check('[name=delivery][value=shipping]');await page.click('[data-next="3"]');assert.equal(await page.locator('fieldset[data-step="2"]').isVisible(),true);checks++;
+  await page.check('[name=delivery][value=courier]');await page.click('[data-next="3"]');assert.equal(await page.locator('fieldset[data-step="2"]').isVisible(),true);checks++;
   await page.fill('[name=street]','Kontrola 1');await page.fill('[name=city]','Bratislava');await page.fill('[name=postalCode]','81101');await page.click('[data-next="3"]');
   await page.waitForFunction(()=>document.querySelector('#stripe-payment-element')?.textContent.includes('prihláste'));
   assert.equal(await page.locator('#stripe-payment-element iframe').count(),0);checks++;

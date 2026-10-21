@@ -337,7 +337,7 @@ if(productDetail){
 
 bindProductPurchase($('.add-product'), { addToCart: (...args)=>api.addToCart(...args), onResult: result=>{ const status=$('.form-status',$('.add-product').parentElement);if(status)status.textContent=result.message;toast(result.message);return updateCount().catch(()=>{}); } });
 
-const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
+const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>${e(cart.shippingTitle||'Doprava')}</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
 async function renderCart(){
   const target=$('#cart-view');if(!target)return;
   const cart=await api.getCart();
@@ -360,39 +360,80 @@ if(checkoutForm){
   if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
   else{
     const step=n=>{$$('fieldset[data-step]',checkoutForm).forEach(el=>{el.hidden=Number(el.dataset.step)!==n;el.disabled=el.hidden;});$$('[data-step-label]').forEach(el=>el.classList.toggle('current',Number(el.dataset.stepLabel)===n));const first=$(`fieldset[data-step="${n}"] input`,checkoutForm);first?.focus();};
-    // Stripe Payment Element: reálná karetní platba (Apple/Google Pay přes Payment Element). Jen v http režimu.
+    // Doprava a platba: možnosti a ceny vracia server (/store/nexus-checkout/options), klient len vyberá.
+    // Karta = Stripe Payment Element (Apple/Google Pay cez Payment Element); dobierka a prevod bez brány.
     const cfg=(()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}})();
-    let stripe,elements,paymentReady=false,paymentRequired=true;
+    let stripe,elements,paymentReady=false,paymentRequired=true,options=null,selected=null,selecting=0;
+    const el=checkoutForm.elements;
+    const contact=()=>({firstName:el.firstName?.value||'',lastName:el.lastName?.value||'',email:el.email?.value||'',street:el.street?.value||'',city:el.city?.value||'',postalCode:el.postalCode?.value||'',country:el.country?.value||'sk'});
+    const deliveryValue=()=>options?.requiresDelivery?(checkoutForm.querySelector('[name=delivery]:checked')?.value||''):'digital';
     const loadStripe=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
-    const initPayment=async()=>{
-      if(typeof api.createPaymentSession!=='function')return;
-      paymentReady=false;
-      const fs=$('fieldset[data-step="3"]',checkoutForm);if(!fs)return;
-      let host=$('#stripe-payment-element',checkoutForm);
-      if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.cssText='margin:16px 0;width:100%;max-width:560px;grid-column:1/-1';const anchor=fs.querySelector('[name=terms]')?.closest('label')||fs.querySelector('.actions');if(anchor)anchor.before(host);else fs.append(host);}
-      host.textContent='Pripravujem objednávku…';
-      if(typeof api.prepareCheckout==='function'){const el=checkoutForm.elements,f=Object.fromEntries(['firstName','lastName','email','street','city','postalCode'].map(k=>[k,el[k]?.value||'']));const prep=await api.prepareCheckout({firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:checkoutForm.elements.delivery.value,street:f.street,city:f.city,postalCode:f.postalCode});
-        if(!prep.ok){host.textContent=prep.message;return;}$('#checkout-summary').innerHTML=summary(prep.cart);paymentRequired=prep.cart.paymentRequired!==false;}
-      if(!paymentRequired){host.textContent='Objednávka je pokrytá. Platobné údaje nie sú potrebné.';paymentReady=true;return;}
-      if(!cfg?.stripePublishableKey){host.textContent='Platobná brána nie je nakonfigurovaná.';return;}
-      host.textContent='Načítavam platbu…';
-      const session=await api.createPaymentSession();
-      if(!session.ok){host.textContent=session.message||'Platba nie je dostupná.';return;}
-      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:session.clientSecret});host.textContent='';elements.create('payment',{defaultValues:{billingDetails:{email:checkoutForm.elements.email?.value||undefined,address:{country:'SK'}}}}).mount(host);paymentReady=true;}
-      catch{host.textContent='Platobnú bránu sa nepodarilo načítať.';}
+    const toggleAddress=()=>{const courier=deliveryValue()==='courier';$('#address-fields').hidden=!courier;$$('#address-fields input').forEach(input=>{input.required=courier;input.disabled=!courier;});};
+    const renderDelivery=()=>{
+      const box=$('#delivery-options');if(!box)return;
+      if(!options){box.innerHTML='<p class="fine-print">Spôsoby doručenia sa nepodarilo načítať.</p>';return;}
+      if(!options.requiresDelivery){box.innerHTML='<p class="radio-label"><strong>Digitálny obsah – bez dopravy.</strong> Prístup nájdete vo svojom účte hneď po zaplatení.</p>';toggleAddress();return;}
+      const current=checkoutForm.querySelector('[name=delivery]:checked')?.value||options.delivery[0]?.code;
+      box.innerHTML=options.delivery.map(d=>`<label class="radio-label"><input type="radio" name="delivery" value="${e(d.code)}" ${d.code===current?'checked':''} required> <span><strong>${d.code==='pickup'?'Osobný odber':'Kuriér'}</strong> · ${e(d.priceLabel)}${d.freeFromLabel?` <small>(${e(d.freeFromLabel)})</small>`:''}${d.address?`<br><small>Adresa vyzdvihnutia: ${e(d.address)}</small>`:''}</span></label>`).join('')||'<p class="fine-print">Pre tento košík teraz nie je dostupné doručenie. Kontaktujte nás, prosím.</p>';
+      $$('[name=delivery]',box).forEach(input=>input.addEventListener('change',toggleAddress));toggleAddress();
     };
-    $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity()){const n=Number(btn.dataset.next);step(n);if(n===3)initPayment();}}));
+    const PAY_INFO={cod:'Platíte pri prevzatí zásielky kuriérovi.',bank_transfer:'Platobné údaje (IBAN a variabilný symbol) zobrazíme po dokončení objednávky a pošleme ich aj e-mailom. Kúpna cena je splatná do 48 hodín; tovar odošleme a digitálny obsah sprístupníme po pripísaní platby.',card:'Platba kartou online cez zabezpečenú bránu Stripe (aj Apple Pay a Google Pay).'};
+    const renderPayment=()=>{
+      const box=$('#payment-options');if(!box||!options)return;
+      const delivery=deliveryValue();
+      // Dobierka len pri doručení kuriérom (fyzický tovar); server to overí znova.
+      const list=options.payment.filter(p=>p.available&&(p.code!=='cod'||delivery==='courier'));
+      if(!list.some(p=>p.code===selected))selected=list.find(p=>p.code==='card')?.code||list[0]?.code||null;
+      box.innerHTML=list.map(p=>`<label class="radio-label"><input type="radio" name="payment" value="${e(p.code)}" ${p.code===selected?'checked':''}> <span><strong>${e(p.label)}</strong>${p.feeLabel?` · ${e(p.feeLabel)}`:''}</span></label>`).join('')||'<p class="fine-print">Žiadny spôsob platby nie je dostupný.</p>';
+      $$('[name=payment]',box).forEach(input=>input.addEventListener('change',()=>{selected=input.value;choosePayment();}));
+    };
+    const choosePayment=async()=>{
+      const ticket=++selecting;paymentReady=false;stripe=null;elements=null;
+      const info=$('#payment-info');let host=$('#stripe-payment-element',checkoutForm);
+      if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.cssText='margin:16px 0;width:100%;max-width:560px;grid-column:1/-1';info.after(host);}
+      host.textContent='';info.textContent='Pripravujem platbu…';
+      if(!selected){info.textContent='Zvoľte spôsob platby.';return;}
+      const delivery=deliveryValue();
+      const r=await api.selectCheckout({delivery:delivery==='digital'?null:delivery,payment:selected});
+      if(ticket!==selecting)return;
+      if(!r.ok){info.textContent=r.message;return;}
+      $('#checkout-summary').innerHTML=summary(r.cart);paymentRequired=r.paymentRequired!==false;
+      if(!paymentRequired){info.textContent='Objednávka je pokrytá. Platobné údaje nie sú potrebné.';paymentReady=true;return;}
+      info.textContent=PAY_INFO[r.payment]||'';
+      if(r.payment!=='card'){paymentReady=true;return;}
+      if(!cfg?.stripePublishableKey||!r.clientSecret){info.textContent='Platobná brána nie je nakonfigurovaná.';return;}
+      try{const Stripe=await loadStripe();if(ticket!==selecting)return;stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:r.clientSecret});elements.create('payment',{defaultValues:{billingDetails:{email:el.email?.value||undefined,address:{country:(el.country?.value||'sk').toUpperCase()}}}}).mount(host);paymentReady=true;}
+      catch{info.textContent='Platobnú bránu sa nepodarilo načítať.';}
+    };
+    // Krok 2: kontakt a krajina sa uložia do košíka, server vráti dopravu s cenou.
+    const initDelivery=async()=>{
+      if(typeof api.prepareCheckout!=='function')return;
+      $('#delivery-options').innerHTML='<p class="fine-print">Načítavam spôsoby doručenia…</p>';
+      const c=contact();const prep=await api.prepareCheckout({...c,delivery:'digital',street:'',city:'',postalCode:''});
+      options=prep.ok?prep.options:null;if(!prep.ok)$('#delivery-options').innerHTML=`<p class="fine-print">${e(prep.message)}</p>`;else renderDelivery();
+    };
+    // Krok 3: uloží adresu, znova načíta možnosti (cena dopravy podľa košíka) a pripraví zvolenú platbu.
+    const initPayment=async()=>{
+      if(typeof api.prepareCheckout!=='function'||typeof api.selectCheckout!=='function')return;
+      paymentReady=false;$('#payment-options').innerHTML='<p class="fine-print">Načítavam spôsoby platby…</p>';$('#payment-info').textContent='';
+      const prep=await api.prepareCheckout({...contact(),delivery:deliveryValue()});
+      if(!prep.ok){$('#payment-info').textContent=prep.message;return;}
+      options=prep.options;$('#checkout-summary').innerHTML=summary(prep.cart);renderPayment();await choosePayment();
+    };
+    const go=n=>{step(n);if(n===2)initDelivery();if(n===3)initPayment();};
+    $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity())go(Number(btn.dataset.next));}));
     $$('[data-back]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>step(Number(btn.dataset.back))));
-    $$('[name=delivery]',checkoutForm).forEach(el=>el.addEventListener('change',()=>{const shipping=checkoutForm.elements.delivery.value==='shipping';$('#address-fields').hidden=!shipping;$$('#address-fields input').forEach(input=>{input.required=shipping;input.disabled=!shipping;});}));
     let checkoutBusy=false;
-    checkoutForm.addEventListener('submit',async event=>{event.preventDefault();if(checkoutBusy)return;const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity()){step(Number(current.dataset.step)+1);if(Number(current.dataset.step)+1===3)initPayment();}return;}
+    const showTransfer=r=>{const box=$('#bank-transfer-result');if(!box)return;const bt=r.bankTransfer;if(!bt&&!r.pickupAddress){box.hidden=true;return;}
+      box.hidden=false;box.innerHTML=`${bt?`<h2>Platobné údaje</h2><dl class="summary-list"><div class="summary-row"><dt>Príjemca</dt><dd>${e(bt.beneficiary)}</dd></div><div class="summary-row"><dt>Banka</dt><dd>${e(bt.bank)}</dd></div><div class="summary-row"><dt>IBAN</dt><dd><strong>${e(bt.iban)}</strong></dd></div>${bt.swift?`<div class="summary-row"><dt>SWIFT/BIC</dt><dd>${e(bt.swift)}</dd></div>`:''}<div class="summary-row"><dt>Variabilný symbol</dt><dd><strong>${e(bt.variable_symbol)}</strong></dd></div><div class="summary-row"><dt>Suma</dt><dd><strong>${e(bt.amountLabel)}</strong></dd></div></dl><p class="fine-print">Prosíme o úhradu do 48 hodín. Údaje sme vám poslali aj e-mailom.</p>`:''}${r.pickupAddress?`<p class="fine-print">Objednávku si vyzdvihnete na adrese: ${e(r.pickupAddress)}. Ozveme sa vám, keď bude pripravená.</p>`:''}`;};
+    checkoutForm.addEventListener('submit',async event=>{event.preventDefault();if(checkoutBusy)return;const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity())go(Number(current.dataset.step)+1);return;}
       const output=$('#checkout-result'),submit=checkoutForm.querySelector('[type=submit]');checkoutBusy=true;if(submit)submit.disabled=true;
       try{
       if(typeof api.acceptCheckoutTerms==='function'){if(!paymentReady){output.dataset.state='ERROR';output.textContent='Platba ešte nie je pripravená. Skontrolujte údaje v predchádzajúcich krokoch.';output.focus();return;}
-        const ok=await api.acceptCheckoutTerms({terms_accepted:checkoutForm.elements.terms.checked,privacy_acknowledged:checkoutForm.elements.privacy.checked});if(!ok.ok){output.dataset.state='ERROR';output.textContent=ok.message;output.focus();return;}}
+        const ok=await api.acceptCheckoutTerms({terms_accepted:el.terms.checked,privacy_acknowledged:el.privacy.checked});if(!ok.ok){output.dataset.state='ERROR';output.textContent=ok.message;output.focus();return;}}
       if(typeof api.verifyCartBooking==='function'){const term=await api.verifyCartBooking();if(!term.ok){output.dataset.state='ERROR';output.innerHTML=`${e(term.message)}${term.expired?` <a class="text-link" href="/konzultacie/rezervacia">Vybrať termín</a>`:''}`;output.focus();return;}}
-      if(paymentRequired&&stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
-      const result=await api.checkout();output.dataset.state=result.status;output.textContent=result.messages;output.focus();
+      if(paymentRequired&&selected==='card'){if(!stripe||!paymentReady){output.dataset.state='ERROR';output.textContent='Platba ešte nie je pripravená.';output.focus();return;}output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
+      const result=await api.checkout();output.dataset.state=result.status;output.textContent=result.messages;if(result.status==='ALLOW'||result.status==='PENDING'){showTransfer(result);$$('fieldset[data-step]',checkoutForm).forEach(f=>{f.hidden=true;f.disabled=true;});}output.focus();
       }catch{output.dataset.state='ERROR';output.textContent='Objednávku sa nepodarilo dokončiť. Skontrolujte jej stav v účte pred ďalším pokusom.';output.focus();}finally{checkoutBusy=false;if(submit)submit.disabled=false;}
     });
   }
