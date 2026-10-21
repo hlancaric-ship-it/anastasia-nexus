@@ -27,7 +27,7 @@ const dsPhotos=(dir,files)=>`<section class="section photo-gallery">${files.map(
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
-const dcProducts=catalogProducts.slice(0,4).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,name:e(p.name),cat:e(p.category),price:e(p.priceLabel),priceLabel:e(p.priceLabel),img:p.image,add:e(p.code)}));
+const dcProducts=catalogProducts.slice(0,4).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,slug:e(p.slug),name:e(p.name),cat:e(p.category),price:e(p.priceLabel),priceLabel:e(p.priceLabel),img:p.image,add:e(p.code)}));
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 add2('/','Light for the Future',homeSections(dcProducts),'home');
 add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
