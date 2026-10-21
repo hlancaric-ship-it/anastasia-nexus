@@ -64,14 +64,19 @@ test('lišta nezakrýva viac než 40 % displeja na mobilnom zobrazení',async()=
   assert.match(css,/\.cookie-banner\{[^}]*overflow-y:auto/,'prípadný prebytok sa listuje vnútri lišty');
 });
 
-test('pred súhlasom sa nenačíta žiadny skript tretej strany',async()=>{
+test('platobná brána je nevyhnutná technológia: načíta sa v pokladni bez rozhodnutia o cookies',async()=>{
   const html=await htmlFor('/');
   const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
   const external=scripts.filter(src=>/^https?:/.test(src));
-  assert.deepEqual(external,[],`webe sa nesmie načítať skript tretej strany: ${external.join(', ')}`);
-  // Stripe je jediný skript tretej strany a načíta sa až po rozhodnutí zákazníka.
+  assert.deepEqual(external,[],`webe sa nesmie načítať skript tretej strony: ${external.join(', ')}`);
+  // Stripe (jediný externý skript) sa načíta dynamicky až v pokladni pri výbere platby kartou.
   const app=await readFile(new URL('app.mjs',dist),'utf8');
-  assert.match(app,/await requireDecision\(\);[\s\S]{0,200}js\.stripe\.com/,'Stripe sa načíta až po rozhodnutí o cookies');
+  assert.match(app,/js\.stripe\.com\/v3/,'Stripe sa načíta z adresy Stripe');
+  assert.doesNotMatch(app,/await requireDecision\(\)/,'platba kartou nesmie čakať na rozhodnutie o cookies');
+  assert.doesNotMatch(app,/dokončite nastavenia cookies/,'hlásenie o blokácii platby kartou je odstránené');
+  // Súhlas s cookies sa nesmie vyžadovať pred platbou ani v pokladni.
+  const consent=await readFile(new URL('consent.mjs',dist),'utf8');
+  assert.doesNotMatch(consent,/requireDecision[\s\S]{0,120}js\.stripe\.com/,'brána Stripe nie je viazaná na rozhodnutie o cookies');
 });
 
 test('uložená voľba sa načíta späť a voliteľné kategórie zostávajú vypnuté',async()=>{

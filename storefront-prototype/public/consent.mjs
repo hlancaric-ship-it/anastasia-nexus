@@ -1,7 +1,10 @@
 // Súhlas s cookies: jediný zdroj pravdy, čo návštevník povolil.
 // - Nevyhnutné kategórie sú vždy povolené.
 // - Voliteľné kategórie (analytické, marketingové) sú vypnuté, kým zákazník nevyberie.
-// - Pred rozhodnutím sa nenačíta žiadny skript tretej strany: brána je v requireDecision().
+// - Pred rozhodnutím sa nenačíta žiadny voliteľný skript tretej strany.
+//
+// Platobná brána (Stripe) je nevyhnutná technológia – bez nej sa nedá zaplatiť kartou.
+// Načíta sa v pokladni pri výbere platby kartou a nečaká na rozhodnutie o cookies.
 //
 // Údaje o voľbe sa ukladajú len v prehliadači (localStorage). Na server sa neposielajú.
 
