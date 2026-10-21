@@ -822,6 +822,23 @@
       ],
       "remaining": "Feed sa generuje pri každej požiadavke; chýba vlastný plán načítania (cron) a schválenie cez Heuriku/Google Merchant Center.",
       "acceptance": "Feed je verejne dostupný bez prihlásenia, obsahuje len zverejnené produkty v kanáli a cenu s DPH; admin ukáže odkaz na kopírovanie."
+    },
+    {
+      "id": "page-content",
+      "label_sk": "Texty stránok",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia upravuje texty stránok webu (VOP, reklamácie, kontakt, O Lucii, patička, doprava a platba) v rich texte, s náhľadom a obnovením pôvodného znenia; server ich sanitizuje a uloží v metadátach obchodu.",
+      "sources": [
+        "backend/src/lib/pages/policy.ts",
+        "backend/src/lib/pages/store.ts",
+        "backend/src/api/admin/pages/route.ts",
+        "backend/src/api/store/pages/[slug]/route.ts"
+      ],
+      "remaining": "Storefront znenie zatiaľ nenačítava (pripravená trasa GET /store/pages/:slug); zapojenie do webu je na strane frontendu.",
+      "acceptance": "Uložený text sa zobrazí v náhľade, prejde cez sanitizáciu a dá sa vrátiť na pôvodné znenie."
     }
   ],
   "custom_routes": [
@@ -1044,6 +1061,25 @@
       "sha256": "f9bb2b30b7f790dfc4c19eda0d2bbf458dd19a4ea47abd571ce2a03cb9198562"
     },
     {
+      "path": "/admin/media",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "media-library",
+      "source": "backend/src/api/admin/media/route.ts",
+      "sha256": "4f7d0f9ee0624f55a276de7f4263abe0e3e5c6d2fbf806100904899c4741897d"
+    },
+    {
+      "path": "/admin/media/:key",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "media-library",
+      "source": "backend/src/api/admin/media/[key]/route.ts",
+      "sha256": "23888f2e2a3a18a4ddbc427e23900d0e13824b01d78039b1b11d616d401beb7d"
+    },
+    {
       "path": "/admin/memberships",
       "methods": [
         "GET"
@@ -1124,6 +1160,25 @@
       "feature": "operations",
       "source": "backend/src/api/admin/ops/nexus/route.ts",
       "sha256": "7d8a70e17020f193373cefa12ed54ec6b61a7f217e00b8a9b67e8adb6cf98792"
+    },
+    {
+      "path": "/admin/pages",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "page-content",
+      "source": "backend/src/api/admin/pages/route.ts",
+      "sha256": "3016bc40035834c99834c35ecfcd2f1dea1acae4734bd6de3402cd9bc19d540f"
+    },
+    {
+      "path": "/admin/pages/:slug",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "page-content",
+      "source": "backend/src/api/admin/pages/[slug]/route.ts",
+      "sha256": "73ad20af21b47e09d843cbc1abedd2b08452c51b9fd05454fc0a405b3a11ca1a"
     },
     {
       "path": "/admin/products/:id/protected-media",
@@ -1570,6 +1625,15 @@
       "feature": "returns",
       "source": "backend/src/api/store/orders/[id]/cancel/route.ts",
       "sha256": "6b90b5d01827b7ef422abb5e0e4512fd365e61e018354811a11adfd45a0ae4f7"
+    },
+    {
+      "path": "/store/pages/:slug",
+      "methods": [
+        "GET"
+      ],
+      "feature": "page-content",
+      "source": "backend/src/api/store/pages/[slug]/route.ts",
+      "sha256": "2809e937021d502a2a9e2bff343d5f7216dd3b4765892e6abb154b2f93371b4a"
     },
     {
       "path": "/store/withdrawals",
@@ -4450,6 +4514,7 @@
     "backend/src/lib/observability/__tests__/events.unit.spec.ts",
     "backend/src/lib/observability/__tests__/log.unit.spec.ts",
     "backend/src/lib/order-self-cancel/__tests__/cancel.unit.spec.ts",
+    "backend/src/lib/pages/__tests__/policy.unit.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/policy.unit.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/service.integration.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/service.unit.spec.ts",
