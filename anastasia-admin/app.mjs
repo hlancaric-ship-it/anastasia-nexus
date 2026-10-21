@@ -407,12 +407,12 @@ async function vProducts(view) {
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
   const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
-  let offset = 0, query = '', status = '', count = 0, busy = false, pending = false;
-  const fields = 'id,title,status,handle,thumbnail,metadata,*variants.prices';
+  let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false;
   const row = p => `<tr data-id="${esc(p.id)}" tabindex="0">
       <td class="ot-img lv-media">${p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>'}</td>
       <td class="lv-title">${esc(p.title)}</td>
       <td><span class="pill ${PRODUCT_STATUS[p.status]?.[1] || 'warn'}">${esc(PRODUCT_STATUS[p.status]?.[0] || p.status || '—')}</span></td>
+      <td>${p.digital ? '<span class="pill ok">digitálny</span>' : '<span class="muted">fyzický</span>'}</td>
       <td>${fmtEur(basePrice(p.variants?.[0])?.amount)}</td>
       <td>${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
       <td class="ot-act"><span class="btn ghost sm">Otvoriť ${navIcon('arrow')}</span></td></tr>`;
@@ -420,6 +420,11 @@ async function vProducts(view) {
       <h2>Produkty <span class="muted" id="p-count"></span></h2>
       <div class="ot-head-act">
         <input class="rc-search" type="search" placeholder="Hľadať produkt…" aria-label="Hľadať produkty">
+        <select class="rc-select" id="p-type" aria-label="Filter podľa typu">
+          <option value="">Fyzické aj digitálne</option>
+          <option value="digital">Digitálne</option>
+          <option value="physical">Fyzické</option>
+        </select>
         <select class="rc-select" id="p-status" aria-label="Filter podľa stavu">
           <option value="">Všetky stavy</option>
           <option value="published">Zverejnené</option>
@@ -427,22 +432,23 @@ async function vProducts(view) {
         </select>
       </div>
     </div>
-    <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Cena</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
+    <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="p-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('#p-body');
   const load = async () => {
     // Ak už beží požiadavka, nezahadzujeme novú – po skončení sa zopakuje s poslednými údajmi.
     if (busy) { pending = true; return; }
-    busy = true; body.innerHTML = '<tr><td colspan="6" class="empty">Načítavam…</td></tr>';
+    busy = true; body.innerHTML = '<tr><td colspan="7" class="empty">Načítavam…</td></tr>';
     try {
-      const params = new URLSearchParams({ limit: String(PRODUCT_PAGE_SIZE), offset: String(offset), order: '-created_at', fields });
+      const params = new URLSearchParams({ limit: String(PRODUCT_PAGE_SIZE), offset: String(offset) });
       if (query) params.set('q', query);
-      if (status) params.append('status[]', status);
-      const data = await api(`/admin/products?${params}`);
+      if (status) params.set('status', status);
+      if (type) params.set('type', type);
+      const data = await api(`/admin/product-catalogue?${params}`);
       const products = data.products || [];
       count = Number(data.count) || 0;
-      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="6" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
+      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="7" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
       body.querySelectorAll('tr[data-id]').forEach(tr => {
         const open = () => vProductDetail(view, tr.dataset.id);
         tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
@@ -453,7 +459,7 @@ async function vProducts(view) {
       view.querySelector('[data-pg="prev"]').disabled = offset <= 0;
       view.querySelector('[data-pg="next"]').disabled = offset + PRODUCT_PAGE_SIZE >= count;
     } catch (e) {
-      if (e.message !== '401') body.innerHTML = `<tr><td colspan="6" class="empty">${esc(e.message)}</td></tr>`;
+      if (e.message !== '401') body.innerHTML = `<tr><td colspan="7" class="empty">${esc(e.message)}</td></tr>`;
     } finally {
       busy = false;
       if (pending) { pending = false; load(); }
@@ -465,6 +471,7 @@ async function vProducts(view) {
   const search = view.querySelector('.rc-search');
   search.oninput = () => { clearTimeout(timer); timer = setTimeout(() => { query = search.value.trim(); offset = 0; load(); }, 350); };
   view.querySelector('#p-status').onchange = (e) => { status = e.target.value; offset = 0; load(); };
+  view.querySelector('#p-type').onchange = (e) => { type = e.target.value; offset = 0; load(); };
   load();
 }
 const SKU_RE = /^[A-Z0-9][A-Z0-9._-]{1,63}$/;
@@ -506,11 +513,13 @@ async function vProductNew(view) {
       const body = { title, status, shipping_profile_id: shipProfile, ...(channels.length === 1 ? { sales_channels: [{ id: channels[0].id }] } : {}), options: [{ title: 'Variant', values: ['Štandard'] }],
         variants: [{ title: 'Štandard', sku, manage_inventory: digital ? false : true, options: { Variant: 'Štandard' }, prices: amount > 0 ? [{ amount, currency_code: 'eur' }] : [] }] };
       const { product } = await api('/admin/products', { method: 'POST', body });
-      vProductDetail(view, product.id);
+      // Digitálny produkt sa otvorí priamo na záložke so súbormi, ktoré zákazníčky dostanú.
+      if (digital) vProductDetail(view, product.id, { tab: 'obsah', notice: 'Digitálny produkt je založený. Nahrajte súbory, ktoré zákazníčky dostanú v knižnici.' });
+      else vProductDetail(view, product.id);
     } catch (e) { btn.disabled = false; msg.innerHTML = `<div class="err">Jadro odmietlo: ${esc(e.message)}</div>`; }
   };
 }
-async function vProductDetail(view, id) {
+async function vProductDetail(view, id, opts = {}) {
   view = freshView(view);
   setActions('');
   view.innerHTML = '<div class="muted">Načítavam…</div>';
@@ -574,16 +583,18 @@ async function vProductDetail(view, id) {
   // Editor v záložkách (ako centrálna správa produktov): každá záložka sa zmestí na jednu obrazovku,
   // všetky polia ostávajú v DOM, takže Uložiť zapíše zmeny zo všetkých záložiek naraz.
   const TABS = [['zaklad', 'Základné údaje'], ['popis', 'Popis'], ['foto', 'Fotografie'], ['predaj', 'Kategórie a predaj'], ['sklad', 'Sklad'], ['obsah', 'Zakúpený obsah']];
+  const activeTab = TABS.some(([k]) => k === opts.tab) ? opts.tab : TABS[0][0];
+  const panel = (key, html) => `<div class="pe-panel" data-panel="${key}"${key === activeTab ? '' : ' hidden'}>${html}</div>`;
   view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<div class="card-h-act"><button class="btn ghost" id="p-back">Späť</button><button class="btn gold" id="p-save">Uložiť zmeny</button></div></div><div class="card-b">
-    <div id="pmsg"></div>
+    <div id="pmsg">${opts.notice ? `<div class="notice">${esc(opts.notice)}</div>` : ''}</div>
     <div id="p-checks" style="margin-bottom:10px"></div>
-    <div class="pe-tabs" role="tablist">${TABS.map(([k, l], i) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${i === 0}">${esc(l)}</button>`).join('')}</div>
-    <div class="pe-panel" data-panel="zaklad"><div class="product-editor"><div><section class="editor-section"><h2>Základné údaje</h2>${zakladne}</section></div><div><section class="editor-section"><h2>Cena a akcia</h2>${cena}</section></div></div></div>
-    <div class="pe-panel" data-panel="popis" hidden><section class="editor-section"><h2>Popis produktu</h2>${popis}</section></div>
-    <div class="pe-panel" data-panel="foto" hidden><section class="editor-section"><h2>Fotografie</h2>${obrazky}</section></div>
-    <div class="pe-panel" data-panel="predaj" hidden><div class="product-editor"><div><section class="editor-section"><h2>Kategórie</h2>${kategorie}</section></div><div><section class="editor-section"><h2>Predaj a doručenie</h2>${predaj}</section></div></div></div>
-    <div class="pe-panel" data-panel="sklad" hidden><section class="editor-section"><h2>Sklad</h2>${sklad}</section></div>
-    <div class="pe-panel" data-panel="obsah" hidden><section class="editor-section"><h2>Zakúpený obsah</h2><div id="p-library"></div></section></div>
+    <div class="pe-tabs" role="tablist">${TABS.map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${k === activeTab}">${esc(l)}</button>`).join('')}</div>
+    ${panel('zaklad', `<div class="product-editor"><div><section class="editor-section"><h2>Základné údaje</h2>${zakladne}</section></div><div><section class="editor-section"><h2>Cena a akcia</h2>${cena}</section></div></div>`)}
+    ${panel('popis', `<section class="editor-section"><h2>Popis produktu</h2>${popis}</section>`)}
+    ${panel('foto', `<section class="editor-section"><h2>Fotografie</h2>${obrazky}</section>`)}
+    ${panel('predaj', `<div class="product-editor"><div><section class="editor-section"><h2>Kategórie</h2>${kategorie}</section></div><div><section class="editor-section"><h2>Predaj a doručenie</h2>${predaj}</section></div></div>`)}
+    ${panel('sklad', `<section class="editor-section"><h2>Sklad</h2>${sklad}</section>`)}
+    ${panel('obsah', `<section class="editor-section"><h2>Zakúpený obsah</h2><div id="p-library"></div></section>`)}
   </div></div>`;
   view.querySelectorAll('.pe-tabs [data-tab]').forEach(b => b.onclick = () => {
     view.querySelectorAll('.pe-tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
@@ -638,6 +649,13 @@ async function vProductDetail(view, id) {
 
     const missing = completeness().filter(c => c.block && !c.ok).map(c => c.t);
     if (wantStatus === 'published' && missing.length) { msg.innerHTML = `<div class="err">Produkt sa nedá zverejniť, chýba: ${esc(missing.join(', '))}. Uložte ho ako koncept alebo údaje doplňte.</div>`; return; }
+    // Digitálny produkt bez súborov by zákazníčku nedal nič – zverejnenie sa zablokuje.
+    const shipId = view.querySelector('#p-ship')?.value || curProfile;
+    const isDigital = profiles.find(sp => sp.id === shipId)?.type === 'digital';
+    const hasFiles = libraryEditor.hasFiles();
+    if (wantStatus === 'published' && isDigital && hasFiles === false) {
+      msg.innerHTML = '<div class="err">Digitálny produkt nemá žiadny súbor. Najprv v záložke Zakúpený obsah nahrajte video, nahrávku alebo dokument, ktorý zákazníčka dostane. Bez súboru produkt nezverejňujte.</div>'; return;
+    }
     if ([...view.querySelectorAll('[data-loc]')].some(i => i.value !== '' && !(Number.isInteger(Number(i.value)) && Number(i.value) >= 0))) { msg.innerHTML = '<div class="err">Počet kusov na sklade musí byť celé číslo 0 alebo viac.</div>'; return; }
     const skuIn = (view.querySelector('#p-sku')?.value || '').trim().toUpperCase();
     const newSku = variant && skuIn && skuIn !== String(variant.sku || '').toUpperCase() ? skuIn : '';
@@ -744,12 +762,21 @@ async function vCategoryDetail(view, id) {
   };
 }
 // --- Objednávky: načítanie po stránkach (jadro vracia aj celkový počet) ---
-const ORDER_LIST_FIELDS = 'id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata,*items,*customer';
+const ORDER_LIST_FIELDS = 'id,display_id,email,status,total,currency_code,created_at,payment_status,fulfillment_status,metadata,*items,*customer,*shipping_methods,*shipping_address,*payment_collections.payment_sessions';
 const ORDER_LOAD_PAGE = 100;
 /** Poistka proti ťažkému načítaniu; nad tento počet sa zobrazí upozornenie (staršie hľadaj cez vyhľadávanie). */
 const ORDER_LOAD_CAP = 1000;
 /** Koľko objednávok sa zobrazí na jednu stranu v prehľade. */
 const ORDER_PAGE_SIZE = 50;
+/** Stiahnutie súboru v prehliadači (CSV export). */
+function downloadText(filename, text, type = 'text/csv;charset=utf-8') {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const csvCell = (v) => `"${String(v ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
 async function loadOrders() {
   const q = `limit=${ORDER_LOAD_PAGE}&order=-created_at&fields=${ORDER_LIST_FIELDS}`;
   const first = await api(`/admin/orders?${q}`);
