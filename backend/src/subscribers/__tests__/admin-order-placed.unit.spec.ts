@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import handler from "../admin-order-placed"
 
-const sendEmail = jest.fn(async () => ({ status: "sent" }))
+const sendEmail = jest.fn(async (..._args: any[]) => ({ status: "sent" }))
 jest.mock("../../lib/email/send", () => ({ sendEmail: (...args: any[]) => (sendEmail as any)(...args) }))
 const recordEvent = jest.fn(async () => null)
 jest.mock("../../lib/observability/events", () => ({ recordEvent: (...args: any[]) => (recordEvent as any)(...args) }))
