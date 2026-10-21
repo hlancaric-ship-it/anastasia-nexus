@@ -62,7 +62,7 @@ describe("Zrkadielko – store API", () => {
     expect(f.journal.listEntries).not.toHaveBeenCalled()
   })
 
-  it("zákazníčka bez prístupu k programu dostane 403", async () => {
+  it("zákazník bez prístupu k programu dostane 403", async () => {
     const f = fixture({ entitled: false })
     await GET(f.req, f.res)
     expect(f.res.status).toHaveBeenCalledWith(403)
@@ -81,7 +81,7 @@ describe("Zrkadielko – store API", () => {
     expect(f.res.setHeader).toHaveBeenCalledWith("Cache-Control", "private, no-store")
   })
 
-  it("nový záznam sa uloží s identitou zákazníčky (nie z požiadavky)", async () => {
+  it("nový záznam sa uloží s identitou zákazníka (nie z požiadavky)", async () => {
     const f = fixture()
     f.req.body = { date: "2026-08-14", week: 3, metrics: { energia: 7 }, customer_id: "cus_other" }
     await POST(f.req, f.res)

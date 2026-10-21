@@ -137,8 +137,8 @@ if (accessFeature) {
     'backend/src/lib/reset-program/access.ts',
     'backend/docs/wp/reset-zrkadielko.md',
   ]) if (!accessFeature.sources.includes(source)) accessFeature.sources.push(source)
-  if (!accessFeature.remaining.includes('Zrkadielko')) accessFeature.remaining = `${accessFeature.remaining} Zrkadielko (záznamy zákazníčky) a štruktúra programu sú v backende hotové; chýba obsah od Lucie (kompletný zoznam stĺpcov hodnotení, texty týždňov a pracovných listov) a právny základ súhlasu.`
-  if (!accessFeature.acceptance.includes('cudzí záznam')) accessFeature.acceptance = `${accessFeature.acceptance} Zrkadielko: záznam patrí zákazníčke – cudzí záznam sa nedá prečítať, upraviť ani zmazať; hodnotenie je 1–10 a dátum nie je v budúcnosti.`
+  if (!accessFeature.remaining.includes('Zrkadielko')) accessFeature.remaining = `${accessFeature.remaining} Zrkadielko (záznamy zákazníka) a štruktúra programu sú v backende hotové; chýba obsah od Lucie (kompletný zoznam stĺpcov hodnotení, texty týždňov a pracovných listov) a právny základ súhlasu.`
+  if (!accessFeature.acceptance.includes('cudzí záznam')) accessFeature.acceptance = `${accessFeature.acceptance} Zrkadielko: záznam patrí zákazníkovi – cudzí záznam sa nedá prečítať, upraviť ani zmazať; hodnotenie je 1–10 a dátum nie je v budúcnosti.`
 }
 
 const newTests = [

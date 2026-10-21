@@ -23,7 +23,7 @@ describe("Zrkadielko – pravidlá", () => {
     expect(parseCalendarDate(undefined)).toBeNull()
   })
 
-  it("dnešný deň počíta v časovom pásme zákazníčky", () => {
+  it("dnešný deň počíta v časovom pásme zákazníka", () => {
     const utcMidnight = new Date("2026-08-14T22:30:00.000Z")
     // 22:30 UTC je v Bratislave (UTC+2) už 15. augusta.
     expect(todayInZone("Europe/Bratislava", utcMidnight)).toBe("2026-08-15")

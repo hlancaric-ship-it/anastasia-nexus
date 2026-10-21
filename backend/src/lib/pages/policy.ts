@@ -31,7 +31,7 @@ const DESCRIPTIONS: Record<string, string> = {
   reklamacie: 'Reklamačné pravidlá: ako uplatniť reklamáciu, vrátenie peňazí a záruka.',
   odstupenie: 'Poučenie o odstúpení od zmluvy a vzorový formulár na odstúpenie.',
   kontakt: 'Prevádzkovateľ, adresa, IČO, e-mail a telefón. Údaje z tu sa zobrazujú v patičke aj na kontaktnej stránke.',
-  gdpr: 'Ako spracúvame osobné údaje zákazníčiek a aké práva máte.',
+  gdpr: 'Ako spracúvame osobné údaje zákazníkov a aké práva máte.',
   cookies: 'Informácia o cookies a podobných technológiách a o vašich voľbách.',
   'o-lucii': 'Predstavenie Lucii a príbeh značky ANASTASIA.',
   paticka: 'Spodná lišta webu: odkazy, copyright a základné údaje.',

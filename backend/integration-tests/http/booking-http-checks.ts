@@ -216,7 +216,7 @@ async function verifySharedCalendarAdmin({ api, container, options, opts, produc
   }
   evidence.push({ scenario: "K9_CROSS_TYPE_BUFFER", statuses: followStatuses })
 
-  // Admin vidí obsazené termíny se jménem zákaznice a typem.
+  // Admin vidí obsazené termíny se jménem zákazníka a typem.
   const view = await api.get(`/admin/booking/availability?week_start=${date}`, admin)
   expect(view.status).toBe(200)
   expect(view.data.week_start).toBe(weekStart)

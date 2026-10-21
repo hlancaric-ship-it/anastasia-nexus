@@ -7,7 +7,7 @@ import { effectiveProgramStructure, type ProgramStructure } from "./structure"
 export type ProgramAccess = {
   /** Kľúč programu (napr. `reset-40-plus`). */
   program: string
-  /** Prístup, ktorým zákazníčka program otvorila. */
+  /** Prístup, ktorým zákazník program otvoril. */
   entitlement_id: string
   /** Produkt programu. */
   product_id: string
@@ -18,7 +18,7 @@ export type ProgramAccess = {
 }
 
 /**
- * Overí, že zákazníčka má platný prístup k programu, a načíta konfiguráciu Zrkadielka.
+ * Overí, že zákazník má platný prístup k programu, a načíta konfiguráciu Zrkadielka.
  *
  * Prístup sa určuje z AKTÍVNEHO entitlementu (nezrušený a neexpirovaný) na produkt programu.
  * Bez prístupu sa Zrkadielko nedá používať – vracia `null` (rozhodne route: 403).

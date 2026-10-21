@@ -1,7 +1,7 @@
 import { RESET_JOURNAL_TIMEZONE } from "../../lib/reset-program/config"
 import type { JournalMetric } from "../../lib/reset-program/config"
 
-/** Koľko záznamov smie zákazníčka mať v jeden deň (ochrana proti spamu a chybnému kliku). */
+/** Koľko záznamov smie zákazník mať v jeden deň (ochrana proti spamu a chybnému kliku). */
 export const MAX_JOURNAL_ENTRIES_PER_DAY = 10
 
 /** Rozsah týždňa programu (1–16). */
@@ -38,7 +38,7 @@ export function parseCalendarDate(value: unknown): { date: Date; iso: string } |
   return null
 }
 
-/** Kalendárny dnes v časovom pásme zákazníčky (`YYYY-MM-DD`). */
+/** Kalendárny dnes v časovom pásme zákazníka (`YYYY-MM-DD`). */
 export function todayInZone(timeZone: string = RESET_JOURNAL_TIMEZONE, now: Date = new Date()): string {
   try {
     return new Intl.DateTimeFormat("en-CA", {

@@ -31,7 +31,7 @@ beforeEach(() => {
   jest.mocked(loyaltyTierGroups).mockResolvedValue(tiers)
 })
 
-describe('Zoznam zákazníčiek s vernostnou úrovňou (admin API)', () => {
+describe('Zoznam zákazníkov s vernostnou úrovňou (admin API)', () => {
   it('zamietne zákazníka', async () => {
     const f = fixture()
     f.req.auth_context = { actor_type: 'customer', actor_id: 'cus_1' }

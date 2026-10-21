@@ -225,8 +225,8 @@
         "backend/src/lib/reset-program/access.ts",
         "backend/docs/wp/reset-zrkadielko.md"
       ],
-      "remaining": "Přejmenování a pořadí již přiřazených souborů implementované; soukromý upload a nové přiřazení/odebrání zůstává samostatný nedokončený balík. Zrkadielko (záznamy zákazníčky) a štruktúra programu sú v backende hotové; chýba obsah od Lucie (kompletný zoznam stĺpcov hodnotení, texty týždňov a pracovných listov) a právny základ súhlasu.",
-      "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu. Zrkadielko: záznam patrí zákazníčke – cudzí záznam sa nedá prečítať, upraviť ani zmazať; hodnotenie je 1–10 a dátum nie je v budúcnosti."
+      "remaining": "Přejmenování a pořadí již přiřazených souborů implementované; soukromý upload a nové přiřazení/odebrání zůstává samostatný nedokončený balík. Zrkadielko (záznamy zákazníka) a štruktúra programu sú v backende hotové; chýba obsah od Lucie (kompletný zoznam stĺpcov hodnotení, texty týždňov a pracovných listov) a právny základ súhlasu.",
+      "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu. Zrkadielko: záznam patrí zákazníkovi – cudzí záznam sa nedá prečítať, upraviť ani zmazať; hodnotenie je 1–10 a dátum nie je v budúcnosti."
     },
     {
       "id": "media",
@@ -1344,7 +1344,7 @@
       ],
       "source": "backend/src/api/admin/nexus/customers/[id]/tier/route.ts",
       "feature": "loyalty",
-      "sha256": "1be9a395f6035a02960ea7051e304ea98d16003d36889795c7e2aab68d87e2ee"
+      "sha256": "9262a89b42d76fcd41ee71737f5917569395c6aebed3a80de2f4a7029a4bc27b"
     },
     {
       "path": "/admin/nexus/customers/tiers",
@@ -1353,7 +1353,7 @@
       ],
       "source": "backend/src/api/admin/nexus/customers/tiers/route.ts",
       "feature": "loyalty",
-      "sha256": "4f815867372ed344c5cf630e08f85f256d0bceb41b6ae3b4a77819a9783e9c2c"
+      "sha256": "893a795cffef6e3f8661d5992803084d26f04139d48a503c189b83d843b8f9c5"
     },
     {
       "path": "/admin/nexus/loyalty-customers",
@@ -1510,7 +1510,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/admin/reset-program/route.ts",
-      "sha256": "adc53578e3ba6fcd2e112eedaec2949c0688b836162731ad0687a32df9bbc0a0"
+      "sha256": "a35b534727aa68dd79382d30dde1f4ebbc46ec35cd0032c086c80f63988293a2"
     },
     {
       "path": "/admin/shop-prices/:id",
@@ -1974,7 +1974,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/reset-journal/route.ts",
-      "sha256": "77ca20aab9333d45b97c6d8c4fb5ce46846ac16dc884715b4852248d3c3bf38d"
+      "sha256": "25ea593c0b10296ef71c5832f20c8c658e97932ef727848516e19792d199db6b"
     },
     {
       "path": "/store/reset-journal/:id",
@@ -1984,7 +1984,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/reset-journal/[id]/route.ts",
-      "sha256": "9749899d5fc62d6c148714db0f10b372398edc92bfc8c9e551db86ee0e1e5790"
+      "sha256": "9f56b8372a1ae9c1ca4c84f3b57d349943775c0c6cced7334ff481559896ec46"
     },
     {
       "path": "/store/reset-program",
@@ -1993,7 +1993,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/reset-program/route.ts",
-      "sha256": "86aaeb3315bc556794738d1a072ec1ec09a5da73a94331d0fc86584056c1a2a4"
+      "sha256": "adf9c9f59deb64d605a4adc765f920f8fa0333008ddcf3bbeef81323c1c4c515"
     },
     {
       "path": "/store/withdrawals",

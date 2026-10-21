@@ -6,7 +6,7 @@ import { applyLoyaltyAssignment, loyaltyTierGroups, readLoyaltyAssignment } from
 import { LOYALTY_TIER_CODE_RE } from "../../../../../../lib/loyalty/policy"
 
 /**
- * POST /admin/nexus/customers/:id/tier – ručné zaradenie zákazníky do vernostnej úrovne.
+ * POST /admin/nexus/customers/:id/tier – ručné zaradenie zákazníka do vernostnej úrovne.
  *
  * `tier_code: "ZR3"`  → ručné zaradenie s zámkom (automatické zaradenie ho neprepiše).
  * `tier_code: "automatic"` → zámok sa ruší a úroveň sa prepočíta podľa útraty.
@@ -35,7 +35,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     }
     const automatic = tierCode === "AUTOMATIC"
     if (!automatic) {
-      // Úroveň musí existovať medzi zákazníckymi skupinami (ZR1..ZR4 z bootstrapu).
+      // Úroveň musí existovať medzi zákazníkmi skupinami (ZR1..ZR4 z bootstrapu).
       const known = await loyaltyTierGroups(req.scope)
       if (!known.some((tier) => tier.code === tierCode)) {
         return res.status(400).json({ message: `Úroveň ${tierCode} neexistuje. Dostupné: ${known.map((tier) => tier.code).join(", ") || "žiadne"}.` })

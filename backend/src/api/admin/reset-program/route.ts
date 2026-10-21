@@ -7,12 +7,12 @@ import { effectiveProgramStructure } from "../../../lib/reset-program/structure"
 /**
  * GET /admin/reset-program?product_id=… – konfigurácia členskej zóny RESET 40+ (len čítanie).
  *
- * Administrátor tu zistí, aké hodnotenia (metriky) a akú štruktúru programu má zákazníčka vidieť.
+ * Administrátor tu zistí, aké hodnotenia (metriky) a akú štruktúru programu má zákazník vidieť.
  * Zatiaľ je to IBA čítanie – zoznam metrik ani štruktúru programu sa cez API nemenia
  * (upravuje ich Lucia v metadátach produktu / import).
  *
- * Obsah záznamov Zrkadielka sa tu zámerne NEZOBRAZUJE: sú to údaje o zdraví/pohodí zákazníčky
- * a patria jej (prístup má len zákazníčka cez store API).
+ * Obsah záznamov Zrkadielka sa tu zámerne NEZOBRAZUJE: sú to údaje o zdraví/pohodí zákazníka
+ * a patria mu (prístup má len zákazník cez store API).
  */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   res.setHeader("Cache-Control", "private, no-store")

@@ -25,13 +25,13 @@ export const RESET_PROGRAM_WORKLIST_DAYS: readonly number[] = Object.freeze([2, 
 /** Odkaz na vstupný dotazník programu (zo starého webu – externá služba Tally). */
 export const RESET_ENTRY_QUESTIONNAIRE_URL = "https://tally.so/r/440GBr"
 
-/** Časové pásmo zákazníčky: deň v Zrkadielku sa posudzuje podľa kalendárneho dňa v Bratislave. */
+/** Časové pásmo zákazníka: deň v Zrkadielku sa posudzuje podľa kalendárneho dňa v Bratislave. */
 export const RESET_JOURNAL_TIMEZONE = "Europe/Bratislava"
 
 export type JournalMetric = {
   /** Stabilný kľúč metriky (uloží sa do `metrics` JSONB). */
   key: string
-  /** Názov stĺpca pre zákazníčku (slovenčina). */
+  /** Názov stĺpca pre zákazníka (slovenčina). */
   label: string
   /** Minimálna hodnota. */
   min: number

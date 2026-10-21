@@ -1,10 +1,10 @@
 import { model } from "@medusajs/framework/utils"
 
 /**
- * Záznam zákazníčky v Zrkadielku (členská zóna RESET 40+).
+ * Záznam zákazníka v Zrkadielku (členská zóna RESET 40+).
  *
  * Údaje o energii, spánku a strese sú osobné údaje o zdraví/pohodě –
- * patria zákazníčke, preto sú v tabuľke viazané na `customer_id` a idú do
+ * patria zákazníkovi, preto sú v tabuľke viazané na `customer_id` a idú do
  * exportu osobných údajov aj do výmazu (viz customer-privacy).
  */
 const ResetJournalEntry = model
@@ -12,7 +12,7 @@ const ResetJournalEntry = model
     id: model.id({ prefix: "rje" }).primaryKey(),
     tenant_id: model.text().default("default"),
     customer_id: model.text(),
-    /** Prístup, ktorým si zákazníčka program otvorila (nullable – prístup mohol vypršieť). */
+    /** Prístup, ktorým si zákazník program otvoril (nullable – prístup mohol vypršieť). */
     entitlement_id: model.text().nullable(),
     /** Program, ku ktorému záznam patrí (napr. `reset-40-plus`). */
     program: model.text(),

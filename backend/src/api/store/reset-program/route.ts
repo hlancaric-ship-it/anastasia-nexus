@@ -3,7 +3,7 @@ import { resolveProgramAccess } from "../../../lib/reset-program/access"
 import { requireCustomer, sendJournalError } from "../reset-journal/helpers"
 
 /**
- * GET /store/reset-program – štruktúra programu pre zákazníčku s prístupom:
+ * GET /store/reset-program – štruktúra programu pre zákazníka s prístupom:
  * 16 týždňov, materiály a pracovné listy po dňoch, záverečné zhrnutie a odkaz na vstupný dotazník.
  * Obsah (texty a súbory) dodá Lucia alebo import – bez neho je štruktúra prázdna (`content_ready: false`).
  */
@@ -13,7 +13,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
   try {
     const access = await resolveProgramAccess(req.scope, customerId)
     if (!access) {
-      return res.status(403).json({ type: "forbidden", message: "Program je dostupný len zákazníčkám s aktívnym prístupom." })
+      return res.status(403).json({ type: "forbidden", message: "Program je dostupný len zákazníkom s aktívnym prístupom." })
     }
     res.setHeader("Cache-Control", "private, no-store")
     return res.status(200).json({

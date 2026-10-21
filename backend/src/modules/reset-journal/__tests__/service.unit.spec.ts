@@ -48,7 +48,7 @@ describe("Zrkadielko – modul služby", () => {
     service = new ResetJournalModuleService()
   })
 
-  it("listuje len záznamy zákazníčky a programu", async () => {
+  it("listuje len záznamy zákazníka a programu", async () => {
     const list = jest.spyOn(service as any, "listAndCountResetJournalEntries").mockResolvedValue([[{ id: "rje_1" }], 1])
     const result = await service.listEntries("cus_a", "reset-40-plus", { limit: 10, offset: 0 })
     expect(list.mock.calls[0][0]).toEqual({ customer_id: "cus_a", program: "reset-40-plus" })
@@ -112,7 +112,7 @@ describe("Zrkadielko – modul služby", () => {
     expect(updated?.id).toBe("rje_1")
   })
 
-  it("zmazanie prejde cez filter zákazníčky (SQL, nie iba kontrola v kóde)", async () => {
+  it("zmazanie prejde cez filter zákazníka (SQL, nie iba kontrola v kóde)", async () => {
     const knex = fakeKnex({ deleted: 1 })
     const deleted = await service.deleteEntry("rje_1", "cus_a", "reset-40-plus", contextWith(knex))
     expect(deleted).toBe(true)

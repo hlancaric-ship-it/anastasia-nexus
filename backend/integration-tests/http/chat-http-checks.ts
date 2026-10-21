@@ -18,7 +18,7 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
     customer_id: c.id, product_id: "prod_synthetic_chat", status: "active", source: "admin", granted_at: new Date(), dedupe_key: `chat-${c.id}`,
   })))
 
-  // Přihlášení je povinné, admin API nepřijme zákaznici.
+  // Přihlášení je povinné, admin API nepřijme zákazníka.
   expect((await api.get("/store/chat/status", options)).status).toBe(401)
   expect((await api.post("/store/chat/conversations", { body: "ahoj" }, options)).status).toBe(401)
   expect((await api.get("/admin/chat/conversations", a)).status).toBe(401)
@@ -71,7 +71,7 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
   expect(thread.data.messages.map((m: any) => m.author)).toEqual(["customer", "lucia", "customer", "customer"])
   expect(JSON.stringify(thread.data)).not.toContain("author_id")
 
-  // Uzavření (vratné) a blokace zákaznice (vratná).
+  // Uzavření (vratné) a blokace zákazníka (vratná).
   const first = await api.post("/store/chat/conversations", { body: "Mám dotaz k rezervaci" }, b)
   expect(first.status).toBe(201)
   const bConv = first.data.conversation.id

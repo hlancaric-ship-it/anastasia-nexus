@@ -6,9 +6,9 @@ import { applyLoyaltyAssignment, loyaltyTierGroups } from "../../../../../lib/lo
 import { LOYALTY_TIER_CODE_RE } from "../../../../../lib/loyalty/policy"
 
 /**
- * POST /admin/nexus/customers/tiers – hromadné zaradenie zákazníčiek.
+ * POST /admin/nexus/customers/tiers – hromadné zaradenie zákazníkov.
  *
- * Tvar A: { tier_code: "ZR3", customer_ids: ["cus_1", "cus_2"] }  – jedna úroveň pre viac zákazníčiek.
+ * Tvar A: { tier_code: "ZR3", customer_ids: ["cus_1", "cus_2"] }  – jedna úroveň pre viac zákazníkov.
  * Tvar B: { assignments: [{ customer_id: "cus_1", tier_code: "ZR3" }] } – každý zákazník iná úroveň.
  * Hodnota "AUTOMATIC" v tvare B znamená "zrušiť ručný zámok a nechať prepočítať".
  */
@@ -45,7 +45,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     }
   }
   if (!requested.length) return res.status(400).json({ message: "Vyberte aspoň jedného zákazníka." })
-  if (requested.length > 200) return res.status(400).json({ message: "Naraz zaraďte najviac 200 zákazníčok naraz." })
+  if (requested.length > 200) return res.status(400).json({ message: "Naraz zaraďte najviac 200 zákazníkov naraz." })
 
   try {
     const known = await loyaltyTierGroups(req.scope)

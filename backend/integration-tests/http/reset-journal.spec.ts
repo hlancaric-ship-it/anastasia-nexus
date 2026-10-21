@@ -7,7 +7,7 @@ import { verifyResetJournal } from "./reset-journal-http-checks"
  * Zrkadielko (členská zóna RESET 40+) – samostatný integračný scenár.
  *
  * Beží nad skutočným Medusa HTTP a PostgreSQL: overuje prístup podľa aktívneho entitlementu,
- * izoláciu zákazníčiek, validáciu hodnôt a dátumu, export osobných údajov a výmaz zákazníka.
+ * izoláciu zákazníkov, validáciu hodnôt a dátumu, export osobných údajov a výmaz zákazníka.
  * Iba syntetické údaje; vlastná dočasná databáza.
  */
 const ci = process.env.CI === "true" && process.env.DB_USERNAME === "reset_journal_synthetic" && process.env.DB_TEMP_NAME === "anastasia_reset_journal_ci"
@@ -30,7 +30,7 @@ medusaIntegrationTestRunner({
   dbName: process.env.DB_TEMP_NAME ?? "anastasia_reset_journal_ci",
   testSuite: ({ api, getContainer }) => {
     afterAll(() => { Server.prototype.listen = listen })
-    it("Zrkadielko patrí zákazníčke s aktívnym prístupom a reaguje na výmaz", async () => {
+    it("Zrkadielko patrí zákazníkovi s aktívnym prístupom a reaguje na výmaz", async () => {
       const container = getContainer()
       const { result: [key] } = await createApiKeysWorkflow(container).run({ input: { api_keys: [{ title: "Synthetic reset-journal", type: "publishable", created_by: "synthetic-reset-journal" }] } })
       const options = { validateStatus: () => true, headers: { "x-publishable-api-key": key.token } }

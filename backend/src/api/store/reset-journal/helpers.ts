@@ -21,7 +21,7 @@ export function sendJournalError(req: AuthenticatedMedusaRequest, res: MedusaRes
   return res.status(500).json({ type: "unexpected_state", message: "Uloženie záznamu sa nepodarilo. Skúste to prosím neskôr." })
 }
 
-/** Zrozumiteľný text pre zákazníčku (bez interných kódov). */
+/** Zrozumiteľný text pre zákazníka (bez interných kódov). */
 export function journalMessage(code: string): string {
   switch (code) {
     case "JOURNAL_DATE_IN_FUTURE":
@@ -49,7 +49,7 @@ export function journalMessage(code: string): string {
   }
 }
 
-/** Formát záznamu pre zákazníčku (bez technických polí). */
+/** Formát záznamu pre zákazníka (bez technických polí). */
 export function journalEntryDTO(entry: {
   id: string
   week?: number | null

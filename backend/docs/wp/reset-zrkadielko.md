@@ -37,7 +37,7 @@ je pripravený, obsah dodá Lucia (viz §7).
 | `id` | text (`rje…`) | primárny kľúč |
 | `tenant_id` | text, default `default` | izolácia tenanta |
 | `customer_id` | text | **vlastník záznamu** – na tomto stĺpci je ohrančený každý dotaz |
-| `entitlement_id` | text nullable | prístup, ktorým si zákazníčka program otvorila |
+| `entitlement_id` | text nullable | prístup, ktorým si zákazník program otvoril |
 | `program` | text | program, ku ktorému záznam patrí (`reset-40-plus`) |
 | `week` | integer nullable | týždeň programu 1–16 (nullable – záznam nemusí byť viazaný na týždeň) |
 | `entry_date` | timestamptz | kalendárny deň záznamu (UTC polnoc daného dňa) |
@@ -114,11 +114,11 @@ Poškodené údaje sa preskakujú, prázdna/neplatná štruktúra sa nahradí **
 
 ## 4. API
 
-### 4.1 Store API (len prihlásená zákazníčka s aktívnym prístupom k programu)
+### 4.1 Store API (len prihlásený zákazník s aktívnym prístupom k programu)
 
 Middleware: `backend/src/api/store/reset-journal/middlewares.ts`
 (`authenticate("customer", ["session","bearer"])`), zapojené v `backend/src/api/middlewares.ts`.
-Bez aktívneho entitlementu na program je odpoveď **403** (nie 404 – klientka má vidieť, že nemá prístup).
+Bez aktívneho entitlementu na program je odpoveď **403** (nie 404 – klient má vidieť, že nemá prístup).
 
 | Endpoint | Popis |
 |---|---|
@@ -141,18 +141,18 @@ Príklad odpovede `GET /store/reset-journal`:
 ### 4.2 Admin API (iba čítanie)
 
 `GET /admin/reset-program[?product_id=…]` → účinné metriky + štruktúra programu.
-**Obsah záznamov Zrkadielka sa zámerne nezobrazuje** – sú to údaje o zdraví/pohodí zákazníčky
-a patria jej (prístup má len zákazníčka cez store API).
+**Obsah záznamov Zrkadielka sa zámerne nezobrazuje** – sú to údaje o zdraví/pohodí zákazníka
+a patria mu (prístup má len zákazník cez store API).
 
 ### 4.3 Pravidlá a chybové kódy
 
 | Kód | HTTP | Význam |
 |---|---|---|
-| `unauthorized` | 401 | nie je prihlásená zákazníčka |
+| `unauthorized` | 401 | nie je prihlásený zákazník |
 | `forbidden` | 403 | nemá aktívny prístup k programu |
 | `invalid_data` | 400 | chýba dátum / hodnotenia / nič na úpravu |
-| `not_found` | 404 | záznam neexistuje **alebo patrí inej zákazníčke** (rozdiel sa neukazuje) |
-| `JOURNAL_DATE_IN_FUTURE` | 400 | dátum je v budúcnosti (porovnanie v časovom pásme zákazníčky) |
+| `not_found` | 404 | záznam neexistuje **alebo patrí inému zákazníkovi** (rozdiel sa neukazuje) |
+| `JOURNAL_DATE_IN_FUTURE` | 400 | dátum je v budúcnosti (porovnanie v časovom pásme zákazníka) |
 | `JOURNAL_DATE_INVALID` | 400 | dátum nie je platný kalendárny deň |
 | `JOURNAL_METRIC_OUT_OF_RANGE` | 400 | hodnota mimo `min..max` (predvolene 1–10) |
 | `JOURNAL_METRIC_UNKNOWN` | 400 | kľúč metriky nie je v konfigurácii |
@@ -162,7 +162,7 @@ a patria jej (prístup má len zákazníčka cez store API).
 | `JOURNAL_DAILY_LIMIT` | 429 | denný limit záznamov (10/deň) dosiahnutý |
 
 **Denný limit:** 10 záznamov na kalendárny deň a program. Kontrola aj zápis prebiehajú
-v jednej transakcii s advisory zámkom zákazníčky – súbežné požiadavky limit neobídú.
+v jednej transakcii s advisory zámkom zákazníka – súbežné požiadavky limit neobídú.
 
 ---
 
@@ -173,7 +173,7 @@ v jednej transakcii s advisory zámkom zákazníčky – súbežné požiadavky 
 * **Výmaz zákazníka** (tombstone `customer_erasure`, `backend/src/modules/customer-privacy/erase.ts`)
   odstraňuje záznamy Zrkadielka **natvrdo** (soft delete by nechal údaje o zdraví v databáze).
   Pridaná je kontrola existencie tabuľky, aby výmaz nepadal pred nasadením migrácie.
-* Záznam patrí výhradne zákazníčke: každý dotaz v module je ohraničený `customer_id`
+* Záznam patrí výhradne zákazníkovi: každý dotaz v module je ohraničený `customer_id`
   (izolácia je v dátovej vrstve, nie len v kontrole trasy).
 * `anastasia-admin/PRAVNE-TEXTY-DOPLNIT.md` – **bod 17**: Zrkadielko = údaje o zdraví/pohodí,
   potvrdiť právny základ (súhlas), správcu, príjemcov a dobu uchovávania.
@@ -198,7 +198,7 @@ Nové testy:
 | `backend/src/lib/reset-program/__tests__/config.unit.spec.ts` | zoznam metrik, prepis v metadátach, programový kľúč |
 | `backend/src/lib/reset-program/__tests__/structure.unit.spec.ts` | kostra 16 týždňov, dni 2–7, sanitizácia, `content_ready` |
 | `backend/src/api/store/reset-journal/__tests__/route.unit.spec.ts` | 401/403/404, vlastné záznamy, cudzí záznam |
-| `backend/integration-tests/http/reset-journal-http-checks.ts` | skutočné HTTP + PostgreSQL: izolácia zákazníčiek, validácia, export, výmaz |
+| `backend/integration-tests/http/reset-journal-http-checks.ts` | skutočné HTTP + PostgreSQL: izolácia zákazníkov, validácia, export, výmaz |
 | `backend/integration-tests/http/reset-journal.spec.ts` | samostatný integračný beh (Medusa + Postgres) pre CI |
 
 ### 6.2 Integrácia (HTTP + PostgreSQL)
@@ -220,7 +220,7 @@ Medusa HTTP a PostgreSQL** (migrácia modulu, entitlement, export, výmaz).
 |---|---|
 | Jednotkové testy politiky, služby, konfigurácie a tras prechádzajú | `VERIFIED` (spustené) |
 | `tsc --noEmit` bez chyby | `VERIFIED` (spustené) |
-| Izolácia zákazníčiek, validácia, export a výmaz v skutočnom HTTP + PG | `VERIFIED` (spustené v syntetickom clusteri) |
+| Izolácia zákazníkov, validácia, export a výmaz v skutočnom HTTP + PG | `VERIFIED` (spustené v syntetickom clusteri) |
 | Migrácia modulu vytvorí tabuľku a indexy | `VERIFIED` (beh nad čistou databázou) |
 | Obsah programu (texty, pracovné listy) | `NOT_IMPLEMENTED` – dodá Lucia |
 | Právny základ (súhlas) | `NOT_IMPLEMENTED` – potvrdenie od Lucie (bod 17) |

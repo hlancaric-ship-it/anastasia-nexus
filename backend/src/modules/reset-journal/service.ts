@@ -16,11 +16,11 @@ import type { JournalMetric } from "../../lib/reset-program/config"
 const TABLE = "reset_journal_entry"
 
 /**
- * Zrkadielko – záznamy zákazníčky (členská zóna RESET 40+).
+ * Zrkadielko – záznamy zákazníka (členská zóna RESET 40+).
  *
  * Bezpečnostná pravidlo: KAŽDÝ dotaz je ohraničený `customer_id` (a programom),
  * takže cudzí záznam sa nedá prečítať ani upraviť ani zmazať – ani cez ID z=requestu.
- * Zápis, úprava a zmazanie prebiehajú v transakcii s Advisory zámkom zákazníčky,
+ * Zápis, úprava a zmazanie prebiehajú v transakcii s Advisory zámkom zákazníka,
  * aby sa denný limit záznamov dal dodržať aj pri súbežných požiadavkách.
  */
 class ResetJournalModuleService extends MedusaService({ ResetJournalEntry }) {
@@ -30,7 +30,7 @@ class ResetJournalModuleService extends MedusaService({ ResetJournalEntry }) {
     return knex
   }
 
-  /** Vlastné záznamy zákazníčky (iba jej vlastné). */
+  /** Vlastné záznamy zákazníka (iba jeho vlastné). */
   async listEntries(
     customerId: string,
     program: string,
@@ -47,7 +47,7 @@ class ResetJournalModuleService extends MedusaService({ ResetJournalEntry }) {
     return { data, count }
   }
 
-  /** Koľko záznamov má zákazníčka v danom kalendárnom dni (bez započítania `excludeId`). */
+  /** Koľko záznamov má zákazník v danom kalendárnom dni (bez započítania `excludeId`). */
   private async countEntriesForDate(
     customerId: string,
     program: string,
@@ -99,7 +99,7 @@ class ResetJournalModuleService extends MedusaService({ ResetJournalEntry }) {
   }
 
   /**
-   * Úprava vlastného záznamu. Vráti `null`, keď záznam neexistuje alebo patrí inej zákazníčke
+   * Úprava vlastného záznamu. Vráti `null`, keď záznam neexistuje alebo patrí inému zákazníkovi
    * (klient dostane 404 – cudzí záznam sa nijak nerozlišuje od neexistujúceho).
    */
   @InjectTransactionManager()
@@ -145,7 +145,7 @@ class ResetJournalModuleService extends MedusaService({ ResetJournalEntry }) {
 
   /**
    * Zmazanie vlastného záznamu. Záznam sa odstráni natvrdo (soft delete by nechal
-   * údaje o zdraví v databáze) a len vtedy, keď patrí zákazníčke.
+   * údaje o zdraví v databáze) a len vtedy, keď patrí zákazníkovi.
    */
   @InjectTransactionManager()
   async deleteEntry(

@@ -13203,7 +13203,7 @@
        "key": "gdpr__gdpr-1__17-rich",
        "type": "rich",
        "label": "Odsek 18",
-       "value": "Údaje sú dostupné len povereným osobám a dodávateľom v potrebnom rozsahu. Používame Slovenskú poštu a Packetu na doručenie, Stripe na platby, Websupport a ACTIVE 24 pre webovú infraštruktúru a Cloudflare na súvisiace technické funkcie. Tally slúži na dotazníky; Zapier a Formspree na formulárové a doručovacie automatizácie vrátane PDF. Atoms používame na tvorbu predajných stránok a funnelov, HyGen na tvorbu videí. Nástroj na tvorbu obsahu nie je automaticky príjemcom zákazníckych údajov a osobné údaje sa mu neposkytujú . Osobné údaje môžu dostať aj účtovník, oprávnený právny poradca a orgány verejnej moci podľa zákona.",
+       "value": "Údaje sú dostupné len povereným osobám a dodávateľom v potrebnom rozsahu. Používame Slovenskú poštu a Packetu na doručenie, Stripe na platby, Websupport a ACTIVE 24 pre webovú infraštruktúru a Cloudflare na súvisiace technické funkcie. Tally slúži na dotazníky; Zapier a Formspree na formulárové a doručovacie automatizácie vrátane PDF. Atoms používame na tvorbu predajných stránok a funnelov, HyGen na tvorbu videí. Nástroj na tvorbu obsahu nie je automaticky príjemcom zákazníkových údajov a osobné údaje sa mu neposkytujú . Osobné údaje môžu dostať aj účtovník, oprávnený právny poradca a orgány verejnej moci podľa zákona.",
        "max_length": 2000,
        "lang": "sk"
       },

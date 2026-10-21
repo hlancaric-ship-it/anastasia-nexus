@@ -21,7 +21,7 @@ import {
 export type ProgramMaterial = {
   /** Kľúč chráneného súboru (rovnaký register ako `metadata.protected_media`). */
   key: string
-  /** Názov pre zákazníčku. */
+  /** Názov pre zákazníka. */
   title: string
   /** Druh obsahu. */
   kind: "document" | "audio" | "video"
@@ -30,7 +30,7 @@ export type ProgramMaterial = {
 export type ProgramDay = {
   /** Číslo dňa v týždni (2–7 = pracovné listy). */
   day: number
-  /** Názov dňa pre zákazníčku (napr. „2. deň“). */
+  /** Názov dňa pre zákazníka (napr. „2. deň“). */
   label: string
   /** Materiály dňa (pracovný list a pod.). */
   materials: ProgramMaterial[]
@@ -94,7 +94,7 @@ function parseText(raw: unknown): string | null {
 /**
  * Prečíta štruktúru programu z metadát produktu.
  * Vráti `null`, keď v metadátach nič použiteľné nie je – volajúci potom použije kostru programu.
- * Poškodené týždne a materiály sa preskakujú, aby sa zákazníčke nikdy neukázala rozbitá štruktúra.
+ * Poškodené týždne a materiály sa preskakujú, aby sa zákazníkovi nikdy neukázala rozbitá štruktúra.
  */
 export function parseProgramStructure(raw: unknown, program: string): ProgramStructure | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null

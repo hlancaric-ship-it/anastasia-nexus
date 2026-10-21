@@ -95,7 +95,7 @@ describe('Hromadné zaradenie (admin API)', () => {
     expect(f.res.status).toHaveBeenCalledWith(401)
   })
 
-  it('zaradí viac zákazníčiek naraz na jednu úroveň', async () => {
+  it('zaradí viac zákazníkov naraz na jednu úroveň', async () => {
     const f = fixture({ tier_code: 'ZR3', customer_ids: ['cus_1', 'cus_2'] })
     await SET_TIERS(f.req, f.res)
     expect(applyLoyaltyAssignment).toHaveBeenCalledTimes(2)

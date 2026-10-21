@@ -11,7 +11,7 @@ function intParam(value: unknown, fallback: number): number {
 }
 
 /**
- * GET /store/reset-journal – vlastné záznamy zákazníčky + konfigurácia hodnotení.
+ * GET /store/reset-journal – vlastné záznamy zákazníka + konfigurácia hodnotení.
  * Bez aktívneho prístupu k programu endpoint neexistuje (403).
  */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -20,7 +20,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
   try {
     const access = await resolveProgramAccess(req.scope, customerId)
     if (!access) {
-      return res.status(403).json({ type: "forbidden", message: "Zrkadielko je dostupné len zákazníčkám s programom RESET 40+." })
+      return res.status(403).json({ type: "forbidden", message: "Zrkadielko je dostupné len zákazníkom s programom RESET 40+." })
     }
     const service = req.scope.resolve(RESET_JOURNAL_MODULE) as ResetJournalModuleService
     const limit = Math.min(Math.max(intParam(req.query?.limit, 50), 1), 200)
@@ -50,7 +50,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   try {
     const access = await resolveProgramAccess(req.scope, customerId)
     if (!access) {
-      return res.status(403).json({ type: "forbidden", message: "Zrkadielko je dostupné len zákazníčkám s programom RESET 40+." })
+      return res.status(403).json({ type: "forbidden", message: "Zrkadielko je dostupné len zákazníkom s programom RESET 40+." })
     }
     const body = (req.body ?? {}) as { date?: unknown; entry_date?: unknown; week?: unknown; metrics?: unknown }
     const rawDate = body.date ?? body.entry_date

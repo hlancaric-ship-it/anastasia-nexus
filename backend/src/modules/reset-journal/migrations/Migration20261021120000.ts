@@ -1,9 +1,9 @@
 import { Migration } from "@medusajs/framework/mikro-orm/migrations"
 
 /**
- * Zrkadielko – tabuľka záznamov zákazníčky (členská zóna RESET 40+).
+ * Zrkadielko – tabuľka záznamov zákazníka (členská zóna RESET 40+).
  * Údaje o energii, spánku a strese sú osobné údaje o zdraví/pohodě:
- * patria zákazníčke, preto idú do exportu osobných údajov aj do výmazu.
+ * patria zákazníkovi, preto idú do exportu osobných údajov aj do výmazu.
  */
 export class Migration20261021120000 extends Migration {
   override async up(): Promise<void> {

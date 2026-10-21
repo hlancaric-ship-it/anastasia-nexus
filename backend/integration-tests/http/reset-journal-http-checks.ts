@@ -4,7 +4,7 @@ import { stateKey, sha256Hex } from "../../src/modules/auth-magic-link/policy"
 /**
  * Zrkadielko (členská zóna RESET 40+) – skutečné HTTP + PostgreSQL.
  *
- * Overuje, že Zrkadielko a štruktúra programu patria zákazníčke s aktívnym prístupom,
+ * Overuje, že Zrkadielko a štruktúra programu patria zákazníkovi s aktívnym prístupom,
  * že sa cudzí záznam nedá prečítať / upraviť / zmazať, že validácia odmieta dátum v budúcnosti
  * a hodnoty mimo 1–10, a že záznamy sú v exporte osobných údajov a zmiznú pri výmaze zákazníka.
  * Synthetic only – volá sa v sériovom CI behe (Medusa + PostgreSQL).

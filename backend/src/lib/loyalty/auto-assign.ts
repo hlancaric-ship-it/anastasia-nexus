@@ -5,9 +5,9 @@ import { readLoyaltySettingsFromStore } from "./settings"
 import { applyLoyaltyAssignment, readLoyaltyAssignment } from "./assignment"
 
 /**
- * Automatické zaradenie zákazníky do vernostnej úrovne.
+ * Automatické zaradenie zákazníka do vernostnej úrovne.
  *
- * Po zaplatení objednávky sa prepočíta celková útrata zákazníky a podľa prahov
+ * Po zaplatení objednávky sa prepočíta celková útrata zákazníka a podľa prahov
  * v politike sa priradí úroveň. Ručný zámok (správca nastavil úroveň ručne)
  * sa NEPREPIŠE – automatické zaradenie zákazníka nikdy nedemóduje.
  */
@@ -19,7 +19,7 @@ export type AutoAssignResult = {
   reason: "MANUAL_LOCK" | "POLICY_EMPTY" | "NO_THRESHOLD" | "UNCHANGED" | "ASSIGNED"
 }
 
-/** Celková zaplatená útrata zákazníky (zachytené platby mínus refundy). */
+/** Celková zaplatená útrata zákazníka (zachytené platby mínus refundy). */
 export async function customerSpendTotal(scope: MedusaContainer, customerId: string): Promise<number> {
   const query = scope.resolve(ContainerRegistrationKeys.QUERY) as any
   const { data } = await query.graph({
@@ -44,7 +44,7 @@ export async function orderCustomerId(scope: MedusaContainer, orderId: string): 
 }
 
 /**
- * Přepočítá úroveň zákazníky podľa jej útraty a prahů v politice.
+ * Přepočítá úroveň zákazníka podľa jeho útraty a prahů v politice.
  * Bez nastavenej politiky (prázdné úrovně) sa NIKDY nič nemení.
  */
 export async function assignCustomerTierAutomatically(scope: MedusaContainer, customerId: string): Promise<AutoAssignResult> {

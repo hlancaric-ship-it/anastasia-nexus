@@ -17,8 +17,8 @@ describe('Šablóny odpovedí v chate', () => {
   })
 
   it('doplní názov, ak chýba', () => {
-    const list = readChatTemplates({ [CHAT_TEMPLATES_METADATA_KEY]: [{ id: 'a', text: 'Krátky text odpovede pre zákazničku' }] })
-    expect(list[0].title).toBe('Krátky text odpovede pre zákazničku')
+    const list = readChatTemplates({ [CHAT_TEMPLATES_METADATA_KEY]: [{ id: 'a', text: 'Krátky text odpovede pre zákazníka' }] })
+    expect(list[0].title).toBe('Krátky text odpovede pre zákazníka')
   })
 
   it('overí vstup od administrácie', () => {
