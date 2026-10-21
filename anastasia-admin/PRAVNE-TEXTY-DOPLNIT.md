@@ -5,6 +5,7 @@
 **Stav:** texty častí A–E sú už na webe (5 samostatných stránok). Na webe nie sú zatiaľ hotové — ostali v nich miesta, kde treba doplniť údaje o prevádzkovateľovi.
 **Zmena 21. 10. 2026 (večer):** cookies lišta a online funkcia odstúpenia od zmluvy **už sú v repu** (pozri `anastasia-admin/COOKIES-ODSTUPENIE-HOTOVO.md`). Body 2, 3, 4, 5 a nový bod 15 sa tým zmenili — pri dvoch z nich je odkaz na funkciu, ktorá už existuje, a pri cookies je lišta, ktorá ukazuje placeholder.
 **Zmena 21. 10. 2026 (noc):** platba kartou **už nečaká na súhlas s cookies** — platobná brána Stripe je nevyhnutná technológia (načíta sa v pokladni pri výbere platby kartou, súhlas sa nevyžaduje a platba sa ním neblokuje). Nový bod 16: potvrdiť zaradenie Stripe medzi nevyhnutné technológie. **Text časti E sa nemení** (pozri bod 16).
+**Zmena 21. 10. 2026 (Zrkadielko):** do členskej zóny RESET 40+ pribudlo **Zrkadielko** — zákazníčka si sama zapisuje hodnotenia 1–10 (energia, spánok, stres) s dátumom. Nový bod 17: potvrdiť právny základ (súhlas) a správcu týchto údajov. **Texty na webe zatiaľ nemeníme** — kým Lucia bod 17 nepotvrdí, druh údajov „údaje o zdraví/pohodí“ do VOP ani do Ochrany osobných údajov nedoplníme.
 
 > **Upozornenie (21. 10. 2026, večer):** cookies lišta a panel „Nastavenia cookies“ sú v repu a bežia na živom webe. Body 4, 5 a 15 sa teda zobrazujú v používateľskom rozhraní — placeholder `[doplní prevádzkovateľ]` je viditeľný návštevníkom v texte lišty aj ako popis voliteľných kategórií. Kým sa body 4, 5 a 15 nedoplnia, lišta zobrazuje text s placeholderom.
 >
@@ -40,6 +41,7 @@ Tieto body sú z úvodného súhrnu „Potvrdené údaje a zostávajúce doplnen
 | 8 | Súhrn, bod 6 – držiteľ povolenia na poskytovanie lekárenskej starostlivosti a prevádzkovateľ zdravotných údajov | Je prevádzkovateľom zdravotných údajov LUCRAT spol. s r.o., alebo iný poskytovateľ? (časť D, bod 3). |
 | 9 | Súhrn, bod 2 – „Sadzobník dopravy a technické parametre produktov zostávajú na doplnenie.“ | Sadzobník dopravy (podľa krajiny) a technické parametre produktov. |
 | 10 | Súhrn, bod 4 – „Pri platených hodnotových poukazoch treba ešte určiť čiastočné čerpanie, zostatok a prenosnosť.“ | Pravidlá pre platené hodnotové poukazy (časť A, čl. 8). |
+| 17 | Nové – Zrkadielko v členskej zóne RESET 40+ (časť D – Ochrana osobných údajov; nový bod o zákazníkových záznamoch) | Zrkadielko zapisuje zákazníčka sama: dátum + hodnotenia 1–10 (energia, spánok, stres; zoznam stĺpcov ešte doplní Lucia). **Treba potvrdiť:** (a) právny základ – súhlas zákazníčky (GDPR čl. 6 ods. 1 písm. a) a jeho forma (odškrtnutie pri zápise alebo v texte programu); (b) či je správcom týchto údajov LUCRAT s.r.o. (pozri bod 8); (c) či sa údaje posielajú NEXUS Workerovi alebo inému spracovateľovi; (d) doba uchovávania. Kým sa bod 17 nepotvrdí, druh údajov „údaje o zdraví/pohodí“ do zverejnených textov nedoplníme. |
 
 ---
 

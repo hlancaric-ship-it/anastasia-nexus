@@ -23,6 +23,8 @@ export async function anonymizeCustomer(db:any,customer:any) {
  else await db("chat_customer_block").insert({id:`privacy_block_${id}`,customer_id:id,blocked:true,reason:null,changed_by:"privacy",changed_at:now})
  await db("booking").where({customer_id:id}).update({notes:null,cancel_reason:null,metadata:null,updated_at:now})
  await db("customer_note").where({customer_id:id}).update({body:"Obsah bol odstránený na žiadosť zákazníka.",updated_at:now})
+ // Zrkadielko (RESET 40+): údaje o energii, spánku a strese sú údaje o zdraví/pohodí – pri výmaze zmiznú natvrdo.
+ if(await db.schema.hasTable("reset_journal_entry"))await db("reset_journal_entry").where({customer_id:id}).delete()
  await db("legal_withdrawal").where({customer_id:id}).update({reason:null,updated_at:now})
  for(const email of emails) {
   await db("newsletter_consent").whereRaw("lower(email) = ?",[email]).update({email:anonymous,status:"unsubscribed",token_hash:nullSafeHash(id),unsubscribed_at:now,updated_at:now})

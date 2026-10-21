@@ -18,6 +18,8 @@ export async function exportCustomerData(db:any,customerId:string) {
   // Native order module supplies authoritative totals/items separately in the route.
   const bookings=await read("booking",{customer_id:customerId},["id","product_id","order_id","status","starts_at","ends_at","notes","cancel_reason","created_at"])
   const entitlements=await read("entitlement",{customer_id:customerId},["id","product_id","variant_id","order_id","status","source","granted_at","expires_at","revoked_at"])
+  // Zrkadielko (RESET 40+): údaje o energii, spánku a strese patria zákazníkovi – musia byť v jeho exporte.
+  const resetJournal=await read("reset_journal_entry",{customer_id:customerId},["id","program","week","entry_date","metrics","created_at"])
   const conversations=await read("chat_conversation",{customer_id:customerId},["id","subject","order_id","booking_id","status","created_at","closed_at"])
   const messages=await read("chat_message",{customer_id:customerId},["id","conversation_id","author_type","body","created_at"])
   const consents=await read("legal_consent",{customer_id:customerId},["id","cart_id","order_id","terms_version","privacy_version","accepted_at"])
@@ -29,6 +31,6 @@ export async function exportCustomerData(db:any,customerId:string) {
   if(history.length>10000)throw new LegalError("EXPORT_TOO_LARGE",413)
   const voucherRows=await tx("gift_voucher").where((q:any)=>{q.whereRaw("false");if(verifiedEmails.length)q.orWhereIn(tx.raw("lower(recipient_email)"),verifiedEmails);if(orderIds.length)q.orWhereIn("source_order_id",orderIds)}).select("id","code_last4","source_order_id","currency_code","initial_amount","balance","status","issued_at","expires_at","recipient_email","recipient_name","message").limit(10001)
   if(voucherRows.length>10000)throw new LegalError("EXPORT_TOO_LARGE",413)
-  return {exported_at:new Date().toISOString(),customer,addresses,orders,bookings,entitlements,chat:{conversations,messages},consents,withdrawals,newsletter,newsletter_history:history,vouchers:voucherRows.map((v:any)=>safeVoucher(v,verifiedEmails.includes(v.recipient_email?.toLowerCase())?v.recipient_email:""))}
+  return {exported_at:new Date().toISOString(),customer,addresses,orders,bookings,entitlements,reset_journal:resetJournal,chat:{conversations,messages},consents,withdrawals,newsletter,newsletter_history:history,vouchers:voucherRows.map((v:any)=>safeVoucher(v,verifiedEmails.includes(v.recipient_email?.toLowerCase())?v.recipient_email:""))}
  })
 }
