@@ -372,3 +372,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .lh-sky__txt h2,.lh-sky__txt p{border:0!important;background-image:none!important;box-shadow:none!important;text-shadow:none!important}
 .lh-sky__txt .lh-cta--gold{background:transparent!important;border-color:currentColor!important;color:var(--site-cream,#EFE5C7)!important;box-shadow:none!important}
 .lh-sky__txt .lh-cta--gold:hover{background:rgba(255,255,255,.12)!important}
+
+/* r12/7: cena v karte sveta – „od 11 €“ bez preškrtnutej pôvodnej ceny. */
+.lh-card__txt h3 small{text-decoration:none!important;font-variant-numeric:tabular-nums}
+.lh-card__txt h3 small::before,.lh-card__txt h3 small::after{content:none!important}
+.lh-card__txt h3 small s,.lh-card__txt h3 small del{text-decoration:none!important}
