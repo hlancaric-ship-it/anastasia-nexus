@@ -2385,7 +2385,7 @@ async function vMediaLibrary(view) {
     <p class="muted" style="margin-top:0">Obrázky, ktoré tu nahráte, sa uložia na server a môžete ich použiť na webe aj v e-mailoch.
     Kliknutím na „Kopírovať URL“ skopírujete priamu adresu obrázka.</p>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
-      <input type="file" id="md-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml" multiple>
+      <input type="file" id="md-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple>
       <button type="button" class="btn gold" id="md-upload">Nahrať obrázky</button>
     </div>
     <div class="media-grid" id="md-grid">${files.map(f => `<figure class="media-item">
@@ -2421,8 +2421,8 @@ async function vMediaLibrary(view) {
     const input = view.querySelector('#md-file');
     const chosen = [...input.files];
     if (!chosen.length) { msg.innerHTML = '<div class="err">Najprv vyberte obrázok.</div>'; return; }
-    const bad = chosen.find(f => !/^image\/(jpeg|png|webp|gif|avif|svg\+xml)$/.test(f.type) || f.size > 12 * 1024 * 1024);
-    if (bad) { msg.innerHTML = `<div class="err">${esc(bad.name)}: povolené sú obrázky (JPG, PNG, WebP, GIF, AVIF, SVG) do 12 MB.</div>`; return; }
+    const bad = chosen.find(f => !/^image\/(jpeg|png|webp|gif|avif)$/.test(f.type) || f.size > 12 * 1024 * 1024);
+    if (bad) { msg.innerHTML = `<div class="err">${esc(bad.name)}: povolené sú obrázky (JPG, PNG, WebP, GIF, AVIF) do 12 MB.</div>`; return; }
     msg.innerHTML = '<div class="muted">Nahrávam…</div>'; upload.disabled = true;
     try {
       const fd = new FormData(); chosen.forEach(f => fd.append('files', f));
