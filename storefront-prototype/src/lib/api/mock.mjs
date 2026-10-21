@@ -1,5 +1,7 @@
 import {SHOP_CATALOG,SHOP_CATEGORIES} from './catalog.mjs';
 const products=SHOP_CATALOG.map(p=>({...p}));
+// Metriky Zrkadielka: zoznam aj poradie stĺpcov berie klient z API (predvolené tri z backendu).
+const RESET_METRICS=[{key:'energia',label:'Energia',min:1,max:10,order:10},{key:'spanok',label:'Spánok',min:1,max:10,order:20},{key:'stres',label:'Stres',min:1,max:10,order:30}];
 
 const pages = [
   ['/o-lucii','O Lucii','Človek za príbehom.','Priestor pre osobný príbeh, odborné skúsenosti a prístup Lucie.','about'],
@@ -120,6 +122,12 @@ export function createMockApi(storage=memoryStorage()) {
     checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Platba nie je aktívna. Objednávka sa neodoslala.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy stav.'}),
     sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),
     sendContractWithdrawal:()=>({ok:true,message:'Formulár bol skontrolovaný. Odstúpenie sa zatiaľ neodosiela.'}),
+    // RESET 40+ (lokálny náhľad): žiadne demo dáta – prázdne Zrkadielko a kostra programu.
+    getResetProgram:()=>({ok:true,program:'reset-40-plus',total_weeks:16,entry_questionnaire_url:'https://tally.so/r/440GBr',final_summary:{title:'Záverečné zhrnutie',materials:[]},weeks:Array.from({length:16},(_,i)=>({week:i+1,title:null,intro:null,materials:[],days:[2,3,4,5,6,7].map(day=>({day,label:`${day}. deň`,materials:[]}))})),content_ready:false,metrics:RESET_METRICS}),
+    getResetJournal:()=>({ok:true,program:'reset-40-plus',metrics:RESET_METRICS,entries:[],count:0,limit:50,offset:0}),
+    createResetJournalEntry:()=>({ok:true,entry:null,message:'Záznam bol skontrolovaný. V lokálnom náhľade sa neukladá.'}),
+    updateResetJournalEntry:()=>({ok:true,entry:null,message:'Zmena bola skontrolovaná. V lokálnom náhľade sa neukladá.'}),
+    deleteResetJournalEntry:()=>({ok:true,message:'Zmazanie bolo skontrolované. V lokálnom náhľade sa nevykoná.'}),
     subscribeNewsletter:()=>({ok:true,message:'Náhľad: prihlásenie k novinkám sa neukladá.'}),
     // Klub: bez backendu žiadne vymyslené ceny ani členstvá, len poctivý prázdny stav.
     getMembershipProducts:()=>[],

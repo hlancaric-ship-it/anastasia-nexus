@@ -58,6 +58,19 @@ export function createHttpApi(storage, config) {
     return { status: res.status, ok: res.ok, data };
   }
   const loggedIn = () => Boolean(get(JWT));
+  // RESET 40+ (členská zóna): štruktúra programu a Zrkadielko. Endpointy sú len pre
+  // prihlásenú zákazníčku s aktívnym prístupom – 401 = nie prihlásená, 403 = bez prístupu.
+  const RESET_MSG = {
+    400: 'Údaje záznamu nie sú platné.',
+    401: 'Pre prístup k Zrkadielku sa prihláste.',
+    403: 'Zrkadielko je dostupné len zákazníčkám s programom RESET 40+.',
+    404: 'Tento záznam už neexistuje.',
+    429: 'Denný limit záznamov je dosiahnutý.',
+  };
+  async function resetCall(path, { method = 'GET', body } = {}) {
+    try { return await call(path, { method, body }); } catch { return { status: 503, ok: false, data: null }; }
+  }
+  const resetFail = r => ({ ok: false, status: r.status, error: r.data?.error || r.data?.type || 'RESET_ERROR', message: r.data?.message || RESET_MSG[r.status] || 'Údaje sa nepodarilo načítať.' });
   // Klub: výpadok siete sa vracia ako 503, nie ako výnimka do UI.
   const MCART = 'anastasia.membership.cart', MCHECKOUT = 'anastasia.membership.checkout', MOFFER = 'anastasia.membership.offer';
   const MEMBERSHIP_MSG = {
@@ -634,6 +647,34 @@ export function createHttpApi(storage, config) {
       const r = await call('/store/contract-withdrawal', { method: 'POST', body: { order_number, email, items, order_date, name, reason, consent: consent === true || consent === 'on', website: website || '' } });
       if (r.ok && r.data?.ok) return { ok: true, message: r.data.message };
       return { ok: false, status: r.status, message: r.data?.message || 'Odstúpenie sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.' };
+    },
+
+    // Štruktúra programu: 16 týždňov, pracovné listy po dňoch, záverečné zhrnutie, dotazník.
+    async getResetProgram() {
+      const r = await resetCall('/store/reset-program');
+      if (r.ok && r.data) return { ok: true, ...r.data };
+      return resetFail(r);
+    },
+    // Zrkadielko: vlastné záznamy + konfigurácia metrík.
+    async getResetJournal({ limit = 50, offset = 0 } = {}) {
+      const r = await resetCall(`/store/reset-journal?limit=${limit}&offset=${offset}`);
+      if (r.ok && r.data) return { ok: true, program: r.data.program, metrics: r.data.metrics || [], entries: r.data.entries || [], count: r.data.count ?? 0 };
+      return resetFail(r);
+    },
+    async createResetJournalEntry({ date, week = null, metrics = {} }) {
+      const r = await resetCall('/store/reset-journal', { method: 'POST', body: { date, week, metrics } });
+      if (r.ok && r.data) return { ok: true, entry: r.data.entry || null, message: r.data.message };
+      return resetFail(r);
+    },
+    async updateResetJournalEntry(id, patch = {}) {
+      const r = await resetCall(`/store/reset-journal/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch });
+      if (r.ok && r.data) return { ok: true, entry: r.data.entry || null, message: r.data.message };
+      return resetFail(r);
+    },
+    async deleteResetJournalEntry(id) {
+      const r = await resetCall(`/store/reset-journal/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (r.ok) return { ok: true, message: r.data?.message };
+      return resetFail(r);
     },
 
     isLoggedIn: loggedIn,
