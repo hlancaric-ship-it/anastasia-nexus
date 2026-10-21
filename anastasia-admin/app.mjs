@@ -1528,11 +1528,158 @@ async function vNewsletter(view) {
       <span class="rc-f"><em>Zdroj</em>${esc(c.source || '—')}</span></div></div>`,
   });
 }
+// --- Obsah → Stránky a texty: texty webových stránok editovateľné v rich texte ---
+async function vPageTexts(view) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam texty stránok…</div>';
+  let pages = [];
+  try { pages = (await api('/admin/pages')).pages || []; }
+  catch (e) { if (e.message === '401') throw e; view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+  const card = (p) => `<div class="rc"><div class="rc-body">
+      <div class="rc-title">${esc(p.label)}</div>
+      <div class="rc-fields">
+        <span class="rc-f"><em>Stav</em>${p.is_default ? '<span class="pill">predvolené znenie</span>' : '<span class="pill ok">upravené</span>'}</span>
+        ${p.updated_at ? `<span class="rc-f"><em>Zmenené</em>${fmtDate(p.updated_at)}</span>` : ''}
+      </div>
+      <p class="muted" style="font-size:12px;margin:8px 0 0">${esc(p.description || '')}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button type="button" class="btn ghost sm" data-edit="${esc(p.slug)}">Upraviť text</button>
+        <a class="btn ghost sm" href="#/store/pages/${esc(p.slug)}" target="_blank" rel="noopener">Ako sa zobrazí na webe</a>
+      </div></div></div>`;
+  view.innerHTML = `<div class="card" style="margin-bottom:16px"><div class="card-h">Texty stránok webu</div><div class="card-b">
+      <p class="muted" style="margin-top:0">Upravte text stránky priamo tu. Znenie sa uloží na server a web si ho prečíta podľa adresy
+      <code class="rc-code">/store/pages/...</code>. Pôvodné znenie môžete kedykoľvek obnoviť.</p>
+      <div class="rc-grid">${pages.map(card).join('')}</div>
+    </div></div>`;
+  view.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => vPageTextEdit(view, b.dataset.edit));
+}
+async function vPageTextEdit(view, slug) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam text…</div>';
+  let page = null;
+  try { page = ((await api('/admin/pages')).pages || []).find(p => p.slug === slug); }
+  catch (e) { if (e.message === '401') throw e; view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+  if (!page) { view.innerHTML = '<div class="err">Text sa nenašiel.</div>'; return; }
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(page.label)}<div class="card-h-act">
+      <button type="button" class="btn ghost" id="pt-back">Späť</button>
+      <button type="button" class="btn ghost" id="pt-reset" ${page.is_default ? 'disabled' : ''}>Obnoviť pôvodné znenie</button>
+      <button type="button" class="btn gold" id="pt-save">Uložiť znenie</button>
+    </div></div><div class="card-b">
+    <div id="pt-msg"></div>
+    <p class="muted" style="margin-top:0">${esc(page.description || '')} Píšte tak, ako by ste chceli text čítať zákazníčka – bez značiek a kódu.</p>
+    <div class="em-grid">
+      <div>${wysiwygHtml('pt-editor', page.html)}</div>
+      <div class="em-preview"><div class="em-subj"><span class="muted">Náhľad:</span> <b>Takto sa text zobrazí</b></div>
+        <iframe id="pt-preview" title="Náhľad textu stránky" sandbox=""></iframe></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:10px">Znenie sa na webe zobrazí až po uložení. Ak text nie je vložený, zostane pôvodné.</p>
+  </div></div>`;
+  wireWysiwyg(view);
+  const editor = view.querySelector('#pt-editor');
+  const preview = view.querySelector('#pt-preview');
+  const msg = view.querySelector('#pt-msg');
+  const refreshPreview = () => { preview.srcdoc = `<!doctype html><html lang="sk"><head><meta charset="utf-8"><style>body{font:15px/1.6 Georgia,serif;color:#222;padding:18px;max-width:640px}h2{font-size:20px}h3{font-size:17px}p{margin:0 0 12px}</style></head><body>${cleanRichText(editor.innerHTML) || '<p style="color:#888">Zatiaľ prázdne.</p>'}</body></html>`; };
+  refreshPreview();
+  editor.addEventListener('input', refreshPreview);
+  view.querySelector('#pt-back').onclick = () => vPageTexts(view);
+  view.querySelector('#pt-save').onclick = async () => {
+    const btn = view.querySelector('#pt-save');
+    msg.innerHTML = ''; btn.disabled = true;
+    try {
+      await api('/admin/pages', { method: 'POST', body: { slug, html: cleanRichText(editor.innerHTML) } });
+      msg.innerHTML = '<div class="ok">Znenie je uložené. Na webe sa zobrazí podľa adresy stránky.</div>';
+      await vPageTextEdit(view, slug);
+    } catch (e) {
+      if (e.message !== '401') msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+      btn.disabled = false;
+    }
+  };
+  view.querySelector('#pt-reset').onclick = async () => {
+    if (!confirm('Obnoviť pôvodné znenie tejto stránky? Zmena, ktorú ste uložili, sa zahodí.')) return;
+    const btn = view.querySelector('#pt-reset');
+    msg.innerHTML = ''; btn.disabled = true;
+    try {
+      await api(`/admin/pages/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+      msg.innerHTML = '<div class="ok">Pôvodné znenie je obnovené.</div>';
+      await vPageTextEdit(view, slug);
+    } catch (e) {
+      if (e.message !== '401') msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+      btn.disabled = false;
+    }
+  };
+}
+// --- Obsah → Médiá: knihovna verejných obrázkov ---
+async function vMediaLibrary(view) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam knihovnu…</div>';
+  let files = [];
+  try { files = (await api('/admin/media')).files || []; }
+  catch (e) { if (e.message === '401') throw e; view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+  const kb = (n) => (Number(n) / 1024).toFixed(0) + ' kB';
+  view.innerHTML = `<div class="card"><div class="card-h">Knihovna obrázkov</div><div class="card-b">
+    <div id="md-msg"></div>
+    <p class="muted" style="margin-top:0">Obrázky, ktoré tu nahráte, sa uložia na server a môžete ich použiť na webe aj v e-mailoch.
+    Kliknutím na „Kopírovať URL“ skopírujete priamu adresu obrázka.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+      <input type="file" id="md-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml" multiple>
+      <button type="button" class="btn gold" id="md-upload">Nahrať obrázky</button>
+    </div>
+    <div class="media-grid" id="md-grid">${files.map(f => `<figure class="media-item">
+        <img src="${esc(f.url)}" alt="${esc(f.name)}" loading="lazy">
+        <figcaption><b title="${esc(f.name)}">${esc(f.name)}</b><small>${kb(f.size)} · ${fmtDate(f.uploaded_at)}</small>
+          <div class="media-act">
+            <button type="button" class="btn ghost sm" data-copy="${esc(f.url)}">Kopírovať URL</button>
+            <a class="btn ghost sm" href="${esc(f.url)}" target="_blank" rel="noopener">Otvoriť</a>
+            <button type="button" class="btn ghost sm danger" data-del="${esc(f.key)}" data-name="${esc(f.name)}">Zmazať</button>
+          </div></figcaption></figure>`).join('')}</div>
+    ${files.length ? '' : '<div class="empty">Zatiaľ tu nie je žiadny obrázok. Nahrajte prvý obrázok vyššie.</div>'}
+  </div></div>`;
+  const msg = view.querySelector('#md-msg');
+  view.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    const ok = await copyToClipboard(b.dataset.copy, b);
+    if (!ok) msg.innerHTML = '<div class="err">Prehliadač nedovolil skopírovať. Adresu skopírujte ručne.</div>';
+  });
+  view.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    const name = b.dataset.name || 'obrázok';
+    if (!confirm(`Naozaj zmazať obrázok „${name}“? Súbor sa odstráni zo servera.`)) return;
+    msg.innerHTML = ''; b.disabled = true;
+    try {
+      await api(`/admin/media/${encodeURIComponent(b.dataset.del)}`, { method: 'DELETE' });
+      msg.innerHTML = '<div class="ok">Obrázok je zmazaný.</div>';
+      await vMediaLibrary(view);
+    } catch (e) {
+      if (e.message !== '401') msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+      b.disabled = false;
+    }
+  });
+  const upload = view.querySelector('#md-upload');
+  upload.onclick = async () => {
+    const input = view.querySelector('#md-file');
+    const chosen = [...input.files];
+    if (!chosen.length) { msg.innerHTML = '<div class="err">Najprv vyberte obrázok.</div>'; return; }
+    const bad = chosen.find(f => !/^image\/(jpeg|png|webp|gif|avif|svg\+xml)$/.test(f.type) || f.size > 12 * 1024 * 1024);
+    if (bad) { msg.innerHTML = `<div class="err">${esc(bad.name)}: povolené sú obrázky (JPG, PNG, WebP, GIF, AVIF, SVG) do 12 MB.</div>`; return; }
+    msg.innerHTML = '<div class="muted">Nahrávam…</div>'; upload.disabled = true;
+    try {
+      const fd = new FormData(); chosen.forEach(f => fd.append('files', f));
+      const res = await fetch(API + '/admin/uploads', { method: 'POST', headers: token ? { authorization: 'Bearer ' + token } : {}, body: fd });
+      if (res.status === 401) { token = ''; localStorage.removeItem('ana_token'); renderLogin('Prihlásenie vypršalo.'); return; }
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d?.message || 'Nahratie zlyhalo.');
+      const uploaded = (d.files || []).map(f => ({ key: f.key || f.url.split('/').pop(), url: f.url, name: f.name || f.key, size: f.size || 0, content_type: f.content_type || f.mimetype || '' }));
+      await api('/admin/media', { method: 'POST', body: { files: uploaded } });
+      msg.innerHTML = '<div class="ok">Obrázky sú nahraté.</div>';
+      await vMediaLibrary(view);
+    } catch (err) {
+      msg.innerHTML = `<div class="err">${esc(err.message)}</div>`; upload.disabled = false;
+    }
+  };
+}
 const vObsah = (view) => subnav(view, [
   { label: 'E-maily', run: vEmaily },
   { label: 'Newsletter', run: vNewsletter },
-  { label: 'Stránky a texty', run: (v) => stub(v, 'Stránky a texty', `Úpravy textov na webe (O Lucii, Zdravý svet, popisy programov) budete čoskoro robiť priamo tu, bez rizika, že sa rozbije vzhľad. Dovtedy nám pošlite nový text na ${SUPPORT_EMAIL} a upravíme ho za vás.`) },
-  { label: 'Médiá', run: (v) => stub(v, 'Médiá', `Tu budete vymieňať video na úvodnej stránke a nahrávať videá a audio k programom. Kým to pripravíme, pošlite súbor na ${SUPPORT_EMAIL}. Video na úvodnú stránku ideálne vo formáte MP4, na šírku, 1920 × 1080 px.`) },
+  { label: 'Stránky a texty', run: vPageTexts },
+  { label: 'Médiá', run: vMediaLibrary },
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---

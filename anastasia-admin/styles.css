@@ -147,6 +147,16 @@ button.rc:hover:not(:disabled){border-color:#8eaa92;background:#fafcf8}
 label.carrier-pick{align-items:center;cursor:pointer}
 label.carrier-pick input[type=radio]{flex:none;width:18px;height:18px;accent-color:var(--forest)}
 label.carrier-pick:has(input:checked){border-color:#8eaa92;background:#fafcf8}
+/* Knihovna obrázkov */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:16px}
+.media-item{margin:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.media-item img{width:100%;height:150px;object-fit:cover;display:block;background:var(--soft)}
+.media-item figcaption{padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.media-item figcaption b{font-size:13.5px;font-weight:450;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.media-item figcaption small{color:var(--muted);font-size:12px}
+.media-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.btn.danger{color:#8a2436;border-color:#e3c3ca}
+.btn.danger:hover{background:#fbf0f2;border-color:#d3a2ad}
 .thumb{width:36px;height:36px;border-radius:8px;object-fit:cover;display:block;background:var(--soft)}
 .thumb.ph{border:1px dashed #c9d1c3}
 .empty{grid-column:1/-1;background:#fff;border:1px dashed #c9d1c3;border-radius:10px;padding:34px 24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
