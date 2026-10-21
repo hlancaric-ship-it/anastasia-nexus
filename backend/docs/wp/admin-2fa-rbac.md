@@ -140,3 +140,12 @@ Kľúčový bod pre SPA: **odpoveď `mfa_required` nie je chyba** – je to výz
 
 `IMPLEMENTED_UNVERIFIED` – kód a testy sú overené lokálne; zapnutie TOTP providera
 (vrátane `MFA_ENCRYPTION_KEY`) patrí integrátorovi a UI administrácie paralelná session.
+
+## Známe obmedzenie (revízia Claude, 2026-10-21)
+
+Rola je v `user.metadata.anastasia_role`. Natívna trasa Medusy `POST /admin/users/:id`
+dovoľuje prihlásenému administrátorovi meniť metadáta, takže asistent by si mohol
+rolu prepísať na `owner`. Kým sa nezapne natívny RBAC (`MEDUSA_FF_RBAC`) alebo sa
+`POST /admin/users/:id` neobalí middlewarom, ktorý zmenu `anastasia_role` povolí len
+vlastníkovi, berte role ako ochranu pred omylom, nie ako bezpečnostnú hranicu.
+Pre Fázu 1 má administráciu iba vlastník (Lucia), preto to nie je blokujúce.
