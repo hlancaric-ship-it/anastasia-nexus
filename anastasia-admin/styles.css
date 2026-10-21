@@ -390,3 +390,89 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
   .ot td.ot-num{grid-column:3;grid-row:1;text-align:right}
   .ot td.ot-act{display:none}
 }
+
+/* Hlavička stránky: „Ako to funguje“ vedľa hlavného tlačidla; nápoveda vždy ako panel vpravo */
+.head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.head-actions .help-toggle{margin-top:0;min-height:44px;padding:9px 16px 9px 12px;font-size:13px;background:var(--soft);border-color:#c8d4be}
+.head-actions .help-toggle:hover{background:#e3eadb}
+.ctx-help{position:fixed;top:0;right:0;bottom:0;width:min(420px,92vw);margin:0;max-width:none;border-radius:0;border:0;border-left:1px solid #d4ddcc;box-shadow:-18px 0 40px rgba(20,35,28,.12);z-index:60;overflow-y:auto;padding:28px 28px 32px;animation:ctxIn .28s ease-out}
+.ctx-help[hidden]{display:none}
+@keyframes ctxIn{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.ctx-help{animation:none}}
+/* Tlačidlá späť farebné: sekundárne v jemnej zelenej téme, hlavné vínové */
+.btn,.btn.ghost{background:var(--soft);border-color:#c8d4be;color:var(--forest)}
+.btn:hover:not(:disabled),.btn.ghost:hover:not(:disabled){background:#e3eadb;border-color:#b5c4a9}
+.btn.gold,.btn.wine,.btn.primary{background:var(--wine);border-color:var(--wine);color:#fff}
+
+/* Editor produktu v záložkách */
+.card-h-act{display:flex;gap:10px;align-items:center}
+.pe-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:4px 0 18px}
+.pe-tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px 12px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
+.pe-tabs button[aria-selected="true"]{color:var(--forest);border-bottom-color:var(--forest);font-weight:500}
+.pe-panel .editor-section:first-child{margin-top:0;padding-top:0;border-top:0}
+
+/* Editor textu ako vo Worde */
+.rt{border:1px solid var(--field-line);border-radius:8px;background:#fff;overflow:hidden}
+.rt-tb{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:0;padding:6px 8px;background:#f7f8f4;border-bottom:1px solid var(--line)}
+.rt-tb button{border:1px solid transparent;background:transparent;border-radius:6px;padding:0 8px;min-width:34px;min-height:34px;display:inline-grid;place-items:center;color:var(--forest);font-size:14px}
+.rt-tb button:hover{background:var(--soft);border-color:#d4ddcc}
+.rt-tb button.on{background:#e1e9d9;border-color:#c8d4be}
+.rt-sep{width:1px;height:22px;background:var(--line);margin:0 6px}
+.rt-block{min-height:34px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0 8px;font:inherit;font-size:13px;color:var(--forest)}
+.rt-colors{display:inline-flex;gap:2px;margin-left:4px}
+.rt-colors button{min-width:26px;padding:0}
+.rt-colors button span{width:14px;height:14px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.12)}
+.rt .wysi.rt-page{border:0;border-radius:0;background:#fff;min-height:320px;max-height:none;padding:22px 28px;font-size:15px;line-height:1.7;outline:none}
+.rt-page h2{font-size:22px;font-weight:500;margin:14px 0 8px}
+.rt-page h3{font-size:18px;font-weight:500;margin:12px 0 6px}
+.rt-page blockquote{margin:10px 0;padding:6px 16px;border-left:3px solid #c8b483;color:#4a5644;font-style:italic}
+.rt-page ul,.rt-page ol{padding-left:24px;margin:0 0 8px}
+.rt-page a{color:var(--wine)}
+.rt-page hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+.rt-status{padding:6px 12px;font-size:12px;color:var(--muted);background:#fafbf7;border-top:1px solid var(--line);text-align:right}
+
+/* Všeobecné tabuľkové zoznamy */
+.ot.lv td.lv-title{font-weight:450}
+.ot.lv td .pill{margin:0}
+.ot.lv .lv-media img,.ot.lv .lv-media .avatar{width:44px;height:44px;border-radius:8px;object-fit:cover}
+.ot.lv td{max-width:320px;overflow-wrap:anywhere}
+
+/* Farebné stavy a podfarbenie (ako v referenčnej centrálnej správe) */
+.pill{border-radius:999px;padding:4px 10px 4px 9px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:6px;border:1px solid transparent}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.85;flex:none}
+.pill.ok{background:#e5f4e8;border-color:#bfe3c7;color:#1f7a3a}
+.pill.warn{background:#fff3df;border-color:#f3d7a6;color:#9a5a00}
+.pill.off{background:#fdecec;border-color:#f5c6c6;color:#b42318}
+.pill:not(.ok):not(.warn):not(.off){background:#eef1f6;border-color:#d9dfe9;color:#44506a}
+.ot-card{border:1px solid #dfe5d8;box-shadow:0 1px 2px rgba(20,35,28,.04),0 8px 24px rgba(20,35,28,.04)}
+.ot-head{background:linear-gradient(180deg,#fbfcf8,#fff)}
+.ot th{background:#eef3e8;color:#3f5a45;border-bottom:1px solid #d8e2cf}
+.ot tbody tr:nth-child(even) td{background:#fbfcf9}
+.ot tbody tr[data-id]:hover td{background:#eef5ea}
+.ot-filters{background:#fbfcf8}
+.ot-filters button[aria-selected="true"]{background:#fff;border-radius:8px 8px 0 0}
+.ot .btn.sm{background:var(--wine);border-color:var(--wine);color:#fff}
+.ot .btn.sm:hover{filter:brightness(1.08)}
+.ot td{padding:10px 14px}
+.heading{margin-bottom:22px}
+.heading h1{font-size:34px}
+
+.pills .pill::before{display:none}
+.pills .pill{border-radius:8px}
+.rt-tb .rt-block{width:auto;flex:none}
+
+/* Úprava e-mailu */
+.em-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;align-items:start}
+.em-field{margin-top:12px}
+.em-field textarea{width:100%;min-height:72px;resize:vertical}
+.em-field .subtle-link{font-size:12px;margin-top:4px;display:inline-block;background:none;border:0;padding:0;cursor:pointer}
+.em-ph{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:12px 0 4px;font-size:13px}
+.em-chip{border:1px solid #c8d4be;background:var(--soft);color:var(--forest);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.em-chip:hover{background:#e3eadb}
+.em-toggle{display:flex;gap:8px;align-items:center;font-size:14px}
+.em-foot{margin-top:18px}
+.em-preview{position:sticky;top:16px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f3f4ef;padding:12px}
+.em-preview iframe{width:100%;height:560px;border:0;border-radius:8px;background:#fff}
+.em-subj{padding:4px 4px 10px;font-size:14px}
+@media (max-width:1100px){.em-grid{grid-template-columns:1fr}.em-preview{position:static}}
+.btn.gold:hover:not(:disabled),.btn.wine:hover:not(:disabled),.btn.primary:hover:not(:disabled){background:var(--wine);border-color:var(--wine);color:#fff;filter:brightness(1.12)}

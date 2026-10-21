@@ -24,6 +24,7 @@ if (!html.includes('<meta name="robots"')) throw new Error('index.html: chýba m
 await writeFile(join(out, 'index.html'), html.replace('<meta name="robots"', `<meta name="ana-api" content="${api}">\n<meta name="robots"`));
 await writeFile(join(out, '_headers'), `/*
   X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY

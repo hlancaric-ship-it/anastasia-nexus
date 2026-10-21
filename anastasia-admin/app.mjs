@@ -82,8 +82,8 @@ function shell(active, title, sub) {
   // Pomoc na stránke: tlačidlo „Ako to funguje“ pri nadpise + skrytý panel s vysvetlením (obsah z guide.mjs).
   const helpBtn = PAGE_HELP[active] ? `<button type="button" class="help-toggle" id="ctx-help-btn" aria-expanded="false" aria-controls="ctx-help">${navIcon('help')}<span>Ako to funguje</span></button>` : '';
   const head = active === ''
-    ? `<p class="eyebrow">${esc(today)}</p><div class="heading"><div><h1 id="greet">Dobrý deň.</h1><p class="intro">Tu nájdete všetko, čo dnes potrebuje vašu pozornosť.</p>${helpBtn}</div><div id="actions"></div></div>`
-    : `<p class="eyebrow">Váš obchod</p><div class="heading"><div><h1>${esc(title)}</h1>${sub ? `<p class="intro">${esc(sub)}</p>` : ''}${helpBtn}</div><div id="actions"></div></div>`;
+    ? `<p class="eyebrow">${esc(today)}</p><div class="heading"><div><h1 id="greet">Dobrý deň.</h1><p class="intro">Tu nájdete všetko, čo dnes potrebuje vašu pozornosť.</p></div><div class="head-actions">${helpBtn}<div id="actions"></div></div></div>`
+    : `<p class="eyebrow">Váš obchod</p><div class="heading"><div><h1>${esc(title)}</h1>${sub ? `<p class="intro">${esc(sub)}</p>` : ''}</div><div class="head-actions">${helpBtn}<div id="actions"></div></div></div>`;
   return `<div class="app">
     <aside class="sidebar" id="sidebar" aria-label="Hlavná navigácia">
       ${brandHtml('a')}
@@ -218,8 +218,9 @@ function readinessCard(r) {
   </section>`;
 }
 
-// Kartové zobrazenie (žiadne riadkové tabuľky). `card(r)` = voliteľný HTML pre jednu kartu;
-// inak sa karta poskladá z `cols` (prvý stĺpec = hlavička, ostatné = polia pod ňou).
+// Zoznamy ako prehľadná tabuľka (miniatúra, stĺpce, stavy, akcia). Stránky dodávajú buď `cols`, alebo `card(r)`
+// v tvare .rc-media / .rc-title / .rc-f(em = názov stĺpca); z karty sa poskladá riadok tabuľky, takže všetky zoznamy
+// vyzerajú rovnako ako Objednávky.
 function listView(view, { cols, rows, title, onRow, empty, card, search = true }) {
   const genCard = (r) => {
     const cells = cols.map(c => ({ h: c.h, v: c.v(r) }));
@@ -229,16 +230,28 @@ function listView(view, { cols, rows, title, onRow, empty, card, search = true }
     return `${media ? `<div class="rc-media">${media.v}</div>` : ''}<div class="rc-body"><div class="rc-title">${head.v}</div>
       <div class="rc-fields">${rest.map(c => `<span class="rc-f"><em>${esc(c.h)}</em>${c.v}</span>`).join('')}</div></div>`;
   };
-  const render = (list) => `<div class="rc-grid">${list.length
-    ? list.map(r => `<${onRow ? 'button' : 'div'} class="rc" data-id="${esc(r.id ?? '')}">${card ? card(r) : genCard(r)}</${onRow ? 'button' : 'div'}>`).join('')
-    : `<div class="empty">${esc(empty || 'Zatiaľ tu nič nie je.')}</div>`}</div>`;
-  view.innerHTML = `<div class="rc-head"><h2>${esc(title)}</h2>
-    ${search && rows.length > 6 ? '<input class="rc-search" placeholder="Hľadať…">' : `<span class="muted">${rows.length} ${rows.length === 1 ? 'záznam' : 'záznamov'}</span>`}</div>
-    <div id="rc-wrap">${render(rows)}</div>`;
-  const wire = () => { if (onRow) view.querySelectorAll('.rc[data-id]').forEach(el => el.onclick = () => onRow(rows.find(x => String(x.id) === el.dataset.id) || rows[0])); };
+  const tpl = document.createElement('template');
+  const parsed = rows.map(r => {
+    tpl.innerHTML = card ? card(r) : genCard(r);
+    const root = tpl.content;
+    const body = root.querySelector('.rc-body');
+    const mediaEl = root.querySelector('.rc-media') || [...root.children].find(el => el !== body && !el.classList.contains('rc-body'));
+    const fields = [...root.querySelectorAll('.rc-f')].map(f => { const em = f.querySelector('em'); const label = em ? em.textContent.trim() : ''; if (em) em.remove(); return { label, html: f.innerHTML }; });
+    return { r, media: mediaEl ? mediaEl.innerHTML || mediaEl.outerHTML : '', title: root.querySelector('.rc-title')?.innerHTML || '', fields };
+  });
+  const labels = []; parsed.forEach(x => x.fields.forEach(f => { if (f.label && !labels.includes(f.label)) labels.push(f.label); }));
+  const hasMedia = parsed.some(x => x.media);
+  const titleHead = (cols && (cols.find(c => c.h) || {}).h) || 'Názov';
+  const rowHtml = (x) => `<tr data-id="${esc(x.r.id ?? '')}"${onRow ? ' tabindex="0"' : ''}>${hasMedia ? `<td class="ot-img lv-media">${x.media}</td>` : ''}<td class="lv-title">${x.title}</td>${labels.map(l => `<td>${x.fields.find(f => f.label === l)?.html ?? '<span class="muted">—</span>'}</td>`).join('')}${onRow ? `<td class="ot-act"><span class="btn ghost sm">Otvoriť ${navIcon('arrow')}</span></td>` : ''}</tr>`;
+  const colCount = (hasMedia ? 1 : 0) + 1 + labels.length + (onRow ? 1 : 0);
+  const render = (list) => list.length ? list.map(rowHtml).join('') : `<tr><td colspan="${colCount}" class="empty">${esc(empty || 'Zatiaľ tu nič nie je.')}</td></tr>`;
+  view.innerHTML = `<section class="card ot-card"><div class="ot-head"><h2>${esc(title)} <span class="muted">(${rows.length})</span></h2>
+    ${search && rows.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať…" aria-label="Hľadať">' : ''}</div>
+    <div class="ot-wrap"><table class="ot lv"><thead><tr>${hasMedia ? '<th class="ot-img"><span class="sr-only">Obrázok</span></th>' : ''}<th>${esc(titleHead)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}${onRow ? '<th class="ot-act"><span class="sr-only">Akcia</span></th>' : ''}</tr></thead><tbody id="rc-wrap">${render(parsed)}</tbody></table></div></section>`;
+  const wire = () => { if (onRow) view.querySelectorAll('#rc-wrap tr[data-id]').forEach(tr => { const open = () => onRow(rows.find(x => String(x.id) === tr.dataset.id) || rows[0]); tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }; }); };
   wire();
   const s = view.querySelector('.rc-search');
-  if (s) s.oninput = () => { const q = s.value.toLowerCase().trim(); const f = q ? rows.filter(r => JSON.stringify(r).toLowerCase().includes(q)) : rows; view.querySelector('#rc-wrap').innerHTML = render(f); if (onRow) view.querySelectorAll('.rc[data-id]').forEach(el => el.onclick = () => onRow(rows.find(x => String(x.id) === el.dataset.id))); };
+  if (s) s.oninput = () => { const q = s.value.toLowerCase().trim(); const f = q ? parsed.filter(x => JSON.stringify(x.r).toLowerCase().includes(q)) : parsed; view.querySelector('#rc-wrap').innerHTML = render(f); wire(); };
 }
 
 // Prepínač podstránok (subnav) zostáva; podstránka mení len svoje tlačidlá vedľa neho.
@@ -262,13 +275,81 @@ function wireTabs(scope) {
     scope.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('active', p.dataset.pane === b.dataset.tab));
   });
 }
-// --- jednoduchý WYSIWYG (bez surových HTML tagov) ---
+// --- textový editor ako vo Worde (bez surových HTML tagov) ---
+// Ukladá len bezpečný podmnožinový HTML: odseky, nadpisy, zoznamy, odkazy, citát, čiara, farba textu a zarovnanie.
+// Vložený text z Wordu/webu sa vyčistí (mso štýly, triedy, fonty) rovnakou funkciou ako pri uložení.
+const RT_TAGS = new Set(['P', 'H2', 'H3', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'UL', 'OL', 'LI', 'A', 'BLOCKQUOTE', 'BR', 'HR', 'SPAN']);
+const RT_COLORS = ['#20271f', '#203b32', '#6f1d33', '#8a6a2b', '#657065'];
+const RT_ALIGN = new Set(['left', 'center', 'right', 'justify']);
+function cleanRichText(html) {
+  const tpl = document.createElement('template'); tpl.innerHTML = String(html || '');
+  const walk = (node) => {
+    [...node.childNodes].forEach(n => {
+      if (n.nodeType === 8) { n.remove(); return; }
+      if (n.nodeType !== 1) return;
+      let el = n;
+      if (el.tagName === 'DIV') { const pEl = document.createElement('p'); pEl.append(...el.childNodes); el.replaceWith(pEl); el = pEl; }
+      if (el.tagName === 'H1') { const h = document.createElement('h2'); h.append(...el.childNodes); el.replaceWith(h); el = h; }
+      if (el.tagName === 'H4' || el.tagName === 'H5' || el.tagName === 'H6') { const h = document.createElement('h3'); h.append(...el.childNodes); el.replaceWith(h); el = h; }
+      if (el.tagName === 'FONT') { const sp = document.createElement('span'); const c = el.getAttribute('color'); if (c) sp.style.color = c; sp.append(...el.childNodes); el.replaceWith(sp); el = sp; }
+      if (!RT_TAGS.has(el.tagName)) { walk(el); el.replaceWith(...el.childNodes); return; }
+      const color = el.style?.color, align = el.style?.textAlign, href = el.getAttribute('href');
+      [...el.attributes].forEach(a => el.removeAttribute(a.name));
+      if (el.tagName === 'A') { if (href && /^(https?:|mailto:|tel:|\/)/i.test(href.trim())) { el.setAttribute('href', href.trim()); if (/^https?:/i.test(href.trim())) { el.setAttribute('target', '_blank'); el.setAttribute('rel', 'noopener'); } } else { walk(el); el.replaceWith(...el.childNodes); return; } }
+      if (color && el.tagName === 'SPAN') el.style.color = color;
+      if (align && RT_ALIGN.has(align) && /^(P|H2|H3|BLOCKQUOTE|LI)$/.test(el.tagName)) el.style.textAlign = align;
+      walk(el);
+      if (el.tagName === 'SPAN' && !el.getAttribute('style')) el.replaceWith(...el.childNodes);
+    });
+  };
+  walk(tpl.content);
+  return tpl.innerHTML.replace(/<p>(\s|&nbsp;|<br>)*<\/p>/g, '').trim();
+}
 function wysiwygHtml(id, html) {
-  return `<div class="wysi-tb"><button type="button" data-cmd="bold"><b>B</b></button><button type="button" data-cmd="italic"><i>I</i></button><button type="button" data-cmd="insertUnorderedList">• zoznam</button><button type="button" data-cmd="insertOrderedList">1. zoznam</button></div>
-    <div class="wysi" id="${id}" contenteditable="true">${html || ''}</div>`;
+  const ic = (d) => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const b = (cmd, label, inner, val = '') => `<button type="button" data-cmd="${cmd}"${val ? ` data-val="${val}"` : ''} title="${label}" aria-label="${label}">${inner}</button>`;
+  const sep = '<span class="rt-sep" aria-hidden="true"></span>';
+  return `<div class="rt" data-rt="${id}"><div class="wysi-tb rt-tb" role="toolbar" aria-label="Formátovanie textu">
+    ${b('undo', 'Späť (Ctrl+Z)', ic('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>'))}${b('redo', 'Znova (Ctrl+Y)', ic('<path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>'))}${sep}
+    <select class="rt-block" aria-label="Štýl odseku"><option value="p">Normálny text</option><option value="h2">Nadpis 1</option><option value="h3">Nadpis 2</option><option value="blockquote">Citát</option></select>${sep}
+    ${b('bold', 'Tučné (Ctrl+B)', '<b>B</b>')}${b('italic', 'Kurzíva (Ctrl+I)', '<i>I</i>')}${b('underline', 'Podčiarknuté (Ctrl+U)', '<u>U</u>')}${b('strikeThrough', 'Prečiarknuté', '<s>S</s>')}
+    <span class="rt-colors" role="group" aria-label="Farba textu">${RT_COLORS.map(c => `<button type="button" data-cmd="foreColor" data-val="${c}" title="Farba textu" aria-label="Farba textu ${c}"><span style="background:${c}"></span></button>`).join('')}</span>${sep}
+    ${b('justifyLeft', 'Zarovnať vľavo', ic('<path d="M4 6h16M4 12h10M4 18h14"/>'))}${b('justifyCenter', 'Na stred', ic('<path d="M4 6h16M7 12h10M5 18h14"/>'))}${b('justifyRight', 'Zarovnať vpravo', ic('<path d="M4 6h16M10 12h10M6 18h14"/>'))}${b('justifyFull', 'Do bloku', ic('<path d="M4 6h16M4 12h16M4 18h16"/>'))}${sep}
+    ${b('insertUnorderedList', 'Odrážky', ic('<circle cx="5" cy="7" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="5" cy="17" r="1"/><path d="M9 7h11M9 12h11M9 17h11"/>'))}${b('insertOrderedList', 'Číslovanie', ic('<path d="M10 7h10M10 12h10M10 17h10M4 6h1v4M4 10h2M4 15h2l-2 3h2"/>'))}${b('outdent', 'Zmenšiť odsadenie', ic('<path d="M20 6H10M20 12H10M20 18H10M7 9l-3 3 3 3"/>'))}${b('indent', 'Zväčšiť odsadenie', ic('<path d="M20 6H10M20 12H10M20 18H10M4 9l3 3-3 3"/>'))}${sep}
+    ${b('createLink', 'Vložiť odkaz (Ctrl+K)', ic('<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>'))}${b('unlink', 'Odstrániť odkaz', ic('<path d="M10 14a4 4 0 0 0 5.66 0l1-1M14 10a4 4 0 0 0-5.66 0l-1 1M4 4l16 16"/>'))}${b('insertHorizontalRule', 'Vodorovná čiara', ic('<path d="M4 12h16"/>'))}${b('removeFormat', 'Vymazať formátovanie', ic('<path d="M6 4h12M12 4l-4 16M4 20l16-16"/>'))}
+  </div>
+  <div class="wysi rt-page" id="${id}" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Text popisu" spellcheck="true" lang="sk">${cleanRichText(html || '')}</div>
+  <div class="rt-status" aria-live="polite"></div></div>`;
 }
 function wireWysiwyg(scope) {
-  scope.querySelectorAll('.wysi-tb button').forEach(b => b.onmousedown = (e) => { e.preventDefault(); const el = scope.querySelector('.wysi'); if (el) el.focus(); document.execCommand(b.dataset.cmd, false); });
+  scope.querySelectorAll('.rt').forEach(box => {
+    const ed = box.querySelector('.wysi'), tb = box.querySelector('.rt-tb'), st = box.querySelector('.rt-status'), blk = box.querySelector('.rt-block');
+    try { document.execCommand('styleWithCSS', false, true); document.execCommand('defaultParagraphSeparator', false, 'p'); } catch {}
+    const words = () => { const t = ed.innerText.trim(); st.textContent = `${t ? t.split(/\s+/).length : 0} slov · ${t.length} znakov`; };
+    const states = () => {
+      tb.querySelectorAll('button[data-cmd]').forEach(x => { let on = false; try { on = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].includes(x.dataset.cmd) && document.queryCommandState(x.dataset.cmd); } catch {} x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+      let fb = ''; try { fb = String(document.queryCommandValue('formatBlock') || '').toLowerCase(); } catch {}
+      blk.value = ['h2', 'h3', 'blockquote'].includes(fb) ? fb : 'p';
+    };
+    const run = (cmd, val) => {
+      ed.focus();
+      if (cmd === 'createLink') { const u = prompt('Adresa odkazu (https://… alebo /stranka):', 'https://'); if (!u || u === 'https://') return; val = u.trim(); }
+      document.execCommand(cmd, false, val ?? null); states(); words();
+    };
+    tb.querySelectorAll('button[data-cmd]').forEach(x => x.onmousedown = (e) => { e.preventDefault(); run(x.dataset.cmd, x.dataset.val); });
+    blk.onchange = () => run('formatBlock', `<${blk.value}>`);
+    ed.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); run('createLink'); } });
+    ed.addEventListener('paste', (e) => {
+      const html = e.clipboardData?.getData('text/html'), text = e.clipboardData?.getData('text/plain');
+      e.preventDefault();
+      if (html) document.execCommand('insertHTML', false, cleanRichText(html));
+      else if (text) document.execCommand('insertHTML', false, text.split(/\n{2,}/).map(par => `<p>${esc(par).replace(/\n/g, '<br>')}</p>`).join(''));
+      words();
+    });
+    ['keyup', 'mouseup', 'input'].forEach(ev => ed.addEventListener(ev, () => { states(); if (ev === 'input') words(); }));
+    document.addEventListener('selectionchange', () => { if (document.activeElement === ed) states(); });
+    words();
+  });
 }
 // --- akcia/výpredaj cez sale price list (engine číta calculated vs original) ---
 const SALE_LIST_TITLE = 'ANASTASIA výpredaj';
@@ -393,7 +474,7 @@ async function vProductDetail(view, id) {
   const obrazky = `<div id="p-imgs" class="rc-grid"></div>
     <label style="margin-top:12px">Pridať obrázky (JPG, PNG, WebP do 5 MB)</label><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple>
     <p class="muted" style="font-size:12px">Hlavný obrázok sa zobrazuje v zozname produktov a vo výsledkoch vyhľadávania. Zmeny sa uložia tlačidlom Uložiť.</p>`;
-  const predaj = `<label>Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" readonly><p class="muted" style="font-size:12px">Kód sa po pridelení nemení – podľa neho obchod produkt nacení.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}
+  const predaj = `<label>Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" maxlength="64" autocomplete="off"><p class="muted" style="font-size:12px">Kód môžete zmeniť. Pozor: QR kódy vytvorené pre starý kód prestanú fungovať a treba ich vytvoriť znova.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}
     <label>Typ produktu (doprava)</label><select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select>
     <p class="muted" style="margin-top:14px">Produkt sa v obchode zobrazí len v označených predajných kanáloch.</p>
     <div>${channels.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}</label>`).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`;
@@ -418,22 +499,24 @@ async function vProductDetail(view, id) {
   };
   const renderChecks = () => { const box = view.querySelector('#p-checks'); if (!box) return;
     box.innerHTML = completeness().map(c => `<span class="pill ${c.ok ? 'ok' : c.block ? 'off' : 'warn'}" style="margin:0 6px 6px 0">${c.ok ? '✓' : c.block ? '✕' : '!'} ${esc(c.t)}</span>`).join(''); };
-  view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<button class="btn ghost" id="p-back">Späť</button></div><div class="card-b">
+  // Editor v záložkách (ako centrálna správa produktov): každá záložka sa zmestí na jednu obrazovku,
+  // všetky polia ostávajú v DOM, takže Uložiť zapíše zmeny zo všetkých záložiek naraz.
+  const TABS = [['zaklad', 'Základné údaje'], ['popis', 'Popis'], ['foto', 'Fotografie'], ['predaj', 'Kategórie a predaj'], ['sklad', 'Sklad'], ['obsah', 'Zakúpený obsah']];
+  view.innerHTML = `<div class="card"><div class="card-h">Úprava produktu<div class="card-h-act"><button class="btn ghost" id="p-back">Späť</button><button class="btn gold" id="p-save">Uložiť zmeny</button></div></div><div class="card-b">
     <div id="pmsg"></div>
     <div id="p-checks" style="margin-bottom:10px"></div>
-    <div class="product-editor"><div>
-      <section class="editor-section"><h2>Základné údaje</h2>${zakladne}</section>
-      <section class="editor-section"><h2>Cena a akcia</h2>${cena}</section>
-      <section class="editor-section"><h2>Popis produktu</h2>${popis}</section>
-      <section class="editor-section"><h2>Sklad</h2>${sklad}</section>
-    </div><div>
-      <section class="editor-section"><h2>Fotografie</h2>${obrazky}</section>
-      <section class="editor-section"><h2>Zakúpený obsah</h2><div id="p-library"></div></section>
-      <section class="editor-section"><h2>Kategórie</h2>${kategorie}</section>
-      <section class="editor-section"><h2>Predaj a doručenie</h2>${predaj}</section>
-    </div></div>
-    <div class="editor-save"><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
+    <div class="pe-tabs" role="tablist">${TABS.map(([k, l], i) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${i === 0}">${esc(l)}</button>`).join('')}</div>
+    <div class="pe-panel" data-panel="zaklad"><div class="product-editor"><div><section class="editor-section"><h2>Základné údaje</h2>${zakladne}</section></div><div><section class="editor-section"><h2>Cena a akcia</h2>${cena}</section></div></div></div>
+    <div class="pe-panel" data-panel="popis" hidden><section class="editor-section"><h2>Popis produktu</h2>${popis}</section></div>
+    <div class="pe-panel" data-panel="foto" hidden><section class="editor-section"><h2>Fotografie</h2>${obrazky}</section></div>
+    <div class="pe-panel" data-panel="predaj" hidden><div class="product-editor"><div><section class="editor-section"><h2>Kategórie</h2>${kategorie}</section></div><div><section class="editor-section"><h2>Predaj a doručenie</h2>${predaj}</section></div></div></div>
+    <div class="pe-panel" data-panel="sklad" hidden><section class="editor-section"><h2>Sklad</h2>${sklad}</section></div>
+    <div class="pe-panel" data-panel="obsah" hidden><section class="editor-section"><h2>Zakúpený obsah</h2><div id="p-library"></div></section></div>
   </div></div>`;
+  view.querySelectorAll('.pe-tabs [data-tab]').forEach(b => b.onclick = () => {
+    view.querySelectorAll('.pe-tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+    view.querySelectorAll('.pe-panel').forEach(x => { x.hidden = x.dataset.panel !== b.dataset.tab; });
+  });
   wireWysiwyg(view);
   const libraryEditor = await mountLibraryEditor(view.querySelector('#p-library'), { api, productId: id });
   const drawCategories = () => {
@@ -484,14 +567,16 @@ async function vProductDetail(view, id) {
     const missing = completeness().filter(c => c.block && !c.ok).map(c => c.t);
     if (wantStatus === 'published' && missing.length) { msg.innerHTML = `<div class="err">Produkt sa nedá zverejniť, chýba: ${esc(missing.join(', '))}. Uložte ho ako koncept alebo údaje doplňte.</div>`; return; }
     if ([...view.querySelectorAll('[data-loc]')].some(i => i.value !== '' && !(Number.isInteger(Number(i.value)) && Number(i.value) >= 0))) { msg.innerHTML = '<div class="err">Počet kusov na sklade musí byť celé číslo 0 alebo viac.</div>'; return; }
-    const newSku = variant && !variant.sku ? (view.querySelector('#p-sku')?.value || '').trim().toUpperCase() : '';
+    const skuIn = (view.querySelector('#p-sku')?.value || '').trim().toUpperCase();
+    const newSku = variant && skuIn && skuIn !== String(variant.sku || '').toUpperCase() ? skuIn : '';
+    if (newSku && variant.sku && !confirm(`Zmeniť kód produktu z ${variant.sku} na ${newSku}?\n\nQR kódy a odkazy vytvorené pre starý kód prestanú fungovať.`)) return;
     if (newSku && !SKU_RE.test(newSku)) { msg.innerHTML = '<div class="err">Kód produktu (SKU): 2–64 znakov, len písmená A–Z, číslice, bodka, pomlčka alebo podčiarknik.</div>'; return; }
     try { libraryEditor.validate(); } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
     btn.disabled = true;
     try {
       if (newSku) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { sku: newSku } });
       const chosen = [...inC].map(id => ({ id }));
-      const desc = view.querySelector('#p-desc').innerHTML.trim();
+      const desc = cleanRichText(view.querySelector('#p-desc').innerHTML);
       const np = view.querySelector('#p-price').value;
       // Základná cena len cez /admin/shop-prices (zámok, kontrola pôvodnej sumy, audit) – nikdy natívne prices[],
       // ktoré by prepísalo celý price set (iné meny, pravidlá).
@@ -771,7 +856,7 @@ async function vCoupons(view) {
   setActions('<button class="btn gold" id="promo-new">+ Nový kupón</button>');
   const nb = document.querySelector('#promo-new'); if (nb) nb.onclick = () => vCouponNew(view);
   listView(view, { title: 'Kupóny a zľavy', rows: promotions, onRow: p => vCouponDetail(view, p.id), empty: 'Zatiaľ žiadne kupóny.', cols: [
-    { h: 'Kód', v: p => `<b>${esc(p.code)}</b>` }, { h: 'Stav', v: p => `<span class="pill ${p.status === 'active' ? 'ok' : 'warn'}">${esc(p.status)}</span>` },
+    { h: 'Kód', v: p => `<b>${esc(p.code)}</b>` }, { h: 'Stav', v: p => `<span class="pill ${p.status === 'active' ? 'ok' : p.status === 'inactive' ? 'off' : 'warn'}">${esc({ active: 'aktívny', inactive: 'vypnutý', draft: 'rozpracovaný' }[p.status] || p.status)}</span>` },
     { h: 'Zľava', v: p => { const m = p.application_method; return m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'; } }] });
 }
 async function vCouponNew(view) {
@@ -801,7 +886,7 @@ async function vCouponDetail(view, id) {
   const m = p.application_method;
   view.innerHTML = `<div class="card"><div class="card-h">Kupón ${esc(p.code)}<button class="btn ghost" id="pd-back">Späť</button></div><div class="card-b">
     <div id="pdmsg"></div>
-    <label>Stav</label><select id="pd-status"><option value="active"${p.status === 'active' ? ' selected' : ''}>active</option><option value="inactive"${p.status === 'inactive' ? ' selected' : ''}>inactive</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select>
+    <label>Stav</label><select id="pd-status"><option value="active"${p.status === 'active' ? ' selected' : ''}>aktívny</option><option value="inactive"${p.status === 'inactive' ? ' selected' : ''}>inactive</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select>
     <div class="muted" style="margin-top:10px">Zľava: ${m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'}</div>
     <div style="margin-top:16px"><button class="btn gold" id="pd-save">Uložiť</button></div>
   </div></div>`;
@@ -1231,22 +1316,60 @@ async function vEmaily(view) {
   listView(view, {
     title: 'E-mailové šablóny', rows: (templates || []).map(t => ({ ...t, id: t.name })), onRow: t => vEmailDetail(view, t),
     empty: 'Žiadne šablóny.', card: t => `<div class="rc-body"><div class="rc-title">${esc(t.label || t.name)}</div>
-      <div class="rc-fields"><span class="rc-f"><em>Komu</em>${esc(t.audience || '—')}</span>
+      <div class="rc-fields"><span class="rc-f"><em>Komu</em>${esc({ customer: 'zákazníčke', admin: 'vám (obchodu)' }[t.audience] || t.audience || '—')}</span>
       <span class="rc-f"><em>Stav</em><span class="pill ${t.enabled ? 'ok' : 'off'}">${t.enabled ? 'zapnutá' : 'vypnutá'}</span>${t.customized ? '<span class="pill warn">upravená</span>' : ''}</span></div></div>`,
   });
 }
+// Úprava e-mailu: vľavo texty (predmet, nadpis, odseky) so zástupnými poľami, vpravo živý náhľad.
+// Server overí texty (dĺžka, povolené {polia}); obsah e-mailu sa skladá na serveri, admin posiela len texty.
 async function vEmailDetail(view, t) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  let html = '';
-  try { const r = await api(`/admin/email-templates/${t.name}/preview`); html = r.html || r.preview || ''; } catch {}
-  view.innerHTML = `<div class="card"><div class="card-h">${esc(t.label || t.name)}<button class="btn ghost" id="e-back">Späť</button></div><div class="card-b">
-    <p class="muted">${esc(t.description || '')}</p>
-    <label>Náhľad e-mailu</label>
-    <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff">${html ? `<iframe style="width:100%;height:420px;border:0" sandbox></iframe>` : '<div class="empty">Náhľad sa teraz nedá načítať.</div>'}</div>
+  let tpl;
+  try { tpl = (await api(`/admin/email-templates/${t.name}`)).template; } catch (e) { view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+  const slots = tpl.slots || [], ph = tpl.placeholders || [];
+  const field = (sl) => `<div class="em-field"><label for="em-${esc(sl.key)}">${esc(sl.label)}${sl.optional ? ' <span class="muted">(nepovinné)</span>' : ''}</label>
+    ${sl.kind === 'line' ? `<input id="em-${esc(sl.key)}" data-slot="${esc(sl.key)}" value="${esc(sl.value ?? '')}" maxlength="200">` : `<textarea id="em-${esc(sl.key)}" data-slot="${esc(sl.key)}" rows="3">${esc(sl.value ?? '')}</textarea>`}
+    ${sl.value !== sl.default ? `<button type="button" class="subtle-link em-reset1" data-slot="${esc(sl.key)}">Vrátiť pôvodný text</button>` : ''}</div>`;
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(tpl.label || t.label || t.name)}<div class="card-h-act"><button class="btn ghost" id="e-back">Späť</button><button class="btn gold" id="e-save">Uložiť e-mail</button></div></div><div class="card-b">
+    <div id="emsg"></div>
+    <p class="muted" style="margin-top:0">${esc(tpl.description || '')}</p>
+    <div class="em-grid"><div>
+      ${tpl.required ? '<p class="pill warn">Tento e-mail odchádza vždy, nedá sa vypnúť.</p>' : `<label class="em-toggle"><input type="checkbox" id="e-enabled"${t.enabled !== false ? ' checked' : ''}> E-mail je zapnutý (odchádza zákazníčkam)</label>`}
+      ${ph.length ? `<div class="em-ph"><span class="muted">Vložiť údaj do textu:</span> ${ph.map(x => `<button type="button" class="em-chip" data-ph="${esc(x.key)}" title="Vloží {${esc(x.key)}}">${esc(x.label)}</button>`).join('')}</div>` : ''}
+      ${slots.map(field).join('')}
+      <div class="em-foot"><button type="button" class="btn ghost" id="e-reset">Obnoviť všetky pôvodné texty</button></div>
+    </div><div class="em-preview"><div class="em-subj"><span class="muted">Predmet:</span> <b id="e-subj"></b></div><iframe title="Náhľad e-mailu" sandbox></iframe><p class="muted" style="font-size:12px">Náhľad používa ukážkové údaje (číslo objednávky, meno, suma).</p></div></div>
   </div></div>`;
+  let last = null;
+  const texts = () => Object.fromEntries([...view.querySelectorAll('[data-slot]')].filter(el => el.matches('input,textarea')).map(el => [el.dataset.slot, el.value]));
+  const preview = async () => {
+    const body = { texts: texts() };
+    try { const r = await api(`/admin/email-templates/${t.name}/preview`, { method: 'POST', body }); const pv = r.preview || r;
+      view.querySelector('#e-subj').textContent = pv.subject || ''; view.querySelector('iframe').srcdoc = pv.html || ''; view.querySelector('#emsg').innerHTML = ''; }
+    catch (e) { view.querySelector('#emsg').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+  const later = () => { clearTimeout(last); last = setTimeout(preview, 450); };
+  view.querySelectorAll('input[data-slot],textarea[data-slot]').forEach(el => { el.addEventListener('input', later); el.addEventListener('focus', () => { view._emFocus = el; }); });
+  view.querySelectorAll('.em-chip').forEach(b => b.onmousedown = (e) => {
+    e.preventDefault(); const el = view._emFocus || view.querySelector('textarea[data-slot],input[data-slot]'); if (!el) return;
+    const ins = `{${b.dataset.ph}}`, a = el.selectionStart ?? el.value.length, z = el.selectionEnd ?? a;
+    el.value = el.value.slice(0, a) + ins + el.value.slice(z); el.focus(); el.setSelectionRange(a + ins.length, a + ins.length); later();
+  });
+  view.querySelectorAll('.em-reset1').forEach(b => b.onclick = () => { const sl = slots.find(x => x.key === b.dataset.slot); const el = view.querySelector(`#em-${CSS.escape(b.dataset.slot)}`); if (sl && el) { el.value = sl.default; later(); } });
   view.querySelector('#e-back').onclick = () => vEmaily(view);
-  if (html) { const f = view.querySelector('iframe'); f.srcdoc = html; }
+  view.querySelector('#e-reset').onclick = async () => {
+    if (!confirm('Obnoviť všetky pôvodné texty tohto e-mailu?')) return;
+    try { await api(`/admin/email-templates/${t.name}`, { method: 'DELETE' }); vEmailDetail(view, t); } catch (e) { view.querySelector('#emsg').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+  view.querySelector('#e-save').onclick = async () => {
+    const btn = view.querySelector('#e-save'); btn.disabled = true;
+    const body = { texts: texts() }; const en = view.querySelector('#e-enabled'); if (en) body.enabled = en.checked;
+    try { await api(`/admin/email-templates/${t.name}`, { method: 'POST', body }); view.querySelector('#emsg').innerHTML = '<div class="ok">E-mail je uložený. Ďalšie odoslané e-maily už použijú nové texty.</div>'; }
+    catch (e) { view.querySelector('#emsg').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    btn.disabled = false;
+  };
+  preview();
 }
 async function vNewsletter(view) {
   view = freshView(view);
@@ -1393,7 +1516,8 @@ function wireCtxHelp() {
   const btn = root.querySelector('#ctx-help-btn'), panel = root.querySelector('#ctx-help');
   if (!btn || !panel) return;
   const set = (open) => { panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
-  btn.onclick = () => { const open = panel.hidden; set(open); if (open) panel.querySelector('h2')?.scrollIntoView({ block: 'nearest' }); };
+  btn.onclick = () => { const open = panel.hidden; set(open); if (open) panel.querySelector('#ctx-help-close')?.focus(); };
+  document.addEventListener('mousedown', (e) => { if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) set(false); });
   const cl = panel.querySelector('#ctx-help-close'); if (cl) cl.onclick = () => { set(false); btn.focus(); };
   const onEsc = (e) => { if (e.key === 'Escape' && !panel.hidden) { set(false); btn.focus(); } };
   panel.addEventListener('keydown', onEsc); btn.addEventListener('keydown', onEsc);
