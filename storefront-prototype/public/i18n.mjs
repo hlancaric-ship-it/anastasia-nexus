@@ -34,7 +34,6 @@ export const DICT = {
   'Programy': ['Programs', 'Программы'],
   'RESET 40+': ['RESET 40+', 'RESET 40+'],
   'Výuka': ['Learning', 'Обучение'],
-  'Klub': ['Club', 'Клуб'],
   'Moja knižnica': ['My library', 'Моя библиотека'],
   'Služby': ['Services', 'Услуги'],
   'Služby a miesta': ['Services and places', 'Услуги и места'],

@@ -41,7 +41,8 @@ add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','
 add('/prihlasenie','Prihlásenie',views.login());
 add('/nova-registracia/vyhody','Výhody registrácie',views.registrationBenefits());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
 add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.reset());add('/reset-40/knihovna','Moje programy',views.reset(true));
-add('/klub','Klub ANASTASIA',views.klub());add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());
+// Klub je mimo rozsah (Lucky 21. 10.) – stránka ostáva v kóde, ale je nedostupná.
+add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());
 add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy());
 for(const [alias,target] of Object.entries(api.getAliases())){const source=routes.get(target);if(!source)throw new Error(`Missing alias target ${target}`);routes.set(alias,source);}
 for(const [path,page] of Object.entries(legacyContent)){
