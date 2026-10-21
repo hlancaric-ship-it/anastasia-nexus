@@ -3,21 +3,25 @@
 **Dátum:** 21. 10. 2026
 **Zdroj:** `ANASTASIA_VOP_GDPR_na_schvalenie (2).docx` (odoslané 21. 10. 2026, odpoveď Lucia)
 **Stav:** texty častí A–E sú už na webe (5 samostatných stránok). Na webe nie sú zatiaľ hotové — ostali v nich miesta, kde treba doplniť údaje o prevádzkovateľovi.
+**Zmena 21. 10. 2026 (večer):** cookies lišta a online funkcia odstúpenia od zmluvy **už sú v repu** (pozri `anastasia-admin/COOKIES-ODSTUPENIE-HOTOVO.md`). Body 2, 3, 4, 5 a nový bod 15 sa tým zmenili — pri dvoch z nich je odkaz na funkciu, ktorá už existuje, a pri cookies je lišta, ktorá ukazuje placeholder.
 
+> **Upozornenie (21. 10. 2026, večer):** cookies lišta a panel „Nastavenia cookies“ sú v repu a bežia na živom webe. Body 4, 5 a 15 sa teda zobrazujú v používateľskom rozhraní — placeholder `[doplní prevádzkovateľ]` je viditeľný návštevníkom v texte lišty aj ako popis voliteľných kategórií. Kým sa body 4, 5 a 15 nedoplnia, lišta zobrazuje text s placeholderom.
+>
 > **Ako to vyzerá na webe:** každé miesto označené v dokumente `DOPLNIŤ` je zatiaľ na webe nahradené viditeľným znakom **`[doplní prevádzkovateľ]`**. To je len pracovný placeholder — pred spustením webu musí byť nahradený skutočným textom.
 > Doplnenia, ktoré zadáte sem, vložíme do stránok (všetky právne texty sa dajú upravovať priamo v administrácii, §3).
 
 ---
 
-## 1. Miesta na doplnenie (5)
+## 1. Miesta na doplnenie (6)
 
 | # | Stránka | Článok / odsek | Presná citácia z dokumentu | Čo treba doplniť |
 |---|---|---|---|---|
 | 1 | **VOP** (`/vop`) | čl. **4.2** Ceny a platby | „… Konkrétny spôsob a splatnosť sú uvedené pred objednaním. **[DOPLNIŤ splatnosť prevodu; prípadnú hotovosť alebo dobierku uviesť iba po zavedení.]** Pri prevode je cena uhradená pripísaním na účet…“ | Splatnosť bankového prevodu (v dňoch). Údaj o hotovosti/dobierke uviesť **iba vtedy, ak ich naozaj predávate**. |
-| 2 | **VOP** (`/vop`) | čl. **9.2** Odstúpenie od zmluvy bez dôvodu | „… Online funkcia „Odstúpiť od zmluvy tu“ je dostupná **[DOPLNIŤ skutočné umiestnenie a adresu funkcie]**. Po vyplnení zákazník aktivuje „Potvrdiť odstúpenie od zmluvy“…“ | Kam presne funkcia odstúpenia patrí (napr. `/odstupenie`) a na akej adrese je dostupná. |
-| 3 | **Odstúpenie od zmluvy** (`/odstupenie`) | oddiel **Poučenie pre zákazníka** | „… Môžete použiť aj online funkciu **[DOPLNIŤ umiestnenie]**. Formulár nižšie nie je povinný…“ | Rovnaké umiestnenie online funkcie ako v bode 2. |
+| 2 | **VOP** (`/vop`) | čl. **9.2** Odstúpenie od zmluvy bez dôvodu | „… Online funkcia „Odstúpiť od zmluvy tu“ je dostupná **[DOPLNIŤ skutočné umiestnenie a adresu funkcie]**. Po vyplnení zákazník aktivuje „Potvrdiť odstúpenie od zmluvy“…“ | Funkcia **už je v repu** — stránka `/odstupenie`, sekcia „Odstúpiť od zmluvy tu“, tlačidlo „Potvrdiť odstúpenie od zmluvy“. Treba už len rozhodnúť, či do textu napísať konkrétnu adresu (napr. „na stránke Odstúpenie od zmluvy“) alebo odkaz na `/odstupenie`. **Text na webe zatiaľ nemenený** – je 1:1 s dokumentom. |
+| 3 | **Odstúpenie od zmluvy** (`/odstupenie`) | oddiel **Poučenie pre zákazníka** | „… Môžete použiť aj online funkciu **[DOPLNIŤ umiestnenie]**. Formulár nižšie nie je povinný…“ | Rovnaké umiestnenie online funkcie ako v bode 2. **Funkcia je na tejto stránke, hneď za textom poučenia a vzorového formulára.** |
 | 4 | **Cookies** (`/cookies`) | oddiel **Informácia pre návštevníkov** | „**[DOPLNIŤ pred zverejnením overený zoznam: názov technológie, poskytovateľ a doména, účel, kategória, doba platnosti, príjemcovia a prípadný prenos mimo EHP. Inventár musí zahŕňať domovskú stránku, formuláre, rezerváciu, videá, košík aj platbu. Z označenia Cloudflare alebo Stripe nemožno odvodiť, ktoré konkrétne cookies sú zapnuté.]**“ | Tabuľka používaných cookies: názov, poskytovateľ, doména, účel, kategória, doba platnosti, príjemcovia, prenos mimo EHP. (Zoznam musí vzniknúť z reálneho webu, nie z názvu nástroja.) |
 | 5 | **Cookies** (`/cookies`) | oddiel **Text prvej vrstvy lišty** | „… Voliteľné cookies na **[DOPLNIŤ len reálne účely]** použijeme iba s vaším súhlasom…“ | Čo voliteľné cookies reálne robia (napr. analýka návštevnosti, marketing). Ak žiadne nepoužívate, napíšte, že web používa iba nevyhnutné cookies — vtedy lišta nesmie tvrdiť, že súhlasí s analýkou. |
+| 15 | **Cookies** (`/cookies`) + panel „Nastavenia cookies“ na každej stránke | názvy voliteľných kategórií | Dokument hovorí o technológiách „najmä analytické a reklamné“ (oddiel Informácia pre návštevníkov). | V lište a v paneli sú dve voliteľné kategórie: **Analytické** a **Marketingové** (názvy podľa zadania pre tento balík). Potvrdiť, či má byť „reklama“ alebo „marketing“, a či sú vôbec potrebné obe — kým sa nepotvrdí zoznam cookies (bod 4), kategórie môžu zostať prázdne a lišta bude informačná (iba nevyhnutné). |
 
 **Kam sa tieto údaje dostanú po doplnení:** body 1–3 do textu stránok VOP a Odstúpenie, body 4–5 do stránky Cookies. Všetky úpravy idú cez administráciu (Obsah webu → Upraviť obsah) alebo priamo do `storefront-prototype/src/legacy-content.json` a `backend/src/lib/content/seed.json`.
 

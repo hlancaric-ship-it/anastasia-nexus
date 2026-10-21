@@ -1,6 +1,6 @@
 # Katalog vlastních backend API a modulů
 
-**Generováno ze zdrojáku:** `find backend/src/api -name route.ts` — **104 route souborů, 126 HTTP metod**.
+**Generováno ze zdrojáku:** `find backend/src/api -name route.ts` — **114 route souborů, 140 HTTP metod**.
 Stav: 21. 10. 2026 (vetva `release/predani-faze1`).
 
 Níže je přesný výčet vlastních tras. Nativní Medusa rozhraní (produkty, košíky, objednávky, payment collections, customer/auth, nativní admin) tu **nejsou duplikována** — katalog vlastních tras doplňuje, nenahrazuje.
@@ -11,7 +11,7 @@ Telo požiadavky, query, chyby a oprávnenia určujú implementácia trasy a jej
 
 ## Store API (predná časť)
 
-Zverejňovací kľúč + pri osobných údajoch identita zákazníka. **38 tras, 41 metod.**
+Zverejňovací kľúč + pri osobných údajoch identita zákazníka. **39 tras, 42 metod.**
 
 | Metody | Cesta | Čo rieši | Zdroj |
 |---|---|---|---|
@@ -27,6 +27,7 @@ Zverejňovací kľúč + pri osobných údajoch identita zákazníka. **38 tras,
 | GET | `/store/chat/status` | Stav chatu a zostávajúci počet správ zákazníka. | `src/api/store/chat/status/route.ts` |
 | POST | `/store/contact` | Kontaktný formulár: správa pre správcu s odpoveďou na e-mail návštevníka. | `src/api/store/contact/route.ts` |
 | GET | `/store/content/:page` | Aktuálny obsah stránky webu pre storefronte (zmeny z administrácie, inak pôvodné znenie). | `src/api/store/content/[page]/route.ts` |
+| POST | `/store/contract-withdrawal` | Online odstúpenie od zmluvy (časť C právnych textov): záznam pre správcu + potvrdenie doručenia zákazníkovi. Verejné, obmedzené podľa IP. | `src/api/store/contract-withdrawal/route.ts` |
 | POST | `/store/coupon-links` | Kontrola QR odkazu na kupón (iba čítanie -- zľava sa tu neuplatňuje). | `src/api/store/coupon-links/route.ts` |
 | GET | `/store/custom` | Zástupná trasa (scaffold Medusa) -- nič nevracia. | `src/api/store/custom/route.ts` |
 | POST | `/store/customers/me/erasure-request` | Žiadosť zákazníka o výmaz osobných údajov (GDPR). | `src/api/store/customers/me/erasure-request/route.ts` |
@@ -74,7 +75,7 @@ Podpísané správy medzi službami -- nie používateľské API. **2 tras, 2 me
 
 ## Admin API (správca)
 
-Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **62 tras, 81 metod.**
+Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **71 tras, 94 metod.**
 
 | Metody | Cesta | Čo rieši | Zdroj |
 |---|---|---|---|
@@ -93,6 +94,8 @@ Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **62 
 | GET, POST | `/admin/chat/templates` | Šablóny odpovedí v chate (zoznam, vytvorenie). | `src/api/admin/chat/templates/route.ts` |
 | POST | `/admin/content/reset` | Obnovenie pôvodného znenia poľa alebo konkrétnej staršej verzie. | `src/api/admin/content/reset/route.ts` |
 | GET, POST | `/admin/content` | Obsah webu po sekciách a poliách; POST uloží hodnotu jedného poľa (s auditom). | `src/api/admin/content/route.ts` |
+| GET, POST | `/admin/contract-withdrawals/:id` | Detail odstúpenia od zmluvy; POST zmena stavu (received -> processed -> closed). | `src/api/admin/contract-withdrawals/[id]/route.ts` |
+| GET | `/admin/contract-withdrawals` | Zoznam odstúpení od zmluvy poslaných formulárom na webe. | `src/api/admin/contract-withdrawals/route.ts` |
 | POST | `/admin/coupon-links/:id/deactivate` | Vypnutie kupónu viazaného na QR odkaz. | `src/api/admin/coupon-links/[id]/deactivate/route.ts` |
 | GET | `/admin/coupon-links/:id/qr` | Obrázok QR kódu (SVG alebo PNG). | `src/api/admin/coupon-links/[id]/qr/route.ts` |
 | GET | `/admin/coupon-links/:id` | Detail QR odkazu (pôvod, stav kupónu, použitia). | `src/api/admin/coupon-links/[id]/route.ts` |
@@ -154,7 +157,7 @@ Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **62 
 | `email-template` | email_template_override | Prepísané textové sloty e-mailov a zapnutie/vypnutie e-mailu. |
 | `entitlement` | entitlement | Prístup k digitálnemu obsahu (vlastník, produkt, platnosť, zrušenie). |
 | `gift-voucher` | gift_voucher, gift_voucher_transaction, gift_voucher_settings | Darčekové poukazy: vydanie, uplatnenie, vrátenie, deník pohybov. |
-| `legal` | legal_consent, legal_withdrawal, newsletter_consent, newsletter_consent_event | Súhlasy, odstúpenie od zmluvy a newsletter. |
+| `legal` | legal_consent, legal_withdrawal, legal_contract_withdrawal, newsletter_consent, newsletter_consent_event | Súhlasy, odstúpenie od zmluvy (prihlásený zákazník aj online formulár) a newsletter. |
 | `membership` | membership, membership_receipt, membership_checkout, membership_mandate, membership_billing_attempt, membership_initial_payment | Klub: členstvo, zmluva, mandát, obnovy a platby. |
 | `membership-stripe` | bez vlastných modelov | Stripe provider Klubu (platba až po overení session). |
 | `notification-log` | bez vlastných modelov | Záložný provider: e-mail sa iba zapíše do logu (bez adresáta a obsahu). |
