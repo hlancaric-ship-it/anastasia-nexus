@@ -101,8 +101,20 @@ if(chatForm){
 const giftForm=$('#gift-voucher-form');
 if(giftForm){
   const send=$('button',giftForm),select=giftForm.elements.variant_id;
+  const preview=document.querySelector('[data-voucher-preview]');
+  const paintPreview=()=>{
+    if(!preview)return;
+    const option=select.selectedOptions[0];
+    const title=option?option.textContent:'';
+    const digits=(title.match(/[\d\s]+/g)||[]).join('').replace(/\s/g,'')||'';
+    const currency=(title.match(/[^\d\s,.]+/)||[''])[0];
+    preview.querySelector('[data-voucher-amount]').textContent=digits||'–';
+    preview.querySelector('[data-voucher-currency]').textContent=currency;
+  };
+  select.addEventListener('change',paintPreview);
   try{const product=await api.getGiftVoucherProduct();select.replaceChildren(...product.variants.map(v=>new Option(v.title,v.id)));select.disabled=!product.variants.length;send.disabled=select.disabled;if(select.disabled)$('.form-status',giftForm).textContent='Darčekové poukazy momentálne nie sú dostupné.';}
   catch{$('.form-status',giftForm).textContent='Hodnoty poukazu sa nepodarilo načítať. Skúste to znova.';}
+  paintPreview();
   giftForm.addEventListener('submit',async event=>{event.preventDefault();if(send.disabled)return;send.disabled=true;try{const result=await api.addGiftVoucher({variant_id:select.value,recipient:{name:giftForm.elements.name.value,email:giftForm.elements.email.value,message:giftForm.elements.message.value}});$('.form-status',giftForm).textContent=result.ok?'Poukaz bol pridaný do košíka.':result.message;if(result.ok){giftForm.elements.name.value='';giftForm.elements.email.value='';giftForm.elements.message.value='';await updateCount();}}catch{$('.form-status',giftForm).textContent='Poukaz sa nepodarilo pridať. Skúste to znova.';}finally{send.disabled=false;}});
 }
 

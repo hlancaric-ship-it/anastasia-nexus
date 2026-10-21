@@ -306,3 +306,21 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .photo-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px}
 .photo-gallery figure{margin:0}
 .photo-gallery img{width:100%;height:auto}
+
+/* Darčekový poukaz – náhled v brandu ANASTASIA (krémový papír, zlatá linka, bordó akcent). */
+.voucher-layout{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:start;margin-bottom:40px}
+.voucher-preview{perspective:1200px}
+.voucher-preview__paper{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;padding:44px 32px 34px;text-align:center;background:#F5F2E8;color:#1E281C;border:1px solid rgba(201,163,85,.55);box-shadow:0 24px 60px rgba(30,40,28,.14)}
+.voucher-preview__paper::before,.voucher-preview__paper::after{content:"";position:absolute;left:22px;right:22px;height:1px;background:linear-gradient(90deg,rgba(201,163,85,0),#C9A355,rgba(201,163,85,0))}
+.voucher-preview__paper::before{top:16px}
+.voucher-preview__paper::after{bottom:16px}
+.voucher-preview__label{font-size:10px;font-weight:400;letter-spacing:.24em;text-transform:uppercase;color:#6E2434}
+.voucher-preview__logo{width:72px;height:auto;filter:brightness(.35) sepia(.3) saturate(1.2)}
+.voucher-preview__value{display:flex;align-items:baseline;gap:6px;font-family:'EB Garamond',Georgia,serif;font-size:clamp(64px,9vw,104px);line-height:.9;color:#1E281C}
+.voucher-preview__value small{font-family:Outfit,sans-serif;font-size:clamp(18px,2vw,26px);font-weight:300;letter-spacing:.04em;color:#6E2434}
+.voucher-preview__name{margin:0;font-size:10px;font-weight:400;letter-spacing:.22em;text-transform:uppercase;color:#69705e}
+.voucher-preview__code{display:flex;flex-direction:column;gap:6px;width:100%;padding:14px 0 4px;border-top:1px solid rgba(201,163,85,.35)}
+.voucher-preview__code span{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#69705e}
+.voucher-preview__code b{font-size:15px;font-weight:400;letter-spacing:.16em;color:#1E281C}
+.voucher-preview__valid{margin:0;font-size:11px;color:#69705e}
+@media (max-width:860px){.voucher-layout{grid-template-columns:1fr}}
