@@ -478,7 +478,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 @media (min-width:761px) and (pointer:fine){.lh-cat--1,.lh-cat--2,.lh-cat--3,.lh-cat--4{top:62vh;left:0;right:0;text-align:center;color:#313C2B;background-image:none!important;-webkit-text-fill-color:#313C2B}}
 @media (max-width:760px){
   /* r12/1: na mobilu logo vľavo, košík a Menu vpravo, hlavička fixná. */
-  .lh-top{grid-template-columns:auto minmax(0,1fr);gap:12px;padding:9px 14px}
+  .lh-top{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:9px 14px}
   .lh-top__side--right{grid-column:2;justify-self:end}
   .lh-top>nav:first-child>a{display:none}
   .lh-top>nav:first-child .lh-top__menu{display:inline-flex!important;flex:0 0 auto}

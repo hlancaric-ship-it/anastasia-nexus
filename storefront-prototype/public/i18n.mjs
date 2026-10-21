@@ -63,6 +63,8 @@ export const DICT = {
   'Recenzie produktov': ['Product reviews', 'Отзывы о товарах'],
   'Recenzie zákazníkov': ['Customer reviews', 'Отзывы клиентов'],
   'Cookies': ['Cookies', 'Cookies'],
+  'Nastavenia cookies': ['Cookie settings', 'Настройки Cookies'],
+  'Odstúpenie od zmluvy': ['Withdrawal of contract', 'Расторжение договора'],
   'EN / RU už čoskoro': ['EN / RU coming soon', 'EN / RU скоро'],
   'Košík (': ['Cart (', 'Корзина ('],
   'AI ANASTASIA Academy': ['AI ANASTASIA Academy', 'AI ANASTASIA Academy'],

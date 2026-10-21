@@ -6,6 +6,7 @@ import {homeSections as homeLhSections, HOME_CSS, LH_HEADER} from './home-lh.mjs
 import {fileURLToPath} from 'node:url';
 import {escape} from './components.mjs';
 import {menuGroups} from './lib/menu-navigation.mjs';
+import {cookieSettingsLink} from './cookie-consent.mjs';
 
 const read = name => readFileSync(fileURLToPath(new URL(`../design/${name}`, import.meta.url)), 'utf8');
 const SOURCES = {home: read('homepage-v2.dc.html'), about: read('o-lucii.dc.html')};
@@ -174,6 +175,17 @@ const FOOTER_GROUPS = {
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravá lekáreň', '/zdrava-lekaren'], ['Denný stacionár Vyšná Slaná', '/denny-stacionar-vysna-slana'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
 const FOOTER_BRANDS = {'ANASTASIA.ACADEMY': '/ai-anastasia-academy', 'AI ANASTASIA': '/ai-anastasia'};
+// Odkazy na päť právnych stránok (r19 bod 5): VOP, GDPR, reklamácie, odstúpenie od zmluvy, cookies.
+const LEGAL_LINKS = [['Obchodné podmienky','/vop'],['Súkromie a GDPR','/gdpr'],['Reklamácie','/reklamacie'],['Odstúpenie od zmluvy','/odstupenie'],['Cookies','/cookies']];
+function footerLegalLinks(html) {
+  return html.replace(/(<div style="display:flex;gap:28px;flex-wrap:wrap">)(?:<a href="#">[^<]*<\/a>)+/,
+    (_, head) => head + LEGAL_LINKS.map(([t,h])=>`<a href="${h}">${t}</a>`).join(''));
+}
+// Odkaz „Nastavenia cookies“ v pätičke (názov je z textu klientky): otvorí panel, kde sa voľba zmení.
+function withCookieSettings(html) {
+  if (!html.includes('<a href="/cookies">Cookies</a>')) throw new Error('dc: v patičce chybí odkaz Cookies');
+  return html.replace('<a href="/cookies">Cookies</a>', `<a href="/cookies">Cookies</a>${cookieSettingsLink()}`);
+}
 function footerLinks(html) {
   let out = html;
   for (const [title, links] of Object.entries(FOOTER_GROUPS)) {
@@ -221,7 +233,7 @@ export function chrome(page) {
   const header=page==='home'?headerHtml.replace('style="position:relative;z-index:2;','style="position:absolute;left:0;right:0;top:0;z-index:4;'):headerHtml;
   return {
     header: page==='home' ? LH_HEADER : header,
-    footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
+    footer: bleed(withCookieSettings(convert(footerLegalLinks(footerLinks(src.footer)), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),

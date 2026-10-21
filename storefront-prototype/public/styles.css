@@ -436,3 +436,52 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
   .center-sidebar nav{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;gap:4px!important}
   .pd-quantity button,.pd-digital-purchase button,.quantity button{min-width:44px!important;min-height:44px!important}
 }
+
+/* --- r19: Cookies lišta a panel nastavení + online odstúpenie od zmluvy -------------
+   Texty sú 1:1 z právnych textov klientky (/cookies), vizuál je v našej pastelovej palete.
+   Lišta je mimo .dc-root/.dc-chrome, takže ju tieto štýly ovládajú celé.
+   Mobil: lišta maximálne 40 % displeja, tlačidlá aspoň 44 px. */
+.cookie-banner{position:fixed;left:0;right:0;bottom:0;z-index:900;max-height:40vh;max-height:40svh;overflow-y:auto;background:#112724;color:var(--cream);border-top:1px solid rgba(201,163,85,.28);box-shadow:0 -18px 60px rgba(12,18,10,.28);animation:cookie-banner-in .4s var(--ana-ease-soft) both}
+@keyframes cookie-banner-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.cookie-banner-inner{max-width:1200px;margin:0 auto;padding:18px clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:14px}
+.cookie-banner-text{margin:0;font-size:14px;line-height:1.6;max-width:92ch}
+.cookie-banner-actions{display:flex;flex-wrap:wrap;gap:10px}
+.cookie-btn{flex:1 1 auto;min-width:150px;min-height:44px;padding:11px 18px;border:1px solid rgba(239,229,199,.42);border-radius:999px;background:transparent;color:var(--cream);font-family:inherit;font-size:13px;letter-spacing:.06em;cursor:pointer;transition:background .3s ease,border-color .3s ease}
+.cookie-btn:hover{background:rgba(239,229,199,.12);border-color:var(--gold)}
+.cookie-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.cookie-settings{position:fixed;inset:0;z-index:950;background:rgba(12,18,10,.45);display:grid;place-items:center;padding:16px}
+.cookie-settings-inner{width:min(560px,100%);max-height:86vh;max-height:86svh;overflow-y:auto;background:#112724;color:var(--cream);border:1px solid rgba(201,163,85,.28);border-radius:20px;padding:26px clamp(18px,3vw,30px);display:flex;flex-direction:column;gap:16px}
+.cookie-settings-inner h2{margin:0;font-size:clamp(22px,3vw,30px);font-weight:300}
+.cookie-categories{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.cookie-category{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:14px 16px;border:1px solid rgba(239,229,199,.18);border-radius:14px;cursor:pointer}
+.cookie-category input{margin:3px 0 0;width:18px;height:18px;accent-color:var(--gold)}
+.cookie-category span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cookie-category strong{font-weight:400;font-size:15px}
+.cookie-category small{font-size:12.5px;line-height:1.55;color:#C4C7B6;overflow-wrap:anywhere}
+.cookie-settings-detail{margin:0;font-size:12.5px;line-height:1.6;color:#C4C7B6}
+.cookie-settings-detail a{color:var(--gold);text-decoration:underline}
+.cookie-settings-close{align-self:flex-start;min-height:44px;padding:8px 4px;background:transparent;border:0;font-family:inherit;font-size:13px;color:#C4C7B6;text-decoration:underline;cursor:pointer}
+/* Lišta ustúpi bočnej lište, keď je na obrazovke (aby sa neprekrývali). */
+body.lh-chrome-in .cookie-banner{left:var(--rail-pad)}
+@media(max-width:480px){.cookie-banner-inner{padding:12px 14px;gap:10px}.cookie-banner-text{font-size:12.5px;line-height:1.55}.cookie-btn{min-width:0;flex:1 1 calc(50% - 5px);padding:9px 10px;font-size:12.5px;min-height:44px}.cookie-settings-inner{padding:20px 16px}}
+
+/* Online odstúpenie od zmluvy (časť C právnych textov) – formulár pod právnym textom. */
+.withdrawal-form{max-width:960px;margin:0 auto;padding:clamp(28px,4vw,48px) clamp(20px,5vw,60px) 40px;background:#fbf8ef;border:1px solid #e6dfc8;border-radius:28px 28px 28px 6px}
+.withdrawal-form h2{margin:0 0 8px;font-size:clamp(22px,2.6vw,32px);font-weight:300}
+.withdrawal-form .withdrawal-lead{margin:0 0 24px;font-size:15px;line-height:1.7;color:#3c4532;max-width:62ch}
+.withdrawal-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.withdrawal-fields label{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#3c4532}
+.withdrawal-fields label.wide{grid-column:1/-1}
+.withdrawal-fields input,.withdrawal-fields textarea{width:100%;padding:12px 14px;border:1px solid #d9d9c8;background:#fff;font-family:inherit;font-size:15px;color:var(--ink)}
+.withdrawal-fields textarea{min-height:110px;resize:vertical}
+.withdrawal-fields input:focus,.withdrawal-fields textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
+.withdrawal-consent{margin:18px 0 0;display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.6;color:#3c4532}
+.withdrawal-consent input{width:18px;height:18px;margin:2px 0 0;flex:none;accent-color:var(--gold)}
+.withdrawal-consent a{color:#7a5f2c;text-decoration:underline}
+.withdrawal-form .button{margin-top:22px;background:var(--ink);border-color:var(--ink);color:var(--cream)}
+.withdrawal-form .button:hover{background:#414c34}
+.withdrawal-form .form-status{margin-top:16px;font-size:14px}
+.withdrawal-form .form-status[data-state="ERROR"]{color:#8c2f1f}
+@media(max-width:699.98px){.withdrawal-fields{grid-template-columns:1fr}.withdrawal-form{padding:24px 20px 28px;border-radius:22px 22px 22px 6px}}
+
+body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}

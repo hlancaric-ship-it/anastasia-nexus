@@ -1,6 +1,7 @@
 import {escape as e,arrow,button} from './components.mjs';
 import {picture} from './webp.mjs';
 import content from './legacy-content.json' with {type:'json'};
+import {withdrawalForm} from './withdrawal.mjs';
 export {content as legacyContent};
 // Kľúč polia v administrácii: <stranka>__<sekcia>__<index>-<typ> (rovnaký formát ako generátor semena).
 export const contentSlug=path=>String(path||'/').replace(/^\/+|\/+$/g,'').replace(/\//g,'-').replace(/[^a-z0-9-]+/gi,'-').toLowerCase()||'home';
@@ -16,7 +17,7 @@ function withClaims(page){
   return {...page,blocks:[title,...vop.slice(from,to<0?undefined:to)]};
 }
 // Právne stránky: vlastný layout ANASTASIA (lesný úvod, zlaté číslovanie článkov), žiadny holý text.
-const LEGAL=['/vop','/gdpr','/reklamacie'];
+const LEGAL=['/vop','/gdpr','/reklamacie','/odstupenie','/cookies'];
 const ROMAN=/^([IVXL]+|\d{1,2})\.\s*(.+)$/;
 function legalPage(page,render){
   // Zlúčenie odstavcov rozdelených v pôvodnom webe uprostred vety.
@@ -44,7 +45,7 @@ function legalPage(page,render){
   const toc=arts.length>2?`<nav class="legal-toc" aria-label="Obsah">${arts.map((a,i)=>{const m=a.title.match(ROMAN);return `<a href="#${id(a.title,i)}"><b>${e(m?.[1]||i+1)}</b>${e(m?.[2]||a.title)}</a>`;}).join('')}</nav>`:'';
   const isClaims=page.source.endsWith('/reklamacie');
   const art=(a,i)=>{const m=a.title.match(ROMAN);return `<section class="legal-art reveal" id="${id(a.title,i)}">${a.title?`<div class="legal-num" aria-hidden="true">${e(m?.[1]||'')}</div><h2>${m?`<span class="legal-h-num">${e(a.title.slice(0,a.title.length-m[2].length))}</span>${e(m[2])}`:e(a.title)}</h2>`:''}<div class="legal-body">${point(a.body.map(render).join(''))}</div></section>`;};
-  return `<section class="legal-hero"><p class="legal-eyebrow">ANASTASIA · Právne informácie</p><h1>${e(head?.text||page.title)}</h1>${toc}</section><article class="legal-doc">${arts.filter(a=>a.title||a.body.length).map(art).join('')}${isClaims?`<a class="legal-more reveal" href="/vop"><span>Úplné znenie</span><strong>Všeobecné obchodné podmienky</strong>${arrow}</a>`:''}</article>${button('/','Na úvod','legacy-back')}`;
+  return `<section class="legal-hero" data-sk-only><p class="legal-eyebrow">ANASTASIA · Právne informácie</p><h1>${e(head?.text||page.title)}</h1>${toc}</section><article class="legal-doc" data-sk-only>${arts.filter(a=>a.title||a.body.length).map(art).join('')}${isClaims?`<a class="legal-more reveal" href="/vop"><span>Úplné znenie</span><strong>Všeobecné obchodné podmienky</strong>${arrow}</a>`:''}</article>${page.source.endsWith('/odstupenie')?withdrawalForm():''}${button('/','Na úvod','legacy-back')}`;
 }
 export function legacyPage(page,{about=false,contactForm='',path=''}={}){
   page=withClaims(page);

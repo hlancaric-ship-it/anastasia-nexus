@@ -6,6 +6,7 @@ import {loadContent,applyContent,pageKeyOf} from '/content.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit} from '/i18n.mjs';
+import {initWithdrawalForm} from '/withdrawal-form.mjs';
 let storage;try{storage=window.sessionStorage;}catch{}
 const api=createApi(storage);
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
@@ -453,6 +454,8 @@ if($('#magic-confirm')){
   if(r.ok&&/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%]*)?$/.test(back))$('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button(back,'Pokračovať v rezervácii')}</div>`);
 }
 $('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=$('button[type=submit]',form),status=$('.form-status',form);if(button.disabled)return;button.disabled=true;status.textContent='Odosielam…';let r;try{r=await api.sendContact(Object.fromEntries(new FormData(form)));}catch{r={ok:false,message:'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.'};}status.textContent=r.message;if(r.ok)form.reset();button.disabled=false;});
+// Online odstúpenie od zmluvy: prihlásenému zákazníkovi predvyplníme e-mail a meno z účtu.
+initWithdrawalForm(api);
 // Klub ANASTASIA: ponuka a cena len zo servera; Payment Element iba autorizuje, zachytenie robí backend po SafeOrder.
 const runtimeConfig=()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}};
 const loadStripeJs=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});

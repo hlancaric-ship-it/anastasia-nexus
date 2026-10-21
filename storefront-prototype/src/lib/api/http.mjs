@@ -629,6 +629,13 @@ export function createHttpApi(storage, config) {
       return { ok: false, status: r.status, message: r.data?.message || 'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.' };
     },
 
+    // Online odstúpenie od zmluvy (časť C právnych textov): záznam pre správcu + potvrdenie e-mailom.
+    async sendContractWithdrawal({ order_number, email, items, order_date, name, reason, consent, website }) {
+      const r = await call('/store/contract-withdrawal', { method: 'POST', body: { order_number, email, items, order_date, name, reason, consent: consent === true || consent === 'on', website: website || '' } });
+      if (r.ok && r.data?.ok) return { ok: true, message: r.data.message };
+      return { ok: false, status: r.status, message: r.data?.message || 'Odstúpenie sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.' };
+    },
+
     isLoggedIn: loggedIn,
   };
   return self;

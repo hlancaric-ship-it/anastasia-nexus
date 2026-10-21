@@ -119,6 +119,7 @@ export function createMockApi(storage=memoryStorage()) {
     getEntitlements:({preview='locked'}={})=>({mode:'mock',active:preview==='unlocked',weeks:Array.from({length:16},(_,i)=>({number:i+1,title:`Tematický týždeň ${String(i+1).padStart(2,'0')}`,description:'Priestor pre schválený obsah programu.'}))}),
     checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Platba nie je aktívna. Objednávka sa neodoslala.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy stav.'}),
     sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),
+    sendContractWithdrawal:()=>({ok:true,message:'Formulár bol skontrolovaný. Odstúpenie sa zatiaľ neodosiela.'}),
     subscribeNewsletter:()=>({ok:true,message:'Náhľad: prihlásenie k novinkám sa neukladá.'}),
     // Klub: bez backendu žiadne vymyslené ceny ani členstvá, len poctivý prázdny stav.
     getMembershipProducts:()=>[],

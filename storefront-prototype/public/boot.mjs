@@ -4,6 +4,8 @@
 // DOMContentLoaded (a tým aj LCP). Teraz je kritické CSS inline v hlavičke, zvyšok
 // CSS sa prepne na „all“ a GSAP/ScrollTrigger/Lenis + motion.mjs sa ťahajú až pri
 // prvej interakcii (na mobile pri ťuknutí na „Vstúpte“).
+import { initCookieConsent } from '/consent.mjs';
+
 const enableLateCss = () => {
   document.querySelectorAll('link[data-late]').forEach((link) => { link.media = 'all'; });
 };
@@ -62,6 +64,8 @@ const wireMotionTrigger = () => {
 
 const start = () => {
   enableLateCss();
+  // Lišta cookies a panel nastavení: beží skoro na začiatku, súhlas nesmie závisieť od backendu.
+  initCookieConsent();
   wireIntroCue();
   wireMotionTrigger();
   // Runtime aplikácie (košík, menu, i18n) sa načíta až po vykreslení – neblokuje DOMContentLoaded.
