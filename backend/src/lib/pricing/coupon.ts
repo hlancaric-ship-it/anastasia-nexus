@@ -59,6 +59,31 @@ type PromotionLike = {
 export const SHOP_CURRENCY = "eur"
 
 /**
+export type PromotionLike = {
+  id?: string
+  code?: string | null
+  type?: string | null
+  is_tax_inclusive?: boolean | null
+  rules?: unknown[] | null
+  application_method?: {
+    type?: string | null
+    target_type?: string | null
+    allocation?: string | null
+    value?: number | null
+    currency_code?: string | null
+    target_rules?: Array<{
+      attribute?: string | null
+      operator?: string | null
+      values?: unknown[] | null
+    }> | null
+    buy_rules?: unknown[] | null
+    max_quantity?: number | null
+    buy_rules_min_quantity?: number | null
+    apply_to_quantity?: number | null
+  } | null
+}
+
+/**
  * Prevedie Medusa Promotion na kupón, ktorý sa dá uplatniť. `null` = kupón
  * sa v košíku NEUPLATNÍ (neskryte zľava, neignorované pravidlo).
  */
@@ -91,7 +116,10 @@ export function resolveCoupon(promotion: PromotionLike | undefined | null, code:
     if (rules.length !== 1) return null
     const rule = rules[0]
     if (rule?.attribute !== "items.product.id" || rule?.operator !== "in") return null
-    const values = Array.isArray(rule.values) ? rule.values.map((value) => String(value)).filter(Boolean) : []
+    // Medusa vracia hodnoty pravidla ako objekty `{ value }` (tabuľka promotion_rule_value).
+    const values = Array.isArray(rule.values)
+      ? rule.values.map((entry: unknown) => (entry && typeof entry === "object" ? String((entry as { value?: unknown }).value ?? "") : String(entry))).filter(Boolean)
+      : []
     if (!values.length) return null
     productIds = [...new Set(values)]
   }

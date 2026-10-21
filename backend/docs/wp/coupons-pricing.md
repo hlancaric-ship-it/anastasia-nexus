@@ -75,6 +75,23 @@ CouponDiscount → Rounding`) a zostáva v súlade s tým, čo Worker robil dote
 - Klient ani browser nikdy neposielajú percentá – do požiadavky ide iba kód úrovne
   a kód kupónu (a serverom vypočítané hodnoty).
 
+## Chyba: obmedzenie na produkty sa nedalo prečítať (opravené 21. 10. 2026)
+
+Kupóny s `target_rules` (napr. Montelope) sa v košíku **stále odmietali** – hlásenie
+`COUPON_INVALID`, zľava sa neuplatnila. Príčina bola v načítaní pravidla, nie v politike:
+
+- hodnoty pravidla (`items.product.id in [...]`) ležia v samostatnej tabuľke
+  `promotion_rule_value`, takže ich treba načítať cez reláciu
+  `application_method.target_rules.values` (bez nej je zoznam prázdny → kupón sa
+  odmietne),
+- Medusa ich vracia ako objekty `{ value: "prod_…" }`, nie ako reťazce – prekladač
+  kupónu ich teraz číta v oboch tvaroch (`src/lib/pricing/coupon.ts`).
+
+Oprava: `src/api/store/nexus-cart/route.ts` (relácie pri čítaní kupónu) a
+`src/lib/pricing/coupon.ts` (tvar hodnôt pravidla). Test:
+`src/lib/pricing/__tests__/coupon.unit.spec.ts` („prečíta hodnoty pravidla v tvare
+Medusa ({ value }) aj ako reťazce“).
+
 ## Ako to overiť
 
 ### Unit testy (backend)

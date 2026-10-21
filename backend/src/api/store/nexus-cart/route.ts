@@ -79,7 +79,10 @@ async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  */
 async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promise<StoredCoupon | undefined> {
   const promotions = scope.resolve<IPromotionModuleService>(Modules.PROMOTION)
-  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "rules", "application_method", "application_method.target_rules", "application_method.buy_rules"], take: 2 })
+  // `application_method.target_rules.values` je nutné načítať – hodnoty pravidla
+  // (napr. `items.product.id in [...]`) ležia v samostatnej tabuľke a bez nich sa
+  // obmedzenie na produkty nedá prečítať (kupón by sa vôbec neuplatnil).
+  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "rules", "application_method", "application_method.target_rules", "application_method.target_rules.values", "application_method.buy_rules"], take: 2 })
   const promotion = matches[0] as PromotionDTO | undefined
   if (matches.length !== 1 || !promotion || !codeAvailable(promotion, code)) return undefined
   const resolved = resolveCoupon(promotion as any, code)

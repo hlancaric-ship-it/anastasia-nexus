@@ -1852,7 +1852,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "9e25d421e9e9614e0e10d10ab6801ceace85628adbf705d59178d4eb1a22c39b"
+      "sha256": "f4bdbab6acd3eaa38e778ac69d146452ecd97d29e772fedad840b3b45f93e07d"
     },
     {
       "path": "/store/nexus-checkout",

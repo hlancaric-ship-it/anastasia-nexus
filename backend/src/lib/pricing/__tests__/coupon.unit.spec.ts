@@ -45,6 +45,17 @@ describe('Serverová politika kupónov', () => {
     expect(resolved).toMatchObject({ type: 'percentage', value: 10, target: 'order', product_ids: null })
   })
 
+  it('prečíta hodnoty pravidla v tvare Medusa ({ value }) aj ako reťazce', () => {
+    const fromObjects = resolveCoupon(promotion({
+      target_rules: [{ attribute: 'items.product.id', operator: 'in', values: [{ value: 'prod_a' }, { value: 'prod_b' }] }],
+    }) as any, 'MONTELOPE')
+    expect(fromObjects?.product_ids).toEqual(['prod_a', 'prod_b'])
+    const fromStrings = resolveCoupon(promotion({
+      target_rules: [{ attribute: 'items.product.id', operator: 'in', values: ['prod_a'] }],
+    }) as any, 'MONTELOPE')
+    expect(fromStrings?.product_ids).toEqual(['prod_a'])
+  })
+
   it('odmietne nepodporované pravidlá (kupón sa neuplatní vôbec)', () => {
     // pravidlo pre zákazníka
     expect(resolveCoupon({ ...promotion(), rules: [{ attribute: 'customer.id', operator: 'in', values: ['cus_1'] }] } as any, 'MONTELOPE')).toBeNull()
