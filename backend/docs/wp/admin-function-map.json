@@ -223,10 +223,18 @@
         "backend/src/api/admin/products/[id]/protected-media/route.ts",
         "backend/src/lib/protected-library/editor.ts",
         "anastasia-admin/library-editor.mjs",
-        "backend/docs/wp/library-admin.md"
+        "backend/docs/wp/library-admin.md",
+        "backend/src/api/admin/products/[id]/protected-media/upload-url/route.ts",
+        "backend/src/api/admin/products/[id]/protected-media/attach/route.ts",
+        "backend/src/api/admin/products/[id]/protected-media/[key]/route.ts",
+        "backend/src/api/admin/product-catalogue/route.ts",
+        "backend/src/lib/protected-library/upload.ts",
+        "backend/src/lib/protected-library/storage.ts",
+        "backend/src/lib/digital-products/categories.ts",
+        "backend/docs/wp/digital-library-upload.md"
       ],
-      "remaining": "Přejmenování a pořadí již přiřazených souborů implementované; soukromý upload a nové přiřazení/odebrání zůstává samostatný nedokončený balík.",
-      "acceptance": "Placený soubor není veřejný; cizí/sousední soubor je odmítnut; UI přizná platnost vydaného odkazu do expirace."
+      "remaining": "Nahrávanie nových chránených súborov, ich pripojenie a odpojenie aj filter Fyzické/Digitálne sú implementované a overené na lokálnej DB; chýba už len produkčný bucket R2 na účte klientky a CORS pravidlo pre presigned PUT.",
+      "acceptance": "Placený súbor nie je verejný a nedá sa stiahnuť (povolené mp4/mp3/m4a/pdf); kľúč sa viaže len na vlastný produkt; cudzí kľúč je odmítnutý; pripojenie nového súboru nemení pôvodné kľúče; host bez prihlásenia nedokáže kúpiť digitálny produkt."
     },
     {
       "id": "chat",
@@ -901,52 +909,6 @@
       "sha256": "f6920a3ca428c2d379910f1f7b154237520b12d4b0de6c1307acd70f2cfaac84"
     },
     {
-      "path": "/admin/chat/conversations",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/route.ts",
-      "sha256": "7fa3cf85cceaf0b560b4bdd66de8e64cd5202720dbd446d5b06d77068f067447"
-    },
-    {
-      "path": "/admin/chat/conversations/:id",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
-      "sha256": "f4f2e8cf5e3d9e89e18de467180d5e997e397eadda043807d2f2059ab57f7663"
-    },
-    {
-      "path": "/admin/chat/conversations/:id/messages",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
-      "sha256": "c24915aa0d648ea334aadd015a1d7fcd67306fc34a10ce4a512337695e2195d3"
-    },
-    {
-      "path": "/admin/chat/conversations/:id/read",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
-      "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
-    },
-    {
-      "path": "/admin/chat/customers/:id/block",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
-      "sha256": "5abbd64540840c170d89e8706be2470048081b2a1cc6fa58eb650d9b25ef1c4f"
-    },
-    {
       "path": "/admin/coupon-links",
       "methods": [
         "GET",
@@ -955,6 +917,42 @@
       "feature": "qr",
       "source": "backend/src/api/admin/coupon-links/route.ts",
       "sha256": "f62f420723b15094ef2bfe7a217005be689aeeea8525a4584fd3626dd025889a"
+    },
+    {
+      "path": "/admin/coupon-links/:id",
+      "feature": "qr",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/route.ts",
+      "sha256": "4ad76aa81772a3158d52e6e481cfc76a106c2799779a00f91b2b214d824d4041"
+    },
+    {
+      "path": "/admin/coupon-links/:id/deactivate",
+      "feature": "qr",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/deactivate/route.ts",
+      "sha256": "2c39745d25b93091d6a871216499a2166d81966725773c71dd82278a2fc524e1"
+    },
+    {
+      "path": "/admin/coupon-links/:id/qr",
+      "feature": "qr",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/qr/route.ts",
+      "sha256": "e109a4af6b8758ed420bf03f44d38be07a267f82d4aabb6ace714cc473d3d8d7"
+    },
+    {
+      "path": "/admin/coupon-links/import",
+      "feature": "qr",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/coupon-links/import/route.ts",
+      "sha256": "f0e718c133adaaf15bdc05426091606fd8c8c0a89b7c422f3ef48ffcfdf95f78"
     },
     {
       "path": "/admin/custom",
@@ -1059,6 +1057,52 @@
       "feature": "product-feeds",
       "source": "backend/src/api/admin/feeds/route.ts",
       "sha256": "f9bb2b30b7f790dfc4c19eda0d2bbf458dd19a4ea47abd571ce2a03cb9198562"
+    },
+    {
+      "path": "/admin/chat/conversations",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/route.ts",
+      "sha256": "7fa3cf85cceaf0b560b4bdd66de8e64cd5202720dbd446d5b06d77068f067447"
+    },
+    {
+      "path": "/admin/chat/conversations/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
+      "sha256": "f4f2e8cf5e3d9e89e18de467180d5e997e397eadda043807d2f2059ab57f7663"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
+      "sha256": "c24915aa0d648ea334aadd015a1d7fcd67306fc34a10ce4a512337695e2195d3"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
+      "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
+    },
+    {
+      "path": "/admin/chat/customers/:id/block",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
+      "sha256": "5abbd64540840c170d89e8706be2470048081b2a1cc6fa58eb650d9b25ef1c4f"
     },
     {
       "path": "/admin/media",
@@ -1181,6 +1225,15 @@
       "sha256": "73ad20af21b47e09d843cbc1abedd2b08452c51b9fd05454fc0a405b3a11ca1a"
     },
     {
+      "path": "/admin/product-catalogue",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/product-catalogue/route.ts",
+      "feature": "media",
+      "sha256": "e2e67bc6785129ce6e0d87f19a76b42e3176fe8a7a6cdde099faf8471efd3fca"
+    },
+    {
       "path": "/admin/products/:id/protected-media",
       "methods": [
         "GET",
@@ -1189,6 +1242,33 @@
       "feature": "media",
       "source": "backend/src/api/admin/products/[id]/protected-media/route.ts",
       "sha256": "9d262e943fb9ea02b476f938cc10d2a1f980ac1ed1f193cf94bfa3ad5abc1a12"
+    },
+    {
+      "path": "/admin/products/:id/protected-media/:key",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "backend/src/api/admin/products/[id]/protected-media/[key]/route.ts",
+      "feature": "media",
+      "sha256": "2a2e4b1cef118ad9852da9ae940c63a387b2a5644449a67cd7a5285a1243c311"
+    },
+    {
+      "path": "/admin/products/:id/protected-media/attach",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/products/[id]/protected-media/attach/route.ts",
+      "feature": "media",
+      "sha256": "4756d9c17399cc37432459e55350b0ace6fc4e551de60097d34303185860f710"
+    },
+    {
+      "path": "/admin/products/:id/protected-media/upload-url",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/products/[id]/protected-media/upload-url/route.ts",
+      "feature": "media",
+      "sha256": "1f2af8d83b6f1dbd4857376c509ba87811da40cc801bb3b38d8b8bc13a3fe5f4"
     },
     {
       "path": "/admin/readiness",
@@ -1355,52 +1435,6 @@
       "sha256": "e536a23436c98486ac5dc2bb35f5d650ff88ef39e86577120ec0fa6d5fffcc06"
     },
     {
-      "path": "/store/chat/conversations",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/route.ts",
-      "sha256": "f188bf32480acab346ac804213e2fc9fcc91638dfc1042e96123427d942ce30e"
-    },
-    {
-      "path": "/store/chat/conversations/:id",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
-      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
-    },
-    {
-      "path": "/store/chat/conversations/:id/messages",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
-      "sha256": "5e56d3086e8276a6ae52159eea94e6ea643b65821a8f1434dc5ae2c8902c5617"
-    },
-    {
-      "path": "/store/chat/conversations/:id/read",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
-      "sha256": "955cb381122a69de33c940010fb5f9c551bcb175366a7bbdd0cfac76da63b904"
-    },
-    {
-      "path": "/store/chat/status",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/status/route.ts",
-      "sha256": "5543d0db72e470f1a2967368b025fdd6fd90c09b569a5d1ba93aed687392418e"
-    },
-    {
       "path": "/store/contact",
       "methods": [
         "POST"
@@ -1480,6 +1514,52 @@
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/remove/route.ts",
       "sha256": "4450ff2df0337f48d4e379679d7931ede71e7b31a4d53e6a87e21b163ae3adf4"
+    },
+    {
+      "path": "/store/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/route.ts",
+      "sha256": "f188bf32480acab346ac804213e2fc9fcc91638dfc1042e96123427d942ce30e"
+    },
+    {
+      "path": "/store/chat/conversations/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
+      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
+    },
+    {
+      "path": "/store/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
+      "sha256": "5e56d3086e8276a6ae52159eea94e6ea643b65821a8f1434dc5ae2c8902c5617"
+    },
+    {
+      "path": "/store/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
+      "sha256": "955cb381122a69de33c940010fb5f9c551bcb175366a7bbdd0cfac76da63b904"
+    },
+    {
+      "path": "/store/chat/status",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/status/route.ts",
+      "sha256": "5543d0db72e470f1a2967368b025fdd6fd90c09b569a5d1ba93aed687392418e"
     },
     {
       "path": "/store/legal/versions",
@@ -1643,42 +1723,6 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
-    },
-    {
-      "path": "/admin/coupon-links/:id",
-      "feature": "qr",
-      "methods": [
-        "GET"
-      ],
-      "source": "backend/src/api/admin/coupon-links/[id]/route.ts",
-      "sha256": "4ad76aa81772a3158d52e6e481cfc76a106c2799779a00f91b2b214d824d4041"
-    },
-    {
-      "path": "/admin/coupon-links/import",
-      "feature": "qr",
-      "methods": [
-        "POST"
-      ],
-      "source": "backend/src/api/admin/coupon-links/import/route.ts",
-      "sha256": "f0e718c133adaaf15bdc05426091606fd8c8c0a89b7c422f3ef48ffcfdf95f78"
-    },
-    {
-      "path": "/admin/coupon-links/:id/qr",
-      "feature": "qr",
-      "methods": [
-        "GET"
-      ],
-      "source": "backend/src/api/admin/coupon-links/[id]/qr/route.ts",
-      "sha256": "e109a4af6b8758ed420bf03f44d38be07a267f82d4aabb6ace714cc473d3d8d7"
-    },
-    {
-      "path": "/admin/coupon-links/:id/deactivate",
-      "feature": "qr",
-      "methods": [
-        "POST"
-      ],
-      "source": "backend/src/api/admin/coupon-links/[id]/deactivate/route.ts",
-      "sha256": "2c39745d25b93091d6a871216499a2166d81966725773c71dd82278a2fc524e1"
     }
   ],
   "native_medusa_version": "2.19.0",
@@ -4441,6 +4485,7 @@
     ]
   },
   "test_sources": [
+    "anastasia-admin/test/browser-library-editor.mjs",
     "backend/integration-tests/http/admin-theme.spec.ts",
     "backend/integration-tests/http/auth-security-http-checks.ts",
     "backend/integration-tests/http/booking-http-checks.ts",
@@ -4460,6 +4505,8 @@
     "backend/integration-tests/http/ops-observability-checks.ts",
     "backend/integration-tests/http/order-email-recovery-http-checks.ts",
     "backend/integration-tests/http/order-self-cancel-http-checks.ts",
+    "backend/integration-tests/http/protected-library-admin-http-checks.ts",
+    "backend/integration-tests/http/qr-registry.spec.ts",
     "backend/integration-tests/http/safeorder-persistence.spec.ts",
     "backend/integration-tests/http/shipping-settings-http-checks.ts",
     "backend/integration-tests/http/stock-availability-http-checks.ts",
@@ -4467,8 +4514,11 @@
     "backend/src/api/__tests__/auth-magic-link-rate.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/links.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
+    "backend/src/api/admin/coupon-links/__tests__/registry.unit.spec.ts",
     "backend/src/api/admin/my-theme/__tests__/theme.unit.spec.ts",
     "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/product-catalogue/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/products/[id]/protected-media/__tests__/library-upload.unit.spec.ts",
     "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/write-audit.unit.spec.ts",
@@ -4478,12 +4528,14 @@
     "backend/src/api/store/nexus-cart/__tests__/nexus-contract.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/ownership.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/pricing-transport.unit.spec.ts",
+    "backend/src/api/store/nexus-checkout/__tests__/digital-guest-checkout.unit.spec.ts",
     "backend/src/api/store/nexus-checkout/__tests__/route-errors.unit.spec.ts",
     "backend/src/api/store/nexus-checkout/__tests__/safeorder.unit.spec.ts",
     "backend/src/lib/__tests__/admin-function-map.unit.spec.ts",
     "backend/src/lib/admin-theme/__tests__/policy.unit.spec.ts",
     "backend/src/lib/carriers/__tests__/policy.unit.spec.ts",
     "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
+    "backend/src/lib/digital-products/__tests__/categories.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
     "backend/src/lib/email/__tests__/send.unit.spec.ts",
@@ -4515,6 +4567,9 @@
     "backend/src/lib/observability/__tests__/log.unit.spec.ts",
     "backend/src/lib/order-self-cancel/__tests__/cancel.unit.spec.ts",
     "backend/src/lib/pages/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/protected-library/__tests__/editor.unit.spec.ts",
+    "backend/src/lib/protected-library/__tests__/storage.unit.spec.ts",
+    "backend/src/lib/protected-library/__tests__/upload.unit.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/policy.unit.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/service.integration.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/service.unit.spec.ts",
@@ -4549,6 +4604,7 @@
     "backend/src/scripts/__tests__/customer-migration.unit.spec.ts",
     "backend/src/scripts/__tests__/db-recovery.unit.spec.ts",
     "backend/src/scripts/__tests__/edge-redirects.unit.spec.ts",
+    "backend/src/scripts/e2e-digital-library.ts",
     "backend/src/workflows/__tests__/booking-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/gift-voucher-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/safeorder-completion.unit.spec.ts",
@@ -4658,11 +4714,7 @@
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
     "nexus/tests/workers/voucherConcurrency.test.ts",
-    "backend/src/lib/protected-library/__tests__/editor.unit.spec.ts",
-    "backend/integration-tests/http/protected-library-admin-http-checks.ts",
-    "anastasia-admin/test/browser-library-editor.mjs",
-    "backend/src/api/admin/coupon-links/__tests__/registry.unit.spec.ts",
-    "backend/integration-tests/http/qr-registry.spec.ts"
+    "storefront-prototype/test/digital-products.test.mjs"
   ],
   "candidate_branch": "codex/admin-theming"
 }

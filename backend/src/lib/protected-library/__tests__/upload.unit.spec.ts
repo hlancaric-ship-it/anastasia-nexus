@@ -67,7 +67,9 @@ describe('Nahrávanie chránených súborov – pravidlá', () => {
     expect(isProtectedKeyShape('reset-40-plus/../tajne.mp4')).toBe(false)
     expect(isProtectedKeyShape('/reset-40-plus/a.mp4')).toBe(false)
     expect(isProtectedKeyShape('reset-40-plus/a/b.mp4')).toBe(false)
-    expect(isProtectedKeyShape('iný-produkt/a.mp4')).toBe(true)
+    // Adresár musí byť ASCII (kľúč sa volí podľa handlu produktu).
+    expect(isProtectedKeyShape('iný-produkt/a.mp4')).toBe(false)
+    expect(isProtectedKeyShape('reset 40 plus/a.mp4')).toBe(false)
   })
 
   it('náhodný suffix má šesť znakov a len bezpečné znaky', () => {
