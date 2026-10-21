@@ -1,10 +1,12 @@
 const mediaOrigin=process.env.ANASTASIA_MEDIA_ORIGIN||'';
 if(mediaOrigin&&(!/^https?:\/\/[a-zA-Z0-9.:-]+$/.test(mediaOrigin)||!(mediaOrigin.startsWith('https://')||/^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?$/.test(mediaOrigin))))throw Error('Invalid media origin');
 import {mkdir,writeFile,readFile,cp} from 'node:fs/promises';
+import {readFileSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
 import {legacyContent,legacyPage} from './src/legacy.mjs';
 import {chrome,homeSections,aboutSections,dcCss,ROOT_STYLE,HELMET_CSS} from './src/dc.mjs';
+import {HOME_CSS} from './src/home-lh.mjs';
 import {api} from './src/lib/api/index.mjs';
 import {createHttpApi} from './src/lib/api/http.mjs';
 import {FEATURED_SLUGS} from './src/lib/api/catalog.mjs';
@@ -68,8 +70,12 @@ const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),ot
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
 const VERSION=Date.now().toString(36);
 const V='?v='+VERSION;
-const BOOT_CSS=`<style>html,body{margin:0;background:#F5F2E8}.dc-root,.legacy-shell{background:#F5F2E8}html:not(.ana-booted) .dc-chrome,html:not(.ana-booted) .lh-say--one,html:not(.ana-booted) .lh-say--two{visibility:hidden}</style>`;
-const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script src="/vendor/gsap.min.js" defer></script><script src="/vendor/ScrollTrigger.min.js" defer></script><script type="module" src="/app.mjs'+V+'"></script><script type="module" src="/motion.mjs'+V+'"></script>';
+const bootCss=(design)=>design?`<style>html,body{margin:0;background:#F5F2E8}.dc-root,.legacy-shell{background:#F5F2E8}html:not(.motion) .lh-say--one,html:not(.motion) .lh-say--two{visibility:hidden}</style>`:`<style>html,body{margin:0;background:#F5F2E8}.dc-root,.legacy-shell{background:#F5F2E8}html:not(.ana-booted) .dc-chrome,html:not(.ana-booted) .lh-say--one,html:not(.ana-booted) .lh-say--two{visibility:hidden}</style>`;
+const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script type="module" src="/boot.mjs'+V+'" async></script>';
+const TOKENS_CSS=readFileSync(join(root,'public','tokens.css'),'utf8');
+// Kritické CSS prvej obrazovky je inline v hlavičke, zvyšok sa doplní neblokujúco (data-late).
+const designCss=()=>`<style>${TOKENS_CSS}${siteThemeCss()}${HELMET_CSS}${HOME_CSS}</style><link rel="stylesheet" href="/base.css${V}" media="print" data-late><link rel="stylesheet" href="/dc.css${V}" media="print" data-late><link rel="stylesheet" href="/product-detail.css${V}" media="print" data-late><noscript><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}"></noscript>`;
+const legacyCss=()=>`<link rel="stylesheet" href="/tokens.css${V}"><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}">`;
 const document=(...args)=>tokenizeColors(renderDocument(...args));
 const renderDocument=(path,{title,body,design})=>{
   const customerLogin=['/prihlasenie','/prihlasenie/potvrdit','/nova-registracia'].includes(path);
@@ -77,7 +83,7 @@ const renderDocument=(path,{title,body,design})=>{
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1"${path==='/o-lucii'?' data-sk-only':''}>${body.replace('%%HEADER%%',c.header)}</main>${c.footer}</div>`
     :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'var(--center-main)':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1" data-sk-only>${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
-  return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="ana-country" content=""><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/tokens.css${V}"><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}"><script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}</head>${BOOT_CSS}<body${design?` class="dc-page${path==='/'?' lh-intro-page':''}"`:path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
+  return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="ana-country" content=""><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="modulepreload" href="/boot.mjs'+V+'"><link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/figtree-latin-ext.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin-italic.woff2" as="font" type="font/woff2" crossorigin>${design?designCss():legacyCss()}<script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}</head>${bootCss(design)}<body${design?` class="dc-page${path==='/'?' lh-intro-page':''}"`:path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
 };
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));await cp(join(root,'src/site-themes.mjs'),join(out,'site-themes.mjs'));
 {

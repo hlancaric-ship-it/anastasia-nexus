@@ -352,7 +352,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .motion .lh-intro__tint{display:block;position:absolute;inset:0;background:rgba(14,20,13,.4)}
 .lh-intro__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,20,13,.5),rgba(14,20,13,.28) 40%,rgba(14,20,13,.8)),radial-gradient(120% 70% at 0% 100%,rgba(14,20,13,.55),transparent 70%)}
 .motion .lh-intro__veil{opacity:0}
-.lh-intro__mask{position:absolute;inset:0;display:none}
+.lh-intro__mask{position:absolute;inset:0;display:block}
 
 .motion .lh-intro__mask{display:block}
 .lh-intro__mask svg{position:absolute;inset:0 var(--lh-gut,16px);width:calc(100% - 2*var(--lh-gut,16px));height:100%;overflow:visible}
@@ -638,7 +638,7 @@ html.lh-mobile-intro .lh-intro__stage{height:100svh!important}
   .lh-say--two p:last-child{margin-left:0}
 }
 @media(max-width:600px){
-  .lh-intro{height:92svh;min-height:560px}
+  .lh-intro{height:100svh;min-height:560px}
   .lh-intro__meta ul{justify-content:center;font-size:11px}
   .lh-card{height:auto;min-height:0;position:relative;padding:clamp(80px,20vw,120px) 0}
   .lh-card__bg{position:absolute;inset:0}
