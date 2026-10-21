@@ -531,9 +531,33 @@ export const GUIDES = [
       'Kým pozvánka čaká, nájdete ju v časti Čakajúce pozvánky. Odkaz tam skopírujete znova, pozvánku obnovíte alebo zrušíte.',
     ],
     careful: [
-      'Každý správca má zatiaľ plný prístup do celej administrácie. Pozývajte len ľudí, ktorým dôverujete.',
+      'Nový správca začína s plnými právami (je vlastník). Ak nepotrebuje meniť ceny, zľavy ani prístupy, prepnite mu v časti Zabezpečenie rolu na Asistent. Pozývajte len ľudí, ktorým dôverujete.',
       'Pozvánka sa sama e-mailom neodošle, odkaz treba poslať.',
       'Odkaz je jednorazový a má obmedzenú platnosť. Pri registrácii treba použiť e-mail, pre ktorý bola pozvánka vytvorená.',
+    ],
+  },
+  {
+    id: 'zabezpecenie', group: 'nastavenia', icon: 'check', href: '#/nastavenia', hrefLabel: 'Otvoriť Nastavenia',
+    title: 'Ako zapnúť dvojfaktorové overenie a spravovať role',
+    summary: 'Prihlasovanie kódom z telefónu a rozdelenie práv medzi správcami.',
+    why: 'Heslo samotné stačí len na chvíľu. S dvojfaktorovým overením sa do administrácie dostane iba ten, kto má telefón s kódom (alebo jeden zo záložných kódov). Role zase hovoria, kto smie meniť ceny a prístupy.',
+    steps: [
+      'V Nastaveniach prepnite hore na Zabezpečenie (vidí ho len vlastník).',
+      'V časti Dvojfaktorové overenie kliknite na Zapnúť dvojfaktorové overenie.',
+      'Naskenujte QR kód v telefóne aplikáciou na overovanie (napr. Google Authenticator, 1Password, Aegis). Ak QR naskenovať neviete, vložte vypísaný tajný kód ručne do aplikácie.',
+      'Vložte šesťmiestny kód, ktorý v aplikácii vidíte, a kliknite na Potvrdiť a zapnúť.',
+      'Záložné kódy, ktoré sa zobrazia raz, si vytlačte alebo stiahnite a odložte na bezpečné miesto.',
+      'V časti Administrátori a ich roly môžete ktorémukoľvek správcovi prepnúť rolu na Asistent. Rolu uložíte tlačidlom Uložiť rolu.',
+    ],
+    after: [
+      'Od najdajšieho prihlásenia pýta administrácia heslo aj kód z aplikácie.',
+      'Ak stratíte telefón, prihlásite sa jedným zo záložných kódov. Nové záložné kódy vygenerujete tlačidlom Vygenerovať nové záložné kódy (staré tým stratia platnosť).',
+      'Vypnutie overenia vyžaduje platný kód z aplikácie – to je dôkaz, že ste naozaj prihlásený.',
+    ],
+    careful: [
+      'Záložné kódy sa zobrazia iba raz. Bez nich sa do administrácie nedostanete, ak prídete o telefón.',
+      'Vlastníka nemožno znížiť na asistenta, ak je posledný. Aby administrácia mala vlastníka vždy, musíte najprv pozvatť ďalšieho.',
+      'Asistent nevidí ceny, zľavy, vernostné úrovne, pridávanie prístupov ani role. Dokonca ani vtedy, keď prejde na takúto stránku priamo – administrácia mu vysvetlí, že prístup nemá.',
     ],
   },
   {
@@ -599,7 +623,7 @@ export const PAGE_HELP = {
   },
   zakaznicky: {
     title: 'Ako fungujú Zákazníci',
-    text: 'Zoznam zákazníčok s registrovaným účtom aj tých, ktoré nakúpili ako hosť. Prepínačom Prístupy a knižnica uvidíte ich digitálne prístupy.',
+    text: 'Zoznam zákazníkov s registrovaným účtom aj tých, ktoré nakúpili ako hosť. Prepínačom Prístupy a knižnica uvidíte ich digitálne prístupy.',
     points: ['V detaile opravíte meno a zaradenie do skupiny.', 'Prístupy sa pridelia automaticky po zaplatení.'],
     guides: ['zakaznicky'],
   },
@@ -629,8 +653,8 @@ export const PAGE_HELP = {
   },
   nastavenia: {
     title: 'Ako fungujú Nastavenia',
-    text: 'Vzhľad administrácie, prehľad dopravy, platieb a skladov a správa používateľov s pozvánkami.',
-    points: ['Doprava a platby sú na prezeranie, zmeny nastaví náš tím.', 'Každý pozvaný správca má plný prístup.'],
-    guides: ['pouzivatelia', 'vzhlad', 'doprava-platby'],
+    text: 'Vzhľad administrácie, prehľad dopravy, platieb a skladov, správa používateľov s pozvánkami a zabezpečenie prístupu.',
+    points: ['Doprava a platby sú na prezeranie, zmeny nastaví náš tím.', 'V časti Zabezpečenie zapnete dvojfaktorové overenie a spravujete role správcov (vlastník a asistent).', 'Asistent nevidí ceny, zľavy, vernostné úrovne, pridávanie prístupov ani role.'],
+    guides: ['pouzivatelia', 'zabezpecenie', 'vzhlad', 'doprava-platby'],
   },
 };

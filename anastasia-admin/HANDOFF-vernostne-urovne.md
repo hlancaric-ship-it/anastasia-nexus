@@ -149,7 +149,7 @@ alebo
 
 Odpoveď: `{ "updated": 2, "results": [ { "customer_id": "cus_1", "tier_code": "ZR3", "tier_name": "Gold", "source": "manual", "locked": true } ] }`
 
-- Max. **200 zákazníčok naraz** (`400`).
+- Max. **200 zákazníkov naraz** (`400`).
 - `400` pri neplatnej úrovni alebo prázdnom zozname.
 
 ---

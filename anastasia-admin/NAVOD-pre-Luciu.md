@@ -16,7 +16,7 @@ Prihlásenie: e-mail a heslo, ktoré dostanete od nás. Po prihlásení sa dosta
 Na začiatku vidíte tri čísla a zoznam úloh:
 
 - **Na vybavenie** – koľko objednávok čaká, kým ich zabalíte a pošlete.
-- **Nové správy** – koľko zákazníčok vás čaká s odpoveďou.
+- **Nové správy** – koľko zákazníkov vás čaká s odpoveďou.
 - **Dnešné konzultácie** – s ktorou máte rezerváciu.
 
 Pod ním je **Pripravenosť obchodu** (zelená = všetko v poriadku) a panely **Tržby**,
@@ -102,7 +102,7 @@ ale nevie si ich stiahnuť.
 
 **Poukazy a zľavy → Kupóny a zľavy → + Nový kupón**:
 
-- **Kód** – napr. `MONTELOPE` (zákaznička ho vloží do košíka).
+- **Kód** – napr. `MONTELOPE` (zákazník ho vloží do košíka).
 - **Typ zľavy** – percentá (%) alebo pevná suma (€).
 - **Zľava platí na** – *Na celý košík* alebo *Len vybrané produkty* (vtedy označíte produkty).
 - **Cena vrátane DPH** – nechajte zapnuté, naše ceny sú s DPH.
@@ -214,10 +214,43 @@ voľné termíny). Rezerváciu môžete zrušiť. V zozname je tlačidlo **Expor
 
 ---
 
-## 11. Kde nájdete pomoc
+## 11. Zabezpečenie prístupu (Nastavenia → Zabezpečenie)
+
+Táto záložka je pre vás (vlastníka) – chráni administráciu aj vašu prácu.
+
+**Dvojfaktorové overenie (kód z telefónu)**
+
+1. V Nastaveniach prepnite hore na **Zabezpečenie**.
+2. Kliknite na **Zapnúť dvojfaktorové overenie**.
+3. Naskenujte QR kód v telefóne aplikáciou na overovanie (napr. Google Authenticator,
+   1Password, Aegis). Ak QR naskenovať neviete, vložte vypísaný tajný kód do aplikácie ručne.
+4. Vložte šesťmiestny kód z aplikácie a kliknite **Potvrdiť a zapnúť**.
+5. Záložné kódy, ktoré sa zobrazia **raz**, si **vytlačte alebo stiahnite** a odložte na
+   bezpečné miesto. Bez nich sa do administrácie nedostanete, ak prídete o telefón.
+
+Od najdajšieho prihlásenia pýta administrácia heslo **aj** kód. Ak stratíte telefón, prihlásite
+sa jedným zo záložných kódov. Nové záložné kódu vygenerujete tlačidlom **Vygenerovať nové
+záložné kódy** (staré tým stratia platnosť). Vypnutie overenia vyžaduje platný kód z aplikácie.
+
+**Role správcov (vlastník / asistent)**
+
+V časti **Administrátori a ich roly** vidíte všetkých správcov a ich rolu:
+
+- **Vlastník** – spravuje celú administráciu: ceny, zľavy, vernostné úrovne, pridávanie
+  prístupov, role a zabezpečenie.
+- **Asistent** – vybavuje objednávky, produkty, zákazníkov, konzultácie, správy a obsah.
+  Ceny, zľavy, vernostné úrovne, pridávanie prístupov a role **nevidí** a nemôže meniť.
+
+Role prepnete v stĺpci Rola a uložíte tlačidlom **Uložiť rolu**. Posledného vlastníka
+nie je možné znížiť na asistenta (inak by administrácia nemala vlastníka) – najprv pozvite
+ďalšieho správcu.
+
+---
+
+## 12. Kde nájdete pomoc
 
 - **„Ako to funguje“** nad nadpisom stránky – krátke vysvetlenie priamo k tej sekcii.
-- **Potrebujete poradiť?** vľavo dole – sprievodca so 16 návodmi (aj prehliadka celej aplikácie).
+- **Potrebujete poradiť?** vľavo dole – sprievodca so 23 návodmi (aj prehliadka celej aplikácie).
 - **Skratky na klávesnici:** `/` hľadanie, `g` + písmeno (napr. `g` + `o` = Objednávky), `?` otvorí nápovedu.
 - **História zmien** (Nastavenia → História zmien) – kto a čo zmenil.
 - **podpora@l-code-dynamics.com** – keď niečo nejde alebo potrebujete poradiť; napíšte, čo ste
@@ -225,7 +258,7 @@ voľné termíny). Rezerváciu môžete zrušiť. V zozname je tlačidlo **Expor
 
 ---
 
-## 12. Čo sa dá a čo nie
+## 13. Čo sa dá a čo nie
 
 | Viete | Nejde (a prečo) |
 |---|---|
