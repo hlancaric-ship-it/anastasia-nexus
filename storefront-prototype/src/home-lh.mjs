@@ -174,7 +174,7 @@ export function homeSections(products = []) {
     </div>
     <h1 class="lh-say lh-say--one" id="lh-ih">
       <span class="lh-display" data-content="home__uvod__0-text">Vitajte.</span>
-      <span class="lh-say__note" data-content="home__uvod__1-rich">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.</span>
+      <span class="lh-say__note" data-content="home__uvod__1-rich">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.</span>
     </h1>
     <div class="lh-say lh-say--two">
       <p class="lh-eyebrow">Zdravý svet</p>
@@ -193,8 +193,8 @@ export function homeSections(products = []) {
 <section class="lh-split lh-split--paper lh-split--wide-text" id="manifest" data-sk-only data-screen-label="02 Manifest">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Vitajte</p>
-    ${duo('Nie ako ponuka riešení.', 'ALE AKO PRIESTOR',{a:'home__manifest__0-text',b:'home__manifest__1-text'})}
-    <p class="lh-lead" data-content="home__manifest__2-rich">Kde veci nemusia byť urýchľované, vysvetľované ani riadené. Priestor pre zdravie, poznanie a vedomý život — bez tlaku a bez zbytočného ruchu.</p>
+    <h2 class="lh-display" data-content="home__manifest__0-text">Priestor pre zdravie, poznanie a vedomý život.</h2>
+    <p class="lh-lead" data-content="home__manifest__2-rich">Kde veci nemusia byť urýchľované, vysvetľované ani riadené.</p>
     <a class="lh-cta" href="/zdravy-svet">Zdravý svet ${arrow}</a>
   </div>
   <div class="lh-split__media">${picture(IMG.sky,"Nočná obloha nad tmavou krajinou",'data-par="8" loading="lazy"')}</div>
@@ -205,7 +205,7 @@ export function homeSections(products = []) {
   <div class="lh-split__media">${picture(IMG.tree,"Strom v krajine",'data-par="9" loading="lazy"')}</div>
   <div class="lh-split__text">
     <p class="lh-eyebrow">Kolekcia</p>
-    ${duo('Vybrané', 'PRE VÁS.',{a:'home__kolekcia__0-text',b:'home__kolekcia__1-text'})}
+    <h2 class="lh-display" data-content="home__kolekcia__0-text">Kolekcia</h2>
     <div class="lh-list">${items.map(p => listRow(p.n, p.name, p.price, `/eshop/produkt/${p.slug}`)).join('')}</div>
     <a class="lh-cta" href="/eshop">Celý obchod ${arrow}</a>
   </div>
@@ -215,8 +215,8 @@ export function homeSections(products = []) {
 <section class="lh-split lh-split--paper lh-split--wide-media" id="program" data-sk-only data-screen-label="04 Program">
   <div class="lh-split__text">
     <p class="lh-eyebrow">Program RESET 40+</p>
-    ${duo('Nová kapitola', 'SA ZAČÍNA VAMI.',{a:'home__program__0-text',b:'home__program__1-text'})}
-    <p class="lh-lead" data-content="home__program__2-rich">Šestnásť tematických týždňov. Jednorazový vzdelávací program vo vlastnom tempe — bez zbytočného zhonu a bez strachu, že niečo zmeškáte.</p>
+    <h2 class="lh-display" data-content="home__program__0-text">AI ANASTASIA Longevity Academy</h2>
+    <p class="lh-lead" data-content="home__program__2-rich">16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
     <a class="lh-cta" href="/eshop/produkt/reset-40-plus">Objaviť RESET 40+ ${arrow}</a>
   </div>
   <div class="lh-split__media">${picture(IMG.hero,"Světlo v lese",'data-par="10" loading="lazy"')}</div>
@@ -232,7 +232,7 @@ export function homeSections(products = []) {
 <section class="lh-reset" id="lh-reset" data-sk-only aria-labelledby="lh-rh">
   <div class="lh-reset__pin">
     <div class="lh-reset__head">
-      <h2 id="lh-rh">${duo('Šestnásť tém.', 'Jeden RESET.')}</h2>
+      <h2 id="lh-rh" class="lh-display" data-content="home__reset__0-text">AI ANASTASIA RESET 40+</h2>
       <div class="lh-reset__buy">
         <span class="lh-reset__price">168 €</span>
         <a class="lh-cta lh-cta--gold" href="/eshop/produkt/reset-40-plus">Začať RESET 40+ ${arrow}</a>
@@ -258,7 +258,7 @@ export function homeSections(products = []) {
     </div>
     <div class="lh-sky__txt">
       <p class="lh-eyebrow">Pod hviezdami · Konzultácia</p>
-      <h2 id="lh-skh">${duo('Čo o vás vie', 'OBLOHA',{a:'home__obloha__0-text'})}</h2>
+      <h2 id="lh-skh" class="lh-display" data-content="home__obloha__0-text">Čo môžeme spolu riešiť?</h2>
       <p>Astrologický profil zdravia a vitality – jedna zo štyroch Luciiných konzultácií.</p>
       <a class="lh-cta lh-cta--gold" href="/eshop/produkt/astrologia-zdravie-predispozicia">Objaviť profil ${arrow}</a>
     </div>
@@ -273,7 +273,7 @@ export function homeSections(products = []) {
   </div>
   <div class="lh-split__text" data-speed="50">
     <p class="lh-eyebrow">Sprevádzanie</p>
-    ${duo('Čo vám', 'VIEME PONÚKNUŤ.')}
+    <h2 class="lh-display" data-content="home__sluzby__0-text">Čo získate?</h2>
     <div class="lh-list">${consults.map(c => listRow(c.n, c.title, c.sub, c.href)).join('')}</div>
     <a class="lh-cta" href="/konzultacie">Všetky konzultácie ${arrow}</a>
   </div>
@@ -283,7 +283,7 @@ export function homeSections(products = []) {
   const stack = `
 <section class="lh-stack" id="lh-stack" data-sk-only data-screen-label="07 Svet ANASTASIA">
   <div class="lh-stack__head">
-    ${duo('Štyri cesty', 'SVET ANASTASIA.')}
+    <h2 class="lh-display" data-content="home__svet__0-text">Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.</h2>
     <p>Jedna filozofia, štyri podoby. Od krému miešaného na mieru po šestnásťtýždňový program.</p>
   </div>
   <div class="lh-stack__items">
@@ -303,8 +303,8 @@ export function homeSections(products = []) {
   const contact = `
 <section class="lh-contact" data-sk-only data-screen-label="08 Kontakt">
   <p class="lh-eyebrow">Kontakt</p>
-  ${duo('Potrebujete', 'POMOC?',{a:'home__kontakt__0-text',b:'home__kontakt__1-text'})}
-  <p class="lh-lead lh-lead--center" data-content="home__kontakt__2-rich">Či už viete, čo hľadáte, alebo práve neviete, odkiaľ začať — napíšte nám. Ozveme sa osobne.</p>
+  <h2 class="lh-display" data-content="home__kontakt__0-text">Kontakt</h2>
+  <p class="lh-lead lh-lead--center" data-content="home__kontakt__2-rich">Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás.</p>
   <a class="lh-cta" href="/kontakt">Napíšte nám ${arrow}</a>
 </section>`;
 

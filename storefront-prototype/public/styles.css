@@ -324,3 +324,11 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .voucher-preview__code b{font-size:15px;font-weight:400;letter-spacing:.16em;color:#1E281C}
 .voucher-preview__valid{margin:0;font-size:11px;color:#69705e}
 @media (max-width:860px){.voucher-layout{grid-template-columns:1fr}}
+
+/* r10 texty: nadpisy 1:1 podľa pôvodného webu, čitateľnosť a zarovnanie. */
+.lh-cta--gold,.dc-root .button.light,.dc-root .button[style*="C9A355"],.dc-root a[style*="background:#C9A355"]{color:var(--site-dark,#1E281C)!important}
+/* Skupiny v mobilnom menu začínajú na tej istej ľavej hrane. */
+#dc-side-menu span[style*="font-size:25px"],#dc-side-menu a[style*="font-size:25px"],#dc-top-menu span[style*="font-size:25px"],#dc-top-menu a[style*="font-size:25px"]{margin-left:0!important;padding-left:0!important;display:block!important}
+/* Pätička: každý stĺpec má rovnakú šírku a odkazy pod sebou (jedna kolónka). */
+.dc-root footer>div:last-of-type>div{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important;gap:24px clamp(24px,4vw,64px)!important;align-items:start!important}
+.dc-root footer>div:last-of-type>div>div{display:flex!important;flex-direction:column!important;gap:14px!important}
