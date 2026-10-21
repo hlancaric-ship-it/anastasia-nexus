@@ -8,6 +8,7 @@
  * Dizajn (layout, farby, písmo) sem nepatrí – to je pevne dané v storefronte.
  */
 import seedJson from './seed.json'
+import { sanitizeRichText } from '../html/sanitize'
 
 export type ContentFieldType = 'text' | 'rich' | 'image' | 'video' | 'link'
 
@@ -58,6 +59,13 @@ const seed = seedJson as unknown as { pages: Array<{ key: string; title: string;
 
 export const CONTENT_LANGS = ['sk', 'en', 'ru'] as const
 export const CONTENT_MAX_HISTORY = 20
+/** Revízia poľa, ktoré ešte nikto nemenil (pôvodné znenie zo seeda). */
+export const CONTENT_FALLBACK_REVISION = 'seed'
+
+/** Revízia poľa: čas poslednej zmeny, inak značka pôvodného znenia. */
+export function contentRevision(updatedAt?: string | null): string {
+  return updatedAt && String(updatedAt).length ? String(updatedAt) : CONTENT_FALLBACK_REVISION
+}
 
 /** Všetky stránky zo seeda (bez zmien). */
 export function seedPages(): ContentPage[] {
@@ -115,6 +123,11 @@ export function validateFieldValue(field: ContentField, value: unknown): { ok: t
   }
   if (field.type === 'video' && text && !/^(https?:\/\/|\/)/i.test(text.trim())) {
     return { ok: false, message: 'Adresa videa musí začínať na https:// alebo /.' }
+  }
+  if (field.type === 'rich') {
+    // Rich text sa pri zápise vyčistí: len povolené značky, žiadne skripty,
+    // obsluhy udalostí ani cudzie schémy v odkazoch.
+    return { ok: true, value: sanitizeRichText(text) }
   }
   return { ok: true, value: text }
 }

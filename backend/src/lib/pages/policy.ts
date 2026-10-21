@@ -5,6 +5,7 @@
  * sanitizuje: povolené sú len tagy, ktoré editor podporuje, a pri odkazoch len bezpečné schémy.
  */
 import { PAGE_DEFAULTS } from './defaults'
+import { sanitizeRichText } from '../html/sanitize'
 
 export const PAGE_SLUGS = Object.keys(PAGE_DEFAULTS)
 
@@ -25,7 +26,7 @@ export const PAGE_MAX_HTML = 60000
 export const PAGE_MAX_TEXT = 20000
 
 const DESCRIPTIONS: Record<string, string> = {
-  vop: 'Podmienky, ktorými sa riadi predaj v obchode. Znenie schvaľuje majiteľka obchodu.',
+  vop: 'Podmienky, ktorými sa riadi predaj v obchode. Znenie schvaľuje majiteľ obchodu.',
   reklamacie: 'Ako uplatniť reklamáciu alebo odstúpenie od zmluvy, vrátenie peňazí a záruka.',
   kontakt: 'Prevádzkovateľ, adresa, IČO, e-mail a telefón. Údaje z tu sa zobrazujú v patičke aj na kontaktnej stránke.',
   gdpr: 'Ako spracúvame osobné údaje zákazníčiek a aké práva máte.',
@@ -53,25 +54,12 @@ export function pageDefault(slug: string): { label: string; html: string } | nul
   return found ? { label: found.label, html: found.html } : null
 }
 
-const ALLOWED_TAGS = new Set(['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'ul', 'ol', 'li', 'a', 'blockquote', 'h2', 'h3', 'span', 'div', 'hr'])
-
-/** Vyčistí HTML: odstráni skripty, nedovolené tagy a všetky atribúty okrem bezpečného href. */
+/**
+ * Vyčistí HTML: odstráni skripty, nedovolené značky, obsluhy udalostí a nebezpečné schémy
+ * v odkazoch. Zdieľaná sanitizácia (aj pre polia v obsahu webu) je v `lib/html/sanitize`.
+ */
 export function sanitizePageHtml(value: unknown): string {
-  const raw = String(value ?? '')
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(script|style|iframe|object|embed|form)[\s\S]*?<\/\1>/gi, '')
-    .replace(/<(script|style|iframe|object|embed|form)[^>]*>/gi, '')
-  return raw.replace(/<\/?([a-z0-9]+)([^>]*)>/gi, (match, tag: string, attrs: string) => {
-    const name = tag.toLowerCase()
-    if (!ALLOWED_TAGS.has(name)) return ''
-    if (match.startsWith('</')) return `</${name}>`
-    if (name === 'a') {
-      const href = /href\s*=\s*["']([^"']*)["']/i.exec(attrs)?.[1] ?? ''
-      if (!/^(https?:\/\/|mailto:|\/)/i.test(href)) return '<a>'
-      return `<a href="${href.replace(/"/g, '&quot;')}" rel="noopener">`
-    }
-    return `<${name}>`
-  }).replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim()
+  return sanitizeRichText(value)
 }
 
 /** Validácia zadania: vracia chybu alebo očistené HTML. */

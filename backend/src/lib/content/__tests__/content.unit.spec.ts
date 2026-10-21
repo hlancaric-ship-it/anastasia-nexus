@@ -1,4 +1,4 @@
-import { CONTENT_MAX_HISTORY, findSeedField, mergeContent, seedPage, seedPages, validateFieldValue } from '../policy'
+import { CONTENT_MAX_HISTORY, contentRevision, findSeedField, mergeContent, seedPage, seedPages, validateFieldValue } from '../policy'
 import { applyFieldChange, readContentOverrides, writeContentOverrides } from '../store'
 
 describe('Obsah webu – seed a model', () => {
@@ -49,6 +49,23 @@ describe('Obsah webu – validácia hodnôt', () => {
     const image = { ...long, type: 'image' as const }
     expect(validateFieldValue(image, '/media/a.jpg').ok).toBe(true)
     expect(validateFieldValue(image, 'data:image/svg+xml;base64,xxx').ok).toBe(false)
+  })
+
+  it('vyčistí rich text pri validácii', () => {
+    const rich = { ...long, type: 'rich' as const }
+    const result = validateFieldValue(rich, '<p onclick="x()">ok</p><script>alert(1)</script><a href="javascript:alert(1)">odkaz</a>')
+    expect(result.ok).toBe(true)
+    expect(result.ok && result.value).toBe('<p>ok</p><a>odkaz</a>')
+    const plain = validateFieldValue(rich, 'Obyčajný text')
+    expect(plain.ok && plain.value).toBe('Obyčajný text')
+  })
+})
+
+describe('Obsah webu – revízia bloku', () => {
+  it('pôvodný obsah má značku revízie, zmenený obsah čas zmeny', () => {
+    expect(contentRevision(null)).toBe('seed')
+    expect(contentRevision('')).toBe('seed')
+    expect(contentRevision('2026-10-21T10:00:00.000Z')).toBe('2026-10-21T10:00:00.000Z')
   })
 })
 
