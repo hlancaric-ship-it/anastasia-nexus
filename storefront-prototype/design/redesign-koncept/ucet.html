@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zákaznícky účet — KONCEPT redesignu</title>
+<meta name="description" content="KONCEPT: zákaznícky účet vrátane zóny RESET 40+ a Zrkadielka. Bez vymýšľaných textov.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=Figtree:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="koncept.css">
+</head>
+<body class="k-solid-header">
+
+<aside class="k-rail" aria-label="Bočná navigácia">
+  <a class="k-rail__mark" href="index.html">ANASTASIA</a>
+  <a href="index.html#kategorie">Menu</a>
+  <a href="index.html#kontakt">Kontakt</a>
+</aside>
+
+<header class="k-head is-solid">
+  <a class="k-head__logo" href="index.html">
+    <img src="../../public/assets/lucia-logo.png" alt="ANASTASIA OZ — Light for the Future" width="38" height="38">
+    <span class="k-head__word">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+  </a>
+  <nav class="k-nav" aria-label="Hlavná navigácia">
+    <a href="index.html#manifest">Zdravý svet</a>
+    <a href="index.html#programy">Programy</a>
+    <a href="index.html#kategorie">Kategórie</a>
+    <a href="ucet.html">Môj účet</a>
+  </nav>
+  <a class="k-cart" href="#">Košík (0)</a>
+  <button class="k-burger" type="button" aria-label="Menu" aria-expanded="false" data-menu-open><i></i></button>
+</header>
+
+<div class="k-menu" id="k-menu">
+  <div class="k-menu__head">
+    <span class="k-head__word">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+    <button class="k-menu__close" type="button" data-close aria-label="Zavrieť">✕</button>
+  </div>
+  <ul>
+    <li><a href="index.html#manifest">Zdravý svet</a></li>
+    <li><a href="index.html#programy">Programy</a></li>
+    <li><a href="index.html#kategorie">Kategórie</a></li>
+    <li><a href="ucet.html">Môj účet</a></li>
+    <li><a href="paleta.html">Paleta a typografia</a></li>
+  </ul>
+</div>
+
+<main class="k-account">
+  <div class="k-account__grid">
+
+    <!-- Bočná lišta účtu: odlišená len odtieňom pastelovej palety (žiadne bordó). -->
+    <aside class="k-account__side">
+      <h2>Môj účet</h2>
+      <ul class="k-account__tabs">
+        <li><button type="button" data-account-tab="prehlad">Prehľad</button></li>
+        <li><button type="button" data-account-tab="programy">Moje programy</button></li>
+        <li><button type="button" data-account-tab="reset">RESET 40+</button></li>
+        <li><button type="button" data-account-tab="konzultacie">Konzultácie</button></li>
+        <li><button type="button" data-account-tab="objednavky">Objednávky</button></li>
+        <li><button type="button" data-account-tab="materialy">Materiály</button></li>
+        <li><button type="button" data-account-tab="profil">Môj profil</button></li>
+      </ul>
+    </aside>
+
+    <div>
+      <!-- Prehľad -->
+      <section class="k-panel" data-account-panel="prehlad">
+        <p class="k-eyebrow">Môj svet</p>
+        <h1>Vitajte vo svojom priestore.</h1>
+        <p class="k-lead k-lead--account">Všetko vaše na jednom mieste. Programy, konzultácie, objednávky a správy.</p>
+        <div class="k-grid">
+          <article class="k-card k-card--les">
+            <span class="k-card__tag">Pokračovať · RESET 40+</span>
+            <h3>AI ANASTASIA RESET 40+</h3>
+            <p>16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
+          </article>
+          <article class="k-card k-card--lavanda">
+            <span class="k-card__tag">Konzultácie</span>
+            <h3>Konzultácie</h3>
+            <p>Online zdravotná konzultácia, Supervízia, Astrologický profil.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Moje programy -->
+      <section class="k-panel" data-account-panel="programy" hidden>
+        <h1>Moje programy.</h1>
+        <p class="k-lead k-lead--account">Vaše zakúpené programy a nahrávky</p>
+        <div class="k-grid">
+          <article class="k-card k-card--les">
+            <span class="k-card__tag">RESET 40+</span>
+            <h3>AI ANASTASIA RESET 40+</h3>
+            <p>16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
+          </article>
+          <article class="k-card">
+            <span class="k-card__tag">Academy</span>
+            <h3>AI ANASTASIA Longevity Academy</h3>
+            <p>16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- RESET 40+ + Zrkadielko -->
+      <section class="k-panel" data-account-panel="reset" hidden>
+        <p class="k-eyebrow">RESET 40+</p>
+        <h1>RESET 40+.</h1>
+        <p class="k-lead k-lead--account">Vlastný program, týždne a Zrkadielko</p>
+
+        <div class="k-subsection">
+          <h2>Vstupný dotazník</h2>
+          <div class="k-notice">
+            <p>Vyplňte prosím vstupný dotazník.</p>
+            <a class="k-btn k-btn--solid" href="#">Otvoriť vstupný dotazník</a>
+          </div>
+        </div>
+
+        <div class="k-subsection">
+          <h2>Týždne</h2>
+          <ul class="k-weeks">
+            <li><details><summary><span>Týždeň číslo 1</span><em>Obsah pripravujeme.</em></summary><p class="k-preparing">Obsah pripravujeme.</p></details></li>
+            <li><details><summary><span>Týždeň číslo 2</span><em>Obsah pripravujeme.</em></summary><p class="k-preparing">Obsah pripravujeme.</p></details></li>
+            <li><details><summary><span>Týždeň číslo 3</span><em>Obsah pripravujeme.</em></summary><p class="k-preparing">Obsah pripravujeme.</p></details></li>
+            <li><details><summary><span>Týždeň číslo 4</span><em>Obsah pripravujeme.</em></summary><p class="k-preparing">Obsah pripravujeme.</p></details></li>
+          </ul>
+          <p class="k-preparing" style="padding:14px 0 0">Obsah pripravujeme.</p>
+        </div>
+
+        <div class="k-subsection">
+          <h2>Zrkadielko</h2>
+          <div class="k-empty">
+            <p>Zrkadielko zatiaľ nemá záznamy.</p>
+            <p>Pridajte prvý záznam a uvidíte, ako sa vaše dni menia.</p>
+          </div>
+          <table class="k-table">
+            <caption class="k-visually-hidden">Záznamy Zrkadielka</caption>
+            <thead>
+              <tr><th scope="col">Dátum</th><th scope="col">Týždeň</th><th scope="col">Energia</th><th scope="col">Spánok</th><th scope="col">Stres</th><th scope="col">Akcie</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Dátum">12. 10. 2026</td>
+                <td data-label="Týždeň">3</td>
+                <td data-label="Energia">7</td>
+                <td data-label="Spánok">5</td>
+                <td data-label="Stres">4</td>
+                <td data-label="Akcie">Upraviť · Zmazať</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="k-subsection">
+            <h3>Pridať záznam</h3>
+            <form class="k-panel" style="background:var(--krem-2)">
+              <div class="k-grid" style="margin-top:0">
+                <label>Dátum<br><input type="date" value="2026-10-12"></label>
+                <label>Týždeň<br><input type="number" min="1" max="16" value="3"></label>
+              </div>
+              <div class="k-grid">
+                <div>
+                  <p class="k-card__tag">Energia</p>
+                  <div class="k-scale" data-metric="energia"><input type="hidden" value="7">
+                    <button type="button" data-value="1">1</button><button type="button" data-value="2">2</button><button type="button" data-value="3">3</button><button type="button" data-value="4">4</button><button type="button" data-value="5">5</button><button type="button" data-value="6">6</button><button type="button" data-value="7" aria-pressed="true">7</button><button type="button" data-value="8">8</button><button type="button" data-value="9">9</button><button type="button" data-value="10">10</button>
+                  </div>
+                </div>
+                <div>
+                  <p class="k-card__tag">Spánok</p>
+                  <div class="k-scale" data-metric="spanok"><input type="hidden" value="">
+                    <button type="button" data-value="1">1</button><button type="button" data-value="2">2</button><button type="button" data-value="3">3</button><button type="button" data-value="4">4</button><button type="button" data-value="5">5</button><button type="button" data-value="6">6</button><button type="button" data-value="7">7</button><button type="button" data-value="8">8</button><button type="button" data-value="9">9</button><button type="button" data-value="10">10</button>
+                  </div>
+                </div>
+              </div>
+              <div class="k-buttons"><button class="k-btn k-btn--solid" type="button">Pridať záznam</button></div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Konzultácie -->
+      <section class="k-panel" data-account-panel="konzultacie" hidden>
+        <h1>Konzultácie.</h1>
+        <div class="k-grid">
+          <article class="k-card k-card--mata"><span class="k-card__tag">Konzultácia</span><h3>Online zdravotná konzultácia</h3></article>
+          <article class="k-card"><span class="k-card__tag">Konzultácia</span><h3>Supervízia</h3></article>
+          <article class="k-card k-card--lavanda"><span class="k-card__tag">Konzultácia</span><h3>Astrologický profil</h3></article>
+        </div>
+      </section>
+
+      <!-- Objednávky -->
+      <section class="k-panel" data-account-panel="objednavky" hidden>
+        <h1>Objednávky.</h1>
+        <table class="k-table">
+          <thead><tr><th scope="col">Číslo</th><th scope="col">Dátum</th><th scope="col">Produkt</th><th scope="col">Stav</th></tr></thead>
+          <tbody><tr><td data-label="Číslo">2026-0142</td><td data-label="Dátum">12. 10. 2026</td><td data-label="Produkt">RESET 40+</td><td data-label="Stav">Doručená</td></tr></tbody>
+        </table>
+      </section>
+
+      <!-- Materiály -->
+      <section class="k-panel" data-account-panel="materialy" hidden>
+        <h1>Materiály.</h1>
+        <p class="k-lead k-lead--account">Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.</p>
+        <div class="k-grid">
+          <article class="k-card"><span class="k-card__tag">Programy</span><h3>AI ANASTASIA Longevity Academy</h3></article>
+          <article class="k-card k-card--mata"><span class="k-card__tag">Konzultácie</span><h3>Konzultácie</h3></article>
+        </div>
+      </section>
+
+      <!-- Profil -->
+      <section class="k-panel" data-account-panel="profil" hidden>
+        <h1>Môj profil.</h1>
+        <div class="k-grid">
+          <div class="k-card">
+            <span class="k-card__tag">Osobné údaje</span>
+            <h3>Meno a kontakt</h3>
+          </div>
+          <div class="k-card k-card--mata">
+            <span class="k-card__tag">Farba priestoru</span>
+            <h3>Prispôsobte si svoj priestor</h3>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script src="koncept.js"></script>
+</body>
+</html>

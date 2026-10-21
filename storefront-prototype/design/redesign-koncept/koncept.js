@@ -10,7 +10,7 @@
   const rail = doc.querySelector('.k-rail');
   const onScroll = () => {
     const y = window.scrollY;
-    if (head) head.classList.toggle('is-solid', y > 40);
+    if (head && !document.body.classList.contains('k-solid-header')) head.classList.toggle('is-solid', y > 40);
     if (rail) rail.classList.toggle('is-on', y > 220);
   };
   onScroll();
