@@ -58,7 +58,7 @@ test('dictionary is complete for all three languages', () => {
   for (const lang of LANGS) assert.ok(SK_ONLY_NOTE[lang], `missing note for ${lang}`);
 });
 
-test('the language is Slovak unless the visitor switches it manually', () => {
+test('the language is picked in the agreed order', () => {
   const globals = globalThis;
   const original = {localStorage: globals.localStorage, navigator: globals.navigator, document: globals.document};
   const withEnv = ({stored = null, languages = [], country = null}, fn) => {
@@ -72,16 +72,25 @@ test('the language is Slovak unless the visitor switches it manually', () => {
       globals.document = original.document;
     }
   };
-  // Výchozí jazyk je vždy SK – jazyk prohlížeče ani země nerozhodují.
-  withEnv({languages: ['de-DE'], country: 'RU'}, () => assert.equal(detectLang(), 'sk'));
-  withEnv({languages: ['ru-RU'], country: 'SK'}, () => assert.equal(detectLang(), 'sk'));
-  withEnv({languages: ['en-US'], country: 'US'}, () => assert.equal(detectLang(), 'sk'));
-  // Ruční volba má přednost a přežije reload.
-  withEnv({stored: 'en', languages: ['sk-SK'], country: 'SK'}, () => assert.equal(detectLang(), 'en'));
+  // 1) ruční volba má vždy přednost
   withEnv({stored: 'ru', languages: ['sk-SK'], country: 'SK'}, () => assert.equal(detectLang(), 'ru'));
-  // Pomocné funkce zůstávají, ale jazyk se jimi už neurčuje.
+  // 2) jazyk prohlížeče
+  withEnv({languages: ['sk-SK', 'en'], country: 'RU'}, () => assert.equal(detectLang(), 'sk'));
+  withEnv({languages: ['cs'], country: 'RU'}, () => assert.equal(detectLang(), 'sk'));
+  withEnv({languages: ['ru-RU'], country: 'SK'}, () => assert.equal(detectLang(), 'ru'));
+  withEnv({languages: ['uk-UA'], country: 'SK'}, () => assert.equal(detectLang(), 'ru'));
+  // 3) poloha, když prohlížeč neurčí sk/cs ani ru/uk/be
+  withEnv({languages: ['de-DE'], country: 'SK'}, () => assert.equal(detectLang(), 'sk'));
+  withEnv({languages: ['de-DE'], country: 'CZ'}, () => assert.equal(detectLang(), 'sk'));
+  withEnv({languages: ['de-DE'], country: 'RU'}, () => assert.equal(detectLang(), 'ru'));
+  withEnv({languages: ['de-DE'], country: 'KZ'}, () => assert.equal(detectLang(), 'ru'));
+  withEnv({languages: ['de-DE'], country: 'DE'}, () => assert.equal(detectLang(), 'en'));
+  // 4) fallback
+  withEnv({languages: [], country: null}, () => assert.equal(detectLang(), 'sk'));
+  // Pomocné funkce
   withEnv({languages: ['fr'], country: null}, () => assert.equal(browserLang(), null));
   withEnv({languages: [], country: 'BY'}, () => assert.equal(countryLang(), 'ru'));
+  withEnv({languages: [], country: null}, () => assert.equal(countryLang(), null));
   withEnv({stored: 'en', languages: [], country: null}, () => assert.equal(storedLang(), 'en'));
 });
 

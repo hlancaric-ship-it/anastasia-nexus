@@ -177,10 +177,8 @@ export function countryLang() {
   return 'en';
 }
 
-// Výchozí jazyk je vždy SK. Detekce podle prohlížeče a země je zrušená,
-// EN/RU se zapínají až ručním přepnutím (a do té doby jsou přepínače vypnuté).
 export function detectLang() {
-  return storedLang() || 'sk';
+  return storedLang() || browserLang() || countryLang() || 'sk';
 }
 
 export function getLang() {
@@ -294,16 +292,13 @@ function switchCode(el) {
 export function init() {
   try {
     for (const el of switchEls()) {
+      el.style.cursor = 'pointer';
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.removeAttribute('disabled');
+      el.removeAttribute('aria-disabled');
       const code = switchCode(el);
-      if (code !== 'SK') {
-        // EN/RU čekají na schválení překladů – přepínač zatím nefunguje.
-        el.title = { EN: 'Angličtina — až po schválení překladů', RU: 'Ruština — až po schválení překladů' }[code] || el.title;
-        el.setAttribute('aria-disabled', 'true');
-        continue;
-      }
-      el.style.cursor = 'default';
-      el.setAttribute('aria-current', 'true');
-      el.title = 'Slovenčina';
+      el.title = { SK: 'Slovenčina', EN: 'English', RU: 'Русский' }[code] || el.title;
       el.dataset.i18nSwitch = '1';
       const go = (e) => { e.preventDefault(); setLang(code.toLowerCase()); };
       el.addEventListener('click', go);
