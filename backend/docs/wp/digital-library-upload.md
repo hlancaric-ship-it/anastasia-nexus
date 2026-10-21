@@ -6,7 +6,7 @@
 ## Čo je hotové
 
 Lucia si teraz v administrácii založí digitálny produkt, nahrá mu súbory a všetko sa samo
-prepojí: súbor sa uloží do súkromného úložiška, pripojí sa k produktu, zákazníčka s prístupom
+prepojí: súbor sa uloží do súkromného úložiška, pripojí sa k produktu, zákazník s prístupom
 ho uvidí v Knižnici a prehrá ho cez podepsaný krátkodobý odkaz.
 
 ### Backend (nové a zmenené routy)
@@ -36,7 +36,7 @@ Nové súbory v jadre:
   Do prehliadača odchádza iba presigned URL na jediný kľúč.
 - **Kľúč sa viaže na vlastný produkt**: tvar `<handle-produktu>/<slug-názvu>-<random6>.<ext>`,
   bez ďalšej úrovne. Cudzí kľúč sa k produktu nepripojí ani neodpojí.
-- **Zákazníčka nedostane priamu adresu R2.** Prehrávanie ide cez existujúci doručovací worker
+- **Zákazník nedostane priamu adresu R2.** Prehrávanie ide cez existujúci doručovací worker
   (`/v1/<kľúč>?t=<token>`) s vodoznakom; prehliadač má `controlsList="nodownload"` a žiadne
   tlačidlo na stiahnutie. Dokument (PDF) sa otvára v náhlade prehliadača.
 - **Odpojenie nezmaže objekt** v úložisku – to je samostatná, schválená operácia.
@@ -46,11 +46,11 @@ Nové súbory v jadre:
 - Záložka **Zakúpený obsah**: pretiahnutie súboru alebo výber zo zariadenia, **priebeh nahrávania**
   (XHR `upload.onprogress`), automatický názov zo súboru, náhled druhu obsahu (video / nahrávka /
   dokument), odoberanie a zoradenie. Texty sú slovenské a zamerané na Luciu.
-- Pri odoberaní súboru sa kontroluje, či produkt už kúpila zákazníčka; vtedy si potvrdenie
-  výslovne pýta a povedie, koľko zákazníčiek prístup stratí.
+- Pri odoberaní súboru sa kontroluje, či produkt už kúpil zákazník; vtedy si potvrdenie
+  výslovne pýta a povedie, koľko zákazníkov prístup stratí.
 - **Nový digitálny produkt** sa po založení otvorí priamo na záložke Zakúpený obsah s výzvou
   nahrať súbory.
-- **Zverejnenie digitálneho produktu bez súborov je zablokované** (zákazníčka by zaplatila
+- **Zverejnenie digitálneho produktu bez súborov je zablokované** (zákazník by zaplatil
   a nedostala by nič). Ak sa register nedá načítať, zablokovanie sa neaplikuje.
 - Zoznam produktov má filter **Fyzické / Digitálne** a stĺpec Typ.
 
@@ -60,8 +60,8 @@ Nové súbory v jadre:
   kategórie – rovnaké pravidlo používa pokladňa aj udelenie prístupu.
 - Filter **Fyzické / Digitálne** a zoskupenie digitálnych produktov do skupín
   (ACADEMY kurzy, Audio a meditácie, E-knihy a dokumenty, Konzultácie).
-- **Digitálny produkt môže kúpiť len prihlásená zákazníčka.** Ak je v košíku digitálny produkt
-  a zákazníčka nie je prihlásená, pokladňa ju vyzve, aby sa prihlásila alebo si založila účet.
+- **Digitálny produkt môže kúpiť len prihlásený zákazník.** Ak je v košíku digitálny produkt
+  a zákazník nie je prihlásený, pokladňa ho vyzve, aby sa prihlásil alebo si založil účet.
   Server to overuje aj bez UI: `POST /store/nexus-checkout` vráti bez zákazníckej session `401`.
 
 ### Návrh kategórií digitálnych produktov
@@ -117,10 +117,10 @@ DATABASE_URL=postgres://localhost/anastasia_dev_wave1 npx medusa exec ./src/scri
 ```
 
 Skript založí testovací digitálny produkt, nahrá malý MP3 cez presigned URL do náhradného S3
-(lokálny server v skripte – žiadny R2 účet sa nechýba), pripojí súbor, udeľí zákazníčke prístup,
+(lokálny server v skripte – žiadny R2 účet sa nechýba), pripojí súbor, udeľí zákazníkovi prístup,
 overí register v Knižnici, podepsaný odkaz s vodoznakom, odmietnutie cudzieho kľúča a **to, že
 pôvodných 17 kľúčov Reset 40+ ani ich poradie sa nezmenia**. Na konci testovací produkt
-deaktivuje a zákazníčku s prístupom odstráni.
+deaktivuje a zákazníkovi s prístupom odstráni.
 
 ## Čo treba dorobiť pred produkciou
 

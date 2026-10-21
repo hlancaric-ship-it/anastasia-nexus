@@ -33,7 +33,7 @@ Nové UI používá stejné backendové entity a workflows, nevytváří paralel
 |---|---|---|---|
 | Objednávky | Medusa objednávky/platby/fulfillment | NOT_IMPLEMENTED | Nový seznam/detail a související rezervace, nároky, poukazy a odstoupení |
 | Katalóg | Medusa produkty/varianty/kategorie/ceny/sklad | NOT_IMPLEMENTED | Nové formuláře; digitální obsah bez ruční editace JSON |
-| Zákazníčky | Medusa zákazníci/skupiny + notes API | NOT_IMPLEMENTED | Nový přehled/detail, historie a poznámky |
+| Zákazníci | Medusa zákazníci/skupiny + notes API | NOT_IMPLEMENTED | Nový přehled/detail, historie a poznámky |
 | Rezervácie → Prehľad | Booking list/cancel API | NOT_IMPLEMENTED | Nový přehled a potvrzené storno |
 | Rezervácie → Typy konzultácií | Booking types API; stará stránka jen reference | NOT_IMPLEMENTED | Nový editor názvu, délky, pauzy, ceny a formy |
 | Rezervácie → Voľné termíny | Availability API; stará stránka jen reference | NOT_IMPLEMENTED | Nový týdenní kalendář s obsazeností a kopírováním |
@@ -55,7 +55,7 @@ Přehled NEXUS domén neznamená, že pro ně ANASTASIA má objednané či zapoj
 
 ## 2. Co musí umět jednotlivé agendy
 
-### Objednávky, zákazníčky a katalog
+### Objednávky, zákazníci a katalog
 
 Postavit nové seznamy a detaily nad nativními Medusa API. Ceny, slevy, DPH, dopravu, dostupný kredit i finální stav platby
 zobrazovat ze serveru; žádná nová klientská cenotvorba nebo přepínač „zaplaceno“.

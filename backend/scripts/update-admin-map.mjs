@@ -91,7 +91,7 @@ if (existingLoyalty) {
   map.features.push({
     id: loyalty.id, label_sk: 'Vernostné úrovne', delivery_lane: 'NEXT', backend_layer: 'custom',
     backend_status: 'IMPLEMENTED_UNVERIFIED', new_admin_status: 'NOT_IMPLEMENTED',
-    request: 'Lucia si sama nastaví zľavy a prahy věrnostných úrovní a ručne priradí zákazníčku k úrovni.',
+    request: 'Lucia si sama nastaví zľavy a prahy věrnostných úrovní a ručne priradí zákazníka k úrovni.',
     sources: loyalty.sources, remaining: loyalty.remaining, acceptance: loyalty.acceptance,
   })
 }

@@ -1,4 +1,4 @@
-# Vernostné úrovne: politika v DB, zaradenie zákazníčiek a zľava na serveri
+# Vernostné úrovne: politika v DB, zaradenie zákazníkov a zľava na serveri
 
 **Balík:** vernostné úrovne (Bronze/Silver/Gold/VIP = ZR1–ZR4) včetně administrácie
 a automatického priradenia podľa útraty.
@@ -6,9 +6,9 @@ a automatického priradenia podľa útraty.
 
 ## Čo je hotové
 
-Zákazníčka má vernostnú úroveň a zľava sa počíta výhradne na serveri. Lucia si úrovne,
+Zákazník má vernostnú úroveň a zľava sa počíta výhradne na serveri. Lucia si úrovne,
 zľavy a prahy nastaví v administrácii (backend je pripravený, UI robí paralelná session
-admin MiniMax podľa handoffu) a zákazníčku môže ručne priradiť k úrovni; automatické
+admin MiniMax podľa handoffu) a zákazníka môže ručne priradiť k úrovni; automatické
 priradenie podľa celkovej zaplatené útraty beží po každej zaplatenej objednávke.
 
 ### Úložisko politiky a zaradenia
@@ -16,8 +16,8 @@ priradenie podľa celkovej zaplatené útraty beží po každej zaplatenej objed
 | Vec | Kde | Prečo |
 |---|---|---|
 | Politika (úroveň, zľava 0–50 %, prah útraty, zapnutie) | `store.metadata.loyalty_policy` (nastavenia obchodu) | vzor dopravcov – bez nového modulu a migrácie; pred launchom prázdna (0 %) |
-| Úroveň zákazníčky | jej skupina (`Bronze`…`VIP` majú `metadata.nexus_tier` = ZR1…ZR4) | rovnako ju číta cenový adapter (`resolveCustomerTier`) – zľava v košíku sa prepojí bez zásahu do cenového kódu |
-| Ručný zámok | samostatná skupina `Věrnost – ruční zámok` | zákazníčka si ju neprepíše (store API neumožňuje meniť skupiny ani si zapisovať metadáta) a automatika ju neprepiše |
+| Úroveň zákazníci | jej skupina (`Bronze`…`VIP` majú `metadata.nexus_tier` = ZR1…ZR4) | rovnako ju číta cenový adapter (`resolveCustomerTier`) – zľava v košíku sa prepojí bez zásahu do cenového kódu |
+| Ručný zámok | samostatná skupina `Věrnost – ruční zámok` | zákazník si ju neprepíše (store API neumožňuje meniť skupiny ani si zapisovať metadáta) a automatika ju neprepiše |
 | Celková útrata | počítaná z objednávok (zachytené platby mínus refundy) | nemusí sa skladovať; prepočítava sa pri každom automatickom priradení |
 
 Prečo nie nový Medusa modul: `medusa-config.ts` je mimo hraníc tohto balíka
@@ -28,12 +28,12 @@ v katalógu sú, takže sa nepridáva nový koncept modelu ani migrácia.
 
 - `GET /admin/nexus/loyalty-policy` – politika; `PUT` – uloženie (validácia 0–50 %,
   jedinečné kódy, rastúce prahy) + audit + odoslanie do Workera.
-- `GET /admin/nexus/loyalty-customers?tier=&q=&limit=&offset=` – zákazníčky s úrovňou,
+- `GET /admin/nexus/loyalty-customers?tier=&q=&limit=&offset=` – zákazníci s úrovňou,
   serverový filter (`ZR1`…`ZR4`, `none` = bez úrovne), hľadanie a stránkovanie.
 - `POST /admin/nexus/customers/:id/tier` – ručné priradenie (`ZR1`…`ZR4`, vždy so zámkom)
   alebo `automatic` (zámok sa zruší a úroveň sa prepočíta podľa útraty).
 - `POST /admin/nexus/customers/tiers` – hromadné priradenie (jedna úroveň pre viac
-  zákazníčiek alebo rôzne úrovne po zákazníčkach), max. 200 naraz.
+  zákazníkov alebo rôzne úrovne po zákazníkch), max. 200 naraz.
 
 Každá zmena má záznam v `ops_audit` (`admin.loyalty.policy.update`,
 `admin.loyalty.customer.tier.update`).
@@ -41,11 +41,11 @@ Každá zmena má záznam v `ops_audit` (`admin.loyalty.policy.update`,
 ### Automatické priradenie
 
 `backend/src/subscribers/loyalty-tier-assigned.ts` (udalosť `payment.captured`) prepočíta
-celkovú útratu zákazníčky a podľa prahov v politike priradí úroveň.
+celkovú útratu zákazníci a podľa prahov v politike priradí úroveň.
 
 - Ručný zámok sa **nikdy** neprepiše.
 - Bez nastavenej politiky (prázdne úrovne) sa **nemení nič**.
-- Úroveň pod prahom sa odoberie (zákazníčka nemá žiadnu úroveň).
+- Úroveň pod prahom sa odoberie (zákazník nemá žiadnu úroveň).
 - Idempotentné: útrata sa počíta z objednávok, nie z inkrementálneho počítadla.
 
 ### Ceny: iba na serveri (a prečo tak)
@@ -57,7 +57,7 @@ podepsaným webhookom `POST /api/nexus/pricing-policy` a ukladá sa do KV tenant
 
 **Prečo nie „percentá v požiadavke“:** keby procento prišlo v cenovej požiadavke, backend
 by si určoval výši zľavy a politika v `MEDUSA_PRICING_POLICY_JSON` by bola len dekorácia.
-Push politiky (podepsaný, jednosmerný) udržuje Worker ako jedinú autoritu a zákazníčka
+Push politiky (podepsaný, jednosmerný) udržuje Worker ako jedinú autoritu a zákazník
 ani backend si percentá nemôžu poslať. Klient vôbec nepozná, koľko percentá získa –
 vidí len výslednú cenu.
 
@@ -114,7 +114,7 @@ Workerd testy na tejto macOS verzi nespustia (macOS 12.6 < 13.5 – workerd vyž
 
 ## Riziká a limity
 
-- **Úroveň vidí cenový adapter zo skupiny.** Ak niekoho zákazníčku ručne vloží do skupiny
+- **Úroveň vidí cenový adapter zo skupiny.** Ak niekoho zákazníka ručne vloží do skupiny
   `Gold` priamo v Medusa adminu (mimo našich endpointov), dostane zľavu Gold, ale bez
   ručného zámoku – automatika ju môže prepočítať podľa útraty. Zámok sa dá zapísať cez
   naše API.

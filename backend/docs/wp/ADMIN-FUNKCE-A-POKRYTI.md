@@ -27,7 +27,7 @@ Každý kódový balík vlastní PR do master s testem; sloučení dělá Jose. 
 | Prehľad | Úlohy, dnešné termíny, upozornenia; každá karta má přesný cíl a filtr |
 | Objednávky | Nové, na vybavenie, zásielky, osobný odber, storná a vratky, reklamácie; detail má platbu a související doklady |
 | Produkty | Produkty a varianty, kategórie a značky, ceny, štítky, sklad |
-| Zákazníčky | Profily, objednávky, prístupy, rezervácie, poznámky, pomoc s prihlásením |
+| Zákazníci | Profily, objednávky, prístupy, rezervácie, poznámky, pomoc s prihlásením |
 | Konzultácie | Kalendár, voľné termíny, typy, rezervácie |
 | Správy | Otvorené, zatvorené, neprečítané; vazba na zákaznici/objednávku |
 | Poukazy a zľavy | Kupóny, darčekové poukazy, QR, staré kódy, vernostné úrovne |
@@ -53,7 +53,7 @@ Nové vlastní UI je `NOT_IMPLEMENTED`, kromě základních cest C5 (`PARTIAL` p
 | categories — **Kategórie a značky** | C5; Nativní Medusa; nové UI a vazby chybí | Přidat, upravit a řadit kategorie; správa značek a vazeb produktů. | Nový strom kategorií; značka nemá automaticky samostatný ANASTASIA model jen tím, že existuje product-type/tag. |
 | coupons — **Kupóny** | C5; Nativní Medusa; nové UI a vazby chybí | Správa kupónu, platnosti, použití a kombinací s další slevou. | Nativní promotion není automaticky podporovaný kupón NEXUSu; sjednotit capability/preflight a ukázat omezení. |
 | orders — **Objednávky** | C5; Nativní Medusa; nové UI a vazby chybí | Seznam, detail, historie, kontakt, položky, platba, doprava, vazby a vyřízení. | Nové seznamy/detail; skutečné návaznosti na platbu, rezervaci, přístup, zásilku a poukaz. |
-| customers — **Zákazníčky** | C5; Nativní Medusa; nové UI a vazby chybí | Profil, historie, adresy, skupiny, přístupy, rezervace a poznámky. | Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API. |
+| customers — **Zákazníci** | C5; Nativní Medusa; nové UI a vazby chybí | Profil, historie, adresy, skupiny, přístupy, rezervace a poznámky. | Vyhledání podle jména/e-mailu, lidský detail nad nativními a vlastními API. |
 | stock — **Sklad a rezervovaný tovar** | NEXT; Nativní Medusa; nové UI a vazby chybí | Sklad lékárny, zásoby po variantách, rezervace posledního kusu, příjem a pohyby. | Medusa inventory je autorita; doplnit obsluhu skladu a trvalý přehled pohybů; NEXUS wrapper neprovádí přesuny. |
 | flags — **Štítky a zobrazenie produktov** | NEXT; Nativní Medusa; nové UI a vazby chybí | Novinka, bestseller, doporučujeme a obchodní přepínače; produktové flagy. | Product-tags existují, ale vazbu štítku na skutečné zobrazení webu je třeba definovat; framework flags jsou jiné. |
 | loyalty — **Vernostné úrovne a osobné ceny** | NEXT; Vlastní backend; úplná agenda částečná | Zákaznice po přihlášení uvidí ceny pro svou úroveň; obsluha nastaví názvy, slevy a členství. | Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu. |
@@ -74,7 +74,7 @@ Nové vlastní UI je `NOT_IMPLEMENTED`, kromě základních cest C5 (`PARTIAL` p
 | branding — **Farby a vzhľad webov** | NEXT; Chybí vlastní kontrakt | Sama změnit barvy, loga a texty jednotlivých webů; jednotná konzistentní pole bez modrého autofillu. | Bezpečné tokeny vzhledu a uložení po webech nejsou implementované; žádný libovolný script/CSS editor. |
 | admin-preferences — **Môj vzhľad administrácie** | VERIFIED; vlastní `/admin/my-theme` | Pět motivů, vlastní barvy a hustota; serverové ukládání podle obsluhy. | Ověřeno browser i Medusa/PostgreSQL CI; sdílený základ se zapojí do dalších nových obrazovek při jejich implementaci. |
 | admin-account — **Môj účet a heslo** | NEXT; Nativní Medusa; nové UI a vazby chybí | Změnit vlastní heslo, odhlásit se, ztracené heslo a bezpečný přístup obsluhy. | Native emailpass reset/update existuje; chybí doložené vlastní UI a doručení reset-password události. |
-| customer-recovery — **Pomoc s prihlásením zákazníčky** | NEXT; Vlastní backend; úplná agenda částečná | Admin pomůže zákaznici obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo. | Rozlišit passwordless a emailpass; chybí chráněný admin postup obnovy se souhlasem a auditem. |
+| customer-recovery — **Pomoc s prihlásením zákazníci** | NEXT; Vlastní backend; úplná agenda částečná | Admin pomůže zákaznici obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo. | Rozlišit passwordless a emailpass; chybí chráněný admin postup obnovy se souhlasem a auditem. |
 | roles — **Prístupy spolupracovníkov** | NEXT; Nativní Medusa; nové UI a vazby chybí | Pozvánky a role pro obsluhu, podporu, finance a provoz; nejmenší potřebná práva. | Nativní rbac/invites existují, ale zapnutí a vynucení na vlastních routách není doloženo; skrytí tlačítka nestačí. |
 | payments — **Platby a pripojenie brán** | NEXT; Vlastní backend; úplná agenda částečná | Nastavení Stripe, karty/Apple Pay/Google Pay, stav spojení, bezpečně ComGate. | Stripe provider je podmíněn konfigurací; chybí samoobslužný průvodce credentials/test/webhook. ComGate je fáze 2 a provider chybí. |
 | cod-risk — **Dobierka a rizikové objednávky** | NEXT; Vlastní backend; úplná agenda částečná | Dobírka, nepřebírači, historie výsledků, limity a vysvětlení rozhodnutí SafeOrderu. | Živá route má základní scoring a limit 120 EUR; není propojená s historií dopravce/nepřevzetím. Chybí COD provider a bezpečný settings kontrakt. |

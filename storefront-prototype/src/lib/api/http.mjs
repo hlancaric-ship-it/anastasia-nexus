@@ -99,7 +99,7 @@ export function createHttpApi(storage, config) {
     for (const it of cart.items || []) if (it.product?.metadata?.booking) await call(`/store/carts/${cartId}/line-items/${it.id}`, { method: 'DELETE' }).catch(() => null);
     if (cart.metadata?.booking_id) await call(`/store/carts/${cartId}`, { method: 'POST', body: { metadata: { booking_id: '' } } }).catch(() => null);
   }
-  // Pred platbou: termín v košíku musí byť stále podržaný pre túto zákazníčku (inak by platba prešla bez termínu).
+  // Pred platbou: termín v košíku musí byť stále podržaný pre tohto zákazníka (inak by platba prešla bez termínu).
   async function checkCartBooking(cartId) {
     const r = await call(`/store/carts/${cartId}?fields=id,metadata,*items,*items.product`);
     if (!r.ok || !r.data?.cart) return { ok: false, message: 'Košík sa nepodarilo načítať. Skúste to znova.' };
@@ -272,7 +272,7 @@ export function createHttpApi(storage, config) {
       return r.ok ? { ok: true, ...r.data } : { ok: false, message: r.status === 403 ? 'K tomuto obsahu nemáte aktívny prístup.' : r.status === 401 ? 'Prihlásenie vypršalo. Prihláste sa znova.' : 'Obsah je dočasne nedostupný. Skúste to neskôr.' };
     },
 
-    // Pokladňa: košík priradí prihlásenej zákazníčke a uloží kontakt a adresu. Možnosti dopravy a platby
+    // Pokladňa: košík priradí prihlásenému zákazníkovi a uloží kontakt a adresu. Možnosti dopravy a platby
     // (s cenami) potom vráti server – klient len vyberá kódy, sumy ani provider nikdy neposiela.
     // delivery: 'courier' | 'pickup' | 'digital' ('shipping' = starší názov pre kuriéra); country: 'sk' | 'cz'.
     async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = 'digital', street = '', city = '', postalCode = '', country = 'sk' } = {}) {
@@ -343,7 +343,7 @@ export function createHttpApi(storage, config) {
         return { mode: 'http', status: paid ? 'ALLOW' : 'PENDING', messages: paid ? M.ALLOW : pending, order: r.data?.order, paymentMethod: method,
           bankTransfer: bt ? { ...bt, amountLabel: money(bt.amount) } : null, pickupAddress: r.data?.pickup_address || null };
       }
-      // Objednávka nevznikla: server už prípadnú platbu kartou vrátil/zrušil – zákazníčka to musí vedieť.
+      // Objednávka nevznikla: server už prípadnú platbu kartou vrátil/zrušil – zákazník to musí vedieť.
       const back = { refunded: ' Platbu kartou sme vám automaticky vrátili.', canceled: ' Platba kartou bola zrušená, peniaze vám nestrhneme.', failed: ' Ak vám bola stiahnutá platba, kontaktujte nás – vrátime ju.' }[r.data?.payment_compensation] || '';
       if (r.status === 409) return { mode: 'http', status: 'REVIEW', messages: (back ? 'Objednávku teraz nebolo možné dokončiť.' : M.REVIEW) + back };
       if (r.status === 403) return { mode: 'http', status: 'BLOCK', messages: M.BLOCK + back };
@@ -498,7 +498,7 @@ export function createHttpApi(storage, config) {
       const r = await call('/auth/customer/magic-link', { method: 'POST', body: { email, token } });
       if (!r.ok || !r.data?.token) return { ok: false, message: 'Odkaz je neplatný alebo vypršal. Vyžiadajte si nový.' };
       set(JWT, r.data.token);
-      // Nová zákazníčka: overený e-mail ešte nemá Customer. Token identity ho založí a refresh vydá token so zákazníčkou.
+      // Nový zákazník: overený e-mail ešte nemá Customer. Token identity ho založí a refresh vydá token so zákazníkom.
       if ((await call('/store/customers/me')).status === 401) {
         const created = await call('/store/customers', { method: 'POST', body: { email } });
         const refreshed = created.ok ? await call('/auth/token/refresh', { method: 'POST', body: {} }) : null;
@@ -595,7 +595,7 @@ export function createHttpApi(storage, config) {
       }));
       return { ok: true, orders };
     },
-    // E-mail prihlásenej zákazníčky na predvyplnenie platobného formulára (bez neho Stripe pýta e-mail pre Link).
+    // E-mail prihlásenej zákazníci na predvyplnenie platobného formulára (bez neho Stripe pýta e-mail pre Link).
     async getCustomerEmail() {
       if (!loggedIn()) return '';
       const r = await call('/store/customers/me?fields=email');

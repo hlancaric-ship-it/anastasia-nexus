@@ -16,7 +16,7 @@
 
 Pravidlá (overené na reálnych dátach cez `medusa exec`):
 - do feedu patria **len zverejnené produkty v predajnom kanáli** (kanál musí byť zapnutý),
-- cena je z `calculated_price` s region kontextom = cena, ktorú zákazníčka platí (s DPH),
+- cena je z `calculated_price` s region kontextom = cena, ktorú zákazník platí (s DPH),
   `PRICE` (bez DPH) sa dopočíta zo sadzby `FEED_VAT_RATE` (výchozí 20 %),
 - URL produktu: `${STOREFRONT_URL}/eshop/produkt/<handle>`; adresa webu sa hľadá v poradí
   `ANASTASIA_SITE_URL` → `STOREFRONT_URL` → `STOREFRONT_ORIGIN` → `COUPON_LINK_STOREFRONT_ORIGIN`,

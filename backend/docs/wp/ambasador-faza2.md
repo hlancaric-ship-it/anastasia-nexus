@@ -66,5 +66,5 @@ Zásady:
 
 1. Percento provízie (predpoklad 10 %) a či sa mení podľa objemu.
 2. Cyklus výplaty (mesačne / kvartálne) a spôsob výplaty (prevod / dokladanie).
-3. Či ambasádori pracujú s vlastnými kupónmi (zľava pre zákazníčku) alebo len s odkazom.
+3. Či ambasádori pracujú s vlastnými kupónmi (zľava pre zákazníka) alebo len s odkazom.
 4. Kto oblasť schvaľuje – pri Fáze 2 ručne v administrácii.

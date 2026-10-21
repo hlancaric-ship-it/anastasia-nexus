@@ -33,7 +33,7 @@ Technický detail je volitelně v oddělené části pro podporu, s bezpečným 
 
 - Domovská stránka ukazuje, čemu je potřeba věnovat pozornost: objednávky, zprávy, dnešní termíny.
   Zobrazují se skutečné údaje; při chybě načtení žádné falešné nuly ani „vše v pořádku“.
-- Navigace podle práce: Prehľad, Objednávky, Produkty, Zákazníčky, Konzultácie, Správy,
+- Navigace podle práce: Prehľad, Objednávky, Produkty, Zákazníci, Konzultácie, Správy,
   Poukazy a zľavy, Obsah a e-maily, Nastavenia. Ochrana údajov a technický provoz podle práv.
 - Každá stránka má zřetelný nadpis, jednu hlavní akci, návrat a nápovědu u složitých polí.
   Pokročilé volby se rozbalují až podle potřeby; důležité podmínky a dopady zůstávají viditelné.

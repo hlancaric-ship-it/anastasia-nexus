@@ -10,7 +10,7 @@ const field=(key,label,value,type='text')=>`<label>${e(label)}<input name="${key
 
 const loading='<p class="form-status">Načítavam…</p>';
 
-// Statický rámec účtu: žiadne údaje zákazníčky sa negenerujú pri builde, dopĺňa ich prehliadač z backendu (public/app.mjs).
+// Statický rámec účtu: žiadne údaje zákazníci sa negenerujú pri builde, dopĺňa ich prehliadač z backendu (public/app.mjs).
 export function customerCenter(chat){
   const profile={name:'',email:'',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''};
   return `<section class="customer-center"><div class="center-layout"><aside class="center-sidebar"><p class="eyebrow">Môj účet</p><h2 id="center-name"></h2><nav aria-label="Zákaznícke centrum">${tabs.map(([id,label])=>`<button type="button" id="account-nav-${id}" data-account-go="${id}" aria-current="${id==='prehlad'?'page':'false'}" aria-controls="account-${id}">${e(label)}</button>`).join('')}</nav><div class="center-theme" role="group" aria-label="Farba priestoru"><p>Farba priestoru</p>${swatches(false)}</div><a href="/kontakt">Potrebujete pomoc?</a><a href="/prihlasenie">Odhlásiť sa →</a></aside><div class="center-content"><div class="center-heading"><p class="eyebrow">Môj svet</p><h1 id="account-title" tabindex="-1">Vitajte vo svojom priestore.</h1></div>

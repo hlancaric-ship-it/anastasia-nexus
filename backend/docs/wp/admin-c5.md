@@ -4,7 +4,7 @@ Stav: VERIFIED pro níže popsané základní demonstrační cesty šesti agend.
 
 ## Rozsah
 
-Nová stránka `/sprava-obchodu` má přehled se šesti klikacími kartami a záložky Produkty, Ceny, Kategórie, Kupóny, Objednávky, Zákazníčky. Seznamy mají hledání, stránkování po 12, načítání, prázdný stav, chybu a opakované čtení. Dialog ponechává ovládání přístupné i při malé výšce, obsah lze rolovat při zoomu/mobilu. Osobní motiv je načten z `/admin/my-theme`; všechna nová pole používají stejné tokeny včetně autofillu a nočního režimu.
+Nová stránka `/sprava-obchodu` má přehled se šesti klikacími kartami a záložky Produkty, Ceny, Kategórie, Kupóny, Objednávky, Zákazníci. Seznamy mají hledání, stránkování po 12, načítání, prázdný stav, chybu a opakované čtení. Dialog ponechává ovládání přístupné i při malé výšce, obsah lze rolovat při zoomu/mobilu. Osobní motiv je načten z `/admin/my-theme`; všechna nová pole používají stejné tokeny včetně autofillu a nočního režimu.
 
 Produkty: vytvořit koncept s jednou variantou, bezpečnou cenou, kategoriemi, výslovným prodejním kanálem/profilem dopravy a sledováním skladu; text, stav a kategorie upravovat bez přepisu variant/metadata. Žádné automatické booking nastavení. Zveřejnění neobchází serverové skladové/checkout kontroly.
 
