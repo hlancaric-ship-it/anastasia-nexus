@@ -151,6 +151,19 @@ if (gsap && ScrollTrigger) {
       // Na mobilu je slovo o kus výš, aby se pod ním vešla kategorie a tlačítko.
       const lift = window.innerWidth < 700 ? 20 : 0;
       svg.setAttribute('viewBox', [b.x - padX, b.y - padY + lift, b.width + 2 * padX, b.height + 2 * padY].join(' '));
+      // r12/2b: na mobile maska len na ploche viewBoxu – obrie plochy
+      // (13440×12900) prekročila limit GPU pri DPR 3 a slovo sa nevykreslilo.
+      if (mobileIntro) {
+        const maskEl = $('#lhWord');
+        const bgEl = $('#lh-word-bg');
+        const vb = svg.getAttribute('viewBox').split(' ').map(Number);
+        if (maskEl && bgEl && vb.length === 4) {
+          for (const el of [maskEl, bgEl]) {
+            el.setAttribute('x', String(vb[0])); el.setAttribute('y', String(vb[1]));
+            el.setAttribute('width', String(vb[2])); el.setAttribute('height', String(vb[3]));
+          }
+        }
+      }
       // Rozměr písmena T se musí měřit na skrytém textu, ne na textu v <mask>.
       const extent = measure.getExtentOfChar(4);
       const fs = 236;

@@ -121,6 +121,7 @@ export function homeSections(products = []) {
       <source data-lh-src="/media/hero-720p.mp4" media="(max-width: 1024px)" type="video/mp4">
       <source data-lh-src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
     </video>
+    <p class="lh-intro__fallback" aria-hidden="true">ANASTASIA</p>
     <div class="lh-intro__veil" aria-hidden="true"></div>
     <div class="lh-intro__tint" aria-hidden="true"></div>
     <div class="lh-intro__mask" aria-hidden="true">
@@ -129,7 +130,7 @@ export function homeSections(products = []) {
           <mask id="lhWord" maskUnits="userSpaceOnUse" x="-6000" y="-6000" width="13440" height="12900">
             <g id="lh-word-g">
               <rect x="-6000" y="-6000" width="13440" height="12900" fill="#fff"/>
-              <text id="lh-word-t" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" fill="#000">ANASTASIA</text>
+              <text id="lh-word-t" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" fill="#000" stroke="#313C2B" stroke-width="1.5" paint-order="stroke fill">ANASTASIA</text>
             </g>
           </mask>
           <linearGradient id="lhShine" gradientUnits="userSpaceOnUse" x1="-900" y1="0" x2="-100" y2="0">
@@ -500,6 +501,10 @@ html.lh-mobile-intro .lh-intro__stage{height:100svh!important}
   .lh-enter{height:64px;padding:0 34px;font-size:15px;letter-spacing:.22em}
   .lh-enter-wrap{bottom:34px}
 }
+/* r12/2b: ak maska nejde vykresliť, ostane čitateľný tmavý nápis. */
+.lh-intro__fallback{display:none;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:300;font-size:clamp(38px,11vw,72px);letter-spacing:.04em;color:#283020}
+@supports (mask:url(#lhWord)){.lh-intro__fallback{display:none!important}}
+@media (max-width:768px),(pointer:coarse){.motion .lh-intro__mask rect{opacity:.6!important}}
 .lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s}
 .lh-intro__sound .media-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .lh-chrome-in .lh-intro__sound{opacity:0;pointer-events:none}
