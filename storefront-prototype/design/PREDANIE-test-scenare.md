@@ -7,7 +7,7 @@
 | Váš web | `https://anastasia-test.l-code-dynamics.com` |
 | Vaša administrácia | `https://anastasia-test-admin.l-code-dynamics.com` |
 
-Prihlasovacie údaje do administrácie vám pošleme osobitne. **V tomto návode nie sú žiadne heslá ani
+Prihlasovacie údaje do administrácie Vám pošleme osobitne. **V tomto návode nie sú žiadne heslá ani
 prístupové údaje** a neuvádzame interné nástroje – testujte iba cez uvedené adresy.
 
 **Ako testovať:** každý bod má prázdne ☐. Keď Vám daný bod funguje, označte ho. Keď nie, zapíšte
@@ -27,7 +27,7 @@ si, čo ste presne robili (pozri bod 9). Odškrtnutý zoznam je najlepšia spät
 ## 1. Úvod webu
 
 ### 1.1 Na mobile (do 430 px šírky)
-- ☐ Otvorte `https://anastasia-test.l-code-dynamics.com` na mobile telefóne.
+- ☐ Otvorte `https://anastasia-test.l-code-dynamics.com` na mobilnom telefóne.
 - ☐ Prejdite prstom úvodom až na koniec – video na pozadí a texty sa ukazujú, nič sa neprekrýva.
 - ☐ Ťuknite na tlačidlo **Menu** v hornej lište – otvorí sa menu na celú obrazovku.
 - ☐ Ťuknite na **„Vstúpte do zdravého sveta“** – dostanete sa do ďalšej časti stránky.
@@ -56,7 +56,7 @@ si, čo ste presne robili (pozri bod 9). Odškrtnutý zoznam je najlepšia spät
 - ☐ Vyplňte údaje (meno, priezvisko, e-mail, adresu podľa spôsobu dodania).
 - ☐ Vyberte **Kartou online** a kliknite na **Zaplatiť**.
 - ☐ Zadajte testovaciu kartu `4242 4242 4242 4242`, ľubovoľný budúci dátum a ľubovoľné CVC.
-- ☐ Po úspešnej platbe sa má zobraziť potvrdenie objednávky a vy má prísť **potvrdzujúci e-mail**.
+- ☐ Po úspešnej platbe sa má zobraziť potvrdenie objednávky a Vám má prísť **potvrdzujúci e-mail**.
 - ☐ Skontrolujte, že v e-maile je uvedené číslo objednávky, položky a spôsob dodania.
 
 ---
@@ -79,10 +79,10 @@ položky sa zľava neuplatní).
 
 - ☐ Otvorte stránku **Darčekový poukaz** a vyberte sumu a príjemcu.
 - ☐ Prejdite do košíka a potvrďte nákup (testovacou kartou).
-- ☐ Skontrolujte, že vám príde e-mail s darčekovým poukazom (kód).
+- ☐ Skontrolujte, že Vám príde e-mail s darčekovým poukazom (kód).
 - ☐ Vytvorte si druhý košík, vložte ľubovoľný produkt a v košíku vložte **kód poukazu**.
 - ☐ Skontrolujte, že sa cena zníži a v potvrdení objednávky je uvedený poukaz.
-- ☐ Skontrolujte, že poukaz možno použiť len raz a že po ťom už ďalej nejde použiť.
+- ☐ Skontrolujte, že poukaz možno použiť len raz a že potom ho už nemožno použiť znova.
 
 ---
 
@@ -91,29 +91,29 @@ položky sa zľava neuplatní).
 ### 5.1 Registrácia
 - ☐ Kliknite na **Prihlásiť sa** a vyberte **Vytvoriť si účet**.
 - ☐ Vyplňte e-mail, meno, priezvisko a heslo a účet vytvorte.
-- ☐ Skontrolujte, že vám príde e-mail s potvrdením registrácie.
+- ☐ Skontrolujte, že Vám príde e-mail s potvrdením registrácie.
 
 ### 5.2 Prihlásenie odkazom (bez hesla)
-- ☐ Na prihlasovacej stránke zvoľte **Poslať mi prihlasovací odkaz**.
+- ☐ Na prihlasovacej stránke zvoľte **Poslať prihlasovací odkaz**.
 - ☐ V e-maile otvorte prihlasovací odkaz – mali by ste sa prihlásiť bez zadania hesla.
-- ☐ Skontrolujte, že odkaz funguje len raz a po chvíli expiroje.
+- ☐ Skontrolujte, že odkaz funguje len raz a po určitom čase prestane platiť.
 
 ### 5.3 Objednávky a materiály
 - ☐ V účte otvorte **Objednávky** – vidíte svoju objednávku, jej stav a položky.
-- ☐ V účte otvorte **Materiály** – vidíte materiály ku zakúpeným programom.
+- ☐ V účte otvorte **Materiály** – vidíte materiály k zakúpeným programom.
 - ☐ Skontrolujte, že po kúpe programu sa príslušný materiál objaví.
 
 ### 5.4 RESET 40+ a Zrkadielko
 - ☐ V účte otvorte záložku **RESET 40+**.
 - ☐ Skontrolujte **vstupný dotazník** – odkaz sa otvorí v novom okne.
-- ☐ Rozbaľte **týždne 1 – 16**; ak obsah ešte nie je doplnený, má tam byť oznamenie
+- ☐ Rozbaľte **týždne 1 – 16**; ak obsah ešte nie je doplnený, má tam byť oznámenie
   „Obsah pripravujeme“.
 - ☐ V časti **Zrkadielko** kliknite na **Pridať záznam**:
   - ☐ vyberte dátum a týždeň,
   - ☐ hodnotenie 1 – 10 nastavíte ťuknutím na číslo,
   - ☐ záznam uložíte – objaví sa v tabuľke.
 - ☐ Záznam **upravíte** (tlačidlo Upraviť) a uložíte zmenenú hodnotu.
-- ☐ Záznam **zmážete** (tlačidlo Zmazať) – najprv sa zobrazí potvrdenie.
+- ☐ Záznam **zmažete** (tlačidlo Zmazať) – najprv sa zobrazí potvrdenie.
 - ☐ Na mobile má tabuľka prejsť na karty a nesmie sa roztiahnuť do strany.
 
 ---
@@ -137,12 +137,12 @@ položky sa zľava neuplatní).
 ### 7.1 Právne stránky
 - ☐ Otvorte **Obchodné podmienky**, **Reklamačné pravidlá**, **Ochrana osobných údajov**,
   **Odstúpenie od zmluvy** a **Cookies** (nájdete ich v pätičke).
-- ☐ V každej stránke skontrolujte, že sa dá prejsť po nadpisoch a text je čitateľný na mobile.
+- ☐ Na každej stránke skontrolujte, že sa dá prejsť po nadpisoch a text je čitateľný na mobile.
 
 ### 7.2 Lišta cookies
-- ☐ Na prvej návšteve Vás v spodnej časti obrazovky objaví **lišta cookies** s tromi tlačidlami.
-- ☐ Skúšajte **Odmietnuť voliteľné** – lišta zmizne a voliteľné kategórie zostanú vypnuté.
-- ☐ Skúšajte **Prijať všetky** a potom **Nastaviť** – v panely nastavení vidíte kategórie
+- ☐ Pri prvej návšteve sa Vám v spodnej časti obrazovky zobrazí **lišta cookies** s tromi tlačidlami.
+- ☐ Vyskúšajte **Odmietnuť voliteľné** – lišta zmizne a voliteľné kategórie zostanú vypnuté.
+- ☐ Vyskúšajte **Prijať všetky** a potom **Nastaviť** – v paneli nastavení vidíte kategórie
   (nevyhnutné je vždy zapnuté, voliteľné sa dá vypnúť).
 - ☐ Skontrolujte, že sa voľba **zachová** aj po obnovení stránky.
 - ☐ V pätičke nájdite odkaz **Nastavenia cookies** – otvorí ten istý panel.
@@ -153,7 +153,7 @@ položky sa zľava neuplatní).
 - ☐ Vyplňte číslo objednávky, dátum, položky, e-mail, meno a dôvod, označte súhlas s informáciami
   o ochrane osobných údajov a kliknite na **Potvrdiť odstúpenie od zmluvy**.
 - ☐ Skontrolujte, že sa zobrazí potvrdenie a záznam sa uloží.
-- ☐ Skúšajte aj chybný vstup (napr. nevyplnený dátum alebo e-mail) – má sa zobraziť zrozumiteľná
+- ☐ Vyskúšajte aj chybný vstup (napr. nevyplnený dátum alebo e-mail) – má sa zobraziť zrozumiteľná
   hláška, nie prázdna stránka.
 
 ### 7.4 Reklamácie
@@ -166,7 +166,7 @@ položky sa zľava neuplatní).
 
 Otvorte `https://anastasia-test-admin.l-code-dynamics.com` a prejdite si všetky časti vľavo.
 
-- ☐ **Prehľad** – na hlavičke vidíte čísla na dnes a prehľad pripravenosti obchodu.
+- ☐ **Prehľad** – v hornej časti vidíte čísla na dnes a prehľad pripravenosti obchodu.
 - ☐ **Objednávky** – nájdete objednávku z testu, otvoríte jej detail, zmeníte stav a vidíte položky,
   platbu a rezerváciu.
 - ☐ **Produkty** – otvoríte produkt, zmeníte názov, cenu, popis alebo obrázok a uložíte; zmena je
@@ -195,25 +195,8 @@ Pri každej chybe pošlite, prosím, **tri veci**:
 
 1. **Snímku obrazovky** (na mobile aj na počítači, ak sa chyba prejavuje inak).
 2. **Adresu stránky**, na ktorej chyba nastala (aj s tým, čo ste mali v adrese).
-3. **Čo ste presne robili** – krok za krokom (napr. „klikol som na Pridať do košíka a potom na
-   Pokladňa“).
+3. **Čo ste presne robili** – krok za krokom (napr. „Pridať do košíka → Košík → Prejsť do pokladne“).
 
 Pri chybe v administrácii pripíšte aj **meno časti v ľavom menu**, kde sa chyba stala.
 Priložte, prosím, aj text chybovej hlášky, ak sa zobrazila.
 
----
-
-## NEZARADENÉ – overiť (len pre nás, nie súčasť scenára)
-
-Tieto body sme v kóde nenašli v potvrditelnej podobe, preto ich do scenára nedávame. Overíme ich
-pred samotným testovaním:
-
-- **Klub / členstvo** – existuje členský program a jeho ponuka, ale v aktuálnej navigácii webu
-  nevidíme samostatnú stránku s ponukou členstva. Treba overiť, kde je ponuka a či je dostupná
-  na testovacom webe.
-- **Vývoz údajov zákazníka** – overiť, v ktorej časti administrácie je dostupný a či sa dá
-  stiahnuť.
-- **Ochrana osobných údajov a odstúpenia v administrácii** – overiť, či sú tieto agendy
-  dostupné v použiteľnej podobe.
-- **Ambasádori** – je to časť pre neskoršiu fázu; v teste ju neobsahujeme.
-- **Presmerovanie starých adres a QR kódov (301)** – overiť, či fungujú na testovacom webe.
