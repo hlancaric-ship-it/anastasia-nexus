@@ -20,6 +20,11 @@ const IMG = {
   lucia: '/assets/lucia-portrait.jpg',
   tree: '/assets/tree.jpg',
   longevity: '/assets/lucia-longevity.png',
+  // Ďalšie vlastné zábery (Luciine fotky z media/) – žiadny záber sa neopakuje.
+  kozmetika: '/media/legacy-a56cbdc6a741.png',
+  vyziva: '/media/legacy-0a1fdf946abe.png',
+  program: '/media/learning.jpg',
+  zdravy: '/media/legacy-483537f470c4.jpg',
 };
 
 const consults = [
@@ -35,22 +40,22 @@ const worlds = [
   {
     n: '01', title: 'Kozmetika', from: 'od 11 €',
     text: 'Krém, pleťová voda, sprchový gél a telové maslo – vždy namiešané až po rozhovore s vami.',
-    href: '/eshop/kategoria/bio-kozmetika-bez-chemie', img: IMG.lucia, tone: 'light',
+    href: '/eshop/kategoria/bio-kozmetika-bez-chemie', img: IMG.kozmetika, tone: 'light',
   },
   {
     n: '02', title: 'Bylinky a výživa', from: 'od 9 €',
     text: 'Chrípkový prášok, Jančova zmes a zdravá káva z koreňa púpavy. Receptúry so stáročnou históriou.',
-    href: '/eshop/kategoria/bylinky-a-vyziva', img: IMG.tree, tone: 'dark',
+    href: '/eshop/kategoria/bylinky-a-vyziva', img: IMG.vyziva, tone: 'dark',
   },
   {
     n: '03', title: 'Konzultácie', from: 'od 59 €',
     text: 'Online zdravotná konzultácia, supervízia, personifikovaný protokol a astrologický profil zdravia.',
-    href: '/konzultacie', img: IMG.hero, tone: 'dark',
+    href: '/konzultacie', img: IMG.lucia, tone: 'dark',
   },
   {
     n: '04', title: 'Programy', from: 'od 38 €',
     text: 'RESET 40+, výuka vedomého vnímania a audio cyklus Nič nemusíš. Prístup v účte hneď po platbe.',
-    href: '/eshop/kategoria/programy-a-sluzby', img: IMG.sky, tone: 'dark',
+    href: '/eshop/kategoria/programy-a-sluzby', img: IMG.program, tone: 'dark',
   },
 ];
 
@@ -203,7 +208,7 @@ export function homeSections(products = []) {
 
   const collection = `
 <section class="lh-split lh-split--flip lh-split--dark lh-split--narrow-text lh-split--tall" id="kolekcia" data-sk-only data-screen-label="03 Kolekcia">
-  <div class="lh-split__media">${picture(IMG.tree,"Strom v krajine",'data-par="9" loading="lazy"')}</div>
+  <div class="lh-split__media">${picture(IMG.vyziva,"Strom v krajine",'data-par="9" loading="lazy"')}</div>
   <div class="lh-split__text">
     <p class="lh-eyebrow">Kolekcia</p>
     <h2 class="lh-display" data-content="home__kolekcia__0-text">Kolekcia</h2>
@@ -220,7 +225,7 @@ export function homeSections(products = []) {
     <p class="lh-lead" data-content="home__program__2-rich">16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
     <a class="lh-cta" href="/eshop/produkt/reset-40-plus">Objaviť RESET 40+ ${arrow}</a>
   </div>
-  <div class="lh-split__media">${picture(IMG.hero,"Světlo v lese",'data-par="10" loading="lazy"')}</div>
+  <div class="lh-split__media">${picture(IMG.program,"Světlo v lese",'data-par="10" loading="lazy"')}</div>
   <div class="lh-stats">
     <div><strong>16</strong><span>týždňov</span></div>
     <div><strong>∞</strong><span>vlastné tempo</span></div>
@@ -270,7 +275,7 @@ export function homeSections(products = []) {
 <section class="lh-split lh-split--flip lh-split--wide-text lh-split--low" id="konzultacie" data-sk-only data-screen-label="06 Konzultácie">
   <div class="lh-lucia">
     <div class="lh-lucia__frame">${picture(IMG.lucia,"Mgr. Lucia Rogožanová, zakladateľka ANASTASIA",'data-par="8" loading="lazy"')}</div>
-    <div class="lh-lucia__float" data-speed="-90">${picture(IMG.tree,"",'data-par="10" loading="lazy"')}</div>
+    <div class="lh-lucia__float" data-speed="-90">${picture(IMG.vyziva,"",'data-par="10" loading="lazy"')}</div>
   </div>
   <div class="lh-split__text" data-speed="50">
     <p class="lh-eyebrow">Sprevádzanie</p>

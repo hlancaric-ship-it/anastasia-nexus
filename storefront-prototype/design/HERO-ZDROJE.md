@@ -1,22 +1,38 @@
-# Hero video – zdroje (21. 10. 2026)
+# Zdroje fotografií a videí (r12 bod 4)
 
-Montáž 36 s, střih Claude. Pexels License (komerční použití zdarma, bez povinného uvedení autora). Plus vlastní záběry webu (les, noční obloha).
+Každá sekcia má svoj záber — žádný obrázok sa neopakuje.
 
-- vlastní: původní hero (les) — od 6 s, 3.4 s
-- https://www.pexels.com/video/stunning-mountain-sunrise-aerial-view-33354461/ — od 12 s, 3.0 s
-- https://www.pexels.com/video/majestic-old-growth-forest-scene-in-british-columbia-29906407/ — od 5 s, 2.4 s
-- https://www.pexels.com/video/close-up-of-a-hand-touching-a-tree-8928699/ — od 4 s, 2.4 s
-- https://www.pexels.com/video/dew-drops-on-morning-grass-in-sunlight-32728925/ — od 6 s, 1.1 s
-- https://www.pexels.com/video/close-up-shot-of-a-barefooted-person-stepping-on-plant-8055347/ — od 4 s, 1.1 s
-- https://www.pexels.com/video/moss-on-rocks-in-river-10706309/ — od 3 s, 1.1 s
-- https://www.pexels.com/video/close-up-video-of-a-beautiful-woman-10213763/ — od 8 s, 3.0 s
-- https://www.pexels.com/video/a-liquid-dripping-from-a-dropper-4132711/ — od 8 s, 2.0 s
-- https://www.pexels.com/video/a-woman-applying-cream-on-her-shoulder-8955782/ — od 4 s, 2.0 s
-- https://www.pexels.com/video/a-water-drop-is-shown-in-the-water-16478020/ — od 5 s, 1.2 s
-- https://www.pexels.com/video/a-woman-in-a-dress-is-standing-on-a-balcony-27470207/ — od 3 s, 2.6 s
-- https://www.pexels.com/video/sparks-from-burning-flame-10229375/ — od 1.2 s, 1.0 s
-- https://www.pexels.com/video/a-lighted-candle-glowing-in-the-dark-8773961/ — od 2 s, 1.0 s
-- https://www.pexels.com/video/serene-woman-blowing-dandelion-in-sunlight-31121217/ — od 0.1 s, 1.4 s
-- vlastní: night-sky.mp4 — od 5 s, 2.6 s
-- https://www.pexels.com/video/beautiful-close-up-of-coriander-flowers-at-sunset-29998317/ — od 10 s, 2.6 s
-- vlastní: původní hero (les) — od 30 s, 2.4 s
+## Vlastné zdroje (repozitár, `storefront-prototype/public/`)
+
+| Súbor | Použitie | Licencia / pôvod |
+|---|---|---|
+| `assets/hero-forest.jpg` | úvod – video `/media/hero-1080p.mp4` | vlastný záber, licencia ANASTASIA |
+| `assets/night-sky.jpg` | Obloha – poster + `/media/night-sky.mp4` | vlastný záber, licencia ANASTASIA |
+| `assets/tree.jpg` | Obloha (plavúci detail) | vlastný záber, licencia ANASTASIA |
+| `assets/lucia-portrait.jpg` | Lucia v sekcii „Svet ANASTASIA“ | vlastný záber, licencia ANASTASIA |
+| `assets/zdravy-svet-luka.jpg` | Zdravý svet | vlastný záber, licencia ANASTASIA |
+| `media/learning.jpg` | Program / Výuka vedomého vnímania | vlastný záber, licencia ANASTASIA |
+| `media/legacy-a56cbdc6a741.png` | Karta „Kozmetika“ | vlastný záber, licencia ANASTASIA |
+| `media/legacy-0a1fdf946abe.png` | Karta „Bylinky a výživa“ + plavúci detail | vlastný záber, licencia ANASTASIA |
+| `media/legacy-483537f470c4.jpg` | Rodina na slnečnej lúke (Zdravý svet) | vlastný záber, licencia ANASTASIA |
+| `media/legacy-69d73011c039.jpg` | Portrét Lucie | vlastný záber, licencia ANASTASIA |
+| `media/ds/*.jpg` | Denný stacionár Vyšná Slaná (vonkajsi-vchod, img_1–5, propagacia) | vlastný záber, licencia ANASTASIA |
+
+Všetky tieto súbory sú v `public/assets` a `public/media` (mediá sa do repozitára dopĺňajú z
+backendu, `public/media` je v `.gitignore`).
+
+## Pexels
+
+V zadaní r12 bod 4 je uvedené, že chýbajúce zábery sa môžu doplniť z **Pexels** (licencia
+Pexels – bezplatné použitie, bez atribúcie). V tomto kole sa **nepoužili žiadne nové
+obrázky z Pexels** – všetky zábery sú vlastné. Ak doplníme nové fotografie z Pexels,
+zapíšeme ich sem:
+
+| Sekcia | Pexels URL | Autor | Licencia |
+|---|---|---|---|
+| _doplniť_ | | | Pexels License |
+
+Pravidlá:
+- žiadny obrázok z referenčnej stránky leilsaunas.com ✗,
+- pri nahraní cez Pexels API zapísať ID autora a odkaz ✗ (kvôli licencii a auditnému dohľadu),
+- súbory ukladať do `public/media/` (ignorované v gite) a uviesť ich v tabuľke vyššie ✓.
