@@ -10,13 +10,13 @@ dát. Pred samotným testovaním zákazníka ich preveríme.
 | Bod | Výsledok |
 |---|---|
 | **Klub / členstvo** | **Nedostupné.** `/klub` sa presmeruje (301) na `/eshop/` – na živom teste sa zobrazí obchod, nie ponuka členstva. V kóde je Klub zapnutý prepínačom `ANASTASIA_CLUB=1` (`src/club.mjs`) a vtedy pribudne záložka **Klub** v účte a odkaz **Klub** v pätičke. **Treba rozhodnúť, či Klub v Fáze 1 vôbec patrí do testu.** |
-| **Presmerovania starých adres a QR kódov (301)** | **Nefunguje na testovacom webe.** Staré adresy typu `/index.php?page=14` alebo `/eshop/index.php?id=3` skončia na stránke **„Tuto stránku na webu anastasia-test…“** (404), nie presmerovaním. Neexistujúca adresa sa tiež správa ako 404 (korektne). **Treba overiť nasadenie mapy presmerovaní na testovacie prostredie.** |
+| **Presmerovania starých adres a QR kódov (301)** | **Funguje.** Overené 21. 10. (Claude): všetkých 20 ciest z `public/_redirects` vracia 301 na správny cieľ, QR odkaz `/eshop/kosik?produkt=…&kupon=…&ks=…` zachová parametre. Adresy typu `/index.php?page=14` v mape nie sú (neboli v GSC). Presmerovanie hostu `anastasiaoz.eu` → `www` rieši NEXUS Worker až na produkčnej doméne. |
 
-## 2. K dispozícii vo webe, ale na živom teste zatiaľ nie je
+## 2. Overiť s prihláseným testovacím účtom
 
 | Bod | Stav |
 |---|---|
-| **Zóna RESET 40+ a Zrkadielko v zákazníckom účte** | Kód je v našom worktree (nová záložka **RESET 40+** v účte, týždne 1 – 16, Zrkadielko s pridávaním, úpravou a zmazaním záznamu). **Na živom testovacom webe zatiaľ nie je** – živý test beží zo staršieho buildu. Scenár 5.4 platí až po nasadení. |
+| **Zóna RESET 40+ a Zrkadielko v zákazníckom účte** | **Na teste je nasadená** (verzia f121d093, `reset-zone.mjs` 200). Bez prihlásenia a kúpeného programu sa nezobrazí – preto ju MiniMax nevidel. Pred testom overiť s testovacím účtom s kúpeným RESET 40+. |
 
 ## 3. Overiť ešte treba (neprizahlásené alebo bez zásahu do dát)
 
