@@ -16,6 +16,8 @@ import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
+import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
+import { carrierAdminMiddlewares } from "./admin/carriers/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -42,5 +44,8 @@ export default defineMiddlewares({
     ...contactStoreMiddlewares,
     // Klub: všechny /store/memberships* jen přihlášená zákaznice (session/bearer).
     ...membershipStoreMiddlewares,
+    // Produktové feedy a dopravci: len přihlášený správce.
+    ...feedAdminMiddlewares,
+    ...carrierAdminMiddlewares,
   ],
 })

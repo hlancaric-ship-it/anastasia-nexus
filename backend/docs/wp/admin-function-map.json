@@ -874,6 +874,16 @@
       "sha256": "53b126b07f40b5bb3189dd0c583c3a51d481753093a62a343459b027ce079c8d"
     },
     {
+      "path": "/admin/carriers",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "carriers",
+      "source": "backend/src/api/admin/carriers/route.ts",
+      "sha256": "f6920a3ca428c2d379910f1f7b154237520b12d4b0de6c1307acd70f2cfaac84"
+    },
+    {
       "path": "/admin/chat/conversations",
       "methods": [
         "GET"
@@ -4408,6 +4418,7 @@
     "backend/src/api/store/nexus-checkout/__tests__/safeorder.unit.spec.ts",
     "backend/src/lib/__tests__/admin-function-map.unit.spec.ts",
     "backend/src/lib/admin-theme/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/carriers/__tests__/policy.unit.spec.ts",
     "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
