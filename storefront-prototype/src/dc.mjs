@@ -23,7 +23,7 @@ const ROUTES = {
   'Celý obchod': '/eshop', 'Obchod': '/eshop',
   'AI ANASTASIA ACADEMY': '/eshop?category=sebarozvoj', 'BIOKOZMETIKA': '/eshop?category=bio-kozmetika-bez-chemie', 'Zdravé doplnky výživy': '/eshop?category=zdrave-doplnky-vyzivy', 'Programy a služby': '/eshop?category=sebarozvoj',
   'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/eshop?category=sebarozvoj',
-  'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
+  'Klub': '/klub', 'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
   'Konzultácie': '/konzultacie', 'Všetky konzultácie': '/konzultacie', 'Služby': '/konzultacie',
   'Online konzultácia': '/konzultacie/online-zdravotna-konzultacia', 'Supervízia': '/konzultacie/supervizia',
   'Astrologický profil': '/konzultacie/astrologicky-profil-zdravia-a-vitality', 'Astrológia': '/konzultacie/astrologicky-profil-zdravia-a-vitality',
@@ -170,7 +170,7 @@ const ids = html => html
 
 // Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
 const FOOTER_GROUPS = {
-  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Zdravý svet', '/zdravy-svet']],
+  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Klub', '/klub'], ['Zdravý svet', '/zdravy-svet']],
   'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Supervízia', '/konzultacie/supervizia'], ['Astrológia', '/konzultacie/astrologicky-profil-zdravia-a-vitality']],
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravá lekáreň', '/zdrava-lekaren'], ['Denný stacionár Vyšná Slaná', '/denny-stacionar-vysna-slana'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
@@ -207,9 +207,7 @@ export function chrome(page) {
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   // Obě menu čtou stejný seznam; původní návrhové duplicity se nepřenášejí.
   const menuBrand=html=>{
-    // Zvyšný odkaz „O Lucii“ z návrhu odstránime ešte pred vložením skupín – tie ho obsahujú.
-    html=html.replace(/<a\b[^>]*>\s*O Lucii\s*<\/a>/g,'');
-    html=html.replace(/(<a\b[^>]*>)\s*Zdravý svet\s*<\/a>/g, '$1Môj účet</a>');
+    html=html.replace(/(<a\b[^>]*>)\s*Zdravý svet\s*<\/a>/g, '$1Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, '$1Klub</a>');
     let index=0;
     // Poradie polí menu je v semene spoločné pre všetky skupiny (nie resetované).
     let menuField=0;
