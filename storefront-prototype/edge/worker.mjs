@@ -23,16 +23,9 @@ export default {
     );
     const headers = new Headers(response.headers);
     headers.set('content-length', String(new TextEncoder().encode(patched).length));
-    // Statické súbory s verziou (?v=…) a assety sú nemenné – dlhá cache.
-    const url = new URL(request.url);
-    const versioned = /\?v=/.test(url.search);
-    if (/^\/assets\//.test(url.pathname) || versioned) {
-      headers.set('cache-control', 'public, max-age=31536000, immutable');
-    } else if (url.pathname.endsWith('.html') || url.pathname === '/') {
-      headers.set('cache-control', 'public, max-age=0, must-revalidate');
-    } else {
-      headers.set('cache-control', 'public, max-age=86400');
-    }
+    // HTML sa nesmie držať v cache prehliadača ani na hrane: po nasadení musí každý hneď vidieť novú verziu
+    // (CSS/JS sú verzované cez ?v=…, takže samotné HTML ich načíta nanovo).
+    headers.set('cache-control', 'no-cache, must-revalidate');
     return new Response(patched, {status: response.status, headers});
   },
 };
