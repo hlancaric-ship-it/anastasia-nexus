@@ -84,7 +84,7 @@
        "key": "global__menu-obchod__1-text",
        "type": "text",
        "label": "Položka menu – AI ANASTASIA ACADEMY",
-       "value": "AI ANASTASIA ACADEMY",
+       "value": "AI ANASTASIA Academy",
        "max_length": 160,
        "lang": "sk"
       },
@@ -100,7 +100,7 @@
        "key": "global__menu-obchod__2-text",
        "type": "text",
        "label": "Položka menu – BIOKOZMETIKA",
-       "value": "BIOKOZMETIKA",
+       "value": "Biokozmetika",
        "max_length": 160,
        "lang": "sk"
       },
