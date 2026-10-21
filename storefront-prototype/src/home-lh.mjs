@@ -488,6 +488,8 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-top__brand img{width:30px;height:30px}
   .lh-top__side--right{gap:10px;font-size:11px}
   .lh-top__side--right>a:not([aria-label="Košík"]){display:none}
+  /* r21/2: košík má rovnakú pilulku ako „Menu“ (jeden štýl, žiadny zdvojený obrys). */
+  .lh-top__side--right>a[aria-label="Košík"]{display:inline-flex;align-items:center;gap:8px;min-height:44px;height:44px;padding:0 16px;border-radius:80px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:inherit;text-decoration:none;white-space:nowrap}
   .lh-top__side--right .lh-top__menu{display:none}
   .lh-top__menu{height:44px;min-height:44px;padding:0 16px;gap:8px;font-size:11px;letter-spacing:1.2px}
   .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
