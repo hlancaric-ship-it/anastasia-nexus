@@ -80,6 +80,10 @@ const duo = (italic, caps, keys = {}) => `<span class="lh-display"${keys.a?` dat
 export const LH_HEADER = `
 <header id="lh-top" class="lh-top">
   <nav class="lh-top__side" aria-label="Obchod">
+    <button class="lh-top__menu" type="button" data-menu-open="top" aria-label="Menu" aria-expanded="false" aria-controls="dc-top-menu">
+      <span>Menu</span>
+      <span class="lh-top__burger" aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>
     <a href="/eshop">Obchod</a>
     <a href="/eshop?category=sebarozvoj">Programy a služby</a>
   </nav>
@@ -89,11 +93,7 @@ export const LH_HEADER = `
   </a>
   <nav class="lh-top__side lh-top__side--right" aria-label="Účet">
     <a href="/konzultacie">Konzultácie</a>
-    <a href="/kosik" aria-label="Košík">Košík <span class="cart-count" aria-label="Počet kusov">0</span></a>
-    <button class="lh-top__menu" type="button" data-menu-open="top" aria-label="Menu" aria-expanded="false" aria-controls="dc-top-menu">
-      <span>Menu</span>
-      <span class="lh-top__burger" aria-hidden="true"><i></i><i></i><i></i></span>
-    </button>
+    <a href="/kosik" aria-label="Košík">Košík (<span class="cart-count" aria-label="Počet kusov">0</span>)</a>
   </nav>
 </header>`;
 
@@ -141,6 +141,7 @@ export function homeSections(products = []) {
           </linearGradient>
         </defs>
         <rect x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.94" mask="url(#lhWord)"/>
+        <rect x="-6000" y="-6000" width="13440" height="12900" fill="#0E170C" opacity="0.5" mask="url(#lhWord)"/>
         <rect id="lh-word-shine" x="-6000" y="-6000" width="13440" height="12900" fill="url(#lhShine)" mask="url(#lhWord)" opacity="0"/>
         <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
       </svg>
@@ -374,7 +375,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-brand__img--shine{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:sepia(.85) saturate(2.6) hue-rotate(3deg) brightness(1.05);-webkit-mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);-webkit-mask-size:250% 100%;mask-size:250% 100%;-webkit-mask-position:150% 0;mask-position:150% 0}
 .lh-brand__stem{width:1px;height:22px;background:linear-gradient(180deg,rgba(201,163,85,0),var(--site-accent,#C9A355))}
 .lh-brand__name{font-weight:200;font-size:clamp(16px,1.4vw,26px);letter-spacing:.3em;padding-left:.3em;white-space:nowrap;--lh-shim-base:var(--lh-ink,#1E281C)}
-.lh-brand__sub{display:flex;align-items:center;gap:10px;font-weight:300;font-size:clamp(10px,.95vw,14px);letter-spacing:.44em;padding-left:.44em;color:var(--site-accent,#C9A355);white-space:nowrap;--lh-shim-base:var(--site-accent,#C9A355)}
+.lh-brand__sub{color:#8A6520!important;display:flex;align-items:center;gap:10px;font-weight:300;font-size:clamp(10px,.95vw,14px);letter-spacing:.44em;padding-left:.44em;color:var(--site-accent,#C9A355);white-space:nowrap;--lh-shim-base:var(--site-accent,#C9A355)}
 .lh-brand__sub i{width:20px;height:1px;background:currentColor}
 .lh-shimmer-text--gold{--lh-shim-base:var(--site-accent,#C9A355)}
 /* Odlesk textu: barva zůstává, přes ni přejede úzký zlatý pruh. */
@@ -382,7 +383,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .motion .lh-cat{--lh-shim-base:var(--lh-ink,#1E281C)}
 @media (max-width:699.98px){
   .lh-intro__brands{top:clamp(16px,2.6vh,34px);gap:12px 22px}
-  .lh-brand--main{order:-1;flex:0 0 100%;height:92px}
+  .lh-brand--main{flex:0 0 auto;height:58px}
   .lh-brand--academy,.lh-brand--ai{height:58px}
   .lh-brand__lock--mark{width:34px}
   .lh-brand__stem{height:14px}
@@ -403,7 +404,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 @media (prefers-reduced-motion:reduce){.lh-say--two{display:none}}
 .motion .lh-say{opacity:0}
 .motion .lh-say--one,.motion .lh-say--two{opacity:0}
-.lh-vid-btn{position:absolute;right:var(--lh-gut,16px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.15);color:#fff;font:inherit;font-size:13px;cursor:pointer;opacity:0}
+.lh-vid-btn{position:absolute;right:auto;left:calc(var(--lh-gut,16px) + 8px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.15);color:#fff;font:inherit;font-size:13px;cursor:pointer;opacity:0}
 .motion .lh-vid-btn{opacity:1}
 .lh-scroll-cue{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--lh-muted,#6E7468);display:flex;flex-direction:column;align-items:center;gap:10px}
 .lh-scroll-cue i{width:1px;height:44px;background:linear-gradient(var(--site-accent-light,#D8C598),transparent);animation:lh-cue 2.2s ease-in-out infinite}
@@ -462,14 +463,18 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-cat--4{bottom:15vh;left:12%}
 @media (max-width:760px){
   /* r12/1: na mobilu logo vľavo, košík a Menu vpravo, hlavička fixná. */
-  .lh-top{grid-template-columns:auto minmax(0,1fr);gap:10px;padding:9px 14px}
-  .lh-top>nav:first-child{display:none}
+  .lh-top{grid-template-columns:auto minmax(0,1fr);gap:12px;padding:9px 14px}
+  .lh-top__side--right{grid-column:2;justify-self:end}
+  .lh-top>nav:first-child>a{display:none}
+  .lh-top>nav:first-child .lh-top__menu{display:inline-flex!important;flex:0 0 auto}
   .lh-top__brand{align-items:flex-start;gap:0}
   .lh-top__brand span{display:none}
   .lh-top__brand img{width:30px;height:30px}
   .lh-top__side--right{gap:10px;font-size:11px}
   .lh-top__side--right>a:not([aria-label="Košík"]){display:none}
+  .lh-top__side--right .lh-top__menu{display:none}
   .lh-top__menu{height:36px;padding:0 14px;gap:8px;font-size:11px;letter-spacing:1.2px}
+  .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
   .lh-intro__brands{top:62px;gap:0 14px;flex-wrap:nowrap;justify-content:center}
   .lh-brand--main,.lh-brand--academy,.lh-brand--ai{height:58px;flex:0 0 auto}
   .lh-brand__lock--mark{width:26px}
