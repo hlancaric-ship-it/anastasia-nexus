@@ -19,10 +19,18 @@ export default {
     }
     if (!new URL(request.url).pathname.startsWith(MEDIA_PATH_PREFIX)) return new Response(null, { status: 404, headers })
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
+    // Video/audio only for the library player (CORS request from an allowed origin). Opening the link directly,
+    // "Save as" or a download manager sends no Origin / navigates as a document, so it gets 403. PDFs open in a tab.
+    const isDocument = new URL(request.url).pathname.toLowerCase().endsWith('.pdf')
+    const dest = request.headers.get('Sec-Fetch-Dest')
+    if (!isDocument && (!origin || (dest && !['video', 'audio', 'empty', 'track'].includes(dest)))) {
+      return new Response(null, { status: 403, headers })
+    }
     try {
       const response = await handleMediaDelivery(request, env as Env)
       const result = new Response(response.body, response)
       for (const [key, value] of headers) result.headers.set(key, value)
+      if (!isDocument) result.headers.set('Content-Disposition', 'inline')
       // PDF and WebM are also protected documents/media, never executable HTML.
       const path = new URL(request.url).pathname.toLowerCase()
       if (response.ok && path.endsWith('.pdf')) result.headers.set('Content-Type', 'application/pdf')
