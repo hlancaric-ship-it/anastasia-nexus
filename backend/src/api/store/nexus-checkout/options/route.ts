@@ -131,6 +131,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
 
     // Doprava: jedna možnosť pre každý profil v košíku, typ určuje server.
     const options = await pricedOptions(req, cart)
+    
     const chosen: PricedOption[] = []
     if (physicalType) {
       for (const profileId of shape.physicalProfileIds) {
@@ -139,10 +140,15 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
         chosen.push(option)
       }
     }
-    for (const profileId of shape.digitalProfileIds) {
-      const option = pick(options, [profileId], "digital")
-      if (!option) throw new CheckoutChoiceError("SHIPPING_OPTION_UNAVAILABLE", 409)
-      chosen.push(option)
+    // Pre zmiešaný košík sa digitálna doprava nepoužije (iba fyzické možnosti).
+    // Digitálne profily sú v košíku, ale pre ne sa nenastavuje žiadna doprava.
+    if (!shape.hasPhysical && shape.hasDigital) {
+      // Čisto digitálny košík: nastaví sa digitálna doprava
+      for (const profileId of shape.digitalProfileIds) {
+        const option = pick(options, [profileId], "digital")
+        if (!option) throw new CheckoutChoiceError("SHIPPING_OPTION_UNAVAILABLE", 409)
+        chosen.push(option)
+      }
     }
     const profiles = new Set([...shape.physicalProfileIds, ...shape.digitalProfileIds])
     const optionProfile = new Map(options.map((option) => [option.id, option.shipping_profile_id]))

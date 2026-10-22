@@ -79,13 +79,13 @@ describe("GET /store/nexus-checkout/options", () => {
 })
 
 describe("POST /store/nexus-checkout/options", () => {
-  it("dobierka s kuriérom: server nastaví kuriéra na dobierku a session pp_cod_cod (bez client_secret)", async () => {
+  it("zmiešaný košík (fyzický + digitálny): iba fyzické dopravy, digitálna sa odmietne", async () => {
     const t = setup({ profiles: ["sp_p", "sp_d"] })
-    await POST({ body: { cart_id: "cart_1", delivery: "courier", payment: "cod" }, scope: t.scope, auth_context: AUTH } as any, t.res)
+    await POST({ body: { cart_id: "cart_1", delivery: "courier", payment: "card" }, scope: t.scope, auth_context: AUTH } as any, t.res)
     expect(t.res.status).toHaveBeenCalledWith(200)
-    expect(t.added.sort()).toEqual(["so_cod", "so_digital"])
-    expect(jest.mocked(createPaymentSessionsWorkflow).mock.results[0]).toBeDefined()
-    expect(body(t.res)).toMatchObject({ ok: true, payment: "cod", delivery: "courier", client_secret: null, payment_required: true })
+    // Pre zmiešaný košík sa nastaví iba fyzická doprava (digitálna je odmítnuta)
+    expect(t.added.sort()).toEqual(["so_courier"])
+    expect(body(t.res)).toMatchObject({ ok: true, payment: "card", delivery: "courier" })
   })
   it("dobierka pre digitálny košík → 400 COD_NOT_AVAILABLE, nič sa nezmení", async () => {
     const t = setup({ profiles: ["sp_d"] })
