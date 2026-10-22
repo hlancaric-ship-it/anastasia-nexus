@@ -20,7 +20,7 @@ brandSaleDiscounts: { DELPHIN: 0.15, MIVARDI: 0.10, MIKADO: 0.09 }
 Dvě věci k tomu:
 
 1. **Toto je v přímém rozporu s `PROGRESS_LOG.md` sekce 8**, kde je napsáno "slevové % se zatím vědomě nechávají na 0 %". V kódu reálné procento existuje a je defaultní hodnota, kterou `PricingConfigurationProvider` vrací, pokud nedostane jiný config.
-2. **`brandLimits`/`brandSaleDiscounts` obsahují značky řázeňských potřeb (DELPHIN, MIVARDI, MIKADO, FISHING POINT)** — to jsou původní data z jiného tenantu. Soubor/konstanta se jmenuje `DEFAULT_ANASTASIA_PRICING_CONFIG`, ale obsah je zjevně zkopírovaný/sdílený. Pokud se tahle konfigurace reálně použije pro ANASTASIA bez úpravy, zákaznice uvidí nesmyslné značkové limity.
+2. **`brandLimits`/`brandSaleDiscounts` obsahují značky, které nepatří ANASTASIA** — jde o převzatá výchozí data. Soubor/konstanta se jmenuje `DEFAULT_ANASTASIA_PRICING_CONFIG`, ale obsah je zjevně zkopírovaný/sdílený. Pokud se tahle konfigurace reálně použije pro ANASTASIA bez úpravy, zákaznice uvidí nesmyslné značkové limity.
 
 **Závěr pro C5:** tahle konfigurace (tier %, brand limity, sale limity) musí jít z administrace, ne z TS konstanty nasazované přes deploy. Než admin existuje, je potřeba tenhle soubor přinejmenším vyčistit a ujasnit, jestli `0.04-0.25` jsou skutečně "0 %, nerozhodnuto", nebo starý testovací default, co zůstal v kódu.
 
