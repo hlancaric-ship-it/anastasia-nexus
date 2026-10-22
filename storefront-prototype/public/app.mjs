@@ -2,7 +2,8 @@ import {isMediaUrl} from '/lib/media-url.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import {createApi} from '/lib/api/index.mjs';
-import {loadContent,applyContent,pageKeyOf} from '/content.mjs';
+import {loadContent,applyContent,contentPageKeys} from '/content.mjs';
+import {availablePaymentMethods,defaultPaymentMethod,nextButtonState} from '/checkout-ui.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit} from '/i18n.mjs';
@@ -412,6 +413,22 @@ if(checkoutForm){
   if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
   else{
     const step=n=>{$$('fieldset[data-step]',checkoutForm).forEach(el=>{el.hidden=Number(el.dataset.step)!==n;el.disabled=el.hidden;});$$('[data-step-label]').forEach(el=>el.classList.toggle('current',Number(el.dataset.stepLabel)===n));const first=$(`fieldset[data-step="${n}"] input`,checkoutForm);first?.focus();};
+    // Tlačidlá „Pokračovať“ naskočia až po načítaní košíka a možností platby.
+    // Kým sa načítavajú, sú neaktívne a vedľa nich je viditeľný stav – klik sa
+    // nikdy neignoruje potichu.
+    const setNextState=({disabled,loading})=>{
+      for(const btn of $$('[data-next]',checkoutForm))btn.disabled=disabled;
+      const status=$('#checkout-loading',checkoutForm);
+      if(status){status.textContent=loading;status.hidden=!loading;}
+      checkoutForm.setAttribute('aria-busy',String(!!disabled));
+    };
+    const retry=$('#checkout-retry',checkoutForm);
+    if(retry)retry.addEventListener('click',async()=>{
+      retry.hidden=true;setNextState(nextButtonState({cartReady:true,optionsReady:false}));
+      const again=await loadOptions();
+      if(again.ok)setNextState(nextButtonState({cartReady:true,optionsReady:true}));
+      else{setNextState({disabled:true,loading:again.message});retry.hidden=again.status===401;}
+    });
     // Stripe Payment Element: reálna karetní platba (Apple/Google Pay přes Payment Element). Jen v http režimu.
     const cfg=(()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}})();
     let stripe,elements,paymentReady=false,paymentRequired=true,paymentMethod='card';
@@ -438,16 +455,24 @@ if(checkoutForm){
     };
     const renderPayment=()=>{
       const box=$('#payment-options',checkoutForm);if(!box)return;
-      const list=(options.payment||[]).filter(p=>p.available!==false);
-      box.innerHTML=list.map((p,i)=>`<label class="radio-label"><input type="radio" name="payment" value="${e(p.code)}"${i===0?' checked':''}> ${e(p.label)}${p.feeLabel?` · ${e(p.feeLabel)}`:''}</label>`).join('');
+      // Predvolene je „Kartou online“ (karta), ak je dostupná; poradie ostatných
+      // spôsobov ostáva také, ako ho poslal server.
+      const list=availablePaymentMethods(options.payment||[]);
+      const chosen=defaultPaymentMethod(list);
+      box.innerHTML=list.map(p=>`<label class="radio-label"><input type="radio" name="payment" value="${e(p.code)}"${p.code===chosen?' checked':''}> ${e(p.label)}${p.feeLabel?` · ${e(p.feeLabel)}`:''}</label>`).join('');
     };
     const loadOptions=async()=>{
-      if(typeof api.getCheckoutOptions!=='function')return;
+      if(typeof api.getCheckoutOptions!=='function')return{ok:false,status:0,message:'Možnosti dopravy a platby nie sú dostupné.'};
       const r=await api.getCheckoutOptions();
-      if(!r.ok){const note=deliveryNote();if(note){note.hidden=false;note.textContent=r.message||'Možnosti dopravy sa nepodarilo načítať.';}return;}
+      if(!r.ok){const note=deliveryNote();if(note){note.hidden=false;note.textContent=r.message||'Možnosti dopravy sa nepodarilo načítať.';}return{ok:false,status:r.status||0,message:r.message||'Možnosti dopravy a platby sa nepodarilo načítať.'};}
       options=r;renderDelivery();renderPayment();
+      return{ok:true,status:0,message:''};
     };
-    await loadOptions();
+    // Košík je načítaný: kým prúdia možnosti dopravy a platby, tlačidlá zostávajú neaktívne.
+    setNextState(nextButtonState({cartReady:true,optionsReady:false}));
+    const loaded=await loadOptions();
+    if(loaded.ok)setNextState(nextButtonState({cartReady:true,optionsReady:true}));
+    else{setNextState({disabled:true,loading:loaded.message});if(retry&&loaded.status!==401)retry.hidden=false;}
     const initPayment=async()=>{
       paymentReady=false;
       const fs=$('fieldset[data-step="3"]',checkoutForm);if(!fs)return;
@@ -700,11 +725,13 @@ async function syncCategories(){
 // Jazyky SK/EN/RU: zapojí přepínače a aplikuje uloženou volbu (EN/RU zatím náhled, viz i18n.mjs).
 syncCategories().finally(()=>i18nInit());
 
-// Obsah z administrácie (Medusa). Ak backend nevráti dáta, stránka si ponechá
-// zabudovaný obsah – nikdy neprázdno.
+// Obsah z administrácie (Medusa). Načítame len stránky, ktoré naozaj používajú
+// vlastné kľúče – stránka bez nich (napr. pokladňa) sa na server neopýta, takže
+// v konzole nie je 404. Ak backend nevráti dáta, stránka si ponechá zabudovaný
+// obsah – nikdy neprázdno.
 (async()=>{
   try{
-    for(const key of ['global',pageKeyOf(location.pathname)]){
+    for(const key of contentPageKeys(document)){
       const payload=await loadContent(key);
       if(payload)applyContent(document,payload);
     }

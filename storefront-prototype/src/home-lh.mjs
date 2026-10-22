@@ -510,7 +510,9 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 
 /* --- Výzva ke skrolování: tlačítko, ne text, který vypadá jako odkaz ------ */
 .lh-enter-wrap{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:12px}
-.lh-enter{display:inline-flex;align-items:center;gap:16px;height:54px;padding:0 26px;border-radius:27px;background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 6px rgba(40,48,32,.06);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);color:var(--lh-ink,#1E281C);font-family:inherit;font-size:13px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .35s,border-color .35s,transform .35s}
+/* Tlačidlo „Vstúpte“ musí byť kliknuteľné: .lh-intro__meta má pointer-events:none
+   (aby nechytal kliky mimo tlačidla), preto sa pointer-events vracia priamo na tlačidle. */
+.lh-enter{display:inline-flex;align-items:center;gap:16px;height:54px;padding:0 26px;border-radius:27px;background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 6px rgba(40,48,32,.06);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);color:var(--lh-ink,#1E281C);font-family:inherit;font-size:13px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;pointer-events:auto;transition:background .35s,border-color .35s,transform .35s}
 .lh-enter:hover{background:rgba(255,255,255,.68);transform:translateY(-2px)}
 .lh-enter__arrow{font-size:16px;letter-spacing:0;animation:lh-arrow 1.9s ease-in-out infinite}
 @keyframes lh-arrow{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}

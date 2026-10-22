@@ -12,6 +12,20 @@ export function pageKeyOf(pathname) {
   return raw.replace(/\//g, '-').replace(/[^a-z0-9-]+/gi, '-').toLowerCase() || 'home';
 }
 
+// Predpony klúčov, ktoré stránka naozaj používa ('global', 'eshop', 'kontakt', …).
+// Stránka, ktorá nemá žiadny vlastný kľúč, sa na server neopýta – žiadny 404
+// v konzole a zabudovaný obsah stránky ostáva v platnosti.
+export function contentPageKeys(root) {
+  if (!root || typeof root.querySelectorAll !== 'function') return [];
+  const keys = [];
+  for (const el of root.querySelectorAll('[data-content]')) {
+    const key = String((el.dataset && el.dataset.content) || '');
+    const prefix = key.split('__')[0];
+    if (prefix && !keys.includes(prefix)) keys.push(prefix);
+  }
+  return keys;
+}
+
 export async function loadContent(pageKey, {timeout = 5000} = {}) {
   const base = config().apiBaseUrl;
   if (!base || !pageKey) return null;

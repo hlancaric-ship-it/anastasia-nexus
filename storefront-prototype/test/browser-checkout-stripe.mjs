@@ -110,19 +110,17 @@ try{
   await page.goto(`${web}/`,{waitUntil:'load'});
   // Na úvode webu lišta cookies koliduje s preloaderom – objaví sa až po scrollu za úvod.
   //
-  // Tlačidlo „Vstúpte“ (#lh-scroll-cue) sa myšou kliknúť NEDÁ: .lh-intro__meta má
-  // pointer-events:none a maska .lh-intro__mask (SVG) prekrýva celú scénu. Klik by
-  // skončil timeoutom na „intercepts pointer events“. Test preto úvod zavrie rovnakým
-  // pohybom, aký spúšťa „Vstúpte“ (skok na koniec úvodu), a počká, kým maska zmizne
-  // z viewportu a lišta cookies sa objaví. Produkčné UI sa nemení.
+  // Tlačidlo „Vstúpte“ (#lh-scroll-cue) sa kliká myšou: .lh-enter má pointer-events:auto
+  // (rodič .lh-intro__meta má pointer-events:none, aby nechytal kliky mimo tlačidla).
+  // Klik zavrie úvod a odblokuje lištu cookies.
   await page.waitForFunction(()=>document.body.classList.contains('motion')||matchMedia('(prefers-reduced-motion: reduce)').matches,null,{timeout:20000});
-  await page.evaluate(()=>{
+  await page.locator('#lh-scroll-cue').click();
+  await page.waitForFunction(()=>{
     const intro=document.querySelector('.lh-intro');
-    if(!intro)return;
-    const target=Math.ceil(window.scrollY+intro.getBoundingClientRect().bottom-1);
-    if(window.__anaLenis)window.__anaLenis.scrollTo(target,{immediate:true,force:true});
-    else window.scrollTo(0,target);
-  });
+    return !intro||intro.getBoundingClientRect().bottom<=window.innerHeight+1;
+  },null,{timeout:20000});
+  // Užívateľ pokračuje scrollom – lišta cookies sa ukáže až za úvodom.
+  await page.mouse.wheel(0,1600);
   await page.waitForFunction(()=>{
     const intro=document.querySelector('.lh-intro');
     return !intro||intro.getBoundingClientRect().bottom<=1;
