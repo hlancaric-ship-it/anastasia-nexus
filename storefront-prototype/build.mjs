@@ -28,6 +28,20 @@ if(process.env.ANASTASIA_PUBLISHABLE_KEY&&process.env.ANASTASIA_REGION_ID){
 const catalog=category=>views.catalog(category,catalogProducts);
 // Denný stacionár: fotografie z dodaných souborů (public/media/ds).
 const dsPhotos=(dir,files)=>`<section class="section photo-gallery">${files.map(f=>`<figure><img src="/media/ds/${f}" alt="Denný stacionár Vyšná Slaná – ${f.replace(/\.[a-z]+$/,'').replace(/[_-]/g,' ')}" loading="lazy" width="1200" height="800"></figure>`).join('')}</section>`;
+// Jedno písmo: Outfit sa nahrádza Figtree (22. 10.).
+const unifyFont=html=>html.replaceAll('Outfit,sans-serif','Figtree,"Helvetica Neue",sans-serif')
+  // Bez zdvojených odkazov: Zdravá lekáreň = Obchod, Programy a služby = AI ANASTASIA Academy.
+  .replace(/<dc-wide><a href="\/eshop\?category=[^"]*">Programy a služby<\/a><\/dc-wide>/g,'')
+  .replace(/<a href="\/eshop\?category=sebarozvoj">Programy a služby<\/a>/g,'')
+  .replace(/<a(?=[^>]*href="\/zdrava-lekaren")[^>]*>[\s\S]*?<\/a>/g,'');
+// Zdvojené stránky: jedna adresa na obsah, ostatné 301 (22. 10.).
+const DUPLICATE_REDIRECTS=[
+  ['/zdrava-lekaren','/eshop/'],['/eshop/kategoria/-vsetko-','/eshop/'],['/eshop/kategorie','/eshop/'],
+  ['/eshop/kategoria/bio-kozmetika-bez-chemie','/eshop/?category=bio-kozmetika-bez-chemie'],['/eshop/kategoria/kozmetika','/eshop/?category=bio-kozmetika-bez-chemie'],
+  ['/eshop/kategoria/bylinky-a-vyziva','/eshop/?category=zdrave-doplnky-vyzivy'],['/eshop/kategoria/programy-a-sluzby','/eshop/?category=sebarozvoj'],
+  ['/nova-registracia','/prihlasenie/'],['/eshop/produkt/astrologia','/eshop/produkt/astrologia-zdravie-predispozicia/'],
+  ['/ai-anastasia-academy','/reset-40/'],['/eshop/produkt/ritualne-sviecky-voskove','/eshop/'],['/eshop/produkt/saty-lanove','/eshop/'],
+];
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
@@ -96,10 +110,12 @@ await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:tr
  }
  await writeFile(file,source);
 }
-for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),document(path,page));}
+for(const [from] of DUPLICATE_REDIRECTS)routes.delete(from);
+await writeFile(join(out,'_redirects'),DUPLICATE_REDIRECTS.flatMap(([from,to])=>[`${from} ${to} 301`,`${from}/ ${to} 301`]).join('\n')+'\n');
+for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),unifyFont(document(path,page)));}
 // styles.css ve vrstvě: neoznačená pravidla z dc.css (reset a inline návrh) mají vždy přednost.
 await writeFile(join(out,'base.css'),'@import url("/styles.css") layer(legacy);\n');
-await writeFile(join(out,'styles.css'),tokenizeColors(await readFile(join(out,'styles.css'),'utf8')));
+await writeFile(join(out,'styles.css'),unifyFont(tokenizeColors(await readFile(join(out,'styles.css'),'utf8'))));
 // Detail produktu má vlastní paletu a musí sledovat motiv stejně jako zbytek.
 await writeFile(join(out,'product-detail.css'),tokenizeColors(await readFile(join(out,'product-detail.css'),'utf8')));
 // Definice motivů se netokenizují (jinak by --site-main:#283020 odkazoval sám na sebe).
@@ -118,6 +134,11 @@ await writeFile(join(out,'dc.css'),centerThemeCss()+'\n'+siteThemeCss()+'\n'+tok
   '.legacy-shell{padding-left:var(--rail-pad)}.legacy-shell>.dc-chrome{overflow-x:clip}.legacy-main>:not(.legal-doc){margin-left:var(--rail-neg);border-left:var(--rail-pad) solid transparent}',
   '.legacy-main>.zs-follow-image{border-left:0}',
   '.legacy-shell>.dc-chrome:has(footer){overflow-x:visible}.legacy-shell footer{overflow-x:clip}',
+  '/* 22. 10. Lucky: žiadna horná lišta. Vpravo hore len tlačidlo Menu, vľavo bočná lišta. */',
+  '.lh-top{background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:none;display:flex!important;justify-content:flex-end!important}.lh-top>*:not(.lh-top__side),.lh-top__side>*:not(.lh-top__menu),.lh-top__side--right>*{display:none!important}.lh-top__side{pointer-events:none}.lh-intro-page.lh-chrome-in .lh-top__menu{opacity:1!important}.lh-top__menu{display:inline-flex!important;pointer-events:auto!important;background:var(--site-main)!important;color:var(--site-cream)!important;border-color:rgba(201,163,85,.35)!important}',
+  '.legacy-shell>.dc-chrome:first-child{background:transparent!important;height:0;margin:0!important;padding:0!important;border:0!important}.legacy-shell>.dc-chrome:first-child>header{position:fixed!important;top:14px;right:clamp(16px,3vw,48px);left:auto;z-index:45;display:flex!important;padding:0!important;border:0!important;background:none!important;pointer-events:none}.legacy-shell>.dc-chrome:first-child>header>div{display:contents!important}.legacy-shell>.dc-chrome:first-child>header .header-brand,.legacy-shell>.dc-chrome:first-child>header>div>:not(dc-wide):not(dc-narrow),.legacy-shell>.dc-chrome:first-child>header dc-wide:not(:has(.dch1)),.legacy-shell>.dc-chrome:first-child>header dc-narrow:not(:has(.dch0)){display:none!important}.legacy-shell>.dc-chrome:first-child>header :is(.dch0,.dch1){pointer-events:auto;background:var(--site-main)!important;color:var(--site-cream)!important;border-radius:80px!important;padding:0 22px!important;height:50px!important}',
+  '/* 22. 10. Lucky: jedno písmo všade – nadpisy Fraunces 300, text Figtree. */',
+  'h1,h2,h3{font-family:Fraunces,Georgia,"Times New Roman",serif!important;font-weight:300!important}',
   dcCss()].join('\n')));
 await writeFile(join(out,'center-theme.js'),centerThemeBoot());
 await writeFile(join(out,'site-theme.js'),siteThemeBoot());

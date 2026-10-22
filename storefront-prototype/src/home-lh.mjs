@@ -525,6 +525,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 html.lh-locked,html.lh-locked body{overflow:hidden!important;height:100%;overscroll-behavior:none}
 html.lh-mobile-intro .lh-intro{height:100svh!important;min-height:560px!important}
 html.lh-mobile-intro .lh-intro__stage{height:100svh!important}
+html.lh-mobile-intro .lh-or{display:none!important}
 @media (max-width:768px),(pointer:coarse){
   .lh-or{display:none!important}
   .lh-enter{height:64px;padding:0 34px;font-size:15px;letter-spacing:.22em}

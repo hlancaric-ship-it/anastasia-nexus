@@ -30,9 +30,8 @@ const heroMode = (() => {
     const query = params.toString();
     history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
   }
-  let seen = false;
-  try { seen = sessionStorage.getItem('ana-intro-seen') === '1'; } catch {}
-  return asked || seen;
+  // Úvod je vždy krémový preloader s tlačidlom Vstúpte (rozhodnutie 22. 10.).
+  return false;
 })();
 if (heroMode) document.documentElement.classList.add('lh-hero-mode');
 const markIntroSeen = () => { try { sessionStorage.setItem('ana-intro-seen', '1'); } catch {} };
@@ -57,7 +56,8 @@ if (gsap && ScrollTrigger) {
   const intro = $('#lh-intro');
   const top = $('#lh-top');
   // r12/2a: mobilný úvod – bez scrollovania, iba tlačidlo Vstúpte.
-  const mobileIntro = Boolean(intro) && matchMedia('(max-width:768px), (pointer:coarse)').matches;
+  // 22. 10.: aj na desktope bez skrolu – len Vstúpte, potom sa úvod prehrá sám.
+  const mobileIntro = Boolean(intro);
   if (mobileIntro) {
     document.documentElement.classList.add('lh-locked');
     document.documentElement.classList.add('lh-mobile-intro');
@@ -232,12 +232,13 @@ if (gsap && ScrollTrigger) {
       if (mobileIntro) {
         // r12/2a: na mobilu sa úvod prehrá sám po Vstúpte (3–4 s).
         timeline.pause(0);
+        timeline.timeScale(0.25);
         window.__anaIntroTimeline = timeline;
         const unlock = () => {
           document.documentElement.classList.remove('lh-locked');
           if (window.__anaLenis) window.__anaLenis.start();
         };
-        timeline.eventCallback('onComplete', () => { unlock(); markIntroSeen(); });
+        timeline.eventCallback('onComplete', () => { unlock(); markIntroSeen(); showChrome(); });
       }
     };
     (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
