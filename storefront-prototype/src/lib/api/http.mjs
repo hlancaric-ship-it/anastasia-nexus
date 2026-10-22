@@ -191,6 +191,46 @@ export function createHttpApi(storage, config) {
     };
   }
 
+  // Pokladňa: server je jediný zdroj pravdy. Vracia, či treba adresu (requires_delivery),
+  // možnosti dopravy (courier/pickup) a platby (card/cod/bank_transfer) a sám nastaví dopravu,
+  // prepočíta ceny a založí platobnú session. Klient posiela len kódy, nikdy sumy.
+  const CHECKOUT_MSG = {
+    UNAUTHORIZED: 'Pre dokončenie objednávky sa prihláste.',
+    CART_ACCESS_DENIED: 'Košík patrí inému zákazníkovi. Prihláste sa správnym účtom.',
+    CART_NOT_FOUND: 'Košík sa nenašiel. Vytvorte si nový.',
+    CART_EMPTY: 'Košík je prázdny.',
+    CART_COMPLETED: 'Táto objednávka už bola vykonaná.',
+    UNSUPPORTED_CURRENCY: 'Objednávku nie je možné potvrdiť v tejto meny.',
+    // Fyzický tovar bez zvolenej dopravy: zákazník musí zvoliť doručenie na adresu.
+    INVALID_DELIVERY: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    DELIVERY_REQUIRED: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    SHIPPING_OPTION_UNAVAILABLE: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    SHIPPING_REQUIRED: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    ADDRESS_REQUIRED: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    SHIPPING_PROFILE_UNKNOWN: 'Niektorý tovar v košíku sa nedá doručiť. Skúste iný spôsob platby.',
+    INVALID_PAYMENT_METHOD: 'Zvoľte spôsob platby.',
+    PAYMENT_METHOD_UNAVAILABLE: 'Tento spôsob platby momentálne nie je dostupný. Zvoľte iný.',
+    COD_NOT_AVAILABLE: 'Dobierka je dostupná len pri doručení kuriérom.',
+    PAYMENT_COLLECTION_FAILED: 'Platbu sa nepodarilo pripraviť. Skúste to znova.',
+    PAYMENT_PROVIDER_UNAVAILABLE: 'Platobná brána je momentálne nedostupná. Skúste to neskôr.',
+    CART_TOTAL_INVALID: 'Cenu objednávky sa nepodarilo vypočítať. Skúste to znova.',
+  };
+  const checkoutFail = (res, fallback) => {
+    const code = res?.data?.error;
+    if (typeof code === 'string' && code.startsWith('NEXUS_PRICING')) return 'Ceny sa nepodarilo vypočítať. Skúste to o chvíľu.';
+    if (code && CHECKOUT_MSG[code]) return CHECKOUT_MSG[code];
+    if (res?.status === 401) return CHECKOUT_MSG.UNAUTHORIZED;
+    if (res?.status === 403) return CHECKOUT_MSG.CART_ACCESS_DENIED;
+    if (res?.status === 503) return 'Služba je dočasne nedostupná. Skúste to o chvíľu.';
+    return fallback;
+  };
+  const feeLabel = (value, free) => {
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return '';
+    if (amount === 0) return free ? 'Zadarmo' : '';
+    return money(amount);
+  };
+
   // createApi volá metódy bez `this`, vnútorné volania preto idú cez `self`.
   const self = {
     mode: 'http',
@@ -274,74 +314,71 @@ export function createHttpApi(storage, config) {
       return r.ok ? { ok: true, ...r.data } : { ok: false, message: r.status === 403 ? 'K tomuto obsahu nemáte aktívny prístup.' : r.status === 401 ? 'Prihlásenie vypršalo. Prihláste sa znova.' : 'Obsah je dočasne nedostupný. Skúste to neskôr.' };
     },
 
-    // Pokladňa krok 2→3: košík priradí prihlásenej zákazníkov, uloží kontakt a adresu a zvolí dopravu
-    // pre každý prepravný profil v košíku (ceny a DPH počíta server; klient len vyberá zo serverových možností).
-    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = 'digital', street = '', city = '', postalCode = '', payment = 'card' } = {}) {
-      const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
-      if (!loggedIn()) return { ok: false, message: 'Pre dokončenie objednávky sa prihláste.' };
+    // Pokladňa krok 2→3: možnosti dopravy a platby berie zo servera (GET /store/nexus-checkout/options).
+    // Server rozhodne, či treba adresu, a vracia len kódy – žiadne „Digitálny produkt“ ani vlastné ceny.
+    async getCheckoutOptions() {
+      const id = get(CART); if (!id) return { ok: false, error: 'CART_EMPTY', message: CHECKOUT_MSG.CART_EMPTY };
+      if (!loggedIn()) return { ok: false, status: 401, error: 'UNAUTHORIZED', message: CHECKOUT_MSG.UNAUTHORIZED };
+      const fail = 'Možnosti dopravy sa nepodarilo načítať. Skúste to znova.';
+      // Server overí vlastníka košíka, preto ho najprv priradíme prihlásenému zákazníkovi.
+      const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
+      if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
+      let r = await call(`/store/nexus-checkout/options?cart_id=${encodeURIComponent(id)}`);
+      // Ceny dopravy vie server určiť až podľa krajiny – doplníme ju a spýtame sa znova.
+      if (r.status === 409 && r.data?.error === 'ADDRESS_REQUIRED') {
+        const up = await call(`/store/carts/${id}`, { method: 'POST', body: { shipping_address: { country_code: 'sk' } } });
+        if (up.ok) r = await call(`/store/nexus-checkout/options?cart_id=${encodeURIComponent(id)}`);
+      }
+      if (!r.ok) return { ok: false, status: r.status, error: r.data?.error, message: checkoutFail(r, fail) };
+      const data = r.data || {};
+      return {
+        ok: true,
+        requires_delivery: data.requires_delivery === true,
+        delivery: (data.delivery || []).filter(o => o?.code).map(o => ({
+          code: o.code, label: o.label || o.name || o.code,
+          fee: Number.isFinite(Number(o.fee ?? o.amount)) ? Number(o.fee ?? o.amount) : null,
+          feeLabel: feeLabel(o.fee ?? o.amount, true), freeFrom: o.free_from ?? null, address: o.address || '',
+        })),
+        payment: (data.payment || []).filter(p => p?.code).map(p => ({
+          code: p.code, label: p.label || p.code, available: p.available !== false,
+          fee: Number.isFinite(Number(p.fee)) ? Number(p.fee) : 0, feeLabel: feeLabel(p.fee, false), reason: p.reason || null,
+        })),
+      };
+    },
+    // Pokladňa krok 2→3: košík priradí prihlásenému zákazníkovi, uloží kontakt a adresu a
+    // odovzdá výber dopravy a platby serveru. Server nastaví dopravu (fyzickú aj digitálnu),
+    // prepočíta ceny a založí platobnú session – klient použije len client_secret z odpovede.
+    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = null, street = '', city = '', postalCode = '', payment = 'card' } = {}) {
+      const id = get(CART); if (!id) return { ok: false, error: 'CART_EMPTY', message: CHECKOUT_MSG.CART_EMPTY };
+      if (!loggedIn()) return { ok: false, status: 401, error: 'UNAUTHORIZED', message: CHECKOUT_MSG.UNAUTHORIZED };
       const fail = 'Objednávku sa nepodarilo pripraviť. Skúste to znova.';
       const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
-      if (!owner.ok) return { ok: false, message: fail };
+      if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
       const term = await checkCartBooking(id);
       if (!term.ok) return term;
-      const shipping = delivery === 'shipping';
+      // Doprava je voliteľná len pre čisto digitálny košík; fyzický tovar vyžaduje courier/pickup.
+      const wanted = delivery === 'courier' || delivery === 'pickup' ? delivery : null;
+      // Adresa na doručenie patrí ku kuriérovi; pri osobnom odbere a digitálnom tovare stačí krajina.
       const address = { first_name: String(firstName).trim(), last_name: String(lastName).trim(), country_code: 'sk',
-        ...(shipping ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
-      const up = await call(`/store/carts/${id}`, { method: 'POST', body: { email: String(email).trim(), shipping_address: address, billing_address: address } });
-      if (!up.ok) return { ok: false, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
-      // Zavolaj POST /store/nexus-checkout/options s delivery a payment
-      const so = await call(`/store/nexus-checkout/options`, { method: 'POST', body: { cart_id: id, delivery: shipping ? 'courier' : null, payment } });
-      if (!so.ok) {
-        // Chyba INVALID_DELIVERY/SHIPPING_OPTION_UNAVAILABLE s fyzickým košíkom bez adresy
-        const errCode = so.data?.error;
-        if ((errCode === 'INVALID_DELIVERY' || errCode === 'SHIPPING_OPTION_UNAVAILABLE') && shipping) {
-          return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
-        }
-        return { ok: false, message: so.data?.message || fail };
-      }
-      const { ok, requires_delivery, delivery: deliveryOptions } = so.data;
-      if (!ok) return { ok: false, message: so.data?.message || fail };
-      // Získa profily z košíka
-      const items = await call(`/store/carts/${id}?fields=id,items.product.shipping_profile.id,*items.product.metadata`);
-      const profiles = new Set((items.data?.cart?.items || []).map(i => i?.product?.shipping_profile?.id).filter(Boolean));
-      if (!items.ok || !profiles.size) return { ok: false, message: fail };
-      // Backend vráti deliveryOptions s možnosťami pre každý profil
-      const perProfile = new Map();
-      for (const opt of deliveryOptions || []) {
-        if (opt.shipping_profile_id && profiles.has(opt.shipping_profile_id)) {
-          if (!perProfile.has(opt.shipping_profile_id)) perProfile.set(opt.shipping_profile_id, opt);
-        }
-      }
-      const chosen = [...perProfile.values()];
-      if (chosen.length === 0) return { ok: false, message: 'Pre tento košík nie sú dostupné žiadne možnosti dopravy.' };
-      // Digitálna metóda sa musí pridať pre digitálny profil, ak je v košíku
-      const hasDigitalItem = (items.data?.cart?.items || []).some(i => i.product?.metadata?.digital === true || i.product?.metadata?.digital === 'true');
-      if (hasDigitalItem && !chosen.some(o => o.type?.code === 'digital')) {
-        // Backend by mal vrátiť digitálnu metódu, ak ju chýba, pridaj ju z deliveryOptions
-        const digitalOpt = (deliveryOptions || []).find(o => o.type?.code === 'digital');
-        if (digitalOpt && !chosen.some(o => o.shipping_profile_id === digitalOpt.shipping_profile_id)) {
-          chosen.push(digitalOpt);
-        }
-      }
-      // Ak je v košíku aspoň jedna fyzická položka, musí byť zvolená fyzická doprava
-      const hasPhysicalItem = (items.data?.cart?.items || []).some(i => {
-        const isDigital = i.product?.metadata?.digital === true || i.product?.metadata?.digital === 'true';
-        return !isDigital;
-      });
-      if (hasPhysicalItem && !shipping) return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
-      // Ak je requires_delivery === false, môže sa zvoliť aj digitálna doprava
-      if (!requires_delivery && !shipping && !hasPhysicalItem) {
-        // Čisto digitálny košík bez doručenia je v poriadku
-      } else if (shipping && !deliveryOptions?.some(o => o.type?.code !== 'digital')) {
-        return { ok: false, message: 'Pre tento košík nie sú dostupné fyzické možnosti dopravy.' };
-      }
-      // Nastav vybrané metódy na košík
-      for (const o of chosen) {
-        const sm = await call(`/store/carts/${id}/shipping-methods`, { method: 'POST', body: { option_id: o.id } });
-        if (!sm.ok) return { ok: false, message: fail };
-      }
-      await reprice();
-      return { ok: true, cart: await cartShape() };
+        ...(wanted === 'courier' ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
+      const body = { shipping_address: address, billing_address: address };
+      const mail = String(email).trim(); if (mail) body.email = mail;
+      const up = await call(`/store/carts/${id}`, { method: 'POST', body });
+      if (!up.ok) return { ok: false, status: up.status, error: up.data?.error, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
+      // Jediný serverový krok výberu: doprava + platba + prepocet + platobná session.
+      const so = await call('/store/nexus-checkout/options', { method: 'POST', body: { cart_id: id, delivery: wanted, payment } });
+      if (!so.ok) return { ok: false, status: so.status, error: so.data?.error, message: checkoutFail(so, fail) };
+      const data = so.data || {};
+      return {
+        ok: true,
+        clientSecret: data.client_secret || '',
+        paymentRequired: data.payment_required === true,
+        delivery: data.delivery ?? null,
+        payment: data.payment ?? null,
+        shipping: data.shipping || [],
+        totals: data.totals || null,
+        cart: await cartShape(),
+      };
     },
     // Súhlas s obchodnými podmienkami a GDPR pre konkrétny košík (verzie dodá server, autoritou je legal modul).
     async acceptCheckoutTerms({ terms_accepted = false, privacy_acknowledged = false } = {}) {
@@ -351,18 +388,6 @@ export function createHttpApi(storage, config) {
       if (!v.ok || !v.data?.terms_version) return { ok: false, message: 'Podmienky sa nepodarilo načítať. Skúste to znova.' };
       const cs = await call(`/store/carts/${id}/consents`, { method: 'POST', body: { terms_accepted: true, privacy_acknowledged: true, terms_version: v.data.terms_version, privacy_version: v.data.privacy_version } });
       return cs.ok ? { ok: true } : { ok: false, message: 'Súhlas sa nepodarilo uložiť. Skúste to znova.' };
-    },
-    // Stripe: platobná session proti pp_stripe_stripe, vráti clientSecret pre Payment Element.
-    async createPaymentSession() {
-      const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
-      const col = await call('/store/payment-collections', { method: 'POST', body: { cart_id: id } });
-      const collectionId = col.data?.payment_collection?.id;
-      if (!collectionId) return { ok: false, message: 'Platbu sa nepodarilo pripraviť.' };
-      const sess = await call(`/store/payment-collections/${collectionId}/payment-sessions`, { method: 'POST', body: { provider_id: 'pp_stripe_stripe' } });
-      const session = (sess.data?.payment_collection?.payment_sessions || []).find(s => s.provider_id === 'pp_stripe_stripe');
-      const clientSecret = session?.data?.client_secret;
-      if (!clientSecret) return { ok: false, message: 'Platobná brána nie je dostupná.' };
-      return { ok: true, clientSecret };
     },
     // Dokončenie po úspešnej platbe (alebo pre 0 € objednávku): NEXUS prepočet + Medusa completion.
     async checkout() {
