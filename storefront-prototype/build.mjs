@@ -33,14 +33,16 @@ const unifyFont=html=>html.replaceAll('Outfit,sans-serif','Figtree,"Helvetica Ne
   // Bez zdvojených odkazov: Zdravá lekáreň = Obchod, Programy a služby = AI ANASTASIA Academy.
   .replace(/<dc-wide><a href="\/eshop\?category=[^"]*">Programy a služby<\/a><\/dc-wide>/g,'')
   .replace(/<a href="\/eshop\?category=sebarozvoj">Programy a služby<\/a>/g,'')
-  .replace(/<a(?=[^>]*href="\/zdrava-lekaren")[^>]*>[\s\S]*?<\/a>/g,'');
+  .replace(/<a(?=[^>]*href="\/zdrava-lekaren")[^>]*>[\s\S]*?<\/a>/g,'')
+  // AI ANASTASIA má vlastný web (napojenie na jadro vo fáze 2).
+  .replaceAll('href="/ai-anastasia"','href="https://www.aianastasia.com/" target="_blank" rel="noopener"');
 // Zdvojené stránky: jedna adresa na obsah, ostatné 301 (22. 10.).
 const DUPLICATE_REDIRECTS=[
   ['/zdrava-lekaren','/eshop/'],['/eshop/kategoria/-vsetko-','/eshop/'],['/eshop/kategorie','/eshop/'],
   ['/eshop/kategoria/bio-kozmetika-bez-chemie','/eshop/?category=bio-kozmetika-bez-chemie'],['/eshop/kategoria/kozmetika','/eshop/?category=bio-kozmetika-bez-chemie'],
   ['/eshop/kategoria/bylinky-a-vyziva','/eshop/?category=zdrave-doplnky-vyzivy'],['/eshop/kategoria/programy-a-sluzby','/eshop/?category=sebarozvoj'],
   ['/nova-registracia','/prihlasenie/'],['/eshop/produkt/astrologia','/eshop/produkt/astrologia-zdravie-predispozicia/'],
-  ['/ai-anastasia-academy','/reset-40/'],['/eshop/produkt/ritualne-sviecky-voskove','/eshop/'],['/eshop/produkt/saty-lanove','/eshop/'],
+  ['/ai-anastasia-academy','/reset-40/'],['/ai-anastasia','https://www.aianastasia.com/'],['/eshop/produkt/ritualne-sviecky-voskove','/eshop/'],['/eshop/produkt/saty-lanove','/eshop/'],
 ];
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
