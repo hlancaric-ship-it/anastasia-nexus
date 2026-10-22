@@ -296,7 +296,7 @@ async function vDashboard(view) {
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
   const [recentRes, invRes, prodRes] = await Promise.all([
     soft('/admin/orders?limit=200&order=-created_at&fields=id,status,payment_status,fulfillment_status,created_at,total,*items'),
-    soft('/admin/inventory-items?limit=200&fields=id,sku,*inventory_levels'),
+    soft('/admin/inventory-items?limit=200&fields=id,sku,*location_levels'),
     soft('/admin/products?limit=100&fields=id,title,*variants.sku'),
   ]);
   const recent = recentRes?.orders || [];
@@ -315,7 +315,7 @@ async function vDashboard(view) {
   const top = [...counts.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
   const titleBySku = new Map((prodRes?.products || []).flatMap(p => (p.variants || []).map(v => [v.sku, p.title])));
   const lowStock = (invRes?.inventory_items || [])
-    .map(i => ({ sku: i.sku, title: titleBySku.get(i.sku) || i.sku, stock: (i.inventory_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0) }))
+    .map(i => ({ sku: i.sku, title: titleBySku.get(i.sku) || i.sku, stock: (i.location_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0) }))
     .filter(x => x.stock <= 5).sort((a, b) => a.stock - b.stock).slice(0, 5);
   const hm = (d) => new Date(d).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
   const now = Date.now(), next = todayB ? todayB.find(b => new Date(b.starts_at).getTime() >= now) : null;
@@ -626,7 +626,7 @@ const PRODUCT_STATUS = { published: ['zverejnený', 'ok'], draft: ['koncept', 'w
 async function vProducts(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
-  setActions('<button class="btn wine" id="p-new">+ Pridať produkt</button>');
+  setActions('<button class="btn" id="p-new">+ Pridať produkt</button>');
   const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
   let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false, fallback = false;
   const selected = new Set();
@@ -695,12 +695,21 @@ async function vProducts(view) {
           const plain = await api(`/admin/products?limit=${params.get('limit')}&offset=${params.get('offset')}&order=-created_at&fields=id,title,status,handle,thumbnail,metadata,*variants.prices,*variants.sku,*categories`);
           return { ...plain, fallback: true };
         }),
-        api('/admin/inventory-items?limit=500&fields=id,sku,*inventory_levels').catch(() => null),
+        api('/admin/inventory-items?limit=500&fields=id,sku,*location_levels').catch(() => null),
       ]);
       const products = data.products || [];
+      // Katalóg zo staršieho jadra vracia varianty bez cien a SKU – doplníme ich zo zoznamu produktov.
+      if (!data.fallback && products.some(p => (p.variants || []).some(v => !v?.id || !Array.isArray(v.prices)))) {
+        try {
+          const ids = products.map(p => `id[]=${encodeURIComponent(p.id)}`).join('&');
+          const full = await api(`/admin/products?${ids}&limit=${products.length}&fields=id,*variants,*variants.prices`);
+          const byId = new Map((full.products || []).map(p => [p.id, p.variants || []]));
+          products.forEach(p => { if (byId.has(p.id)) p.variants = byId.get(p.id); });
+        } catch (e) { console.warn('[admin] ceny variantov sa nepodarilo doplniť:', e?.detail || e?.message); }
+      }
       fallback = !!data.fallback;
       count = Number(data.count) || 0;
-      stockBySku = new Map((inv?.inventory_items || []).map(i => [i.sku, (i.inventory_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0)]));
+      stockBySku = new Map((inv?.inventory_items || []).map(i => [i.sku, (i.location_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0)]));
       body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="9" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
       body.querySelectorAll('tr[data-id]').forEach(tr => {
         const open = () => vProductDetail(view, tr.dataset.id);

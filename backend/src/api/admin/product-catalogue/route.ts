@@ -61,7 +61,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
       entity: "product",
       fields: [
         "id", "title", "status", "handle", "thumbnail", "metadata",
-        "*variants.prices", "*categories", "shipping_profile.id", "shipping_profile.type",
+        "variants.*", "variants.prices.*", "categories.id", "categories.name", "shipping_profile.id", "shipping_profile.type",
       ],
       filters,
       pagination: { skip: offset, take: limit, order: { created_at: "DESC" } },
