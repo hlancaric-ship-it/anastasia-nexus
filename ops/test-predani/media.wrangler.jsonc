@@ -1,0 +1,13 @@
+{
+  // Test: doručení chráněných médií (knihovnička) z R2 anastasia-media.
+  // Backend vydává odkazy na https://anastasia-test-nexus.l-code-dynamics.com/api/media/v1/…,
+  // proto běží jako route na této cestě (zbytek domény dál obsluhuje nexus-api-anastasia-test).
+  // Secret MEDIA_TOKEN_SECRET shodný s backendem: wrangler secret put … -c tento soubor.
+  "name": "anastasia-test-protected-media",
+  "main": "../../protected-media/worker.ts",
+  "compatibility_date": "2026-10-19",
+  "workers_dev": false,
+  "routes": [{ "pattern": "anastasia-test-nexus.l-code-dynamics.com/api/media/*", "zone_name": "l-code-dynamics.com" }],
+  "r2_buckets": [{ "binding": "MEDIA_BUCKET", "bucket_name": "anastasia-media" }],
+  "vars": { "ALLOWED_ORIGINS": "https://anastasia-test.l-code-dynamics.com" }
+}
