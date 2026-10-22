@@ -13,6 +13,8 @@ import { legalMiddlewares } from "./legal-middlewares"
 import { customerPrivacyMiddlewares } from "./customer-privacy-middlewares"
 import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
 import { authMagicLinkMiddlewares } from "./auth-magic-link-middlewares"
+import { authRevokeMiddlewares } from "./auth-revoke-middlewares"
+import { nexusAuthStoreMiddlewares } from "./store/nexus-auth/middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
@@ -34,7 +36,11 @@ export default defineMiddlewares({
     { matcher: "/hooks/nexus/booking-order", method: ["POST"], bodyParser: { preserveRawBody: true, sizeLimit: "8kb" } },
     // Tombstone vymazaného zákazníka musí platit dřív než jakýkoli endpoint (X2).
     ...customerPrivacyMiddlewares,
+    // Odhlásený zákazník nesmie používať svoj JWT (Medusa tokeny sú bezstavové).
+    ...authRevokeMiddlewares,
     ...authMagicLinkMiddlewares,
+    // Odhlásenie: iba platný Bearer token zákazníka, odhlásenie ho zneplatní na serveri.
+    ...nexusAuthStoreMiddlewares,
     ...entitlementStoreMiddlewares,
     // Zrkadielko a štruktúra programu RESET 40+: len prihlásený zákazník s aktívnym prístupom.
     ...resetJournalStoreMiddlewares,
