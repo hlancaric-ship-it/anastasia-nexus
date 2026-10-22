@@ -1,0 +1,5 @@
+# Cookies lišta + online odstoupení (navazuje na PRAVNE-TEXTY-HOTOVO.md)
+1. Cookies lišta na storefrontu podle části E (cookies) z textů klientky: nezbytné vždy, analytické/marketingové jen po souhlasu (výchozí VYPNUTO), tlačítka stejné váhy „Prijať všetko“ / „Odmietnuť“ / „Nastavenia“, uložení volby + odkaz „Nastavenia cookies“ v patičce pro změnu. Žádný skript třetí strany se nenačte před souhlasem. Mobil 360 px: lišta nesmí zakrýt víc než 40 % displeje.
+2. Online odstoupení od smlouvy: formulář (číslo objednávky, e-mail, položky, datum) podle poučení v části C, odeslání vytvoří záznam pro admin + potvrzovací e-mail zákazníkovi (test jen na @l-code-dynamics.com). Pro přihlášeného zákazníka předvyplnit z účtu.
+3. Texty 1:1 slovensky z dokumentu klientky, nic nevymýšlet; chybějící = placeholder a doplň do PRAVNE-TEXTY-DOPLNIT.md.
+4. Jen relevantní testy. Commit jen svých souborů, ŽÁDNÝ push, NIKDY git checkout/reset/stash/clean, nesahej na .env/data-private. Výsledek: anastasia-admin/COOKIES-ODSTUPENIE-HOTOVO.md.

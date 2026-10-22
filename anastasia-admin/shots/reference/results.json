@@ -1,0 +1,481 @@
+{
+  "errors": [],
+  "findings": [
+    {
+      "route": "dashboard",
+      "width": 1536,
+      "scroll": 1536,
+      "offenders": []
+    },
+    {
+      "route": "dashboard",
+      "width": 1280,
+      "scroll": 1280,
+      "offenders": []
+    },
+    {
+      "route": "dashboard",
+      "width": 1024,
+      "scroll": 1024,
+      "offenders": []
+    },
+    {
+      "route": "dashboard",
+      "width": 800,
+      "scroll": 800,
+      "offenders": []
+    },
+    {
+      "route": "dashboard",
+      "width": 390,
+      "scroll": 390,
+      "offenders": []
+    },
+    {
+      "route": "dashboard",
+      "width": 320,
+      "scroll": 320,
+      "offenders": []
+    },
+    {
+      "route": "objednavky",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "offenders": []
+    },
+    {
+      "route": "produkty",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "offenders": []
+    },
+    {
+      "route": "kategorie",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "offenders": []
+    },
+    {
+      "route": "zakaznicky",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Zákazníci",
+      "offenders": []
+    },
+    {
+      "route": "zakaznicky",
+      "tab": 1,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Prístupy a knižnica",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Rezervácie",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 1,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Typy konzultácií",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 2,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Dostupnosť",
+      "offenders": []
+    },
+    {
+      "route": "spravy",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Konverzácie",
+      "offenders": []
+    },
+    {
+      "route": "spravy",
+      "tab": 1,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Šablóny odpovedí",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "E-maily",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 1,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Newsletter",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 2,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Stránky a texty",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 3,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Médiá",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 4,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Preklady",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Kupóny a zľavy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 1,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "QR kódy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 2,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Darčekové poukazy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 3,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Nastavenie poukazov",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Vzhľad",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 1,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Pripojenia",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 2,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Doprava a platby",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 3,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Vernostné úrovne",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 4,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Používatelia",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 5,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Zabezpečenie",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 6,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "História zmien",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 7,
+      "width": 1536,
+      "scroll": 1536,
+      "title": "Účtovníctvo",
+      "offenders": []
+    },
+    {
+      "route": "pomoc",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "offenders": []
+    },
+    {
+      "route": "objednavky",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "offenders": []
+    },
+    {
+      "route": "produkty",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "offenders": []
+    },
+    {
+      "route": "kategorie",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "offenders": []
+    },
+    {
+      "route": "zakaznicky",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "title": "Zákazníci",
+      "offenders": []
+    },
+    {
+      "route": "zakaznicky",
+      "tab": 1,
+      "width": 390,
+      "scroll": 390,
+      "title": "Prístupy a knižnica",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "title": "Rezervácie",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 1,
+      "width": 390,
+      "scroll": 390,
+      "title": "Typy konzultácií",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 2,
+      "width": 390,
+      "scroll": 390,
+      "title": "Dostupnosť",
+      "offenders": []
+    },
+    {
+      "route": "spravy",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "title": "Konverzácie",
+      "offenders": []
+    },
+    {
+      "route": "spravy",
+      "tab": 1,
+      "width": 390,
+      "scroll": 390,
+      "title": "Šablóny odpovedí",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "title": "E-maily",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 1,
+      "width": 390,
+      "scroll": 390,
+      "title": "Newsletter",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 2,
+      "width": 390,
+      "scroll": 390,
+      "title": "Stránky a texty",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 3,
+      "width": 390,
+      "scroll": 390,
+      "title": "Médiá",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 4,
+      "width": 390,
+      "scroll": 390,
+      "title": "Preklady",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "title": "Kupóny a zľavy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 1,
+      "width": 390,
+      "scroll": 390,
+      "title": "QR kódy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 2,
+      "width": 390,
+      "scroll": 390,
+      "title": "Darčekové poukazy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 3,
+      "width": 390,
+      "scroll": 390,
+      "title": "Nastavenie poukazov",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "title": "Vzhľad",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 1,
+      "width": 390,
+      "scroll": 390,
+      "title": "Pripojenia",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 2,
+      "width": 390,
+      "scroll": 390,
+      "title": "Doprava a platby",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 3,
+      "width": 390,
+      "scroll": 390,
+      "title": "Vernostné úrovne",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 4,
+      "width": 390,
+      "scroll": 390,
+      "title": "Používatelia",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 5,
+      "width": 390,
+      "scroll": 390,
+      "title": "Zabezpečenie",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 6,
+      "width": 390,
+      "scroll": 390,
+      "title": "História zmien",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 7,
+      "width": 390,
+      "scroll": 390,
+      "title": "Účtovníctvo",
+      "offenders": []
+    },
+    {
+      "route": "pomoc",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "offenders": []
+    }
+  ]
+}

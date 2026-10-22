@@ -1,0 +1,5 @@
+# Oprava: platba kartou NESMÍ čekat na cookies
+1. Stripe.js je nezbytný pro provedení platby (a jeho cookies slouží k prevenci podvodů) → spadá do kategorie „nevyhnutné“, souhlas nepotřebuje. Načti ho v pokladně vždy, když zákazník zvolí platbu kartou (ne dřív, ne na ostatních stránkách). Odstraň hlášku „Pred platbou kartou dokončite nastavenia cookies“ a jakoukoli blokaci platby kvůli cookies. V textu cookies (část E) je Stripe/platobná brána – pokud ho klientka řadí jinam, NEMĚŇ text, jen do PRAVNE-TEXTY-DOPLNIT.md připiš poznámku „potvrdiť: Stripe ako nevyhnutný“.
+2. Test: e2e pokladna s platbou kartou v TEST režimu bez kliknutí na cookies lištu projde. Spusť jen relevantní testy.
+3. Pak napiš slovensky, vykáním, krátký podklad pro klientku `anastasia-admin/EMAIL-Lucia-doplnenia.txt`: co z dokumentu VOP/GDPR je na webu, a očíslovaný seznam míst DOPLNIŤ/POTVRDIŤ (z PRAVNE-TEXTY-DOPLNIT.md) srozumitelně, bez právnické hantýrky; „Váš web“, „zákazníci“ (nikdy zákaznice). Nezmiňuj Zoho ani AWS. NEODESÍLEJ.
+Commit jen svých souborů, ŽÁDNÝ push, NIKDY git checkout/reset/stash/clean, nesahej na .env/data-private.
