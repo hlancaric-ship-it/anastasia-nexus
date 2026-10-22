@@ -6,6 +6,7 @@ import { createNexusPricingCalculator } from '../../../domains/pricing/createNex
 import { StaticPricingConfigurationProvider } from '../../../domains/pricing/StaticPricingConfigurationProvider.js';
 import type { PolicyConfig } from '../../../domains/pricing/PricingConfigurationProvider.js';
 import type { TenantContext } from '../../../core/tenant/types.js';
+import { readStoredLoyaltyTiers } from '../pricing-policy-store.js';
 
 export async function handleNexusPricing(request: Request, env: Env): Promise<Response> {
     const apiKey = env.MEDUSA_PRICING_API_KEY;
@@ -14,7 +15,7 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
     if (!apiKey || !tenantId || !constantTimeEqual(authorization, `Bearer ${apiKey}`)) {
         throw new ApiError('REJECT_SIGNATURE', 401, 'Neplatné přihlašovací údaje pricing služby.');
     }
-    const policyConfig = readTenantPolicy(env.MEDUSA_PRICING_POLICY_JSON);
+    const policyConfig = await resolveTenantPolicy(env);
     let body: unknown;
     try {
         body = await request.json();
@@ -42,6 +43,9 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
     if (input.couponDiscountPercent !== undefined && (typeof input.couponDiscountPercent !== 'number' || !Number.isFinite(input.couponDiscountPercent) || input.couponDiscountPercent < 0 || input.couponDiscountPercent > 1)) {
         throw new ApiError('VALIDATION_ERROR', 400, 'couponDiscountPercent musí být číslo mezi 0 a 1.');
     }
+    if (input.couponFixedAmount !== undefined && (typeof input.couponFixedAmount !== 'number' || !Number.isFinite(input.couponFixedAmount) || input.couponFixedAmount < 0)) {
+        throw new ApiError('VALIDATION_ERROR', 400, 'couponFixedAmount musí být nezáporné číslo.');
+    }
 
     if (!/^[a-z0-9_-]{2,32}$/i.test(tenantId)) {
         throw new ApiError('MISSING_BINDING', 503, 'Tenant pricing služby není správně nakonfigurován.');
@@ -64,6 +68,9 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
         productMaxDiscount: typeof input.productMaxDiscount === 'number' ? new Decimal(input.productMaxDiscount) : undefined,
         allowLoyaltyDiscount: typeof input.allowLoyaltyDiscount === 'boolean' ? input.allowLoyaltyDiscount : true,
         couponDiscountPercent: typeof input.couponDiscountPercent === 'number' ? new Decimal(input.couponDiscountPercent) : undefined,
+        // Pevná zľava (EUR) na jednu položku košíku. Alokáciu pevnej sumy medzi
+        // položky robí Medusa (zná celý košík); Worker odčíta pridelený podiel.
+        couponFixedAmount: typeof input.couponFixedAmount === 'number' ? new Decimal(input.couponFixedAmount) : undefined,
     });
 
     return jsonResponse({
@@ -88,6 +95,19 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
         },
         timestamp: new Date().toISOString(),
     });
+}
+
+/**
+ * Politika tenantu: zákony a limity z env varu, věrnostní úrovně z KV
+ * (poslané z databáze Medusa podepsaným webhookem). Bez KV – nebo bez uložené
+ * hodnoty – zůstává v platnosti env politika (fallback, ne výpadek služby).
+ * Env politika je VŽDY povinná: bez ní by chyběly limity značek a kategorií.
+ */
+export async function resolveTenantPolicy(env: Env): Promise<PolicyConfig> {
+    const base = readTenantPolicy(env.MEDUSA_PRICING_POLICY_JSON);
+    const stored = await readStoredLoyaltyTiers(env);
+    if (!stored) return base;
+    return { ...base, loyaltyTiers: stored };
 }
 
 function readTenantPolicy(raw: string | undefined): PolicyConfig {

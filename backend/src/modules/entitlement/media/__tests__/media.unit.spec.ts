@@ -46,7 +46,7 @@ function deps(over: Partial<any> = {}) {
 const code = async (p: Promise<unknown>) => { try { await p; return "OK" } catch (e) { return (e as MediaAccessDenied).code } }
 
 describe("issueMediaAccess", () => {
-  it("oprávněná zákaznice dostane krátkodobý odkaz s vodoznakem a audit", async () => {
+  it("oprávněný zákazník dostane krátkodobý odkaz s vodoznakem a audit", async () => {
     const d = deps()
     const r: any = await issueMediaAccess(d, input, NOW)
     expect(r.url).toMatch(/^https:\/\/media\.example\.sk\/v1\/ep001%2Ftrack-1\.m3u8\?t=/)

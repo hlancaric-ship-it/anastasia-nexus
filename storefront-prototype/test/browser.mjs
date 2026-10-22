@@ -99,6 +99,8 @@ try{
    const isolated=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
    try{
      await isolated.route('http://127.0.0.1:9100/**',r=>r.abort());
+     // Bez tokenu by stráž účtu poslala zákazníka na prihlásenie; tu sa testuje účet so session.
+     await isolated.addInitScript(()=>{try{sessionStorage.setItem('anastasia.jwt','jwt_test');}catch{}});
      const account=await isolated.newPage();await goto('/ucet',account);
      for(const kind of ['top','side']){const trigger=kind==='top'?headerTrigger(account):account.locator('#ana-rail [data-menu-open="side"]');await trigger.click();await assertOpen(account,kind);await account.keyboard.press('Escape');await assertClosed(account,kind);}
      assert.match(await account.locator('#chat-availability').textContent(),/dočasne nedostupný/);
@@ -227,7 +229,7 @@ try{
  await check('QR product + quantity + coupon; refresh is idempotent',async()=>{await page.evaluate(()=>sessionStorage.clear());await goto('/eshop/kosik?produkt=DEMO-GEL&kupon=DEMO10&ks=2');assert.equal(await page.locator('.quantity>span').textContent(),'2');assert.match(await page.locator('.order-summary').textContent(),/Kupón prijatý/);await page.reload();assert.equal(await page.locator('.quantity>span').textContent(),'2');await goto('/eshop/kosik?produkt=DEMO-GEL&ks=bad');assert.match(await page.locator('.qr-status').textContent(),/neplatné/);});
  await check('magic-link forms are mock only; token removed from URL',async()=>{await goto('/prihlasenie');await page.locator('#login-form [name=email]').fill('demo@example.test');await page.getByRole('button',{name:'Poslať prihlasovací odkaz'}).click();assert.match(await page.locator('#login-form .form-status').textContent(),/Ak účet existuje/);await goto('/prihlasenie/potvrdit?email=demo@example.test&token=fake');assert.equal(new URL(page.url()).search,'');assert.match(await page.locator('#magic-confirm').textContent(),/neprihlasuje/);});
  await check('unified customer centre: navigation, programs, materials, profile and reorder',async()=>{
-   await page.evaluate(()=>sessionStorage.clear());await goto('/ucet');assert.equal(await page.locator('#account-prehlad').isVisible(),true);
+   await page.evaluate(()=>{sessionStorage.clear();sessionStorage.setItem('anastasia.jwt','jwt_test');});await goto('/ucet');assert.equal(await page.locator('#account-prehlad').isVisible(),true);
    for(const id of ['programy','konzultacie','chat','objednavky','materialy','profil','prehlad']){await page.locator(`.center-sidebar [data-account-go="${id}"]`).click();assert.equal(await page.locator(`#account-${id}`).isVisible(),true);assert.equal(new URL(page.url()).hash,'#'+id);assert.equal(await page.locator('.center-sidebar [aria-current=page]').count(),1);}
    await page.locator('.center-sidebar [data-account-go=programy]').click();assert.equal(await page.locator('.lesson').count(),0);assert.equal(await page.locator('#entitlement-preview').count(),0);assert.equal(await page.locator('#account-programy .empty-state').isVisible(),true);
    await page.locator('.center-sidebar [data-account-go=materialy]').click();await page.locator('[data-material-filter=faktury]').click();assert.equal(await page.locator('.center-material:visible').count(),1);
@@ -237,8 +239,18 @@ try{
    await page.setViewportSize({width:320,height:844});for(const id of ['prehlad','programy','konzultacie','chat','objednavky','materialy','profil']){await page.locator(`.center-sidebar [data-account-go="${id}"]`).click();await overflow(page,'account-'+id+'@320');await page.waitForFunction(()=>{const a=document.querySelector('.center-sidebar [aria-current=page]'),n=a.parentElement,ar=a.getBoundingClientRect(),nr=n.getBoundingClientRect();return ar.left>=nr.left-1&&ar.right<=nr.right+1;});}
    await page.screenshot({path:root+'account-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>sessionStorage.clear());
  });
+ await check('sign out removes the customer session and returns to login',async()=>{
+   await page.evaluate(()=>{sessionStorage.setItem('anastasia.jwt','jwt_test');sessionStorage.setItem('anastasia.cart','cart_test');});
+   await goto('/ucet');
+   await Promise.all([page.waitForURL(u=>new URL(u).pathname==='/prihlasenie'),page.locator('.center-sidebar [data-sign-out]').click()]);
+   assert.equal(await page.evaluate(()=>sessionStorage.getItem('anastasia.jwt')),null,'token zmizne po odhlásení');
+   assert.equal(await page.evaluate(()=>sessionStorage.getItem('anastasia.cart')),null,'košík zmizne po odhlásení');
+   await goto('/ucet');
+   await page.waitForURL(u=>new URL(u).pathname==='/prihlasenie',{timeout:15000});
+   await page.evaluate(()=>sessionStorage.clear());
+ });
  await check('account chat: text only, Unicode counter, history, 403/429/409 and new conversation',async()=>{
-   await goto('/ucet#chat');const form=page.locator('#chat-form'),body=form.locator('[name=body]'),send=form.locator('button');
+   await page.evaluate(()=>sessionStorage.setItem('anastasia.jwt','jwt_test'));await goto('/ucet#chat');const form=page.locator('#chat-form'),body=form.locator('[name=body]'),send=form.locator('button');
    await page.locator('#chat-messages').getByText('Dobrý deň, tu je priestor pre vaše otázky.').waitFor();
    await body.fill('😀'.repeat(2000));assert.match(await page.locator('#chat-counter').textContent(),/^2000 \/ 2000/);assert.equal(await send.isEnabled(),true);
    await body.fill('x'.repeat(2001));assert.equal(await send.isDisabled(),true);

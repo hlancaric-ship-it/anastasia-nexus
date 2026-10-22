@@ -3,7 +3,7 @@ import { CHAT_EVENTS } from "../../../../../../modules/chat"
 import { toMessageDTO } from "../../../../../../modules/chat/dto"
 import { chatService, emitChatEvent, messageSchema, parseBody, requireActor, sendChatError } from "../../../../../chat-helpers"
 
-/** POST /admin/chat/conversations/:id/messages { body }: Luciina odpověď (zákaznici přijde e-mail). */
+/** POST /admin/chat/conversations/:id/messages { body }: Luciina odpověď (zákazníkovi přijde e-mail). */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const adminId = requireActor(req, res, "user")
   if (!adminId) return

@@ -4,7 +4,7 @@ import { sendEmail } from "../../lib/email/send"
 
 /**
  * Doručení upozornění chatu. Obsah zpráv se do e-mailů nevkládá (jen počty a odkaz),
- * aby citlivé texty neputovaly mimo administraci a účet zákaznice.
+ * aby citlivé texty neputovaly mimo administraci a účet zákazníka.
  */
 export interface ChatNotifier {
   adminDigest(input: { conversations: number; messages: number }): Promise<void>
@@ -24,7 +24,7 @@ export function chatNotifier(container: MedusaContainer): ChatNotifier {
   const notification = (() => {
     try { return container.resolve(Modules.NOTIFICATION) } catch { return null }
   })()
-  const adminUrl = env("CHAT_ADMIN_URL") || `${env("BACKEND_PUBLIC_URL") || "http://localhost:9000"}/app/chat`
+  const adminUrl = env("CHAT_ADMIN_URL") || `${(env("ADMIN_CORS") || "http://localhost:5173").split(",")[0].trim().replace(/\/+$/, "")}/#/spravy`
   const storefrontUrl = env("CHAT_STOREFRONT_URL")
 
   return {
@@ -38,7 +38,7 @@ export function chatNotifier(container: MedusaContainer): ChatNotifier {
     },
     async customerReply({ email, conversation_id, first_name }) {
       if (!notification) {
-        logger.info(`[chat] odpověď v konverzaci ${conversation_id}: e-mail zákaznici nelze odeslat (modul notifikací chybí)`)
+        logger.info(`[chat] odpověď v konverzaci ${conversation_id}: e-mail zákazníkovi nelze odeslat (modul notifikací chybí)`)
         return
       }
       await sendEmail(container, {

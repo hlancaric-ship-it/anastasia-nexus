@@ -41,10 +41,12 @@ describe('durable Medusa event intake', () => {
         const first = await handleMedusaWebhook(await signedMedusaWebhook(event()), env, context);
         expect(first.status).toBe(200);
         expect(inbox.size).toBe(1);
-        expect(context.waitUntil).not.toHaveBeenCalled();
+        // Spracovanie beží po potvrdení cez waitUntil (záznam je už v inboxe), duplikát ho znova nespúšťa.
+        expect(context.waitUntil).toHaveBeenCalledTimes(1);
         const second = await handleMedusaWebhook(await signedMedusaWebhook(event()), env, context);
         expect(await second.json()).toMatchObject({ received: true, duplicate: true });
         expect(inbox.size).toBe(1);
+        expect(context.waitUntil).toHaveBeenCalledTimes(1);
     });
     it('rejects a reused delivery id for a different target', async () => {
         const { env } = fixture();

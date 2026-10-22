@@ -1,0 +1,22 @@
+{
+  "name": "anastasia-nexus",
+  "version": "0.0.1",
+  "private": true,
+  "description": "ANASTASIA × NEXUS — monorepo orchestration",
+  "scripts": {
+    "dev": "concurrently -n nexus,backend -c cyan,magenta \"npm run dev:nexus\" \"npm run dev:backend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:nexus": "cd nexus && npx wrangler dev --port 8787",
+    "test": "concurrently -n nexus,backend \"npm run test:nexus\" \"npm run test:backend\"",
+    "test:backend": "cd backend && npm run test:unit",
+    "test:nexus": "cd nexus && npm test",
+    "build": "concurrently -n nexus,backend \"npm run build:nexus\" \"npm run build:backend\"",
+    "build:backend": "cd backend && npm run build",
+    "build:nexus": "cd nexus && npx tsc --noEmit",
+    "typecheck": "concurrently -n nexus,backend \"cd nexus && npx tsc --noEmit\" \"cd backend && npx tsc --noEmit\"",
+    "setup": "node scripts/dev-check.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

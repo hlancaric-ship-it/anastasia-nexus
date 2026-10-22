@@ -1,0 +1,27 @@
+# Přesměrování starých adres ze starého webu anastasiaoz.eu (301).
+# Seznam vychází z design/AUDIT-1to1.md a redir-check.txt.
+
+# --- Staré adresy CMS ---
+/domov-socialnych-sluzieb  /denny-stacionar-vysna-slana  301
+/receptury  /ai-anastasia  301
+/zlata-brana  /ai-anastasia  301
+/konzultacie/zlata-brana  /konzultacie/online-zdravotna-konzultacia  301
+/lekaren-anastasia  /zdrava-lekaren  301
+/ai-anastasia/pharmanews  /ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny  301
+/projekt-anastasia-i/*  /zdravy-svet  301
+/zdravy-svet/projekt-anastasia-i/*  /zdravy-svet  301
+/blog/projekt-anastasia-i  /blog  301
+/moj-ucet/moje-elektronicke-produkty/*  /ucet/knihovna  301
+
+# --- Neaktivní kategorie Medusa: 404 ne, ale 301 na přehled ---
+/eshop/kategorie/Podkategoria41  /eshop  301
+/eshop/kategorie/Podkategoria31  /eshop  301
+/eshop/kategorie/podkategorie21  /eshop  301
+/eshop/kategorie/ritual-magia  /eshop  301
+/eshop/kategorie/Second-hand  /eshop  301
+/eshop/kategorie/veterinar-pripravky  /eshop  301
+/eshop/kategorie/Krajcirstvo-sitie  /eshop  301
+
+# --- Produkt s velkým M: odkaz malým písmenem vedl na 404 ---
+/eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku  /eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku  301
+/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com /ai-anastasia/recenzie-zakaznikov 301

@@ -5,10 +5,11 @@ import { capturedTotal, isOrderPaid, refundedTotal, toNumber, type OrderPaymentV
 import { sendEmail } from "../email/send"
 import { recordEvent } from "../observability/events"
 import type { NotifyResult } from "./index"
+import { bankTransferInstructions, paymentMethodByProvider } from "../checkout/delivery-payment"
 
 /**
  * E-maily k objednávce a účtu (C-1). Stejná pravidla jako `notify` u rezervací:
- * adresát jen ze serveru (e-mail objednávky / zákaznice), idempotency_key = typ + ID,
+ * adresát jen ze serveru (e-mail objednávky / zákazníka), idempotency_key = typ + ID,
  * do šablony jen čísla, částky, názvy položek a odkaz; nikdy nevyhodí.
  *
  * Zdvojení platba × objednávka: platba kartou se zachytí ještě před `order.placed`, potvrzení objednávky
@@ -47,6 +48,7 @@ type OrderRow = OrderPaymentView & {
   shipping_address?: { first_name?: string | null } | null
   billing_address?: { first_name?: string | null } | null
   items?: Array<{ title?: string | null; product_title?: string | null; quantity?: unknown; total?: unknown }> | null
+  shipping_methods?: Array<{ name?: string | null; amount?: unknown }> | null
 }
 
 const ORDER_FIELDS = [
@@ -54,6 +56,7 @@ const ORDER_FIELDS = [
   "customer.first_name", "shipping_address.first_name", "billing_address.first_name",
   "items.title", "items.product_title", "items.quantity", "items.total",
   "payment_collections.captured_amount", "payment_collections.refunded_amount", "payment_collections.payments.captured_at",
+  "payment_collections.payments.provider_id", "shipping_methods.name", "shipping_methods.amount",
 ]
 
 const env = (name: string) => (process.env[name] || "").trim()
@@ -84,6 +87,9 @@ export function orderPlacedData(order: OrderRow): Record<string, unknown> {
   const money = (value: unknown) => formatMoney(value, order.currency_code)
   const shipping = toNumber(order.shipping_total)
   const discount = toNumber(order.discount_total)
+  const paid = isOrderPaid(order)
+  const method = paymentMethodByProvider(((order.payment_collections ?? []) as Array<{ payments?: Array<{ provider_id?: string | null }> | null }>).flatMap(c => c.payments ?? []).find(p => p?.provider_id)?.provider_id)
+  const transfer = bankTransferInstructions(order)
   return {
     order_display_id: order.display_id != null ? String(order.display_id) : null,
     first_name: firstName(order),
@@ -96,7 +102,14 @@ export function orderPlacedData(order: OrderRow): Record<string, unknown> {
     shipping_total: shipping > 0 ? money(shipping) : null,
     discount_total: discount > 0 ? money(discount) : null,
     total: money(order.total),
-    paid: isOrderPaid(order),
+    paid,
+    payment_method: method,
+    shipping_method: clean(order.shipping_methods?.map(m => clean(m?.name)).filter(Boolean).join(", ")),
+    // Prevod: IBAN, VS (= číslo objednávky) a suma; len kým nie je zaplatené.
+    bank_transfer: method === "bank_transfer" && !paid && transfer ? {
+      beneficiary: transfer.beneficiary, bank: transfer.bank, iban: transfer.iban, swift: transfer.swift,
+      variable_symbol: transfer.variable_symbol, amount: money(transfer.amount),
+    } : null,
     url: orderUrl(order.id),
   }
 }

@@ -5,6 +5,7 @@ export type EntitlementDTO = {
   id: string
   customer_id: string
   product_id: string
+  tenant_id: string
   variant_id: string | null
   order_id: string | null
   status: EntitlementStatus
@@ -21,6 +22,7 @@ export type EntitlementDTO = {
 export type GrantEntitlementInput = {
   customer_id: string
   product_id: string
+  tenant_id?: string
   variant_id?: string | null
   order_id?: string | null
   source: EntitlementSource

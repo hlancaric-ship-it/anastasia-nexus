@@ -38,6 +38,14 @@ export function assertWithdrawalWindow(order: any, now = new Date()) {
 export function assertTransition(from: string, to: unknown) {
   if (!(from === "received" && (to === "accepted" || to === "rejected") || from === "accepted" && to === "refunded" || from === to)) throw new LegalError("WITHDRAWAL_STATE_CONFLICT",409)
 }
+/** Prechod stavu online odstúpenia od zmluvy: received → processed → closed. */
+export const CONTRACT_WITHDRAWAL_STATUSES = ["received", "processed", "closed"] as const
+export function assertContractWithdrawalTransition(from: string, to: unknown) {
+  const allowed: Record<string, string[]> = { received: ["processed", "closed"], processed: ["closed"], closed: [] }
+  if (typeof to !== "string" || !(CONTRACT_WITHDRAWAL_STATUSES as readonly string[]).includes(to)) throw new LegalError("CONTRACT_WITHDRAWAL_STATUS_INVALID")
+  if (!(allowed[from] ?? []).includes(to)) throw new LegalError("CONTRACT_WITHDRAWAL_STATUS_CONFLICT",409)
+  return to
+}
 export function csvCell(value: unknown) {
   let text = String(value ?? "")
   if (/^[\s]*[=+@-]/.test(text)) text = "'" + text

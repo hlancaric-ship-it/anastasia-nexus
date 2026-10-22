@@ -5,8 +5,9 @@ import NewsletterConsentEvent from "./models/newsletter-consent-event"
 import LegalConsent from "./models/legal-consent"
 import NewsletterConsent from "./models/newsletter-consent"
 import LegalWithdrawal from "./models/legal-withdrawal"
-import { assertTransition, LegalError, tokenHash } from "./policy"
-class LegalModuleService extends MedusaService({ NewsletterConsentEvent, LegalConsent, NewsletterConsent, LegalWithdrawal }) {
+import LegalContractWithdrawal from "./models/legal-contract-withdrawal"
+import { assertContractWithdrawalTransition, assertTransition, LegalError, tokenHash } from "./policy"
+class LegalModuleService extends MedusaService({ NewsletterConsentEvent, LegalConsent, NewsletterConsent, LegalWithdrawal, LegalContractWithdrawal }) {
   protected db(context: Context) {
     const db = (context.transactionManager as any)?.getTransactionContext?.()
     if (!db) throw new Error("LEGAL_TRANSACTION_REQUIRED")
@@ -71,6 +72,25 @@ class LegalModuleService extends MedusaService({ NewsletterConsentEvent, LegalCo
     assertTransition(old.status,status)
     if(old.status===status) return {row:old,before:old.status,replayed:true}
     const [row]=await db("legal_withdrawal").where({id}).update({status,changed_by:actor,updated_at:new Date()}).returning("*")
+    return {row,before:old.status,replayed:false}
+  }
+  /** Online odstúpenie od zmluvy (časť C): rovnaké oznámenie nevytvorí druhý záznam. */
+  @InjectTransactionManager()
+  async requestContractWithdrawal(input: {order_number:string;email:string;items:string[];order_date:string|null;customer_id:string|null;name:string|null;reason:string|null;fingerprint:string}, @MedusaContext() context:Context={}) {
+    const db=this.db(context); await this.lock(db, `contract-withdrawal:${input.fingerprint}`)
+    const old=await db("legal_contract_withdrawal").where({fingerprint:input.fingerprint}).whereNull("deleted_at").first()
+    if(old) return {row:old,replayed:true}
+    const [row]=await db("legal_contract_withdrawal").insert({id:`lcw_${randomUUID()}`,...input,items:JSON.stringify(input.items),status:"received",source:"web",received_at:new Date()}).returning("*")
+    return {row,replayed:false}
+  }
+  @InjectTransactionManager()
+  async transitionContractWithdrawal(id:string,status:unknown,actor:string,@MedusaContext() context:Context={}) {
+    const db=this.db(context)
+    const old=await db("legal_contract_withdrawal").where({id}).whereNull("deleted_at").forUpdate().first()
+    if(!old) throw new LegalError("CONTRACT_WITHDRAWAL_NOT_FOUND",404)
+    assertContractWithdrawalTransition(old.status,status)
+    if(old.status===status) return {row:old,before:old.status,replayed:true}
+    const [row]=await db("legal_contract_withdrawal").where({id}).update({status,changed_by:actor,updated_at:new Date()}).returning("*")
     return {row,before:old.status,replayed:false}
   }
 }

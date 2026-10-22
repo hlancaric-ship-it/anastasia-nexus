@@ -23,6 +23,7 @@ import { ApiError, jsonError, log, preflightResponse, withCors } from './http.js
 import { handleShoptetWebhook } from './routes/shoptetWebhook.js';
 import { handleMedusaWebhook } from './routes/medusaWebhook.js';
 import { handleNexusPricing } from './routes/nexusPricing.js';
+import { handleNexusPricingPolicy } from './routes/nexusPricingPolicy.js';
 import { handleMediaDelivery, MEDIA_PATH_PREFIX } from './routes/mediaDelivery.js';
 import { handleNexusOperations } from './routes/nexusOperations.js';
 import { handleNexusSafeOrder } from './routes/nexusSafeOrder.js';
@@ -202,6 +203,11 @@ async function route(request: Request, env: Env, url: URL, ctx: ExecutionContext
         case '/api/nexus/pricing':
             requireMethod(request, 'POST');
             return handleNexusPricing(request, env);
+
+        // Politika věrnostních úrovní z databáze Medusa (podepsaný webhook).
+        case '/api/nexus/pricing-policy':
+            requireMethod(request, 'POST');
+            return handleNexusPricingPolicy(request, env);
 
         case '/api/nexus/operations':
             requireMethod(request, 'GET');

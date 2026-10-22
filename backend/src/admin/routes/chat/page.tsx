@@ -31,7 +31,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-const customerLabel = (c: Customer) => c.name || c.email || "Zákaznice"
+const customerLabel = (c: Customer) => c.name || c.email || "Zákazník"
 
 export default function ChatPage() {
   const prompt = usePrompt()
@@ -93,7 +93,7 @@ export default function ChatPage() {
     try {
       await api(`/admin/chat/conversations/${selectedId}/messages`, { method: "POST", body: JSON.stringify({ body: reply }) })
       setReply("")
-      toast.success("Odpověď odeslána. Zákaznice dostane upozornění e-mailem.")
+      toast.success("Odpověď odeslána. Zákazník dostane upozornění e-mailem.")
       await Promise.all([loadDetail(selectedId, false), loadList()])
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Odpověď se nepodařilo odeslat.")
@@ -105,7 +105,7 @@ export default function ChatPage() {
     if (action === "close") {
       const ok = await prompt({
         title: "Uzavřít konverzaci?",
-        description: "Zákaznice do ní už nebude moct psát (může začít novou). Konverzaci můžete kdykoli znovu otevřít.",
+        description: "Zákazník do ní už nebude moct psát (může začít novou). Konverzaci můžete kdykoli znovu otevřít.",
         confirmText: "Uzavřít", cancelText: "Zpět",
       })
       if (!ok) return
@@ -128,7 +128,7 @@ export default function ChatPage() {
     if (blocked) {
       const ok = await prompt({
         title: `Zablokovat chat pro ${customerLabel(customer)}?`,
-        description: "Zákaznice nebude moct posílat žádné zprávy (ani do nových konverzací). Její objednávky a účet se nemění. Blokaci můžete kdykoli zrušit.",
+        description: "Zákazník nebude moct posílat žádné zprávy (ani do nových konverzací). Jeho objednávky a účet se nemění. Blokaci můžete kdykoli zrušit.",
         confirmText: "Zablokovat", cancelText: "Zpět",
       })
       if (!ok) return
@@ -136,7 +136,7 @@ export default function ChatPage() {
     setBusy(true)
     try {
       await api(`/admin/chat/customers/${customer.id}/block`, { method: "POST", body: JSON.stringify({ blocked }) })
-      toast.success(blocked ? "Chat zákaznice je zablokovaný." : "Zákaznice může znovu psát.")
+      toast.success(blocked ? "Chat zákazníka je zablokovaný." : "Zákazník může znovu psát.")
       await Promise.all([loadDetail(detail.conversation.id, false), loadList()])
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Akce se nepovedla.")
@@ -149,8 +149,8 @@ export default function ChatPage() {
   return <Container className="flex flex-col gap-4">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="flex flex-col gap-1">
-        <Heading level="h1">Zprávy od zákaznic {unreadCount > 0 && <Badge size="2xsmall" color="blue">{unreadCount} nepřečtené</Badge>}</Heading>
-        <Text className="text-ui-fg-subtle">Psát mohou jen zákaznice s objednávkou, rezervací nebo předplatným. Zákaznice pošle nejvýš 3 zprávy po sobě, než odpovíte, a nejvýš 5 zpráv denně.</Text>
+        <Heading level="h1">Zprávy od zákazníků {unreadCount > 0 && <Badge size="2xsmall" color="blue">{unreadCount} nepřečtené</Badge>}</Heading>
+        <Text className="text-ui-fg-subtle">Psát mohou jen zákazníci s objednávkou, rezervací nebo předplatným. Zákazník pošle nejvýš 3 zprávy po sobě, než odpovíte, a nejvýš 5 zpráv denně.</Text>
       </div>
       <div className="w-48">
         <Select value={filter} onValueChange={(v) => { setFilter(v as Filter); setSelectedId(null); setDetail(null) }}>
@@ -206,7 +206,7 @@ export default function ChatPage() {
                 <div className="flex gap-1">
                   {conv.status === "closed" ? <StatusBadge color="grey">Uzavřeno</StatusBadge> : <StatusBadge color="green">Otevřeno</StatusBadge>}
                   {conv.muted && <StatusBadge color="orange">Ztlumeno</StatusBadge>}
-                  {conv.customer.chat_blocked && <StatusBadge color="red">Chat zákaznice blokován</StatusBadge>}
+                  {conv.customer.chat_blocked && <StatusBadge color="red">Chat zákazníka blokován</StatusBadge>}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -215,7 +215,7 @@ export default function ChatPage() {
                   : <Button size="small" variant="secondary" disabled={busy} onClick={() => void act("reopen")}>Znovu otevřít</Button>}
                 <Button size="small" variant="secondary" disabled={busy} onClick={() => void act(conv.muted ? "unmute" : "mute")}>{conv.muted ? "Zrušit ztlumení" : "Ztlumit"}</Button>
                 <Button size="small" variant={conv.customer.chat_blocked ? "secondary" : "danger"} disabled={busy} onClick={() => void toggleBlock()}>
-                  {conv.customer.chat_blocked ? "Odblokovat zákaznici" : "Zablokovat zákaznici"}
+                  {conv.customer.chat_blocked ? "Odblokovat zákazníka" : "Zablokovat zákazníka"}
                 </Button>
               </div>
             </div>
@@ -233,7 +233,7 @@ export default function ChatPage() {
               <Textarea rows={4} value={reply} disabled={busy} onChange={(e) => setReply(e.target.value)} placeholder="Napište odpověď…" />
               <div className="flex items-center justify-between gap-2">
                 <Text size="small" className={replyLength > MAX_REPLY ? "text-ui-fg-error" : "text-ui-fg-subtle"}>
-                  {replyLength} / {MAX_REPLY} znaků{conv.status === "closed" ? " · odpověď konverzaci neotevře, zákaznice odpovědět nemůže" : ""}
+                  {replyLength} / {MAX_REPLY} znaků{conv.status === "closed" ? " · odpověď konverzaci neotevře, zákazník odpovědět nemůže" : ""}
                 </Text>
                 <Button type="submit" isLoading={busy} disabled={!reply.trim() || replyLength > MAX_REPLY}>Odeslat odpověď</Button>
               </div>

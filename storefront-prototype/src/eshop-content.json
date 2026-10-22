@@ -1,0 +1,23 @@
+{
+ "_comment": "Obsah stránky obchodu – hlavné texty, ktoré môže Lucia meniť v administrácii. Zdroj: storefront-prototype/src/eshop-content.json.",
+ "sections": [
+  {
+   "key": "katalog",
+   "title": "Obchod",
+   "fields": [
+    {
+     "type": "text",
+     "value": "Veci, ktoré majú zmysel."
+    },
+    {
+     "type": "text",
+     "value": "OBCHOD"
+    },
+    {
+     "type": "rich",
+     "value": "Malé každodenné rituály. Objavte produkty a programy sveta ANASTASIA."
+    }
+   ]
+  }
+ ]
+}

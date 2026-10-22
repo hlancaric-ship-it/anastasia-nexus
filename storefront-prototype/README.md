@@ -36,7 +36,7 @@ gitignored. Nahrání do R2/CDN není součástí této lokální etapy.
 - `/prihlasenie`, `/prihlasenie/potvrdit`, `/ucet` — ukázkové obrazovky,
   žádné ověřování, ukládání JWT nebo odesílání e-mailu.
 - `/ucet` — mock chatu s Luciou, historie, čistý text do 2000 znaků a náhled stavů 403/429/409.
-- `/ucet#prehlad` — propojené zákaznické centrum podle dodaného handoffu: programy, konzultace, chat, objednávky, filtrované materiály a profil. Sekce fungují i jako přímé hash odkazy, např. `/ucet#chat`.
+- `/ucet#prehlad` — propojené zákazníkové centrum podle dodaného handoffu: programy, konzultace, chat, objednávky, filtrované materiály a profil. Sekce fungují i jako přímé hash odkazy, např. `/ucet#chat`.
 - `/darcekovy-poukaz` — hodnoty z mock API, formulář příjemce a přidání do košíku. V košíku lze vyzkoušet kód `DEMO-GIFT`; částky jsou odpovědi mock API, UI je nepočítá.
 - `/reset-40/knihovna` — výchozí zamknutý stav; explicitní přepínač
   náhledu ukáže 16 zástupných lekcí. Žádná skutečná média programu.

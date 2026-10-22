@@ -11,7 +11,7 @@ function fixture(existing:boolean=true){
  let stopped=false
  const rights={
   findByDedupeKey:jest.fn(async()=>right),
-  grant:jest.fn(async(data:any)=>{right={...data,id:'ent_a',status:'active',granted_by:null};return{entitlement:right,created:true}}),
+  grant:jest.fn(async(data:any)=>{if(!data.tenant_id)throw new Error('ENTITLEMENT_TENANT_REQUIRED');right={...data,id:'ent_a',status:'active',granted_by:null};return{entitlement:right,created:true}}),
   updateEntitlements:jest.fn(async(data:any)=>{right={...right,...data};return right}),
   revoke:jest.fn(async()=>{right={...right,status:'revoked'};return right}),
  }
@@ -25,6 +25,7 @@ function fixture(existing:boolean=true){
 afterEach(()=>jest.resetAllMocks())
 describe('membership access lifecycle',()=>{
  it('grants a verified paid right with the canonical native order key and exact end',async()=>{const f=fixture(false);expect((await reconcileMembershipAccess(f.scope,'mbr_a',now)).status).toBe('ACTIVE');expect(f.rights.grant).toHaveBeenCalledWith(expect.objectContaining({dedupe_key:'order:ord_a:prod_a',customer_id:'cus_a',expires_at:new Date(f.state.period_end)}));expect(loadNativeMembershipReceipt).toHaveBeenCalledTimes(2)})
+ it('grants with a tenant_id – the entitlement service rejects a grant without it',async()=>{const f=fixture(false);expect((await reconcileMembershipAccess(f.scope,'mbr_a',now)).status).toBe('ACTIVE');expect(f.rights.grant).toHaveBeenCalledWith(expect.objectContaining({tenant_id:'default'}))})
  it('never reactivates a manually revoked right despite a paid order',async()=>{const f=fixture();f.right.status='revoked';expect((await reconcileMembershipAccess(f.scope,'mbr_a',now)).status).toBe('NEEDS_REVIEW');expect(f.stopped).toBe(true);expect(f.rights.grant).not.toHaveBeenCalled();expect(f.rights.updateEntitlements).not.toHaveBeenCalled()})
  it('caps an accidental perpetual generic grant to the agreed paid period',async()=>{const f=fixture();f.right.expires_at=null;expect((await reconcileMembershipAccess(f.scope,'mbr_a',now)).status).toBe('ACTIVE');expect(new Date(f.right.expires_at).toISOString()).toBe(f.state.period_end);expect(f.rights.grant).not.toHaveBeenCalled()})
  it('does not override a shorter manually adjusted period',async()=>{const f=fixture();f.right.expires_at='2026-10-20T12:00:00.000Z';expect((await reconcileMembershipAccess(f.scope,'mbr_a',now)).status).toBe('NEEDS_REVIEW');expect(f.rights.updateEntitlements).not.toHaveBeenCalled();expect(f.stopped).toBe(true)})

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANASTASIA — KONCEPT redesignu</title>
+<meta name="description" content="KONCEPT: návrh vzhľadu a hierarchie webu. Texty 1:1 z obsahu webu, bez vymýšľania.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=Figtree:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="koncept.css">
+</head>
+<body>
+
+<!-- Bočná lišta: objaví sa plynule až po scrolle (žiadne zdvojené ovládanie). -->
+<aside class="k-rail" aria-label="Bočná navigácia">
+  <a class="k-rail__mark" href="#">ANASTASIA</a>
+  <a href="#kategorie">Menu</a>
+  <a href="#kontakt">Kontakt</a>
+</aside>
+
+<!-- Hlavička -->
+<header class="k-head">
+  <a class="k-head__logo" href="index.html">
+    <img src="../../public/assets/logo-mark.png" alt="ANASTASIA OZ — Light for the Future" width="38" height="38">
+    <span class="k-head__word">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+  </a>
+  <nav class="k-nav" aria-label="Hlavná navigácia">
+    <a href="#manifest">Zdravý svet</a>
+    <a href="#programy">Programy</a>
+    <a href="#kategorie">Kategórie</a>
+    <a href="ucet.html">Môj účet</a>
+  </nav>
+  <a class="k-cart" href="#">Košík (0)</a>
+  <button class="k-burger" type="button" aria-label="Menu" aria-expanded="false" data-menu-open><i></i></button>
+</header>
+
+<!-- Mobilné menu: celé na jeden displej -->
+<div class="k-menu" id="k-menu">
+  <div class="k-menu__head">
+    <span class="k-head__word">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+    <button class="k-menu__close" type="button" data-close aria-label="Zavrieť">✕</button>
+  </div>
+  <ul>
+    <li><a href="#manifest">Zdravý svet</a></li>
+    <li><a href="#programy">Programy</a></li>
+    <li><a href="#kategorie">Kategórie</a></li>
+    <li><a href="ucet.html">Môj účet</a></li>
+    <li><a href="paleta.html">Paleta a typografia</a></li>
+  </ul>
+</div>
+
+<!-- Úvod: video z vlastných médií, bez cudzích zdrojov -->
+<section class="k-hero">
+  <div class="k-hero__media">
+    <video autoplay muted loop playsinline preload="auto" poster="../../public/assets/night-sky.jpg">
+      <source src="../../public/media/hero-1080p.mp4" type="video/mp4">
+    </video>
+    <div class="k-hero__cuts" aria-hidden="true">
+      <img src="../../public/assets/night-sky.jpg" alt="" data-cut>
+      <img src="../../public/media/legacy-483537f470c4.jpg" alt="" data-cut>
+      <img src="../../public/assets/lucia-portrait.jpg" alt="" data-cut>
+      <img src="../../public/media/learning.jpg" alt="" data-cut>
+      <img src="../../public/assets/hero-forest.jpg" alt="" data-cut>
+    </div>
+  </div>
+  <div class="k-hero__veil"></div>
+  <div class="k-hero__body">
+    <h1>Vitajte.</h1>
+    <p class="is-clamped">Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.</p>
+    <button class="k-more" type="button" data-more hidden>Čítať viac</button>
+    <a class="k-btn" href="#manifest">Vstúpte do zdravého sveta</a>
+  </div>
+  <p class="k-scrollcue">Rolujte</p>
+</section>
+
+<!-- Parallax pod hero: rýchly záber, ktorý sa posúva s rolovaním (ako pri Leil) -->
+<section class="k-section k-section--flush" aria-hidden="true">
+  <figure class="k-parallax k-parallax--full">
+    <img src="../../public/assets/zdravy-svet-luka.jpg" alt="Zdravý svet" loading="lazy" width="1600" height="1000">
+  </figure>
+</section>
+
+<!-- Manifest -->
+<section class="k-section" id="manifest">
+  <p class="k-eyebrow">Manifest</p>
+  <h2 class="k-headline k-reveal">Priestor pre zdravie, poznanie a vedomý život.</h2>
+  <p class="k-lead">Kde veci nemusia byť urýchľované, vysvetľované ani riadené.</p>
+  <figure class="k-parallax">
+    <img src="../../public/assets/tree.jpg" alt="Strom v krajine" loading="lazy" width="1200" height="800">
+    <figcaption>Zdravý svet</figcaption>
+  </figure>
+</section>
+
+<!-- Kategórie (názvy 1:1 z obsahu webu) -->
+<section class="k-section k-section--mata" id="kategorie">
+  <p class="k-eyebrow">Kolekcia</p>
+  <h2 class="k-headline k-reveal">Kolekcia</h2>
+  <div class="k-grid">
+    <article class="k-card"><span class="k-card__tag">Svet</span><h3>Zdravý svet</h3></article>
+    <article class="k-card k-card--mata"><span class="k-card__tag">Sprevádzanie</span><h3>Konzultácie</h3></article>
+    <article class="k-card"><span class="k-card__tag">Sprevádzanie</span><h3>Supervízia</h3></article>
+    <article class="k-card k-card--lavanda"><span class="k-card__tag">Sprevádzanie</span><h3>Astrologický profil</h3></article>
+    <article class="k-card"><span class="k-card__tag">Sprevádzanie</span><h3>Online zdravotná konzultácia</h3></article>
+    <article class="k-card k-card--les"><span class="k-card__tag">Program</span><h3>AI ANASTASIA</h3></article>
+    <article class="k-card"><span class="k-card__tag">Informácie</span><h3>Zdravá lekáreň</h3></article>
+    <article class="k-card k-card--mata"><span class="k-card__tag">Informácie</span><h3>Denný stacionár Vyšná Slaná</h3></article>
+  </div>
+</section>
+
+<!-- Programy -->
+<section class="k-section k-section--lavanda" id="programy">
+  <p class="k-eyebrow">Programy</p>
+  <h2 class="k-headline k-reveal">AI ANASTASIA Longevity Academy</h2>
+  <p class="k-lead">16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
+  <div class="k-grid">
+    <article class="k-card k-card--les">
+      <span class="k-card__tag">Program</span>
+      <h3>AI ANASTASIA RESET 40+</h3>
+      <p>16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
+    </article>
+    <article class="k-card k-card--lavanda">
+      <span class="k-card__tag">Služby</span>
+      <h3>Čo získate?</h3>
+    </article>
+  </div>
+  <figure class="k-parallax">
+    <img src="../../public/media/learning.jpg" alt="Světlo v lese" loading="lazy" width="1200" height="800">
+    <figcaption>AI ANASTASIA Longevity Academy</figcaption>
+  </figure>
+</section>
+
+<!-- Svet -->
+<section class="k-section k-section--krem2" id="svet">
+  <p class="k-eyebrow">Svet</p>
+  <h2 class="k-headline k-reveal">Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.</h2>
+  <figure class="k-parallax">
+    <img src="../../public/assets/night-sky.jpg" alt="Nočná obloha nad tmavou krajinou" loading="lazy" width="1200" height="800">
+    <figcaption>Pod hviezdami</figcaption>
+  </figure>
+</section>
+
+<!-- Kontakt + pätička -->
+<section class="k-section" id="kontakt">
+  <p class="k-eyebrow">Kontakt</p>
+  <h2 class="k-headline k-reveal">Kontakt</h2>
+  <p class="k-lead">Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás.</p>
+</section>
+
+<footer class="k-foot">
+  <div class="k-foot__grid">
+    <div>
+      <h3>Svet</h3>
+      <ul><li><a href="#">Zdravý svet</a></li><li><a href="#">AI ANASTASIA</a></li></ul>
+    </div>
+    <div>
+      <h3>Sprevádzanie</h3>
+      <ul><li><a href="#">Konzultácie</a></li><li><a href="#">Supervízia</a></li><li><a href="#">Astrologický profil</a></li><li><a href="#">Online zdravotná konzultácia</a></li></ul>
+    </div>
+    <div>
+      <h3>Informácie</h3>
+      <ul><li><a href="#">Zdravá lekáreň</a></li><li><a href="#">Denný stacionár Vyšná Slaná</a></li><li><a href="#">Kontakt</a></li></ul>
+    </div>
+    <div>
+      <h3>Právne informácie</h3>
+      <ul><li><a href="#">Obchodné podmienky</a></li><li><a href="#">Reklamačné pravidlá</a></li><li><a href="#">Odstúpenie od zmluvy</a></li><li><a href="#">Ochrana osobných údajov</a></li><li><a href="#">Cookies</a></li></ul>
+    </div>
+  </div>
+  <div class="k-foot__bottom">
+    <span>© 2026 ANASTASIA · Light for the Future</span>
+    <span>ANASTASIA.ACADEMY · AI ANASTASIA</span>
+  </div>
+</footer>
+
+<script src="koncept.js"></script>
+</body>
+</html>

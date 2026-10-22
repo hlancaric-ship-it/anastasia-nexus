@@ -29,8 +29,8 @@ describe("šablony – katalóg pre admin", () => {
     }
   })
 
-  it("povinné sú len prihlásenie, poukazy a kontaktný formulár", () => {
-    expect(listTemplateDefs().filter(d => d.required).map(d => d.name).sort()).toEqual(["contact-form-admin", "gift-voucher-buyer-sk", "gift-voucher-recipient-sk", "magic-link-sk"])
+  it("povinné sú len prihlásenie, poukazy, kontaktný formulár a potvrdenie odstúpenia od zmluvy", () => {
+    expect(listTemplateDefs().filter(d => d.required).map(d => d.name).sort()).toEqual(["contact-form-admin", "contract-withdrawal-received-sk", "gift-voucher-buyer-sk", "gift-voucher-recipient-sk", "magic-link-sk"])
     expect(getTemplateDef("neexistuje")).toBeNull()
   })
 })
@@ -72,6 +72,31 @@ describe("šablony – objednávka", () => {
   it("odstúpenie: dátum prijatia v čase Bratislavy", () => {
     const out = renderTemplate("withdrawal-received-sk", { order_display_id: "7", received_at: "2026-10-15T22:30:00Z" })
     expect(out.text).toContain("Dňa 16. 10. 2026 sme prijali Vaše odstúpenie od zmluvy k objednávke č. 7.")
+  })
+
+  it("potvrdenie doručenia odstúpenia obsahuje obsah oznámenia, dátum a čas doručenia", () => {
+    const out = renderTemplate("contract-withdrawal-received-sk", {
+      order_number: "2026-0142",
+      items: ["Kurz RESET 40+", "Pracovný zošit"],
+      order_date: "2026-10-12T00:00:00Z",
+      received_at: "2026-10-21T08:05:00Z",
+    })
+    expect(out.subject).toBe("Potvrdenie doručenia odstúpenia od zmluvy č. 2026-0142")
+    expect(out.text).toContain("Dňa 21. 10. 2026 o 10:05 sme prijali Vaše odstúpenie od zmluvy k objednávke č. 2026-0142.")
+    expect(out.text).toContain("Kurz RESET 40+, Pracovný zošit")
+    expect(out.text).toContain("12. 10. 2026")
+    expect(out.text).not.toMatch(/\{[a-z_]+\}/)
+  })
+
+  it("hlásenie o odstúpení pre správcu obsahuje e-mail zákazníka", () => {
+    const out = renderTemplate("contract-withdrawal-admin", {
+      order_number: "2026-0142",
+      items: ["Kurz RESET 40+"],
+      email: "zakaznik@example.test",
+      received_at: "2026-10-21T08:05:00Z",
+    })
+    expect(out.text).toContain("zakaznik@example.test")
+    expect(out.text).toContain("2026-0142")
   })
 })
 

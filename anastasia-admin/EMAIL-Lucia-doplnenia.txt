@@ -1,0 +1,81 @@
+PREDMET: Doplnenia a potvrdenia k právnym textom na Vašom webe
+
+Dobrý deň, pani Lucia,
+
+posielam Vám prehľad: čo z Vášho dokumentu je už na Vašom webe a čo nám ešte treba doplniť alebo potvrdiť, aby boli texty úplné. Odpovedať stačí e-mailom – stačí číslo bodu a Váš text.
+
+=====================================================================
+1. ČO JE UŽ NA VAŠOM WEBE
+=====================================================================
+
+Z Vášho dokumentu sú na webe 5 samostatných stránok. Text je presne tak, ako ste ho poslali:
+
+A) Všeobecné obchodné podmienky (12 článkov)        - stránka /vop
+B) Reklamačné pravidlá (4 časti)                    - stránka /reklamacie
+C) Poučenie a formulár na odstúpenie od zmluvy     - stránka /odstupenie
+D) Ochrana osobných údajov (8 častí)               - stránka /gdpr
+E) Cookies a podobné technológie                    - stránka /cookies
+
+Pri C) odstúpenie od zmluvy ide aj priamo cez formulár na webe – netreba posielať nič poštou.
+Pri E) sa zákazníkovi pri prvej návšteve zobrazí lišta cookies s tromi tlačidlami a v pätičke je odkaz „Nastavenia cookies“, ak by si chceli svoju voľbu kedykoľvek zmeniť.
+
+Na webe NIE JE časť F (pokyny pre vás) ani úvodný súhrn z dokumentu – to nie je text pre zákazníkov.
+
+Kde v texte chýbal konkrétny údaj, je tam zatiaľ nápis „[doplní prevádzkovateľ]“. Je to len pracovný placeholder – kým ho nedoplníme, vidí ho aj návštevník webu. Pošlite nám chýbajúce údaje a my ich dosadíme naozaj.
+
+=====================================================================
+2. DOPLNIŤ (5 miest v texte)
+=====================================================================
+
+1) Splatnosť bankového prevodu (VOP, čl. 4.2)
+   Koľko dní má zákazník na zaplatenie prevodom. Hotovosť a dobierku uveďte len vtedy, ak ich naozaj predávate.
+
+2) Kde presne zákazník odstúpi od zmluvy (VOP, čl. 9.2)
+   Stačí napísať, že je to na stránke „Odstúpenie od zmluvy“, prípadne odkaz na /odstupenie.
+
+3) To isté miesto v poučení na stránke /odstupenie
+   Formulár je hneď za textom poučenia.
+
+4) Prehľad cookies, ktoré Váš web používa (stránka /cookies)
+   názov, kto ich nastavuje, na čo slúžia, ako dlho platia a či sa posielajú do iných krajín. Zoznam musí vychádzať z reálneho webu – zostavíme ho z Vášho webu a pošleme Vám na kontrolu.
+
+5) Čo voliteľné cookies naozaj robia (text lišty)
+   Ak meriate návštevnosť alebo robíte reklamy, napíšte to. Ak používate iba nevyhnutné cookies, napíšte to rovno – lišta potom nepovie, že zákazníci súhlasiť s analytikou.
+
+=====================================================================
+3. POTVRDIŤ (2 veci k cookies)
+=====================================================================
+
+6) Názvy kategórií v lište a v paneli „Nastavenia cookies“
+    Teraz sú „Analytické“ a „Marketingové“. Potvrďte, či má byť „reklama“ alebo „marketing“, a či treba obe kategórie vôbec.
+
+7) Či patrí platobná brána medzi nevyhnutné technológie
+    My ju tam rátame – bez nej sa nedá zaplatiť kartou, takže zákazníci nemusia (a podľa nás ani nemali) kliknúť na lištu cookies, aby mohli zaplatiť. Platba kartou už funguje aj bez kliknutia na lištu. Potvrďte, prosím, že s tým súhlasíte. Text stránky /cookies nemeníme, kým sa nerozhodnete inak.
+
+=====================================================================
+4. POTVRDIŤ MIMO WEBU (tieto body na webe nie sú)
+=====================================================================
+
+8) Presný názov nástroja na tvorbu videí (HyGen) a kto je jeho prevádzkovateľ.
+9) S kým máte zmluvu (koho údaje spracúvate) a či sa niektoré údaje posielajú do iných krajín – je to v časti D, bod 5.
+10)  Či je prevádzkovateľom zdravotných údajov LUCRAT spol. s r.o., alebo niekto iný (časť D, bod 3).
+11)  Ceny dopravy podľa krajiny a technické parametre produktov.
+12) Pravidlá pre platené hodnotové poukazy – čiastočné čerpanie, zostatok a prenosnosť (VOP, čl. 8).
+
+=====================================================================
+5. PREKLEPY V ZASLANOM ZNENÍ
+=====================================================================
+
+Tieto preklepy sme nechali tak, aby bol text na webe presne Váš. Opravíme ich, ak poviete, že áno.
+
+13) VOP čl. 2.5 – „spol. s..o. ,“ (dvojitá bodka pred „o.“ a medzera pred čiarkou).
+14) Ochrana osobných údajov čl. 3 – to isté.
+15) Ochrana osobných údajov čl. 7 – zátvorka „]“ na konci vety.
+16) VOP čl. 2.5 a Ochrana osobných údajov čl. 3 – dvojité medzery v texte a medzera pred čiarkou.
+
+=====================================================================
+
+Ako odpovedať: stačí poslať e-mailom číslo bodu a Váš text (napr. „bod 1 – splatnosť 7 dní“). Nič na webe sa nezmení, kým to nepotvrdíte. Keď údaje doplníme, dáme Vám vedieť a pošleme Vám na kontrolu výsledné znenie stránok.
+
+S pozdravom
+L-Code Dynamics

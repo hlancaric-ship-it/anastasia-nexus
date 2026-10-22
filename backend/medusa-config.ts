@@ -78,6 +78,11 @@ if (isProduction && !deploy.onCloud && !s3Configured) {
   console.warn("[medusa-config] S3_* is not configured in production: files would be stored on the local (ephemeral) disk of the Node host")
 }
 
+// --- Dvojfaktorové overenie administrátora (TOTP) ---
+// Medusa šifruje MFA tajomstvá kľúčom z auth modulu; bez neho enrolácia odmietne.
+// Kľúč sa nastaví len vtedy, keď je v prostredí – inak zostáva konfigurácia Medusy.
+const mfaEncryptionKey = env("MFA_ENCRYPTION_KEY")
+
 const fileProvider = s3Configured
   ? {
       resolve: "@medusajs/medusa/file-s3",
@@ -110,7 +115,25 @@ const emailTestTraffic = deploy.paymentsTestMode || (deploy.onCloud && deploy.cl
 const emailRecipientAllowlist = emailRecipientAllowlistRaw || emailTestTraffic
   ? (emailRecipientAllowlistRaw || "").split(",").map((entry) => entry.trim()).filter(Boolean)
   : undefined
-const notificationProviders: Array<Record<string, unknown>> = zeptoMailEnabled
+// Resend má prednosť pred ZeptoMailom (rozhodnutie 2026-10-20); kanál email smie mať len jeden provider.
+const resendEnabled = Boolean(env("RESEND_API_KEY"))
+const notificationProviders: Array<Record<string, unknown>> = resendEnabled
+  ? [
+      {
+        resolve: "./src/modules/notification-resend",
+        id: "resend",
+        options: {
+          channels: ["email"],
+          apiKey: env("RESEND_API_KEY"),
+          fromEmail: env("RESEND_FROM_EMAIL"),
+          fromName: env("RESEND_FROM_NAME") || "ANASTASIA",
+          replyTo: env("RESEND_REPLY_TO") || undefined,
+          recipientAllowlist: emailRecipientAllowlist,
+        },
+      },
+      { resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } },
+    ]
+  : zeptoMailEnabled
   ? [
       {
         resolve: "./src/modules/notification-zeptomail",
@@ -147,6 +170,8 @@ const modules: Array<Record<string, unknown>> = [
     key: Modules.AUTH,
     resolve: "@medusajs/medusa/auth",
     options: {
+      // Šifrovací kľúč pre dvojfaktorové overenie (TOTP) – nastaví sa, iba keď je v prostredí.
+      ...(mfaEncryptionKey ? { mfa: { encryption_key: mfaEncryptionKey } } : {}),
       providers: [
         { resolve: "@medusajs/medusa/auth-emailpass", id: "emailpass" },
         {
@@ -158,10 +183,13 @@ const modules: Array<Record<string, unknown>> = [
     },
   },
   { resolve: "./src/modules/entitlement" },
+  // Zrkadielko: záznamy zákazníčky v členskej zóne RESET 40+ (tabuľka reset_journal_entry).
+  { resolve: "./src/modules/reset-journal" },
   { resolve: "./src/modules/booking" },
   { resolve: "./src/modules/gift-voucher" },
   { resolve: "./src/modules/chat" },
   { resolve: "./src/modules/ops-audit" },
+  { resolve: "./src/modules/coupon-link" },
   { resolve: "./src/modules/email-template" },
   { resolve: "./src/modules/legal" },
   { resolve: "./src/modules/customer-privacy" },
@@ -170,12 +198,21 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/membership" },
 ]
 
-if (stripeApiKey) {
+// Dobierka a prevod na účet (manuálne, bez brány): objednávka vznikne nezaplatená, platbu prijme admin.
+const manualPaymentProviders = [
+  { resolve: "./src/modules/payment-manual/cod", id: "cod" },
+  { resolve: "./src/modules/payment-manual/bank-transfer", id: "bank_transfer" },
+]
+
+if (!stripeApiKey) {
+  modules.push({ key: Modules.PAYMENT, resolve: "@medusajs/medusa/payment", options: { providers: manualPaymentProviders } })
+} else {
   modules.push({
     key: Modules.PAYMENT,
     resolve: "@medusajs/medusa/payment",
     options: {
       providers: [
+        ...manualPaymentProviders,
         {
           // Provider ID v Medusa: pp_stripe_stripe, webhook: POST /hooks/payment/stripe_stripe
           resolve: "@medusajs/medusa/payment-stripe",
@@ -206,7 +243,7 @@ if (redisUrl) {
   modules.push(
     { key: Modules.EVENT_BUS, resolve: "@medusajs/medusa/event-bus-redis", options: { redisUrl } },
     { key: Modules.CACHE, resolve: "@medusajs/medusa/cache-redis", options: { redisUrl } },
-    { key: Modules.WORKFLOW_ENGINE, resolve: "@medusajs/medusa/workflow-engine-redis", options: { redisUrl } },
+    { key: Modules.WORKFLOW_ENGINE, resolve: "@medusajs/medusa/workflow-engine-redis", options: { redis: { url: redisUrl } } },
     {
       key: Modules.LOCKING,
       resolve: "@medusajs/medusa/locking",
@@ -231,6 +268,11 @@ module.exports = defineConfig({
       jwtSecret,
       cookieSecret,
     }
+  },
+  // Klientka používa vlastnú administráciu (anastasia-admin/). Medusa Admin (/app) je skrytý
+  // a zapína sa len pre vývoj premennou MEDUSA_ADMIN_ENABLED=true.
+  admin: {
+    disable: process.env.MEDUSA_ADMIN_ENABLED !== "true",
   },
   modules,
 })

@@ -4,6 +4,9 @@ on:
     branches: [master]
     paths:
       - 'protected-media/**'
+      - 'anastasia-admin/**'
+      - 'backend/src/api/admin/products/**'
+      - 'backend/src/lib/protected-library/**'
       - '.github/workflows/protected-library.yml'
   workflow_dispatch:
 permissions:
@@ -22,3 +25,5 @@ jobs:
       - run: npm ci --prefix nexus --no-audit --no-fund
       - name: Verify signed private reads, ranges, expiry and CORS
         run: nexus/node_modules/.bin/vitest run --config protected-media/vitest.config.mjs
+      - name: Verify compact purchased-content editor in Chrome
+        run: node anastasia-admin/test/browser-library-editor.mjs

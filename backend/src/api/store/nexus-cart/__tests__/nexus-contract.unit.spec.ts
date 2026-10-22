@@ -2,7 +2,7 @@ import { POST as repriceCart } from "../route"
 import { POST as checkout } from "../../nexus-checkout/route"
 
 describe("NEXUS cart and checkout request contracts", () => {
-  // Ověřená zákaznice -- auth gate (401) propustí, aby se otestovala až
+  // Ověřený zákazník -- auth gate (401) propustí, aby se otestovala až
   // validace cart_id. Bez cart_id musí endpoint vrátit 400, ne vymyslet
   // objednávku ani placený stav.
   const auth_context = { actor_type: "customer", actor_id: "cust_synthetic" }

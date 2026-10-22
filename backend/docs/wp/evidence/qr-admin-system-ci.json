@@ -1,0 +1,104 @@
+{
+  "status": "VERIFIED",
+  "scope": "QR registry, custom admin and supported native-coupon storefront flows; synthetic data only",
+  "source_commit": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+  "baseline_commit": "69c4f7e",
+  "failures": 0,
+  "runs": {
+    "qr": {
+      "conclusion": "success",
+      "headSha": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+      "status": "completed",
+      "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39155319995"
+    },
+    "regression": {
+      "conclusion": "success",
+      "headSha": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+      "status": "completed",
+      "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39155320014"
+    },
+    "membership": {
+      "conclusion": "success",
+      "headSha": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+      "status": "completed",
+      "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39155320000"
+    },
+    "membership_persistence": {
+      "conclusion": "success",
+      "headSha": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+      "status": "completed",
+      "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39155319977"
+    },
+    "admin": {
+      "conclusion": "success",
+      "headSha": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+      "status": "completed",
+      "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39155319961"
+    },
+    "readiness": {
+      "conclusion": "success",
+      "headSha": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+      "status": "completed",
+      "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39155320013"
+    },
+    "backup_selftest": {
+      "conclusion": "success",
+      "headSha": "fef324c5dc93d934e2ee8d3548724084bc71f661",
+      "status": "completed",
+      "url": "https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/39155319967"
+    }
+  },
+  "checks": {
+    "qr_unit": 60,
+    "storefront_http_and_mock": 48,
+    "backend_unit": 1055,
+    "nexus_unit": 1235,
+    "workerd": 142,
+    "native_persistence": "PASS",
+    "native_qr_existing_usage": 3,
+    "browser": [
+      {
+        "status": "PASS",
+        "checks": 12,
+        "passed": [
+          "QR list visible",
+          "Generation opens saved detail",
+          "Saved QR can be downloaded",
+          "Import requires preview",
+          "Preview result announced",
+          "Editing invalidates preview",
+          "No hidden UI error",
+          "Actual storefront QR SKU resolution and server coupon application",
+          "Storefront rescan does not duplicate product",
+          "Actual storefront QR SKU resolution and server coupon application",
+          "Storefront rescan does not duplicate product",
+          "No horizontal overflow"
+        ],
+        "width": 390
+      },
+      {
+        "status": "PASS",
+        "checks": 12,
+        "passed": [
+          "QR list visible",
+          "Generation opens saved detail",
+          "Saved QR can be downloaded",
+          "Import requires preview",
+          "Preview result announced",
+          "Editing invalidates preview",
+          "No hidden UI error",
+          "Actual storefront QR SKU resolution and server coupon application",
+          "Storefront rescan does not duplicate product",
+          "Actual storefront QR SKU resolution and server coupon application",
+          "Storefront rescan does not duplicate product",
+          "No horizontal overflow"
+        ],
+        "width": 1440
+      }
+    ]
+  },
+  "financial_core_sources_unchanged": true,
+  "production_data_imported": false,
+  "deployed": false,
+  "legacy_business_migration": "PARTIAL: existing catalog importer leaves draft promotions and does not transfer all original conditions/usage; fixed and restricted promotions are rejected by current NEXUS coupon adapter."
+}

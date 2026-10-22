@@ -26,9 +26,14 @@ smoke() {
     grep -qi '^content-security-policy:' <<<"$headers" || { echo "FAIL $url chybí CSP"; ok=0; }
   done
   for host in "$WEB_HOST" "$ADMIN_HOST"; do
-    curl -sS --max-time 20 "https://$host/robots.txt" | grep -q '^Disallow: /$' || { echo "FAIL $host/robots.txt neblokuje indexaci"; ok=0; }
+    curl -fsS --max-time 20 "https://$host/robots.txt" | grep -q '^Disallow: /$' || { echo "FAIL $host/robots.txt neblokuje indexaci"; ok=0; }
   done
-  curl -sS --max-time 20 "https://$WEB_HOST/config.mjs" | grep -q "pk_live_" && { echo "FAIL storefront obsahuje live Stripe klíč"; ok=0; }
+  local config
+  if ! config="$(curl -fsS --max-time 20 "https://$WEB_HOST/config.mjs")"; then
+    echo "FAIL storefront config.mjs nedostupné"; ok=0
+  elif ! grep -q 'pk_test_' <<<"$config" || grep -Eq 'pk_live_|sk_live_|sk_test_|rk_live_|rk_test_' <<<"$config"; then
+    echo "FAIL storefront nemá bezpečnou testovací platební konfiguraci"; ok=0
+  fi
   [ "$ok" = 1 ] && echo "SMOKE_OK" || exit 1
 }
 
@@ -49,7 +54,7 @@ done
 
 # --- Build ---
 export ANASTASIA_MEDIA_ORIGIN="${ANASTASIA_MEDIA_ORIGIN:-$ANASTASIA_API_ORIGIN}"
-(cd "$ROOT/storefront-prototype" && rm -rf dist && node build.mjs)
+(cd "$ROOT/storefront-prototype" && node build.mjs)
 (cd "$ROOT/anastasia-admin" && node build.mjs)
 
 # --- Kontrola výstupu ---

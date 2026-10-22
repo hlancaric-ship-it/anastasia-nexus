@@ -130,3 +130,33 @@ describe("uvítanie po registrácii", () => {
     expect(sent(notifications)).toMatchObject({ to: EMAIL, template: "customer-welcome-sk", idempotency_key: "customer.welcome:cus_1", data: { first_name: "Jana", url: "https://anastasiaoz.eu/ucet" } })
   })
 })
+
+describe("potvrdenie objednávky – spôsob platby a dopravy", () => {
+  const { renderTemplate } = require("../../../modules/notification-zeptomail/templates")
+  const unpaid = (provider: string, shipping = "Kuriér (zásielka)") => baseOrder({
+    total: 66, shipping_methods: [{ name: shipping, amount: 6 }],
+    payment_collections: [{ captured_amount: 0, refunded_amount: 0, payments: [{ captured_at: null, provider_id: provider }] }],
+  })
+  it("prevod: e-mail obsahuje IBAN, variabilný symbol (= číslo objednávky) a sumu", () => {
+    const data = orderPlacedData(unpaid("pp_bank_transfer_bank_transfer") as any)
+    expect(data).toMatchObject({ paid: false, payment_method: "bank_transfer", shipping_method: "Kuriér (zásielka)" })
+    expect(data.bank_transfer).toMatchObject({ iban: "SK17 1100 0000 0026 2409 8906", variable_symbol: "1042", bank: "Tatra banka" })
+    const mail = renderTemplate("order-placed-sk", data)
+    expect(mail.text).toContain("IBAN: SK17 1100 0000 0026 2409 8906")
+    expect(mail.text).toContain("Variabilný symbol: 1042")
+    expect(mail.text).toMatch(/Suma: 66,00\s€/)
+    expect(mail.text).toContain("Platba: Prevodom na účet")
+  })
+  it("dobierka: „Platíte pri prevzatí“, bez bankových údajov; osobný odber s adresou", () => {
+    const cod = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_cod_cod", "Kuriér – platba na dobierku") as any))
+    expect(cod.text).toMatch(/Platíte pri prevzatí zásielky: 66,00\s€/)
+    expect(cod.text).not.toContain("IBAN")
+    const pickup = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_bank_transfer_bank_transfer", "Osobný odber – Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen") as any))
+    expect(pickup.text).toContain("Sokolská 88, 960 01 Zvolen")
+  })
+  it("zaplatená kartou: bez platobných údajov", () => {
+    const data = orderPlacedData(baseOrder({ payment_collections: [{ captured_amount: 111.5, refunded_amount: 0, payments: [{ captured_at: "2026-10-15T09:00:00Z", provider_id: "pp_stripe_stripe" }] }] }) as any)
+    expect(data).toMatchObject({ paid: true, payment_method: "card", bank_transfer: null })
+    expect(renderTemplate("order-placed-sk", data).text).not.toContain("IBAN")
+  })
+})

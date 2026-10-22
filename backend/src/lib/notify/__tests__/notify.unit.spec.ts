@@ -40,7 +40,7 @@ describe("notify(booking.*)", () => {
   })
 
   it("zrušení: volný text adminu do šablony nejde", async () => {
-    const { container, notifications } = makeContainer({ booking: { id: "bkg_1", customer_id: "cus_1", status: "canceled", starts_at: "2026-11-02T09:00:00Z", ends_at: "2026-11-02T10:00:00Z", cancel_reason: "zákaznice volala, nemoc" } })
+    const { container, notifications } = makeContainer({ booking: { id: "bkg_1", customer_id: "cus_1", status: "canceled", starts_at: "2026-11-02T09:00:00Z", ends_at: "2026-11-02T10:00:00Z", cancel_reason: "zákazník volal, nemoc" } })
     expect((await notify(container, { type: "booking.canceled", booking_id: "bkg_1" })).status).toBe("sent")
     const payload = (notifications.createNotifications.mock.calls[0] as any[])[0]
     expect(payload.data.cancel_kind).toBe("other")

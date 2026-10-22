@@ -262,7 +262,7 @@ export function preparePasswordDraft(customerId: string, recipient: string, now 
 }
 
 export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatalog, "products">,
-  services: MigrationServices, options: { apply: boolean; saveDraft?: (customerId: string, email: string) => void }) {
+  services: MigrationServices, options: { apply: boolean; skipPasswordDrafts?: boolean; saveDraft?: (customerId: string, email: string) => void }) {
   const data = validateMigration(value)
   const sourceCustomers = unique(data.customers, x => x.legacy_id)
   const groups = new Map<string, Customer[]>()
@@ -314,7 +314,7 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
       if (sourceCustomers.get(previous.customer_legacy_id)!.email !== sourceCustomers.get(access.customer_legacy_id)!.email || previous.expires_at !== access.expires_at) fail("ACCESS_COLLISION")
       continue
     }
-    const existing = await services.entitlement.findByDedupeKey(key)
+    const existing = await services.entitlement.findByDedupeKey(key, "default")
     if (existing && (existing.customer_id !== customerTargets.get(sourceCustomers.get(access.customer_legacy_id)!.email)?.id || existing.product_id !== productId || existing.source !== "migration")) fail("ACCESS_CONFLICT")
     grants.set(key, { access, productId, existing })
   }
@@ -332,13 +332,13 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
     total_eur: money(data.orders.reduce((sum, o) => sum + (orderTargets.has(o.legacy_id) ? amount(orderTargets.get(o.legacy_id)!.total) : 0n), 0n)) }
   if (!options.apply) {
     // Preview generation is in memory only; tokens/addresses never enter the returned report.
-    for (const mail of groups.keys()) preparePasswordDraft("dry-run", mail)
+    if (!options.skipPasswordDrafts) for (const mail of groups.keys()) preparePasswordDraft("dry-run", mail)
     return { mode: "dry-run", source, target_before: observedBefore, target_after: null,
       planned: { customers: source.customers - observedBefore.customers, addresses: source.addresses - observedBefore.addresses,
         orders: source.orders - observedBefore.orders, entitlements: source.entitlements - observedBefore.entitlements,
-        password_drafts: groups.size }, reconciled: false }
+        password_drafts: options.skipPasswordDrafts ? 0 : groups.size }, reconciled: false }
   }
-  if (!options.saveDraft) fail("DRAFT_WRITER_REQUIRED")
+  if (!options.skipPasswordDrafts && !options.saveDraft) fail("DRAFT_WRITER_REQUIRED")
   for (const [mail, group] of groups) {
     let target = customerTargets.get(mail)
     const ids = [...new Set([...(target ? meta(target).legacy_ids ?? [] : []), ...group.map(c => c.legacy_id)])].sort()
@@ -367,7 +367,8 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
     const result = await services.entitlement.grant({ customer_id: customerId, product_id: productId, source: "migration",
       dedupe_key: key, order_id: access.legacy_order_id ? orderTargets.get(access.legacy_order_id)!.id : null,
       expires_at: access.expires_at ? new Date(access.expires_at) : null,
-      metadata: { legacy_access_id: access.legacy_id, legacy_order_id: access.legacy_order_id } })
+      metadata: { legacy_access_id: access.legacy_id, legacy_order_id: access.legacy_order_id },
+      tenant_id: "default" })
     if (result.entitlement.customer_id !== customerId || result.entitlement.product_id !== productId) fail("ACCESS_CONFLICT")
   }
   // Independently re-read module storage. Report persisted values, not attempted writes.
@@ -398,12 +399,12 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
   targetAfter.total_eur = money(total)
   let inactiveEntitlements = 0
   for (const [key, { access, productId }] of grants) {
-    const found = await services.entitlement.findByDedupeKey(key)
+    const found = await services.entitlement.findByDedupeKey(key, "default")
     if (!found || found.customer_id !== customerTargets.get(sourceCustomers.get(access.customer_legacy_id)!.email)!.id || found.product_id !== productId) fail("RECONCILIATION_FAILED")
     targetAfter.entitlements++
     if (found.status !== "active" || (found.expires_at && new Date(found.expires_at).getTime() <= Date.now())) inactiveEntitlements++
   }
-  for (const [mail, target] of customerTargets) options.saveDraft(target.id, mail)
+  if (!options.skipPasswordDrafts) for (const [mail, target] of customerTargets) options.saveDraft!(target.id, mail)
   return { mode: "apply", source, target_before: observedBefore, target_after: targetAfter,
     reconciled: targetAfter.total_eur === source.total_eur, inactive_entitlements_preserved: inactiveEntitlements }
 }
@@ -413,11 +414,11 @@ export function assertLocalDatabase(databaseUrl: unknown) {
   try {
     const url = new URL(String(databaseUrl))
     if (!["postgres:", "postgresql:"].includes(url.protocol) || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) ||
-        url.pathname !== "/anastasia_dev_wave1" || url.search || url.hash || process.env.NODE_ENV === "production") fail("LOCAL_DATABASE_REQUIRED")
+        !["/anastasia_dev_wave1", "/anastasia_catalog_local_20261019"].includes(url.pathname) || url.search || url.hash || process.env.NODE_ENV === "production") fail("LOCAL_DATABASE_REQUIRED")
   } catch { fail("LOCAL_DATABASE_REQUIRED") }
 }
 export function parseOptions(args: string[]) {
-  let apply = false, prepareSql: string | undefined
+  let apply = false, skipPasswordDrafts = false, prepareSql: string | undefined
   let file = "data-private/legacy/customers-orders.json", catalog = "data-private/legacy/catalog.json"
   const seen = new Set<string>()
   for (const arg of args.filter(x => x !== "--")) {
@@ -425,13 +426,14 @@ export function parseOptions(args: string[]) {
     if (seen.has(name)) fail("INVALID_ARGUMENTS")
     seen.add(name)
     if (arg === "--apply") apply = true
+    else if (arg === "--skip-password-drafts") skipPasswordDrafts = true
     else if (arg.startsWith("--file=")) file = arg.slice(7)
     else if (arg.startsWith("--catalog=")) catalog = arg.slice(10)
     else if (arg.startsWith("--prepare-sql=")) prepareSql = arg.slice(14)
     else fail("INVALID_ARGUMENTS")
   }
   if (!file || !catalog || prepareSql === "" || (prepareSql && apply)) fail("INVALID_ARGUMENTS")
-  return { apply, file, catalog, prepareSql }
+  return { apply, file, catalog, prepareSql, skipPasswordDrafts }
 }
 function privatePath(file: string): string {
   const root = path.resolve("data-private")
@@ -479,13 +481,13 @@ export default async function migrateLegacyCustomersOrders({ container, args }: 
     assertLocalDatabase(config.projectConfig.databaseUrl)
     const services: MigrationServices = { customer: container.resolve(Modules.CUSTOMER), order: container.resolve(Modules.ORDER),
       product: container.resolve(Modules.PRODUCT), entitlement: container.resolve("entitlement") }
-    const run = () => migrateCustomers(data, catalog, services, { apply: options.apply, saveDraft: savePasswordDraft })
+    const run = () => migrateCustomers(data, catalog, services, { apply: options.apply, skipPasswordDrafts: options.skipPasswordDrafts, saveDraft: savePasswordDraft })
     let report: Awaited<ReturnType<typeof migrateCustomers>>
     if (options.apply) {
       const pg = container.resolve(ContainerRegistrationKeys.PG_CONNECTION)
       report = await pg.transaction(async trx => {
         const result = await trx.raw("select pg_try_advisory_xact_lock(1869898851, 2) as locked, current_database() as db")
-        if (result.rows[0]?.db !== "anastasia_dev_wave1") fail("LOCAL_DATABASE_REQUIRED")
+        if (result.rows[0]?.db !== new URL(String(config.projectConfig.databaseUrl)).pathname.slice(1)) fail("LOCAL_DATABASE_REQUIRED")
         if (!result.rows[0]?.locked) fail("MIGRATION_ALREADY_RUNNING")
         return run()
       })

@@ -27,7 +27,7 @@ export type TemplateDef = {
   name: string
   label: string
   description: string
-  /** Zákaznice ho potřebuje vždy (přihlášení, doručení poukazu) – v adminu nejde vypnout. */
+  /** Zákazník ho potřebuje vždy (přihlášení, doručení poukazu) – v adminu nejde vypnout. */
   required: boolean
   audience: "customer" | "admin"
   placeholders: PlaceholderDef[]
@@ -116,6 +116,10 @@ const P = {
   conversations: { key: "pocet_konverzacii", label: "Počet konverzácií" },
   tracking: { key: "cislo_zasielky", label: "Číslo zásielky" },
   received: { key: "datum_prijatia", label: "Dátum prijatia" },
+  email: { key: "email", label: "E-mail zákazníka" },
+  items: { key: "polozky", label: "Položky odstúpenia" },
+  orderDate: { key: "datum_objednavky", label: "Dátum objednávky" },
+  receivedTime: { key: "cas_prijatia", label: "Čas prijatia" },
 } satisfies Record<string, PlaceholderDef>
 
 type Vars = Record<string, string | null>
@@ -254,6 +258,38 @@ function orderRows(data: Data, r: R): Row[] {
   return rows
 }
 
+const PAYMENT_LABEL: Record<string, string> = { cod: "Na dobierku", card: "Kartou online", bank_transfer: "Prevodom na účet" }
+
+function methodRows(data: Data, r: R): Block[] {
+  const rows: Row[] = []
+  const shipping = str(data.shipping_method)
+  const payment = PAYMENT_LABEL[str(data.payment_method) ?? ""]
+  if (shipping) rows.push({ label: r("label_shipping_method"), value: oneLine(shipping) })
+  if (payment) rows.push({ label: r("label_payment_method"), value: payment })
+  return rows.length ? [{ kind: "rows", rows }] : []
+}
+
+/** Text o platbe: zaplatené / prevod s platobnými údajmi / dobierka / iné nezaplatené. */
+function paymentBlocks(data: Data, t: T): Block[] {
+  if (data.paid === true) return p(t("paid"))
+  const transfer = data.bank_transfer && typeof data.bank_transfer === "object" ? data.bank_transfer as Data : null
+  if (data.payment_method === "bank_transfer" && transfer && str(transfer.iban) && str(transfer.variable_symbol)) {
+    return [
+      ...p(t("bank_transfer") ?? t("unpaid")),
+      { kind: "rows", rows: [
+        { label: "Príjemca", value: oneLine(str(transfer.beneficiary) ?? "") },
+        { label: "Banka", value: oneLine(str(transfer.bank) ?? "") },
+        { label: "IBAN", value: oneLine(str(transfer.iban)!) },
+        ...(str(transfer.swift) ? [{ label: "SWIFT/BIC", value: oneLine(str(transfer.swift)!) }] : []),
+        { label: "Variabilný symbol", value: oneLine(str(transfer.variable_symbol)!) },
+        { label: "Suma", value: oneLine(str(transfer.amount) ?? ""), strong: true },
+      ].filter(row => row.value) },
+    ]
+  }
+  if (data.payment_method === "cod") return p(t("cod") ?? t("unpaid"))
+  return p(t("unpaid"))
+}
+
 const button = (label: string, url: unknown) => (safeUrl(url) ? { label, url: safeUrl(url)! } : null)
 const p = (value: string | null): Block[] => (value ? [{ kind: "p", text: value }] : [])
 
@@ -289,7 +325,7 @@ const CATALOG: Entry[] = [
   {
     name: "customer-welcome-sk",
     label: "Uvítanie po registrácii",
-    description: "Odchádza raz po vytvorení nového účtu (nie pri prenose zákazníčok zo starého webu).",
+    description: "Odchádza raz po vytvorení nového účtu (nie pri prenose zákazníkov zo starého webu).",
     required: false,
     audience: "customer",
     placeholders: [P.name],
@@ -323,11 +359,16 @@ const CATALOG: Entry[] = [
       text("intro", "Úvodný text", "Vašu objednávku č. {cislo_objednavky} sme prijali."),
       text("paid", "Text pri zaplatenej objednávke", "Platbu vo výške {suma} sme prijali, objednávku pripravujeme.", true),
       text("unpaid", "Text pri nezaplatenej objednávke", "Objednávku vybavíme hneď po prijatí platby vo výške {suma}.", true),
+      text("bank_transfer", "Text pri platbe prevodom", "Prosíme, uhraďte {suma} prevodom na účet nižšie do 48 hodín. Ako variabilný symbol uveďte číslo objednávky {cislo_objednavky}. Objednávku vybavíme a digitálny obsah sprístupníme hneď po pripísaní platby.", true),
+      text("cod", "Text pri platbe na dobierku", "Platíte pri prevzatí zásielky: {suma}.", true),
+      text("pickup", "Text pri osobnom odbere", "Objednávku si vyzdvihnete osobne: Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen. Keď bude pripravená, ozveme sa Vám.", true),
       text("outro", "Záverečný text", "Stav objednávky nájdete kedykoľvek vo svojom účte.", true),
       line("label_subtotal", "Riadok: medzisúčet", "Medzisúčet"),
       line("label_shipping", "Riadok: doprava", "Doprava"),
       line("label_discount", "Riadok: zľava", "Zľava"),
       line("label_total", "Riadok: spolu", "Spolu"),
+      line("label_shipping_method", "Riadok: spôsob dopravy", "Doprava"),
+      line("label_payment_method", "Riadok: spôsob platby", "Platba"),
       line("button", "Tlačidlo", "Moja objednávka"),
     ],
     sample: ORDER_SAMPLE,
@@ -340,7 +381,9 @@ const CATALOG: Entry[] = [
         blocks: [
           ...p(t("intro") ?? "Vašu objednávku sme prijali."),
           ...(rows.length ? [{ kind: "rows" as const, rows }] : []),
-          ...p(data.paid === true ? t("paid") : t("unpaid")),
+          ...methodRows(data, r),
+          ...paymentBlocks(data, t),
+          ...(str(data.shipping_method)?.startsWith("Osobný odber") ? p(t("pickup")) : []),
           ...p(t("outro")),
         ],
         button: button(r("button"), data.url),
@@ -421,7 +464,7 @@ const CATALOG: Entry[] = [
   {
     name: "order-canceled-sk",
     label: "Zrušenie objednávky",
-    description: "Keď je objednávka zrušená (zákazníčkou alebo v administrácii).",
+    description: "Keď je objednávka zrušená (zákazníkom alebo v administrácii).",
     required: false,
     audience: "customer",
     placeholders: [P.order],
@@ -466,6 +509,97 @@ const CATALOG: Entry[] = [
     }),
   },
   {
+    name: "contract-withdrawal-received-sk",
+    label: "Potvrdenie doručenia odstúpenia od zmluvy",
+    description: "Potvrdenie doručenia oznámenia o odstúpení od zmluvy poslaného formulárom na webe (VOP čl. 9.2). Obsahuje obsah oznámenia, dátum a čas doručenia. Nedá sa vypnúť.",
+    required: true,
+    audience: "customer",
+    placeholders: [P.order, P.received, P.receivedTime, P.items, P.orderDate, P.name],
+    slots: [
+      SUBJECT("Potvrdenie doručenia odstúpenia od zmluvy č. {cislo_objednavky}"),
+      HEADING("Odstúpenie od zmluvy je prijaté"),
+      text("intro", "Úvodný text", "Dňa {datum_prijatia} o {cas_prijatia} sme prijali Vaše odstúpenie od zmluvy k objednávke č. {cislo_objednavky}."),
+      line("label_order", "Označenie čísla objednávky", "Číslo objednávky"),
+      line("label_items", "Označenie položiek", "Položky"),
+      line("label_order_date", "Označenie dátumu objednávky", "Dátum objednávky"),
+      line("label_reason", "Označenie dôvodu", "Dôvod"),
+      text("outro", "Záverečný text", "Vrátenie peňazí alebo výmenu tovaru vybavíme podľa podmienok odstúpenia od zmluvy. Ak máte otázky, odpovedzte na tento e-mail.", true),
+    ],
+    sample: {
+      order_number: "2026-0142",
+      items: ["Kurz RESET 40+"],
+      order_date: "2026-10-12T00:00:00.000Z",
+      received_at: "2026-10-21T08:00:00.000Z",
+      first_name: "Jana",
+    },
+    vars: data => ({
+      cislo_objednavky: str(data.order_number) ?? str(data.order_display_id),
+      polozky: Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items),
+      datum_objednavky: formatDate(data.order_date),
+      datum_prijatia: formatDate(data.received_at),
+      cas_prijatia: formatTime(data.received_at),
+      meno: str(data.first_name),
+    }),
+    build: (data, t, r) => {
+      const rows: Row[] = []
+      const order = str(data.order_number) ?? str(data.order_display_id)
+      if (order) rows.push({ label: r("label_order"), value: order })
+      const items = Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items)
+      if (items) rows.push({ label: r("label_items"), value: items })
+      const orderDate = formatDate(data.order_date)
+      if (orderDate) rows.push({ label: r("label_order_date"), value: orderDate })
+      const reason = str(data.reason)
+      if (reason) rows.push({ label: r("label_reason"), value: reason })
+      return {
+        subject: r("subject"),
+        heading: r("heading"),
+        blocks: [...p(t("intro") ?? "Prijali sme Vaše odstúpenie od zmluvy."), ...(rows.length ? [{ kind: "rows" as const, rows }] : []), ...p(t("outro"))],
+      }
+    },
+  },
+  {
+    name: "contract-withdrawal-admin",
+    label: "Nové odstúpenie od zmluvy (pre Vás)",
+    description: "Interný e-mail pre správkyňu, keď zákazník odstúpi od zmluvy formulárom na webe.",
+    required: false,
+    audience: "admin",
+    placeholders: [P.order, P.email, P.name, P.items, P.received],
+    slots: [
+      SUBJECT("Nové odstúpenie od zmluvy č. {cislo_objednavky}"),
+      HEADING("Nové odstúpenie od zmluvy"),
+      text("intro", "Úvodný text", "Dňa {datum_prijatia} prijal/a odstúpenie od zmluvy k objednávke č. {cislo_objednavky}."),
+      line("label_email", "Označenie e-mailu", "E-mail zákazníka"),
+      line("label_items", "Označenie položiek", "Položky"),
+      text("outro", "Záverečný text", "Spracujte odstúpenie v administrácii (Odstúpenia od zmluvy).", true),
+    ],
+    sample: {
+      order_number: "2026-0142",
+      items: ["Kurz RESET 40+"],
+      email: "zakaznik@example.test",
+      first_name: "Jana",
+      received_at: "2026-10-21T08:00:00.000Z",
+    },
+    vars: data => ({
+      cislo_objednavky: str(data.order_number) ?? str(data.order_display_id),
+      email: str(data.email),
+      meno: str(data.first_name),
+      polozky: Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items),
+      datum_prijatia: formatDate(data.received_at),
+    }),
+    build: (data, t, r) => {
+      const rows: Row[] = []
+      const email = str(data.email)
+      if (email) rows.push({ label: r("label_email"), value: email })
+      const items = Array.isArray(data.items) ? data.items.map(item => str(item)).filter(Boolean).join(", ") : str(data.items)
+      if (items) rows.push({ label: r("label_items"), value: items })
+      return {
+        subject: r("subject"),
+        heading: r("heading"),
+        blocks: [...p(t("intro") ?? "Prišlo nové odstúpenie od zmluvy."), ...(rows.length ? [{ kind: "rows" as const, rows }] : []), ...p(t("outro"))],
+      }
+    },
+  },
+  {
     name: "booking-confirmed-sk",
     label: "Potvrdenie konzultácie",
     description: "Po zaplatení rezervovaného termínu konzultácie.",
@@ -500,7 +634,7 @@ const CATALOG: Entry[] = [
       HEADING("Konzultácia bola zrušená"),
       text("intro", "Úvodný text", "Termín {termin} je zrušený."),
       text("reason_order_canceled", "Dôvod: zrušená objednávka", "Konzultácia bola zrušená spolu s objednávkou.", true),
-      text("reason_customer_request", "Dôvod: na žiadosť zákazníčky", "Konzultáciu sme zrušili na Vašu žiadosť.", true),
+      text("reason_customer_request", "Dôvod: na žiadosť zákazníka", "Konzultáciu sme zrušili na Vašu žiadosť.", true),
       text("reason_admin_canceled", "Dôvod: zrušené z našej strany", "Konzultáciu sme z organizačných dôvodov museli zrušiť.", true),
       text("reason_other", "Iný dôvod", "Ak máte otázky, odpovedzte na tento e-mail.", true),
       line("button", "Tlačidlo", "Moje konzultácie"),
@@ -587,12 +721,12 @@ const CATALOG: Entry[] = [
     audience: "admin",
     placeholders: [P.messages, P.conversations],
     slots: [
-      SUBJECT("Nové správy od zákazníčok ({pocet_sprav})"),
+      SUBJECT("Nové správy od zákazníkov ({pocet_sprav})"),
       HEADING("Nové správy v chate"),
       text("intro", "Text", "Neprečítané správy: {pocet_sprav}, konverzácie: {pocet_konverzacii}."),
       line("button", "Tlačidlo", "Otvoriť chat"),
     ],
-    sample: { messages: 3, conversations: 2, url: "https://admin.anastasiaoz.eu/app/chat" },
+    sample: { messages: 3, conversations: 2, url: "https://admin.anastasiaoz.eu/#/spravy" },
     vars: data => ({ pocet_sprav: String(num(data.messages) ?? 0), pocet_konverzacii: String(num(data.conversations) ?? 0) }),
     build: (data, t, r) => ({
       subject: r("subject"),
@@ -604,7 +738,7 @@ const CATALOG: Entry[] = [
   {
     name: "chat-admin-reply",
     label: "Odpoveď v chate",
-    description: "Zákazníčka dostane upozornenie, že máte pre ňu odpoveď. Text správy sa do e-mailu nevkladá.",
+    description: "Zákazník dostane upozornenie, že máte pre neho odpoveď. Text správy sa do e-mailu nevkladá.",
     required: false,
     audience: "customer",
     placeholders: [P.name],
@@ -622,6 +756,38 @@ const CATALOG: Entry[] = [
       heading: t("heading") ?? r("heading_anonymous"),
       blocks: p(t("intro")),
       button: button(r("button"), data.url),
+    }),
+  },
+  {
+    name: "order-placed-admin",
+    label: "Nová objednávka (pre Vás)",
+    description: "Interný e-mail, ktorý vám príde pri každej novej objednávke. Dá sa vypnúť, ak máte vlastné upozornenie.",
+    required: false,
+    audience: "admin",
+    placeholders: [P.order, P.total, P.name],
+    slots: [
+      SUBJECT("Nová objednávka č. {cislo_objednavky}"),
+      HEADING("Nová objednávka"),
+      text("intro", "Úvodný text", "Prišla nová objednávka č. {cislo_objednavky} za {suma}."),
+      line("label_customer", "Riadok: zákazník", "Zákazník"),
+      line("label_payment", "Riadok: platba", "Platba"),
+      line("label_shipping", "Riadok: doprava", "Doprava"),
+      line("button", "Tlačidlo", "Otvoriť objednávku"),
+    ],
+    sample: { ...ORDER_SAMPLE, order_display_id: "1043", payment_status: "zaplatená", shipping_method: "Kuriér", admin_url: "https://anastasia-test-admin.l-code-dynamics.com/#/objednavky" },
+    vars: orderVars,
+    build: (data, t, r) => ({
+      subject: r("subject"),
+      heading: r("heading"),
+      blocks: [
+        ...p(t("intro")),
+        { kind: "rows" as const, rows: [
+          { label: r("label_customer"), value: oneLine(str(data.first_name) ?? "—") },
+          { label: r("label_payment"), value: oneLine(str(data.payment_status) ?? "—") },
+          { label: r("label_shipping"), value: oneLine(str(data.shipping_method) ?? "—") },
+        ] },
+      ],
+      button: button(r("button"), data.admin_url),
     }),
   },
   {

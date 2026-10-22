@@ -47,10 +47,11 @@ const SAFE_CODE_RE = /^[A-Za-z0-9_.-]{1,40}$/
  * Kódy chyb z odpovědi – Zoho CPaaS vrací `data.error_code` (objekt i pole), klasický ZeptoMail
  * `error.code` + `error.details[].code`. Do zprávy jdou jen kódy, nikdy texty (mohou obsahovat adresu).
  */
-function errorCodes(body: any): string {
+export function errorCodes(body: any): string {
   const data = Array.isArray(body?.data) ? body.data : body?.data ? [body.data] : []
   const codes = [
     body?.error?.code,
+    body?.name,
     ...(Array.isArray(body?.error?.details) ? body.error.details.map((d: any) => d?.code) : []),
     ...data.map((d: any) => d?.error_code),
   ].filter((c): c is string => typeof c === "string" && SAFE_CODE_RE.test(c))
@@ -115,6 +116,20 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
     return /^Zoho-enczapikey\s/i.test(key) ? key : `Zoho-enczapikey ${key}`
   }
 
+  /** Telo požiadavky pre API poskytovateľa (Resend podtrieda mení formát, šablóny a allowlist zdieľa). */
+  protected serialize(payload: ReturnType<ZeptoMailNotificationService["buildPayload"]>): unknown {
+    return payload
+  }
+
+  /** ID správy z odpovede poskytovateľa. */
+  protected messageId(body: any): string | undefined {
+    return typeof body?.request_id === "string" ? body.request_id : undefined
+  }
+
+  protected get providerName(): string {
+    return "ZeptoMail"
+  }
+
   protected buildPayload(notification: ProviderSendNotificationDTO) {
     if (notification.channel !== "email") {
       throw new MedusaError(MedusaError.Types.INVALID_DATA, `ZeptoMail podporuje jen kanál email, ne "${notification.channel}"`)
@@ -176,7 +191,7 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
       const res = await this.fetch_(this.options_.apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: this.authHeader() },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(this.serialize(payload)),
         signal: controller.signal,
       })
       status = res.status
@@ -184,24 +199,24 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
     } catch (error) {
       const reason = (error as Error)?.name === "AbortError" ? "timeout" : "network"
       this.log("error", "send_failed", { template, failure: reason })
-      throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, `ZeptoMail: odeslání selhalo (${reason})`)
+      throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, `${this.providerName}: odeslání selhalo (${reason})`)
     } finally {
       clearTimeout(timer)
     }
 
     if (status < 200 || status >= 300) {
       const code = errorCodes(body)
-      this.log("error", "send_rejected", { template, http_status: status, error_code: code, provider_message_id: typeof body?.request_id === "string" ? body.request_id : undefined })
-      throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, `ZeptoMail: odeslání odmítnuto (HTTP ${status}, ${code})`)
+      this.log("error", "send_rejected", { template, http_status: status, error_code: code, provider_message_id: this.messageId(body) })
+      throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, `${this.providerName}: odeslání odmítnuto (HTTP ${status}, ${code})`)
     }
 
-    const id = typeof body?.request_id === "string" ? body.request_id : undefined
+    const id = this.messageId(body)
     this.log("info", "provider_send", { template, attachments: payload.attachments?.length ?? 0, provider_message_id: id })
     return id ? { id } : {}
   }
 
   protected log(level: "info" | "error", action: string, fields: Record<string, unknown>) {
-    const line = formatLogLine(level, "notification", action, { provider: ZeptoMailNotificationService.identifier, ...fields })
+    const line = formatLogLine(level, "notification", action, { provider: (this.constructor as typeof ZeptoMailNotificationService).identifier, ...fields })
     if (level === "error") this.logger_.error(line)
     else this.logger_.info(line)
   }

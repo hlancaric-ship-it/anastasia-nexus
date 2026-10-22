@@ -105,6 +105,7 @@ export async function grantEntitlementsForOrder(container: Container, orderId: s
       source: "order",
       dedupe_key: orderDedupeKey(orderId, productId),
       expires_at: computeExpiry(product, now),
+      tenant_id: "default",
     })
     ;(created ? summary.granted : summary.existing).push(entitlement.id)
   }

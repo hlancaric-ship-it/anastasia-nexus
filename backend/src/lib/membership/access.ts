@@ -64,7 +64,7 @@ export async function reconcileMembershipAccess(scope:Scope,id:string,now=new Da
   try{await verify()}catch{return negative()}
   if(existing?.status==='revoked')return {value:{status:'NEEDS_REVIEW',entitlement_id:existing.id} as AccessResult,stop_renewal:true}
   if(!existing&&Date.parse(state.period_end)<=now.getTime())return {value:{status:'EXPIRED'} as AccessResult,stop_renewal:false}
-  if(!existing){changed=true;existing=(await entitlements.grant({customer_id:state.terms.customer_id,product_id:state.terms.product_id,variant_id:state.terms.variant_id,order_id:state.last_order_id,source:'order',dedupe_key:key,expires_at:new Date(state.period_end)})).entitlement}
+  if(!existing){changed=true;existing=(await entitlements.grant({customer_id:state.terms.customer_id,product_id:state.terms.product_id,variant_id:state.terms.variant_id,order_id:state.last_order_id,source:'order',dedupe_key:key,tenant_id:'default',expires_at:new Date(state.period_end)})).entitlement}
   // Share the native order dedupe key with the generic handler; never create a second parallel right.
   if(existing.customer_id!==state.terms.customer_id||existing.product_id!==state.terms.product_id||existing.variant_id!==state.terms.variant_id||existing.order_id!==state.last_order_id||existing.source!=='order'||existing.status!=='active')return {value:{status:'NEEDS_REVIEW',entitlement_id:existing.id} as AccessResult,stop_renewal:true}
   if(!existing.expires_at||new Date(existing.expires_at).toISOString()!==state.period_end){

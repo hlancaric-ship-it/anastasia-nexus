@@ -61,7 +61,8 @@ Bez těchto hodnot backend nastartuje, ale daná funkce v produkci selže nebo p
 | `MAGIC_LINK_BASE_URL` | URL potvrzení přihlášení na storefrontu |
 | `ACCOUNT_URL`, `ACCOUNT_ORDERS_URL`, `ACCOUNT_BOOKINGS_URL` | odkazy v e-mailech na účet, objednávky a konzultace |
 | `GIFT_VOUCHER_DELIVERY` | v produkci `notification` (jinak se kód poukazu jen zaloguje); po nasazení v adminu znovu uložit nastavení poukazů |
-| `COUPON_LINK_STOREFRONT_ORIGIN` | `https://<storefront>`; bez ní admin nevygeneruje QR odkaz kupónu (500) |
+| `COUPON_LINK_STOREFRONT_ORIGIN` | `https://<storefront>`; bez ní admin nevygeneruje QR odkaz kupónu (503) |
+| `COUPON_LINK_LEGACY_ORIGINS` | povolené původní originy pro import již vydaných QR, oddělené čárkou; výslovně zahrnout použité schéma a www variantu. Import kupóny neaktivuje. Viz `wp/qr-admin-system.md` |
 | `CHAT_ADMIN_NOTIFY_EMAIL` | adresa pro souhrn nových zpráv; bez ní se souhrn jen zaloguje |
 | `CONTACT_NOTIFY_EMAIL` | kam chodí zprávy z kontaktního formuláře (šablona `contact-form-admin`, odpověď jde odesílatelce); prázdné = `CHAT_ADMIN_NOTIFY_EMAIL`, bez obou formulář vrací 503 |
 | `CHAT_ADMIN_URL` | URL chatu ve **vlastním** adminu (`https://<admin>/#/chat`); výchozí hodnota míří na Medusa `/app/chat`, který nepoužíváme |

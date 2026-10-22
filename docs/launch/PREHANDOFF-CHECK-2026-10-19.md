@@ -1,0 +1,65 @@
+# Opakovaná kontrola nákupního toku – 19. 10. 2026
+
+## Aktuální rozsah podle Luckyho
+
+Klub není součástí nynější přejímky a jeho chybějící nabídka není blokátor. Níže uvedené starší výsledky s Klubem jsou historická evidence. Kontrola jej nyní uvádí `OUT_OF_SCOPE`, nikoli jako ověřený nákup.
+Platby se zkouší výhradně ve Stripe TEST; veřejná konfigurace tohoto režimu je na místním webu potvrzena. Není to samo o sobě důkaz dokončené platby. Cloud bude propojen po zítřejším dodání přístupu.
+
+## Výsledek předání: BLOCKED
+
+Lokální web, backend a zákaznický obsah jsou ověřitelné. Předání Lucii na dálku zatím není připravené: plánované adresy `anastasia-test.l-code-dynamics.com`, `anastasia-test-admin.l-code-dynamics.com` a `anastasia-test-nexus.l-code-dynamics.com` při této kontrole nemají DNS odpověď (`curl` exit 6). Backend má v dosavadním runbooku stále zástupnou cloudovou adresu. Nelze potvrdit vzdálené přihlášení Lucie a úplný nákup na jejím zařízení proti nasazenému prostředí. Lokalhost není adresa dostupná Lucii.
+
+Nic se v rámci kontroly nenasazuje, nemění se DNS, neodesílají e-maily a neprovádějí skutečné platby. Pro nasazení a zprovoznění vzdáleného testu je potřeba samostatný pokyn a cílový projekt backendu/přístupy. Před předáním musí být ověřena i záloha/obnova tohoto prostředí a bezpečné předání přihlášení Lucii bez rozesílání zpráv zákaznicím.
+
+## Nalezené a opravené chyby
+
+1. Aktivní dist obsahoval konfiguraci cizího staršího prostředí: backend odmítal veřejný klíč (400), region také neodpovídal skutečné místní DB. Obnoven připojený build. Běžný build nově vyžaduje všechny čtyři veřejné konfigurační hodnoty před zápisem do dist. Chybějící konfigurace původní dist nepřepíše. Offline fixture build vyžaduje explicitní `ANASTASIA_OFFLINE_FIXTURES=1`; není určen pro předání.
+2. Proměnná `ANASTASIA_STRIPE_PUBLISHABLE_KEY` se dříve do výstupu vůbec nepromítala a template měla natvrdo starý testovací klíč. Build nyní tuto veřejnou hodnotu skutečně dosadí; šablona nemá klíče a region jiného prostředí. Tajné klíče odmítá.
+3. Dva submit handlery stejného produktového formuláře způsobily dvě skutečná přidání po jednom kliknutí. Reprodukce před opravou: 2 POST a množství 2. Po opravě: 1 POST a množství 1. Jeden handler, blokace během odesílání a upozornění na kontrolu košíku při nejednoznačné síťové chybě.
+4. Souhrn zobrazoval dopravu dvakrát; duplicitní řádek odstraněn. Serverové ceny/daně a doprava se nemění.
+5. Aktivní backend worktree neměl původní veřejné fotografie ve `static/legacy-catalog`. Obnoveno 30 původních veřejných souborů ze stejného původního backendu, bez změny katalogu nebo soukromého R2. Gitignorované soubory nejsou v PR; postup je v README.
+
+## VERIFIED – skutečný lokální provoz
+
+- Backend :9100, web :4174 a admin :4178 odpovídají HTTP 200. Web po opravě běží z `codex/handoff-check`, backend zůstává v `codex/protected-library-r2`. Žádná zákaznická síťová odpověď se nenahrazuje fixture.
+- 174/174 Chrome kontrol: všech 14 skutečných produktů, skutečné ceny/fotografie/kompletní popisy, responzivita a CSP.
+- 17/17 Chrome kontrol nákupu: reálné přidání fyzického a digitálního produktu do nového anonymního košíku, každé jednou; změna množství, povinné údaje a adresa, přechod do platby, správné odmítnutí nepřihlášeného nákupu, žádná platební ani zprávová API volání; pokladna bez přetékání 320/390/800/1440 px. Položky pouze těchto kontrolních košíků odstraněny jejich vlastním Store UI. Nevzniká účet ani umělá objednávka v reálném náhledu.
+- 35/35 skutečných kontrol původního R2 a historických nároků: obě zakoupené knihovny, podepsané čtení, Range/HEAD a odmítnutí špatného tokenu/klíče, skutečný posun video/audio přehrávače. Jde o smoke se dvěma soubory, nikoli nové úplné čtení všech 24 objektů; úplný předchozí důkaz je 189/189 v protected-library-r2.md.
+- 81/81 frontend unit/contract testů: včetně explicitní build konfigurace, zachování existujícího dist, jediného submitu a zámku během požadavku. Připojený build PASS. Offline fixture build pouze v odděleném pracovním stromu/CI.
+- Počet skutečných objednávek, zákaznic a grantů se nezměnil; notifikace před/po = 0. Nové anonymní kontrolní košíky jsou prázdné. Soukromé mediální soubory se neměnily.
+
+## Dokončení platby a návaznost – izolovaná CI
+
+Pozitivní dokončení nákupu se neprovádí pod cizí historickou zákaznicí ani vnášením umělých objednávek do reálného náhledu. Nativní HTTP/PG běhy pouze GitHub Actions ověřují fyzický/digitální/smíšený nákup, serverové částky a DPH/dopravu, capture, nezaplacený stav, historii a správný digitální grant, replay a izolaci. Členská integrace ověřuje také 3DS, obnovu, refundy a zastavení.
+
+Předchozí přesný runtime na masteru7b65723: backend/NEXUS39233409906 SUCCESS (1034 unit +153 nativních scénářů), členská integrace39232416173 SUCCESS. Opakovaný běh nad opravou0e04dff: artefakty39277893481 potvrzují1034/1034 backend unit a153/153 nativních scénářů PASS, včetně fyzického a smíšeného nákupu/capture/historie/replay a digitálního grantu. Celý workflow 39277893481 následně dokončen SUCCESS (ověřeno přes GitHub API). Členská integrace39277899823 SUCCESS a frontend39277931821 SUCCESS. Konečný stav workflow je zaznamenán v PR a koordinačním souboru; dokumentační doplnění nemění ověřený runtime. Netvrdit, že nativní CI představuje nový úplný browser nákup na vzdáleném prostředí Lucie.
+
+## Skutečné nastavení rozšířených nákupů: BLOCKED
+
+Přes skutečný HTTP adaptér nad aktuálním katalogem ověřeno: `getBookingTypes()` = 0 rezervovatelných typů, `getGiftVoucherProduct()` = 0 nabízených variant, `getMembershipProducts()` = 0 nabídek členství. Všech 14 současných veřejných produktů má metadata booking/membership/gift_voucher neaktivní. Toto není výpadek těchto ověřených API, ale chybějící/nezveřejněné nastavení reálné nabídky. Běžný nákup stávajícího produktu nazvaného konzultace nenahrazuje rezervaci termínu. Před zkouškou těchto větví musí být v adminu přiřazeny skutečné produkty, schválené ceny, délky a dostupnost/hodnoty; nevymýšlet je a nepřidávat ukázkové nabídky.
+
+## Další hranice
+
+Soukromý upload z vlastního adminu je samostatný nedokončený balík; přejmenování/pořadí existujících souborů je PR53, dosud nesloučené. Platby, dopravci, štítky a osobní odběr mohou být nabídnuté jen podle skutečně nastavených poskytovatelů; tato kontrola nepředstírá provozní napojení nevyplněných API. Apple Pay/Google Pay na zařízeních Lucie nebyly ověřeny. Živé e-maily/platby a ostré spuštění vyžadují vlastní přejímku.
+
+## Navazující dokončení přípravy
+
+Opraven také `ops/test-predani/deploy.sh`: neodstraňuje funkční dist před kontrolou a sestavením; smoke odmítá nedostupný config, chybějící Stripe TEST konfiguraci i live/tajný klíč. Pět izolovaných kontrol skriptu PASS; jsou součástí frontend CI. Tyto testy nepřistupují k zákaznickým datům ani skutečnému cloudu.
+
+Konkrétní podklady pro zbývající kroky:
+- Cílový Medusa Cloud projekt, jeho skutečná backend URL a oprávnění k projektu. GitHub evidence nasazení žádný cíl neposkytla; neodvozovat URL z názvu repozitáře.
+- Potvrzení skutečných nabídek: konzultace (produkt, délka, dostupnost), poukaz (částky, platnost), Klub (produkt, interval). Ceny stávajících produktů nejsou oprávněním vymyslet tyto další podmínky.
+- Před veřejným testovacím nasazením souhlas Luckyho podle původního pokynu; použít výhradně testovací subdomény L-Code, Stripe TEST, vypnutou poštu. Žádné zákaznické pozvánky neposílat.
+- Potom ověřit přihlášení Lucie, skutečný testovací nákup a přístup k obsahu na tomto konkrétním prostředí. Dosavadní CI tento provozní krok nenahrazuje.
+
+PR54 obsahuje připravené opravy a ověření; samotné odstranění těchto externích blokací ani sloučení PR není provedeno.
+
+## Příprava na zítřejší propojení Cloud
+
+Lucky potvrdil, že Medusa Cloud ještě není propojená a přístup dodá zítra. Tato závislost je potvrzená, nikoli chyba lokálního backendu.
+
+Připraven `node ops/test-predani/check-store.mjs`. Používá stejné čtyři veřejné proměnné jako připojený build, vyžaduje Stripe TEST a provádí výhradně GET. Kontroluje region, celý stránkovaný katalog (nejvýše 2000 produktů), ceny variant, přítomnost odkazů na fotografie a existenci nabídek konzultací, Klubu a poukazů. Výstup obsahuje jen stavy a počty, žádné osobní údaje ani klíče. Neověřuje doručení fotografií, dostupnost termínů ani úspěšnou platbu; ty vyžadují následný browser test.
+
+Spuštěno proti skutečné aktuální lokální konfiguraci: region PASS, katalog 14 PASS, ceny PASS, odkazy na fotografie PASS; konzultace/členství/poukazy 0, proto BLOCKED. Žádný účet, košík, objednávka ani zpráva se nevytváří. Izolované testy zahrnují nabídky až na druhé stránce katalogu, neúplnou odpověď, nedostupnost a ochranu výstupu před únikem chybových detailů.
+
+Aktualizace kontroly rozsahu: 92/92 frontend+ops testů PASS; skutečný lokální Store API potvrzuje Stripe TEST konfiguraci, region a katalog 14. Klub OUT_OF_SCOPE, rezervovatelné konzultace a varianty poukazu stále 0. Žádné zápisy dat nebo odesílání zpráv.

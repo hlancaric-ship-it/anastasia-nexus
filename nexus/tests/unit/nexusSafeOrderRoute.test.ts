@@ -19,6 +19,20 @@ describe('SafeOrder security boundary', () => {
         const response = await handleNexusSafeOrder(request({ ...valid, paymentMethod: 'dobierka', orderSum: 250, customerEmail: 'synthetic@tempmail.com' }), env);
         expect(await response.json()).toMatchObject({ decision: 'BLOCK' });
     });
+    it('accepts Medusa manual providers: COD keeps COD risk, bank transfer is prepaid', async () => {
+        const cod = await (await handleNexusSafeOrder(request({ ...valid, paymentMethod: 'cod' }), env)).json() as any;
+        expect(cod).toMatchObject({ decision: 'ALLOW', score: 30 });
+        expect(cod.factors).toContain('Platba na dobierku (+20)');
+        const codHigh = await (await handleNexusSafeOrder(request({ ...valid, paymentMethod: 'pp_cod_cod', orderSum: 150 }), env)).json() as any;
+        // Bez limitu dobierky: 150 € je stále bežná dobierka (posudzuje sa všeobecné pravidlo pre sumu > 300 €).
+        expect(codHigh).toMatchObject({ decision: 'ALLOW', score: 30 });
+        expect(codHigh.factors.join(' ')).not.toContain('limit');
+        for (const paymentMethod of ['bank_transfer', 'pp_bank_transfer_bank_transfer']) {
+            const transfer = await (await handleNexusSafeOrder(request({ ...valid, paymentMethod }), env)).json() as any;
+            expect(transfer).toMatchObject({ decision: 'ALLOW', score: 10 });
+            expect(transfer.factors.join(' ')).not.toContain('dobierku');
+        }
+    });
     it.each([null, 'Bearer wrong', 'Basic synthetic-service-key', 'Bearer synthetic-service-key-extra'])('rejects unauthorized caller %s before parsing input', async (authorization) => {
         await expect(handleNexusSafeOrder(request(null, authorization), env)).rejects.toMatchObject({ status: 401 });
     });

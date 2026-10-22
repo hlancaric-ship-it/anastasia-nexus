@@ -1,0 +1,120 @@
+{
+  "scenario": "Nákup digitálneho produktu s kupónom Montelope a vernostnou úrovňou",
+  "started_at": "2026-10-21T08:42:40.570Z",
+  "database": "lokálna (anastasia_dev_wave1)",
+  "coupon": {
+    "code": "Montelope",
+    "amount_eur": 20,
+    "restricted_to": "EP.002"
+  },
+  "checks": [
+    {
+      "step": "politika v DB načítaná",
+      "status": "PASS",
+      "detail": "2 úrovní"
+    },
+    {
+      "step": "kupón Montelope je aktívny",
+      "status": "PASS",
+      "detail": "promo_01M5EAXPQPZ8WM3X22KD2HGKY7"
+    },
+    {
+      "step": "digitálny produkt EP.002 je v katalógu",
+      "status": "PASS",
+      "detail": "AI ANASTASIA RESET 40+"
+    },
+    {
+      "step": "zákazník má vernostnú úroveň ZR3",
+      "status": "PASS",
+      "detail": "Gold"
+    },
+    {
+      "step": "cena digitálneho produktu = cena - zľava úrovne - 20 € kupónu",
+      "status": "PASS",
+      "detail": "131.2 € (očakávané 131.2 €)"
+    },
+    {
+      "step": "ostatný produkt bez zľavy kupónu",
+      "status": "PASS",
+      "detail": "34.2 € (očakávané 34.2 €)"
+    },
+    {
+      "step": "kupón je zapísaný v košíku",
+      "status": "PASS",
+      "detail": "{\"code\":\"Montelope\",\"type\":\"fixed\",\"value\":20,\"target\":\"items\",\"currency\":\"eur\",\"product_ids\":[\"prod_01M4GCS9ZM099PWKA8HM677WAM\"],\"promotion_id\":\"promo_01M5EAXPQPZ8WM3X22KD2HGKY7\"}"
+    },
+    {
+      "step": "objednávka vznikla",
+      "status": "PASS",
+      "detail": "order_01M5ET10B4TVVE5WASXPQTDCAS"
+    },
+    {
+      "step": "po zachytení platby je prístup udelený",
+      "status": "PASS",
+      "detail": "prístupy: prod_01M4GCS9ZM099PWKA8HM677WAM, prod_01M4GCS98N02YHWZKT4GNPCTSD"
+    },
+    {
+      "step": "použitie kupónu sa započíta právě raz (idempotentne podľa objednávky)",
+      "status": "PASS",
+      "detail": "pred 0 → po 1; druhý pokaz: duplicate=true"
+    },
+    {
+      "step": "odkaz na chránený obsah je podpísaný a krátkodobý",
+      "status": "PASS"
+    }
+  ],
+  "loyalty_policy": [
+    {
+      "code": "ZR1",
+      "name": "Bronze",
+      "discount_percent": 2,
+      "spend_threshold_eur": 0,
+      "enabled": true,
+      "rank": 1
+    },
+    {
+      "code": "ZR3",
+      "name": "Gold",
+      "discount_percent": 10,
+      "spend_threshold_eur": 500,
+      "enabled": true,
+      "rank": 2
+    }
+  ],
+  "pricing": {
+    "source": "lokálna náhrada (stub)",
+    "mode": "stub"
+  },
+  "prices": {
+    "base": {
+      "digital": 168,
+      "other": 38
+    },
+    "with_loyalty_and_coupon": {
+      "digital": 131.2,
+      "other": 34.2
+    }
+  },
+  "entitlements": [
+    {
+      "product_id": "prod_01M4GCS9ZM099PWKA8HM677WAM",
+      "status": "active"
+    },
+    {
+      "product_id": "prod_01M4GCS98N02YHWZKT4GNPCTSD",
+      "status": "active"
+    }
+  ],
+  "coupon_usage": {
+    "used_before": 0,
+    "used_after": 1,
+    "counted": true,
+    "duplicate_on_repeat": true
+  },
+  "media_access": {
+    "key": "reset-40-plus/lekcia-00.mp4",
+    "expires_at": "2026-10-21T08:52:43.000Z"
+  },
+  "status": "PASS",
+  "finished_at": "2026-10-21T08:42:43.682Z"
+}

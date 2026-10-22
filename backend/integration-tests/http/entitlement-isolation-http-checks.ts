@@ -1,10 +1,10 @@
 import { generateJwtToken, Modules } from "@medusajs/framework/utils"
 
 /**
- * A-02 izolace přístupů (entitlementů) mezi zákaznicemi – skutečné HTTP + PostgreSQL.
- * Dvě syntetické zákaznice, každá s vlastním produktem; ověřuje se, že žádný parametr požadavku
+ * A-02 izolace přístupů (entitlementů) mezi zákazníky – skutečné HTTP + PostgreSQL.
+ * Dva syntetickí zákazníci, každý s vlastním produktem; ověřuje se, že žádný parametr požadavku
  * (customer_id, stránkování, cizí product_id/media_key, cizí typ aktéra) nezpřístupní cizí knihovnu ani médium
- * a že admin zásah u jedné zákaznice nezmění přístupy druhé.
+ * a že admin zásah u jednoho zákazníka nezmění přístupy druhého.
  */
 export async function verifyEntitlementIsolation({ api, container, options, evidence }: any) {
   const productModule = container.resolve(Modules.PRODUCT)
@@ -21,7 +21,7 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
     { title: "Synthetic isolation A", status: "published", metadata: { entitlement: true, protected_media: [{ key: keyA }] } },
     { title: "Synthetic isolation B", status: "published", metadata: { entitlement: true, protected_media: [{ key: keyB }] } },
   ])
-  const grant = (customer: any, product: any) => entitlements.grant({ customer_id: customer.id, product_id: product.id, source: "admin", dedupe_key: `a02:${customer.id}:${product.id}` })
+  const grant = (customer: any, product: any) => entitlements.grant({ customer_id: customer.id, product_id: product.id, source: "admin", dedupe_key: `a02:${customer.id}:${product.id}`, tenant_id: "default" })
   const { entitlement: entA } = await grant(a, productA)
   const { entitlement: entB } = await grant(b, productB)
   const optA = as(jwt(a.id, "customer"))

@@ -11,18 +11,17 @@ Značení: **[OVĚŘENO ČTENÍM KÓDU]** = viděno přímo v souboru. **[ODVOZE
 **[OVĚŘENO ČTENÍM KÓDU]** `nexus/domains/pricing/StaticPricingConfigurationProvider.ts:7-32`, konstanta `DEFAULT_ANASTASIA_PRICING_CONFIG`:
 
 ```
-loyaltyTiers: { ZR4: 0.04, ZR6: 0.06, ZR8: 0.08, ZR10: 0.10, ZR12: 0.12,
-                ZR14: 0.14, ZR16: 0.16, ZR18: 0.18, ZR20: 0.20, ZR25: 0.25 }
-brandLimits: { DELPHIN: 0.25, MIVARDI: 0.20, MIKADO: 0.15, 'FISHING POINT': 0.10 }
-brandSaleDiscounts: { DELPHIN: 0.15, MIVARDI: 0.10, MIKADO: 0.09 }
+loyaltyTiers: { <úroveň>: <sleva>, … }   // převzaté výchozí úrovně, ne ANASTASIA
+brandLimits: { <značka>: <limit>, … }   // převzatá výchozí data, ne ANASTASIA
+brandSaleDiscounts: { <značka>: <sleva>, … }
 ```
 
 Dvě věci k tomu:
 
 1. **Toto je v přímém rozporu s `PROGRESS_LOG.md` sekce 8**, kde je napsáno "slevové % se zatím vědomě nechávají na 0 %". V kódu reálné procento existuje a je defaultní hodnota, kterou `PricingConfigurationProvider` vrací, pokud nedostane jiný config.
-2. **`brandLimits`/`brandSaleDiscounts` obsahují značky rybářských potřeb (DELPHIN, MIVARDI, MIKADO, FISHING POINT)** — to jsou OKFISH značky, ne ANASTASIA. Soubor/konstanta se jmenuje `DEFAULT_ANASTASIA_PRICING_CONFIG`, ale obsah je zjevně zkopírovaný/sdílený z jiného (rybářského) tenantu. Pokud se tahle konfigurace reálně použije pro ANASTASIA bez úpravy, zákaznice uvidí nesmyslné značkové limity.
+2. **`brandLimits`/`brandSaleDiscounts` obsahují značky, které nepatří ANASTASIA** — jde o převzatá výchozí data. Soubor/konstanta se jmenuje `DEFAULT_ANASTASIA_PRICING_CONFIG`, ale obsah je zjevně zkopírovaný/sdílený. Pokud se tahle konfigurace reálně použije pro ANASTASIA bez úpravy, zákaznice uvidí nesmyslné značkové limity.
 
-**Závěr pro C5:** tahle konfigurace (tier %, brand limity, sale limity) musí jít z administrace, ne z TS konstanty nasazované přes deploy. Než admin existuje, je potřeba tenhle soubor přinejmenším vyčistit od OKFISH značek a ujasnit, jestli `0.04-0.25` jsou skutečně "0 %, nerozhodnuto", nebo starý testovací default, co zůstal v kódu.
+**Závěr pro C5:** tahle konfigurace (tier %, brand limity, sale limity) musí jít z administrace, ne z TS konstanty nasazované přes deploy. Než admin existuje, je potřeba tenhle soubor přinejmenším vyčistit a ujasnit, jestli `0.04-0.25` jsou skutečně "0 %, nerozhodnuto", nebo starý testovací default, co zůstal v kódu.
 
 ---
 
@@ -63,7 +62,7 @@ K otázce "zařazení zákaznic do klubu/předplatného" (viz `PROGRESS_LOG.md` 
 
 ## 7. Prioritizovaný seznam — co blokuje správný návrh C5, pokud se neřeší dřív
 
-1. **Vyčistit/ujasnit `StaticPricingConfigurationProvider.ts`** (bod 1) — obsahuje cizí (OKFISH) data pod jménem ANASTASIA a protiřečí zápisu "0 % nerozhodnuto". Bez opravy hrozí, že se omylem nasadí špatné slevy.
+1. **Vyčistit/ujasnit `StaticPricingConfigurationProvider.ts`** (bod 1) — obsahuje data pod jménem ANASTASIA a protiřečí zápisu "0 % nerozhodnuto". Bez opravy hrozí, že se omylem nasadí špatné slevy.
 2. **Napsat varování/smazat `admin-demo/STATUS.md`** (bod 6) — tvrdí hotové věci, co v kódu nejsou; riziko, že si to někdo (Codex, jiný agent, i Lucky) přečte a bude stavět na neexistujícím základu.
 3. Teprve pak má smysl navrhovat konkrétní obrazovky C5 (ceny/tiery/akce, rezervace-pokud se zapne, klub-pokud se potvrdí rozsah) — návrh postavený na současném stavu dokumentace by jinak kopíroval už zjištěné nepřesnosti.
 

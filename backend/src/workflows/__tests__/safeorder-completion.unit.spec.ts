@@ -7,7 +7,9 @@ jest.mock("@medusajs/medusa/core-flows", () => ({
   completeCartWorkflow: { hooks: { validate: jest.fn((handler, compensate) => { mockValidate = handler; mockCompensate = compensate }) } },
 }))
 jest.mock("../../api/store/nexus-cart/route", () => ({ repriceCart: jest.fn() }))
+jest.mock("../../lib/pricing/coupon-usage", () => ({ couponLimitState: jest.fn(async () => ({ limit: null, used: 0, exhausted: false })) }))
 import { repriceCart } from "../../api/store/nexus-cart/route"
+import { couponLimitState } from "../../lib/pricing/coupon-usage"
 import { SafeOrderError } from "../../api/store/nexus-checkout/safeorder"
 import "../hooks"
 
@@ -62,6 +64,18 @@ describe("SafeOrder guard on every completeCartWorkflow path", () => {
     await expect(run(cart)).rejects.toMatchObject({ code: "SAFEORDER_REVIEW_REQUIRED" })
     expect(global.fetch).toHaveBeenCalledTimes(2)
   })
+  it("COD session without physical goods and the COD courier never reaches SafeOrder", async () => {
+    const cart = snapshot(); cart.payment_collection.payment_sessions[0].provider_id = "pp_cod_cod"
+    global.fetch = jest.fn() as any
+    await expect(run(cart)).rejects.toThrow("COD_NOT_AVAILABLE")
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+  it("a refunded/canceled (compensated) card payment cannot complete the order", async () => {
+    const cart: any = snapshot(); cart.metadata = { compensated_payment_intents: ["pi_123"] }; cart.payment_collection.payment_sessions[0].data = { id: "pi_123" }
+    global.fetch = jest.fn() as any
+    await expect(run(cart)).rejects.toThrow("PAYMENT_COMPENSATED")
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
 })
 
 
@@ -71,12 +85,13 @@ describe("C3 coupon usage after SafeOrder", () => {
   const registerUsage = jest.fn()
   const revertUsage = jest.fn()
   const container = { resolve: jest.fn(() => ({ registerUsage, revertUsage })) }
-  const cart = () => ({ ...snapshot(), metadata: { nexus_coupon: { code: "SYNTHETIC-ONCE" } } })
+  const cart = () => ({ ...snapshot(), metadata: { nexus_coupon: { code: "SYNTHETIC-ONCE", promotion_id: "promo_1" } } })
   const validate = (value: any = cart()) => mockValidate({ input: { id: value.id }, cart: value }, { container })
   beforeEach(() => {
     jest.resetAllMocks()
     container.resolve.mockReturnValue({ registerUsage, revertUsage })
     registerUsage.mockResolvedValue(undefined)
+    ;(couponLimitState as jest.Mock).mockResolvedValue({ limit: null, used: 0, exhausted: false })
     process.env.NEXUS_SAFEORDER_URL = "https://nexus.internal/api/nexus/safeorder"
     process.env.NEXUS_PRICING_API_KEY = "synthetic-key"
     process.env.NEXUS_TENANT_ID = "anastasia"
@@ -84,24 +99,24 @@ describe("C3 coupon usage after SafeOrder", () => {
     global.fetch = jest.fn(async (_url, options) => new Response(JSON.stringify({ ...JSON.parse(options!.body as string), ok: true, decision: "ALLOW", score: 0, factors: [] }))) as any
   })
   afterEach(() => { process.env = { ...originalEnv }; global.fetch = originalFetch })
-  it("registers one action after ALLOW and compensates only a successful registration", async () => {
+  it("nepíše použitie kupónu v hooku (zapisuje sa až po vytvorení objednávky)", async () => {
     const response = await validate()
-    expect(registerUsage).toHaveBeenCalledWith([{ code: "SYNTHETIC-ONCE", amount: 1 }], { customer_id: null, customer_email: "synthetic@example.test" })
-    expect(container.resolve).toHaveBeenCalledWith("promotion")
-    await mockCompensate(response.compensateInput, { container })
-    expect(revertUsage).toHaveBeenCalledWith(...registerUsage.mock.calls[0])
+    expect(registerUsage).not.toHaveBeenCalled()
+    expect(couponLimitState).toHaveBeenCalledWith(expect.anything(), "promo_1")
+    // Bez kupónu, rezervácie aj poukazu netreba nič kompenzovať.
+    expect(response).toBeUndefined()
   })
-  it("releases a claimed booking when coupon registration rejects inside validate", async () => {
-    const claim = { id: "b1", cart_id: "cart_synthetic", held_until: new Date() }
-    const releaseCheckoutClaim = jest.fn()
-    container.resolve.mockImplementation(((key: string) => key === "query"
-      ? { graph: async () => ({ data: [{ id: "p1", metadata: { booking: {} } }] }) }
-      : key === "booking" ? { claimForCheckout: async () => claim, releaseCheckoutClaim }
-      : { registerUsage, revertUsage }) as any)
-    registerUsage.mockRejectedValue(new Error("coupon exhausted"))
-    await expect(validate({ ...cart(), customer_id: "c1", metadata: { ...cart().metadata, booking_id: "b1" }, items: [{ ...item, product_id: "p1" }] })).rejects.toThrow("coupon exhausted")
-    expect(releaseCheckoutClaim).toHaveBeenCalledWith(claim)
-    expect(revertUsage).not.toHaveBeenCalled()
+  it("vyčerpaný limit kupónu zastaví checkout", async () => {
+    ;(couponLimitState as jest.Mock).mockResolvedValue({ limit: 1, used: 1, exhausted: true })
+    await expect(validate()).rejects.toThrow("COUPON_LIMIT_EXHAUSTED")
+    expect(registerUsage).not.toHaveBeenCalled()
+  })
+  it("neplatný kód kupónu zastaví checkout", async () => {
+    await expect(validate({ ...cart(), metadata: { nexus_coupon: { code: "  " } } })).rejects.toThrow("COUPON_INVALID")
+  })
+  it("bez kupónu sa limit nekontroluje", async () => {
+    await validate(snapshot())
+    expect(couponLimitState).not.toHaveBeenCalled()
   })
   it.each(["BLOCK", "REVIEW"])("never consumes for %s", async decision => {
     global.fetch = jest.fn(async () => new Response(JSON.stringify({ ok: true, tenantId: "anastasia", currency: "eur", orderSum: 55, decision, score: decision === "BLOCK" ? 90 : 50, factors: [] }))) as any
@@ -118,16 +133,10 @@ describe("C3 coupon usage after SafeOrder", () => {
     await expect(validate(value)).rejects.toBeInstanceOf(SafeOrderError)
     expect(registerUsage).not.toHaveBeenCalled()
   })
-  it("propagates the original registration failure", async () => {
-    const error = new Error("Promotion usage exceeds the limit.")
-    registerUsage.mockRejectedValue(error)
-    await expect(validate()).rejects.toBe(error)
-    await mockCompensate(undefined, { container })
-    expect(revertUsage).not.toHaveBeenCalled()
-  })
   it("skips carts without coupons and already completed carts", async () => {
     await validate(snapshot())
     await validate({ ...cart(), completed_at: new Date() })
+    expect(couponLimitState).not.toHaveBeenCalled()
     expect(registerUsage).not.toHaveBeenCalled()
   })
 })

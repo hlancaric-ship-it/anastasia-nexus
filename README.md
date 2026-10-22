@@ -22,7 +22,7 @@ anastasia-nexus/
 
 ### 1. Edge Layer — NEXUS (`/nexus`)
 - **Live Edge API:** `https://nexus-api.hlancaric.workers.dev`
-- **Pricing Engine (`/api/nexus/pricing`):** Deterministický výpočet cien, zľavové tiery ZR4–ZR25, brandové akcie DELPHIN/MIVARDI/MIKADO, zľavové stropy a zaokrúhľovanie.
+- **Pricing Engine (`/api/nexus/pricing`):** Deterministický výpočet cien, vernostné úrovne, kupóny, zľavové stropy a zaokrúhľovanie.
 - **SafeOrder 3.0 OS (`/api/nexus/safeorder`):** Risk scoring engine pre detekciu rizikových dobierkových objednávok.
 - **Stripe Billing (`/api/klub/subscribe`):** Automatizácia predplatného pre členský Klub ANASTASIA.
 - **AI Gateway (`/api/ai/query`):** Gemini 2.0 Flash / Workers AI lekárenský a wellness poradca s GDPR gate a nákladovými stropmi.

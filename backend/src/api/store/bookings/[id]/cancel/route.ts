@@ -4,7 +4,7 @@ import { BOOKING_MODULE } from "../../../../../modules/booking"
 import type BookingModuleService from "../../../../../modules/booking/service"
 import { notify } from "../../../../../lib/notify"
 
-/** POST /store/bookings/:id/cancel: zákaznice ruší jen svou vlastní rezervaci. */
+/** POST /store/bookings/:id/cancel: zákazník ruší jen svou vlastní rezervaci. */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const customerId = req.auth_context?.actor_type === "customer" ? req.auth_context.actor_id : undefined
   if (!customerId) return res.status(401).json({ type: "unauthorized", message: "Přihlášení je povinné" })

@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { LOYALTY_LOCK_GROUP_NAME } from "../lib/loyalty/assignment"
 import {
   createApiKeysWorkflow,
   createCustomerGroupsWorkflow,
@@ -80,15 +81,25 @@ export const LOYALTY_GROUPS = [
 
 /** Doprava z DB starého e-shopu: kurýr 6,00 EUR s DPH. */
 export const COURIER_PRICE_EUR = 6
+/** Poplatok za dobierku zo starého e-shopu (ecPaymentType): 2,00 EUR s DPH, len s kuriérom. */
+export const COD_FEE_EUR = 2
+/** Osobný odber zo starého e-shopu: 0 EUR. */
+export const PICKUP_OPTION_NAME = "Osobný odber – Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen"
+/** Manuálne platby (dobierka, prevod) – provider ID podľa medusa-config (pp_<identifier>_<id>). */
+export const COD_PROVIDER_ID = "pp_cod_cod"
+export const BANK_TRANSFER_PROVIDER_ID = "pp_bank_transfer_bank_transfer"
 
 /**
  * Doprava zdarma od částky (EUR s DPH, `item_total` košíku) – nativní pravidlo ceny Medusa
- * shipping option, uložené v DB a upravitelné v adminu. Nevyplněno = bez dopravy zdarma
- * (hodnotu určí Lucky). Medusa cenu dopravy přepočítá při každé změně košíku.
+ * shipping option, uložené v DB a upravitelné v adminu. Starý web: ecSysConst.freeTransportPrice = 60.
+ * Nevyplněná proměnná = 60 €, hodnota "0" doprava zdarma vypne.
  */
+export const FREE_SHIPPING_FROM_EUR_DEFAULT = 60
+
 export function parseFreeShippingThreshold(raw: string | undefined): number | null {
   const value = (raw ?? "").trim()
-  if (!value) return null
+  if (!value) return FREE_SHIPPING_FROM_EUR_DEFAULT
+  if (value === "0") return null
   if (!/^\d{1,6}(\.\d{1,2})?$/.test(value) || Number(value) <= 0) {
     throw new Error(`Invalid ANASTASIA_FREE_SHIPPING_FROM_EUR: "${value}" (expected positive EUR amount, max 2 decimals)`)
   }
@@ -113,13 +124,15 @@ export function parseCountries(raw: string | undefined): string[] {
 }
 
 export function pickPaymentProviders(availableIds: string[], isProduction: boolean): string[] {
+  // Dobierka a prevod (manuálne) sú vždy registrované; región ich dostane, ak sú dostupné.
+  const manual = [COD_PROVIDER_ID, BANK_TRANSFER_PROVIDER_ID].filter((id) => availableIds.includes(id))
   if (availableIds.includes(STRIPE_PROVIDER_ID)) {
-    return availableIds.includes(MEMBERSHIP_PROVIDER_ID) ? [STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID] : [STRIPE_PROVIDER_ID]
+    return [...(availableIds.includes(MEMBERSHIP_PROVIDER_ID) ? [STRIPE_PROVIDER_ID, MEMBERSHIP_PROVIDER_ID] : [STRIPE_PROVIDER_ID]), ...manual]
   }
   if (isProduction) {
     throw new Error(`Payment provider ${STRIPE_PROVIDER_ID} is not registered; set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET`)
   }
-  return [SYSTEM_PROVIDER_ID]
+  return [SYSTEM_PROVIDER_ID, ...manual]
 }
 
 const SHIPPING_RULES = [
@@ -137,6 +150,16 @@ export function buildShippingOptionInputs(args: {
 }) {
   const free = args.freeShippingFromEur
   const freeRules = free ? [{ attribute: "item_total", operator: "gte" as const, value: free }] : null
+  const flat = (amount: number, freeAmount: number | null) => [
+    { currency_code: CURRENCY_CODE, amount },
+    { region_id: args.regionId, amount },
+    ...(freeRules && freeAmount !== null
+      ? [
+          { currency_code: CURRENCY_CODE, amount: freeAmount, rules: freeRules },
+          { region_id: args.regionId, amount: freeAmount, rules: freeRules },
+        ]
+      : []),
+  ]
   return [
     {
       name: "Kuriér (zásielka)",
@@ -145,16 +168,7 @@ export function buildShippingOptionInputs(args: {
       service_zone_id: args.physicalZoneId,
       shipping_profile_id: args.physicalProfileId,
       type: { label: "Kuriér", description: "Doručenie zásielky kuriérom.", code: "courier" },
-      prices: [
-        { currency_code: CURRENCY_CODE, amount: COURIER_PRICE_EUR },
-        { region_id: args.regionId, amount: COURIER_PRICE_EUR },
-        ...(freeRules
-          ? [
-              { currency_code: CURRENCY_CODE, amount: 0, rules: freeRules },
-              { region_id: args.regionId, amount: 0, rules: freeRules },
-            ]
-          : []),
-      ],
+      prices: flat(COURIER_PRICE_EUR, 0),
       rules: SHIPPING_RULES,
     },
     {
@@ -168,6 +182,28 @@ export function buildShippingOptionInputs(args: {
         { currency_code: CURRENCY_CODE, amount: 0 },
         { region_id: args.regionId, amount: 0 },
       ],
+      rules: SHIPPING_RULES,
+    },
+    {
+      // Kuriér pri platbe na dobierku: cena dopravy + poplatok za dobierku (riadna položka s DPH).
+      // Server ju zvolí sám pri platbe „Na dobierku“; v pokladni sa ako doprava neponúka.
+      name: "Kuriér – platba na dobierku",
+      price_type: "flat" as const,
+      provider_id: "manual_manual",
+      service_zone_id: args.physicalZoneId,
+      shipping_profile_id: args.physicalProfileId,
+      type: { label: "Kuriér – dobierka", description: "Doručenie kuriérom, platba pri prevzatí (vrátane poplatku za dobierku).", code: "courier_cod" },
+      prices: flat(COURIER_PRICE_EUR + COD_FEE_EUR, COD_FEE_EUR),
+      rules: SHIPPING_RULES,
+    },
+    {
+      name: PICKUP_OPTION_NAME,
+      price_type: "flat" as const,
+      provider_id: "manual_manual",
+      service_zone_id: args.physicalZoneId,
+      shipping_profile_id: args.physicalProfileId,
+      type: { label: "Osobný odber", description: "Vyzdvihnutie: Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen.", code: "pickup" },
+      prices: flat(0, null),
       rules: SHIPPING_RULES,
     },
   ]
@@ -442,6 +478,14 @@ export default async function anastasiaBootstrap({ container }: { container: Med
     }
     if (missing.length) {
       await createCustomerGroupsWorkflow(container).run({ input: { customersData: missing } })
+    }
+    // Skupina ručního zámoku: zákazníci, ktorých správca zaradil ručne.
+    // Automatické zařazení podle útraty ich nesmí přepsat.
+    const lockGroup = await findFirst("customer_group", { name: LOYALTY_LOCK_GROUP_NAME })
+    if (!lockGroup) {
+      await createCustomerGroupsWorkflow(container).run({
+        input: { customersData: [{ name: LOYALTY_LOCK_GROUP_NAME, metadata: { loyalty_lock: true } }] },
+      })
     }
   })
 

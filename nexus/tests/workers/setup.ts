@@ -19,6 +19,8 @@ declare global {
   namespace Cloudflare {
     interface Env {
       DB: D1Database;
+      /** KV binding pro cenovou politiku (viz workers/api/pricing-policy-store.ts). */
+      PRICING_POLICY: KVNamespace;
       /** Migrace načtené v Node.js a předané do workerd jako binding. */
       TEST_MIGRATIONS: D1Migration[];
     }

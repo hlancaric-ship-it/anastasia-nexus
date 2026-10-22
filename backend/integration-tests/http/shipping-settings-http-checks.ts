@@ -113,17 +113,24 @@ export async function verifyShippingSettings({ api, container, options, channel,
     const attach = await api.post(`/store/carts/${digitalCart.id}/shipping-methods`, { option_id: digital.id }, options)
     if (attach.status === 200) {
       const collection = await ok(api.post("/store/payment-collections", { cart_id: digitalCart.id }, options))
-      await ok(api.post(`/store/payment-collections/${collection.payment_collection.id}/payment-sessions`, { provider_id: "pp_system_default" }, options))
+      // Poistka `requireShippingBeforePayment` nepustí pripraviť platbu, kým fyzický košík nemá
+      // dopravu pre svoj prepravný profil (digitálna doprava fyzický košík nepokryje):
+      // 409 SHIPPING_REQUIRED – bez platby sa objednávka vytvoriť nedá.
+      const session = await api.post(`/store/payment-collections/${collection.payment_collection.id}/payment-sessions`, { provider_id: "pp_system_default" }, options)
+      expect([session.status, session.data.error]).toEqual([409, "SHIPPING_REQUIRED"])
       await acceptCheckoutConsent(api, digitalCart.id, buyerOptions)
       for (const completion of [
-        () => api.post(`/store/carts/${digitalCart.id}/complete`, {}, options),
+        () => api.post(`/store/carts/${digitalCart.id}/complete`, {}, buyerOptions),
         () => api.post("/store/nexus-checkout", { cart_id: digitalCart.id }, buyerOptions),
       ]) {
         const response = await completion()
         expect(response.status).toBe(400)
         expect(response.data.order).toBeUndefined()
         const message = response.data.error?.message ?? response.data.error ?? response.data.message
-        expect(message).toMatch(/shipping profiles that are not satisfied/i)
+        // Poistka `requireShippingBeforePayment` zablokovala prípravu platby (409 SHIPPING_REQUIRED),
+        // takže checkout odmietne košík ešte pred tým, než sa dostane k profilom dopravy:
+        // fyzický tovar s digitálnou dopravou sa tak nedá premeniť na objednávku.
+        expect(message).toMatch(/payment sessions are required to complete cart|shipping profiles that are not satisfied/i)
       }
     } else {
       expect(attach.status).toBe(400)

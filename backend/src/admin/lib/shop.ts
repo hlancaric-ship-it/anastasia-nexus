@@ -1,7 +1,7 @@
 /** Native Medusa contracts for the bespoke Slovak shop workspace. No checkout calculations. */
 export const sections = ["prehled", "produkty", "ceny", "kategorie", "kupony", "objednavky", "zakaznicky"] as const
 export type Section = typeof sections[number]
-export const labels: Record<Section, string> = { prehled: "Prehľad", produkty: "Produkty", ceny: "Ceny", kategorie: "Kategórie", kupony: "Kupóny", objednavky: "Objednávky", zakaznicky: "Zákazníčky" }
+export const labels: Record<Section, string> = { prehled: "Prehľad", produkty: "Produkty", ceny: "Ceny", kategorie: "Kategórie", kupony: "Kupóny", objednavky: "Objednávky", zakaznicky: "Zákazníci" }
 export const resources: Record<Exclude<Section, "prehled">, { path: string; key: string; fields?: string }> = {
   produkty: { path: "/admin/products", key: "products", fields: "id,title,description,status,handle,updated_at,categories.id,categories.name,variants.id,variants.title,*variants.prices" },
   ceny: { path: "/admin/products", key: "products", fields: "id,title,status,variants.id,variants.title,*variants.prices" },

@@ -1,7 +1,7 @@
 import { authenticate, type MiddlewareRoute } from "@medusajs/framework/http"
 
 /**
- * Povinná autentizace zákaznice pro /store/entitlements.
+ * Povinná autentizace zákazníka pro /store/entitlements.
  * Integrátor je musí zapojit do src/api/middlewares.ts:
  *   defineMiddlewares({ routes: [...entitlementStoreMiddlewares] })
  */

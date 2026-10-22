@@ -74,7 +74,7 @@ export type CreditState = { masked_code: string; amount: number; balance: number
 /**
  * Nastaví kredit poukazu na košíku na min(zůstatek, způsobilá částka). Volá se při
  * uplatnění kódu a po každém přepočtu košíku. Neplatný/vyčerpaný poukaz kredit odebere.
- * `code` = nové uplatnění (chyby se vrací zákaznici), jinak tichá resynchronizace.
+ * `code` = nové uplatnění (chyby se vrací zákazníkovi), jinak tichá resynchronizace.
  */
 export async function syncGiftVoucherCredit(scope: Scope, cartId: string, input: { code?: string; voucher?: GiftVoucherRow } = {}): Promise<{ changed: boolean; credit: CreditState }> {
   const vouchers = scope.resolve(GIFT_VOUCHER_MODULE) as GiftVoucherModuleService

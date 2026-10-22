@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { ENTITLEMENT_MODULE } from "../../../modules/entitlement"
 import type EntitlementModuleService from "../../../modules/entitlement/service"
 import { auditAdminChange } from "../../../lib/observability/audit"
+import { requireAdminCapability } from "../../../lib/admin/guard"
 
 const str = (v: unknown): string | undefined => {
   const s = Array.isArray(v) ? v[0] : v
@@ -51,6 +52,8 @@ type GrantBody = {
 
 /** POST /admin/entitlements: ruční udělení přístupu (vždy nový záznam, source=admin). */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  // Ručné udelenie prístupu k platenému obsahu robí iba vlastník administrácie.
+  if (!(await requireAdminCapability(req, res, "access"))) return
   const body = (req.body ?? {}) as GrantBody
   const customerId = typeof body.customer_id === "string" ? body.customer_id.trim() : ""
   const productId = typeof body.product_id === "string" ? body.product_id.trim() : ""
@@ -69,7 +72,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   try {
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const { data: customers } = await query.graph({ entity: "customer", fields: ["id"], filters: { id: customerId } })
-    if (!customers?.length) return res.status(404).json({ type: "not_found", message: "Zákaznice neexistuje" })
+    if (!customers?.length) return res.status(404).json({ type: "not_found", message: "Zákazník neexistuje" })
     const { data: products } = await query.graph({ entity: "product", fields: ["id"], filters: { id: productId } })
     if (!products?.length) return res.status(404).json({ type: "not_found", message: "Produkt neexistuje" })
 
@@ -83,6 +86,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       expires_at: expiresAt,
       granted_by: req.auth_context?.actor_id ?? null,
       metadata: typeof body.reason === "string" && body.reason.trim() ? { reason: body.reason.trim().slice(0, 500) } : null,
+      tenant_id: "default",
     })
     await auditAdminChange(req, "entitlement.grant", "entitlement", (entitlement as { id?: string })?.id ?? null, null, { customer_id: customerId, product_id: productId, status: (entitlement as { status?: string })?.status ?? null })
     return res.status(201).json({ entitlement })

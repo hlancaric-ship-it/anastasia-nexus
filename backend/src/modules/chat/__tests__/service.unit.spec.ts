@@ -7,7 +7,7 @@ type Msg = { id: string; conversation_id: string; customer_id: string; author_ty
 const tick = () => new Promise((resolve) => setImmediate(resolve))
 
 /**
- * Služba nad in-memory úložištěm. Zámek zákaznice je skutečný mutex držený do konce „transakce“
+ * Služba nad in-memory úložištěm. Zámek zákazníka je skutečný mutex držený do konce „transakce“
  * (jako pg_advisory_xact_lock), mezi čtením počtů a zápisem jsou záměrně await mezery.
  */
 function makeService(opts: { withLock?: boolean } = {}) {
@@ -63,6 +63,14 @@ function makeService(opts: { withLock?: boolean } = {}) {
     store.messages.push(row)
     return row
   }
+  svc.listChatConversations = async (filters: any = {}) => {
+    await tick()
+    let rows = [...store.conversations.values()]
+    if (filters.customer_id) rows = rows.filter((r: any) => r.customer_id === filters.customer_id)
+    if (filters.status) rows = rows.filter((r: any) => r.status === filters.status)
+    rows.sort((a: any, b: any) => new Date(b.last_message_at ?? 0).getTime() - new Date(a.last_message_at ?? 0).getTime())
+    return rows
+  }
   return { svc: svc as ChatModuleService, store }
 }
 
@@ -99,7 +107,7 @@ describe("ChatModuleService – souběh a limity", () => {
     expect(store.messages.length).toBeGreaterThan(3)
   })
 
-  it("zámek je per zákaznice: jiná zákaznice není blokována", async () => {
+  it("zámek je per zákazník: jiný zákazník není blokována", async () => {
     const { svc } = makeService()
     const result = await settle([
       ...Array.from({ length: 4 }, () => svc.sendCustomerMessage({ customer_id: "cus_1", body: "a" })),
@@ -148,5 +156,57 @@ describe("ChatModuleService – souběh a limity", () => {
     expect((await svc.applyConversationAction(conversation.id, "close")).status).toBe("closed")
     expect((await svc.applyConversationAction(conversation.id, "reopen"))).toMatchObject({ status: "open", closed_at: null })
     await expect(svc.applyConversationAction("conv_missing", "close")).rejects.toBeInstanceOf(ConversationNotFoundError)
+  })
+})
+
+describe("ChatModuleService – nová zpráva od administrace", () => {
+  it("založí novou konverzaci, když zákazník žádnou otevřenou nemá", async () => {
+    const { svc, store } = makeService()
+    const { conversation, message } = await svc.sendAdminMessage({ customer_id: "cus_1", admin_id: "user_1", body: "Dobrý den" })
+    expect(conversation.customer_id).toBe("cus_1")
+    expect(conversation.status).toBe("open")
+    expect(conversation.subject).toBe("Správa z administrácie")
+    expect(message.author_type).toBe("admin")
+    expect(message.body).toBe("Dobrý den")
+    expect(store.messages).toHaveLength(1)
+  })
+
+  it("přidá zprávu do existující otevřené konverzace", async () => {
+    const { svc, store } = makeService()
+    const { conversation } = await svc.sendCustomerMessage({ customer_id: "cus_1", body: "ahoj" })
+    const { conversation: same, message } = await svc.sendAdminMessage({ customer_id: "cus_1", admin_id: "user_1", body: "Dobrý den" })
+    expect(same.id).toBe(conversation.id)
+    expect(message.conversation_id).toBe(conversation.id)
+    expect(store.messages).toHaveLength(2)
+    expect(store.conversations.size).toBe(1)
+  })
+
+  it("uzavřená konverzace se použije jen nová", async () => {
+    const { svc, store } = makeService()
+    const { conversation } = await svc.sendCustomerMessage({ customer_id: "cus_1", body: "ahoj" })
+    await svc.applyConversationAction(conversation.id, "close")
+    const { conversation: fresh } = await svc.sendAdminMessage({ customer_id: "cus_1", admin_id: "user_1", body: "Dobrý den" })
+    expect(fresh.id).not.toBe(conversation.id)
+    expect(store.conversations.size).toBe(2)
+  })
+
+  it("zablokovanému zákazníkovi se správa nepošle (409)", async () => {
+    const { svc, store } = makeService()
+    store.blocked.add("cus_1")
+    await expect(svc.sendAdminMessage({ customer_id: "cus_1", admin_id: "user_1", body: "x" })).rejects.toMatchObject({ type: "admin_message_blocked", status: 409 })
+    expect(store.messages).toHaveLength(0)
+  })
+
+  it("prázdná správa se odmítne (400) a nic se nezapíše", async () => {
+    const { svc, store } = makeService()
+    await expect(svc.sendAdminMessage({ customer_id: "cus_1", admin_id: "user_1", body: "   " })).rejects.toMatchObject({ type: "message_empty", status: 400 })
+    await expect(svc.sendAdminMessage({ customer_id: "cus_1", admin_id: "user_1", body: "x".repeat(5001) })).rejects.toMatchObject({ type: "message_too_long", status: 400 })
+    expect(store.messages).toHaveLength(0)
+  })
+
+  it("popis (téma konverzace) se uloží", async () => {
+    const { svc } = makeService()
+    const { conversation } = await svc.sendAdminMessage({ customer_id: "cus_1", admin_id: "user_1", body: "x", subject: "Objednávka #12" })
+    expect(conversation.subject).toBe("Objednávka #12")
   })
 })

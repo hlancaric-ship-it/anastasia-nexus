@@ -112,7 +112,7 @@
     },
     {
       "id": "customers",
-      "label_sk": "Zákazníčky",
+      "label_sk": "Zákazníci",
       "delivery_lane": "C5",
       "backend_layer": "native",
       "backend_status": "PARTIAL",
@@ -161,15 +161,26 @@
       "label_sk": "Vernostné úrovne a osobné ceny",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
-      "backend_status": "PARTIAL",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
       "new_admin_status": "NOT_IMPLEMENTED",
       "request": "Samostatné ceníky pro jednotlivé cenové úrovně; po přihlášení vlastní cena; nastavitelné zobrazení původní a nové ceny i % úspory, všechny částky/procenta vrací server.",
       "sources": [
         "backend/src/api/store/nexus-cart/customer-tier.ts",
-        "nexus/workers/api/routes/nexusPricing.ts"
+        "nexus/workers/api/routes/nexusPricing.ts",
+        "backend/src/api/admin/nexus/loyalty-policy/route.ts",
+        "backend/src/api/admin/nexus/loyalty-customers/route.ts",
+        "backend/src/api/admin/nexus/customers/[id]/tier/route.ts",
+        "backend/src/api/admin/nexus/customers/tiers/route.ts",
+        "backend/src/lib/loyalty/policy.ts",
+        "backend/src/lib/loyalty/settings.ts",
+        "backend/src/lib/loyalty/assignment.ts",
+        "backend/src/lib/loyalty/auto-assign.ts",
+        "backend/src/lib/nexus/loyalty-policy-sync.ts",
+        "nexus/workers/api/pricing-policy-store.ts",
+        "anastasia-admin/HANDOFF-vernostne-urovne.md"
       ],
-      "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu.",
-      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika."
+      "remaining": "Skupinové nexus_tier se čte; chybí běžný editor verzované politiky a autoritativní personalizovaná cena katalogu. Politika úrovní, ručné aj automatické priradenie a synchronizácia do NEXUS Workera sú hotové; chýba KV binding v nasadenom Workeri (placeholder ID vo wrangler.jsonc) a UI administrácie. Osobné ceníky pre jednotlivé úrovne zostávajú samostatná požiadavka.",
+      "acceptance": "Dvě zákaznice mají své serverové ceny v katalogu i košíku; anonymní uživatel nevidí cizí cenu; žádná rybářská výchozí politika. Zľava sa počíta výhradne na serveri z politiky v databáze; klient neposiela vlastné percentá; ručne priradená úroveň sa automatickým priradením neprepíše."
     },
     {
       "id": "booking",
@@ -200,10 +211,22 @@
         "backend/src/modules/entitlement/order-sync.ts",
         "backend/src/api/store/entitlements/route.ts",
         "backend/src/lib/protected-library/catalog.ts",
-        "backend/docs/wp/protected-library-r2.md"
+        "backend/docs/wp/protected-library-r2.md",
+        "backend/src/api/admin/products/[id]/protected-media/route.ts",
+        "backend/src/lib/protected-library/editor.ts",
+        "anastasia-admin/library-editor.mjs",
+        "backend/docs/wp/library-admin.md",
+        "backend/src/api/store/reset-journal/route.ts",
+        "backend/src/api/store/reset-journal/[id]/route.ts",
+        "backend/src/api/store/reset-program/route.ts",
+        "backend/src/api/admin/reset-program/route.ts",
+        "backend/src/lib/reset-program/config.ts",
+        "backend/src/lib/reset-program/structure.ts",
+        "backend/src/lib/reset-program/access.ts",
+        "backend/docs/wp/reset-zrkadielko.md"
       ],
-      "remaining": "Editor obsahu/lekcí a bezpečný upload nejsou totožné s existujícím oprávněním.",
-      "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu."
+      "remaining": "Přejmenování a pořadí již přiřazených souborů implementované; soukromý upload a nové přiřazení/odebrání zůstává samostatný nedokončený balík. Zrkadielko (záznamy zákazníka) a štruktúra programu sú v backende hotové; chýba obsah od Lucie (kompletný zoznam stĺpcov hodnotení, texty týždňov a pracovných listov) a právny základ súhlasu.",
+      "acceptance": "Zaplacený program zpřístupní server; neověřená platba nikoli; ruční operace má důvod a kontrolu po timeoutu. Zrkadielko: záznam patrí zákazníkovi – cudzí záznam sa nedá prečítať, upraviť ani zmazať; hodnotenie je 1–10 a dátum nie je v budúcnosti."
     },
     {
       "id": "media",
@@ -215,10 +238,25 @@
       "request": "Správa obrázků, videa/audio, přiřazení k produktu bez JSON, oddělení veřejných a placených souborů.",
       "sources": [
         "backend/src/api/store/media-access/route.ts",
-        "nexus/workers/api/routes/mediaDelivery.ts"
+        "nexus/workers/api/routes/mediaDelivery.ts",
+        "backend/src/api/admin/products/[id]/protected-media/route.ts",
+        "backend/src/lib/protected-library/editor.ts",
+        "anastasia-admin/library-editor.mjs",
+        "backend/docs/wp/library-admin.md",
+        "backend/src/api/admin/products/[id]/protected-media/upload-url/route.ts",
+        "backend/src/api/admin/products/[id]/protected-media/attach/route.ts",
+        "backend/src/api/admin/products/[id]/protected-media/[key]/route.ts",
+        "backend/src/api/admin/product-catalogue/route.ts",
+        "backend/src/lib/protected-library/upload.ts",
+        "backend/src/lib/protected-library/storage.ts",
+        "backend/src/lib/digital-products/categories.ts",
+        "backend/docs/wp/digital-library-upload.md",
+        "backend/src/api/admin/media/route.ts",
+        "backend/src/api/admin/media/[key]/route.ts",
+        "backend/src/lib/pages/store.ts"
       ],
-      "remaining": "Chybí vlastní validovaný privátní upload/přiřazení; veřejné Medusa uploads nestačí pro placený obsah.",
-      "acceptance": "Placený soubor není veřejný; cizí/sousední soubor je odmítnut; UI přizná platnost vydaného odkazu do expirace."
+      "remaining": "Nahrávanie nových chránených súborov, ich pripojenie a odpojenie aj filter Fyzické/Digitálne sú implementované a overené na lokálnej DB; chýba už len produkčný bucket R2 na účte klientky a CORS pravidlo pre presigned PUT.",
+      "acceptance": "Placený súbor nie je verejný a nedá sa stiahnuť (povolené mp4/mp3/m4a/pdf); kľúč sa viaže len na vlastný produkt; cudzí kľúč je odmítnutý; pripojenie nového súboru nemení pôvodné kľúče; host bez prihlásenia nedokáže kúpiť digitálny produkt."
     },
     {
       "id": "chat",
@@ -258,14 +296,17 @@
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "new_admin_status": "VERIFIED",
       "request": "Generování SVG/PNG v adminu v první fázi; evidence již vydaných QR i z původního obchodu.",
       "sources": [
         "backend/src/api/admin/coupon-links/route.ts",
         "backend/src/scripts/export-edge-redirects.ts",
-        "nexus/workers/api/edgeRedirects.ts"
+        "nexus/workers/api/edgeRedirects.ts",
+        "backend/src/modules/coupon-link/index.ts",
+        "backend/src/api/admin/coupon-links/registry.ts",
+        "anastasia-admin/qr.mjs"
       ],
-      "remaining": "Generátor nemá registr vydaných QR; stále vrací PENDING_PRICING_INTEGRATION. Redirect mapa není evidence držitelů a uplatnění.",
+      "remaining": "QR registr a nákupní průchod se současně podporovanými kupóny ověřen v CI (evidence/qr-admin-system-ci.json). Skutečná legacy migrace čerpání a podmínek dosud neověřena; současný NEXUS resolver odmítá pevné a omezené promoce. Import QR je automaticky neaktivuje.",
       "acceptance": "Naskenování nového i starého QR otevře správný cíl a server uplatní správnou slevu; výstup se stáhne bez externí QR služby."
     },
     {
@@ -433,7 +474,7 @@
     },
     {
       "id": "customer-recovery",
-      "label_sk": "Pomoc s prihlásením zákazníčky",
+      "label_sk": "Pomoc s prihlásením zákazníci",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
       "backend_status": "PARTIAL",
@@ -441,7 +482,8 @@
       "request": "Admin pomůže zákaznici obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo.",
       "sources": [
         "backend/src/modules/auth-magic-link/service.ts",
-        "backend/src/modules/auth-security/index.ts"
+        "backend/src/modules/auth-security/index.ts",
+        "backend/src/api/store/nexus-auth/logout/route.ts"
       ],
       "remaining": "Rozlišit passwordless a emailpass; chybí chráněný admin postup obnovy se souhlasem a auditem.",
       "acceptance": "Obnova nepřepne identitu, nevytvoří druhý účet, neodhalí heslo; rate-limit a jedna spotřeba odkazu."
@@ -451,13 +493,19 @@
       "label_sk": "Prístupy spolupracovníkov",
       "delivery_lane": "NEXT",
       "backend_layer": "native",
-      "backend_status": "PARTIAL",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
       "new_admin_status": "NOT_IMPLEMENTED",
       "request": "Pozvánky a role pro obsluhu, podporu, finance a provoz; nejmenší potřebná práva.",
       "sources": [
-        "backend/src/api/middlewares.ts"
+        "backend/src/api/middlewares.ts",
+        "backend/src/lib/admin/roles.ts",
+        "backend/src/lib/admin/guard.ts",
+        "backend/src/lib/admin/mfa.ts",
+        "backend/src/api/admin/nexus/admin-roles/route.ts",
+        "backend/src/api/admin/nexus/admin-2fa/route.ts",
+        "backend/docs/wp/admin-2fa-rbac.md"
       ],
-      "remaining": "Nativní rbac/invites existují, ale zapnutí a vynucení na vlastních routách není doloženo; skrytí tlačítka nestačí.",
+      "remaining": "Role vlastník/asistent a dvojfaktorové overenie (TOTP) sú zavedené v backende; zostáva zapnutie TOTP providera (mfa.encryption_key v medusa-config.ts, mimo tohto balíka) a UI administrácie.",
       "acceptance": "Zakázaná role nedokáže číst ani zapsat agendu přímým HTTP požadavkem."
     },
     {
@@ -531,7 +579,8 @@
       "sources": [
         "backend/src/lib/order-self-cancel/cancel.ts",
         "backend/src/api/admin/withdrawals/[id]/route.ts",
-        "backend/src/subscribers/compensation-payment-refunded.ts"
+        "backend/src/subscribers/compensation-payment-refunded.ts",
+        "backend/src/api/admin/contract-withdrawals/route.ts"
       ],
       "remaining": "Native returns/claims/exchanges existují; vlastní workflow musí propojit stav, skutečné peníze, sklad, nároky a oznámení.",
       "acceptance": "Změna statusu odstoupení neposílá peníze; duplicitní refund nic nezdvojí; rozlišit kartu a kredit poukazu."
@@ -793,6 +842,74 @@
       ],
       "remaining": "NEXUS kontext/validace nejsou celé B2B nabídky, schvalování ani speciální ceníky ANASTASIA.",
       "acceptance": "Fakturační identita je ověřená a promítne se do správného dokladu; cizí zákazník nic nezmění."
+    },
+    {
+      "id": "product-feeds",
+      "label_sk": "Produktové feedy",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Verejný XML feed pre Heuriku a RSS 2.0 pre Google Merchant Center: len zverejnené produkty v predajnom kanáli, cena s DPH cez calculated_price s region kontextom, URL podľa STOREFRONT_URL/ANASTASIA_SITE_URL.",
+      "sources": [
+        "backend/src/lib/feeds/policy.ts",
+        "backend/src/lib/feeds/catalog.ts",
+        "backend/src/api/feeds/heureka.xml/route.ts",
+        "backend/src/api/feeds/google.xml/route.ts",
+        "backend/src/api/admin/feeds/route.ts"
+      ],
+      "remaining": "Feed sa generuje pri každej požiadavke; chýba vlastný plán načítania (cron) a schválenie cez Heuriku/Google Merchant Center.",
+      "acceptance": "Feed je verejne dostupný bez prihlásenia, obsahuje len zverejnené produkty v kanáli a cenu s DPH; admin ukáže odkaz na kopírovanie."
+    },
+    {
+      "id": "page-content",
+      "label_sk": "Texty stránok",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia upravuje texty stránok webu (VOP, reklamácie, kontakt, O Lucii, patička, doprava a platba) v rich texte, s náhľadom a obnovením pôvodného znenia; server ich sanitizuje a uloží v metadátach obchodu.",
+      "sources": [
+        "backend/src/lib/pages/policy.ts",
+        "backend/src/lib/pages/store.ts",
+        "backend/src/api/admin/pages/route.ts",
+        "backend/src/api/store/pages/[slug]/route.ts"
+      ],
+      "remaining": "Storefront znenie zatiaľ nenačítava (pripravená trasa GET /store/pages/:slug); zapojenie do webu je na strane frontendu.",
+      "acceptance": "Uložený text sa zobrazí v náhľade, prejde cez sanitizáciu a dá sa vrátiť na pôvodné znenie."
+    },
+    {
+      "id": "chat-templates",
+      "label_sk": "Šablóny odpovedí",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia si pripraví šablóny opakovaných odpovedí v chate a vloží ich jedným kliknutím; texty sa ukladajú na serveri.",
+      "sources": [
+        "backend/src/lib/chat-templates.ts",
+        "backend/src/api/admin/chat/templates/route.ts"
+      ],
+      "remaining": "Šablóny sa neposielajú automaticky zákazníkom, len sa vložia do pripravenej odpovede.",
+      "acceptance": "Šablóna sa dá vložiť do odpovede v chate a po obnovení stránky zostáva uložená."
+    },
+    {
+      "id": "web-content",
+      "label_sk": "Obsah webu (bloky)",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia upraví ľubovoľný text, nadpis, obrázok, video alebo odkaz na webe po sekciách; pôvodné znenie zostáva v zálohe, dá sa obnoviť a existujú verzie.",
+      "sources": [
+        "backend/src/lib/content/policy.ts",
+        "backend/src/lib/content/store.ts",
+        "backend/src/api/admin/content/route.ts",
+        "backend/src/api/store/content/[page]/route.ts",
+        "anastasia-admin/HANDOFF-storefront-content.md"
+      ],
+      "remaining": "Storefront zatiaľ obsah nenačítava (trasa GET /store/content/:page je pripravená); jazyky EN/RU sú v modeli vyhradené, ale zatiaľ prázdne.",
+      "acceptance": "Úprava poľa sa uloží, vráti sa vo verejnej trase, pôvodné znenie sa dá obnoviť a staršiu verziu vrátiť."
     }
   ],
   "custom_routes": [
@@ -804,7 +921,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/booking/availability/route.ts",
-      "sha256": "e5663fb316ed24a28eafca0d2ea305a8507ffc396a5045709bb88dcea30568da"
+      "sha256": "3f74045f237c9995088e14edd46eecf4d4e075ce5d1af732a7bdd6e7a51bf78b"
     },
     {
       "path": "/admin/booking/types",
@@ -842,62 +959,101 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/admin/bookings/[id]/cancel/route.ts",
-      "sha256": "53b126b07f40b5bb3189dd0c583c3a51d481753093a62a343459b027ce079c8d"
+      "sha256": "afd30f74ab24adf2223441f15da1f5014ee308191d03cedec535457700b128de"
     },
     {
-      "path": "/admin/chat/conversations",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/route.ts",
-      "sha256": "7fa3cf85cceaf0b560b4bdd66de8e64cd5202720dbd446d5b06d77068f067447"
-    },
-    {
-      "path": "/admin/chat/conversations/:id",
+      "path": "/admin/carriers",
       "methods": [
         "GET",
         "POST"
       ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
-      "sha256": "f4f2e8cf5e3d9e89e18de467180d5e997e397eadda043807d2f2059ab57f7663"
+      "feature": "carriers",
+      "source": "backend/src/api/admin/carriers/route.ts",
+      "sha256": "f6920a3ca428c2d379910f1f7b154237520b12d4b0de6c1307acd70f2cfaac84"
     },
     {
-      "path": "/admin/chat/conversations/:id/messages",
+      "path": "/admin/content",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "web-content",
+      "source": "backend/src/api/admin/content/route.ts",
+      "sha256": "b65fa35a1f486efdff5b61589a3c6c9a28a3f47aaffb981ad278fad9ed71f725"
+    },
+    {
+      "path": "/admin/content/reset",
       "methods": [
         "POST"
       ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
-      "sha256": "c24915aa0d648ea334aadd015a1d7fcd67306fc34a10ce4a512337695e2195d3"
+      "feature": "web-content",
+      "source": "backend/src/api/admin/content/reset/route.ts",
+      "sha256": "df169af4c73f55986535ba813006a7fe4c43e6d1dbf17a1909f70f32b80af9ac"
     },
     {
-      "path": "/admin/chat/conversations/:id/read",
+      "path": "/admin/contract-withdrawals",
       "methods": [
-        "POST"
+        "GET"
       ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
-      "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
+      "feature": "returns",
+      "source": "backend/src/api/admin/contract-withdrawals/route.ts",
+      "sha256": "c4010e027b6862d29d979c71b23c0a9feb5e7175e0ab1376fa4121b18d34fc3a"
     },
     {
-      "path": "/admin/chat/customers/:id/block",
+      "path": "/admin/contract-withdrawals/:id",
       "methods": [
+        "GET",
         "POST"
       ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
-      "sha256": "5abbd64540840c170d89e8706be2470048081b2a1cc6fa58eb650d9b25ef1c4f"
+      "feature": "returns",
+      "source": "backend/src/api/admin/contract-withdrawals/[id]/route.ts",
+      "sha256": "b11895bd9a44cf5088cd72c80c02399c5409d910649f29ccd79155bbdf8e88a9"
     },
     {
       "path": "/admin/coupon-links",
       "methods": [
+        "GET",
         "POST"
       ],
       "feature": "qr",
       "source": "backend/src/api/admin/coupon-links/route.ts",
-      "sha256": "efe9ce37d0074804bfdef07159483debf28a6162f4ebd7531c99efc5e44a8f08"
+      "sha256": "f62f420723b15094ef2bfe7a217005be689aeeea8525a4584fd3626dd025889a"
+    },
+    {
+      "path": "/admin/coupon-links/:id",
+      "feature": "qr",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/route.ts",
+      "sha256": "4ad76aa81772a3158d52e6e481cfc76a106c2799779a00f91b2b214d824d4041"
+    },
+    {
+      "path": "/admin/coupon-links/:id/deactivate",
+      "feature": "qr",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/deactivate/route.ts",
+      "sha256": "2c39745d25b93091d6a871216499a2166d81966725773c71dd82278a2fc524e1"
+    },
+    {
+      "path": "/admin/coupon-links/:id/qr",
+      "feature": "qr",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/coupon-links/[id]/qr/route.ts",
+      "sha256": "e109a4af6b8758ed420bf03f44d38be07a267f82d4aabb6ace714cc473d3d8d7"
+    },
+    {
+      "path": "/admin/coupon-links/import",
+      "feature": "qr",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/coupon-links/import/route.ts",
+      "sha256": "f0e718c133adaaf15bdc05426091606fd8c8c0a89b7c422f3ef48ffcfdf95f78"
     },
     {
       "path": "/admin/custom",
@@ -983,7 +1139,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/admin/entitlements/route.ts",
-      "sha256": "c072cdaff41b14051e2bb66955735f810fe71768d71c2c1d24962e8f7e3fbe47"
+      "sha256": "d79083d9ed9efe16e601d1fe77b266d9209874a1a9db79cae987b813d53ef4b8"
     },
     {
       "path": "/admin/entitlements/:id/revoke",
@@ -995,13 +1151,107 @@
       "sha256": "58a6b4825a5240aa1bfbd2280c0554418511faf018a9e4434ee1249b7a72be66"
     },
     {
+      "path": "/admin/feeds",
+      "methods": [
+        "GET"
+      ],
+      "feature": "product-feeds",
+      "source": "backend/src/api/admin/feeds/route.ts",
+      "sha256": "f9bb2b30b7f790dfc4c19eda0d2bbf458dd19a4ea47abd571ce2a03cb9198562"
+    },
+    {
+      "path": "/admin/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/route.ts",
+      "sha256": "6b619b11dce6dc57fee2af1b4ae194505919394ad2c04ee5f2041d4012347345"
+    },
+    {
+      "path": "/admin/chat/conversations/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
+      "sha256": "2bb21a27aa9cbc29414a54823b9d47c174f8e8464d39c875b612d2b9740b306e"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
+      "sha256": "41410f9a4b3058d7dfa3a84a252e818cefb3f54f9d4b5ac22843b6d6a567ff92"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
+      "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
+    },
+    {
+      "path": "/admin/chat/customers/:id/block",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
+      "sha256": "dfd606b696477809bc1760ac88812f04f88c0d55a747fe42bd38c504b08f1388"
+    },
+    {
+      "path": "/admin/chat/templates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat-templates",
+      "source": "backend/src/api/admin/chat/templates/route.ts",
+      "sha256": "502d647b6bca62c9eb6350e47e623ac6847a07ac915ddffc87d6510fb28b19c4"
+    },
+    {
+      "path": "/admin/chat/templates/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "chat-templates",
+      "source": "backend/src/api/admin/chat/templates/[id]/route.ts",
+      "sha256": "f562f9257cc4aa766006a586ce276db8c593cd8ced12a7f02c893e017980a65c"
+    },
+    {
+      "path": "/admin/media",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "media",
+      "source": "backend/src/api/admin/media/route.ts",
+      "sha256": "f3f04e2432aebff34864e90d676d75636b3272a0b1ed17d66deee35382dd2b1c"
+    },
+    {
+      "path": "/admin/media/:key",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "media",
+      "source": "backend/src/api/admin/media/[key]/route.ts",
+      "sha256": "23888f2e2a3a18a4ddbc427e23900d0e13824b01d78039b1b11d616d401beb7d"
+    },
+    {
       "path": "/admin/memberships",
       "methods": [
         "GET"
       ],
       "feature": "club",
       "source": "backend/src/api/admin/memberships/route.ts",
-      "sha256": "b5eeee52ce6758d877b5e713e30d9abfa6cac63f52ff608a8408cad58785aa72"
+      "sha256": "e0e693d70d51bc6094b51569de9d4810dc17c29a6744db11a5e3abcce15e1520"
     },
     {
       "path": "/admin/memberships/:id/stop",
@@ -1050,6 +1300,110 @@
       "sha256": "e22afcc625ac17c430db9bd9c684004226f8766cff350a8b49b95cb77ac1b6a6"
     },
     {
+      "path": "/admin/nexus/admin-2fa",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/admin-2fa/route.ts",
+      "feature": "roles",
+      "sha256": "413536c9394499adfe44a61ec96b7da7c5d1c392c68f75ce104e2251fddb3293"
+    },
+    {
+      "path": "/admin/nexus/admin-2fa/recovery-codes",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/admin-2fa/recovery-codes/route.ts",
+      "feature": "roles",
+      "sha256": "03f145785a96d05c69baff992140534382ca2868efca1c6bbe0b84dab93162c9"
+    },
+    {
+      "path": "/admin/nexus/admin-2fa/verify",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/admin-2fa/verify/route.ts",
+      "feature": "roles",
+      "sha256": "6823908eb396e8dedeb1a6e5e78b12f931b8e1b0fd148e41a49dec966e5b1f22"
+    },
+    {
+      "path": "/admin/nexus/admin-roles",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/admin-roles/route.ts",
+      "feature": "roles",
+      "sha256": "b6a9650f9555cf353628b8b440406a94758ef4f8665c92eead7d8e84ec40baa6"
+    },
+    {
+      "path": "/admin/nexus/customers/:id/tier",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/customers/[id]/tier/route.ts",
+      "feature": "loyalty",
+      "sha256": "19b2a271feefb82ac033ebfff30a3b5a17d9ca681bd4346d3f31398b80e923ec"
+    },
+    {
+      "path": "/admin/nexus/customers/tiers",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/customers/tiers/route.ts",
+      "feature": "loyalty",
+      "sha256": "893a795cffef6e3f8661d5992803084d26f04139d48a503c189b83d843b8f9c5"
+    },
+    {
+      "path": "/admin/nexus/loyalty-customers",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/nexus/loyalty-customers/route.ts",
+      "feature": "loyalty",
+      "sha256": "5ef3af0a8c741761b5754a8603a3e0a5d5f0cb65b5e283b6dd738dc1912937ad"
+    },
+    {
+      "path": "/admin/nexus/loyalty-policy",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "source": "backend/src/api/admin/nexus/loyalty-policy/route.ts",
+      "feature": "loyalty",
+      "sha256": "af8cf599e4e22b709f6192a5949289bbe8946d09b1c2f83fbfaf253ca7cbdb2a"
+    },
+    {
+      "path": "/admin/nexus/orders/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/admin/nexus/orders/[id]/cancel/route.ts",
+      "sha256": "4f69a82698f841c21de4699f53e8d88fbe6c85bf55ec45348b5668b3b3b26cc5"
+    },
+    {
+      "path": "/admin/nexus/orders/:id/notes",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/admin/nexus/orders/[id]/notes/route.ts",
+      "sha256": "729b39657fbcf5ae5e061373ee6e8b7195c97ef9e27c63955407afc4ed5ec97c"
+    },
+    {
+      "path": "/admin/nexus/orders/:id/refund",
+      "methods": [
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/admin/nexus/orders/[id]/refund/route.ts",
+      "sha256": "14a8a5cace03889e9a47178735688045d409a5d2fb61a2b4f4efd89deeac09d1"
+    },
+    {
       "path": "/admin/ops/audit",
       "methods": [
         "GET"
@@ -1077,6 +1431,71 @@
       "sha256": "7d8a70e17020f193373cefa12ed54ec6b61a7f217e00b8a9b67e8adb6cf98792"
     },
     {
+      "path": "/admin/pages",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "page-content",
+      "source": "backend/src/api/admin/pages/route.ts",
+      "sha256": "bb2200db5004036dc29191e9d7eb5511abf303c6cd0cc42b9c0cdd021afb1bbe"
+    },
+    {
+      "path": "/admin/pages/:slug",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "page-content",
+      "source": "backend/src/api/admin/pages/[slug]/route.ts",
+      "sha256": "5e889f6dac52d0f68782fcdb1550acee997e8e1044242cfbcb5af04994e581e0"
+    },
+    {
+      "path": "/admin/product-catalogue",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/admin/product-catalogue/route.ts",
+      "feature": "products",
+      "sha256": "e2e67bc6785129ce6e0d87f19a76b42e3176fe8a7a6cdde099faf8471efd3fca"
+    },
+    {
+      "path": "/admin/products/:id/protected-media",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "media",
+      "source": "backend/src/api/admin/products/[id]/protected-media/route.ts",
+      "sha256": "9d262e943fb9ea02b476f938cc10d2a1f980ac1ed1f193cf94bfa3ad5abc1a12"
+    },
+    {
+      "path": "/admin/products/:id/protected-media/:key",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "backend/src/api/admin/products/[id]/protected-media/[key]/route.ts",
+      "feature": "media",
+      "sha256": "2a2e4b1cef118ad9852da9ae940c63a387b2a5644449a67cd7a5285a1243c311"
+    },
+    {
+      "path": "/admin/products/:id/protected-media/attach",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/products/[id]/protected-media/attach/route.ts",
+      "feature": "media",
+      "sha256": "4756d9c17399cc37432459e55350b0ace6fc4e551de60097d34303185860f710"
+    },
+    {
+      "path": "/admin/products/:id/protected-media/upload-url",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/products/[id]/protected-media/upload-url/route.ts",
+      "feature": "media",
+      "sha256": "1f2af8d83b6f1dbd4857376c509ba87811da40cc801bb3b38d8b8bc13a3fe5f4"
+    },
+    {
       "path": "/admin/readiness",
       "methods": [
         "GET"
@@ -1084,6 +1503,15 @@
       "feature": "overview",
       "source": "backend/src/api/admin/readiness/route.ts",
       "sha256": "112a43dbb0a8b0c00ead4e17edf5fa191bbbf0248e5f248094efdd8ff3db2244"
+    },
+    {
+      "path": "/admin/reset-program",
+      "methods": [
+        "GET"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/admin/reset-program/route.ts",
+      "sha256": "a35b534727aa68dd79382d30dde1f4ebbc46ec35cd0032c086c80f63988293a2"
     },
     {
       "path": "/admin/shop-prices/:id",
@@ -1159,6 +1587,24 @@
       "sha256": "fde8fe7b6b802fa6bf84397c047f692cabf3b1816f6a2821f4d5366af9be8f16"
     },
     {
+      "path": "/feeds/google.xml",
+      "methods": [
+        "GET"
+      ],
+      "feature": "product-feeds",
+      "source": "backend/src/api/feeds/google.xml/route.ts",
+      "sha256": "853804e0e0094e42a234b70d88203d773da4d7c696fdd2039243ad3b3b7fd3dd"
+    },
+    {
+      "path": "/feeds/heureka.xml",
+      "methods": [
+        "GET"
+      ],
+      "feature": "product-feeds",
+      "source": "backend/src/api/feeds/heureka.xml/route.ts",
+      "sha256": "04e194011860d90be60cf2a67d03f81986badca8e47e09f2b796b1ab9978ec6d"
+    },
+    {
       "path": "/hooks/nexus/booking-order",
       "methods": [
         "POST"
@@ -1193,7 +1639,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/store/bookings/route.ts",
-      "sha256": "44788ee742c9010d2b7b800ae8eef0cd94e175bd7281894e5ec0da073a59c014"
+      "sha256": "314cb8fa5aed01d6551310e65fa1d6e269b459293570e30dfedd492509236cb2"
     },
     {
       "path": "/store/bookings/:id/cancel",
@@ -1202,7 +1648,7 @@
       ],
       "feature": "booking",
       "source": "backend/src/api/store/bookings/[id]/cancel/route.ts",
-      "sha256": "b64e4b82aed9f565cd83e144b2963b3aeefaa1e0d83e46371c1824a3c610bbd0"
+      "sha256": "f2a9673d2c43560608a37ad131982cce5e66e793cea5947cbbcb9a2eb04c35f6"
     },
     {
       "path": "/store/bookings/:id/cart",
@@ -1223,52 +1669,6 @@
       "sha256": "e536a23436c98486ac5dc2bb35f5d650ff88ef39e86577120ec0fa6d5fffcc06"
     },
     {
-      "path": "/store/chat/conversations",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/route.ts",
-      "sha256": "f188bf32480acab346ac804213e2fc9fcc91638dfc1042e96123427d942ce30e"
-    },
-    {
-      "path": "/store/chat/conversations/:id",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
-      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
-    },
-    {
-      "path": "/store/chat/conversations/:id/messages",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
-      "sha256": "5e56d3086e8276a6ae52159eea94e6ea643b65821a8f1434dc5ae2c8902c5617"
-    },
-    {
-      "path": "/store/chat/conversations/:id/read",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
-      "sha256": "955cb381122a69de33c940010fb5f9c551bcb175366a7bbdd0cfac76da63b904"
-    },
-    {
-      "path": "/store/chat/status",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/status/route.ts",
-      "sha256": "5543d0db72e470f1a2967368b025fdd6fd90c09b569a5d1ba93aed687392418e"
-    },
-    {
       "path": "/store/contact",
       "methods": [
         "POST"
@@ -1278,13 +1678,31 @@
       "sha256": "1a6697c571e72c6af63cc55a2028f8694d2cd5f69577b1d6ae0fef1ca933db94"
     },
     {
+      "path": "/store/content/:page",
+      "methods": [
+        "GET"
+      ],
+      "feature": "web-content",
+      "source": "backend/src/api/store/content/[page]/route.ts",
+      "sha256": "7c2e94fe472f3b3f5c6437f2e88506356e7ec2067394111631688f8800c80a24"
+    },
+    {
+      "path": "/store/contract-withdrawal",
+      "methods": [
+        "POST"
+      ],
+      "feature": "returns",
+      "source": "backend/src/api/store/contract-withdrawal/route.ts",
+      "sha256": "7e735e1fdfd9bb9aacd49d224a8f5336ebbe8446f63b0a053625a01ecbf8e989"
+    },
+    {
       "path": "/store/coupon-links",
       "methods": [
         "POST"
       ],
       "feature": "qr",
       "source": "backend/src/api/store/coupon-links/route.ts",
-      "sha256": "7f35162e7eec738dbbd09599f02cf9a7c4c518a73a10961aa8de61dc1a340233"
+      "sha256": "ad344af5bcbcc2f383c957fcc60b365605f31eea1ebf837011e08492a2161d9c"
     },
     {
       "path": "/store/custom",
@@ -1320,7 +1738,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/entitlements/route.ts",
-      "sha256": "d6f23f4c866277a54dc057ebc8f96a7871b20249f457bbdbceac10dc70973d0f"
+      "sha256": "182a0b4bd2ab27ffa0c0bb8651481ba9672fe3788ea01c7ba0dce848f21a3b33"
     },
     {
       "path": "/store/gift-vouchers/apply",
@@ -1329,7 +1747,7 @@
       ],
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/apply/route.ts",
-      "sha256": "d029cbb7061794af1bc1965b48f8369a3d3b787540627575b660e5756e815257"
+      "sha256": "d8c15cc8342d2c1425c34f048cc3e0b7d257b94751a9d6aaef7975ff42466ec0"
     },
     {
       "path": "/store/gift-vouchers/recipients",
@@ -1338,7 +1756,7 @@
       ],
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/recipients/route.ts",
-      "sha256": "767edba6701cb8577f3ef4f3f7c357f7d6995b5d44e9a0f653a0664e88528e77"
+      "sha256": "aa6cfe57a0446f4e60443ccf7daae9a09018dd407dee3b2525d752a6ce515011"
     },
     {
       "path": "/store/gift-vouchers/remove",
@@ -1347,7 +1765,53 @@
       ],
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/remove/route.ts",
-      "sha256": "4450ff2df0337f48d4e379679d7931ede71e7b31a4d53e6a87e21b163ae3adf4"
+      "sha256": "e706b9e53f5d6c20c9bbd0d2dc70df9a5b586c83a5690c48f36036beb80e32ce"
+    },
+    {
+      "path": "/store/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/route.ts",
+      "sha256": "1ca69dc788935214dcda88f533e874e9b9037ea53033e41d17d154ff844f13d6"
+    },
+    {
+      "path": "/store/chat/conversations/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
+      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
+    },
+    {
+      "path": "/store/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
+      "sha256": "a936d7eac0f5613c19f303a93c7881ae72428324bc9df4b74e68fbe851b2bb5c"
+    },
+    {
+      "path": "/store/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
+      "sha256": "a18f82c0e40e861d24a210b0e88ba582ac7cd5168fa79edd7f94ece3b45cdb37"
+    },
+    {
+      "path": "/store/chat/status",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/status/route.ts",
+      "sha256": "8a1d34caedb2916f2c6abf57ed3b851554ef164859a4700f48032bbc08c30ca6"
     },
     {
       "path": "/store/legal/versions",
@@ -1365,7 +1829,7 @@
       ],
       "feature": "media",
       "source": "backend/src/api/store/media-access/route.ts",
-      "sha256": "47f9fed3369d89dc8be66d4fb9228f9313d98dd74c467ca645c0bcb6be99748a"
+      "sha256": "7545d2b1562e56c92c85fe8ece95f969edf4541669489c3e6b763ad1dfe469ac"
     },
     {
       "path": "/store/memberships",
@@ -1464,7 +1928,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "9c4ffd315c5462efc88496704b0aed1b2eb1dce60d9bcfa3ca19a0269d81c527"
+      "sha256": "f4bdbab6acd3eaa38e778ac69d146452ecd97d29e772fedad840b3b45f93e07d"
     },
     {
       "path": "/store/nexus-checkout",
@@ -1473,7 +1937,17 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "35df396755c37b183d3a41bfed0381c7cad537761e93f4d18089deca9783ea38"
+      "sha256": "3bb39ea1d5558599bd994eb3874754ffffb50fe0886c0f30f7ae6bdd5c2e3a23"
+    },
+    {
+      "path": "/store/nexus-checkout/options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "orders",
+      "source": "backend/src/api/store/nexus-checkout/options/route.ts",
+      "sha256": "8a1b6dc47c387f0007a82552440ee8fb473474b08d85bffae09b726fe0dd6ea9"
     },
     {
       "path": "/store/orders/:id/cancel",
@@ -1485,6 +1959,44 @@
       "sha256": "6b90b5d01827b7ef422abb5e0e4512fd365e61e018354811a11adfd45a0ae4f7"
     },
     {
+      "path": "/store/pages/:slug",
+      "methods": [
+        "GET"
+      ],
+      "feature": "page-content",
+      "source": "backend/src/api/store/pages/[slug]/route.ts",
+      "sha256": "2809e937021d502a2a9e2bff343d5f7216dd3b4765892e6abb154b2f93371b4a"
+    },
+    {
+      "path": "/store/reset-journal",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/store/reset-journal/route.ts",
+      "sha256": "25ea593c0b10296ef71c5832f20c8c658e97932ef727848516e19792d199db6b"
+    },
+    {
+      "path": "/store/reset-journal/:id",
+      "methods": [
+        "DELETE",
+        "PATCH"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/store/reset-journal/[id]/route.ts",
+      "sha256": "9f56b8372a1ae9c1ca4c84f3b57d349943775c0c6cced7334ff481559896ec46"
+    },
+    {
+      "path": "/store/reset-program",
+      "methods": [
+        "GET"
+      ],
+      "feature": "access",
+      "source": "backend/src/api/store/reset-program/route.ts",
+      "sha256": "adf9c9f59deb64d605a4adc765f920f8fa0333008ddcf3bbeef81323c1c4c515"
+    },
+    {
       "path": "/store/withdrawals",
       "methods": [
         "POST"
@@ -1492,6 +2004,15 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/store/nexus-auth/logout",
+      "methods": [
+        "POST"
+      ],
+      "feature": "customer-recovery",
+      "source": "backend/src/api/store/nexus-auth/logout/route.ts",
+      "sha256": "c834b6b8295fd71bf9bfad494beac2d0243bd63a1cb4b9c5a81f5fbfec0c6a79"
     }
   ],
   "native_medusa_version": "2.19.0",
@@ -3976,6 +4497,7 @@
   ],
   "worker_router_cases": [
     "/api/nexus/pricing",
+    "/api/nexus/pricing-policy",
     "/api/nexus/operations",
     "/api/nexus/safeorder",
     "/api/vouchers/validate",
@@ -4004,6 +4526,7 @@
       "backend/src/jobs/ops-retention.ts"
     ],
     "subscribers": [
+      "backend/src/subscribers/admin-order-placed.ts",
       "backend/src/subscribers/auth-magic-link-requested.ts",
       "backend/src/subscribers/booking-order-canceled.ts",
       "backend/src/subscribers/booking-order-placed.ts",
@@ -4026,8 +4549,11 @@
       "backend/src/subscribers/gift-voucher-order-placed.ts",
       "backend/src/subscribers/gift-voucher-payment-captured.ts",
       "backend/src/subscribers/legal-order-placed.ts",
+      "backend/src/subscribers/loyalty-tier-assigned.ts",
       "backend/src/subscribers/membership-access.ts",
-      "backend/src/subscribers/nexus-medusa-events.ts"
+      "backend/src/subscribers/nexus-medusa-events.ts",
+      "backend/src/subscribers/nexus-voucher-issuance.ts",
+      "backend/src/subscribers/nexus-webhook-forwarder.ts"
     ],
     "workflows": [
       "backend/src/workflows/booking-checkout.ts",
@@ -4044,6 +4570,7 @@
       "backend/src/modules/chat/models/chat-customer-block.ts",
       "backend/src/modules/chat/models/chat-message.ts",
       "backend/src/modules/chat/models/chat-notification-state.ts",
+      "backend/src/modules/coupon-link/models/coupon-link-record.ts",
       "backend/src/modules/customer-privacy/models/customer-erasure.ts",
       "backend/src/modules/customer-privacy/models/customer-note.ts",
       "backend/src/modules/email-template/models/email-template-override.ts",
@@ -4052,6 +4579,7 @@
       "backend/src/modules/gift-voucher/models/gift-voucher-transaction.ts",
       "backend/src/modules/gift-voucher/models/gift-voucher.ts",
       "backend/src/modules/legal/models/legal-consent.ts",
+      "backend/src/modules/legal/models/legal-contract-withdrawal.ts",
       "backend/src/modules/legal/models/legal-withdrawal.ts",
       "backend/src/modules/legal/models/newsletter-consent-event.ts",
       "backend/src/modules/legal/models/newsletter-consent.ts",
@@ -4062,13 +4590,15 @@
       "backend/src/modules/membership/models/membership-receipt.ts",
       "backend/src/modules/membership/models/membership.ts",
       "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
-      "backend/src/modules/ops-audit/models/ops-event.ts"
+      "backend/src/modules/ops-audit/models/ops-event.ts",
+      "backend/src/modules/reset-journal/models/reset-journal-entry.ts"
     ],
     "modules": [
       "backend/src/modules/auth-magic-link/index.ts",
       "backend/src/modules/auth-security/index.ts",
       "backend/src/modules/booking/index.ts",
       "backend/src/modules/chat/index.ts",
+      "backend/src/modules/coupon-link/index.ts",
       "backend/src/modules/customer-privacy/index.ts",
       "backend/src/modules/email-template/index.ts",
       "backend/src/modules/entitlement/index.ts",
@@ -4077,8 +4607,10 @@
       "backend/src/modules/membership-stripe/index.ts",
       "backend/src/modules/membership/index.ts",
       "backend/src/modules/notification-log/index.ts",
+      "backend/src/modules/notification-resend/index.ts",
       "backend/src/modules/notification-zeptomail/index.ts",
-      "backend/src/modules/ops-audit/index.ts"
+      "backend/src/modules/ops-audit/index.ts",
+      "backend/src/modules/reset-journal/index.ts"
     ],
     "nexus_domains": [
       "nexus/domains/availability/AvailabilityRule.ts",
@@ -4249,6 +4781,7 @@
     ]
   },
   "test_sources": [
+    "anastasia-admin/test/browser-library-editor.mjs",
     "backend/integration-tests/http/admin-theme.spec.ts",
     "backend/integration-tests/http/auth-security-http-checks.ts",
     "backend/integration-tests/http/booking-http-checks.ts",
@@ -4268,6 +4801,10 @@
     "backend/integration-tests/http/ops-observability-checks.ts",
     "backend/integration-tests/http/order-email-recovery-http-checks.ts",
     "backend/integration-tests/http/order-self-cancel-http-checks.ts",
+    "backend/integration-tests/http/protected-library-admin-http-checks.ts",
+    "backend/integration-tests/http/qr-registry.spec.ts",
+    "backend/integration-tests/http/reset-journal-http-checks.ts",
+    "backend/integration-tests/http/reset-journal.spec.ts",
     "backend/integration-tests/http/safeorder-persistence.spec.ts",
     "backend/integration-tests/http/shipping-settings-http-checks.ts",
     "backend/integration-tests/http/stock-availability-http-checks.ts",
@@ -4275,25 +4812,44 @@
     "backend/src/api/__tests__/auth-magic-link-rate.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/links.unit.spec.ts",
     "backend/src/api/admin/coupon-links/__tests__/redirects.unit.spec.ts",
+    "backend/src/api/admin/coupon-links/__tests__/registry.unit.spec.ts",
     "backend/src/api/admin/my-theme/__tests__/theme.unit.spec.ts",
+    "backend/src/api/admin/nexus/__tests__/customer-tier.unit.spec.ts",
+    "backend/src/api/admin/nexus/__tests__/loyalty-customers.unit.spec.ts",
+    "backend/src/api/admin/nexus/__tests__/loyalty-policy.unit.spec.ts",
     "backend/src/api/admin/ops/nexus/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/product-catalogue/__tests__/route.unit.spec.ts",
+    "backend/src/api/admin/products/[id]/protected-media/__tests__/delete-key-routing.unit.spec.ts",
+    "backend/src/api/admin/products/[id]/protected-media/__tests__/library-upload.unit.spec.ts",
     "backend/src/api/admin/shop-prices/__tests__/price.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/transactions.unit.spec.ts",
     "backend/src/api/admin/vouchers/__tests__/write-audit.unit.spec.ts",
     "backend/src/api/store/gift-vouchers/__tests__/rate-limit.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/coupon.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/customer-tier.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/loyalty-pricing.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/nexus-contract.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/ownership.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/pricing-transport.unit.spec.ts",
+    "backend/src/api/store/nexus-checkout/__tests__/digital-guest-checkout.unit.spec.ts",
     "backend/src/api/store/nexus-checkout/__tests__/route-errors.unit.spec.ts",
     "backend/src/api/store/nexus-checkout/__tests__/safeorder.unit.spec.ts",
+    "backend/src/api/store/reset-journal/__tests__/route.unit.spec.ts",
     "backend/src/lib/__tests__/admin-function-map.unit.spec.ts",
     "backend/src/lib/admin-theme/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/carriers/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/chat-templates/__tests__/templates.unit.spec.ts",
     "backend/src/lib/compensation/__tests__/payment-refunded.unit.spec.ts",
+    "backend/src/lib/content/__tests__/content.unit.spec.ts",
+    "backend/src/lib/digital-products/__tests__/categories.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-recovery.unit.spec.ts",
     "backend/src/lib/email/__tests__/order-subscriber.unit.spec.ts",
     "backend/src/lib/email/__tests__/send.unit.spec.ts",
+    "backend/src/lib/feeds/__tests__/catalog.unit.spec.ts",
+    "backend/src/lib/feeds/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/loyalty/__tests__/auto-assign.unit.spec.ts",
+    "backend/src/lib/loyalty/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/loyalty/__tests__/settings.unit.spec.ts",
     "backend/src/lib/membership/__tests__/access.unit.spec.ts",
     "backend/src/lib/membership/__tests__/admin.unit.spec.ts",
     "backend/src/lib/membership/__tests__/billing-guard.unit.spec.ts",
@@ -4310,6 +4866,7 @@
     "backend/src/lib/membership/__tests__/store-http.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-hook.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/booking-order.unit.spec.ts",
+    "backend/src/lib/nexus/__tests__/loyalty-policy-sync.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/medusa-delivery.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/medusa-subscriber.unit.spec.ts",
     "backend/src/lib/nexus/__tests__/operations.unit.spec.ts",
@@ -4319,6 +4876,12 @@
     "backend/src/lib/observability/__tests__/events.unit.spec.ts",
     "backend/src/lib/observability/__tests__/log.unit.spec.ts",
     "backend/src/lib/order-self-cancel/__tests__/cancel.unit.spec.ts",
+    "backend/src/lib/pages/__tests__/policy.unit.spec.ts",
+    "backend/src/lib/protected-library/__tests__/editor.unit.spec.ts",
+    "backend/src/lib/protected-library/__tests__/storage.unit.spec.ts",
+    "backend/src/lib/protected-library/__tests__/upload.unit.spec.ts",
+    "backend/src/lib/reset-program/__tests__/config.unit.spec.ts",
+    "backend/src/lib/reset-program/__tests__/structure.unit.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/policy.unit.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/service.integration.spec.ts",
     "backend/src/modules/auth-magic-link/__tests__/service.unit.spec.ts",
@@ -4339,6 +4902,7 @@
     "backend/src/modules/gift-voucher/__tests__/issuance-delivery.unit.spec.ts",
     "backend/src/modules/gift-voucher/__tests__/policy.unit.spec.ts",
     "backend/src/modules/legal/__tests__/checkout.unit.spec.ts",
+    "backend/src/modules/legal/__tests__/contract-withdrawal.unit.spec.ts",
     "backend/src/modules/legal/__tests__/newsletter.unit.spec.ts",
     "backend/src/modules/legal/__tests__/policy.unit.spec.ts",
     "backend/src/modules/legal/__tests__/routes.unit.spec.ts",
@@ -4348,11 +4912,15 @@
     "backend/src/modules/ops-audit/__tests__/edge-ingest.unit.spec.ts",
     "backend/src/modules/ops-audit/__tests__/events-policy.unit.spec.ts",
     "backend/src/modules/ops-audit/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/reset-journal/__tests__/policy.unit.spec.ts",
+    "backend/src/modules/reset-journal/__tests__/service.unit.spec.ts",
     "backend/src/scripts/__tests__/anastasia-bootstrap.unit.spec.ts",
     "backend/src/scripts/__tests__/catalog-import.unit.spec.ts",
     "backend/src/scripts/__tests__/customer-migration.unit.spec.ts",
     "backend/src/scripts/__tests__/db-recovery.unit.spec.ts",
     "backend/src/scripts/__tests__/edge-redirects.unit.spec.ts",
+    "backend/src/scripts/e2e-digital-library.ts",
+    "backend/src/scripts/e2e-loyalty-tiers.ts",
     "backend/src/workflows/__tests__/booking-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/gift-voucher-checkout.unit.spec.ts",
     "backend/src/workflows/__tests__/safeorder-completion.unit.spec.ts",
@@ -4450,6 +5018,7 @@
     "nexus/tests/unit/medusaWebhookRoute.test.ts",
     "nexus/tests/unit/nexusPricingRoute.test.ts",
     "nexus/tests/unit/nexusSafeOrderRoute.test.ts",
+    "nexus/tests/unit/pricingPolicy.test.ts",
     "nexus/tests/workers/bookingInbox.test.ts",
     "nexus/tests/workers/edgeRedirects.test.ts",
     "nexus/tests/workers/intentClaim.test.ts",
@@ -4457,11 +5026,13 @@
     "nexus/tests/workers/media-security-regression.test.ts",
     "nexus/tests/workers/medusaWebhook.test.ts",
     "nexus/tests/workers/operationsStatus.test.ts",
+    "nexus/tests/workers/pricingPolicy.test.ts",
     "nexus/tests/workers/safeOrder.test.ts",
     "nexus/tests/workers/scheduledRecovery.test.ts",
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
-    "nexus/tests/workers/voucherConcurrency.test.ts"
+    "nexus/tests/workers/voucherConcurrency.test.ts",
+    "storefront-prototype/test/digital-products.test.mjs"
   ],
   "candidate_branch": "codex/admin-theming"
 }

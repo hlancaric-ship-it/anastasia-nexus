@@ -17,6 +17,7 @@ export type LoggerLike = { info: (msg: string) => void; warn: (msg: string) => v
 export const LOG_DOMAINS = [
   "http", "safeorder", "pricing", "checkout", "payment", "webhook", "coupon", "gift_voucher",
   "booking", "entitlement", "auth", "migration", "chat", "job", "notification", "admin_audit", "edge",
+  "loyalty",
 ] as const
 export type LogDomain = (typeof LOG_DOMAINS)[number]
 

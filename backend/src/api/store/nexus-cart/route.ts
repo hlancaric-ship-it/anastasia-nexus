@@ -5,6 +5,8 @@ import { updateLineItemInCartWorkflow, updateCartWorkflow } from "@medusajs/medu
 import { refreshPaymentCollectionForCartWorkflow } from "@medusajs/medusa/core-flows"
 import { resolveCustomerTier } from "./customer-tier"
 import { codeAvailable } from "../../admin/coupon-links/validation"
+import { allocateFixedCoupon, couponAppliesToProduct, resolveCoupon } from "../../../lib/pricing/coupon"
+import { resolveSalePrice } from "../../../lib/pricing/sale"
 import { GIFT_VOUCHER_CREDIT_REFERENCE, isGiftVoucherProduct, toMinor, fromMinor, variantAmountMinor } from "../../../modules/gift-voucher/policy"
 import { syncGiftVoucherCredit, type CreditState } from "../../../modules/gift-voucher/cart"
 import { recordEvent } from "../../../lib/observability/events"
@@ -20,19 +22,40 @@ type PriceResponse = {
  * Server-resolved kupón uložený na cart.metadata.nexus_coupon -- NIKDY se
  * nebere znovu z klientského requestu při každém repriceCart() volání (K2
  * propojení s checkout gate by jinak padalo na PRICE_CHANGED, protože by
- * se stejný kód posuzoval dvakrát nezávisle). Jen procentuální sleva --
- * `type: "fixed"` kupóny tahle verze zatím nepodporuje (viz
- * CouponDiscountRule.ts v NEXUSu, per-item calculator neumí alokaci pevné
- * částky napříč položkami košíku).
+ * se stejný kód posuzoval dvakrát nezávisle).
+ *
+ * Klient posiela LEN kód. Percentá aj pevná suma, rozsah (celý košík /
+ * vybrané produkty), limit a platnosť rieši server (Medusa = autorita pravidiel,
+ * NEXUS Worker = autorita výpočtu ceny).
  */
-type StoredCoupon = { code: string; promotion_id: string; type: "percentage"; value: number }
+type StoredCoupon = {
+  code: string
+  promotion_id: string
+  type: "percentage" | "fixed"
+  value: number
+  target: "order" | "items"
+  product_ids: string[] | null
+  currency: string
+}
 
 function readStoredCoupon(metadata: Record<string, unknown> | null | undefined): StoredCoupon | undefined {
   const raw = metadata?.nexus_coupon
   if (!raw || typeof raw !== "object") return undefined
   const c = raw as Record<string, unknown>
-  if (typeof c.code !== "string" || typeof c.promotion_id !== "string" || c.type !== "percentage" || typeof c.value !== "number") return undefined
-  return { code: c.code, promotion_id: c.promotion_id, type: "percentage", value: c.value }
+  if (typeof c.code !== "string" || typeof c.promotion_id !== "string") return undefined
+  if (c.type !== "percentage" && c.type !== "fixed") return undefined
+  if (typeof c.value !== "number" || !Number.isFinite(c.value) || c.value <= 0) return undefined
+  const target = c.target === "order" ? "order" : "items"
+  const productIds = Array.isArray(c.product_ids) ? c.product_ids.map((value) => String(value)).filter(Boolean) : null
+  return {
+    code: c.code,
+    promotion_id: c.promotion_id,
+    type: c.type,
+    value: c.value,
+    target,
+    product_ids: productIds,
+    currency: typeof c.currency === "string" ? c.currency : "eur",
+  }
 }
 
 async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, existingMetadata: Record<string, unknown> | null | undefined, coupon: StoredCoupon | null) {
@@ -47,29 +70,37 @@ async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  * rozdíl od `validateLink` v admin/coupon-links, který QR odkaz váže na
  * produkt). Vrací `undefined`, pokud kód neexistuje nebo není momentálně
  * dostupný (`codeAvailable`) -- volající rozhodne, jestli je to chyba
- * (nový kód od zákaznice) nebo tichý pokles (dřív uložený kód mezitím
+ * (nový kód od zákazníka) nebo tichý pokles (dřív uložený kód mezitím
  * vypršel/došel limit).
+ *
+ * Podporuje se percentuálna aj pevná zľava (EUR), rozsah `order` aj `items`
+ * a obmedzenie na produkty (`target_rules items.product.id`). Nepodporovaná
+ * pravidla (pravidla pro zákazníka, „kúpi X a dostane Y“) se odmietajú.
  */
 async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promise<StoredCoupon | undefined> {
   const promotions = scope.resolve<IPromotionModuleService>(Modules.PROMOTION)
-  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "rules", "application_method", "application_method.target_rules", "application_method.buy_rules"], take: 2 })
+  // `application_method.target_rules.values` je nutné načítať – hodnoty pravidla
+  // (napr. `items.product.id in [...]`) ležia v samostatnej tabuľke a bez nich sa
+  // obmedzenie na produkty nedá prečítať (kupón by sa vôbec neuplatnil).
+  const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "rules", "application_method", "application_method.target_rules", "application_method.target_rules.values", "application_method.buy_rules"], take: 2 })
   const promotion = matches[0] as PromotionDTO | undefined
   if (matches.length !== 1 || !promotion || !codeAvailable(promotion, code)) return undefined
-  const method = promotion.application_method
-  // NEXUS currently applies a single percentage to every item. Never silently
-  // discard native customer/product/quantity/target restrictions.
-  if (!Array.isArray(promotion.rules) || promotion.rules.length ||
-      !Array.isArray(method?.target_rules) || method.target_rules.length ||
-      !Array.isArray(method?.buy_rules) || method.buy_rules.length ||
-      promotion.type !== "standard" || method.target_type !== "items" ||
-      method.max_quantity != null || method.buy_rules_min_quantity != null || method.apply_to_quantity != null) return undefined
-  if (!method || method.type !== "percentage" || typeof method.value !== "number" || method.value <= 0 || method.value > 100) return undefined
-  return { code, promotion_id: promotion.id, type: "percentage", value: method.value }
+  const resolved = resolveCoupon(promotion as any, code)
+  if (!resolved) return undefined
+  return {
+    code: resolved.code,
+    promotion_id: resolved.promotion_id,
+    type: resolved.type,
+    value: resolved.value,
+    target: resolved.target,
+    product_ids: resolved.product_ids,
+    currency: resolved.currency,
+  }
 }
 
 /**
  * Vyřeší kupón platný pro tenhle reprice:
- * - `couponCodeInput === null` -> zákaznice kupón explicitně odebírá.
+ * - `couponCodeInput === null` -> zákazník kupón explicitně odebírá.
  * - `couponCodeInput` je string -> nový/změněný kód, musí projít ověřením
  *   (jinak COUPON_INVALID -- na rozdíl od "tiše zmizelého" starého kódu).
  * - `couponCodeInput === undefined` -> žádná změna z klienta; použije se
@@ -141,7 +172,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const variantIds = (cart.items || []).map((item: any) => item.variant_id).filter(Boolean)
   const variantsResult = variantIds.length ? await query.graph({
     entity: "product_variant",
-    fields: ["id", "sku", "calculated_price.calculated_amount", "calculated_price.original_amount", "calculated_price.currency_code", "metadata", "product.title", "product.metadata"],
+    fields: ["id", "sku", "calculated_price.calculated_amount", "calculated_price.original_amount", "calculated_price.currency_code", "metadata", "product.id", "product.title", "product.metadata"],
     filters: { id: variantIds },
     context: {
       calculated_price: QueryContext({
@@ -156,6 +187,12 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const pricedItems: Array<{ id: string; sku: string; quantity: number; unit_price: number; is_discountable: boolean; metadata: Record<string, unknown> }> = []
   let pricesChanged = false
   let giftVoucher: CreditState = null
+
+  // 1) Cena každej položky: základná cena (bez výpredaja) a výpredajová cena.
+  //    Základná cena je vstup pre NEXUS (z ktorej sa počíta zľava), výpredaj
+  //    sa rozhoduje z metadát `vyprodej` (aktívna + platná do) a z cenového zoznamu.
+  type Prepared = { id: string; variant: any; quantity: number; basePrice: number; salePrice: number | null; productId: string | null }
+  const prepared: Prepared[] = []
   for (const item of cart.items || []) {
     const variant = variants.get(item.variant_id) as any
     const product = variant?.product
@@ -165,18 +202,48 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
     if (!variant?.id || !variant.sku || variant.calculated_price?.currency_code !== cart.currency_code || !Number.isFinite(currentAmount) || currentAmount < 0 || !Number.isInteger(quantity) || quantity < 1) {
       throw new Error("INVALID_MEDUSA_LINE_ITEM")
     }
+    const sale = resolveSalePrice({
+      originalAmount,
+      currentAmount,
+      metadata: product?.metadata?.vyprodej ?? variant?.metadata?.vyprodej,
+    })
+    prepared.push({
+      id: item.id,
+      variant,
+      quantity,
+      basePrice: sale.basePrice,
+      salePrice: sale.salePrice,
+      productId: typeof product?.id === "string" ? product.id : null,
+    })
+  }
+
+  // 2) Pevná zľava (EUR) sa rozdeľuje medzi položky, na ktoré kupón platí.
+  //    Percentuálna zľava nemusí alokáciu -- Worker ju aplikuje na každú položku.
+  const couponItems = prepared
+    .filter((item) => couponAppliesToProduct(coupon, item.productId))
+    .map((item) => ({ id: item.id, productId: item.productId, basePrice: item.basePrice }))
+  const fixedAllocation = coupon && coupon.type === "fixed"
+    ? allocateFixedCoupon(coupon.value, couponItems)
+    : new Map<string, number>()
+
+  for (const item of prepared) {
+    const variant = item.variant
+    const product = variant?.product
+    const quantity = item.quantity
     if (isGiftVoucherProduct(product)) {
       // Darčekový poukaz: cena = nominální hodnota varianty, NEXUS (slevy, věrnost, kupón) se nepoužije.
       const amount = variantAmountMinor(variant)
-      if (!Number.isInteger(amount) || toMinor(currentAmount) !== amount) throw new Error("GIFT_VOUCHER_PRODUCT_INVALID")
+      if (!Number.isInteger(amount) || toMinor(Number(variant?.calculated_price?.calculated_amount)) !== amount) throw new Error("GIFT_VOUCHER_PRODUCT_INVALID")
       const unitPrice = fromMinor(amount)
       pricedItems.push({ id: item.id, sku: variant.sku, quantity, unit_price: unitPrice, is_discountable: false, metadata: { gift_voucher: true } })
-      pricesChanged ||= Number(item.unit_price) !== unitPrice
+      pricesChanged ||= Number(cart.items?.find((line: any) => line.id === item.id)?.unit_price) !== unitPrice
       continue
     }
-    const basePrice = Number.isFinite(originalAmount) && originalAmount >= currentAmount ? originalAmount : currentAmount
-    const salePrice = basePrice > currentAmount ? currentAmount : undefined
+    const basePrice = item.basePrice
+    const salePrice = item.salePrice ?? undefined
     const metadata = product?.metadata || {}
+    const couponApplies = couponAppliesToProduct(coupon, item.productId)
+    const fixedAmount = couponApplies ? (fixedAllocation.get(item.id) ?? 0) : 0
     let response: Response
     try {
       response = await fetch(pricingUrl, {
@@ -194,7 +261,10 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
         category: typeof metadata.category === "string" ? metadata.category : undefined,
         productMaxDiscount: typeof metadata.max_discount === "number" ? metadata.max_discount : undefined,
         allowLoyaltyDiscount: true,
-        couponDiscountPercent: coupon ? coupon.value / 100 : undefined,
+        // Kupón: percentá len na položky, na ktoré platí; pevná suma je rozdelená
+        // už v backendu (alokácia) a Worker ju odčíta od ceny (nikdy pod 0).
+        couponDiscountPercent: couponApplies && coupon?.type === "percentage" ? coupon.value / 100 : undefined,
+        couponFixedAmount: fixedAmount > 0 ? fixedAmount : undefined,
         }),
       })
     } catch {
@@ -212,9 +282,9 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
       quantity,
       unit_price: price.calculated.finalPrice,
       is_discountable: false,
-      metadata: { nexus_tenant_id: tenantId, nexus_pricing_rules: price.calculated.appliedRules, nexus_coupon_code: coupon?.code },
+      metadata: { nexus_tenant_id: tenantId, nexus_pricing_rules: price.calculated.appliedRules, nexus_coupon_code: couponApplies ? coupon?.code : undefined },
     })
-    pricesChanged ||= Number(item.unit_price) !== price.calculated.finalPrice
+    pricesChanged ||= Number(cart.items?.find((line: any) => line.id === item.id)?.unit_price) !== price.calculated.finalPrice
   }
 
   if (applyChanges) {

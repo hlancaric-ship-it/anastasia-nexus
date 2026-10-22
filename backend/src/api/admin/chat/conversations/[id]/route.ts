@@ -25,7 +25,7 @@ async function load(req: AuthenticatedMedusaRequest): Promise<ChatConversationRo
   return row
 }
 
-/** GET /admin/chat/conversations/:id: konverzace se zprávami, zákaznicí a stavem blokace. */
+/** GET /admin/chat/conversations/:id: konverzace se zprávami, zákazníkem a stavem blokace. */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   if (!requireActor(req, res, "user")) return
   try {

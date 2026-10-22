@@ -140,7 +140,14 @@ function baseHeaders(): Headers {
 function contentType(key: string): string {
     const ext = key.slice(key.lastIndexOf('.') + 1).toLowerCase();
     return (
-        { m3u8: 'application/vnd.apple.mpegurl', ts: 'video/mp2t', m4s: 'video/iso.segment', mp4: 'video/mp4', mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', key: 'application/octet-stream' } as Record<string, string>
+        {
+            m3u8: 'application/vnd.apple.mpegurl', ts: 'video/mp2t', m4s: 'video/iso.segment', mp4: 'video/mp4',
+            mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac',
+            // PDF musí mať application/pdf, inak by prehliadač súbor stiahol
+            // (application/octet-stream) namiesto náhľadu v prehliadači.
+            pdf: 'application/pdf',
+            key: 'application/octet-stream',
+        } as Record<string, string>
     )[ext] ?? 'application/octet-stream';
 }
 

@@ -24,8 +24,13 @@ function fixture(): MigrationData {
   }
 }
 function mockServices() {
-  const db = { customers: [] as any[], addresses: [] as any[], orders: [] as any[], grants: [] as any[],
-    products: [{ id: "prod_target", metadata: { legacy_id: "p1" } }] }
+  const db = { customers: [] as any[], addresses: [] as any[], orders: [] as any[],
+    products: [{ id: "prod_target", metadata: { legacy_id: "p1" } }],
+    grants: [] as any[] }
+  // Reset entitlement repository before each test
+  if (!global.entitlementRepos) global.entitlementRepos = []
+  const repo: Map<string, any[]> = new Map()
+  global.entitlementRepos.push(repo)
   const page = (rows: any[], filter: any, config: any) => structuredClone(rows.filter(r => !filter.id || filter.id.includes(r.id)).slice(config.skip ?? 0, (config.skip ?? 0) + (config.take ?? 200)))
   const customer = {
     listCustomers: jest.fn(async (f, c) => page(db.customers, f, c)),
@@ -44,18 +49,31 @@ function mockServices() {
       return structuredClone(row)
     }),
   }
+  // MockEntitlementRepository pro tenant izolaci
+  const entitlementRepo: Map<string, any[]> = new Map()
   const entitlement = {
-    findByDedupeKey: jest.fn(async key => structuredClone(db.grants.find(g => g.dedupe_key === key) ?? null)),
+    findByDedupeKey: jest.fn(async (key: string, tenant_id: string = "default") => {
+      const grants = entitlementRepo.get(tenant_id) || []
+      const found = grants.find(g => g.dedupe_key === key)
+      return structuredClone(found ?? null)
+    }),
     grant: jest.fn(async input => {
-      const existing = db.grants.find(g => g.dedupe_key === input.dedupe_key)
+      const tenant_id = input.tenant_id ?? "default"
+      let grants = entitlementRepo.get(tenant_id)
+      if (!grants) {
+        grants = []
+        entitlementRepo.set(tenant_id, grants)
+      }
+      const existing = grants.find(g => g.dedupe_key === input.dedupe_key)
       if (existing) return { created: false, entitlement: structuredClone(existing) }
-      const row = { ...structuredClone(input), id: `ent_${db.grants.length}`, status: "active" }
+      const row = { ...structuredClone(input), id: `ent_${grants.length}`, status: "active" }
+      grants.push(row)
       db.grants.push(row)
       return { created: true, entitlement: structuredClone(row) }
     }),
   }
   const product = { listProducts: jest.fn(async (f, c) => page(db.products, f, c)) }
-  return { db, customer, order, entitlement, product, services: { customer, order, entitlement, product } as unknown as MigrationServices }
+  return { db, customer, order, entitlement, product, entitlementRepo, services: { customer, order, entitlement, product } as unknown as MigrationServices }
 }
 function expectNoWrites(s: ReturnType<typeof mockServices>) {
   expect(s.customer.createCustomers).not.toHaveBeenCalled()
@@ -64,6 +82,13 @@ function expectNoWrites(s: ReturnType<typeof mockServices>) {
   expect(s.order.createOrders).not.toHaveBeenCalled()
   expect(s.entitlement.grant).not.toHaveBeenCalled()
 }
+
+// Reset entitlement repo after each test
+afterEach(() => {
+  if (global.entitlementRepos) {
+    global.entitlementRepos.pop()
+  }
+})
 
 describe("customer migration validation and privacy", () => {
   it("defaults to dry-run and requires the exact apply argument", () => {
@@ -76,6 +101,13 @@ describe("customer migration validation and privacy", () => {
   })
   it("accepts only the authorized local DB", () => {
     expect(() => assertLocalDatabase("postgres://u@127.0.0.1:5432/anastasia_dev_wave1")).not.toThrow()
+  })
+  it("allows the isolated local catalogue DB and can omit obsolete password drafts", () => {
+    expect(() => assertLocalDatabase("postgresql://localhost/anastasia_catalog_local_20261019")).not.toThrow()
+    expect(() => assertLocalDatabase("postgresql://remote/anastasia_catalog_local_20261019")).toThrow("LOCAL_DATABASE_REQUIRED")
+    expect(() => assertLocalDatabase("postgresql://localhost/anastasia_catalog_local_20261019?host=remote")).toThrow("LOCAL_DATABASE_REQUIRED")
+    expect(parseOptions(["--skip-password-drafts"]).skipPasswordDrafts).toBe(true)
+    expect(parseOptions([]).skipPasswordDrafts).toBe(false)
   })
   it("rejects password fields and does not echo private values in validation errors", () => {
     const data = fixture() as any
@@ -137,6 +169,20 @@ describe("customer migration validation and privacy", () => {
 })
 
 describe("customer migration execution", () => {
+  beforeAll(() => {
+    global.entitlementRepos = []
+  })
+  afterAll(() => {
+    global.entitlementRepos = undefined
+  })
+  it("can migrate without generating password drafts or requiring a draft writer", async () => {
+    const s = mockServices()
+    const dry = await migrateCustomers(fixture(), catalog, s, { apply: false, skipPasswordDrafts: true })
+    expect(dry.planned?.password_drafts).toBe(0)
+    const report = await migrateCustomers(fixture(), catalog, s, { apply: true, skipPasswordDrafts: true })
+    expect(report.reconciled).toBe(true)
+    expect(s.db.grants).toHaveLength(1)
+  })
   it("performs zero writes in dry-run and only returns counts and amounts", async () => {
     const s = mockServices(); const saveDraft = jest.fn()
     const report = await migrateCustomers(fixture(), catalog, s.services, { apply: false, saveDraft })
@@ -178,7 +224,11 @@ describe("customer migration execution", () => {
     const s = mockServices(); s.db.products = []
     await expect(migrateCustomers(fixture(), catalog, s.services, { apply: true, saveDraft: jest.fn() })).rejects.toThrow("ACCESS_PRODUCT_UNRESOLVED")
     expectNoWrites(s)
-    const other = mockServices(); other.db.grants.push({ dedupe_key: "migration:o1:prod_target", customer_id: "wrong", product_id: "prod_target", source: "migration" })
+    const other = mockServices()
+    // Přidám do entitlementRepo (ne db.grants, protože findByDedupeKey hledá v entitlementRepo)
+    const grants = other.entitlementRepo.get("default") || []
+    grants.push({ dedupe_key: "migration:o1:prod_target", customer_id: "wrong", product_id: "prod_target", source: "migration", id: "ent_conflict" })
+    other.entitlementRepo.set("default", grants)
     await expect(migrateCustomers(fixture(), catalog, other.services, { apply: true, saveDraft: jest.fn() })).rejects.toThrow("ACCESS_CONFLICT")
     expectNoWrites(other)
   })

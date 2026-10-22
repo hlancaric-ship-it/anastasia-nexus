@@ -1,5 +1,6 @@
 import { defineMiddlewares } from "@medusajs/framework/http"
 import { entitlementStoreMiddlewares } from "./store/entitlements/middlewares"
+import { resetJournalStoreMiddlewares } from "./store/reset-journal/middlewares"
 import { bookingStoreMiddlewares } from "./store/bookings/middlewares"
 import { couponLinkMiddlewares } from "./admin/coupon-links/middlewares"
 import { giftVoucherAdminMiddlewares } from "./admin/vouchers/middlewares"
@@ -12,10 +13,19 @@ import { legalMiddlewares } from "./legal-middlewares"
 import { customerPrivacyMiddlewares } from "./customer-privacy-middlewares"
 import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
 import { authMagicLinkMiddlewares } from "./auth-magic-link-middlewares"
+import { authRevokeMiddlewares } from "./auth-revoke-middlewares"
+import { nexusAuthStoreMiddlewares } from "./store/nexus-auth/middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
+import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
+import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
+import { carrierAdminMiddlewares } from "./admin/carriers/middlewares"
+import { protectAdminRoleMetadata, protectAdminUserCreation } from "../lib/admin/role-guard"
+import { pageAdminMiddlewares } from "./admin/pages/middlewares"
+import { mediaAdminMiddlewares } from "./admin/media/middlewares"
+import { contentAdminMiddlewares } from "./admin/content/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -24,10 +34,16 @@ export default defineMiddlewares({
     // Podpis dávky z NEXUS Workeru se ověřuje nad surovým tělem.
     { matcher: "/hooks/ops/edge-events", method: ["POST"], bodyParser: { preserveRawBody: true, sizeLimit: "300kb" } },
     { matcher: "/hooks/nexus/booking-order", method: ["POST"], bodyParser: { preserveRawBody: true, sizeLimit: "8kb" } },
-    // Tombstone vymazané zákaznice musí platit dřív než jakýkoli endpoint (X2).
+    // Tombstone vymazaného zákazníka musí platit dřív než jakýkoli endpoint (X2).
     ...customerPrivacyMiddlewares,
+    // Odhlásený zákazník nesmie používať svoj JWT (Medusa tokeny sú bezstavové).
+    ...authRevokeMiddlewares,
     ...authMagicLinkMiddlewares,
+    // Odhlásenie: iba platný Bearer token zákazníka, odhlásenie ho zneplatní na serveri.
+    ...nexusAuthStoreMiddlewares,
     ...entitlementStoreMiddlewares,
+    // Zrkadielko a štruktúra programu RESET 40+: len prihlásený zákazník s aktívnym prístupom.
+    ...resetJournalStoreMiddlewares,
     ...bookingStoreMiddlewares,
     ...couponLinkMiddlewares,
     ...giftVoucherAdminMiddlewares,
@@ -39,8 +55,56 @@ export default defineMiddlewares({
     ...legalMiddlewares,
     ...orderSelfCancelMiddlewares,
     ...nexusCartMiddlewares,
+    // Natívne dokončenie košíka s kupónom sa zakáže (409 USE_NEXUS_CHECKOUT): použitie kupónu
+    // zapisuje len /store/nexus-checkout, inak by sa jednorazový kupón dal použiť opakovane.
+    {
+      matcher: "/store/carts/:id/complete",
+      method: ["POST"],
+      middlewares: [requireNexusCheckoutForCouponCart],
+    },
     ...contactStoreMiddlewares,
-    // Klub: všechny /store/memberships* jen přihlášená zákaznice (session/bearer).
+    // Klub: všechny /store/memberships* jen přihlášený zákazník (session/bearer).
     ...membershipStoreMiddlewares,
+    // Produktové feedy a dopravci: len přihlášený správce.
+    ...feedAdminMiddlewares,
+    ...carrierAdminMiddlewares,
+    // Texty stránok, knihovna obrázkov a obsah webu: len přihlášený správce.
+    ...pageAdminMiddlewares,
+    ...mediaAdminMiddlewares,
+    ...contentAdminMiddlewares,
+    // Rola administrátora (metadata.anastasia_role) a zakladanie nových účtov:
+    // iba vlastník. Bez toho by asistent prepísal metadáta a zvýšil si práva.
+    {
+      matcher: "/admin/users/:id",
+      method: ["POST"],
+      middlewares: [protectAdminRoleMetadata],
+    },
+    {
+      matcher: "/admin/users",
+      method: ["POST"],
+      middlewares: [protectAdminUserCreation],
+    },
+    // Pozvánka založí účet s predvolenou rolou `owner` a zmazaním by asistent
+    // mohol odstrániť vlastníka – oboje iba vlastník (accept rieši pozvaný sám).
+    {
+      matcher: "/admin/invites",
+      method: ["POST"],
+      middlewares: [protectAdminUserCreation],
+    },
+    {
+      matcher: "/admin/invites/:id",
+      method: ["POST", "DELETE"],
+      middlewares: [protectAdminUserCreation],
+    },
+    {
+      matcher: "/admin/invites/:id/resend",
+      method: ["POST"],
+      middlewares: [protectAdminUserCreation],
+    },
+    {
+      matcher: "/admin/users/:id",
+      method: ["DELETE"],
+      middlewares: [protectAdminUserCreation],
+    },
   ],
 })

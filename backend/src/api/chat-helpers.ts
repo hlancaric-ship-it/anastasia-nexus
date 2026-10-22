@@ -24,6 +24,12 @@ export const customerNewConversationSchema = z.object({
   booking_id: id.optional(),
 }).strict()
 export const messageSchema = z.object({ body: z.unknown() }).strict()
+/** Nová zpráva od administrace: zákazník, text a voliteľný popis (téma konverzace). */
+export const adminNewMessageSchema = z.object({
+  customer_id: id,
+  body: z.unknown(),
+  subject: z.string().trim().max(120).optional(),
+}).strict()
 export const conversationActionSchema = z.object({ action: z.enum(["close", "reopen", "mute", "unmute"]) }).strict()
 export const blockSchema = z.object({ blocked: z.boolean(), reason: z.string().trim().max(300).optional() }).strict()
 

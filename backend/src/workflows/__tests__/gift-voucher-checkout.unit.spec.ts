@@ -108,15 +108,15 @@ describe("completeCartWorkflow hook s poukazem", () => {
     container.vouchers.redeem.mockRejectedValueOnce(new Error("GIFT_VOUCHER_BALANCE_INSUFFICIENT"))
     const snapshot = cart({ total: 0, credit_lines: credit(45), metadata: { nexus_coupon: { code: "SYN10" } } })
     await expect(run(snapshot, container)).rejects.toThrow("GIFT_VOUCHER_BALANCE_INSUFFICIENT")
-    expect(container.promotions.revertUsage).toHaveBeenCalledWith([{ code: "SYN10", amount: 1 }], expect.any(Object))
+    // Použitie kupónu sa v hooku už nezapisuje (zapisuje sa až po vytvorení objednávky).
+    expect(container.promotions.revertUsage).not.toHaveBeenCalled()
     expect(container.booking.releaseCheckoutClaim).toHaveBeenCalledWith({ id: "claim_1" })
     expect(container.vouchers.reverseRedemption).not.toHaveBeenCalled()
   })
   it("chyba při rollbacku nepřebije původní chybu; v kompenzaci se propaguje", async () => {
     const container = makeContainer({ voucher: { ...activeVoucher, balance: 5000 } })
     container.vouchers.reverseRedemption.mockRejectedValueOnce(new Error("db down"))
-    await expect(mockCompensate({ giftVoucherRedemption: "gvtx_1", computedActions: [{ code: "SYN10", amount: 1 }], registrationContext: {} }, { container })).rejects.toThrow("db down")
-    expect(container.promotions.revertUsage).toHaveBeenCalled()
+    await expect(mockCompensate({ giftVoucherRedemption: "gvtx_1" }, { container })).rejects.toThrow("db down")
   })
   it("dokončený košík (replay) nečerpá znovu", async () => {
     const container = makeContainer()

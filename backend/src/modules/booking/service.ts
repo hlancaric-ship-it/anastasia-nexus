@@ -136,7 +136,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
       ...(input.canceled ? { canceled_at: new Date(), cancel_reason: "order_canceled" } : {}) }, context)
   }
   /**
-   * Zarezervuje termín na dobu holdu (výchozí 15 min, max 60), dokud zákaznice nezaplatí.
+   * Zarezervuje termín na dobu holdu (výchozí 15 min, max 60), dokud zákazník nezaplatí.
    * Transakční zámek kalendáře chrání překrývající se začátky a pauzy napříč všemi typy;
    * unikátní index (calendar_id, starts_at) zůstává další ochranou shodného termínu.
    */
@@ -149,6 +149,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "ends_at musí být po starts_at")
     }
     if (input.bufferMinutes !== undefined && (!Number.isInteger(input.bufferMinutes) || input.bufferMinutes < 0)) throw new Error("INVALID_BOOKING_BUFFER")
+    const tenant_id = input.tenant_id ?? "default"
     const heldUntil = new Date(Date.now() + clampHoldMinutes(input.holdMinutes) * 60_000)
     try {
       await this.assertSlotAvailable(input, context)
@@ -160,6 +161,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
         starts_at: input.starts_at,
         ends_at: input.ends_at,
         held_until: heldUntil,
+        tenant_id,
         metadata: { buffer_minutes: input.bufferMinutes ?? 0 },
       }, context)) as unknown as BookingDTO
     } catch (error) {
@@ -180,7 +182,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
     return (await this.updateBookings({ id: input.id, status: "confirmed", order_id: input.order_id, held_until: null })) as unknown as BookingDTO
   }
 
-  /** Zrušení (zákaznicí, adminem nebo zrušením objednávky). Idempotentní. */
+  /** Zrušenie (zákazníkom, adminom alebo zrušením objednávky). Idempotentné. */
   @InjectTransactionManager()
   async cancel(id: string, reason: string, @MedusaContext() context: Context = {}): Promise<BookingDTO> {
     const current = await this.lockedBooking(id, context)

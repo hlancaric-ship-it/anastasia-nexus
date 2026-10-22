@@ -15,7 +15,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const service = req.scope.resolve(BOOKING_MODULE) as BookingModuleService
     const [before] = await service.listBookings({ id }, { take: 1 })
     const booking = await service.cancel(id, reason)
-    // zákaznici upozorníme jen na zrušení potvrzeného termínu (ne na propadlý / nezaplacený hold)
+    // zákazníka upozorníme jen na zrušení potvrzeného termínu (ne na propadlý / nezaplacený hold)
     if (before?.status === "confirmed") await notify(req.scope, { type: "booking.canceled", booking_id: id })
     await auditAdminChange(req, "booking.cancel", "booking", id, null, { status: (booking as { status?: string })?.status ?? "cancelled", reason })
     return res.status(200).json({ booking })

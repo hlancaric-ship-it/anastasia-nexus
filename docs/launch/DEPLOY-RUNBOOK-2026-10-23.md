@@ -387,7 +387,7 @@ Rozhodnutí o rollbacku dat dělá Lucky nebo Jose. Kód a Pages může vrátit 
 | # | Co | Proč | Termín |
 |---|---|---|---|
 | 1 | Přístup do Stripe účtu LUCRAT (live): zapnuté platební metody, ověřená firma, vytvoření webhooků (nebo pozvánka pro L-Code) | live platby | 21. 10. |
-| 2 | Schválené verze právních textů (VOP, ochrana údajů, souhlas s newsletterem) → `LEGAL_*_VERSION`, `NEWSLETTER_CONSENT_VERSION` | souhlasy v pokladně a newsletteru | 21. 10. |
+| 2 | Schválené verze právních textů (VOP, ochrana údajů, souhlas s newsletterem) → `LEGAL_*_VERSION`, `NEWSLETTER_CONSENT_VERSION` — znění účinné od 21. 10. 2026: `LEGAL_TERMS_VERSION=2026-10-21`, `LEGAL_PRIVACY_VERSION=2026-10-21` | souhlasy v pokladně a newsletteru | 21. 10. |
 | 3 | E-mailová schránka pro zprávy z webu a chatu (`CONTACT_NOTIFY_EMAIL`, `CHAT_ADMIN_NOTIFY_EMAIL`, `ZEPTOMAIL_REPLY_TO`) | kontakt, chat | 20. 10. |
 | 4 | Potvrzení domén (§0) a přístup k registrátorovi kvůli DNSSEC/NS | DNS | 20. 10. |
 | 5 | Doprava zdarma od částky, lhůta zrušení konzultace | env | 20. 10. |
@@ -476,6 +476,7 @@ build projde i bez nich. Tajemství ale nikdy nevyplňovat jen jako B.
 | `CHAT_ADMIN_URL` | R | `https://admin.anastasiaoz.eu/#/chat` |
 | `CHAT_STOREFRONT_URL` | R | prázdné = odvodí se z `ACCOUNT_URL` |
 | `COUPON_LINK_STOREFRONT_ORIGIN` | R | `https://www.anastasiaoz.eu` |
+| `COUPON_LINK_LEGACY_ORIGINS` | R | skutečné schválené původní originy QR (čárkou oddělené, včetně schématu/www); pouze pro import evidence |
 | `OPS_EVENT_RETENTION_DAYS` / `OPS_AUDIT_RETENTION_DAYS` / `CHAT_RETENTION_DAYS` | R | prázdné = výchozí |
 
 Na Cloudu config navíc kontroluje stejné věci jako na vlastním serveru. Start odmítne, pokud:
