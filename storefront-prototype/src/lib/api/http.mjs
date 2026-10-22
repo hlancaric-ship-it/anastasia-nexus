@@ -276,7 +276,7 @@ export function createHttpApi(storage, config) {
 
     // Pokladňa krok 2→3: košík priradí prihlásenej zákazníkov, uloží kontakt a adresu a zvolí dopravu
     // pre každý prepravný profil v košíku (ceny a DPH počíta server; klient len vyberá zo serverových možností).
-    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = 'digital', street = '', city = '', postalCode = '' } = {}) {
+    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = 'digital', street = '', city = '', postalCode = '', payment = 'card' } = {}) {
       const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
       if (!loggedIn()) return { ok: false, message: 'Pre dokončenie objednávky sa prihláste.' };
       const fail = 'Objednávku sa nepodarilo pripraviť. Skúste to znova.';
@@ -289,26 +289,54 @@ export function createHttpApi(storage, config) {
         ...(shipping ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
       const up = await call(`/store/carts/${id}`, { method: 'POST', body: { email: String(email).trim(), shipping_address: address, billing_address: address } });
       if (!up.ok) return { ok: false, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
-      const so = await call(`/store/nexus-checkout/options?cart_id=${encodeURIComponent(id)}&fields=id,name,shipping_profile_id,*type`);
-      // Medusa vracia možnosti aj pre profily, ktoré v košíku nie sú (napr. kuriér pri čisto digitálnom košíku).
+      // Zavolaj POST /store/nexus-checkout/options s delivery a payment
+      const so = await call(`/store/nexus-checkout/options`, { method: 'POST', body: { cart_id: id, delivery: shipping ? 'courier' : null, payment } });
+      if (!so.ok) {
+        // Chyba INVALID_DELIVERY/SHIPPING_OPTION_UNAVAILABLE s fyzickým košíkom bez adresy
+        const errCode = so.data?.error;
+        if ((errCode === 'INVALID_DELIVERY' || errCode === 'SHIPPING_OPTION_UNAVAILABLE') && shipping) {
+          return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
+        }
+        return { ok: false, message: so.data?.message || fail };
+      }
+      const { ok, requires_delivery, delivery: deliveryOptions } = so.data;
+      if (!ok) return { ok: false, message: so.data?.message || fail };
+      // Získa profily z košíka
       const items = await call(`/store/carts/${id}?fields=id,items.product.shipping_profile.id,*items.product.metadata`);
       const profiles = new Set((items.data?.cart?.items || []).map(i => i?.product?.shipping_profile?.id).filter(Boolean));
       if (!items.ok || !profiles.size) return { ok: false, message: fail };
-      const options = (so.data?.shipping_options || []).filter(o => profiles.has(o.shipping_profile_id));
-      if (!so.ok || [...profiles].some(p => !options.some(o => o.shipping_profile_id === p))) return { ok: false, message: 'Pre tento košík teraz nie je dostupné doručenie. Kontaktujte nás, prosím.' };
+      // Backend vráti deliveryOptions s možnosťami pre každý profil
       const perProfile = new Map();
-      for (const o of options) if (!perProfile.has(o.shipping_profile_id)) perProfile.set(o.shipping_profile_id, o);
+      for (const opt of deliveryOptions || []) {
+        if (opt.shipping_profile_id && profiles.has(opt.shipping_profile_id)) {
+          if (!perProfile.has(opt.shipping_profile_id)) perProfile.set(opt.shipping_profile_id, opt);
+        }
+      }
       const chosen = [...perProfile.values()];
-      // Zisti, či košík obsahuje aspoň jednu fyzickú položku
+      if (chosen.length === 0) return { ok: false, message: 'Pre tento košík nie sú dostupné žiadne možnosti dopravy.' };
+      // Digitálna metóda sa musí pridať pre digitálny profil, ak je v košíku
+      const hasDigitalItem = (items.data?.cart?.items || []).some(i => i.product?.metadata?.digital === true || i.product?.metadata?.digital === 'true');
+      if (hasDigitalItem && !chosen.some(o => o.type?.code === 'digital')) {
+        // Backend by mal vrátiť digitálnu metódu, ak ju chýba, pridaj ju z deliveryOptions
+        const digitalOpt = (deliveryOptions || []).find(o => o.type?.code === 'digital');
+        if (digitalOpt && !chosen.some(o => o.shipping_profile_id === digitalOpt.shipping_profile_id)) {
+          chosen.push(digitalOpt);
+        }
+      }
+      // Ak je v košíku aspoň jedna fyzická položka, musí byť zvolená fyzická doprava
       const hasPhysicalItem = (items.data?.cart?.items || []).some(i => {
         const isDigital = i.product?.metadata?.digital === true || i.product?.metadata?.digital === 'true';
         return !isDigital;
       });
-      // Ak je v košíku fyzická položka, odstráň digitálnu dopravu
-      const filteredChosen = hasPhysicalItem ? chosen.filter(o => o.type?.code !== 'digital') : chosen;
-      if (filteredChosen.length === 0) return { ok: false, message: 'Pre tento košík nie sú dostupné žiadne možnosti dopravy.' };
-      if (filteredChosen.some(o => o.type?.code !== 'digital') && !shipping) return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
-      for (const o of filteredChosen) {
+      if (hasPhysicalItem && !shipping) return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
+      // Ak je requires_delivery === false, môže sa zvoliť aj digitálna doprava
+      if (!requires_delivery && !shipping && !hasPhysicalItem) {
+        // Čisto digitálny košík bez doručenia je v poriadku
+      } else if (shipping && !deliveryOptions?.some(o => o.type?.code !== 'digital')) {
+        return { ok: false, message: 'Pre tento košík nie sú dostupné fyzické možnosti dopravy.' };
+      }
+      // Nastav vybrané metódy na košík
+      for (const o of chosen) {
         const sm = await call(`/store/carts/${id}/shipping-methods`, { method: 'POST', body: { option_id: o.id } });
         if (!sm.ok) return { ok: false, message: fail };
       }

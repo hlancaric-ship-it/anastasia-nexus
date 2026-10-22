@@ -14,7 +14,7 @@ function fakeFetch(routes){
   };
   return calls;
 }
-// Nový endpoint vracia správne možnosti dopravy podľa obsahu košíka.
+// Nový endpoint POST /store/nexus-checkout/options vracia správne možnosti dopravy podľa obsahu košíka.
 const options=[
   {id:'so_digital',shipping_profile_id:'sp_digital',type:{code:'digital'}},
   {id:'so_courier',shipping_profile_id:'sp_default',type:{code:'courier'}},
@@ -22,7 +22,8 @@ const options=[
 const routes=(profiles,itemsMetadata={})=>[
   ['POST',/^\/store\/carts\/cart_d\/customer$/,[200,{cart:{id:'cart_d'}}]],
   ['POST',/^\/store\/carts\/cart_d$/,[200,{cart:{id:'cart_d'}}]],
-  ['GET',/^\/store\/nexus-checkout\/options\?cart_id=cart_d/,[200,{shipping_options:options}]],
+  // POST /store/nexus-checkout/options s delivery a payment
+  ['POST',/^\/store\/nexus-checkout\/options$/,[200,{ok:true,requires_delivery:profiles.some(p=>p!=='sp_digital'),delivery:options}]],
   ['GET',/^\/store\/carts\/cart_d\?fields=id,items\.product\.shipping_profile\.id,\*items\.product\.metadata$/,[200,{cart:{id:'cart_d',items:profiles.map((id,i)=>({product:{shipping_profile:{id},metadata:itemsMetadata[id]}}))}}]],
   ['POST',/^\/store\/carts\/cart_d\/shipping-methods$/,[200,{cart:{id:'cart_d'}}]],
   ['POST',/^\/store\/nexus-cart$/,[200,{}]],
@@ -52,14 +53,17 @@ test('physical cart without shipping address is rejected, with address gets only
   assert.deepEqual(methods(calls),['so_courier']);
 });
 
-test('mixed cart (physical + digital) gets only physical options (no digital)',async()=>{
+test('mixed cart (physical + digital) gets both courier and digital options',async()=>{
   // Smíšený košík: fyzická + digitálna položka
   let calls=fakeFetch(routes(['sp_default','sp_digital'],{'sp_default':{},'sp_digital':{digital:true}}));
   let api=createHttpApi(memoryStorage({'anastasia.jwt':'jwt','anastasia.cart':'cart_d'}),config);
   const r=await api.prepareCheckout({email:'eva@example.com',delivery:'shipping',street:'A 1',city:'B',postalCode:'81101'});
   assert.equal(r.ok,true,r.message);
-  // Digitálna možnosť je odfiltrovaná, ostane len courier
-  assert.deepEqual(methods(calls),['so_courier']);
+  // Obe možnosti: courier aj digital (poradie je nedefinované)
+  const m=methods(calls);
+  assert.equal(m.length,2,'má dve metódy');
+  assert.ok(m.includes('so_courier'),'obsahuje courier');
+  assert.ok(m.includes('so_digital'),'obsahuje digital');
 });
 
 test('mixed cart without shipping address is rejected',async()=>{
