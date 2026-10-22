@@ -108,13 +108,34 @@ try{
 
   // Na iných stránkach sa platobná brána načítať nesmie.
   await page.goto(`${web}/`,{waitUntil:'load'});
-  // Na úvode webu lišta cookies koliduje s preloaderom – objaví sa až po „Vstúpte“ a scrollu.
-  await page.locator('#lh-scroll-cue').click();
-  await page.mouse.wheel(0, 8000);
+  // Na úvode webu lišta cookies koliduje s preloaderom – objaví sa až po scrollu za úvod.
+  //
+  // Tlačidlo „Vstúpte“ (#lh-scroll-cue) sa myšou kliknúť NEDÁ: .lh-intro__meta má
+  // pointer-events:none a maska .lh-intro__mask (SVG) prekrýva celú scénu. Klik by
+  // skončil timeoutom na „intercepts pointer events“. Test preto úvod zavrie rovnakým
+  // pohybom, aký spúšťa „Vstúpte“ (skok na koniec úvodu), a počká, kým maska zmizne
+  // z viewportu a lišta cookies sa objaví. Produkčné UI sa nemení.
+  await page.waitForFunction(()=>document.body.classList.contains('motion')||matchMedia('(prefers-reduced-motion: reduce)').matches,null,{timeout:20000});
+  await page.evaluate(()=>{
+    const intro=document.querySelector('.lh-intro');
+    if(!intro)return;
+    const target=Math.ceil(window.scrollY+intro.getBoundingClientRect().bottom-1);
+    if(window.__anaLenis)window.__anaLenis.scrollTo(target,{immediate:true,force:true});
+    else window.scrollTo(0,target);
+  });
+  await page.waitForFunction(()=>{
+    const intro=document.querySelector('.lh-intro');
+    return !intro||intro.getBoundingClientRect().bottom<=1;
+  },null,{timeout:20000});
+  const introClosed=await page.evaluate(()=>{
+    const mask=document.querySelector('.lh-intro__mask');
+    return {maskBottom:mask?Math.round(mask.getBoundingClientRect().bottom):null};
+  });
+  assert.ok(introClosed.maskBottom===null||introClosed.maskBottom<=1,'úvod sa zavrel: maska je mimo viewportu');
   await page.waitForSelector('#cookie-banner:not([hidden])',{timeout:20000});
   assert.equal(stripeLoads,0,'Stripe sa nesmie načítať mimo pokladne');
   assert.equal(await page.evaluate(()=>localStorage.getItem('anastasia.consent')),null,'lišta cookies nesmie mať uložené rozhodnutie');
-  checks.push('domovská stránka: Stripe sa nenačítal, lišta cookies je otvorená');
+  checks.push('domovská stránka: úvod zavretý, Stripe sa nenačítal, lišta cookies je otvorená');
 
   // Pokladňa: platba kartou v TEST režime bez kliknutia na lištu cookies.
   await page.goto(`${web}/pokladna`,{waitUntil:'load'});
