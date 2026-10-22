@@ -29,7 +29,7 @@ test('odhlásenie zruší serverovú reláciu tokenom zákazníka',async()=>{
   const calls=[];
   globalThis.fetch=async(url,init={})=>{calls.push({url:String(url),method:init.method||'GET',auth:init.headers?.authorization||''});return respond(204,{});};
   await createHttpApi(seeded(),config).signOut();
-  assert.deepEqual(calls.map(call=>`${call.method} ${call.url.replace('https://api.test','')}`),['DELETE /auth/session']);
+  assert.deepEqual(calls.map(call=>`${call.method} ${call.url.replace('https://api.test','')}`),['POST /store/nexus-auth/logout']);
   assert.equal(calls[0].auth,'Bearer jwt','relácia sa zruší tokenom zákazníka');
 });
 

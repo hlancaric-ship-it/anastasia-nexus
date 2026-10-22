@@ -648,7 +648,7 @@ export function createHttpApi(storage, config) {
     // Odhlásenie: zruší serverovú reláciu a vymaže token aj údaje zákazníka z prehliadača.
     // Serverová chyba odhlásenie neblokuje – lokálne údaje sa vymažú vždy, inak by účet zostal dostupný.
     async signOut() {
-      try { await call('/auth/session', { method: 'DELETE' }); } catch { /* relácia na serveri zostane, token v prehliadači zmizne */ }
+      try { await call('/store/nexus-auth/logout', { method: 'POST' }); } catch { /* server token zneplatní; pri chybe aspoň zmizne z prehliadača */ }
       for (const key of CUSTOMER_KEYS) del(key);
       try { globalThis.localStorage?.removeItem(RETURN_KEY); } catch { /* prehliadač bez localStorage */ }
       return { ok: true };
