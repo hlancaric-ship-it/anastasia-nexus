@@ -489,7 +489,7 @@ export const GUIDES = [
     steps: [
       'V Poukazoch a zľavách prepnite na Nastavenie poukazov.',
       'Zaškrtnite Poukazy sú v predaji na webe.',
-      'Zadajte hodnoty v eurách oddelené bodkočiarkou, napríklad 50; 100; 200 (najviac 10 hodnôt).',
+      'Zadajte hodnoty v eurách oddelené medzerou, napríklad 50 100 200 (najviac 10 hodnôt).',
       'Nastavte platnosť v mesiacoch (1 až 60) a doručenie: e-mailom obdarovanej, PDF kupujúcej, alebo oboje.',
       'Vyberte, kde sa dá poukaz použiť (celý e-shop alebo vybrané kategórie) a či sa dá čerpať postupne.',
       'Kliknite na Uložiť nastavenie.',

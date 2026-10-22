@@ -1,7 +1,7 @@
 // Produkčný build vlastného adminu pre Cloudflare Pages:
 //   ANASTASIA_API_ORIGIN=https://api.… [ANASTASIA_MEDIA_ORIGIN=https://media.…] node build.mjs
 // Výstup dist/: statické súbory, adresa jadra v <meta name="ana-api"> a _headers (CSP, noindex, bez rámcov).
-import { mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, rm, cp } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -18,7 +18,8 @@ const media = origin('ANASTASIA_MEDIA_ORIGIN', false);
 
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-for (const f of ['app.mjs', 'guide.mjs', 'library-editor.mjs', 'qr.mjs', 'qr-encode.mjs', 'print.mjs', 'voucher.mjs', 'content.mjs', 'media-rules.mjs', 'security.mjs', 'styles.css', 'logo-mark.png'])await copyFile(join(root, f), join(out, f));
+for (const f of ['app.mjs', 'guide.mjs', 'library-editor.mjs', 'qr.mjs', 'qr-encode.mjs', 'print.mjs', 'voucher.mjs', 'content.mjs', 'media-rules.mjs', 'security.mjs', 'styles.css', 'reference.css', 'logo-mark.png'])await copyFile(join(root, f), join(out, f));
+await cp(join(root, 'assets'), join(out, 'assets'), { recursive: true });
 const html = await readFile(join(root, 'index.html'), 'utf8');
 if (!html.includes('<meta name="robots"')) throw new Error('index.html: chýba meta robots');
 await writeFile(join(out, 'index.html'), html.replace('<meta name="robots"', `<meta name="ana-api" content="${api}">\n<meta name="robots"`));

@@ -112,7 +112,7 @@ try {
   host.querySelector('[data-library-remove="0"]').click();
   for(let i=0;i<20&&!removed.length;i++)await tick();
   assert(removed.length===1,'File is detached');
-  assert(confirmed[0].includes('zákazníčiek'),'Detaching a bought product warns about customers');
+  assert(confirmed.some(message=>message.includes('3 zákazníkov') && message.includes('súbor zmizne')),'Detaching a bought product warns about customers');
   assert(!host.textContent.includes('Zamknutá'),'Library stays usable');
 
   await mountLibraryEditor(host,{api:async()=>({revision:'c'.repeat(64),media:[]}),productId:'prod_fixture'});

@@ -482,7 +482,8 @@
       "request": "Admin pomůže zákaznici obnovit heslo nebo přihlašovací odkaz; nesmí znát její heslo.",
       "sources": [
         "backend/src/modules/auth-magic-link/service.ts",
-        "backend/src/modules/auth-security/index.ts"
+        "backend/src/modules/auth-security/index.ts",
+        "backend/src/api/store/nexus-auth/logout/route.ts"
       ],
       "remaining": "Rozlišit passwordless a emailpass; chybí chráněný admin postup obnovy se souhlasem a auditem.",
       "acceptance": "Obnova nepřepne identitu, nevytvoří druhý účet, neodhalí heslo; rate-limit a jedna spotřeba odkazu."
@@ -2003,6 +2004,15 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/store/nexus-auth/logout",
+      "methods": [
+        "POST"
+      ],
+      "feature": "customer-recovery",
+      "source": "backend/src/api/store/nexus-auth/logout/route.ts",
+      "sha256": "c834b6b8295fd71bf9bfad494beac2d0243bd63a1cb4b9c5a81f5fbfec0c6a79"
     }
   ],
   "native_medusa_version": "2.19.0",

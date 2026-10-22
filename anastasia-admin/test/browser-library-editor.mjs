@@ -7,7 +7,7 @@ import {spawn} from 'node:child_process';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const temp=await mkdtemp(resolve(tmpdir(),'anastasia-library-browser-'));
 let browser;
-const html='<!doctype html><html lang="sk"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Isolated library editor test</title><link rel="stylesheet" href="/styles.css"><div class="content"><div class="card"><div class="card-b"><div class="product-editor"><div><h1>Úprava produktu</h1></div><section class="editor-section"><h2>Zakúpený obsah</h2><div id="library"></div></section></div></div></div></div><pre id="result" style="white-space:pre-wrap;overflow-wrap:anywhere">RUNNING</pre><script type="module" src="/test/library-editor-fixture.mjs"></script></html>';
+const html='<!doctype html><html lang="sk"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Isolated library editor test</title><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/reference.css"><div class="content"><div class="card"><div class="card-b"><div class="product-editor"><div><h1>Úprava produktu</h1></div><section class="editor-section"><h2>Zakúpený obsah</h2><div id="library"></div></section></div></div></div></div><pre id="result" style="white-space:pre-wrap;overflow-wrap:anywhere">RUNNING</pre><script type="module" src="/test/library-editor-fixture.mjs"></script></html>';
 const server=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://localhost'),path=url.pathname;
  if(path==='/'&&url.searchParams.has('width')){
