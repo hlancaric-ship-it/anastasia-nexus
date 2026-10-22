@@ -75,7 +75,7 @@ Tento audit doplňuje `docs/ADMIN-SELFSERVICE-AUDIT.md` (13. 10.) a `docs/REQUIR
 **Další nálezy:**
 1. Vzhled adminu v SPA se ukládá do `localStorage` (`app.mjs:547–565`), i když backend `/admin/my-theme` existuje. Lucia o barvy přijde na jiném zařízení.
 2. Dvě admin vrstvy (SPA a Medusa extensions) duplikují vouchery, chat, booking a ceny. Je potřeba určit, která je zdroj pravdy pro UI.
-3. Bod 1 z auditu 13. 10. (OKFISH značky v `StaticPricingConfigurationProvider.ts`) je **vyřešený**: grep `DELPHIN` = 0.
+
 
 ## C. Navržená architektura administrace
 
