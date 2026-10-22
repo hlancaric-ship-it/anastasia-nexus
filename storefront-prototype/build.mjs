@@ -51,6 +51,10 @@ const DUPLICATE_REDIRECTS=[
   ['/pre-odbornikov','/konzultacie/supervizia/'],['/astrologia','/konzultacie/astrologicky-profil-zdravia-a-vitality/'],['/konzultacie/astrologia','/konzultacie/astrologicky-profil-zdravia-a-vitality/'],
   ['/online-zdravotna-konzultacia','/konzultacie/online-zdravotna-konzultacia/'],['/ai-anastasia/recenzie-zakaznikov','/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com/'],
   ['/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny','https://www.aianastasia.com/insights'],['/ai-anastasia/recenzie-farmaceutickych-produktov','https://www.aianastasia.com/expert-rating'],
+  // Zvyšné staré adresy z prehľadu starého webu (22. 10.).
+  ['/eshop/kategoria/sebarozvoj','/eshop/?category=sebarozvoj'],['/eshop/kategoria/zdrave-doplnky-vyzivy','/eshop/?category=zdrave-doplnky-vyzivy'],
+  ['/eshop/kategoria/Podkategoria41','/eshop/'],['/eshop/kategoria/podkategoria21','/eshop/'],
+  ['/moj-ucet','/ucet/'],['/moj-ucet/prihlasenie','/prihlasenie/'],['/zabudnute-heslo','/prihlasenie/'],
 ];
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
