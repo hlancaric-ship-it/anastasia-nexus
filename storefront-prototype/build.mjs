@@ -35,6 +35,8 @@ const unifyFont=html=>html.replaceAll('Outfit,sans-serif','Figtree,"Helvetica Ne
   .replace(/<a href="\/eshop\?category=sebarozvoj">Programy a služby<\/a>/g,'')
   .replace(/<a(?=[^>]*href="\/zdrava-lekaren")[^>]*>[\s\S]*?<\/a>/g,'')
   // AI ANASTASIA a Academy majú vlastné weby (napojenie na jadro vo fáze 2).
+  // Odkazy rovno na cieľ presmerovania, externé weby v novom okne.
+  .replace(/href="(\/[^"?#]*?)\/?"/g,(m,path)=>{const hit=DUPLICATE_REDIRECTS.find(([from])=>from===path);if(!hit)return m;const to=hit[1];return to.startsWith('https://')?`href="${to}" target="_blank" rel="noopener"`:`href="${to}"`;})
   .replaceAll('href="/ai-anastasia-academy"','href="https://www.anastasia.academy/" target="_blank" rel="noopener"')
   .replaceAll('href="/ai-anastasia"','href="https://www.aianastasia.com/" target="_blank" rel="noopener"');
 // Zdvojené stránky: jedna adresa na obsah, ostatné 301 (22. 10.).
@@ -44,6 +46,11 @@ const DUPLICATE_REDIRECTS=[
   ['/eshop/kategoria/bylinky-a-vyziva','/eshop/?category=zdrave-doplnky-vyzivy'],['/eshop/kategoria/programy-a-sluzby','/eshop/?category=sebarozvoj'],
   ['/nova-registracia','/prihlasenie/'],['/eshop/produkt/astrologia','/eshop/produkt/astrologia-zdravie-predispozicia/'],
   ['/ai-anastasia-academy','https://www.anastasia.academy/'],['/ai-anastasia','https://www.aianastasia.com/'],['/eshop/produkt/ritualne-sviecky-voskove','/eshop/'],['/eshop/produkt/saty-lanove','/eshop/'],
+  // Obsah AI ANASTASIA a Academy patrí na ich weby, prázdne stránky preč (22. 10.).
+  ['/programy','https://www.anastasia.academy/'],['/vyuka','https://www.anastasia.academy/'],['/programy/individualne','https://www.anastasia.academy/'],['/programy/pre-firmy','https://www.anastasia.academy/'],['/blog/zdrava-lekaren-aktuality','https://www.anastasia.academy/'],
+  ['/pre-odbornikov','/konzultacie/supervizia/'],['/astrologia','/konzultacie/astrologicky-profil-zdravia-a-vitality/'],['/konzultacie/astrologia','/konzultacie/astrologicky-profil-zdravia-a-vitality/'],
+  ['/online-zdravotna-konzultacia','/konzultacie/online-zdravotna-konzultacia/'],['/ai-anastasia/recenzie-zakaznikov','/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com/'],
+  ['/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny','https://www.aianastasia.com/insights'],['/ai-anastasia/recenzie-farmaceutickych-produktov','https://www.aianastasia.com/expert-rating'],
 ];
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
