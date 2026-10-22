@@ -199,6 +199,24 @@ function footerLinks(html) {
     (whole, style, inner, label) => FOOTER_BRANDS[label] ? `<a href="${FOOTER_BRANDS[label]}" class="footer-brand" ${style}>${inner}</a>` : whole);
 }
 
+// Jednotná kompaktná pätička na všetkých stránkach: triedy namiesto výberu podľa inline štýlov návrhu.
+const FOOTER_PARTS = [
+  ['<footer ', '<footer class="site-footer" '],
+  ['<div style="max-width:1560px;margin:0 auto;padding:clamp(80px', '<div class="sf-wrap" style="max-width:1560px;margin:0 auto;padding:clamp(80px'],
+  ['<div style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom', '<div class="sf-top" style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom'],
+  ['<div style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px', '<div class="sf-news" style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px'],
+  ['<div style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"', '<div class="sf-links" style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"'],
+  ['<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end', '<div class="sf-brands" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end'],
+  ['<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px', '<div class="sf-bottom" style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px'],
+];
+function footerClasses(html) {
+  for (const [from, to] of FOOTER_PARTS) {
+    if (!html.includes(from)) throw new Error(`dc: v pätičke chýba časť ${from.slice(0, 60)}`);
+    html = html.replace(from, to);
+  }
+  return html;
+}
+
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
 export function chrome(page) {
   const src = page === 'about' ? P.about : P.home;
@@ -231,7 +249,7 @@ export function chrome(page) {
   const header=page==='home'?headerHtml.replace('style="position:relative;z-index:2;','style="position:absolute;left:0;right:0;top:0;z-index:4;'):headerHtml;
   return {
     header: page==='home' ? LH_HEADER : header,
-    footer: bleed(withCookieSettings(convert(footerLegalLinks(footerLinks(src.footer)), {page: linkPage, region: 'footer'}))),
+    footer: bleed(withCookieSettings(convert(footerClasses(footerLegalLinks(footerLinks(src.footer))), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
@@ -268,6 +286,38 @@ const easeVar = (color, a0, a1, p0, p1) => SMOOTH.map((k, i) => `color-mix(in sr
 const CREAM = '245,242,232', MASK = '0,0,0';
 export const HELMET_CSS = `
 ${HOME_CSS}
+/* Pätička – rovnaká a kompaktná na všetkých stránkach: newsletter vľavo, tri skupiny odkazov vedľa seba, menšie logá. */
+.site-footer .sf-wrap{max-width:1320px!important;padding:clamp(44px,5vw,72px) clamp(20px,4vw,64px) 26px!important}
+.site-footer .sf-top{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:36px clamp(40px,6vw,96px)!important;padding-bottom:clamp(32px,4vw,52px)!important;align-items:start}
+.site-footer .sf-news{gap:14px!important}
+.site-footer .sf-news>p:first-child{font-size:clamp(32px,3.2vw,46px)!important}
+.site-footer .sf-links{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px clamp(18px,3vw,44px)!important;width:100%}
+.site-footer .sf-links>div{display:flex!important;flex-direction:column!important;gap:10px!important;min-width:0!important}
+.site-footer .sf-links>div>span{margin-bottom:4px!important}
+.site-footer .sf-links a{line-height:1.35;overflow-wrap:anywhere}
+.site-footer .sf-brands{gap:clamp(12px,4vw,64px)!important;padding:26px 0 30px!important;border-top:1px solid rgba(201,163,85,.18);border-bottom:1px solid rgba(201,163,85,.18)}
+.site-footer .sf-brands>*{grid-template-rows:clamp(92px,8vw,118px) auto!important;row-gap:12px!important}
+.site-footer .sf-brands>*>img{height:clamp(88px,7.6vw,112px)!important;width:auto!important}
+.site-footer .sf-brands>*>div>img{height:clamp(54px,4.8vw,72px)!important;width:auto!important}
+.site-footer .sf-brands>*>div>span[style*="font-size:clamp(16px"]{font-size:clamp(16px,1.5vw,22px)!important}
+.site-footer .sf-brands>*>div{gap:8px!important;padding-bottom:0!important}
+.site-footer .sf-brands>*>div>span[style*="height:46px"]{height:24px!important}
+.site-footer .sf-bottom{padding-top:20px!important;align-items:center;row-gap:12px!important}
+@media(max-width:999.98px){.site-footer .sf-top{grid-template-columns:1fr}}
+@media(max-width:699.98px){
+.site-footer .sf-links{grid-template-columns:1fr 1fr;gap:26px 18px!important}
+.site-footer .sf-links>div:nth-child(3){grid-column:1/-1;display:block!important;columns:2;column-gap:18px}
+.site-footer .sf-links>div:nth-child(3)>span{display:block;column-span:all;margin-bottom:14px!important}
+.site-footer .sf-links>div:nth-child(3)>a{display:block;margin-bottom:10px;break-inside:avoid}
+.site-footer .sf-brands>*{grid-template-rows:70px auto!important;row-gap:10px!important}
+.site-footer .sf-brands>*>img{height:66px!important}
+.site-footer .sf-brands>*>div>img{height:40px!important}
+.site-footer .sf-brands>*>div>span{letter-spacing:.18em!important;padding-left:.18em!important;font-size:13px!important}
+.site-footer .sf-brands>*>div>span:last-child{font-size:8px!important;letter-spacing:.3em!important;gap:6px!important}
+.site-footer .sf-brands>*>div>span:last-child>span{width:10px!important}
+.site-footer .sf-brands>*>span{font-size:8px!important;letter-spacing:1.4px!important;text-align:center}
+.site-footer .sf-bottom{flex-direction:column;align-items:flex-start}
+}
 :is(.dc-root,.dc-chrome) .header-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
 :is(.dc-root,.dc-chrome) .header-brand-emblem{position:relative;display:block;width:36px;height:36px;overflow:hidden;border-radius:50%;flex-shrink:0}
 :is(.dc-root,.dc-chrome) .header-brand-emblem img{position:absolute;width:116.62%;height:auto;max-width:none;left:-8.45%;top:-34.01%;filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
@@ -306,13 +356,6 @@ html,body{overflow-x:clip}
 @media(max-width:699.98px){
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]:has(>span[style*="height:1px"]){letter-spacing:2px!important;font-size:10px!important;gap:10px!important}
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]>span[style*="height:1px"]{width:24px!important}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]{display:grid!important;grid-template-columns:1fr 1fr;gap:34px 18px!important;width:100%;flex:1 1 100%!important}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div{gap:11px!important;min-width:0}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>a{font-size:14px!important;line-height:1.3}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>:first-child{margin-bottom:4px}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;column-gap:18px}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3)>:first-child{grid-column:1/-1}
-footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!important;gap:44px!important}
 #o-lucii{grid-template-columns:1fr!important}
 #o-lucii>div:last-child{display:contents!important}
 #o-lucii>div:last-child>*{margin-inline:24px!important}

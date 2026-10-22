@@ -193,12 +193,16 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 /* Mobilní horní lišta: tenká plovoucí, zaoblená, max 12 mm (45 px) – Lucky 2026-10-14 */
 @media(max-width:699.98px){:is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:44px!important;min-height:0!important;margin:8px 10px!important;padding:0 16px!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:14px!important;gap:12px!important;overflow:hidden}:is(.dc-root,.dc-chrome) header:has([data-menu-open])>*:nth-child(2){max-height:40px;overflow:hidden}:is(.dc-root,.dc-chrome) header:has([data-menu-open]) .header-brands{height:40px}:is(.dc-root,.dc-chrome) header:has([data-menu-open]) .header-brands img{max-height:34px}}
 /* Právne stránky (VOP, GDPR, Reklamácie) – vlastný vzhľad ANASTASIA */
-.legal-hero{position:relative;background:linear-gradient(180deg,rgba(28,36,22,.72),rgba(28,36,22,.92)),url(/media/poster.jpg) center/cover #283020;color:var(--cream);padding:clamp(56px,9vw,120px) clamp(24px,6vw,96px) clamp(48px,7vw,90px);border-bottom-right-radius:clamp(90px,14vw,170px);overflow:hidden}
+.legal-hero{position:relative;background:radial-gradient(120% 90% at 85% 10%,rgba(201,163,85,.14),transparent 60%),#283020;color:var(--cream);padding:clamp(56px,9vw,120px) clamp(24px,6vw,96px) clamp(48px,7vw,90px);border-bottom-right-radius:clamp(90px,14vw,170px);overflow:hidden}
 .legal-eyebrow{display:flex;align-items:center;gap:14px;margin:0 0 22px;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
 .legal-eyebrow::before{content:"";width:42px;height:1px;background:currentColor}
 .legal-hero h1{margin:0;max-width:16ch;font-size:clamp(40px,6.4vw,92px);font-weight:200;line-height:1.02;letter-spacing:-.02em;color:var(--cream)}
-.legal-toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:34px;max-width:900px}
-.legal-toc a{display:inline-flex;align-items:center;gap:9px;padding:9px 15px 9px 9px;border:1px solid rgba(239,229,199,.24);border-radius:999px;font-size:13px;color:var(--cream);text-decoration:none;background:rgba(239,229,199,.05);transition:background .3s,border-color .3s}
+.legal-toc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:34px;max-width:900px}
+.legal-hero.has-figure{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(32px,5vw,80px);align-items:center;max-width:none}
+.legal-hero-text{min-width:0}
+.legal-figure{margin:0;justify-self:end;width:100%;max-width:440px;aspect-ratio:4/5;border-radius:220px 220px 28px 28px;overflow:hidden;border:1px solid rgba(201,163,85,.45);box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+.legal-figure img{display:block;width:100%;height:100%;object-fit:cover}
+.legal-toc a{display:flex;align-items:center;gap:10px;min-width:0;padding:9px 15px 9px 9px;line-height:1.3;border:1px solid rgba(239,229,199,.24);border-radius:999px;font-size:13px;color:var(--cream);text-decoration:none;background:rgba(239,229,199,.05);transition:background .3s,border-color .3s}
 .legal-toc a:hover{background:rgba(201,163,85,.16);border-color:var(--gold)}
 .legal-toc b{display:grid;place-items:center;min-width:26px;height:26px;padding:0 6px;border-radius:999px;background:var(--gold);color:#283020;font-size:11px;font-weight:500}
 .legal-doc{max-width:960px;margin:0 auto;padding:clamp(40px,6vw,80px) clamp(20px,5vw,60px) 30px;display:grid;gap:clamp(18px,2.4vw,28px)}
@@ -217,7 +221,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .legal-more span{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
 .legal-more strong{grid-column:1;font-size:clamp(20px,2.4vw,28px);font-weight:300}
 .legal-more .arrow{grid-column:2;grid-row:1/3;width:26px;height:26px;color:var(--gold)}
-@media(max-width:699.98px){.legal-hero{padding:48px 22px 40px}.legal-toc{flex-wrap:nowrap;overflow-x:auto;margin-inline:-22px;padding-inline:22px;scrollbar-width:none;-webkit-mask:linear-gradient(90deg,#000 85%,transparent)}.legal-toc a{flex:none}.legal-art{grid-template-columns:1fr;padding:24px 20px}.legal-num{grid-row:auto;font-size:34px;margin-bottom:6px}.legal-body .source-text{font-size:15.5px}}
+@media(max-width:899.98px){.legal-hero.has-figure{grid-template-columns:1fr}.legal-figure{order:-1;justify-self:center;max-width:520px;aspect-ratio:3/2;border-radius:160px 160px 24px 24px}}
+@media(max-width:699.98px){.legal-hero{padding:48px 22px 40px}.legal-toc{grid-template-columns:1fr;gap:8px;margin-top:26px}.legal-figure{max-width:none;aspect-ratio:16/10;border-radius:120px 120px 22px 22px}.legal-art{grid-template-columns:1fr;padding:24px 20px}.legal-num{grid-row:auto;font-size:34px;margin-bottom:6px}.legal-body .source-text{font-size:15.5px}}
 
 /* Zdravý svet: alternating photographs and generous, left-aligned type. */
 .zs-intro{padding-top:clamp(56px,7vw,110px)}
@@ -344,9 +349,6 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 .lh-cta--gold,.dc-root .button.light,.dc-root .button[style*="C9A355"],.dc-root a[style*="background:#C9A355"]{color:var(--site-dark,#1E281C)!important}
 /* Skupiny v mobilnom menu začínajú na tej istej ľavej hrane. */
 #dc-side-menu span[style*="font-size:25px"],#dc-side-menu a[style*="font-size:25px"],#dc-top-menu span[style*="font-size:25px"],#dc-top-menu a[style*="font-size:25px"]{margin-left:0!important;padding-left:0!important;display:block!important}
-/* Pätička: každý stĺpec má rovnakú šírku a odkazy pod sebou (jedna kolónka). */
-.dc-root footer>div:last-of-type>div{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important;gap:24px clamp(24px,4vw,64px)!important;align-items:start!important}
-.dc-root footer>div:last-of-type>div>div{display:flex!important;flex-direction:column!important;gap:14px!important}
 
 /* r12/3: karta produktu na mobilu – obrázek, názov, tlačítko bez prekryvu. */
 @media(max-width:760px){
@@ -380,7 +382,6 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 
 /* r12/8: pätička na mobilu – jeden stĺpec, „Denný stacionár Vyšná Slaná“ sa nemačká. */
 @media(max-width:760px){
-  :is(.dc-root,.dc-chrome) footer>div:last-of-type>div{grid-template-columns:1fr!important;gap:22px!important}
   :is(.dc-root,.dc-chrome) footer a{overflow-wrap:anywhere}
 }
 
