@@ -132,62 +132,200 @@ const ICONS = {
   menu: '<path d="M3 6h18 M3 12h18 M3 18h18"/>',
   check: '<path d="m4 12 5 5L20 6"/>',
   out: '<path d="M14 4h5v16h-5 M10 8l-4 4 4 4 M6 12h10"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4.2-4.2"/>',
+  bell: '<path d="M18 8a6 6 0 1 0-12 0c0 6.5-2.5 8-2.5 8h17S18 14.5 18 8"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/>',
+  chev: '<path d="m6 9 6 6 6-6"/>',
+  layers: '<path d="m12 3 9 4.5-9 4.5-9-4.5Z"/><path d="m3 13 9 4.5 9-4.5"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  chart: '<path d="M4 20V11 M10 20V5 M16 20v-6 M21 20V9"/><path d="M3 20h19"/>',
+  tag: '<path d="M3 11V4h7l11 11-7 7Z"/><circle cx="7.5" cy="7.5" r="1.3"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  leaf: '<path d="M5 19c0-8 6-13 14-14 1 8-4 14-11 14H5Z"/><path d="M5 19c3-4 6-6.5 9-7.5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  box2: '<path d="m3 7 9-4 9 4-9 5Z M3 7v10l9 4 9-4V7 M12 12v9"/>',
+  trend: '<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
 };
 const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 const LOGO = './logo-mark.png';
-const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img src="${LOGO}" alt="" width="43" height="43"><div><div class="brand-name">ANASTASIA</div><small>PRIESTOR PRE VAŠU PRÁCU</small></div></${tag}>`;
+const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img src="${LOGO}" alt="" width="46" height="46"><div><div class="brand-name">ANASTASIA</div><small>Light for the future</small></div></${tag}>`;
+
+// --- dekor: jemné botanické kresby (olivová a levandulová vetvička) ako inline SVG ---
+// Kresba je linková, v šalvějovej farbe s nízkou priehľadnosťou – žiadne stiahnuté fotky.
+// Olivová vetvička vpravo hore v hlavičke: dve linkové vetvy s listami + klas levandule.
+const BOTANIC_OLIVE = `<svg class="botanic botanic-olive" viewBox="0 0 420 320" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M418 2C358 34 312 82 280 138c-21 37-33 78-38 122"/>
+<path d="M280 138c-30-4-55-18-74-40M300 104c-2-30 4-58 18-84M258 186c-34-4-62-18-84-42M248 228c-25-2-47-12-65-28M266 62c-18 4-36 2-52-6"/>
+<ellipse cx="300" cy="22" rx="7" ry="15" transform="rotate(-30 300 22)"/>
+<ellipse cx="316" cy="40" rx="7" ry="15" transform="rotate(24 316 40)"/>
+<ellipse cx="292" cy="56" rx="6.6" ry="14" transform="rotate(-34 292 56)"/>
+<ellipse cx="310" cy="74" rx="6.4" ry="13.5" transform="rotate(18 310 74)"/>
+<ellipse cx="288" cy="90" rx="6" ry="13" transform="rotate(-40 288 90)"/>
+<ellipse cx="306" cy="108" rx="5.6" ry="12" transform="rotate(12 306 108)"/>
+<ellipse cx="272" cy="74" rx="6.4" ry="13.5" transform="rotate(-58 272 74)"/>
+<ellipse cx="262" cy="54" rx="6" ry="12.5" transform="rotate(-38 262 54)"/>
+<ellipse cx="250" cy="34" rx="5.6" ry="11.5" transform="rotate(-22 250 34)"/>
+<ellipse cx="272" cy="118" rx="5.4" ry="11.5" transform="rotate(-66 272 118)"/>
+<ellipse cx="256" cy="142" rx="5" ry="11" transform="rotate(-48 256 142)"/>
+<ellipse cx="240" cy="166" rx="4.8" ry="10.5" transform="rotate(-34 240 166)"/>
+<ellipse cx="226" cy="192" rx="4.6" ry="10" transform="rotate(-20 226 192)"/>
+<ellipse cx="214" cy="220" rx="4.4" ry="9.5" transform="rotate(-10 214 220)"/>
+<ellipse cx="232" cy="204" rx="4.4" ry="9.5" transform="rotate(52 232 204)"/>
+<ellipse cx="244" cy="182" rx="4.6" ry="10" transform="rotate(40 244 182)"/>
+<ellipse cx="258" cy="158" rx="4.8" ry="10.5" transform="rotate(28 258 158)"/>
+<ellipse cx="188" cy="238" rx="4.2" ry="9" transform="rotate(-14 188 238)"/>
+<ellipse cx="204" cy="212" rx="4.4" ry="9.5" transform="rotate(34 204 212)"/>
+<ellipse cx="220" cy="188" rx="4.6" ry="10" transform="rotate(48 220 188)"/>
+<ellipse cx="368" cy="46" rx="6" ry="13" transform="rotate(-52 368 46)"/>
+<ellipse cx="348" cy="66" rx="5.8" ry="12.5" transform="rotate(-30 348 66)"/>
+<ellipse cx="330" cy="90" rx="5.4" ry="11.5" transform="rotate(-18 330 90)"/>
+<ellipse cx="312" cy="132" rx="5" ry="11" transform="rotate(22 312 132)"/>
+<path d="M150 292c6-38 12-72 20-104" stroke-width="1"/>
+<ellipse cx="170" cy="176" rx="4" ry="8.5" transform="rotate(-10 170 176)"/>
+<ellipse cx="173" cy="194" rx="3.8" ry="8" transform="rotate(6 173 194)"/>
+<ellipse cx="168" cy="158" rx="3.6" ry="7.6" transform="rotate(-16 168 158)"/>
+<ellipse cx="166" cy="142" rx="3.2" ry="6.8" transform="rotate(4 166 142)"/>
+<ellipse cx="163" cy="128" rx="2.8" ry="6"/>
+<circle cx="160" cy="116" r="2.2"/>
+</svg>`;
+// Levanduľový trs: jemné linky stoniek a klasy (používa sa vľavo dole v bočnom paneli a v banneri).
+const BOTANIC_LAVENDER = `<svg class="botanic botanic-lav" viewBox="0 0 260 240" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M130 238V96M104 238c4-44 6-80 8-112M158 238c-4-46-6-84-8-118M78 238c6-34 12-62 20-86M186 238c-6-36-14-66-24-90"/>
+<path d="M112 126c-12-10-20-24-24-40M148 122c12-10 20-24 24-40M98 152c-10-8-17-20-20-32M164 148c10-8 17-20 20-32"/>
+<ellipse cx="130" cy="82" rx="7" ry="14"/><ellipse cx="126" cy="60" rx="6.6" ry="13"/><ellipse cx="122" cy="40" rx="6" ry="12"/><ellipse cx="134" cy="48" rx="5.4" ry="10.5" transform="rotate(18 134 48)"/><ellipse cx="136" cy="70" rx="5.8" ry="11" transform="rotate(-14 136 70)"/><ellipse cx="139" cy="92" rx="5.4" ry="10.5" transform="rotate(24 139 92)"/>
+<path d="M130 96c-8-6-16-6-24-2M130 106c8-6 16-6 24-2"/>
+<ellipse cx="86" cy="86" rx="5.4" ry="11" transform="rotate(-24 86 86)"/><ellipse cx="80" cy="68" rx="5" ry="10" transform="rotate(-12 80 68)"/><ellipse cx="74" cy="52" rx="4.4" ry="9"/><ellipse cx="92" cy="60" rx="4.2" ry="8.4" transform="rotate(22 92 60)"/>
+<ellipse cx="174" cy="84" rx="5.4" ry="11" transform="rotate(24 174 84)"/><ellipse cx="180" cy="66" rx="5" ry="10" transform="rotate(12 180 66)"/><ellipse cx="186" cy="50" rx="4.4" ry="9"/><ellipse cx="168" cy="58" rx="4.2" ry="8.4" transform="rotate(-22 168 58)"/>
+<ellipse cx="60" cy="126" rx="4.6" ry="9.5" transform="rotate(-30 60 126)"/><ellipse cx="54" cy="110" rx="4.2" ry="8.6" transform="rotate(-16 54 110)"/><ellipse cx="50" cy="96" rx="3.6" ry="7.4"/>
+<ellipse cx="200" cy="124" rx="4.6" ry="9.5" transform="rotate(30 200 124)"/><ellipse cx="206" cy="108" rx="4.2" ry="8.6" transform="rotate(16 206 108)"/><ellipse cx="210" cy="94" rx="3.6" ry="7.4"/>
+<path d="M130 176c-14-8-26-8-38-4M130 186c14-8 26-8 38-4" stroke-width="1"/>
+</svg>`;
+// Značka levandule v karte v spodku bočného panelu.
+const LAVENDER_ART = `<svg viewBox="0 0 72 88" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M36 84V38M26 84c1-14 2-24 4-32M48 84c-1-16-3-28-5-34M16 84c3-12 6-20 10-26M58 84c-3-13-7-22-12-28"/>
+<path d="M30 44c-5-4-8-9-10-15M42 42c5-4 8-9 10-15M24 54c-4-3-7-8-8-13M50 52c4-3 7-8 8-13"/>
+<ellipse cx="36" cy="30" rx="3.4" ry="7"/><ellipse cx="34" cy="19" rx="3" ry="6"/><ellipse cx="32" cy="9" rx="2.6" ry="5"/><ellipse cx="38" cy="14" rx="2.4" ry="4.6" transform="rotate(16 38 14)"/><ellipse cx="40" cy="26" rx="2.6" ry="5" transform="rotate(-12 40 26)"/>
+<ellipse cx="20" cy="34" rx="2.6" ry="5.4" transform="rotate(-22 20 34)"/><ellipse cx="17" cy="24" rx="2.4" ry="4.8" transform="rotate(-10 17 24)"/><ellipse cx="24" cy="26" rx="2.2" ry="4.4" transform="rotate(20 24 26)"/>
+<ellipse cx="52" cy="32" rx="2.6" ry="5.4" transform="rotate(22 52 32)"/><ellipse cx="55" cy="22" rx="2.4" ry="4.8" transform="rotate(10 55 22)"/><ellipse cx="48" cy="24" rx="2.2" ry="4.4" transform="rotate(-20 48 24)"/>
+<ellipse cx="12" cy="62" rx="2.4" ry="5" transform="rotate(-30 12 62)"/><ellipse cx="10" cy="52" rx="2.2" ry="4.4" transform="rotate(-16 10 52)"/>
+<ellipse cx="60" cy="60" rx="2.4" ry="5" transform="rotate(30 60 60)"/><ellipse cx="62" cy="50" rx="2.2" ry="4.4" transform="rotate(16 62 50)"/>
+</svg>`;
+// Vlajka Slovenska (inline SVG) – prepínač jazyka v hornej lište.
+const FLAG_SK = `<svg class="flag" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" fill="#fff"/><rect y="5.34" width="24" height="5.33" fill="#0B4EA2"/><rect y="10.67" width="24" height="5.33" fill="#EE1C25"/><path d="M5.2 4.2h6.2v1.5H9.7v2.1h1.9v1.3H9.7v2.1h1.7v1.5H5.2v-1.5h1.8v-2.1H5.1V7.8h1.9V5.7H5.2Z" fill="#fff" stroke="#EE1C25" stroke-width=".45"/></svg>`;
 
 // --- navigácia (štruktúra podľa schváleného návrhu admin-design-overview) ---
 // ready:false = agenda je v admine, ale čaká na jadro → skrytá, kým sa nenapojí.
+// group = skupina v bočnom paneli; položka bez skupiny stojí samostatne hore (Prehľad).
+const NAV_GROUPS = [
+  { k: 'obchod', label: 'OBCHOD' },
+  { k: 'obsah', label: 'OBSAH' },
+  { k: 'marketing', label: 'MARKETING' },
+  { k: 'nastavenia', label: 'NASTAVENIA' },
+];
 const NAV = [
   { k: '', label: 'Prehľad', icon: 'home', ready: true },
-  { k: 'objednavky', label: 'Objednávky', icon: 'bag', ready: true, badge: 'orders' },
-  { k: 'produkty', label: 'Produkty', icon: 'box', ready: true },
-  { k: 'kategorie', label: 'Kategórie', icon: 'box', ready: true },
-  { k: 'zakaznicky', label: 'Zákazníci', icon: 'users', ready: true },
-  { k: 'konzultacie', label: 'Konzultácie', icon: 'cal', ready: true },
-  { k: 'spravy', label: 'Správy', icon: 'chat', ready: true, badge: 'messages' },
-  { k: 'poukazy', label: 'Poukazy a zľavy', icon: 'gift', ready: true },
-  { k: 'ambasadori', label: 'Ambasádori', icon: 'star', ready: true, phase2: true },
-  { k: 'obsah', label: 'Obsah a e-maily', icon: 'doc', ready: true },
+  { k: 'objednavky', label: 'Objednávky', icon: 'bag', ready: true, badge: 'orders', group: 'obchod' },
+  { k: 'produkty', label: 'Produkty', icon: 'box', ready: true, group: 'obchod' },
+  { k: 'kategorie', label: 'Kategórie', icon: 'layers', ready: true, group: 'obchod' },
+  { k: 'zakaznicky', label: 'Zákazníci', icon: 'users', ready: true, group: 'obchod' },
+  { k: 'konzultacie', label: 'Konzultácie', icon: 'cal', ready: true, group: 'obchod' },
+  { k: 'spravy', label: 'Správy', icon: 'chat', ready: true, badge: 'messages', group: 'obsah' },
+  { k: 'obsah', label: 'Obsah a e-maily', icon: 'doc', ready: true, group: 'obsah' },
+  { k: 'ambasadori', label: 'Ambasádori', icon: 'star', ready: true, phase2: true, group: 'marketing' },
+  { k: 'poukazy', label: 'Poukazy a zľavy', icon: 'gift', ready: true, group: 'marketing' },
+  { k: 'nastavenia', label: 'Nastavenia', icon: 'cog', ready: true, group: 'nastavenia' },
+  { k: 'pomoc', label: 'Potrebujete poradiť?', icon: 'help', ready: true, group: 'nastavenia' },
 ];
 let BADGES = {};
 
 function shell(active, title, sub) {
   const cur = (k) => active === k ? ' active" aria-current="page' : '';
   const item = (n) => `<a class="nav-item${cur(n.k)}" href="#/${n.k}">${navIcon(n.icon)}<span>${esc(n.label)}</span>${n.phase2 ? '<span class="nav-phase">Fáza 2</span>' : ''}${n.badge ? `<span class="counter" data-badge="${n.badge}" ${BADGES[n.badge] ? '' : 'hidden'}>${BADGES[n.badge] || ''}</span>` : ''}</a>`;
-  const nav = NAV.filter(n => n.ready && (isOwner() || !OWNER_ONLY_SECTIONS[n.k])).map(item).join('');
+  const visible = NAV.filter(n => n.ready && (isOwner() || !OWNER_ONLY_SECTIONS[n.k]));
+  const top = visible.filter(n => !n.group).map(item).join('');
+  const groups = NAV_GROUPS.map(g => {
+    const its = visible.filter(n => n.group === g.k);
+    if (!its.length) return '';
+    return `<div class="nav-group"><div class="nav-title">${g.label}</div>${its.map(item).join('')}</div>`;
+  }).join('');
   const crumb = active === '' ? 'Prehľad' : (title || '');
   // Prehľad: dátum + pozdrav (meno dopĺňa setUserChip z /admin/users/me); ostatné agendy: názov a popis z ROUTES.
-  const d = new Date(), today = `${d.toLocaleDateString('sk-SK', { weekday: 'long' })}, ${d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' })}`;
+  const d = new Date();
+  const today = `${d.toLocaleDateString('sk-SK', { weekday: 'long' })}, ${d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' })} ${d.getFullYear()}`.toLocaleUpperCase('sk-SK');
   // Pomoc na stránke: tlačidlo „Ako to funguje“ pri nadpise + skrytý panel s vysvetlením (obsah z guide.mjs).
   const helpBtn = PAGE_HELP[active] ? `<button type="button" class="help-toggle" id="ctx-help-btn" aria-expanded="false" aria-controls="ctx-help">${navIcon('help')}<span>Ako to funguje</span></button>` : '';
+  const rangeSet = `<div class="select-box select-cal">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS.cal}</svg>
+      <select class="rc-select" id="dash-range" aria-label="Výber obdobia">
+        <option value="7">Posledných 7 dní</option>
+        <option value="30" selected>Posledných 30 dní</option>
+        <option value="90">Posledných 90 dní</option>
+      </select>
+    </div>`;
   const head = active === ''
-    ? `<p class="eyebrow">${esc(today)}</p><div class="heading"><div><h1 id="greet">Dobrý deň.</h1><p class="intro">Tu nájdete všetko, čo dnes potrebuje vašu pozornosť.</p></div><div class="head-actions">${helpBtn}<div id="actions"></div></div></div>`
+    ? `<p class="eyebrow">${esc(today)}</p>
+       <div class="heading dash-head">
+         <div class="dash-title">
+           <h1 id="greet">Dobrý deň.</h1>
+           <p class="intro">Tu je prehľad vášho obchodu. Spolu tvoríme viac svetla pre ľudí.</p>
+         </div>
+         <div class="dash-meta">
+           <blockquote class="quote">„Cesta k sebe začína vnímaním.“</blockquote>
+           <div class="range-pick">${rangeSet}</div>
+         </div>
+       </div>`
     : `<p class="eyebrow">Váš obchod</p><div class="heading"><div><h1>${esc(title)}</h1>${sub ? `<p class="intro">${esc(sub)}</p>` : ''}</div><div class="head-actions">${helpBtn}<div id="actions"></div></div></div>`;
   return `<div class="app">
     <aside class="sidebar" id="sidebar" aria-label="Hlavná navigácia">
       ${brandHtml('a')}
-      <div class="side-search">
-        <input type="search" id="side-q" placeholder="Hľadať v celom obchode" aria-label="Hľadať v celom obchode">
-        <div class="side-results" id="side-results" hidden></div>
-      </div>
-      <div class="nav-title">Váš obchod</div>
-      <nav class="nav">${nav}</nav>
-      <div class="sidebar-bottom">
-        <a class="nav-item${cur('nastavenia')}" href="#/nastavenia">${navIcon('cog')}<span>Nastavenia</span></a>
-        <a class="nav-item${cur('pomoc')}" href="#/pomoc">${navIcon('help')}<span>Potrebujete poradiť?</span></a>
-        <div class="account"><span class="avatar" id="uava" aria-hidden="true"></span><div><strong id="uname">Váš účet</strong><small>Váš pracovný priestor</small></div></div>
-      </div>
+      <nav class="nav">
+        <div class="nav-top">${top}</div>
+        ${groups}
+      </nav>
+      <a class="side-promo" href="#/">
+        <span class="side-promo-art">${LAVENDER_ART}</span>
+        <span class="side-promo-txt"><b>ANASTASIA</b><small>Light for the future</small></span>
+        <span class="side-promo-arrow">${navIcon('arrow')}</span>
+      </a>
     </aside>
     <div class="scrim" id="scrim"></div>
     <div class="workspace">
       <header class="topbar">
+        ${BOTANIC_OLIVE}
         <div class="mobile-head"><button type="button" id="nav-toggle" aria-label="Otvoriť navigáciu" aria-expanded="false" aria-controls="sidebar">${navIcon('menu')}</button><img src="${LOGO}" alt="" width="28" height="28"><span>ANASTASIA</span></div>
-        <span class="crumb">Váš obchod / ${esc(crumb)}</span>
-        <div class="top-actions"><button type="button" class="subtle-link" id="logout">${navIcon('out')}Odhlásiť sa</button></div>
+        <div class="top-search">
+          ${navIcon('search')}
+          <input type="search" id="side-q" placeholder="Hľadať produkty, objednávky, zákazníkov…" aria-label="Hľadať v celom obchode" autocomplete="off">
+          <kbd class="kbd" id="search-kbd" title="Hľadať (⌘K)">⌘ K</kbd>
+          <div class="side-results" id="side-results" hidden></div>
+        </div>
+        <div class="top-actions">
+          <div class="dd" id="dd-lang">
+            <button type="button" class="top-btn lang-btn" data-dd="lang" aria-haspopup="true" aria-expanded="false" aria-label="Jazyk rozhrania">${FLAG_SK}<span>SK</span>${navIcon('chev')}</button>
+            <div class="dd-menu" data-menu="lang">
+              <button type="button" class="dd-item is-on">${FLAG_SK}Slovenčina</button>
+              <button type="button" class="dd-item" disabled>English — pripravujeme</button>
+              <button type="button" class="dd-item" disabled>Русский — приготовляем</button>
+            </div>
+          </div>
+          <div class="dd" id="dd-bell">
+            <button type="button" class="top-btn icon" data-dd="bell" aria-label="Upozornenia" aria-haspopup="true" aria-expanded="false">${navIcon('bell')}<span class="dot" id="bell-dot" hidden></span></button>
+            <div class="dd-menu wide" data-menu="bell"><div class="dd-body" id="bell-body"><p class="side-empty">Načítavam…</p></div></div>
+          </div>
+          <div class="dd" id="dd-user">
+            <button type="button" class="user-btn" data-dd="user" aria-haspopup="true" aria-expanded="false">
+              <span class="avatar" id="uava" aria-hidden="true"></span>
+              <span class="user-txt"><strong id="uname">Váš účet</strong><small>Administrátor</small></span>
+              ${navIcon('chev')}
+            </button>
+            <div class="dd-menu" data-menu="user">
+              <button type="button" class="dd-item" id="logout">${navIcon('out')}Odhlásiť sa</button>
+            </div>
+          </div>
+        </div>
       </header>
       <main class="content" id="main">
+        ${BOTANIC_LAVENDER}
+        ${active ? `<p class="crumb">Váš obchod / ${esc(crumb)}</p>` : ''}
         ${head}
         ${ctxHelpHtml(active)}
         <div id="view"></div>
@@ -195,6 +333,7 @@ function shell(active, title, sub) {
     </div>
   </div>`;
 }
+
 function wireMobileNav() {
   const sb = root.querySelector('#sidebar'), tg = root.querySelector('#nav-toggle'), scrim = root.querySelector('#scrim');
   if (!sb || !tg) return;
@@ -244,16 +383,82 @@ function wireSideSearch() {
   input.onkeydown = (e) => { if (e.key === 'Escape') { input.value = ''; box.hidden = true; input.blur(); } };
 }
 
+// --- horná lišta: rozbalovacie menu, zvoneček s upozorneniami a skratka ⌘K ---
+let BELL = null;            // posledné načítané upozornenia (pre zvoneček)
+let DOC_WIRED = false;      // posluchače dokumentu pripájam len raz
+const closeMenus = () => root.querySelectorAll('.dd.open').forEach(d => {
+  d.classList.remove('open');
+  d.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'false');
+});
+function wireTopbar() {
+  root.querySelectorAll('[data-dd]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const dd = btn.closest('.dd');
+      const open = dd.classList.contains('open');
+      closeMenus();
+      if (!open) {
+        dd.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        if (btn.dataset.dd === 'bell') loadBellMenu();
+      }
+    };
+  });
+  root.querySelectorAll('.dd-menu').forEach(m => m.addEventListener('click', (e) => e.stopPropagation()));
+  const kbd = root.querySelector('#search-kbd');
+  if (kbd) kbd.onclick = () => { const s = root.querySelector('#side-q'); if (s) { s.focus(); s.select?.(); } };
+  if (!DOC_WIRED) {
+    DOC_WIRED = true;
+    document.addEventListener('click', closeMenus);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenus(); });
+  }
+}
+// Obsah rozbalovacieho menu zvonečka: rovnaké údaje ako panel Notifikácie na Prehľade.
+async function loadBellMenu() {
+  const body = root.querySelector('#bell-body');
+  if (!body) return;
+  if (!BELL) {
+    body.innerHTML = '<p class="side-empty">Načítavam…</p>';
+    const soft = (p) => api(p).catch(e => { if (e.message === '401') throw e; return null; });
+    const [o, c, inv, prod] = await Promise.all([
+      soft('/admin/orders?limit=5&order=-created_at&fields=id,display_id,created_at,payment_status,fulfillment_status,status'),
+      soft('/admin/chat/conversations?status=open&limit=5'),
+      soft('/admin/inventory-items?limit=200&fields=id,sku,*location_levels'),
+      soft('/admin/products?limit=100&fields=id,title,*variants.sku'),
+    ]);
+    const unread = Number(c?.unread) || 0;
+    const notif = [];
+    for (const x of (o?.orders || []).slice(0, 3)) notif.push({ icon: 'bag', tone: 'lav', title: `Nová objednávka #${x.display_id ?? ''}`, time: x.created_at, href: '#/objednavky' });
+    if (unread > 0) notif.push({ icon: 'chat', tone: 'lav', title: `${unread} neprečítaných správ`, time: null, href: '#/spravy' });
+    for (const s of lowStockFrom(inv?.inventory_items || [], prod?.products || []).slice(0, 2)) notif.push({ icon: 'box2', tone: 'warn', title: `Nízky sklad: ${s.title} (${s.stock} ks)`, time: null, href: '#/produkty' });
+    BELL = { notif, unread, toFulfill: BADGES.orders || 0 };
+  }
+  const perm = typeof Notification !== 'undefined' ? Notification.permission : 'unsupported';
+  body.innerHTML = notifHtml(BELL.notif, 0) + (perm && perm !== 'granted' && perm !== 'unsupported'
+    ? '<button type="button" class="btn ghost sm" id="notify-on" style="margin-top:10px;width:100%">Zapnúť upozornenia v prehliadači</button>' : '');
+  const on = body.querySelector('#notify-on');
+  if (on) on.onclick = async () => {
+    try { const p = await Notification.requestPermission(); if (p === 'granted') { startNotifyPolling(); on.remove(); } }
+    catch { /* prehliadač nepodporuje */ }
+  };
+}
+
 // --- aktuálne prihlásená obsluha (pre pozdrav + avatar) ---
 let ME = null;
 async function loadMe() { if (ME) return ME; try { ME = (await api('/admin/users/me?fields=id,first_name,last_name,email')).user || null; } catch { ME = null; } return ME; }
-function meName() { const m = ME || {}; return (m.first_name || (m.email ? m.email.split('@')[0] : '') || '').trim(); }
+// Všeobecné prezývky, ktoré nie sú krstné meno – pozdrav bez mena („Dobrý deň.“).
+const GENERIC_NAMES = new Set(['ceo', 'admin', 'administrator', 'root', 'test', 'user', 'lcode', 'l-code', 'anastasia']);
+function meName() {
+  const m = ME || {};
+  const ok = (v) => { const s = (v || '').trim(); return s && !GENERIC_NAMES.has(s.toLowerCase()) ? s : ''; };
+  return ok(m.first_name) || ok(m.last_name);
+}
 function meInitials() {
   const m = ME || {};
   const fl = [m.first_name, m.last_name].map(s => (s || '').trim()).filter(Boolean);
   if (fl.length >= 2) return (fl[0][0] + fl[1][0]).toUpperCase();
   const n = meName();
-  return n ? n.slice(0, 2).toUpperCase() : '';
+  return n ? n.slice(0, 2).toUpperCase() : 'A';
 }
 function setUserChip() {
   const name = meName(); const nm = document.querySelector('#uname'); const av = document.querySelector('#uava'); const gr = document.querySelector('#greet');
@@ -263,129 +468,445 @@ function setUserChip() {
 }
 
 // --- views ---
+// --- Prehľad: obdobie, metrika a granularita grafu ---
+// DASH_RANGE = koľko dní sa pozeráme späť (7 / 30 / 90); DASH_METRIC = čo sa kreslí.
+let DASH_RANGE = 30;
+let DASH_METRIC = 'revenue';   // revenue = tržby, orders = počet objednávok
+let DASH_GRAN = 'day';         // day = denne, week = týždenne
+
+const dayKey = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
+const dayLabel = (d) => new Date(d).toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit' });
+const money0 = (v) => new Intl.NumberFormat('sk-SK', { maximumFractionDigits: 0 }).format(Math.round(Number(v) || 0));
+const initialsOf = (name) => (String(name || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(s => s[0]).join('') || '').toUpperCase() || '–';
+// Koľko času uplynulo od dátumu (na upozornenia).
+const ago = (d) => {
+  if (!d) return 'nedávno';
+  const m = Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 60000));
+  if (m < 1) return 'pred chvíľou';
+  if (m < 60) return `pred ${m} minútami`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `pred ${h} hodinami`;
+  const dd = Math.round(h / 24);
+  return dd === 1 ? 'pred 1 dňom' : `pred ${dd} dňami`;
+};
+const isPaidOrder = (o) => ['captured', 'paid', 'partially_captured'].includes(o.payment_status);
+const isShipped = (o) => ['shipped', 'partially_shipped', 'delivered'].includes(o.fulfillment_status);
+// Stav objednávky pre tabuľku: Zaplatené (zelená), Odoslané (fialová), Spracovanie (oranžová).
+const orderState = (o) => {
+  if (isShipped(o)) return ['Odoslané', 'lav'];
+  const paid = isPaidOrder(o);
+  if (paid && ['fulfilled', 'partially_fulfilled'].includes(o.fulfillment_status)) return ['Zaplatené', 'ok'];
+  if (paid) return ['Spracovanie', 'warn'];
+  if (['fulfilled', 'partially_fulfilled'].includes(o.fulfillment_status)) return ['Spracovanie', 'warn'];
+  return ['Čaká na platbu', 'off'];
+};
+const lowStockFrom = (inventory, products) => {
+  const titleBySku = new Map(products.flatMap(p => (p.variants || []).map(v => [v.sku, p.title])));
+  return inventory
+    .map(i => ({ sku: i.sku, title: titleBySku.get(i.sku) || i.sku, stock: (i.location_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0) }))
+    .filter(x => x.stock <= 5).sort((a, b) => a.stock - b.stock);
+};
+// Percentuálna zmena oproti predchádzajúcemu obdobiu; bez porovnateľných údajov sa % nezobrazí.
+const deltaOf = (cur, prev) => {
+  if (!prev) return null;
+  const p = ((cur - prev) / Math.abs(prev)) * 100;
+  if (!isFinite(p)) return null;
+  return { up: p >= 0, text: `${p >= 0 ? '+' : '−'}${Math.abs(p).toFixed(1).replace('.', ',')} %` };
+};
+const niceMax = (v) => {
+  if (!v || v <= 0) return 10;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  const s = v / p;
+  const m = s <= 1 ? 1 : s <= 2 ? 2 : s <= 2.5 ? 2.5 : s <= 5 ? 5 : 10;
+  return m * p;
+};
+// Hladká krivka (Catmull-Rom → kubické Bézier) pre sparkline aj graf.
+const smoothPath = (pts) => {
+  if (!pts.length) return '';
+  if (pts.length < 3) return `M${pts.map(p => `${p[0]} ${p[1]}`).join(' L')}`;
+  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+  }
+  return d;
+};
+// Sparkline pre KPI kartu: plynulá vyplnená křivka (levanduľová / šalvějová).
+const sparkSvg = (values, color, id = 'sp') => {
+  if (!values || values.length < 2) return '';
+  const w = 84, h = 30, max = Math.max(...values, 1);
+  const pts = values.map((v, i) => [((i / (values.length - 1)) * w), h - (v / max) * (h - 5) - 2.5]);
+  const line = smoothPath(pts);
+  const area = `${line} L${w} ${h} L0 ${h} Z`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".30"/><stop offset="100%" stop-color="${color}" stop-opacity=".02"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${id}g)"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+};
+// Graf vývoja: stĺpce (levanduľové) + zelená hladká křivka s bodmi, osa v € (čisté inline SVG).
+function chartSvg(series, money = true) {
+  const W = 660, H = 200, L = 56, R = 12, T = 14, B = 28;
+  const iw = W - L - R, ih = H - T - B;
+  const max = niceMax(Math.max(...series.map(s => s.value), 0));
+  const n = series.length;
+  const step = n > 1 ? iw / (n - 1) : iw;
+  const bw = Math.max(3, Math.min(18, (iw / Math.max(n, 1)) * 0.5));
+  const X = (i) => L + (n > 1 ? i * step : iw / 2);
+  const Y = (v) => T + ih - (v / max) * ih;
+  const grid = [0, 1 / 3, 2 / 3, 1].map(f => {
+    const yy = T + ih - f * ih, val = max * f;
+    return `<line class="ch-grid" x1="${L}" y1="${yy.toFixed(1)}" x2="${W - R}" y2="${yy.toFixed(1)}" stroke-width="1"/>` +
+      `<text class="ch-lbl" x="${L - 9}" y="${(yy + 4).toFixed(1)}" text-anchor="end">${money ? `${money0(val)} €` : money0(val)}</text>`;
+  }).join('');
+  const bars = series.map((s, i) => {
+    const h = s.value > 0 ? Math.max(2, (s.value / max) * ih) : 0;
+    if (!h) return '';
+    return `<rect x="${(X(i) - bw / 2).toFixed(1)}" y="${(T + ih - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(4, bw / 2).toFixed(1)}" fill="#D9CCEB"/>`;
+  }).join('');
+  const pts = series.map((s, i) => [X(i), Y(s.value)]);
+  const line = smoothPath(pts);
+  const dots = (n <= 32 ? pts : [pts[pts.length - 1]])
+    .map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.8" fill="#fff" stroke="#6F8A5E" stroke-width="1.8"/>`).join('');
+  const stepL = Math.max(1, Math.ceil(n / 6));
+  const labels = series.map((s, i) => (i % stepL === 0 || i === n - 1)
+    ? `<text class="ch-lbl" x="${X(i).toFixed(1)}" y="${H - 9}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${esc(s.label)}</text>` : '').join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vývoj tržieb">${grid}${bars}
+    <path d="${line}" fill="none" stroke="#6F8A5E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg>`;
+}
+// Donut s rozdelením objednávok podľa kategórií.
+function donutSvg(slices, top, bottom) {
+  const r = 54, C = 2 * Math.PI * r;
+  const total = slices.reduce((a, s) => a + s.value, 0);
+  let off = 0;
+  const arcs = slices.map(s => {
+    const len = total ? (C * s.value) / total : 0;
+    const el = `<circle cx="70" cy="70" r="${r}" fill="none" stroke="${s.color}" stroke-width="20" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 70 70)"/>`;
+    off += len; return el;
+  }).join('');
+  return `<svg class="donut" viewBox="0 0 140 140" role="img" aria-label="Podiel objednávok podľa kategórií">${arcs}
+    <text class="dn-n" x="70" y="66" text-anchor="middle">${esc(top)}</text>
+    <text class="dn-l" x="70" y="86" text-anchor="middle">${esc(bottom)}</text></svg>`;
+}
+// Zoznam upozornení (nové objednávky, zákazníci, nízky sklad, správy) – z reálnych dát.
+const notifHtml = (list, limit = 0) => {
+  const items = limit ? list.slice(0, limit) : list;
+  if (!items.length) return '<p class="side-empty">Zatiaľ nič netreba riešiť. Obchod je pokojný.</p>';
+  return `<ul class="notif">${items.map(n => {
+    const inner = `<span class="notif-ic ${n.tone}">${navIcon(n.icon)}</span><span class="notif-txt"><b>${esc(n.title)}</b><small>${esc(ago(n.time))}</small></span>`;
+    if (n.expand) return `<li${n.tour ? ` data-tour="${esc(n.tour)}"` : ''}><details><summary>${inner}</summary><div class="notif-detail">${n.expand}</div></details></li>`;
+    return `<li${n.tour ? ` data-tour="${esc(n.tour)}"` : ''}>${n.href ? `<a class="notif-link" href="${esc(n.href)}">${inner}</a>` : inner}</li>`;
+  }).join('')}</ul>`;
+};
+
 async function vDashboard(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam…</div>';
-  setActions(`<a class="btn primary" href="#/produkty">${navIcon('plus')}Pridať produkt</a>`);
+  setActions('');
   const soft = (p) => api(p).catch(e => { if (e.message === '401') throw e; return null; });
   await loadMe(); setUserChip();
-  const [ordersRes, chatRes, bookRes, readiness] = await Promise.all([
-    soft('/admin/orders?fulfillment_status[]=not_fulfilled&status[]=pending&status[]=completed&status[]=requires_action&limit=1'),
-    soft('/admin/chat/conversations?status=open&limit=200'),
+  // Všetky čísla v prehľade pochádzajú z jadra – žiadne vymyšlené hodnoty.
+  const [ordersRes, custRes, prodRes, catRes, invRes, chatRes, bookRes, readiness] = await Promise.all([
+    soft('/admin/orders?limit=500&order=-created_at&fields=id,display_id,status,payment_status,fulfillment_status,created_at,total,email,customer_id,*items,*customer,*shipping_address'),
+    soft('/admin/customers?limit=500&fields=id,email,first_name,last_name,created_at'),
+    soft('/admin/products?limit=200&fields=id,title,thumbnail,*variants.prices,*variants.sku,*categories'),
+    soft('/admin/product-categories?limit=100&fields=id,name,handle,is_active,*products.id'),
+    soft('/admin/inventory-items?limit=500&fields=id,sku,*location_levels'),
+    soft('/admin/chat/conversations?status=open&limit=50'),
     soft('/admin/bookings?status=confirmed&limit=200'),
     soft('/admin/readiness'),
   ]);
-  const toFulfill = typeof ordersRes?.count === 'number' ? ordersRes.count : null;
-  // Nové správy = neprečítané (neztlmené) otvorené konverzácie, ako ich počíta jadro.
-  const unread = typeof chatRes?.unread === 'number' ? chatRes.unread : null;
-  // Dnešné konzultácie: potvrdené rezervácie s termínom dnes. Zoznam je zoradený od najnovšieho termínu;
-  // ak nepokrýva celý dnešok, číslo neukazujeme (radšej nič než nepresné).
-  const start = new Date(); start.setHours(0, 0, 0, 0);
-  const end = new Date(start); end.setDate(end.getDate() + 1);
-  let todayB = null;
-  if (bookRes && Array.isArray(bookRes.bookings)) {
-    const list = bookRes.bookings, oldest = list[list.length - 1];
-    const complete = list.length >= (bookRes.count || 0) || (oldest && new Date(oldest.starts_at) < start);
-    if (complete) todayB = list.filter(b => { const t = new Date(b.starts_at); return t >= start && t < end; }).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+  const orders = ordersRes?.orders || [];
+  const customers = custRes?.customers || [];
+  const products = prodRes?.products || [];
+  const categories = catRes?.product_categories || [];
+  const inventory = invRes?.inventory_items || [];
+  const unread = Number(chatRes?.unread) || 0;
+
+  // --- obdobia: aktuálne a porovnávacie (rovnaká dĺžka bezprostredne predtým) ---
+  const now = Date.now(), days = DASH_RANGE;
+  const from = now - days * 86400000, prevFrom = now - 2 * days * 86400000;
+  const inRange = (d) => { const t = new Date(d).getTime(); return t >= from && t <= now; };
+  const inPrev = (d) => { const t = new Date(d).getTime(); return t >= prevFrom && t < from; };
+  const rangeOrders = orders.filter(o => inRange(o.created_at));
+  const prevOrders = orders.filter(o => inPrev(o.created_at));
+  const paidIn = rangeOrders.filter(isPaidOrder);
+  const paidPrev = prevOrders.filter(isPaidOrder);
+  const revenue = paidIn.reduce((a, o) => a + Number(o.total || 0), 0);
+  const prevRevenue = paidPrev.reduce((a, o) => a + Number(o.total || 0), 0);
+  const avg = paidIn.length ? revenue / paidIn.length : 0;
+  const prevAvg = paidPrev.length ? prevRevenue / paidPrev.length : 0;
+  const newCustomers = customers.filter(c => inRange(c.created_at)).length;
+  const prevCustomers = customers.filter(c => inPrev(c.created_at)).length;
+
+  // --- rady po dňoch (na graf a sparkline) ---
+  const buckets = [];
+  for (let i = days - 1; i >= 0; i--) { const d = new Date(now - i * 86400000); buckets.push({ d, key: dayKey(d), revenue: 0, orders: 0 }); }
+  const bidx = new Map(buckets.map((b, i) => [b.key, i]));
+  for (const o of orders) {
+    const i = bidx.get(dayKey(o.created_at));
+    if (i === undefined) continue;
+    buckets[i].orders += 1;
+    if (isPaidOrder(o)) buckets[i].revenue += Number(o.total || 0);
   }
-  let names = null;
-  if (todayB && todayB.length) { try { names = await namesFor(todayB.map(b => b.customer_id), todayB.map(b => b.product_id)); } catch (e) { if (e.message === '401') throw e; } }
-  // Tržby, najpredávanejšie produkty a nízky sklad – údaje z jadra, výpočet len na zobrazenie.
+  let series = buckets.map(b => ({ label: dayLabel(b.d), value: DASH_METRIC === 'revenue' ? b.revenue : b.orders }));
+  if (DASH_GRAN === 'week') {
+    const w = [];
+    for (let i = 0; i < series.length; i += 7) {
+      const chunk = series.slice(i, i + 7);
+      w.push({ label: chunk[0]?.label || '', value: chunk.reduce((a, x) => a + x.value, 0) });
+    }
+    series = w;
+  }
+  const sparkRevenue = buckets.map(b => b.revenue);
+  const sparkOrders = buckets.map(b => b.orders);
+  const sparkCustomers = buckets.map(b => {
+    const s = new Date(b.d); s.setHours(0, 0, 0, 0);
+    const e = s.getTime() + 86400000;
+    return customers.filter(c => { const t = new Date(c.created_at).getTime(); return t >= s.getTime() && t < e; }).length;
+  });
+
+  // --- kategórie: objednávky podľa kategórií (donut) ---
+  const catName = new Map(categories.map(c => [c.id, c.name]));
+  const prodCat = new Map();
+  for (const p of products) {
+    const cs = (p.categories || []).map(c => c.id || c).filter(Boolean);
+    if (cs.length) prodCat.set(p.id, catName.get(cs[0]) || 'Ostatné');
+  }
+  const catQty = new Map();
+  for (const o of rangeOrders) for (const it of (o.items || [])) {
+    const nm = prodCat.get(it.product_id) || 'Ostatné';
+    catQty.set(nm, (catQty.get(nm) || 0) + Number(it.quantity || 0));
+  }
+  const DONUT_COLORS = ['#B9A3D6', '#8FA67E', '#D9CCEB', '#7E63A8'];
+  let donut = [...catQty.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+  if (donut.length > 4) donut = [...donut.slice(0, 4), { label: 'Ostatné', value: donut.slice(4).reduce((a, x) => a + x.value, 0) }];
+  donut = donut.map((s, i) => ({ ...s, color: DONUT_COLORS[i % DONUT_COLORS.length] }));
+  const catTotal = donut.reduce((a, s) => a + s.value, 0);
+
+  // --- posledné objednávky (tabuľka) ---
+  const recent = [...orders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+  const custName = (o) => [o.customer?.first_name, o.customer?.last_name].filter(Boolean).join(' ')
+    || [o.shipping_address?.first_name, o.shipping_address?.last_name].filter(Boolean).join(' ')
+    || o.email || 'Neznámy';
+  const recentRows = recent.map(o => {
+    const items = o.items || [], first = items[0];
+    const nm = custName(o);
+    const [st, stTone] = orderState(o);
+    return `<tr data-oid="${esc(o.id)}">
+      <td class="muted-cell">#${esc(o.display_id ?? o.id ?? '')}</td>
+      <td><div class="cust-cell"><span class="avatar">${esc(initialsOf(nm))}</span><b>${esc(nm)}</b></div></td>
+      <td><div class="prod-cell">${first?.thumbnail ? `<img class="thumb" src="${esc(first.thumbnail)}" alt="" loading="lazy">` : '<span class="thumb ph"></span>'}<span>${esc(first?.title || first?.product_title || '—')}${items.length > 1 ? ` <span class="muted">+${items.length - 1}</span>` : ''}</span></div></td>
+      <td class="sum">${fmtEur(o.total)}</td>
+      <td><span class="state ${stTone}">${esc(st)}</span></td>
+      <td class="muted-cell">${esc(new Date(o.created_at).toLocaleDateString('sk-SK'))}</td>
+      <td><button type="button" class="dots-btn" aria-label="Viac možností">⋮</button></td>
+    </tr>`;
+  }).join('');
+
+  // --- najpredávanejšie produkty ---
+  const prodById = new Map(products.map(p => [p.id, p]));
+  const topMap = new Map();
+  for (const o of rangeOrders) for (const it of (o.items || [])) {
+    const key = it.product_id || it.title || it.id;
+    const cur = topMap.get(key) || { title: it.title || it.product_title || '—', thumb: it.thumbnail || '', qty: 0, sum: 0, price: null };
+    cur.qty += Number(it.quantity || 0);
+    cur.sum += Number(it.total || 0);
+    const p = prodById.get(it.product_id);
+    if (p) { if (!cur.thumb && p.thumbnail) cur.thumb = p.thumbnail; if (cur.price == null) cur.price = basePrice(p.variants?.[0])?.amount ?? null; }
+    topMap.set(key, cur);
+  }
+  const top = [...topMap.values()].sort((a, b) => b.qty - a.qty || b.sum - a.sum).slice(0, 5);
+
+  // --- nízky sklad, konzultácie, pripravenosť a upozornenia ---
+  const lowStock = lowStockFrom(inventory, products).slice(0, 5);
+  // Dnešné konzultácie (potvrdené rezervácie) – rovnaký zdroj ako Predchádzajúci prehľad.
   const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
-  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); weekStart.setHours(0, 0, 0, 0);
-  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
-  const [recentRes, invRes, prodRes] = await Promise.all([
-    soft('/admin/orders?limit=200&order=-created_at&fields=id,status,payment_status,fulfillment_status,created_at,total,*items'),
-    soft('/admin/inventory-items?limit=200&fields=id,sku,*location_levels'),
-    soft('/admin/products?limit=100&fields=id,title,*variants.sku'),
-  ]);
-  const recent = recentRes?.orders || [];
-  const paid = (o) => ['captured', 'paid', 'partially_captured'].includes(o.payment_status);
-  const sumPaid = (from) => recent.filter(o => paid(o) && new Date(o.created_at) >= from).reduce((a, o) => a + Number(o.total || 0), 0);
-  const revenue = { day: sumPaid(dayStart), week: sumPaid(weekStart), month: sumPaid(monthStart) };
-  const revenuePartial = (Number(recentRes?.count) || 0) > recent.length;
-  const counts = new Map();
-  for (const o of recent) for (const it of o.items || []) {
-    const key = it.title || it.product_title || '';
-    if (!key) continue;
-    const cur = counts.get(key) || { title: key, qty: 0, sum: 0 };
-    cur.qty += Number(it.quantity || 0); cur.sum += Number(it.total || 0);
-    counts.set(key, cur);
+  const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate() + 1);
+  const todayBookings = Array.isArray(bookRes?.bookings)
+    ? bookRes.bookings.filter(b => { const t = new Date(b.starts_at); return t >= dayStart && t < dayEnd; }).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))
+    : [];
+  const notif = [];
+  for (const o of rangeOrders.slice(0, 3)) notif.push({ icon: 'bag', tone: 'rose', title: `Nová objednávka #${o.display_id ?? ''}`, time: o.created_at, href: '#/objednavky' });
+  for (const c of customers.filter(c => inRange(c.created_at)).slice(0, 2)) {
+    const nm = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.email || 'zákazník';
+    notif.push({ icon: 'user', tone: 'sage', title: `Nový zákazník ${nm}`, time: c.created_at, href: '#/zakaznicky' });
   }
-  const top = [...counts.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
-  const titleBySku = new Map((prodRes?.products || []).flatMap(p => (p.variants || []).map(v => [v.sku, p.title])));
-  const lowStock = (invRes?.inventory_items || [])
-    .map(i => ({ sku: i.sku, title: titleBySku.get(i.sku) || i.sku, stock: (i.location_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0) }))
-    .filter(x => x.stock <= 5).sort((a, b) => a.stock - b.stock).slice(0, 5);
-  const hm = (d) => new Date(d).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
-  const now = Date.now(), next = todayB ? todayB.find(b => new Date(b.starts_at).getTime() >= now) : null;
-  const plural = (n, one, few, many) => n === 1 ? one : n >= 2 && n <= 4 ? few : many;
+  for (const s of lowStock.slice(0, 2)) notif.push({ icon: 'box2', tone: 'gold', title: `Nízky sklad: ${s.title} (${s.stock} ks)`, time: null, href: '#/produkty' });
+  if (unread > 0) notif.push({ icon: 'mail', tone: 'sage', title: `${unread} neprečítaných správ`, time: null, href: '#/spravy' });
+  for (const b of todayBookings.slice(0, 2)) {
+    const at = new Date(b.starts_at).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+    notif.push({ icon: 'cal', tone: 'lav', title: `Konzultácia dnes o ${at}`, time: b.starts_at, href: '#/konzultacie' });
+  }
+  if (readiness && Array.isArray(readiness.checks)) {
+    const ok = readiness.checks.filter(c => c.status === 'ok').length;
+    const openChecks = readiness.checks.filter(c => c.status !== 'ok');
+    const pillOf = (c) => c.status === 'unknown' ? '<span class="pill off">nedá sa overiť</span>' : c.severity === 'blocker' ? '<span class="pill off">bráni predaju</span>' : '<span class="pill warn">odporúčame doplniť</span>';
+    notif.push({
+      icon: openChecks.length ? 'help' : 'check', tone: openChecks.length ? 'warn' : 'sage',
+      title: openChecks.length ? `Pripravenosť obchodu: ${openChecks.length} ${openChecks.length === 1 ? 'vec treba' : 'veci treba'} doplniť` : `Pripravenosť obchodu: všetko v poriadku (${ok}/${readiness.checks.length})`,
+      time: null, href: null, tour: openChecks.length ? 'readiness' : null,
+      expand: openChecks.length ? `<ul>${openChecks.map(c => `<li><b>${esc(c.title)}</b> ${pillOf(c)}<p>${esc(c.hint || '')}</p>${c.href ? `<a class="link-lav" href="${esc(c.href)}">Vyriešiť →</a>` : ''}</li>`).join('')}</ul>` : '',
+    });
+  }
+  notif.sort((a, b) => (b.time ? new Date(b.time).getTime() : 0) - (a.time ? new Date(a.time).getTime() : 0));
+  BELL = { notif, unread, toFulfill: BADGES.orders || 0 };
 
-  const stats = [];
-  if (toFulfill != null) stats.push(['Na vybavenie', 'bag', toFulfill, toFulfill === 0 ? 'nič nečaká na vybavenie' : plural(toFulfill, 'objednávka čaká na vás', 'objednávky čakajú na vás', 'objednávok čaká na vás'), '#/objednavky']);
-  if (unread != null) stats.push(['Nové správy', 'chat', unread, unread === 0 ? 'všetky správy sú prečítané' : plural(unread, 'zákazník čaká na odpoveď', 'zákazníci čakajú na odpoveď', 'zákazníkov čaká na odpoveď'), '#/spravy']);
-  if (todayB) stats.push(['Dnešné konzultácie', 'cal', todayB.length, todayB.length === 0 ? 'na dnes nič naplánované' : next ? `najbližšia o ${hm(next.starts_at)}` : 'dnešné termíny už prebehli', '#/konzultacie']);
-
-  const tasks = [];
-  if (toFulfill > 0) tasks.push(['wine', 'bag', 'Pripravte objednávky na odoslanie', `${toFulfill} ${plural(toFulfill, 'objednávka čaká', 'objednávky čakajú', 'objednávok čaká')} na vybavenie.`, 'Pozrieť objednávky', '#/objednavky']);
-  if (unread > 0) tasks.push(['green', 'chat', 'Odpovedzte zákazníkom', `${plural(unread, 'Máte jednu novú správu.', `Máte ${unread} nové správy.`, `Máte ${unread} nových správ.`)} Celú komunikáciu nájdete na jednom mieste.`, 'Prečítať správy', '#/spravy']);
-  const taskHtml = ([tone, icon, t, d, cta, href]) => `<article class="task"><div class="task-icon ${tone}">${navIcon(icon)}</div><div class="task-copy"><h3>${esc(t)}</h3><p>${esc(d)}</p><a class="subtle-link" href="${esc(href)}">${esc(cta)} →</a></div></article>`;
-  const ulohy = (n) => `${n} ${plural(n, 'úloha', 'úlohy', 'úloh')}`;
-
-  const dnesTag = new Date().toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' });
-  const schedule = todayB == null ? '' : `<section class="panel" data-tour="schedule"><div class="panel-head"><h2>Dnes vás čaká</h2><span class="tag">${esc(dnesTag)}</span></div><div class="schedule">
-    ${todayB.length ? todayB.slice(0, 4).map(b => `<article class="appointment"><span class="time">${esc(hm(b.starts_at))}</span><div><h3>${esc(names ? names.prod(b.product_id) : 'Konzultácia')}</h3><p>${esc(names ? names.cust(b.customer_id) : '')}${b.ends_at ? ` · ${Math.max(0, Math.round((new Date(b.ends_at) - new Date(b.starts_at)) / 60000))} min` : ''}</p><small>Rezervácia potvrdená</small></div></article>`).join('')
-      : '<p class="empty-task">Na dnes nemáte žiadne potvrdené konzultácie.</p>'}
-    <a class="subtle-link" href="#/konzultacie">${todayB.length > 4 ? `Pozrieť všetky ${todayB.length} konzultácie →` : 'Pozrieť konzultácie →'}</a>
-  </div></section>`;
-
-  view.innerHTML = `
-  ${stats.length ? `<div class="stats" data-tour="stats" style="--n:${stats.length}">${stats.map(([l, icon, n, sub, href]) => `<a class="stat" href="${href}"><div class="stat-top">${esc(l)} ${navIcon(icon)}</div><strong>${n}</strong><small>${esc(sub)}</small></a>`).join('')}</div>` : ''}
-  <div class="main-grid">
-    <div>
-      <section class="panel" data-tour="tasks"><div class="panel-head"><h2>Čomu sa venovať</h2>${tasks.length ? `<span class="tag">${ulohy(tasks.length)}</span>` : ''}</div>
-        ${tasks.length ? tasks.map(taskHtml).join('') : `<p class="empty-task">${toFulfill == null && unread == null ? 'Úlohy sa teraz nedajú načítať. Skúste obnoviť stránku.' : 'Všetko máte vybavené. Nič nečaká na vašu pozornosť.'}</p>`}
-      </section>
-      <section class="panel"><div class="panel-head"><h2>Tržby</h2><span class="tag">zaplatené objednávky</span></div>
-        <div class="stats" style="--n:3;margin:0 0 4px">
-          <div class="stat"><div class="stat-top">Dnes ${navIcon('bag')}</div><strong>${fmtEur(revenue.day)}</strong><small>${revenue.day ? 'zaplatené dnes' : 'dnes zatiaľ nič'}</small></div>
-          <div class="stat"><div class="stat-top">Tento týždeň ${navIcon('bag')}</div><strong>${fmtEur(revenue.week)}</strong><small>od pondelka</small></div>
-          <div class="stat"><div class="stat-top">Tento mesiac ${navIcon('bag')}</div><strong>${fmtEur(revenue.month)}</strong><small>od 1. dňa mesiaca</small></div>
-        </div>
-        ${revenuePartial ? '<p class="muted" style="font-size:12px;margin:0">Ukazujeme posledných 200 objednávok – staršie nie sú započítané.</p>' : ''}
-      </section>
-      ${readinessCard(readiness)}
-    </div>    <div>
-      ${schedule}
-      <section class="panel"><div class="panel-head"><h2>Najpredávanejšie produkty</h2></div>
-        ${top.length ? `<div class="rc-grid">${top.map(p => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(p.title)}</div>
-            <div class="rc-fields"><span class="rc-f"><em>Predané</em>${p.qty} ks</span><span class="rc-f"><em>Tržby</em>${fmtEur(p.sum)}</span></div></div></div>`).join('')}</div>`
-          : '<p class="empty-task">Zatiaľ nemáme údaje o predaji produktov.</p>'}
-      </section>
-      <section class="panel"><div class="panel-head"><h2>Nízky sklad</h2></div>
-        ${lowStock.length ? `<div class="rc-grid">${lowStock.map(p => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(p.title)}</div>
-            <div class="rc-fields"><span class="rc-f"><em>Na sklade</em>${p.stock <= 0 ? '<span class="pill off">vypredané</span>' : `<span class="pill warn">${p.stock} ks</span>`}</span><span class="rc-f"><em>Kód</em>${esc(p.sku || '—')}</span></div></div></div>`).join('')}</div>`
-          : '<p class="empty-task">Všetky produkty majú dostatok zásoby.</p>'}
-      </section>
-      ${notifyCard()}
-      <aside class="help-card">${navIcon('help')}<h3>Všetko si nastavíte tu.</h3><p>Ceny, voľné termíny, poukazy aj texty e-mailov. Pri každom nastavení vysvetlíme, čo zmena ovplyvní.</p><a class="subtle-link" href="#/nastavenia">Otvoriť nastavenia →</a></aside>
-      <div class="quick"><a class="btn" href="#/poukazy">${navIcon('gift')}Nastaviť poukazy</a><a class="btn" href="#/poukazy">${navIcon('plus')}Vytvoriť kupón</a></div>
+  // --- KPI karty ---
+  const kpi = [
+    { label: 'Tržby', value: fmtEur(revenue), icon: 'chart', tone: 'lav', d: deltaOf(revenue, prevRevenue), spark: sparkSvg(sparkRevenue, '#B9A3D6', 'sp0'), note: `zaplatené za ${days} dní` },
+    { label: 'Objednávky', value: String(rangeOrders.length), icon: 'bag', tone: 'sage', d: deltaOf(rangeOrders.length, prevOrders.length), spark: sparkSvg(sparkOrders, '#8FA67E', 'sp1'), note: `prijatých za ${days} dní` },
+    { label: 'Noví zákazníci', value: String(newCustomers), icon: 'users', tone: 'sage', d: deltaOf(newCustomers, prevCustomers), spark: sparkSvg(sparkCustomers, '#8FA67E', 'sp2'), note: `nových účtov za ${days} dní` },
+    { label: 'Priemerná hodnota objednávky', value: fmtEur(avg), icon: 'tag', tone: 'lav', d: deltaOf(avg, prevAvg), spark: '', note: paidIn.length ? `z ${paidIn.length} zaplatených objednávok` : 'zatiaľ bez zaplatených objednávok' },
+  ];
+  const kpiHtml = kpi.map(k => `<article class="kpi">
+    <div class="kpi-label">${esc(k.label)}</div>
+    <span class="kpi-ic ${k.tone}">${navIcon(k.icon)}</span>
+    <div class="kpi-value">${esc(k.value)}</div>
+    <div class="kpi-foot">
+      <span class="kpi-delta">${k.d ? `<b class="${k.d.up ? '' : 'down'}">${k.d.up ? '↑' : '↓'} ${esc(k.d.text)}</b><small>oproti minulému obdobiu</small>` : `<small>${esc(k.note)}</small>`}</span>
+      ${k.spark || ''}
     </div>
+  </article>`).join('');
+
+  // --- bannery (reálne čísla) ---
+  const prodCount = Number(prodRes?.count) || products.length;
+  const catCount = Number(catRes?.count) || categories.length;
+  const catThumb = new Map();
+  for (const p of products) for (const c of (p.categories || [])) if (p.thumbnail && !catThumb.has(c.id || c)) catThumb.set(c.id || c, { thumb: p.thumbnail, name: catName.get(c.id || c) || '' });
+  const catList = [...catThumb.entries()].slice(0, 4);
+  const catThumbs = catList.map(x => x[1].thumb);
+  const catNames = catList.map(x => x[1].name);
+
+  view.innerHTML = `<div class="dash">
+    <div class="dash-main">
+      <div class="kpis" data-tour="stats">${kpiHtml}</div>
+      <div class="dash-row">
+        <section class="dash-card">
+          <div class="dash-card-head">
+            <h2>Vývoj tržieb</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div class="select-box">
+                <select class="rc-select" id="chart-metric" aria-label="Čo zobraziť">
+                  <option value="revenue"${DASH_METRIC === 'revenue' ? ' selected' : ''}>Tržby</option>
+                  <option value="orders"${DASH_METRIC === 'orders' ? ' selected' : ''}>Objednávky</option>
+                </select>
+              </div>
+              <div class="select-box">
+                <select class="rc-select" id="chart-gran" aria-label="Granularita">
+                  <option value="day"${DASH_GRAN === 'day' ? ' selected' : ''}>Denne</option>
+                  <option value="week"${DASH_GRAN === 'week' ? ' selected' : ''}>Týždenne</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-body">${chartSvg(series, DASH_METRIC === 'revenue')}</div>
+        </section>
+        <section class="dash-card">
+          <div class="dash-card-head"><h2>Objednávky podľa kategórií</h2></div>
+          <div class="dash-card-body">
+            ${donut.length ? `<div class="donut-wrap">${donutSvg(donut, String(rangeOrders.length), 'objednávok')}
+              <div class="legend">${donut.map(s => `<div class="legend-row"><span class="legend-dot" style="background:${s.color}"></span><span class="legend-name" title="${esc(s.label)}">${esc(s.label)}</span><span class="n">${catTotal ? Math.round((s.value / catTotal) * 100) : 0}%</span></div>`).join('')}</div>
+            </div>` : '<p class="side-empty">Zatiaľ nemáme objednávky na rozdeliť.</p>'}
+          </div>
+        </section>
+      </div>
+      <div class="dash-row">
+        <section class="dash-card">
+          <div class="dash-card-head"><h2>Posledné objednávky</h2><a class="link-lav" href="#/objednavky">Zobraziť všetky →</a></div>
+          <table class="dash-table"><thead><tr><th>#</th><th>Zákazník</th><th>Produkty</th><th>Suma</th><th>Stav</th><th>Dátum</th><th></th></tr></thead>
+            <tbody>${recentRows || '<tr><td colspan="7" class="side-empty">Zatiaľ žiadne objednávky.</td></tr>'}</tbody></table>
+        </section>
+        <section class="dash-card">
+          <div class="dash-card-head"><h2>Najpredávanejšie produkty</h2>
+            <div class="select-box">
+              <select class="rc-select" id="top-range" aria-label="Obdobie pre najpredávanejšie produkty">
+                <option value="7">Posledných 7 dní</option>
+                <option value="30" selected>Posledných 30 dní</option>
+                <option value="90">Posledných 90 dní</option>
+              </select>
+            </div>
+          </div>
+          ${top.length ? `<div class="top-list">${top.map((p, i) => `<div class="top-item">
+              <span class="rank">${i + 1}</span>
+              ${p.thumb ? `<img class="thumb" src="${esc(p.thumb)}" alt="" loading="lazy">` : '<span class="thumb ph"></span>'}
+              <span class="t-body"><b title="${esc(p.title)}">${esc(p.title)}</b><small>${p.qty} ks</small></span>
+              <span class="t-price">${p.price != null ? fmtEur(p.price) : '—'}</span>
+              <button type="button" class="dots-btn" aria-label="Viac možností">⋮</button>
+            </div>`).join('')}</div>`
+          : '<p class="side-empty">Zatiaľ nemáme údaje o predaji produktov.</p>'}
+        </section>
+      </div>
+    </div>
+    <aside class="dash-side">
+      <section class="side-card">
+        <h2>Rýchle akcie</h2>
+        <div style="display:grid;gap:8px">
+          <a class="btn primary" href="#/produkty">${navIcon('plus')}Pridať produkt</a>
+          <a class="btn ghost" href="#/poukazy">${navIcon('tag')}Vytvoriť zľavový kód</a>
+          <a class="btn ghost" href="#/obsah">${navIcon('mail')}Napísať newsletter</a>
+          <a class="btn ghost" href="#/obsah">${navIcon('home')}Upraviť homepage</a>
+          <a class="btn ghost" href="#/spravy">${navIcon('chat')}Nová správa</a>
+        </div>
+      </section>
+      <section class="side-card" data-tour="tasks">
+        <div class="side-head"><h2>Notifikácie</h2><button type="button" class="link-lav" id="notif-all" style="border:0;background:none;cursor:pointer;padding:0">Zobraziť všetky</button></div>
+        <div id="notif-body">${notifHtml(notif, 5)}</div>
+      </section>
+    </aside>
+  </div>
+  <div class="banners">
+    <a class="banner banner-lav" href="#/produkty">
+      <span class="banner-art">${BOTANIC_LAVENDER}</span>
+      <span class="banner-txt"><b>${prodCount} <span class="bn">${prodCount === 1 ? 'produkt' : prodCount < 5 ? 'produkty' : 'produktov'}</span></b><small>v e-shope</small><span class="bn-link">Spravovať produkty →</span></span>
+    </a>
+    <a class="banner banner-plain" href="#/kategorie">
+      <span class="banner-txt"><b>${catCount} <span class="bn">${catCount === 1 ? 'kategória' : catCount < 5 ? 'kategórie' : 'kategórií'}</span></b><small>Spravovať kategórie →</small></span>
+      <span class="banner-cats">${catThumbs.map((t, i) => `<span class="cat-chip" title="${esc(catNames[i] || '')}"><img src="${esc(t)}" alt="${esc(catNames[i] || '')}" loading="lazy"></span>`).join('')}</span>
+    </a>
+    <a class="banner banner-sage" href="#/obsah">
+      <span class="banner-txt"><b>Členská zóna RESET 40+</b><small>Správa obsahu, lekcie, pracovné listy</small><span class="bn-link">Prejsť do členskej zóny →</span></span>
+      <span class="banner-art">${BOTANIC_OLIVE}</span>
+    </a>
   </div>`;
+
+  // --- ovládanie obdobia, metriky a granularity ---
+  syncRangeUI();
+  const topRange = view.querySelector('#top-range');
+  if (topRange) topRange.value = String(DASH_RANGE);
+  const dashRange = root.querySelector('#dash-range');
+  if (dashRange) { dashRange.value = String(DASH_RANGE); dashRange.onchange = () => { DASH_RANGE = +dashRange.value; vDashboard(view); }; }
+  if (topRange) topRange.onchange = () => { DASH_RANGE = +topRange.value; vDashboard(view); };
+  const metricSel = view.querySelector('#chart-metric');
+  if (metricSel) metricSel.onchange = () => { DASH_METRIC = metricSel.value; vDashboard(view); };
+  const granSel = view.querySelector('#chart-gran');
+  if (granSel) granSel.onchange = () => { DASH_GRAN = granSel.value; vDashboard(view); };
+  const notifAll = view.querySelector('#notif-all');
+  if (notifAll) notifAll.onclick = () => {
+    const body = view.querySelector('#notif-body');
+    if (!body) return;
+    const full = body.dataset.full === '1';
+    body.dataset.full = full ? '0' : '1';
+    body.innerHTML = notifHtml(notif, full ? 5 : 0);
+    notifAll.textContent = full ? 'Zobraziť všetky' : 'Zobraziť menej';
+  };
+  view.querySelectorAll('tr[data-oid]').forEach(tr => {
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => { location.hash = '#/objednavky'; };
+  });
+}
+// Zosúladí výber obdobia v hlavičke (a vo výbere pri najpredávanejších produktoch).
+function syncRangeUI() {
+  const now = root.querySelector('#dash-range');
+  if (now) now.value = String(DASH_RANGE);
+  const label = root.querySelector('#range-now');
+  if (label) label.textContent = `Posledných ${DASH_RANGE} dní`;
 }
 
-// Upozornenia v prehliadači: nová objednávka alebo neprečítaná správa priebežne upozornia na ploche.
-// Upozornenia sa zobrazujú len vtedy, keď je prehliadač otvorený a povolenie je udelené.
-function notifyCard() {
-  const supported = typeof Notification !== 'undefined';
-  const state = supported ? Notification.permission : 'unsupported';
-  const enabled = state === 'granted';
-  return `<section class="panel"><div class="panel-head"><h2>Upozornenia v prehliadači</h2></div>
-    <p class="empty-task" style="margin-bottom:10px">${!supported ? 'Tento prehliadač upozornenia nepodporuje.' : enabled ? 'Zapnuté – pri novej objednávke alebo správe dostanete upozornenie.' : 'Kdyď vám príde nová objednávka alebo správa, upozorní vás prehliadač, aj keď máte otvorenú inú kartu.'}</p>
-    ${supported && !enabled ? '<button class="btn ghost sm" id="notify-on">Zapnúť upozornenia</button>' : ''}
-    ${enabled ? '<button class="btn ghost sm" id="notify-test">Poslať skúšobné upozornenie</button>' : ''}
-  </section>`;
-}
 function wireNotifyCard(view) {
   const on = view.querySelector('#notify-on');
   if (on) on.onclick = async () => {
@@ -429,6 +950,13 @@ function wireShortcuts() {
   document.onkeydown = (e) => {
     const el = document.activeElement;
     const typing = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+    // ⌘K / Ctrl+K: skok do globálneho hľadania v hornej lište.
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      const g = document.querySelector('#side-q');
+      if (g) { g.focus(); g.select?.(); }
+      return;
+    }
     if (typing) {
       if (e.key === 'Escape') el.blur();
       return;
@@ -447,18 +975,6 @@ function wireShortcuts() {
       shortcutG = false;
     }
   };
-}
-// Pripravenosť obchodu: len z GET /admin/readiness (reálne dáta jadra). Čo sa nedá overiť, nikdy nevydávame za hotové.
-function readinessCard(r) {  if (!r || !Array.isArray(r.checks)) return `<section class="panel" data-tour="readiness"><div class="panel-head"><h2>Pripravenosť obchodu</h2></div><p class="empty-task">Pripravenosť sa teraz nedá overiť. Skúste obnoviť stránku.</p></section>`;
-  const open = r.checks.filter(c => c.status !== 'ok').sort((a, b) => (a.status === 'unknown') - (b.status === 'unknown') || (a.severity === 'blocker' ? -1 : 1) - (b.severity === 'blocker' ? -1 : 1));
-  const ok = r.checks.length - open.length;
-  const pill = (c) => c.status === 'unknown' ? '<span class="pill off">nedá sa overiť</span>' : c.severity === 'blocker' ? '<span class="pill off">bráni predaju</span>' : '<span class="pill warn">odporúčame doplniť</span>';
-  const tone = (c) => c.status === 'unknown' ? '' : c.severity === 'blocker' ? 'wine' : '';
-  const head = r.summary?.blockers ? `${r.summary.blockers} ${r.summary.blockers === 1 ? 'vec bráni' : 'veci bránia'} predaju.` : open.length ? 'Predaj je možný, niečo ešte odporúčame doplniť.' : 'Obchod je pripravený na predaj.';
-  return `<section class="panel" data-tour="readiness"><div class="panel-head"><h2>Pripravenosť obchodu</h2><span class="tag">${ok} z ${r.checks.length} v poriadku</span></div>
-    <p class="empty-task">${esc(head)}</p>
-    ${open.map(c => `<article class="task"><div class="task-icon ${tone(c)}">${navIcon(c.status === 'unknown' ? 'help' : 'doc')}</div><div class="task-copy"><h3>${esc(c.title)}${c.count > 1 ? ` <span class="muted">(${c.count})</span>` : ''} ${pill(c)}</h3><p>${esc(c.hint)}</p>${c.href ? `<a class="subtle-link" href="${esc(c.href)}">Vyriešiť →</a>` : ''}</div></article>`).join('')}
-  </section>`;
 }
 
 // Zoznamy ako prehľadná tabuľka (miniatúra, stĺpce, stavy, akcia). Stránky dodávajú buď `cols`, alebo `card(r)`
@@ -626,7 +1142,7 @@ const PRODUCT_STATUS = { published: ['zverejnený', 'ok'], draft: ['koncept', 'w
 async function vProducts(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
-  setActions('<button class="btn" id="p-new">+ Pridať produkt</button>');
+  setActions('<button class="btn primary" id="p-new">+ Pridať produkt</button>');
   const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
   let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false, fallback = false;
   const selected = new Set();
@@ -1154,14 +1670,14 @@ async function vOrders(view) {
       <td class="ot-check"><input type="checkbox" data-pick="${esc(o.id)}" aria-label="Označiť objednávku ${esc(legacy(o)?.number || o.display_id || '')}"></td>
       <td class="ot-img">${thumb}</td>
       <td><b>#${esc(legacy(o)?.number || o.display_id || '')}</b><small>${fmtDate(legacy(o)?.placed_at || o.created_at)}</small></td>
-      <td>${esc(name(o) || '—')}<small>${esc(o.email || '')}</small></td>
-      <td>${esc(shipping(o))}<small>${esc(city(o))}</small></td>
+      <td class="ot-cust">${esc(name(o) || '—')}<small>${esc(o.email || '')}</small></td>
+      <td class="ot-dor">${esc(shipping(o))}<small>${esc(city(o))}</small></td>
       <td class="ot-items">${esc(first?.title || first?.product_title || '—')}${more}</td>
       <td class="ot-num">${fmtEur(o.total)}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status)}${method ? `<small>${esc(method.label)}</small>` : ''}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
       <td class="ot-act ot-act-print"><div class="ot-acts">
-        <button type="button" class="btn gold sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
+        <button type="button" class="btn ghost sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
         <button type="button" class="btn ghost sm" data-print="slip" title="Vytlačiť dodací list (A4)">Dodací list</button>
         <button type="button" class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</button>
       </div></td></tr>`;
@@ -1186,7 +1702,7 @@ async function vOrders(view) {
       </div>
     </div>
     ${truncated ? `<div class="notice" style="margin:14px 24px 0">V prehľade je prvých ${orders.length} z ${total} objednávok. Staršie objednávky hľadaj cez vyhľadávanie podľa e-mailu.</div>` : ''}
-    <div class="ot-wrap"><table class="ot"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazník</th><th>Doručenie</th><th>Položky</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+    <div class="ot-wrap"><table class="ot ot-orders"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazník</th><th>Doručenie</th><th>Položky</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="o-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('tbody');
@@ -3430,7 +3946,7 @@ function setDarkMode(on) {
 setDarkMode(isDarkMode());
 function applyTheme(t) {
   const st = document.documentElement.style;
-  // Vlastný motív mení bočný panel a dekoratívny akcent; pevné farby obsahu (bordó, zlatá) zostávajú
+  // Vlastný motív mení bočný panel a dekoratívny akcent; pevné farby obsahu (tmavá zelená, zlatá) zostávajú
   // nedotknuté – inak by vlastná voľba farby stratila kontrast textu.
   if (t && t.selection && t.selection.scheme === 'custom') { st.setProperty('--forest', t.selection.navigation); st.setProperty('--accent', t.selection.accent); }
   else { st.removeProperty('--forest'); st.removeProperty('--accent'); }
@@ -3450,7 +3966,7 @@ async function vAppearance(view) {
   const forest = custom ? t.selection.navigation : THEME_DEFAULT.forest, gold = custom ? t.selection.accent : THEME_DEFAULT.gold;
   view.innerHTML = `<div class="card"><div class="card-h">Vzhľad administrácie</div><div class="card-b">
     <div id="tmsg"></div>
-    <p class="muted">Východzí je motív ANASTASIA v teplých farbách s bordó a zlatou. Vlastné farby sa uložia k vášmu účtu, takže ich uvidíte na každom zariadení.</p>
+    <p class="muted">Východzí je motív ANASTASIA v teplých farbách so zlatým akcentom a tmavou zelenou. Vlastné farby sa uložia k vášmu účtu, takže ich uvidíte na každom zariadení.</p>
     <div class="row">
       <div><label>Hlavná (bočný panel)</label><input type="color" id="t-forest" value="${esc(forest)}"></div>
       <div><label>Akcent (zlatá)</label><input type="color" id="t-gold" value="${esc(gold)}"></div>
@@ -3476,6 +3992,9 @@ async function refreshBadges() {
     api('/admin/orders?fulfillment_status[]=not_fulfilled&status[]=pending&status[]=completed&status[]=requires_action&limit=1').then(d => { BADGES.orders = d.count || 0; show('orders'); }).catch(() => {}),
     api('/admin/chat/conversations?status=open&limit=200').then(d => { BADGES.messages = d.unread || 0; show('messages'); }).catch(() => {}),
   ]);
+  // Červená bodka na zvonečku: je tu niečo, čo treba riešiť (objednávky na vybavenie alebo neprečítané správy).
+  const dot = document.querySelector('#bell-dot');
+  if (dot) dot.hidden = !(BADGES.orders > 0 || BADGES.messages > 0);
 }
 
 // --- router ---
@@ -3503,6 +4022,7 @@ async function route() {
   loadTheme().then(applyTheme);
   root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); ADMIN_ROLE_LOADED = false; ADMIN_ROLE = 'owner'; renderLogin(); };
   wireMobileNav();
+  wireTopbar();
   loadMe().then(setUserChip);
   refreshBadges();
   wireCtxHelp();
@@ -3514,7 +4034,7 @@ async function route() {
       <p>Na túto časť nemáte prístup. Ceny, zľavy, vernostné úrovne a pridávanie prístupov spravuje vlastník administrácie.</p>
       <p class="muted">Ak potrebujete niečo zmeniť, obráťte sa na vlastníka administrácie.</p></div></section>`;
   } else {
-    try { await r[2](view); } catch (e) { if (e.message !== '401') view.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    try { await r[2](view); } catch (e) { console.error('[admin] chyba pohľadu:', e && e.stack || e); if (e.message !== '401') view.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   }
   applyPendingSearch(view);
   wireNotifyCard(view);
