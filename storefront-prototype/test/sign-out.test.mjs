@@ -82,6 +82,23 @@ test('stráž účtu beží v hlave stránky účtu a presmeruje bez tokenu',asy
   assert.ok(!login.includes('account-guard.js'),'prihlásenie stráž účtu nepotrebuje');
 });
 
+// Mobil (max-width:999.98px): v bočnom paneli sa skrývajú odkazy, ale odhlásenie musí zostať viditeľné.
+const mediaBlocks=(css,query)=>{const out=[];const re=new RegExp('@media\\('+query+'\\)\\{','g');let match;while((match=re.exec(css))){let i=match.index+match[0].length,depth=1;while(i<css.length&&depth){if(css[i]==='{')depth++;else if(css[i]==='}')depth--;i++;}out.push(css.slice(match.index,i));}return out;};
+
+test('odhlásenie je v HTML účtu raz a CSS ho na mobile neskrýva',async()=>{
+  const html=await readFile(new URL('../dist/ucet/index.html',import.meta.url),'utf8');
+  assert.equal((html.match(/data-sign-out/g)||[]).length,1,'v HTML účtu je práve jeden odkaz na odhlásenie');
+  assert.equal((html.match(/<a [^>]*data-sign-out/g)||[]).length,1,'odhlásenie je jeden odkaz, nie zdvojené tlačidlo');
+  for(const file of ['../public/styles.css','../dist/styles.css']){
+    const css=await readFile(new URL(file,import.meta.url),'utf8');
+    const mobile=mediaBlocks(css,'max-width:999\\.98px');
+    assert.ok(mobile.length>0,file+': mobilné pravidlá existujú');
+    assert.equal(mobile.filter(block=>/\.center-sidebar>a\{display:none\}/.test(block)).length,0,file+': CSS neskrýva všetky odkazy bočného panelu na mobile');
+    assert.equal(mobile.filter(block=>/\.center-sidebar>a\[data-sign-out\]\{[^}]*display:(?!none)/.test(block)).length,1,file+': odhlásenie sa na mobile zobrazuje');
+    assert.equal(mobile.filter(block=>/\.center-sidebar>a:not\(\[data-sign-out\]\)\{display:none\}/.test(block)).length,1,file+': odkaz „Potrebujete pomoc?“ zostáva na mobile skrytý');
+  }
+});
+
 test('účet má jediné tlačidlo na odhlásenie a je previazané na signOut',async()=>{
   const html=customerCenter('<form id="chat-form"></form>');
   assert.equal((html.match(/data-sign-out/g)||[]).length,1,'jedno tlačidlo na odhlásenie, žiadne zdvojené');
