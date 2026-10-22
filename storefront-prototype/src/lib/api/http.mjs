@@ -289,9 +289,9 @@ export function createHttpApi(storage, config) {
         ...(shipping ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
       const up = await call(`/store/carts/${id}`, { method: 'POST', body: { email: String(email).trim(), shipping_address: address, billing_address: address } });
       if (!up.ok) return { ok: false, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
-      const so = await call(`/store/shipping-options?cart_id=${encodeURIComponent(id)}&fields=id,name,shipping_profile_id,*type`);
+      const so = await call(`/store/nexus-checkout/options?cart_id=${encodeURIComponent(id)}&fields=id,name,shipping_profile_id,*type`);
       // Medusa vracia možnosti aj pre profily, ktoré v košíku nie sú (napr. kuriér pri čisto digitálnom košíku).
-      const items = await call(`/store/carts/${id}?fields=id,items.product.shipping_profile.id`);
+      const items = await call(`/store/carts/${id}?fields=id,items.product.shipping_profile.id,*items.product.metadata`);
       const profiles = new Set((items.data?.cart?.items || []).map(i => i?.product?.shipping_profile?.id).filter(Boolean));
       if (!items.ok || !profiles.size) return { ok: false, message: fail };
       const options = (so.data?.shipping_options || []).filter(o => profiles.has(o.shipping_profile_id));
@@ -299,8 +299,16 @@ export function createHttpApi(storage, config) {
       const perProfile = new Map();
       for (const o of options) if (!perProfile.has(o.shipping_profile_id)) perProfile.set(o.shipping_profile_id, o);
       const chosen = [...perProfile.values()];
-      if (chosen.some(o => o.type?.code !== 'digital') && !shipping) return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
-      for (const o of chosen) {
+      // Zisti, či košík obsahuje aspoň jednu fyzickú položku
+      const hasPhysicalItem = (items.data?.cart?.items || []).some(i => {
+        const isDigital = i.product?.metadata?.digital === true || i.product?.metadata?.digital === 'true';
+        return !isDigital;
+      });
+      // Ak je v košíku fyzická položka, odstráň digitálnu dopravu
+      const filteredChosen = hasPhysicalItem ? chosen.filter(o => o.type?.code !== 'digital') : chosen;
+      if (filteredChosen.length === 0) return { ok: false, message: 'Pre tento košík nie sú dostupné žiadne možnosti dopravy.' };
+      if (filteredChosen.some(o => o.type?.code !== 'digital') && !shipping) return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
+      for (const o of filteredChosen) {
         const sm = await call(`/store/carts/${id}/shipping-methods`, { method: 'POST', body: { option_id: o.id } });
         if (!sm.ok) return { ok: false, message: fail };
       }
