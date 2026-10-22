@@ -20,9 +20,9 @@ const IMG = {
   lucia: '/assets/lucia-portrait.jpg',
   tree: '/assets/tree.jpg',
   longevity: '/assets/lucia-longevity.png',
-  // Ďalšie vlastné zábery (Luciine fotky z media/) – žiadny záber sa neopakuje.
-  kozmetika: '/media/legacy-a56cbdc6a741.png',
-  vyziva: '/media/legacy-0a1fdf946abe.png',
+  // Fotky z public/assets s dostatocnym rozlisenim (min. 1600px sirka)
+  kozmetika: '/assets/kozmetika-large.jpg',
+  vyziva: '/assets/vyziva-large.jpg',
   program: '/media/learning.jpg',
   zdravy: '/media/legacy-483537f470c4.jpg',
 };
@@ -105,7 +105,17 @@ const listRow = (n, title, sub, href) => `
   </a>`;
 
 export function homeSections(products = []) {
-  const items = products.map((p, i) => ({
+  // Vyber 4 produkty z roznych kategorii (nie z rovnakej)
+  const categories = {};
+  const selected = [];
+  for (const p of products) {
+    const cat = p.category || 'AI ANASTASIA ACADEMY';
+    if (!categories[cat] && selected.length < 4) {
+      categories[cat] = true;
+      selected.push(p);
+    }
+  }
+  const items = selected.map((p, i) => ({
     ...p,
     n: `N° ${String(i + 1).padStart(2, '0')}`,
     // build.mjs posílá cenu jako `price`; starší mock ji měl jako `priceLabel`.
@@ -228,7 +238,7 @@ export function homeSections(products = []) {
 <section class="lh-split lh-split--paper lh-split--wide-media" id="program" data-sk-only data-screen-label="04 Program">
   <div class="lh-split__text">
     <p class="lh-eyebrow" data-content="home__program__1-text">Program RESET 40+</p>
-    <h2 class="lh-display" data-content="home__program__0-text">AI ANASTASIA Longevity Academy</h2>
+    <h2 class="lh-display" data-content="home__program__0-text">RESET 40+</h2>
     <p class="lh-lead" data-content="home__program__2-rich">16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
     <a class="lh-cta" href="/eshop/produkt/reset-40-plus" data-content="home__program__3-text">Objaviť RESET 40+ ${arrow}</a>
   </div>
@@ -296,7 +306,7 @@ export function homeSections(products = []) {
   const stack = `
 <section class="lh-stack" id="lh-stack" data-sk-only data-screen-label="07 Svet ANASTASIA">
   <div class="lh-stack__head">
-    <h2 class="lh-display" data-content="home__svet__0-text">Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.</h2>
+    <h2 class="lh-display" data-content="home__svet__0-text">Nájdete tu audio záznamy, texty, priestory bez vysvetlenia.</h2>
     <p>Jedna filozofia, štyri podoby. Od krému miešaného na mieru po šestnásťtýždňový program.</p>
   </div>
   <div class="lh-stack__items">
