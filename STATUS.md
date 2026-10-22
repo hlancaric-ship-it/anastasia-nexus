@@ -9,7 +9,7 @@
 ## 1. Hlavná Architektúra & Target System (Centralizovaný Hub)
 - **E-Commerce Jádro:** **Medusa.js v2** (otvorené headless e-commerce jádro pre správy produktov, košíka, objednávok a zákazníkov v Node.js/PostgreSQL).
 - **Edge VRSTVA (Cloudflare Workers / Durable Objects / D1 / R2):**
-  - **Pricing Engine API:** Jediný autoritatívny zdroj pre výpočet cien (`/api/nexus/pricing` — tiery ZR4–ZR25, brandové akcie DELPHIN/MIVARDI/MIKADO, zľavové stropy a zaokrúhľovanie). ✅
+  - **Pricing Engine API:** Jediný autoritatívny zdroj pre výpočet cien (`/api/nexus/pricing` — vernostné úrovne, kupóny, zľavové stropy a zaokrúhľovanie). ✅
   - **SafeOrder 3.0 OS:** Risk scoring engine pre detekciu podvodných objednávok (`/api/nexus/safeorder` — stropy dobierky, blokácia dočasných emailov). ✅
   - **Digital Voucher:** Kreditný modul a digitálne poukazy s D1 perzistenciou a Durable Object `SecurityCoordinator`. ✅
   - **Klub ANASTASIA & Stripe Billing:** Členská sekcia a predplatné (`/api/klub/subscribe`), R2/Stream ochrana. ✅
