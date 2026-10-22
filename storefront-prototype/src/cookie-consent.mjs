@@ -48,15 +48,18 @@ const plainBanner = bannerText.replace(/^„/, '').replace(/[“”]\s*$/, '');
 const detailMatch = plainBanner.match(/^(.*\b)(Podrobnosti nájdete v )([^.]+)\.$/);
 if (!detailMatch) throw new Error('cookies: chýba odkaz na podrobnosti v texte lišty');
 const detailPrefix = detailMatch[2];
+// r20/3 + 4: v lište sa text zobrazuje bez úvodzoviek a bez zástupného úseku
+// („ na [doplní prevádzkovateľ]“) – zvyšok vety ostáva doslovne.
+const bannerBody = plainBanner.replace(' na [doplní prevádzkovateľ]', '');
 const detailLink = detailMatch[3];
 
 // Kategórie: nevyhnutné sú vždy, voliteľné vypnuté, kým zákazník nevyberie.
-// Účely voliteľných cookies nie sú v dokumente doplnené – ostáva placeholder, kým ich klientka nepošle.
-const PLACEHOLDER = '[doplní prevádzkovateľ]';
+// r20/4: v lište ani v paneli sa zástupný text klientky neukazuje – pri popise
+// kategórií ostáva prázdny popis (právna stránka /cookies ostáva beze zmeny).
 const CATEGORIES = [
   { id: 'necessary', label: 'Nevyhnutné', description: necessaryText, locked: true },
-  { id: 'analytics', label: 'Analytické', description: PLACEHOLDER, locked: false },
-  { id: 'marketing', label: 'Marketingové', description: PLACEHOLDER, locked: false },
+  { id: 'analytics', label: 'Analytické', description: '', locked: false },
+  { id: 'marketing', label: 'Marketingové', description: '', locked: false },
 ];
 
 const button = (action, label) => `<button type="button" class="cookie-btn" data-consent="${action}">${e(label)}</button>`;
@@ -67,9 +70,9 @@ export const cookieSettingsLink = () =>
 
 /** Lišta prvej vrstvy + panel nastavení. markup je v statickom HTML, skript iba spravuje viditeľnosť. */
 export const cookieConsent = () => `
-<div class="cookie-banner" id="cookie-banner" role="region" aria-label="${e(settingsLinkLabel)}" hidden>
+<div class="cookie-banner" id="cookie-banner" role="region" aria-label="${e(settingsLinkLabel)}" data-sk-only hidden>
   <div class="cookie-banner-inner">
-    <p class="cookie-banner-text">${e(bannerText)}</p>
+    <p class="cookie-banner-text">${e(bannerBody)}</p>
     <div class="cookie-banner-actions">
       ${button('none', labelReject)}
       ${button('settings', labelSettings)}
@@ -77,11 +80,11 @@ export const cookieConsent = () => `
     </div>
   </div>
 </div>
-<div class="cookie-settings" id="cookie-settings" role="dialog" aria-modal="true" aria-labelledby="cookie-settings-title" hidden>
+<div class="cookie-settings" id="cookie-settings" role="dialog" aria-modal="true" aria-labelledby="cookie-settings-title" data-sk-only hidden>
   <div class="cookie-settings-inner">
     <h2 id="cookie-settings-title">${e(settingsLinkLabel)}</h2>
     <ul class="cookie-categories">
-      ${CATEGORIES.map(category => `<li><label class="cookie-category"><input type="checkbox" data-consent-category="${category.id}"${category.locked ? ' checked disabled' : ''}><span><strong>${e(category.label)}</strong><small>${e(category.description)}</small></span></label></li>`).join('\n      ')}
+      ${CATEGORIES.map(category => `<li><label class="cookie-category"><input type="checkbox" data-consent-category="${category.id}"${category.locked ? ' checked disabled' : ''}><span><strong>${e(category.label)}</strong>${category.description ? `<small>${e(category.description)}</small>` : ''}</span></label></li>`).join('\n      ')}
     </ul>
     <p class="cookie-settings-detail">${e(detailPrefix)}<a href="/cookies">${e(detailLink)}</a>.</p>
     <div class="cookie-banner-actions">

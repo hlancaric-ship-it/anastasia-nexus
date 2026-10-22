@@ -10,7 +10,7 @@ export function createApi(storage, adapter) {
     adapter=createHttpApi(storage,config);
   }
   let writes=Promise.resolve();
-  const mutations=new Set(['addToCart','setQuantity','applyCoupon','removeCoupon','importQr','sendChatMessage','setChatPreview','addGiftVoucher','applyGiftVoucher','removeGiftVoucher','checkout','prepareCheckout','acceptCheckoutTerms','selectCheckout','prepareMembership','startMembershipCheckout','completeMembership','stopMembership','reconcileMembership','reserveBooking','sendContractWithdrawal']);
+  const mutations=new Set(['addToCart','setQuantity','applyCoupon','removeCoupon','importQr','sendChatMessage','setChatPreview','addGiftVoucher','applyGiftVoucher','removeGiftVoucher','checkout','getCheckoutOptions','prepareCheckout','acceptCheckoutTerms','prepareMembership','startMembershipCheckout','completeMembership','stopMembership','reconcileMembership','reserveBooking','sendContractWithdrawal','signOut']);
   return Object.fromEntries(Object.entries(adapter).map(([name,value])=>{
     if(typeof value!=='function')return[name,value];
     return[name,(...args)=>{

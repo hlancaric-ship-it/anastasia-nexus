@@ -1,8 +1,8 @@
-import {CLUB_ENABLED} from './club.mjs';
 // Převod handoff návrhů (design/*.dc.html) na statické HTML 1:1.
 // Inline styly, texty a struktura se přebírají doslova; mění se jen to, co je v návrhu
 // vázané na React stav (šířka okna, otevřené menu, košík) — to přebírají CSS proměnné a app.mjs.
 import {readFileSync} from 'node:fs';
+import {homeSections as homeLhSections, HOME_CSS, LH_HEADER} from './home-lh.mjs';
 import {fileURLToPath} from 'node:url';
 import {escape} from './components.mjs';
 import {menuGroups} from './lib/menu-navigation.mjs';
@@ -21,17 +21,16 @@ const ROUTES = {
   'ANASTASIA': '/', 'SK': '/', 'LIGHT FOR THE FUTURE': '/', '← Na úvod': '/',
   'Všetky produkty': '/eshop', 'Kategórie': '/eshop/kategorie', 'Novinky': '/eshop?filter=novinky', 'Bestsellery': '/eshop?filter=bestsellery',
   'Celý obchod': '/eshop', 'Obchod': '/eshop',
-  'Kozmetika': '/eshop?category=Kozmetika', 'Bylinky a výživa': '/eshop?category=Bylinky%20a%20v%C3%BD%C5%BEiva', 'Programy a služby': '/eshop?category=Programy%20a%20slu%C5%BEby',
-  'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/eshop?category=Programy%20a%20slu%C5%BEby',
+  'AI ANASTASIA ACADEMY': '/eshop?category=sebarozvoj', 'BIOKOZMETIKA': '/eshop?category=bio-kozmetika-bez-chemie', 'Zdravé doplnky výživy': '/eshop?category=zdrave-doplnky-vyzivy', 'Programy a služby': '/eshop?category=sebarozvoj',
+  'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/eshop?category=sebarozvoj',
   'Klub': '/klub', 'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
   'Konzultácie': '/konzultacie', 'Všetky konzultácie': '/konzultacie', 'Služby': '/konzultacie',
   'Online konzultácia': '/konzultacie/online-zdravotna-konzultacia', 'Supervízia': '/konzultacie/supervizia',
   'Astrologický profil': '/konzultacie/astrologicky-profil-zdravia-a-vitality', 'Astrológia': '/konzultacie/astrologicky-profil-zdravia-a-vitality',
-  'AI ANASTASIA': '/ai-anastasia', 'AI ANASTASIA ACADEMY': '/ai-anastasia-academy',
+  'AI ANASTASIA': '/ai-anastasia',
   'Zdravý svet': '/zdravy-svet', 'O Lucii': '/o-lucii', 'Príbeh Lucie': '/o-lucii', 'Kontakt': '/kontakt',
   'Pharmanews': '/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny', 'Zdravé lekárne': '/zdrava-lekaren',
   'Obchodné podmienky': '/vop', 'Súkromie a GDPR': '/gdpr', 'Reklamácie': '/reklamacie',
-  'Odstúpenie od zmluvy': '/odstupenie', 'Cookies': '/cookies',
   'Môj účet': '/ucet', 'Košík': '/kosik', 'Napíšte nám': '/kontakt',
 };
 // Kotvy, které v návrhu vedou na sekce stránky a zůstávají kotvami (nadpisy menu, hlavička, hero).
@@ -171,13 +170,18 @@ const ids = html => html
 
 // Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
 const FOOTER_GROUPS = {
-  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ...(CLUB_ENABLED ? [['Klub', '/klub']] : []), ['Zdravý svet', '/zdravy-svet']],
+  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Klub', '/klub'], ['Zdravý svet', '/zdravy-svet']],
   'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Supervízia', '/konzultacie/supervizia'], ['Astrológia', '/konzultacie/astrologicky-profil-zdravia-a-vitality']],
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravá lekáreň', '/zdrava-lekaren'], ['Denný stacionár Vyšná Slaná', '/denny-stacionar-vysna-slana'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
 const FOOTER_BRANDS = {'ANASTASIA.ACADEMY': '/ai-anastasia-academy', 'AI ANASTASIA': '/ai-anastasia'};
+// Odkazy na päť právnych stránok (r19 bod 5): VOP, GDPR, reklamácie, odstúpenie od zmluvy, cookies.
+const LEGAL_LINKS = [['Obchodné podmienky','/vop'],['Súkromie a GDPR','/gdpr'],['Reklamácie','/reklamacie'],['Odstúpenie od zmluvy','/odstupenie'],['Cookies','/cookies']];
+function footerLegalLinks(html) {
+  return html.replace(/(<div style="display:flex;gap:28px;flex-wrap:wrap">)(?:<a href="#">[^<]*<\/a>)+/,
+    (_, head) => head + LEGAL_LINKS.map(([t,h])=>`<a href="${h}">${t}</a>`).join(''));
+}
 // Odkaz „Nastavenia cookies“ v pätičke (názov je z textu klientky): otvorí panel, kde sa voľba zmení.
-// Vkláda sa až po přepisu odkazů, aby si návrhový text zůstal 1:1.
 function withCookieSettings(html) {
   if (!html.includes('<a href="/cookies">Cookies</a>')) throw new Error('dc: v patičce chybí odkaz Cookies');
   return html.replace('<a href="/cookies">Cookies</a>', `<a href="/cookies">Cookies</a>${cookieSettingsLink()}`);
@@ -188,8 +192,29 @@ function footerLinks(html) {
     out = out.replace(new RegExp(`(>${title}</span>\\s*)(?:<a\\b[^>]*>[^<]*</a>)+`), (_, head) => head + links.map(([t, h]) => `<a href="${h}">${t}</a>`).join(''));
   }
   // Loga Academy a AI ANASTASIA jsou odkazy na své stránky (stejný styl, jen <a> místo <div>).
+  // Kontakt v päte ako na starom webe: telefón, e-mail a odkaz na Cookies.
+  out = out.replace(/(<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:12px;color:#C4C7B6">)/,
+    '$1<div style="display:flex;gap:24px;flex-wrap:wrap"><a href="tel:+421905363778">+421 905 363 778</a><a href="mailto:zdravysvet@anastasiaoz.eu">zdravysvet@anastasiaoz.eu</a></div>');
   return out.replace(/<div (style="display:grid;grid-template-rows:clamp\(170px,17vw,240px\) auto;[^"]*")>((?:(?!<\/?div\b)[\s\S]|<div\b[\s\S]*?<\/div>)*?<span [^>]*>([^<]+)<\/span>)<\/div>/g,
     (whole, style, inner, label) => FOOTER_BRANDS[label] ? `<a href="${FOOTER_BRANDS[label]}" class="footer-brand" ${style}>${inner}</a>` : whole);
+}
+
+// Jednotná kompaktná pätička na všetkých stránkach: triedy namiesto výberu podľa inline štýlov návrhu.
+const FOOTER_PARTS = [
+  ['<footer ', '<footer class="site-footer" '],
+  ['<div style="max-width:1560px;margin:0 auto;padding:clamp(80px', '<div class="sf-wrap" style="max-width:1560px;margin:0 auto;padding:clamp(80px'],
+  ['<div style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom', '<div class="sf-top" style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom'],
+  ['<div style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px', '<div class="sf-news" style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px'],
+  ['<div style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"', '<div class="sf-links" style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"'],
+  ['<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end', '<div class="sf-brands" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end'],
+  ['<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px', '<div class="sf-bottom" style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px'],
+];
+function footerClasses(html) {
+  for (const [from, to] of FOOTER_PARTS) {
+    if (!html.includes(from)) throw new Error(`dc: v pätičke chýba časť ${from.slice(0, 60)}`);
+    html = html.replace(from, to);
+  }
+  return html;
 }
 
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
@@ -200,22 +225,32 @@ export function chrome(page) {
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   // Obě menu čtou stejný seznam; původní návrhové duplicity se nepřenášejí.
   const menuBrand=html=>{
-    html=html.replace(/(<a\b[^>]*>)\s*Zdravý svet\s*<\/a>/g, '$1Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, CLUB_ENABLED ? '$1Klub</a>' : '');
+    // Položka účtu v menu (aj ikona) je označená pre runtime: text a cesta podľa prihlásenia.
+    html=html.replace(/(<a\b[^>]*?)(>)\s*Zdravý svet\s*<\/a>/g, '$1 data-menu-account$2Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, '$1Klub</a>').replace(/(<a\b[^>]*aria-label="Môj účet")/g, '$1 data-menu-account');
     let index=0;
+    // Poradie polí menu je v semene spoločné pre všetky skupiny (nie resetované).
+    let menuField=0;
     html=html.replace(/<div style="display:flex;flex-direction:column;gap:(?:2|4)px;[^"]*">[\s\S]*?<\/div>/g,whole=>{
       if(index>=menuGroups.length)return whole;
       const group=menuGroups[index++];
       const large=whole.includes('font-size:25px');
       const wrapper=whole.slice(0,whole.indexOf('>')+1);
-      const link=(label,href,heading=false)=>`<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355">${escape(label)}</a>`;
-      return wrapper+(group.title==='Obchod'?link(group.title,group.href,true):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px">${escape(group.title)}</span>`)+group.links.map(([label,href])=>link(label,href)).join('')+'</div>';
+      // Kľúče polí menu z administrácie (rovnaké poradie ako v semene).
+      const slug=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'');
+      const base=`global__menu-${slug(group.title)}`;
+      const link=(label,href,heading=false)=>`<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355" data-content="${base}__${menuField++}-text">${escape(label)}</a>`;
+      const title=group.title==='Obchod'?link(group.title,group.href,true):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px" data-content="${base}__${menuField++}-text">${escape(group.title)}</span>`;
+      return wrapper+title+group.links.map(([label,href])=>link(label,href)).join('')+'</div>';
     });
     return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
+  const headerHtml=convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">').replace('<header ','<header id="lh-top" class="lh-top" ');
+  // Na novém rozvržení úvodu hlavička leží přes hero, ne tlačí obsah dolů.
+  const header=page==='home'?headerHtml.replace('style="position:relative;z-index:2;','style="position:absolute;left:0;right:0;top:0;z-index:4;'):headerHtml;
   return {
-    header: convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">'),
-    footer: bleed(withCookieSettings(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'}))),
+    header: page==='home' ? LH_HEADER : header,
+    footer: bleed(withCookieSettings(convert(footerClasses(footerLegalLinks(footerLinks(src.footer))), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
@@ -223,36 +258,9 @@ export function chrome(page) {
 }
 
 export function homeSections(products) {
-  const data = {
-    products: products.map(p => ({...p, label: 'Do košíka', fg: '#EFE5C7'})),
-    consults: [
-      {n: '01', title: 'Online zdravotná konzultácia', sub: 'Osobne aj na diaľku', href: CONSULT_ROUTES['01']},
-      {n: '02', title: 'Supervízia', sub: 'Pre odborníkov a tímy', href: CONSULT_ROUTES['02']},
-      {n: '03', title: 'Astrologický profil', sub: 'Zdravie a predispozície', href: CONSULT_ROUTES['03']},
-    ],
-  };
-  return P.home.sections.map((s, i) => {
-    let out = convert(s, {page: 'home', data});
-    if(i===0){
-      out=out.replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(16,24,15,0\.62\)[^"]*"><\/div>/,'')
-        .replace(/<div style="position:relative;flex:1;min-height:0"><\/div>/,'<div class="hero-brand"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><filter id="brand-wave" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="1" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" data-brand-wave/></filter></defs></svg><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future"></div>')
-        .replace(/<div style="display:flex;gap:10px;align-items:center">[\s\S]*?<\/button>\s*<\/div>/,'<div data-mobile-media></div>');
-    }
-    let pre='';
-    // Kolekcia na landing page: prehľad (nie obchod) – na mobile vodorovný pás 2 kariet, ktorý sa sám otáča.
-    if(out.includes('id="kolekcia"')){
-      const grid='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));';
-      out=out.replace(grid,'<nav class="kol-tabs" aria-label="Prehľad kolekcie"><a href="/eshop?filter=novinky">Novinky</a><a href="/eshop?filter=bestsellery">Bestsellery</a><a href="/eshop">Celý obchod</a></nav>'+grid.replace('<div ','<div class="kol-track" data-carousel tabindex="0" aria-label="Vybrané produkty" '));
-    }
-    if(out.includes('data-video="sky"')){
-      out=out.replace('<section ', '<section class="sky-section" ').replace('<div style="order:-1;', '<div class="sky-window" style="order:-1;').replace(/<div style="position:absolute;inset:0;background:linear-gradient\(180deg,rgba\(0,0,0,0\) 50%,rgba\(0,0,0,0.65\) 100%\)"><\/div>/,'');
-      out=out.replace(/(<section[^>]*>)/, '$1<div class="sky-spill" aria-hidden="true"><video data-video="sky-spill" poster="/assets/night-sky.jpg" autoplay muted loop playsinline preload="metadata">'+VIDEO_SOURCES.sky+'</video></div>');
-      // TODO(Lucia): nahradit vlastní myšlenkou Lucie, až ji dodá; zatím oficiální slogan značky
-      pre='<section class="wisdom" data-screen-label="04b Myšlienka" aria-label="Light for the Future"><figure><span class="wisdom-mark" aria-hidden="true"></span><blockquote>Light for the Future</blockquote><figcaption>ANASTASIA</figcaption></figure></section>\n';
-    }
-    // pásmo se vkládá až za bleed, aby sekce s oblohou dál dostala odsazení pod boční lištu
-    return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : pre+bleed(out);
-  }).join('\n');
+  // Nové rozvrženie úvodu (split sekce, dvojí typografie) — viz src/home-lh.mjs.
+  // Hlavička se vkládá před hero, proto je na začátku.
+  return '%%HEADER%%\n'+homeLhSections(products);
 }
 
 export function aboutSections() {
@@ -267,7 +275,9 @@ export function aboutSections() {
   }).join('\n');
 }
 
-export const ROOT_STYLE = 'font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:#283020;overflow-x:hidden;padding:0 0 0 var(--rail-pad)';
+// overflow-x:clip místo hidden — hidden by z kořene udělal scroll kontejner
+// a sticky sekce (úvod, obloha) by se držely vůči němu místo vůči oknu.
+export const ROOT_STYLE = 'font-family:Figtree,sans-serif;font-weight:300;color:#EFE5C7;background:transparent;overflow-x:clip;padding:0 0 0 var(--rail-pad)';
 // Globální styly z <helmet> návrhu (rozsah omezen na stránky v novém vzhledu tam, kde by rozbily starší obsah).
 // Plynulé přechody mezi sekcemi: smoothstep místo lineárního gradientu, aby na konci přechodu nevznikla viditelná hrana.
 const SMOOTH = [0, .028, .104, .216, .352, .5, .648, .784, .896, .972, 1];
@@ -276,6 +286,39 @@ const ease = (rgb, a0, a1, p0, p1) => SMOOTH.map((k, i) => `rgba(${rgb},${+(a0 +
 const easeVar = (color, a0, a1, p0, p1) => SMOOTH.map((k, i) => `color-mix(in srgb,${color} ${+((a0 + (a1 - a0) * k) * 100).toFixed(1)}%,transparent) calc(${p0} + (${p1} - ${p0}) * ${i / 10})`).join(',');
 const CREAM = '245,242,232', MASK = '0,0,0';
 export const HELMET_CSS = `
+${HOME_CSS}
+/* Pätička – rovnaká a kompaktná na všetkých stránkach: newsletter vľavo, tri skupiny odkazov vedľa seba, menšie logá. */
+.site-footer .sf-wrap{max-width:1320px!important;padding:clamp(44px,5vw,72px) clamp(20px,4vw,64px) 26px!important}
+.site-footer .sf-top{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:36px clamp(40px,6vw,96px)!important;padding-bottom:clamp(32px,4vw,52px)!important;align-items:start}
+.site-footer .sf-news{gap:14px!important}
+.site-footer .sf-news>p:first-child{font-size:clamp(32px,3.2vw,46px)!important}
+.site-footer .sf-links{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px clamp(18px,3vw,44px)!important;width:100%}
+.site-footer .sf-links>div{display:flex!important;flex-direction:column!important;gap:10px!important;min-width:0!important}
+.site-footer .sf-links>div>span{margin-bottom:4px!important}
+.site-footer .sf-links a{line-height:1.35;overflow-wrap:anywhere}
+.site-footer .sf-brands{gap:clamp(12px,4vw,64px)!important;padding:26px 0 30px!important;border-top:1px solid rgba(201,163,85,.18);border-bottom:1px solid rgba(201,163,85,.18)}
+.site-footer .sf-brands>*{grid-template-rows:clamp(92px,8vw,118px) auto!important;row-gap:12px!important}
+.site-footer .sf-brands>*>img{height:clamp(88px,7.6vw,112px)!important;width:auto!important}
+.site-footer .sf-brands>*>div>img{height:clamp(54px,4.8vw,72px)!important;width:auto!important}
+.site-footer .sf-brands>*>div>span[style*="font-size:clamp(16px"]{font-size:clamp(16px,1.5vw,22px)!important}
+.site-footer .sf-brands>*>div{gap:8px!important;padding-bottom:0!important}
+.site-footer .sf-brands>*>div>span[style*="height:46px"]{height:24px!important}
+.site-footer .sf-bottom{padding-top:20px!important;align-items:center;row-gap:12px!important}
+@media(max-width:999.98px){.site-footer .sf-top{grid-template-columns:1fr}}
+@media(max-width:699.98px){
+.site-footer .sf-links{grid-template-columns:1fr 1fr;gap:26px 18px!important}
+.site-footer .sf-links>div:nth-child(3){grid-column:1/-1;display:block!important;columns:2;column-gap:18px}
+.site-footer .sf-links>div:nth-child(3)>span{display:block;column-span:all;margin-bottom:14px!important}
+.site-footer .sf-links>div:nth-child(3)>a{display:block;margin-bottom:10px;break-inside:avoid}
+.site-footer .sf-brands>*{grid-template-rows:70px auto!important;row-gap:10px!important}
+.site-footer .sf-brands>*>img{height:66px!important}
+.site-footer .sf-brands>*>div>img{height:40px!important}
+.site-footer .sf-brands>*>div>span{letter-spacing:.18em!important;padding-left:.18em!important;font-size:13px!important}
+.site-footer .sf-brands>*>div>span:last-child{font-size:8px!important;letter-spacing:.3em!important;gap:6px!important}
+.site-footer .sf-brands>*>div>span:last-child>span{width:10px!important}
+.site-footer .sf-brands>*>span{font-size:8px!important;letter-spacing:1.4px!important;text-align:center}
+.site-footer .sf-bottom{flex-direction:column;align-items:flex-start}
+}
 :is(.dc-root,.dc-chrome) .header-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
 :is(.dc-root,.dc-chrome) .header-brand-emblem{position:relative;display:block;width:36px;height:36px;overflow:hidden;border-radius:50%;flex-shrink:0}
 :is(.dc-root,.dc-chrome) .header-brand-emblem img{position:absolute;width:116.62%;height:auto;max-width:none;left:-8.45%;top:-34.01%;filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
@@ -286,6 +329,27 @@ export const HELMET_CSS = `
 :is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:64px!important;min-height:64px!important;padding-block:8px!important}
 :is(.dc-root,.dc-chrome) header [data-menu-open]{height:40px!important;font-size:13px!important;gap:12px!important}
 :is(.dc-root,.dc-chrome) .header-account{display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
+/* Nic nesmí stránku rozšířit do strany (mobil by ji oddálil a „ujížděla“). */
+html,body{overflow-x:clip}
+/* Mobilní menu: celé na jednom displeji (zbytek dorovná fitMenu v app.mjs i při zvětšeném písmu). */
+@media(max-width:760px){#dc-top-menu{top:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;max-height:none!important;border-radius:0!important;padding:16px 18px 18px!important;gap:14px!important}
+#dc-top-menu{overflow-x:hidden!important}
+#dc-top-menu>div:nth-child(3){flex-wrap:nowrap!important;gap:8px!important}
+#dc-top-menu>div:nth-child(3)>div:first-child{gap:10px!important;min-width:0}
+#dc-top-menu .menu-brand-mark{width:40px;height:40px}
+#dc-top-menu>div:nth-child(3)>div:first-child span[style*="font-size:20px"]{font-size:14px!important;letter-spacing:3px!important}
+#dc-top-menu>div:nth-child(3)>div:first-child span[style*="font-size:7px"]{display:none!important}
+#dc-top-menu>div:nth-child(3)>div:last-child{gap:2px!important;flex-shrink:0}
+#dc-top-menu>div:nth-child(4)>div,#dc-top-menu>div:nth-child(4) a{min-width:0;overflow-wrap:break-word;white-space:normal!important}
+#dc-top-menu>div:nth-child(4) a span{max-width:100%;white-space:normal!important}
+#dc-top-menu>div:nth-child(4){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;row-gap:14px!important;column-gap:18px!important}
+#dc-top-menu>div:nth-child(4)>div{padding:0!important;border:0!important;gap:0!important}
+#dc-top-menu>div:nth-child(4) [style*="font-size:25px"]{font-size:19px!important;margin-bottom:2px!important}
+#dc-top-menu>div:nth-child(4) a[style*="font-size:14px"]{padding:5px 0!important}
+#dc-top-menu>div:nth-child(5){grid-template-columns:1fr!important;gap:10px!important;padding-top:12px!important}
+#dc-top-menu>div:nth-child(5)>div:first-child{gap:10px!important}
+#dc-top-menu>div:nth-child(5)>div:nth-child(2){display:none!important}
+#dc-top-menu>div:nth-child(5) a[style*="font-size:30px"]{font-size:21px!important}}
 :is(.dc-root,.dc-chrome) .header-account svg{width:16px;height:16px}
 :is(.dc-root,.dc-chrome) [role="dialog"] a[aria-label="Môj účet"]>span{transform:scale(.8)}
 @media(max-width:999.98px){:is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:60px!important;min-height:60px!important}}
@@ -293,13 +357,6 @@ export const HELMET_CSS = `
 @media(max-width:699.98px){
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]:has(>span[style*="height:1px"]){letter-spacing:2px!important;font-size:10px!important;gap:10px!important}
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]>span[style*="height:1px"]{width:24px!important}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]{display:grid!important;grid-template-columns:1fr 1fr;gap:34px 18px!important;width:100%;flex:1 1 100%!important}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div{gap:11px!important;min-width:0}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>a{font-size:14px!important;line-height:1.3}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>:first-child{margin-bottom:4px}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;column-gap:18px}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3)>:first-child{grid-column:1/-1}
-footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!important;gap:44px!important}
 #o-lucii{grid-template-columns:1fr!important}
 #o-lucii>div:last-child{display:contents!important}
 #o-lucii>div:last-child>*{margin-inline:24px!important}
@@ -338,7 +395,8 @@ html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto !important}
 .lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
 .lenis.lenis-stopped{overflow:hidden}
-html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
+/* Tělo je krémové – zelená by při načítání prolínala. Sekce nesou barvu vlastní. */
+html:has(body.dc-page),body.dc-page{margin:0;background:#F5F2E8}
 .dc-root *,.dc-chrome *{box-sizing:border-box}
 .dc-root a,.dc-chrome a{color:inherit;text-decoration:none}.dc-root a:hover,.dc-chrome a:hover{color:#C9A355}
 :root{--field-surface:#F7F5ED;--field-ink:var(--ink,#283020)}
@@ -380,11 +438,20 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#283020}
 /* krémová mezera mezi konzultacemi a O Lucii */
 .sky-section{padding-bottom:clamp(96px,10vw,180px)!important}
 #o-lucii{position:relative}
-#program{padding-bottom:clamp(160px,18vw,300px)!important}
+#program{padding-bottom:clamp(88px,10vw,170px)!important}
 #o-lucii::before{content:"";position:absolute;inset:0 0 auto;height:clamp(240px,28vw,440px);background:linear-gradient(180deg,${ease(CREAM,1,0,'0%','100%')});pointer-events:none;z-index:1}
 @media(min-width:1000px){.sky-section>div:not(.sky-spill)>div:first-child{align-self:center}}
-.wisdom{margin-left:var(--rail-neg);padding:clamp(48px,6vw,96px) clamp(20px,4vw,64px) clamp(72px,9vw,160px) calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
-.wisdom figure{margin:0 auto;max-width:980px;display:flex;flex-direction:column;align-items:center;gap:clamp(24px,3vw,40px)}
+.wisdom{margin-left:var(--rail-neg);padding:clamp(64px,7vw,120px) clamp(20px,4vw,64px) clamp(72px,8vw,140px) calc(var(--rail-pad) + clamp(20px,4vw,64px));background:#F5F2E8;color:var(--site-main);text-align:center}
+.kol-status{margin:18px 0 0;font-size:11px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:var(--site-accent-deep);opacity:.75}
+/* Hero: vlastní signatúra značky — hluboký přechod pod text a průsvitný wordmark.
+   Návrhová reference scrim neobsahuje, bez něj text drží jen les na okraji. */
+.hero-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,24,15,.46) 0%,rgba(16,24,15,.18) 28%,rgba(16,24,15,.58) 58%,rgba(8,12,7,.86) 82%,rgba(4,6,4,.94) 100%)}
+.hero-ghost{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-weight:100;font-size:clamp(110px,20vw,360px);letter-spacing:-.06em;line-height:.8;color:rgba(239,229,199,.07);white-space:nowrap;pointer-events:none;user-select:none}
+[data-screen-label="01 Hero"] h1{font-weight:100}
+/* Figtree je variabilní font (300–600) — bez toho se váha 300 syntetizuje z 400
+   a display vypadá tlustší, než je v návrhu. */
+.dc-root,.dc-chrome{font-synthesis:none}
+.wisdom figure{margin:0 auto;max-width:1180px;display:flex;flex-direction:column;align-items:center;gap:clamp(28px,3.4vw,48px)}
 .wisdom-mark{width:1px;height:clamp(48px,6vw,80px);background:linear-gradient(transparent,var(--site-accent-deep))}
 .wisdom blockquote{margin:0;font-weight:100;font-size:clamp(34px,4.6vw,72px);line-height:1.08;letter-spacing:-0.035em}
 .wisdom figcaption{display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--site-accent-deep)}

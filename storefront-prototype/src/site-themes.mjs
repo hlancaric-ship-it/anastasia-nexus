@@ -1,4 +1,4 @@
-// Barvy veřejného webu, které volí Lucia (zákaznická část má vlastní volbu, viz center-themes.mjs).
+// Barvy veřejného webu, které volí Lucia (zákazníková část má vlastní volbu, viz center-themes.mjs).
 // Návrhy (design/*.dc.html) i styles.css zůstávají beze změny: barvy značky se při buildu
 // převedou na CSS proměnné (tokenizeColors), takže přepnutí motivu je jen atribut na <html>
 // (preset) nebo inline --site-* proměnné (vlastní barvy). Přebarvení je okamžité, bez rebuildu.
@@ -51,7 +51,10 @@ export const applySiteVars=(el,v)=>{el.dataset.siteTheme='custom';THEME_VARS.for
 export const clearSiteVars=el=>{THEME_VARS.forEach(k=>el.style.removeProperty('--site-'+k));};
 
 const TOKENS={'283020':'main','2a3222':'main','26321e':'deep','14200f':'dark','c9a355':'accent','796236':'accent-deep','efe5c7':'cream','d8c598':'accent-light'};
-const RGB={'26,34,22':'dark','30,38,25':'dark'};
+// Tmavé odstíny značky v rgba() zápisu — veškeré tmavé scrimy a přechody mají sledovat motiv.
+const RGB={'26,34,22':'dark','30,38,25':'dark','16,24,15':'dark','40,48,32':'main','12,18,10':'dark','15,23,14':'dark','28,36,22':'dark','42,50,34':'deep'};
+// rgba(16, 24, 15, .62) i bez mezer — stavitelné z klíčů RGB, ať se mapa rozšiřuje na jednom místě.
+const rgbPattern=Object.keys(RGB).map(k=>k.split(',').map(p=>p.trim().replace(/\s+/g,'\\s*')).join(',\\s*')).join('|');
 const vars=t=>`--site-main:${t.main};--site-deep:${t.deep};--site-dark:${t.dark};--site-accent:${t.accent};--site-accent-deep:${t.accentDeep}`;
 // První motiv je výchozí :root (+ sdílené konstanty cream/accent-light), ostatní jen přepisují barvy přes atribut.
 export const siteThemeCss=()=>{
@@ -65,8 +68,10 @@ const mix=(token,alpha)=>alpha>=1?`var(--site-${token})`:`color-mix(in srgb,var(
 // Pozn.: čistě bílá (#ffffff), černá (#000000) a světlá pozadí karet zůstávají fixní záměrně – motivy
 // ANASTASIA jsou tmavé s krémovým textem a tato pozadí se nevážou na značku.
 export const tokenizeColors=text=>text
+  // Fallback uvnitř var(--site-*) odstraň, jinak by se při tokenizaci změnil na var(--site-x,var(--site-x)).
+  .replace(/var\(--site-([a-z-]+),#([0-9a-f]{6})\)/gi,(m,token,hex)=>TOKENS[hex.toLowerCase()]?`var(--site-${token})`:m)
   .replace(/(?<!=["'])#(283020|2a3222|26321e|14200f|c9a355|796236|efe5c7|d8c598)([0-9a-f]{2})?(?![0-9a-f])/gi,(m,hex,a)=>mix(TOKENS[hex.toLowerCase()],a?parseInt(a,16)/255:1))
-  .replace(/rgba\(\s*(26,\s*34,\s*22|30,\s*38,\s*25)\s*,\s*([\d.]+)\s*\)/gi,(m,rgb,a)=>mix(RGB[rgb.replace(/\s/g,'')],Number(a)));
+  .replace(new RegExp(`rgba\\(\\s*(${rgbPattern})\\s*,\\s*([\\d.]+)\\s*\\)`,`gi`),(m,rgb,a)=>mix(RGB[rgb.replace(/\s/g,'')],Number(a)));
 
 // Boot v <head> (externí /site-theme.js kvůli CSP bez inline scriptů): aplikuje trvalou volbu
 // (preset nebo custom barvy z localStorage) i náhled z adminu (?vzhlad=) dřív, než se vykreslí stránka.

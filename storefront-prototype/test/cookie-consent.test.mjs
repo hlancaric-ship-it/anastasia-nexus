@@ -10,7 +10,8 @@ const cookieBlocks=content['/cookies'].blocks;
 const paragraph=prefix=>cookieBlocks.find(b=>b.type==='p'&&b.text.startsWith(prefix))?.text??'';
 
 // Texty lišty musia byť 1:1 z časti E právnych textov klientky – nič sa nevymýšľa.
-const bannerText=paragraph('„Nevyhnutné cookies');
+// r20/3 + 4: v lište je text bez úvodzoviek a bez zástupného úseku.
+const bannerText=paragraph('„Nevyhnutné cookies').replace(/^„/,'').replace(/[“”]\s*$/,'').replace(' na [doplní prevádzkovateľ]','');
 const buttonLine=paragraph('Tlačidlá:');
 const buttonLabels=[...buttonLine.matchAll(/„([^“]+)“/g)].map(m=>m[1]);
 

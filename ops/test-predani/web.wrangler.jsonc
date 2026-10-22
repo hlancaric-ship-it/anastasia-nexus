@@ -9,8 +9,14 @@
   "workers_dev": false,
   "preview_urls": false,
   "routes": [{ "pattern": "anastasia-test.l-code-dynamics.com", "custom_domain": true }],
+  // Worker len pre obrázky z administrácie (/backend-media/static/… → API_ORIGIN/static/…) a videá/hudbu s Range (/media/…).
+  // Ostatné ide priamo zo statických assetov, aby platili hlavičky z _headers (CSP, noindex).
+  "main": "../../storefront-prototype/edge/worker.mjs",
+  "vars": { "API_ORIGIN": "https://anastasia-test-api.l-code-dynamics.com" },
   "assets": {
     "directory": "../../storefront-prototype/dist",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/backend-media/*", "/media/*"]
   }
 }

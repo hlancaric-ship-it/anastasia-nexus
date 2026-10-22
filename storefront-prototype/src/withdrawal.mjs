@@ -19,7 +19,7 @@ export const withdrawalForm = () => `
       <label class="wide">Dôvod odstúpenia <small>(nepovinný)</small><textarea name="reason" rows="2" maxlength="1000"></textarea></label>
     </div>
     ${trap}
-    <label class="withdrawal-consent"><input type="checkbox" name="consent" required> <span>Prečítal/a som si <a href="/gdpr">informácie o ochrane osobných údajov</a> a beriem na vedomie, že údaje použijeme na vybavenie odstúpenia.</span></label>
+    <label class="withdrawal-consent"><input type="checkbox" name="consent" required> <span>Prečítal som si <a href="/gdpr">informácie o ochrane osobných údajov</a> a beriem na vedomie, že údaje použijeme na vybavenie odstúpenia.</span></label>
     <button class="button" type="submit">Potvrdiť odstúpenie od zmluvy</button>
     <p class="form-status" role="status" aria-live="polite"></p>
   </form>

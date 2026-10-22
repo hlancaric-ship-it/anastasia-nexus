@@ -1,4 +1,4 @@
-// Barvy zákaznické části. Jediný zdroj: swatche v účtu, CSS proměnné i skript v <head> se generují odsud.
+// Barvy zákazníkové části. Jediný zdroj: swatche v účtu, CSS proměnné i skript v <head> se generují odsud.
 // main nese krémový text (#EFE5C7), accent je popisek/aktivní stav na main, deep je spodek přechodu do patičky.
 export const CENTER_THEME_KEY='ana-center-theme';
 export const centerThemes=[

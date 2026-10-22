@@ -4,93 +4,190 @@ import {createHttpApi} from '../src/lib/api/http.mjs';
 
 const memoryStorage=(seed={})=>{const m=new Map(Object.entries(seed));return{getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),m};};
 const config={apiBaseUrl:'https://api.test',publishableKey:'pk_test_synthetic',regionId:'reg_1'};
+const respond=(status,data)=>({status,ok:status>=200&&status<300,json:async()=>data});
+
+// GET /store/nexus-checkout/options: server rozhodne, či treba adresu, a vráti možnosti dopravy a platby.
+const optionsFor=requiresDelivery=>({
+  ok:true,
+  requires_delivery:requiresDelivery,
+  delivery:requiresDelivery?[
+    {code:'courier',name:'Kuriér (zásielka)',amount:6,free_from:60},
+    {code:'pickup',name:'Osobný odber',amount:0,address:'Lucrat spol. s r.o., Zvolen'},
+  ]:[],
+  payment:[
+    {code:'card',label:'Kartou online',available:true,fee:0},
+    {code:'bank_transfer',label:'Prevodom na účet',available:true,fee:0},
+    {code:'cod',label:'Na dobierku',available:requiresDelivery,fee:requiresDelivery?2:null,reason:requiresDelivery?null:'DIGITAL_ONLY'},
+  ],
+});
+const postOptionsOk=[200,{ok:true,delivery:'courier',payment:'card',payment_required:true,client_secret:'pi_test_secret',
+  shipping:[{name:'Kuriér (zásielka)',amount:6}],totals:{item_total:10,shipping_total:6,tax_total:0,total:16}}];
+
 function fakeFetch(routes){
   const calls=[];
   globalThis.fetch=async(url,init={})=>{
-    const path=url.replace(config.apiBaseUrl,'');calls.push({path,method:init.method||'GET',body:init.body?JSON.parse(init.body):undefined});
-    const hit=routes.find(([m,re])=>m===(init.method||'GET')&&re.test(path));
-    const [status,data]=hit?(typeof hit[2]==='function'?hit[2]():hit[2]):[404,{error:'NOT_FOUND'}];
-    return{status,ok:status>=200&&status<300,json:async()=>data};
+    const path=url.replace(config.apiBaseUrl,'');
+    const method=init.method||'GET';
+    const body=init.body?JSON.parse(init.body):undefined;
+    calls.push({path,method,body});
+    const hit=routes.find(([m,re])=>m===method&&re.test(path));
+    const [status,data]=hit?hit[2]:[404,{ok:false,error:'NOT_FOUND'}];
+    return respond(status,data);
   };
   return calls;
 }
-// Server (Medusa + NEXUS) vracia možnosti s cenami; klient ich len zobrazí.
-const physicalOptions={ok:true,requires_delivery:true,
-  delivery:[{code:'courier',name:'Kuriér (zásielka)',amount:6,free_from:60},{code:'pickup',name:'Osobný odber',amount:0,address:'Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen'}],
-  payment:[{code:'cod',label:'Na dobierku',available:true,fee:2,requires_delivery:'courier'},{code:'card',label:'Kartou online',available:true,fee:0},{code:'bank_transfer',label:'Prevodom na účet',available:true,fee:0}]};
-const digitalOptions={ok:true,requires_delivery:false,delivery:[],payment:[{code:'cod',label:'Na dobierku',available:false,fee:null,reason:'DIGITAL_ONLY'},{code:'card',label:'Kartou online',available:true,fee:0},{code:'bank_transfer',label:'Prevodom na účet',available:true,fee:0}]};
-const routes=(opts=physicalOptions,select=[200,{ok:true,payment:'card',delivery:'courier',payment_required:true,client_secret:'pi_1_secret_x'}])=>[
+const cartRoutes=(options,postOptions=postOptionsOk)=>[
   ['POST',/^\/store\/carts\/cart_d\/customer$/,[200,{cart:{id:'cart_d'}}]],
   ['POST',/^\/store\/carts\/cart_d$/,[200,{cart:{id:'cart_d'}}]],
-  ['GET',/^\/store\/nexus-checkout\/options\?cart_id=cart_d$/,[200,opts]],
-  ['POST',/^\/store\/nexus-checkout\/options$/,select],
-  ['GET',/^\/store\/carts\/cart_d/,[200,{cart:{id:'cart_d',items:[],total:68,shipping_total:8,shipping_methods:[{name:'Kuriér – platba na dobierku'}]}}]],
+  ['GET',/^\/store\/nexus-checkout\/options\?/,[200,options]],
+  ['POST',/^\/store\/nexus-checkout\/options$/,postOptions],
+  ['GET',/^\/store\/carts\/cart_d(\?|$)/,[200,{cart:{id:'cart_d',items:[],total:16,item_subtotal:10,shipping_total:6,tax_total:0,shipping_methods:[{name:'Kuriér (zásielka)'}]}}]],
 ];
-const api=()=>createHttpApi(memoryStorage({'anastasia.jwt':'jwt','anastasia.cart':'cart_d'}),config);
+const storage=()=>memoryStorage({'anastasia.jwt':'jwt','anastasia.cart':'cart_d'});
+const paths=calls=>calls.map(c=>`${c.method} ${c.path}`);
+const posted=calls=>calls.find(c=>c.method==='POST'&&c.path==='/store/nexus-checkout/options')?.body;
+const savedAddress=calls=>calls.find(c=>c.method==='POST'&&c.path==='/store/carts/cart_d')?.body;
 
-test('courier to Czechia: address with country cz, server delivery prices and free-from-60 label',async()=>{
-  const calls=fakeFetch(routes());
-  const r=await api().prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:'courier',street:'Na Příkopě 1',city:'Praha',postalCode:'110 00',country:'cz'});
+test('fyzický košík: možnosti dopravy sú len kurýr a osobný odběr',async()=>{
+  fakeFetch(cartRoutes(optionsFor(true)));
+  const api=createHttpApi(storage(),config);
+  const r=await api.getCheckoutOptions();
   assert.equal(r.ok,true,r.message);
-  const up=calls.find(c=>c.path==='/store/carts/cart_d'&&c.method==='POST');
-  assert.equal(up.body.shipping_address.country_code,'cz');
-  assert.equal(up.body.shipping_address.postal_code,'11000');
-  const [courier,pickup]=r.options.delivery;
-  assert.equal(courier.priceLabel.replace(/\s/g,' '),'6,00 €');
-  assert.match(courier.freeFromLabel,/zadarmo pri nákupe od 60,00/);
-  assert.equal(pickup.priceLabel,'zadarmo');
-  assert.match(pickup.address,/Sokolská 88/);
-  assert.match(r.options.payment[0].feeLabel,/^\+2,00/);
-  // Klient nikdy sám nepridáva dopravu ani nevytvára platobnú session.
-  assert.equal(calls.some(c=>c.path.includes('/shipping-methods')||c.path.includes('/payment-sessions')),false);
+  assert.equal(r.requires_delivery,true);
+  assert.deepEqual(r.delivery.map(o=>o.code),['courier','pickup']);
+  assert.equal(r.delivery[0].label,'Kuriér (zásielka)');
+  assert.equal(r.delivery[1].feeLabel,'Zadarmo');
+  assert.equal(r.delivery.some(o=>o.code==='digital'),false,'„Digitálny produkt“ nesmie byť v možnostiach dopravy');
 });
 
-test('only Slovakia or Czechia can be sent as the country',async()=>{
-  const calls=fakeFetch(routes());
-  await api().prepareCheckout({email:'eva@example.com',delivery:'pickup',country:'de'});
-  assert.equal(calls.find(c=>c.path==='/store/carts/cart_d'&&c.method==='POST').body.shipping_address.country_code,'sk');
+test('digitálny košík: doprava sa nevolí a dobierka nie je dostupná',async()=>{
+  fakeFetch(cartRoutes(optionsFor(false)));
+  const api=createHttpApi(storage(),config);
+  const r=await api.getCheckoutOptions();
+  assert.equal(r.ok,true,r.message);
+  assert.equal(r.requires_delivery,false);
+  assert.deepEqual(r.delivery,[]);
+  assert.equal(r.payment.find(p=>p.code==='cod').available,false);
+  assert.equal(r.payment.find(p=>p.code==='card').available,true);
 });
 
-test('digital-only cart: no delivery and cash on delivery is not offered',async()=>{
-  fakeFetch(routes(digitalOptions));
-  const r=await api().prepareCheckout({email:'eva@example.com',delivery:'digital'});
-  assert.equal(r.ok,true);
-  assert.equal(r.options.requiresDelivery,false);
-  assert.equal(r.options.payment.find(p=>p.code==='cod').available,false);
+test('možnosti dopravy sa čítajú zo servera pre konkrétny košík',async()=>{
+  const calls=fakeFetch(cartRoutes(optionsFor(true)));
+  await createHttpApi(storage(),config).getCheckoutOptions();
+  assert.ok(paths(calls).includes('POST /store/carts/cart_d/customer'),'košík sa priradí prihlásenému zákazníkovi');
+  assert.ok(paths(calls).some(p=>p.startsWith('GET /store/nexus-checkout/options?cart_id=cart_d')),'možnosti sa čítajú pre konkrétny košík');
 });
 
-test('selectCheckout sends only codes (no amounts, no provider) and returns the Stripe client secret',async()=>{
-  const calls=fakeFetch(routes());
-  const r=await api().selectCheckout({delivery:'courier',payment:'card'});
-  assert.equal(r.ok,true);assert.equal(r.clientSecret,'pi_1_secret_x');
-  const body=calls.find(c=>c.path==='/store/nexus-checkout/options'&&c.method==='POST').body;
-  assert.deepEqual(body,{cart_id:'cart_d',delivery:'courier',payment:'card'});
-  assert.equal(r.cart.shippingTitle,'Doprava a dobierka');
+test('fyzický košík bez krajiny: doplníme krajinu a možnosti dopravy sa načítajú znova',async()=>{
+  const calls=[];
+  globalThis.fetch=async(url,init={})=>{
+    const path=url.replace(config.apiBaseUrl,''),method=init.method||'GET';
+    calls.push({path,method,body:init.body?JSON.parse(init.body):undefined});
+    if(method==='POST'&&path==='/store/carts/cart_d/customer')return respond(200,{cart:{id:'cart_d'}});
+    if(method==='POST'&&path==='/store/carts/cart_d')return respond(200,{cart:{id:'cart_d'}});
+    if(method==='GET'&&path.startsWith('/store/nexus-checkout/options')){
+      // Server vie cenu dopravy až podľa krajiny – prvý pokus zlyhá.
+      if(!calls.some(c=>c.method==='POST'&&c.path==='/store/carts/cart_d'))return respond(409,{ok:false,error:'ADDRESS_REQUIRED'});
+      return respond(200,optionsFor(true));
+    }
+    return respond(404,{ok:false,error:'NOT_FOUND'});
+  };
+  const r=await createHttpApi(storage(),config).getCheckoutOptions();
+  assert.equal(r.ok,true,r.message);
+  assert.equal(r.requires_delivery,true);
+  assert.deepEqual(r.delivery.map(o=>o.code),['courier','pickup']);
+  const saved=calls.find(c=>c.method==='POST'&&c.path==='/store/carts/cart_d');
+  assert.equal(saved.body.shipping_address.country_code,'sk');
 });
 
-test('server refusal of cash on delivery is shown to the customer',async()=>{
-  fakeFetch(routes(physicalOptions,[400,{ok:false,error:'COD_NOT_AVAILABLE'}]));
-  const r=await api().selectCheckout({delivery:'pickup',payment:'cod'});
-  assert.equal(r.ok,false);assert.match(r.message,/kuriérom/);
+test('fyzický košík: prepareCheckout odovzdá serveru kód dopravy a použije client_secret',async()=>{
+  const calls=fakeFetch(cartRoutes(optionsFor(true)));
+  const api=createHttpApi(storage(),config);
+  const r=await api.prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:'courier',street:'Testovacia 12',city:'Bratislava',postalCode:'811 01',payment:'card'});
+  assert.equal(r.ok,true,r.message);
+  assert.deepEqual(posted(calls),{cart_id:'cart_d',delivery:'courier',payment:'card'});
+  assert.equal(r.clientSecret,'pi_test_secret');
+  assert.equal(r.paymentRequired,true);
+  assert.deepEqual(r.totals,{item_total:10,shipping_total:6,tax_total:0,total:16});
+  // Adresa sa ukladá do košíka pred výberom dopravy.
+  assert.equal(savedAddress(calls).shipping_address.address_1,'Testovacia 12');
+  assert.equal(savedAddress(calls).shipping_address.postal_code,'81101');
+  // Klient nevytvára vlastnú dopravu ani platobnú session.
+  assert.equal(paths(calls).some(p=>p.includes('/shipping-methods')),false);
+  assert.equal(paths(calls).some(p=>p.includes('/shipping-options')),false);
+  assert.equal(paths(calls).some(p=>p.includes('/payment-collections')),false);
+  assert.equal(paths(calls).filter(p=>p==='POST /store/nexus-checkout/options').length,1);
 });
 
-test('bank transfer order: unpaid, payment details (IBAN, VS, amount) from the server',async()=>{
-  fakeFetch([['POST',/^\/store\/nexus-checkout$/,[200,{ok:true,order:{id:'order_1',display_id:1042},paymentStatus:'PENDING',payment_method:'bank_transfer',
-    bank_transfer:{beneficiary:'Lucrat spol. s r.o.',bank:'Tatra banka',iban:'SK17 1100 0000 0026 2409 8906',swift:'TATRSKBX',variable_symbol:'1042',amount:66,currency_code:'eur'}}]]]);
-  const r=await api().checkout();
-  assert.equal(r.status,'PENDING');assert.match(r.messages,/prevodom/);
-  assert.equal(r.bankTransfer.variable_symbol,'1042');assert.equal(r.bankTransfer.iban,'SK17 1100 0000 0026 2409 8906');
-  assert.equal(r.bankTransfer.amountLabel.replace(/\s/g,' '),'66,00 €');
+test('digitálny košík: doprava je null a adresa bez ulice',async()=>{
+  const calls=fakeFetch(cartRoutes(optionsFor(false),[200,{ok:true,delivery:null,payment:'card',payment_required:true,client_secret:'pi_test_digital',shipping:[],totals:{item_total:10,shipping_total:0,tax_total:0,total:10}}]));
+  const api=createHttpApi(storage(),config);
+  const r=await api.prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:null,payment:'card'});
+  assert.equal(r.ok,true,r.message);
+  assert.deepEqual(posted(calls),{cart_id:'cart_d',delivery:null,payment:'card'});
+  assert.equal(r.clientSecret,'pi_test_digital');
+  assert.equal(savedAddress(calls).shipping_address.country_code,'sk');
+  assert.equal(savedAddress(calls).shipping_address.address_1,undefined,'digitálny košík nepotrebuje adresu na doručenie');
 });
 
-test('cash on delivery order: pay on receipt',async()=>{
-  fakeFetch([['POST',/^\/store\/nexus-checkout$/,[200,{ok:true,order:{id:'o'},paymentStatus:'PENDING',payment_method:'cod',bank_transfer:null}]]]);
-  const r=await api().checkout();
-  assert.equal(r.status,'PENDING');assert.match(r.messages,/Platíte pri prevzatí/);assert.equal(r.bankTransfer,null);
+test('smíšený košík: fyzický tovar vyžaduje dopravu, digitálny sa doručí elektronicky',async()=>{
+  const calls=fakeFetch(cartRoutes(optionsFor(true)));
+  const api=createHttpApi(storage(),config);
+  const r=await api.prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:'pickup',payment:'card'});
+  assert.equal(r.ok,true,r.message);
+  assert.deepEqual(posted(calls),{cart_id:'cart_d',delivery:'pickup',payment:'card'});
+  // Osobný odběr nepotrebuje adresu na doručenie.
+  assert.equal(savedAddress(calls).shipping_address.address_1,undefined);
+  assert.equal(savedAddress(calls).shipping_address.country_code,'sk');
 });
 
-test('failed completion after card payment tells the customer the payment was refunded',async()=>{
-  fakeFetch([['POST',/^\/store\/nexus-checkout$/,[400,{ok:false,error:'CHECKOUT_FAILED',payment_compensation:'refunded'}]]]);
-  const r=await api().checkout();
-  assert.equal(r.status,'ERROR');assert.match(r.messages,/automaticky vrátili/);
+test('chyba dopravy pri fyzickom košíku má zákazníkovi zrozumiteľnú hlášku',async()=>{
+  for(const code of ['INVALID_DELIVERY','SHIPPING_OPTION_UNAVAILABLE','DELIVERY_REQUIRED','SHIPPING_REQUIRED']){
+    const calls=fakeFetch(cartRoutes(optionsFor(true),[409,{ok:false,error:code}]));
+    const api=createHttpApi(storage(),config);
+    const r=await api.prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:'courier',street:'Testovacia 12',city:'Bratislava',postalCode:'811 01',payment:'card'});
+    assert.equal(r.ok,false);
+    assert.equal(r.error,code);
+    assert.equal(r.message,'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',code);
+    assert.equal(paths(calls).some(p=>p.includes('/shipping-methods')),false);
+  }
+});
+
+test('chyby platby a prihlásenia sa preložia na slovenské hlášky',async()=>{
+  const paymentCalls=fakeFetch(cartRoutes(optionsFor(true),[400,{ok:false,error:'INVALID_PAYMENT_METHOD'}]));
+  const payment=await createHttpApi(storage(),config).prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:'courier',street:'Testovacia 12',city:'Bratislava',postalCode:'811 01',payment:'apple'});
+  assert.equal(payment.ok,false);
+  assert.equal(payment.message,'Zvoľte spôsob platby.');
+  assert.equal(paymentCalls.length>0,true);
+
+  const unavailableCalls=fakeFetch(cartRoutes(optionsFor(true),[400,{ok:false,error:'PAYMENT_METHOD_UNAVAILABLE'}]));
+  const unavailable=await createHttpApi(storage(),config).prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:'courier',street:'Testovacia 12',city:'Bratislava',postalCode:'811 01',payment:'card'});
+  assert.equal(unavailable.ok,false);
+  assert.match(unavailable.message,/nie je dostupný/);
+  assert.equal(unavailableCalls.length>0,true);
+
+  const deniedCalls=fakeFetch(cartRoutes(optionsFor(true),[401,{ok:false,error:'UNAUTHORIZED'}]));
+  const denied=await createHttpApi(storage(),config).prepareCheckout({firstName:'Eva',lastName:'Testová',email:'eva@example.com',delivery:'courier',street:'Testovacia 12',city:'Bratislava',postalCode:'811 01',payment:'card'});
+  assert.equal(denied.ok,false);
+  assert.equal(denied.message,'Pre dokončenie objednávky sa prihláste.');
+  assert.equal(deniedCalls.length>0,true);
+});
+
+test('bez prihlásenia pokladňa nič na serveri nevolá',async()=>{
+  const calls=fakeFetch(cartRoutes(optionsFor(true)));
+  const api=createHttpApi(memoryStorage({'anastasia.cart':'cart_d'}),config);
+  const options=await api.getCheckoutOptions();
+  assert.equal(options.ok,false);
+  assert.equal(options.status,401);
+  assert.equal(options.message,'Pre dokončenie objednávky sa prihláste.');
+  const prepared=await api.prepareCheckout({email:'eva@example.com',delivery:'courier'});
+  assert.equal(prepared.ok,false);
+  assert.equal(prepared.status,401);
+  assert.equal(calls.length,0,'bez prihlásenia sa server nedotýka');
+});
+
+test('checkout adaptér nevytvára vlastnú platobnú session',async()=>{
+  const api=createHttpApi(storage(),config);
+  assert.equal(typeof api.createPaymentSession,'undefined');
+  assert.equal(typeof api.getCheckoutOptions,'function');
 });

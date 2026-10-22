@@ -1,7 +1,7 @@
 import {SHOP_CATALOG,SHOP_CATEGORIES} from './catalog.mjs';
-// Digitálne produkty v ukážkovom katalógu zodpovedajú skutočným (dopravný profil „digital“).
-const DIGITAL_GROUP_BY_HANDLE={'reset-40-plus':'ACADEMY kurzy','nic-nemusis':'ACADEMY kurzy','vyuka-vedomeho-vnimania':'ACADEMY kurzy','personalizovany-zdravotny-protokol-pro':'ACADEMY kurzy','supervizia':'Konzultácie','online-zdravotna-konzultacia':'Konzultácie','astrologia-zdravie-predispozicia':'Konzultácie'};
-const products=SHOP_CATALOG.map(p=>({...p,digital:!!DIGITAL_GROUP_BY_HANDLE[p.slug],digitalGroup:DIGITAL_GROUP_BY_HANDLE[p.slug]||''}));
+const products=SHOP_CATALOG.map(p=>({...p}));
+// Metriky Zrkadielka: zoznam aj poradie stĺpcov berie klient z API (predvolené tri z backendu).
+const RESET_METRICS=[{key:'energia',label:'Energia',min:1,max:10,order:10},{key:'spanok',label:'Spánok',min:1,max:10,order:20},{key:'stres',label:'Stres',min:1,max:10,order:30}];
 
 const pages = [
   ['/o-lucii','O Lucii','Človek za príbehom.','Priestor pre osobný príbeh, odborné skúsenosti a prístup Lucie.','about'],
@@ -19,7 +19,8 @@ const pages = [
   ['/vyuka','Výuka','Učiť sa vnímať.','Priestor pre vzdelávací obsah pôvodného webu.','programs'],
   ['/blog/zdrava-lekaren-aktuality','Zdravá lekáreň — aktuality','Poznanie pre každý deň.','Priestor pre pôvodné články a redakčne schválený obsah.','journal'],
   ['/ai-anastasia/recenzie-farmaceutickych-produktov','Recenzie farmaceutických produktov','Priestor pre odborný pohľad.','Archívna obsahová adresa. Texty recenzií sa doplnia po schválení.','journal'],
-  ['/ai-anastasia','AI ANASTASIA','Nová kapitola. Už čoskoro.','Asistent sa pripravuje vo fáze 2. V tejto ukážke ešte nie je dostupný.','future'],
+  ['/ai-anastasia/recenzie-zakaznikov','Recenzie zákazníkov','Skutočné skúsenosti zákazníkov.','Pôvodné recenzie zákazníkov zverejňuje AI ANASTASIA na www.aianastasia.com. Prehľad najdete v sekcii AI ANASTASIA.','journal'],
+  ['/ai-anastasia','AI ANASTASIA','Nová kapitola. Už čoskoro.','Pripravuje sa...','future'],
 ].map(([path,title,headline,intro,kind])=>({path,title,headline,intro,kind}));
 
 const aliases = {
@@ -40,11 +41,14 @@ const canonical = path => { const normalized=path.replace(/\/+$/,'')||'/'; retur
 export function createMockApi(storage=memoryStorage()) {
   let chatPreview='open', conversations=[{id:'demo-chat',subject:'Otázka k programu',status:'open'}];
   const messages=[{conversation_id:'demo-chat',id:'welcome',author:'lucia',body:'Dobrý deň, tu je priestor pre vaše otázky.',created_at:'2026-10-14T08:00:00Z'}];
-  let sent=0, credit=null;
+  let sent=0, credit=null, signedOut=false;
   const chatStatus=()=>({eligible:chatPreview!=='ineligible',blocked:chatPreview==='blocked',can_write:!['ineligible','blocked','daily','limit'].includes(chatPreview)&&sent<3,reason:chatPreview==='ineligible'?'chat_not_eligible':chatPreview==='blocked'?'chat_blocked':chatPreview==='daily'?'chat_daily_limit':chatPreview==='limit'||sent>=3?'chat_consecutive_limit':null,remaining:{today:5-sent,in_row:Math.max(0,3-sent),now:Math.max(0,3-sent)},limits:{per_day:5,in_row:3,max_length:2000}});
   let state={lines:[],coupon:'',qrKeys:[]};
   try { const stored=JSON.parse(storage.getItem(KEY)); if(stored && Array.isArray(stored.lines)) state={lines:stored.lines.filter(l=>cartProducts.some(p=>p.slug===l.slug)&&Number.isInteger(l.quantity)&&l.quantity>0&&l.quantity<=99),coupon:stored.coupon==='DEMO10'?'DEMO10':'',qrKeys:Array.isArray(stored.qrKeys)?stored.qrKeys.filter(v=>typeof v==='string').slice(-50):[]}; } catch { /* An unavailable storage must not break the preview. */ }
   const persist=()=>{try{storage.setItem(KEY,JSON.stringify(state));}catch{/* In-memory preview still works. */}};
+  // Odhlásenie v náhľade: vymaže stav košíka a údaje zákazníka, účet zostane odhlásený.
+  const CUSTOMER_KEYS=['anastasia.jwt','anastasia.cart','anastasia.coupon','anastasia.qrkeys','anastasia.gift','anastasia.booking','anastasia.membership.cart','anastasia.membership.checkout','anastasia.membership.offer','anastasia.return'];
+  const forget=key=>{try{storage.removeItem?.(key);}catch{/* prehliadač bez zápisu */}};
   const productByCode=code=>cartProducts.find(p=>p.code===code||p.slug===code);
   const cart=()=>({mode:'mock',lines:state.lines.map(line=>({...clone(cartProducts.find(p=>p.slug===line.slug)),quantity:line.quantity})),gift_voucher:clone(credit),coupon:state.coupon,subtotalLabel:'Bez vyúčtovania',discountLabel:state.coupon?'Kupón prijatý':'Kupón nezadaný',totalLabel:credit?'0,00 €':'Platba nie je aktívna'});
   const add=(code,quantity=1)=>{
@@ -58,7 +62,7 @@ export function createMockApi(storage=memoryStorage()) {
   };
   const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';credit=null;persist();}return{ok:valid,message:valid?'Kupón prijatý.':'Kupón nie je dostupný.'};};
   return {
-    mode:'mock', canonical,isLoggedIn:()=>true,
+    mode:'mock', canonical,isLoggedIn:()=>!signedOut,
     setChatPreview:value=>{chatPreview=value;},
     getChatStatus:chatStatus,
     getChatConversations:()=>({conversations:clone(conversations)}),
@@ -90,7 +94,7 @@ export function createMockApi(storage=memoryStorage()) {
       return{ok:true,gift_voucher:clone(credit),cart:cart(),message:'Poukaz bol uplatnený.'};
     },
     removeGiftVoucher:()=>{credit=null;return cart();},
-    getProducts:({category='',search='',filter='',type=''}={})=>clone(products.filter(p=>(!category||p.category===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true))&&(!type||(type==='digital'?p.digital:!p.digital)))),
+    getProducts:({category='',search='',filter=''}={})=>clone(products.filter(p=>(!category||p.category===category||p.categoryHandle===category)&&(!search||p.name.toLocaleLowerCase('sk').includes(search.toLocaleLowerCase('sk')))&&(!filter||(filter==='novinky'?p.isNew:filter==='bestsellery'?p.isBestseller:true)))),
     getProduct:slug=>clone(products.find(p=>p.slug===slug)||null),
     getCategories:()=>[...SHOP_CATEGORIES],
     getPages:()=>clone(pages),getPage:path=>clone(pages.find(p=>p.path===canonical(path))||null),getAliases:()=>clone(aliases),
@@ -110,17 +114,25 @@ export function createMockApi(storage=memoryStorage()) {
     },
     requestMagicLink:()=>({ok:true,message:'Ak účet existuje, po napojení vám pošleme odkaz. Toto je ukážka; e-mail sa neodoslal.'}),
     confirmMagicLink:()=>({ok:false,message:'Ukážkový režim: odkaz sa neoveruje a neprihlasuje vás. Môžete si otvoriť náhľad účtu.'}),
+    // Odhlásenie: v náhľade zmizne košík aj údaje zákazníka, účet ostáva odhlásený.
+    signOut:()=>{state={lines:[],coupon:'',qrKeys:[]};credit=null;sent=0;signedOut=true;forget(KEY);for(const key of CUSTOMER_KEYS)forget(key);return{ok:true};},
     getCustomerCenter:()=>({
       ok:true,bookingsOk:true,mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
       materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · 2026-0142',category:'faktury',type:'PDF'}],
-      reorder:clone(products.slice(0,3)),profile:{name:'Zákazník',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
+      reorder:clone(products.slice(0,3)),profile:{name:'Zákazníka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
     }),
     saveCustomerProfile:()=>({ok:true,message:'Údaje boli skontrolované.'}),
-    getAccount:()=>({ok:true,name:'Zákazník',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),
+    getAccount:()=>({ok:true,name:'Zákazníka',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),
     getEntitlements:({preview='locked'}={})=>({mode:'mock',active:preview==='unlocked',weeks:Array.from({length:16},(_,i)=>({number:i+1,title:`Tematický týždeň ${String(i+1).padStart(2,'0')}`,description:'Priestor pre schválený obsah programu.'}))}),
     checkout:({scenario='ALLOW'}={})=>({mode:'mock',status:scenario,messages:{ALLOW:'Platba nie je aktívna. Objednávka sa neodoslala.',REVIEW:'Objednávku ešte overujeme. Po napojení vás budeme informovať o ďalšom postupe.',BLOCK:'Objednávku teraz nemožno dokončiť. Kontaktujte nás a pomôžeme vám s ďalším postupom.',ERROR:'Služba je dočasne nedostupná. Skúste to znova o chvíľu.'}[scenario]||'Neznámy stav.'}),
     sendContact:()=>({ok:true,message:'Formulár bol skontrolovaný. Správa sa zatiaľ neodosiela.'}),
     sendContractWithdrawal:()=>({ok:true,message:'Formulár bol skontrolovaný. Odstúpenie sa zatiaľ neodosiela.'}),
+    // RESET 40+ (lokálny náhľad): žiadne demo dáta – prázdne Zrkadielko a kostra programu.
+    getResetProgram:()=>({ok:true,program:'reset-40-plus',total_weeks:16,entry_questionnaire_url:'https://tally.so/r/440GBr',final_summary:{title:'Záverečné zhrnutie',materials:[]},weeks:Array.from({length:16},(_,i)=>({week:i+1,title:null,intro:null,materials:[],days:[2,3,4,5,6,7].map(day=>({day,label:`${day}. deň`,materials:[]}))})),content_ready:false,metrics:RESET_METRICS}),
+    getResetJournal:()=>({ok:true,program:'reset-40-plus',metrics:RESET_METRICS,entries:[],count:0,limit:50,offset:0}),
+    createResetJournalEntry:()=>({ok:true,entry:null,message:'Záznam bol skontrolovaný. V lokálnom náhľade sa neukladá.'}),
+    updateResetJournalEntry:()=>({ok:true,entry:null,message:'Zmena bola skontrolovaná. V lokálnom náhľade sa neukladá.'}),
+    deleteResetJournalEntry:()=>({ok:true,message:'Zmazanie bolo skontrolované. V lokálnom náhľade sa nevykoná.'}),
     subscribeNewsletter:()=>({ok:true,message:'Náhľad: prihlásenie k novinkám sa neukladá.'}),
     // Klub: bez backendu žiadne vymyslené ceny ani členstvá, len poctivý prázdny stav.
     getMembershipProducts:()=>[],

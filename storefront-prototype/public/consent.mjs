@@ -101,12 +101,16 @@ const OPTIONAL_IDS = OPTIONAL;
 /** Zobrazí lištu (prvá vrstva) – volá sa, keď zákazník ešte nerozhodol. */
 export const showBanner = () => {
   const banner = document.getElementById('cookie-banner');
-  if (banner) banner.hidden = false;
+  if (!banner) return;
+  banner.hidden = false;
+  // Lišta je fixná – obsah sa pod ňu nesmie schovať, preto si pripravíme spodok.
+  requestAnimationFrame(() => { document.body.style.paddingBottom = `${banner.offsetHeight}px`; });
 };
 
 export const hideBanner = () => {
   const banner = document.getElementById('cookie-banner');
   if (banner) banner.hidden = true;
+  document.body.style.paddingBottom = '';
 };
 
 /** Prečíta stav zaškrtávacích polí v paneli nastavení. */
@@ -212,7 +216,26 @@ export const initCookieConsent = () => {
   if (hasConsentDecision()) {
     hideBanner();
     writePanel(panel);
-  } else {
-    showBanner();
+    return;
   }
+  // r20/5: lišta nesmie prekrývať úvod. Na domovskej stránke sa objaví až vtedy,
+  // keď je koniec úvodu pod viewportom (teda po skone úvodu alebo po prvom scrollu).
+  const introDone = () => {
+    const intro = document.querySelector('.lh-intro');
+    if (!intro) return true;
+    return intro.getBoundingClientRect().bottom <= 1;
+  };
+  const stopWaiting = () => {
+    observer.disconnect();
+    removeEventListener('scroll', reveal);
+  };
+  const reveal = () => {
+    if (hasConsentDecision() || !introDone()) return;
+    stopWaiting();
+    showBanner();
+  };
+  const observer = new MutationObserver(reveal);
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  addEventListener('scroll', reveal, { passive: true });
+  reveal();
 };

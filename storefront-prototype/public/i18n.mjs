@@ -1,16 +1,72 @@
-// Běhová vícejazyčnost storefrontu (SK výchozí, EN/RU). SK je ZDROJ; EN/RU jsou zatím
-// strojové/placeholder překlady označené jako NEKONTROLOVANÉ — finální překlady dodá jádro
-// (admin správa překladů, Codex). Překládají se jen řetězce, které jsou v DICT (přesná shoda
-// textového uzlu po trimu); cokoli nenalezené zůstane ve slovenštině, takže se nic „nerozbije".
-// Formát klíčů: klíč = přesný slovenský text. Viz I18N-README.md.
-// Dokud nejsou schválené překlady, EN/RU je náhled; nenahrazuje profesionální korekturu.
+// Běhová vícejazyčnost storefrontu (SK / EN / RU).
+//
+// Jazyk se rozhoduje v tomto pořadí:
+//   1) ruční volba uživatele (localStorage) — má vždy přednost,
+//   2) jazyk prohlížeče (navigator.languages / Accept-Language): sk|cs → SK, ru|uk|be → RU,
+//   3) poloha návštěvníka (země z edge: Cloudflare `request.cf.country` / hlavička CF-IPCountry):
+//      SK|CZ → SK, RU|UA|BY|KZ → RU, jinak EN,
+//   4) fallback SK.
+//
+// Země se do stránky dostává přes `window.__ANA_COUNTRY__`, které vpisuje edge vrstva
+// (viz edge/worker.mjs) nebo lokální náhled (serve.mjs, hlavička CF-IPCountry).
+//
+// SK je ZDRŽJELÝ zdroj. EN/RU jsou zatím strojové překlady označené jako NEKONTROLOVANÉ.
+// Překládají se jen řetězce, které jsou v DICT (přesná shoda textového uzlu po trimu)
+// a atributy alt / aria-label / title / placeholder. Obsah bez schváleného překladu je
+// označen `data-sk-only` a v EN/RU se nad ním zobrazí poznámka v daném jazyce —
+// smíchat jazyky se nesmí.
 
 export const LANGS = ['sk', 'en', 'ru'];
-export const LANG_KEY = 'ana-lang';
+export const LANG_KEY = 'ana-lang-manual';
 
-// Slovník UI (navigace, tlačítka, patička, běžné popisky). Hodnota [en, ru].
-// Placeholder / strojové — k nahrazení schválenými překlady z jádra.
 export const DICT = {
+  'OBCHOD': ['SHOP', 'МАГАЗИН'],
+  'ANASTASIA / KONTAKT': ['ANASTASIA / CONTACT', 'ANASTASIA / КОНТАКТЫ'],
+  // r17: preklady pre /eshop, /reset-40, /kontakt a záložky účtu (doplnené o chýbajúce texty).
+  'Veci, ktoré majú zmysel.': ['Things that make sense.', 'Вещи, которые имеют смысл.'],
+  'Malé každodenné rituály. Objavte produkty a programy sveta ANASTASIA.': ['Small everyday rituals. Discover the products and programmes of the ANASTASIA world.', 'Небольшие ежедневные ритуалы. Откройте для себя продукты и программы мира ANASTASIA.'],
+  'Hľadať produkt': ['Search product', 'Поиск товара'],
+  'Kategória': ['Category', 'Категория'],
+  'Výber': ['Selection', 'Подборка'],
+  'Zostaňme v kontakte.': ['Let’s stay in touch.', 'Давайте останемся на связи.'],
+  'Nová kapitola sa začína vami.': ['A new chapter starts with you.', 'Новая глава начинается с вас.'],
+  'Priestor zastaviť sa. A začať znova.': ['A space to stop. And start again.', 'Место, чтобы остановиться. И начать заново.'],
+  'Jednorazový vzdelávací program. Vlastné tempo. Šestnásť tematických týždňov.': ['A one-time educational programme. Your own pace. Sixteen thematic weeks.', 'Разовая обучающая программа. Ваш темп. Шестнадцать тематических недель.'],
+  'Pozrieť úplný obsah programu →': ['See the full programme content →', 'Посмотреть всё содержимое программы →'],
+  'Sme tu pre vás.': ['We are here for you.', 'Мы здесь для вас.'],
+  'Prevádzkovateľ': ['Operator', 'Оператор'],
+  'Zanechajte nám správu': ['Leave us a message', 'Оставьте нам сообщение'],
+  'Vaše meno': ['Your name', 'Ваше имя'],
+  'E-mail': ['E-mail', 'Эл. почта'],
+  'Telefón': ['Phone', 'Телефон'],
+  'O čom nám chcete napísať?': ['What would you like to write to us about?', 'О чём вы хотите нам написать?'],
+  'Vaša správa': ['Your message', 'Ваше сообщение'],
+  'Prečítal som si': ['I have read', 'Я прочитал'],
+  'Prehľad': ['Overview', 'Обзор'],
+  'Moje programy': ['My programmes', 'Мои программы'],
+  'Chat s Luciou': ['Chat with Lucia', 'Чат с Люцией'],
+  'Objednávky': ['Orders', 'Заказы'],
+  'Materiály': ['Materials', 'Материалы'],
+  'Môj profil': ['My profile', 'Мой профиль'],
+  'Pre zobrazenie účtu sa prihláste.': ['Please sign in to view your account.', 'Войдите, чтобы увидеть свой аккаунт.'],
+  'Prihlásiť sa': ['Sign in', 'Войти'],
+  'Môj svet': ['My world', 'Мой мир'],
+  'Vitajte vo svojom priestore.': ['Welcome to your space.', 'Добро пожаловать в ваше пространство.'],
+  'Všetko vaše na jednom mieste. Programy, konzultácie, objednávky a správy.': ['Everything of yours in one place. Programmes, consultations, orders and messages.', 'Всё ваше в одном месте. Программы, консультации, заказы и сообщения.'],
+  'Napísať Lucii': ['Write to Lucia', 'Написать Люции'],
+  'Vlastné tempo. Vlastný priestor.': ['Your own pace. Your own space.', 'Свой темп. Своё пространство.'],
+  'Celý program': ['The whole programme', 'Вся программа'],
+  'O programe': ['About the programme', 'О программе'],
+  'Najbližšia konzultácia': ['The nearest consultation', 'Ближайшая консультация'],
+  'Zobraziť detail': ['Show details', 'Показать подробности'],
+  'Posledná objednávka': ['The last order', 'Последний заказ'],
+  'Moje objednávky': ['My orders', 'Мои заказы'],
+  'Astrologický profil': ['Astrological profile', 'Астрологический профиль'],
+  'Váš priestor pre súvislosti.': ['Your space for connections.', 'Ваше пространство для связей.'],
+  'Farba priestoru': ['Colour of the space', 'Цвет пространства'],
+  'Potrebujete pomoc?': ['Need help?', 'Нужна помощь?'],
+  'Odhlásiť sa →': ['Sign out →', 'Выйти →'],
+  // --- Navigace, hlavička, lišta, menu -----------------------------------
   'Obchod': ['Shop', 'Магазин'],
   'Všetky produkty': ['All products', 'Все товары'],
   'Kategórie': ['Categories', 'Категории'],
@@ -27,8 +83,10 @@ export const DICT = {
   'Klub': ['Club', 'Клуб'],
   'Moja knižnica': ['My library', 'Моя библиотека'],
   'Služby': ['Services', 'Услуги'],
+  'Služby a miesta': ['Services and places', 'Услуги и места'],
   'Konzultácie': ['Consultations', 'Консультации'],
   'Supervízia': ['Supervision', 'Супервизия'],
+  'Pre odborníkov': ['For professionals', 'Для специалистов'],
   'Astrológia': ['Astrology', 'Астрология'],
   'AI ANASTASIA': ['AI ANASTASIA', 'AI ANASTASIA'],
   'Zdravý svet': ['Healthy world', 'Здоровый мир'],
@@ -39,6 +97,91 @@ export const DICT = {
   'Close': ['Close', 'Закрыть'],
   'Zavrieť': ['Close', 'Закрыть'],
   'Zavrieť menu': ['Close menu', 'Закрыть меню'],
+  'Hlavné menu': ['Main menu', 'Главное меню'],
+  'Jazyk, menu a kontakt': ['Language, menu and contact', 'Язык, меню и контакты'],
+  'Svet': ['World', 'Мир'],
+  'Svet ANASTASIA': ['ANASTASIA world', 'Мир ANASTASIA'],
+  'Informácie': ['Information', 'Информация'],
+  'Zdravá lekáreň': ['Healthy pharmacy', 'Аптека здоровья'],
+  'Denný stacionár Vyšná Slaná': ['Daily sanatorium Vysna Slana', 'Дневной санаторий Вышна Слана'],
+  'Programy a služby': ['Programs and services', 'Программы и услуги'],
+  'Sprevádzanie': ['Accompanying', 'Сопровождение'],
+  'Pharmanews': ['Pharmanews', 'Pharmanews'],
+  'Recenzie produktov': ['Product reviews', 'Отзывы о товарах'],
+  'Recenzie zákazníkov': ['Customer reviews', 'Отзывы клиентов'],
+  'Cookies': ['Cookies', 'Cookies'],
+  'Nastavenia cookies': ['Cookie settings', 'Настройки Cookies'],
+  'Odstúpenie od zmluvy': ['Withdrawal of contract', 'Расторжение договора'],
+  'EN / RU už čoskoro': ['EN / RU coming soon', 'EN / RU скоро'],
+  'Košík (': ['Cart (', 'Корзина ('],
+  'AI ANASTASIA Academy': ['AI ANASTASIA Academy', 'AI ANASTASIA Academy'],
+  'Biokozmetika': ['Biocometics', 'Биокосметика'],
+  // Texty úvodu 1:1 podľa pôvodného webu.
+  'Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.': ['This part of the website belongs to the ANASTASIA project. It is not an offer of solutions, but a space where things do not have to be hurried, explained or managed. A healthy world is not an ideal to work towards. It is not a goal to be achieved by working on yourself. It is a possibility that appears when we stop feeling that we must do something with ourselves.', 'Эта часть сайта принадлежит проекту ANASTASIA. Это не предложение решений, а пространство, где ничто не нужно форсировать, объяснять или контролировать. Здоровый мир — не идеал, к которому нужно стремиться. Это не цель, которую нужно достигать работой над собой. Это возможность, которая появляется, когда мы перестаём чувствовать, что обязаны что-то с собой делать.'],
+  'Priestor pre zdravie, poznanie a vedomý život.': ['A space for health, knowledge and conscious living.', 'Пространство для здоровья, знания и осознанной жизни.'],
+  'Kolekcia': ['Collection', 'Коллекция'],
+  'AI ANASTASIA Longevity Academy': ['AI ANASTASIA Longevity Academy', 'AI ANASTASIA Longevity Academy'],
+  'AI ANASTASIA RESET 40+': ['AI ANASTASIA RESET 40+', 'AI ANASTASIA RESET 40+'],
+  'Čo môžeme spolu riešiť?': ['What can we work on together?', 'Что мы можем решать вместе?'],
+  'Čo získate?': ['What do you gain?', 'Что вы получаете?'],
+  'Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.': ['You will find audio recordings, texts and spaces without explanation here.', 'Здесь найдёте аудиозаписи, тексты, пространства без объяснений.'],
+  '16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.': ['16 weeks that can change the way you look at health, energy and ageing.', '16 недель, которые могут изменить ваш взгляд на здоровье, энергию и старение.'],
+  'Kde veci nemusia byť urýchľované, vysvetľované ani riadené.': ['Where things do not have to be hurried, explained or managed.', 'Где ничто не нужно форсировать, объяснять или контролировать.'],
+  'Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás.': ['A question about a product, a programme or a consultation? Here is space for you.', 'Вопрос о продукте, программе или консультации? Здесь есть место для вас.'],
+  'AI ANASTASIA ACADEMY': ['AI ANASTASIA ACADEMY', 'AI ANASTASIA ACADEMY'],
+  'ACADEMY': ['ACADEMY', 'ACADEMY'],
+  'BIOKOZMETIKA': ['BIOCOSMETICS', 'БИОКОСМЕТИКА'],
+  'Zdravé doplnky výživy': ['Healthy nutrition supplements', 'Здоровые пищевые добавки'],
+  'Môj účet': ['My account', 'Мой аккаунт'],
+  'Účet': ['Account', 'Аккаунт'],
+  'Košík': ['Cart', 'Корзина'],
+  'Preskočiť na obsah': ['Skip to content', 'Перейти к содержимому'],
+  'Počet kusov': ['Number of items', 'Количество товаров'],
+  'ANASTASIA — domov': ['ANASTASIA — home', 'ANASTASIA — главная'],
+  'ANASTASIA OZ': ['ANASTASIA OZ', 'ANASTASIA OZ'],
+  'ANASTASIA.ACADEMY': ['ANASTASIA.ACADEMY', 'ANASTASIA.ACADEMY'],
+  'ANASTASIA OZ — Light for the Future': ['ANASTASIA OZ — Light for the Future', 'ANASTASIA OZ — Light for the Future'],
+  'ANASTASIA — Light for the Future': ['ANASTASIA — Light for the Future', 'ANASTASIA — Light for the Future'],
+  'ANASTASIA ACADEMY': ['ANASTASIA ACADEMY', 'ANASTASIA ACADEMY'],
+  'Zavolať ANASTASIA': ['Call ANASTASIA', 'Позвонить в ANASTASIA'],
+  'Facebook': ['Facebook', 'Facebook'],
+  'YouTube': ['YouTube', 'YouTube'],
+  'Už čoskoro': ['Coming soon', 'Скоро'],
+  'Obchodné podmienky': ['Terms of business', 'Условия продажи'],
+  'Súkromie a GDPR': ['Privacy and GDPR', 'Конфиденциальность и GDPR'],
+  'Reklamácie': ['Complaints', 'Жалобы'],
+  '© 2026 ANASTASIA · Light for the Future': ['© 2026 ANASTASIA · Light for the Future', '© 2026 ANASTASIA · Light for the Future'],
+
+  // --- Úvod --------------------------------------------------------------
+  'Kozmetika na mieru': ['Cosmetics made to measure', 'Косметика на заказ'],
+  'Bylinky Hildegardy': ['Hildegard’s herbs', 'Травы Хильдегарды'],
+  'Vstúpte': ['Enter', 'Войти'],
+  'alebo posuňte': ['or scroll', 'или прокрутите'],
+  'Posuňte nadol': ['Scroll', 'Прокрутите'],
+  'Prejsť ďalej': ['Continue', 'Продолжить'],
+  'Vitajte.': ['Welcome.', 'Добро пожаловать.'],
+  'Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.': ['This part of the site belongs to the ANASTASIA project. Not as an offer of solutions, but as a space where things do not have to be pushed, explained or managed.', 'Эта часть сайта принадлежит проекту ANASTASIA. Не как предложение решений, а как пространство, где ничто не нужно форсировать, объяснять или контролировать.'],
+  'Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.': ['The healthy world is not an ideal to work towards.', 'Здоровый мир — не идеал, к которому нужно стремиться.'],
+  'Vstúpte do zdravého sveta': ['Enter the healthy world', 'Войдите в здоровый мир'],
+  'Zvuk vypnutý': ['Sound off', 'Звук выключен'],
+  'Zvuk zapnutý': ['Sound on', 'Звук включён'],
+  'Zapnúť zvuk': ['Turn on sound', 'Включить звук'],
+  'Pozastaviť video': ['Pause video', 'Пауза видео'],
+  'Ďalšia skladba': ['Next track', 'Следующий трек'],
+  'Ovládanie videa a zvuku': ['Video and sound controls', 'Управление видео и звуком'],
+  'Nočná obloha nad tmavou krajinou': ['Night sky over a dark landscape', 'Ночное небо над тёмным пейзажем'],
+  'Strom v krajine': ['Tree in the landscape', 'Дерево в пейзаже'],
+  'Světlo v lese': ['Light in the forest', 'Свет в лесу'],
+  'Mgr. Lucia Rogožanová, zakladateľka ANASTASIA': ['Mgr. Lucia Rogozanova, founder of ANASTASIA', 'Магистр. Луция Рогожанова, основательница ANASTASIA'],
+
+  // --- Patička a newsletter ------------------------------------------------
+  'Zostaňme v\u00a0kontakte.': ['Stay in\u00a0touch.', 'Оставайтесь на\u00a0связи.'],
+  'Odoberať': ['Subscribe', 'Подписаться'],
+  'Priestor pre zdravie, poznanie a vedomý život.': ['A space for health, knowledge and conscious living.', 'Пространство для здоровья, знания и осознанной жизни.'],
+  'Občasný list o nových programoch, rituáloch a kolekciách. Bez zhonu.': ['An occasional letter about new programs, rituals and collections. No rush.', 'Изредка письмо о новых программах, ритуалах и коллекциях. Без спешки.'],
+  'Váš e-mail': ['Your e-mail', 'Ваш e-mail'],
+
+  // --- Tlačítka a akce ------------------------------------------------------
   'Do košíka': ['Add to cart', 'В корзину'],
   'Pridať do košíka': ['Add to cart', 'В корзину'],
   'Kúpiť program': ['Buy program', 'Купить программу'],
@@ -48,24 +191,61 @@ export const DICT = {
   'Odoslať správu': ['Send message', 'Отправить сообщение'],
   'Celý obchod': ['Whole shop', 'Весь магазин'],
   'Prihlásenie': ['Sign in', 'Вход'],
-  'Môj účet': ['My account', 'Мой аккаунт'],
-  'Košík': ['Cart', 'Корзина'],
   'Objaviť Zdravý svet': ['Discover Healthy world', 'Открыть Здоровый мир'],
   'Pozrieť konzultácie': ['View consultations', 'Смотреть консультации'],
-  'Pozrieť produkt': ['View product', 'Смотреть товар'],
+  'Pozrieť produkt': ['View product', 'Смотреть товарь'],
   'Napíšte nám': ['Write to us', 'Напишите нам'],
   'Kontaktujte nás': ['Contact us', 'Свяжитесь с нами'],
+  'Objavte svet ANASTASIA': ['Discover the ANASTASIA world', 'Откройте мир ANASTASIA'],
+};
+
+// Poznámka nad obsahem, který zatím nemá schválený překlad.
+export const SK_ONLY_NOTE = {
+  sk: 'Tento obsah je zatím dostupný len v slovenčine.',
+  en: 'This content is available in Slovak only.',
+  ru: 'Это содержимое доступно только на словацком языке.',
 };
 
 const idx = { en: 0, ru: 1 };
 const original = new WeakMap(); // uzel -> původní slovenský text
+const originalAttr = new WeakMap(); // uzel -> {atribut: původní hodnota}
 
 export function normalizeLang(value) {
   return LANGS.includes(value) ? value : 'sk';
 }
 
+// 1) ruční volba — vždy má přednost.
+export function storedLang() {
+  try { const value = localStorage.getItem(LANG_KEY); return LANGS.includes(value) ? value : null; } catch { return null; }
+}
+
+// 2) jazyk prohlížeče.
+export function browserLang() {
+  const list = (typeof navigator !== 'undefined' && navigator.languages && navigator.languages.length) ? navigator.languages : [(typeof navigator !== 'undefined' && navigator.language) || ''];
+  for (const raw of list) {
+    const code = String(raw || '').toLowerCase().split('-')[0];
+    if (code === 'sk' || code === 'cs') return 'sk';
+    if (code === 'ru' || code === 'uk' || code === 'be') return 'ru';
+  }
+  return null;
+}
+
+// 3) poloha — země z edge (Cloudflare).
+export function countryLang() {
+  const meta = typeof document !== 'undefined' ? document.querySelector('meta[name="ana-country"]') : null;
+  const code = String((meta && meta.getAttribute('content')) || (typeof window !== 'undefined' && window.__ANA_COUNTRY__) || '').toUpperCase();
+  if (!code) return null;
+  if (code === 'SK' || code === 'CZ') return 'sk';
+  if (code === 'RU' || code === 'UA' || code === 'BY' || code === 'KZ') return 'ru';
+  return 'en';
+}
+
+export function detectLang() {
+  return storedLang() || browserLang() || countryLang() || 'sk';
+}
+
 export function getLang() {
-  try { return normalizeLang(localStorage.getItem(LANG_KEY)); } catch { return 'sk'; }
+  return storedLang() || detectLang();
 }
 
 function walkTextNodes(root, fn) {
@@ -81,6 +261,19 @@ function walkTextNodes(root, fn) {
   let n; while ((n = walker.nextNode())) fn(n);
 }
 
+// Atributy, které nesou viditelný text (a musí být v jednom jazyku).
+const TEXT_ATTRS = ['alt', 'aria-label', 'title', 'placeholder'];
+const isLanguageCode = value => ['SK', 'EN', 'RU'].includes(value.trim().toUpperCase());
+
+function translateValue(value, target) {
+  const trimmed = value.trim();
+  if (!trimmed || isLanguageCode(trimmed)) return value;
+  const entry = DICT[trimmed];
+  if (!entry) return value;
+  const translated = entry[idx[target]];
+  return translated ? value.replace(trimmed, translated) : value;
+}
+
 // Přeloží jen přesné shody (po trimu), zachová okolní mezery. SK = obnoví zdroj.
 export function apply(lang) {
   const target = normalizeLang(lang);
@@ -91,10 +284,39 @@ export function apply(lang) {
     if (target === 'sk') { node.nodeValue = src; return; }
     const entry = DICT[trimmed];
     if (entry && entry[idx[target]]) node.nodeValue = src.replace(trimmed, entry[idx[target]]);
-    else node.nodeValue = src; // nenalezené zůstává slovensky
+    else node.nodeValue = src; // nenalezené zůstává slovensky (patří do data-sk-only)
   });
+  for (const el of document.querySelectorAll('[alt],[aria-label],[title],[placeholder]')) {
+    if (!originalAttr.has(el)) {
+      const values = {};
+      for (const name of TEXT_ATTRS) if (el.hasAttribute(name)) values[name] = el.getAttribute(name);
+      originalAttr.set(el, values);
+    }
+    const values = originalAttr.get(el);
+    for (const name of TEXT_ATTRS) {
+      if (!el.hasAttribute(name)) continue;
+      const source = values[name];
+      el.setAttribute(name, target === 'sk' ? source : translateValue(source, target));
+    }
+  }
+  applySkOnly(target);
   document.documentElement.lang = target;
   markSwitch(target);
+}
+
+// Obsah bez schváleného překladu: v EN/RU dostane vlastní poznámku, text zůstane slovenský.
+function applySkOnly(target) {
+  for (const block of document.querySelectorAll('[data-sk-only]')) {
+    let note = block.querySelector(':scope > [data-sk-only-note]');
+    if (target === 'sk') { if (note) note.remove(); continue; }
+    if (!note) {
+      note = document.createElement('p');
+      note.setAttribute('data-sk-only-note', '');
+      note.className = 'sk-only-note';
+      block.prepend(note);
+    }
+    note.textContent = SK_ONLY_NOTE[target];
+  }
 }
 
 export function setLang(lang) {
@@ -106,35 +328,46 @@ export function setLang(lang) {
 // Zvýrazní aktivní jazyk ve všech přepínačích.
 function markSwitch(target) {
   for (const el of switchEls()) {
-    const code = el.textContent.trim().toLowerCase();
-    const on = code === target;
+    const on = switchCode(el).toLowerCase() === target;
     el.setAttribute('aria-current', on ? 'true' : 'false');
     el.style.opacity = on ? '1' : '0.5';
   }
 }
 
-// Najde prvky přepínače jazyka: listové a/span/button s textem přesně SK/EN/RU.
+// Najde prvky přepínače jazyka: podle aria-label (lišta) nebo podle textu SK/EN/RU (menu).
+// Text v liště je zabalený v animaci přejezdu, proto se řídíme i atributem.
 function switchEls() {
   return [...document.querySelectorAll('a, span, button')].filter((el) => {
+    const label = (el.getAttribute('aria-label') || '').trim().toUpperCase();
+    if (label === 'SK' || label === 'EN' || label === 'RU') return true;
     const t = el.textContent.trim().toUpperCase();
-    return (t === 'SK' || t === 'EN' || t === 'RU') && el.children.length === 0;
+    return t === 'SK' || t === 'EN' || t === 'RU';
   });
 }
 
-// Zapojí přepínače (i dekorativní <span> z návrhu) a aplikuje uloženou volbu.
+function switchCode(el) {
+  const label = (el.getAttribute('aria-label') || '').trim().toUpperCase();
+  if (label === 'SK' || label === 'EN' || label === 'RU') return label;
+  return el.textContent.trim().toUpperCase();
+}
+
+// Zapojí přepínače a aplikuje jazyk (ruční volba, jinak automatické určení).
 export function init() {
   try {
     for (const el of switchEls()) {
-      el.removeAttribute('disabled');
       el.style.cursor = 'pointer';
       el.setAttribute('role', 'button');
       el.setAttribute('tabindex', '0');
-      el.title = { SK: 'Slovenčina', EN: 'English (náhľad)', RU: 'Русский (предпросмотр)' }[el.textContent.trim().toUpperCase()] || el.title;
-      const go = (e) => { e.preventDefault(); setLang(el.textContent.trim().toLowerCase()); };
+      el.removeAttribute('disabled');
+      el.removeAttribute('aria-disabled');
+      const code = switchCode(el);
+      el.title = { SK: 'Slovenčina', EN: 'English', RU: 'Русский' }[code] || el.title;
+      el.dataset.i18nSwitch = '1';
+      const go = (e) => { e.preventDefault(); setLang(code.toLowerCase()); };
       el.addEventListener('click', go);
       el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') go(e); });
     }
-    apply(getLang());
+    apply(detectLang());
   } catch {}
   try { window.anaSetLang = setLang; } catch {}
 }
