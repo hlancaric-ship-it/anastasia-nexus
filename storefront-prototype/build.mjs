@@ -9,12 +9,13 @@ import {chrome,homeSections,aboutSections,dcCss,ROOT_STYLE,HELMET_CSS} from './s
 import {HOME_CSS} from './src/home-lh.mjs';
 import {cookieConsent} from './src/cookie-consent.mjs';
 import {api} from './src/lib/api/index.mjs';
-import {createHttpApi} from './src/lib/api/http.mjs';
+import {createHttpApi,JWT_KEY} from './src/lib/api/http.mjs';
 import {FEATURED_SLUGS} from './src/lib/api/catalog.mjs';
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
 import {centerThemeCss,centerThemeBoot} from './src/center-themes.mjs';
 import {siteThemes,siteThemeCss,siteThemeBoot,tokenizeColors} from './src/site-themes.mjs';
+import {accountGuardBoot} from './src/account-guard.mjs';
 // Motiv webu volí Lucia v adminu; v produkci ho dosadí server, v náhledu SITE_THEME=bordo node build.mjs.
 const siteTheme=process.env.SITE_THEME||siteThemes[0].id;
 if(!siteThemes.some(t=>t.id===siteTheme))throw new Error(`Unknown SITE_THEME ${siteTheme}`);
@@ -83,7 +84,7 @@ const renderDocument=(path,{title,body,design})=>{
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1"${path==='/o-lucii'?' data-sk-only':''}>${body.replace('%%HEADER%%',c.header)}</main>${c.footer}</div>`
     :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'var(--center-main)':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1" data-sk-only>${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
-  return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="ana-country" content=""><meta name="description" content="${e(title)} — ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="modulepreload" href="/boot.mjs${V}"><link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/figtree-latin-ext.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin-italic.woff2" as="font" type="font/woff2" crossorigin>${design?designCss():legacyCss()}<script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}</head>${bootCss(design)}<body${design?` class="dc-page${path==='/'?' lh-intro-page':''}"`:path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${cookieConsent()}${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
+  return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="ana-country" content=""><meta name="description" content="${e(title)} — ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="modulepreload" href="/boot.mjs${V}"><link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/figtree-latin-ext.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin-italic.woff2" as="font" type="font/woff2" crossorigin>${design?designCss():legacyCss()}<script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}${path==='/ucet'?'<script src="/account-guard.js"></script>':''}</head>${bootCss(design)}<body${design?` class="dc-page${path==='/'?' lh-intro-page':''}"`:path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${cookieConsent()}${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
 };
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));await cp(join(root,'src/site-themes.mjs'),join(out,'site-themes.mjs'));
 {
@@ -120,6 +121,7 @@ await writeFile(join(out,'dc.css'),centerThemeCss()+'\n'+siteThemeCss()+'\n'+tok
   dcCss()].join('\n')));
 await writeFile(join(out,'center-theme.js'),centerThemeBoot());
 await writeFile(join(out,'site-theme.js'),siteThemeBoot());
+await writeFile(join(out,'account-guard.js'),accountGuardBoot(JWT_KEY));
 await writeFile(join(out,'404.html'),document('/404',{title:'Stránka nenájdená',body:views.notFound()}));
 await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';

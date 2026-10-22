@@ -160,3 +160,36 @@ Větev `codex/storefront-chat`, lokální náhled `http://127.0.0.1:4183`.
 - Sluchátko a spuštění/pauza jsou v levé liště úvodu i Zdravého světa. Na mobilu se stejné ovladače přesouvají vlevo dole. Na úvodu tlačítko ovládá video; na Zdravém světě stávající lokální ambientní zvuk. Zvuk se vytváří a spouští až po kliknutí. Rychlé pozastavení rozběhnutého požadavku není chyba přehrávání.
 
 Ověření: cílené kontroly rozměrů, dotyku zelené sekce a overflow při 320–1920 px PASS; ovládání dotykem, zvuk, play/pause a zachování stavu při změně šířky PASS. Plný `STOREFRONT_URL=http://127.0.0.1:4183 node storefront-prototype/test/browser.mjs` po poslední úpravě: 26/26 skupin PASS, včetně patičky s přechodem, bez JS chyb a cizích requestů. Mock sada 14/14 PASS; syntaktické kontroly a `git diff --check` PASS. CSP zůstalo `'self'`.
+
+## Odhlásenie zákazníka (22. 10. 2026)
+
+Větev `codex/storefront-autorsky-design`. Chyba ověřená QA na teste: „Odhlásiť sa →“ byl
+obyčajný odkaz na /prihlasenie, token `anastasia.jwt` zostal v sessionStorage,
+`/store/customers/me` vracel 200 a /ucet bol po odhlásení stále dostupný.
+
+Rozhodnutie: token a údaje zákazníka sa mažú v prehliadači vždy (aj pri chybe servera),
+serverová relácia sa zruší, ale její zlyhanie odhlásenie neblokuje. Účet bez relácie sa
+neotvára vôbec — stráž účtu je v hlave stránky, aby účet neblikal ani na chvíľu.
+
+- `src/lib/api/http.mjs`: `signOut()` — zruší serverovú reláciu (`DELETE /auth/session`, trasa
+  je v Meduse, chyba sa ignoruje) a vymaže token aj údaje zákazníka: `anastasia.cart`,
+  `anastasia.coupon`, `anastasia.qrkeys`, `anastasia.gift`, `anastasia.booking`,
+  `anastasia.membership.cart|checkout|offer` a `anastasia.return` (ten drží app shell
+  v localStorage). Kľúč tokenu je exportovaný ako `JWT_KEY`.
+- `src/lib/api/mock.mjs`: `signOut()` v náhľade vymaže košík a údaje, `isLoggedIn()` po
+  odhlásení vrací `false`. `src/lib/api/index.mjs`: `signOut` je vo fronte zápisov.
+- `src/customer-center.mjs`: jediné tlačidlo „Odhlásiť sa →“ má `data-sign-out` (zostáva
+  odkaz, bez JS sa zákazník dostane na /prihlasenie, žiadne zdvojené tlačidlo).
+  `public/app.mjs`: klik zavolá `api.signOut()` a prejde na /prihlasenie.
+- Stráž účtu: `src/account-guard.mjs` + `build.mjs` vkladajú na /ucet do hlavičky
+  `/account-guard.js` (bez tokenu hneď `location.replace('/prihlasenie')`, ešte pred runtime
+  aplikácie); `public/app.mjs` má rovnakú kontrolu ako zálohu. Bez tokenu /ucet nie je dostupný.
+
+Ověření: `node --test 'storefront-prototype/test/*.test.mjs'` → 143/143 PASS (o 8 nových
+v `storefront-prototype/test/sign-out.test.mjs`); `node storefront-prototype/build.mjs` PASS;
+`node --check` PASS; `git diff --check` PASS; cílená kontrola v Chromiu PASS — po odhlásení je
+sessionStorage bez tokenu aj košíka a /ucet presmeruje na /prihlasenie.
+`node storefront-prototype/test/browser.mjs` je rozbitý už na HEAD (kontrola hero layoutu
+`hlavička je uvnitř hero`, backend na 127.0.0.1:9100 v tomto prostredí neběží), takže táto
+oprava je v browser teste overená uvedenou cílenou kontrolou, nie celým browser balíkom.
+

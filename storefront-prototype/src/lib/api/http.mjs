@@ -68,9 +68,12 @@ function mapProduct(p,apiBase='') {
   };
 }
 
+// Kľúč tokenu zákazníka v prehliadači. Používa ho aj skript stráže účtu (src/account-guard.mjs).
+export const JWT_KEY = 'anastasia.jwt';
+
 export function createHttpApi(storage, config) {
   const base = config.apiBaseUrl.replace(/\/+$/, '');
-  const JWT = 'anastasia.jwt', CART = 'anastasia.cart', COUPON = 'anastasia.coupon', QRKEYS = 'anastasia.qrkeys', GIFT = 'anastasia.gift';
+  const JWT = JWT_KEY, CART = 'anastasia.cart', COUPON = 'anastasia.coupon', QRKEYS = 'anastasia.qrkeys', GIFT = 'anastasia.gift';
   const get = k => { try { return storage.getItem(k); } catch { return null; } };
   const set = (k, v) => { try { storage.setItem(k, v); } catch { /* preview bez storage */ } };
   const del = k => { try { storage.removeItem(k); } catch { /* noop */ } };
@@ -279,6 +282,12 @@ export function createHttpApi(storage, config) {
     if (amount === 0) return free ? 'Zadarmo' : '';
     return money(amount);
   };
+
+  // Údaje viazané na zákazníka: token, košík, kupón, darček, konzultácia, členstvo, QR kľúče.
+  // Po odhlásení nesmú v prehliadači prežiť – inak by zostali prístupné ďalšiemu používateľovi.
+  // 'anastasia.return' drží app shell v localStorage (návrat po prihlásení), vymažeme ho z oboch úložísk.
+  const RETURN_KEY = 'anastasia.return';
+  const CUSTOMER_KEYS = [JWT, CART, COUPON, QRKEYS, GIFT, MCART, MCHECKOUT, MOFFER, BOOKING, RETURN_KEY];
 
   // createApi volá metódy bez `this`, vnútorné volania preto idú cez `self`.
   const self = {
@@ -634,6 +643,15 @@ export function createHttpApi(storage, config) {
       } catch {
         return { ok: false, message: 'Prihlásenie sa nepodarilo. Skúste to prosím znova o chvíľu.' };
       }
+    },
+
+    // Odhlásenie: zruší serverovú reláciu a vymaže token aj údaje zákazníka z prehliadača.
+    // Serverová chyba odhlásenie neblokuje – lokálne údaje sa vymažú vždy, inak by účet zostal dostupný.
+    async signOut() {
+      try { await call('/auth/session', { method: 'DELETE' }); } catch { /* relácia na serveri zostane, token v prehliadači zmizne */ }
+      for (const key of CUSTOMER_KEYS) del(key);
+      try { globalThis.localStorage?.removeItem(RETURN_KEY); } catch { /* prehliadač bez localStorage */ }
+      return { ok: true };
     },
 
     // QR odkaz → košík: produkt + množstvo + voliteľný kupón. Idempotentné cez uložený kľúč (max 50).

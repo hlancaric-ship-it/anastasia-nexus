@@ -42,6 +42,18 @@ if(kolTrack)(async()=>{
   kolTrack.dataset.ready='';
 })();
 
+// Odhlásenie: zruší reláciu a vymaže token aj údaje zákazníka, potom prejde na prihlásenie.
+// Odkaz zostáva odkazom (bez JS sa zákazník dostane na /prihlasenie), prerušíme len predchádzajúcu navigáciu.
+for(const link of $$('[data-sign-out]')){
+  let signingOut=false;
+  link.addEventListener('click',async event=>{
+    event.preventDefault();
+    if(signingOut)return;signingOut=true;link.setAttribute('aria-busy','true');
+    try{if(typeof api.signOut==='function')await api.signOut();}catch{/* odhlásenie musí prejsť aj pri chybe servera */}
+    location.assign('/prihlasenie');
+  });
+}
+
 const customerCenter=$('.customer-center');
 if(customerCenter){
   // Barva účtu: platné id přijdou z vyrenderovaných swatchů, první je výchozí (bez atributu). Uloženo jen v prohlížeči.
@@ -64,7 +76,8 @@ if(customerCenter){
   (async()=>{
     const put=(sel,html)=>$$(sel,customerCenter).forEach(el=>{el.innerHTML=html;});
     const note=text=>`<p class="form-status">${e(text)}</p>`;
-    if(!(typeof api.isLoggedIn==='function'&&await api.isLoggedIn())){put('#center-next-booking,#center-last-order,#center-bookings,#center-orders',note('Pre zobrazenie účtu sa prihláste.'));$('.center-content',customerCenter).insertAdjacentHTML('afterbegin',`<div class="empty-state"><h2>Pre zobrazenie účtu sa prihláste.</h2>${button('/prihlasenie','Prihlásiť sa')}</div>`);return;}
+    // Stráž účtu: bez tokenu účet neexistí, zákazník pokračuje na prihlásenie.
+    if(!(typeof api.isLoggedIn==='function'&&await api.isLoggedIn())){location.replace('/prihlasenie');return;}
     let account,data;
     try{[account,data]=await Promise.all([api.getAccount(),api.getCustomerCenter()]);}catch{account={ok:false,orders:[]};data={ok:false,bookings:[],reorder:[]};}
     const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');

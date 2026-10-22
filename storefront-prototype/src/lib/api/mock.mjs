@@ -41,11 +41,14 @@ const canonical = path => { const normalized=path.replace(/\/+$/,'')||'/'; retur
 export function createMockApi(storage=memoryStorage()) {
   let chatPreview='open', conversations=[{id:'demo-chat',subject:'Otázka k programu',status:'open'}];
   const messages=[{conversation_id:'demo-chat',id:'welcome',author:'lucia',body:'Dobrý deň, tu je priestor pre vaše otázky.',created_at:'2026-10-14T08:00:00Z'}];
-  let sent=0, credit=null;
+  let sent=0, credit=null, signedOut=false;
   const chatStatus=()=>({eligible:chatPreview!=='ineligible',blocked:chatPreview==='blocked',can_write:!['ineligible','blocked','daily','limit'].includes(chatPreview)&&sent<3,reason:chatPreview==='ineligible'?'chat_not_eligible':chatPreview==='blocked'?'chat_blocked':chatPreview==='daily'?'chat_daily_limit':chatPreview==='limit'||sent>=3?'chat_consecutive_limit':null,remaining:{today:5-sent,in_row:Math.max(0,3-sent),now:Math.max(0,3-sent)},limits:{per_day:5,in_row:3,max_length:2000}});
   let state={lines:[],coupon:'',qrKeys:[]};
   try { const stored=JSON.parse(storage.getItem(KEY)); if(stored && Array.isArray(stored.lines)) state={lines:stored.lines.filter(l=>cartProducts.some(p=>p.slug===l.slug)&&Number.isInteger(l.quantity)&&l.quantity>0&&l.quantity<=99),coupon:stored.coupon==='DEMO10'?'DEMO10':'',qrKeys:Array.isArray(stored.qrKeys)?stored.qrKeys.filter(v=>typeof v==='string').slice(-50):[]}; } catch { /* An unavailable storage must not break the preview. */ }
   const persist=()=>{try{storage.setItem(KEY,JSON.stringify(state));}catch{/* In-memory preview still works. */}};
+  // Odhlásenie v náhľade: vymaže stav košíka a údaje zákazníka, účet zostane odhlásený.
+  const CUSTOMER_KEYS=['anastasia.jwt','anastasia.cart','anastasia.coupon','anastasia.qrkeys','anastasia.gift','anastasia.booking','anastasia.membership.cart','anastasia.membership.checkout','anastasia.membership.offer','anastasia.return'];
+  const forget=key=>{try{storage.removeItem?.(key);}catch{/* prehliadač bez zápisu */}};
   const productByCode=code=>cartProducts.find(p=>p.code===code||p.slug===code);
   const cart=()=>({mode:'mock',lines:state.lines.map(line=>({...clone(cartProducts.find(p=>p.slug===line.slug)),quantity:line.quantity})),gift_voucher:clone(credit),coupon:state.coupon,subtotalLabel:'Bez vyúčtovania',discountLabel:state.coupon?'Kupón prijatý':'Kupón nezadaný',totalLabel:credit?'0,00 €':'Platba nie je aktívna'});
   const add=(code,quantity=1)=>{
@@ -59,7 +62,7 @@ export function createMockApi(storage=memoryStorage()) {
   };
   const coupon=code=>{const valid=code.trim().toUpperCase()==='DEMO10';if(valid){state.coupon='DEMO10';credit=null;persist();}return{ok:valid,message:valid?'Kupón prijatý.':'Kupón nie je dostupný.'};};
   return {
-    mode:'mock', canonical,isLoggedIn:()=>true,
+    mode:'mock', canonical,isLoggedIn:()=>!signedOut,
     setChatPreview:value=>{chatPreview=value;},
     getChatStatus:chatStatus,
     getChatConversations:()=>({conversations:clone(conversations)}),
@@ -111,6 +114,8 @@ export function createMockApi(storage=memoryStorage()) {
     },
     requestMagicLink:()=>({ok:true,message:'Ak účet existuje, po napojení vám pošleme odkaz. Toto je ukážka; e-mail sa neodoslal.'}),
     confirmMagicLink:()=>({ok:false,message:'Ukážkový režim: odkaz sa neoveruje a neprihlasuje vás. Môžete si otvoriť náhľad účtu.'}),
+    // Odhlásenie: v náhľade zmizne košík aj údaje zákazníka, účet ostáva odhlásený.
+    signOut:()=>{state={lines:[],coupon:'',qrKeys:[]};credit=null;sent=0;signedOut=true;forget(KEY);for(const key of CUSTOMER_KEYS)forget(key);return{ok:true};},
     getCustomerCenter:()=>({
       ok:true,bookingsOk:true,mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
       materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · 2026-0142',category:'faktury',type:'PDF'}],
