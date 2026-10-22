@@ -22,7 +22,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   const tierCode = typeof raw.tier_code === "string" ? raw.tier_code.trim().toUpperCase() : ""
   if (!tierCode) return res.status(400).json({ message: "Vyberte úroveň alebo „automaticky“." })
   if (tierCode !== "AUTOMATIC" && !LOYALTY_TIER_CODE_RE.test(tierCode)) {
-    return res.status(400).json({ message: "Neplatná úroveň. Použite napr. ZR1 až ZR4 alebo „automatic“." })
+    return res.status(400).json({ message: "Neplatná vernostná úroveň. Vyberte úroveň zo zoznamu." })
   }
 
   try {

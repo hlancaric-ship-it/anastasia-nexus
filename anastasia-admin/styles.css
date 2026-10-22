@@ -613,3 +613,7 @@ input[readonly]{background:#f1f2ed;color:var(--muted)}
 .content-preview img{max-width:100%;border-radius:8px;margin-bottom:8px}
 .content-preview video{max-width:100%;border-radius:8px;margin-bottom:8px}
 .content-preview-sec{margin-bottom:18px}
+.loyalty-head,.loyalty-row{display:grid;grid-template-columns:minmax(140px,2fr) minmax(90px,1fr) minmax(110px,1fr) 110px;gap:10px;align-items:center}
+.loyalty-head{font-size:12px;color:var(--muted,#6b6b6b);padding:0 2px 6px}
+.loyalty-row{padding:8px 0;border-top:1px solid var(--field-line)}
+@media (max-width:640px){.loyalty-head{display:none}.loyalty-row{grid-template-columns:1fr 1fr}.loyalty-row>input[data-f="name"]{grid-column:1/-1}}

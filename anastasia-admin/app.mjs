@@ -1557,14 +1557,14 @@ async function vCustomers(view) {
     if (tierSel) {
       const wanted = ['', 'none', ...tierOptions.map((t) => t.code)];
       if (tierSel.options.length !== wanted.length + 1) {
-        tierSel.innerHTML = `<option value="">Všetky úrovne</option><option value="none">Bez úrovne</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(t.name || t.code)}</option>`).join('')}`;
+        tierSel.innerHTML = `<option value="">Všetky úrovne</option><option value="none">Bez úrovne</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(tierLabel(t))}</option>`).join('')}`;
         tierSel.value = tierFilter;
       }
     }
     const rows = customers.map((c) => {
       const nm = [c.first_name, c.last_name].filter(Boolean).join(' ');
       const av = (nm || c.email || '?').slice(0, 2).toUpperCase();
-      const tier = c.tier_name || c.tier_code || '';
+      const tier = c.tier_name || LOYALTY_TIER_LABEL[c.tier_code] || '';
       const tierCell = !loyalty ? '<span class="muted">—</span>' : tier
         ? `<b>${esc(tier)}</b>${c.locked ? ' <span class="pill">ručné</span>' : c.source === 'auto' ? ' <span class="muted">automaticky</span>' : ''}`
         : '<span class="muted">—</span>';
@@ -1580,7 +1580,7 @@ async function vCustomers(view) {
     }).join('');
     const from = count ? offset + 1 : 0, to = Math.min(offset + customers.length, count);
     body.innerHTML = `${selected.size ? `<div class="ot-bulk"><span class="muted">Označení zákazníci: ${selected.size}</span><div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${isOwner() ? `<select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(t.name || t.code)}</option>`).join('')}</select>
+        ${isOwner() ? `<select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(tierLabel(t))}</option>`).join('')}</select>
         <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>` : ''}
         <button type="button" class="btn ghost sm" id="cu-pick-clear">Zrušiť označenie</button></div></div>` : ''}
       <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Zatiaľ žiadni zákazníci.</td></tr>'}</tbody></table></div>
@@ -1644,7 +1644,7 @@ async function vCustomerDetail(view, id) {
     ? `<div class="row"><div><label for="tier-code">Vernostná úroveň</label><select id="tier-code">
         <option value="">Bez úrovne</option>
         <option value="automatic">Automaticky podľa útraty</option>
-        ${tierChoices.map((t) => `<option value="${esc(t.code)}"${tier?.tier_code === t.code ? ' selected' : ''}>${esc(t.name || t.code)} (${esc(t.code)})</option>`).join('')}
+        ${tierChoices.map((t) => `<option value="${esc(t.code)}"${tier?.tier_code === t.code ? ' selected' : ''}>${esc(tierLabel(t))}</option>`).join('')}
       </select></div>
       <div><label>Stav</label><div>${tier?.tier_name ? `<b>${esc(tier.tier_name)}</b> ${tier.locked ? '<span class="pill">ručné</span>' : '<span class="muted">automaticky</span>'}` : '<span class="muted">bez úrovne</span>'}</div></div></div>
       ${tier?.locked ? '<p class="muted" style="font-size:12px;margin-top:6px">Nastavené ručne – automatické priradenie podľa útraty to nepremení.</p>' : '<p class="muted" style="font-size:12px;margin-top:6px">Úroveň sa priradí automaticky podľa celkovej útraty zákazníka. Ručne nastavenú úroveň už automatika nepremení.</p>'}
@@ -3064,6 +3064,8 @@ async function vAuditLog(view) {
 // --- Vernostné úrovne (loyalty): UI nad hotovým backendom ---
 // Percentá a prahy posiela server; klient nič nedopočítava.
 const LOYALTY_TIER_LABEL = { ZR1: 'Bronze', ZR2: 'Silver', ZR3: 'Gold', ZR4: 'VIP' };
+// Interný kód úrovne sa v admine nezobrazuje, len jej názov.
+function tierLabel(t) { return t?.name || LOYALTY_TIER_LABEL[t?.code] || 'Úroveň'; }
 async function vLoyaltyPolicy(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam vernostné úrovne…</div>';
@@ -3083,11 +3085,10 @@ async function vLoyaltyPolicy(view) {
       <div class="row" style="gap:6px;align-items:center"><input class="rc-search" data-f="discount_percent" type="number" min="0" max="50" step="0.5" value="${esc(String(t.discount_percent ?? 0))}" aria-label="Zľava v percentách"><span class="muted">%</span></div>
       <input class="rc-search" data-f="spend_threshold_eur" type="number" min="0" step="1" value="${t.spend_threshold_eur == null ? '' : esc(String(t.spend_threshold_eur))}" placeholder="napr. 500" aria-label="Prah zaplatenej útraty v eurách">
       <label style="display:flex;gap:6px;align-items:center;justify-content:center"><input type="checkbox" data-f="enabled" ${t.enabled !== false ? 'checked' : ''} style="width:auto"> zapnuté</label>
-      <code class="rc-code">${esc(t.code)}</code>
     </div>`;
   view.innerHTML = `<div class="card"><div class="card-h">Vernostné úrovne</div><div class="card-b">
     <div id="lp-msg"></div>
-    ${tiers.length ? `<div class="loyalty-head"><span>Názov</span><span>Zľava</span><span>Prah útraty (€)</span><span>Zapnuté</span><span>Kód</span></div>
+    ${tiers.length ? `<div class="loyalty-head"><span>Názov</span><span>Zľava</span><span>Prah útraty (€)</span><span>Zapnuté</span></div>
       <div id="lp-rows">${tiers.map(row).join('')}</div>`
       : '<div class="notice">Vernostné úrovne ešte nie sú nastavené. Nastavte zľavu a prah, aby zákazníci dostávali zľavu.</div>'}
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
@@ -3108,8 +3109,7 @@ async function vLoyaltyPolicy(view) {
     el.innerHTML = `<input class="rc-search" data-f="name" value="" placeholder="Názov úrovne" maxlength="60" aria-label="Názov úrovne">
       <div class="row" style="gap:6px;align-items:center"><input class="rc-search" data-f="discount_percent" type="number" min="0" max="50" step="0.5" value="0" aria-label="Zľava v percentách"><span class="muted">%</span></div>
       <input class="rc-search" data-f="spend_threshold_eur" type="number" min="0" step="1" value="" placeholder="napr. 500" aria-label="Prah zaplatené útraty v eurách">
-      <label style="display:flex;gap:6px;align-items:center;justify-content:center"><input type="checkbox" data-f="enabled" checked style="width:auto"> zapnuté</label>
-      <code class="rc-code">${code}</code>`;
+      <label style="display:flex;gap:6px;align-items:center;justify-content:center"><input type="checkbox" data-f="enabled" checked style="width:auto"> zapnuté</label>`;
     rows.appendChild(el);
   };
   view.querySelector('#lp-add').onclick = addTier;

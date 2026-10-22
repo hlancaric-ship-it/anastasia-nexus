@@ -1344,7 +1344,7 @@
       ],
       "source": "backend/src/api/admin/nexus/customers/[id]/tier/route.ts",
       "feature": "loyalty",
-      "sha256": "9262a89b42d76fcd41ee71737f5917569395c6aebed3a80de2f4a7029a4bc27b"
+      "sha256": "19b2a271feefb82ac033ebfff30a3b5a17d9ca681bd4346d3f31398b80e923ec"
     },
     {
       "path": "/admin/nexus/customers/tiers",
