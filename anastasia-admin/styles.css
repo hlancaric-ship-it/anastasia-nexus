@@ -6,7 +6,7 @@
   --ink:#2c2a23; --muted:#6e6858; --line:#dcd3bd;
   --canvas:#f4efe3; --surface:#ffffff; --surface-2:#fbf7ee; --surface-3:#f4ecdb;
   --soft:#f1ebdd; --field:#fdfbf6; --field-line:#cec5ad;
-  --wine:#7c2438; --wine-soft:#f7e9ec;
+  --wine:#4f5d3f; --wine-soft:#eef1e8;
   --gold:#b98a2f; --gold-soft:#f8f0dc; --gold-deep:#7a5c22; --accent:#b98a2f;
   --green:#2f6b3f; --green-soft:#e9f1e6;
   --forest:#203b32; --cream:#f3f1df; --paper:#f6f5f0; --sb:244px;
@@ -21,7 +21,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 button,a,input,select{-webkit-tap-highlight-color:transparent}
 button{cursor:pointer}
 button:disabled{cursor:default;opacity:.55}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[contenteditable]:focus-visible{outline:3px solid #a36524;outline-offset:3px}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[contenteditable]:focus-visible{outline:2px solid #9c86c2;outline-offset:2px}
 svg.i{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .hidden,[hidden]{display:none!important}
 .muted{color:var(--muted)}
@@ -180,7 +180,7 @@ label.carrier-pick:has(input:checked){border-color:#c2b89c;background:var(--surf
   --ink:#e9e6dc; --muted:#a9a494; --line:#3a3a30;
   --canvas:#171712; --surface:#1e1e18; --surface-2:#24241d; --surface-3:#2d2c22;
   --soft:#26261e; --field:#191912; --field-line:#45443a;
-  --wine:#e2a0b0; --wine-soft:#33222a; --gold:#dcb877; --gold-soft:#33291a; --gold-deep:#dcb877;
+  --wine:#b9c9a3; --wine-soft:#26301f; --gold:#dcb877; --gold-soft:#33291a; --gold-deep:#dcb877;
   --green:#9dc9a6; --green-soft:#1f2a20;
   --cream:#f3f1df; --paper:#f6f5f0;
   color-scheme:dark;
