@@ -1623,7 +1623,11 @@ async function vCustomerDetail(view, id) {
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { customer: c } = await api(`/admin/customers/${id}?fields=id,email,first_name,last_name,has_account,created_at,*groups`);
   let groups = []; try { groups = (await api('/admin/customer-groups?limit=50&fields=id,name')).customer_groups || []; } catch {}
-  let products = []; try { products = ((await api('/admin/products?limit=100&fields=id,title')).products || []).map((p) => ({ id: p.id, title: p.title })); } catch {}
+  // Prístup sa prideľuje len k digitálnym produktom a službám (profil „digital“); fyzický tovar do zoznamu nepatrí.
+  let allProducts = [], products = [];
+  try { allProducts = ((await api('/admin/products?limit=200&fields=id,title,*shipping_profile')).products || []).map((p) => ({ id: p.id, title: p.title || '', digital: p.shipping_profile?.type === 'digital' })); } catch {}
+  products = allProducts.filter((p) => p.digital).sort((x, y) => x.title.localeCompare(y.title, 'sk'));
+  const productTitle = (pid) => allProducts.find((p) => p.id === pid)?.title || pid || '';
   let entitlements = [], orders = [], erasures = [];
   try { entitlements = (await api(`/admin/entitlements?customer_id=${encodeURIComponent(id)}&limit=50`)).entitlements || []; } catch {}
   try { orders = (await api(`/admin/orders?customer_id=${encodeURIComponent(id)}&limit=50&fields=id,display_id,created_at,total,payment_status,fulfillment_status`)).orders || []; } catch {}
@@ -1655,14 +1659,14 @@ async function vCustomerDetail(view, id) {
       <span class="rc-f"><em>Platba</em>${esc(PAY_LABEL[o.payment_status] || o.payment_status || '—')}</span>
       <span class="rc-f"><em>Vybavenie</em>${esc(FUL_LABEL[o.fulfillment_status] || o.fulfillment_status || '—')}</span></div></div></div>`).join('')}</div>`
     : '<div class="empty">Zákazník nemá žiadne objednávky.</div>';
-  const pristupy = `${entitlements.length ? `<div class="rc-grid">${entitlements.map((e) => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(e.product_id || '')}</div>
+  const pristupy = `${entitlements.length ? `<div class="rc-grid">${entitlements.map((e) => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(productTitle(e.product_id))}</div>
       <div class="rc-fields"><span class="rc-f"><em>Stav</em>${e.status === 'active' ? '<span class="pill ok">aktívny</span>' : `<span class="pill off">${esc(e.status || '—')}</span>`}</span>
       ${e.expires_at ? `<span class="rc-f"><em>Platí do</em>${fmtDate(e.expires_at)}</span>` : ''}
       <span class="rc-f"><em>Pridelené</em>${fmtDate(e.granted_at)}</span></div></div></div>`).join('')}</div>` : '<div class="empty">Zákazník nemá prístup k žiadnemu digitálnemu obsahu.</div>'}
     <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
       <b>Prideliť prístup ručne</b>
       ${isOwner() ? `<p class="muted" style="font-size:12px">Prístup udelíte konkrétnemu zákazníkovi ku konkrétnemu produktu (napr. po telefonáte alebo darčeku).</p>
-      <div class="row"><div><label for="ent-product">Produkt</label><select id="ent-product">${products.map((p) => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('') || '<option value="">— žiadny produkt —</option>'}</select></div>
+      <div class="row"><div><label for="ent-product">Produkt</label><select id="ent-product">${products.map((p) => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('') || '<option value="">— žiadny digitálny produkt —</option>'}</select></div>
       <div><label for="ent-expires">Platí do (voliteľné)</label><input id="ent-expires" type="date"></div></div>
       <div class="row" style="margin-top:10px"><div><label for="ent-reason">Dôvod</label><input id="ent-reason" maxlength="200" placeholder="napr. darček od rodiny"></div><div><button type="button" class="btn gold" id="ent-grant">Prideliť prístup</button></div></div>`
         : '<p class="muted" style="font-size:12px">Pridanie prístupu ručne spravuje vlastník administrácie.</p>'}
