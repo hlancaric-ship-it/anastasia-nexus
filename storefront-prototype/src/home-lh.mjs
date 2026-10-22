@@ -20,9 +20,9 @@ const IMG = {
   lucia: '/assets/lucia-portrait.jpg',
   tree: '/assets/tree.jpg',
   longevity: '/assets/lucia-longevity.png',
-  // Fotky z public/assets s dostatocnym rozlisenim (min. 1600px sirka)
-  kozmetika: '/assets/kozmetika-large.jpg',
-  vyziva: '/assets/vyziva-large.jpg',
+  // Veľké fotky z public/media/ (min. 1600px šírka)
+  kozmetika: '/media/legacy-4b8bf0b4e9f0.png',
+  vyziva: '/media/legacy-75110b14202a.png',
   program: '/media/learning.jpg',
   zdravy: '/media/legacy-483537f470c4.jpg',
 };
