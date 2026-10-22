@@ -651,7 +651,8 @@ if($('#booking-view')){
     const r=typeof api.getBookingTypes==='function'?await api.getBookingTypes():{ok:false,types:[]};
     types=r.types||[];
     if(!r.ok){view.innerHTML=status('Ponuku konzultácií sa nepodarilo načítať. Skúste to znova o chvíľu.','ERROR');return;}
-    if(!types.length){view.innerHTML=`<div class="empty-state"><h2>Termíny konzultácií pripravujeme.</h2><p>Napíšte nám a dohodneme termín spolu.</p>${button('/kontakt','Kontakt')}</div>`;return;}
+    // Bez nastaveného kalendára sa konzultácia kupuje ako produkt a termín sa dohodne po objednávke.
+    if(!types.length){const typ=new URLSearchParams(location.search).get('typ')||'';if(/^[a-z0-9-]{1,120}$/.test(typ)){location.replace(`/eshop/produkt/${typ}/`);return;}view.innerHTML=`<div class="empty-state"><h2>Vyberte si konzultáciu.</h2><p>Po objednávke vás kontaktujeme a termín dohodneme spolu.</p>${button('/konzultacie','Ponuka konzultácií')}</div>`;return;}
     const wanted=new URLSearchParams(location.search).get('typ');
     type=types.find(t=>t.handle===wanted)||(types.length===1?types[0]:null);
     if(type)renderSlots();else renderTypes();

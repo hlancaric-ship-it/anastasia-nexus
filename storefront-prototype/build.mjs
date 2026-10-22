@@ -54,7 +54,9 @@ const DUPLICATE_REDIRECTS=[
   // Zvyšné staré adresy z prehľadu starého webu (22. 10.).
   ['/eshop/kategoria/sebarozvoj','/eshop/?category=sebarozvoj'],['/eshop/kategoria/zdrave-doplnky-vyzivy','/eshop/?category=zdrave-doplnky-vyzivy'],
   ['/eshop/kategoria/Podkategoria41','/eshop/'],['/eshop/kategoria/podkategoria21','/eshop/'],
-  ['/moj-ucet','/ucet/'],['/moj-ucet/prihlasenie','/prihlasenie/'],['/zabudnute-heslo','/prihlasenie/'],
+  ['/moj-ucet','/ucet/'],
+  // Produkty, ktoré starý web už nepredáva (bez ceny a mimo e-shopu, 23. 10.).
+  ['/eshop/produkt/kava-zdrava','/eshop/'],['/eshop/produkt/telove-maslo','/eshop/'],['/eshop/produkt/vydymovanie-zmes','/eshop/'],['/eshop/produkt/lanova-sukna','/eshop/'],['/moj-ucet/prihlasenie','/prihlasenie/'],['/zabudnute-heslo','/prihlasenie/'],
 ];
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
@@ -84,7 +86,7 @@ for(const [path,page] of Object.entries(legacyContent)){
     const dsGallery=path==='/denny-stacionar-vysna-slana/ds-dnes'
       ? dsPhotos('ds',['img_1.jpg','img_2.jpg','img_3.jpg','img_4.jpg','img_5.jpg','propagacia.jpg'])
       : '';
-    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?dsPhotos('ds',['vonkajsi-vchod.jpg'])+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':'')+dsGallery);
+    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?`<section class="section photo-gallery"><figure><img src="/img/vonkajsi-vchod.webp" alt="Denný stacionár Vyšná Slaná – vonkajší vchod" loading="lazy" width="1200" height="800"></figure></section>`+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':'')+dsGallery);
   }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
 }
