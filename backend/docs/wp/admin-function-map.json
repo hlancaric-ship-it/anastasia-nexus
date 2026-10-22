@@ -373,15 +373,34 @@
       "label_sk": "Newsletter a súhlasy",
       "delivery_lane": "NEXT",
       "backend_layer": "custom",
-      "backend_status": "PARTIAL",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "PARTIAL",
       "request": "Kontakty, souhlasy, odhlášení, segmenty, rozesílka a přehled výsledků.",
       "sources": [
         "backend/src/api/admin/newsletter/route.ts",
-        "backend/src/api/store/newsletter/unsubscribe/route.ts"
+        "backend/src/api/store/newsletter/unsubscribe/route.ts",
+        "backend/src/api/admin/newsletter/campaigns/route.ts",
+        "backend/src/api/admin/newsletter/campaigns/[id]/route.ts",
+        "backend/src/api/admin/newsletter/campaigns/[id]/test/route.ts",
+        "backend/src/api/admin/newsletter/campaigns/[id]/send/route.ts",
+        "backend/src/api/admin/newsletter/campaigns/[id]/cancel/route.ts",
+        "backend/src/api/store/newsletter/unsubscribe/link/route.ts",
+        "backend/src/api/store/newsletter/unsubscribe/link/page.ts",
+        "backend/src/modules/newsletter/index.ts",
+        "backend/src/modules/newsletter/policy.ts",
+        "backend/src/modules/newsletter/sender.ts",
+        "backend/src/modules/newsletter/service.ts",
+        "backend/src/modules/newsletter/runtime.ts",
+        "backend/src/modules/newsletter/models/newsletter-campaign.ts",
+        "backend/src/modules/newsletter/models/newsletter-delivery.ts",
+        "backend/src/modules/newsletter/migrations/Migration20261022120000.ts",
+        "backend/src/jobs/newsletter-send.ts",
+        "backend/src/modules/legal/service.ts",
+        "anastasia-admin/newsletter.mjs",
+        "backend/docs/wp/newsletter-kampane-HOTOVO.md"
       ],
-      "remaining": "Existuje evidence a stránkovaný CSV export; hromadné kampaně/segmentace/rozesílka nejsou hotové.",
-      "acceptance": "Žádné odeslání bez souhlasu; odhlášení platí pro další dávku; UI správně označí rozsah exportu."
+      "remaining": "Backend a admin API sú hotové (koncept, test, fronta, odosielanie s limitom, odhlásenie podpísaným odkazom). Admin obrazovka je v samostatnom súbore anastasia-admin/newsletter.mjs a do app.mjs sa zapája jedným importom a jedným volaním; zapojenie zatiaľ nebolo vykonané. Migrácia nebola spustená proti reálnej DB a odosielanie nebolo overené proti živému poskytovateľovi.",
+      "acceptance": "Kampaň sa odošle len prihláseným súhlasom a po opätovnej kontrole pred každým e-mailom; bez NEWSLETTER_UNSUBSCRIBE_SECRET sa neodošle nič; test ide len na @l-code-dynamics.com; denný limit a dávka sa dodržia; odhlasovací odkaz má podpis overený v konštantnom čase a jednoklikové odhlásenie funguje; obsah sa pred uložením sanitizuje a nedá sa prepašovať skript ani cudzia URL."
     },
     {
       "id": "cms",
@@ -1300,6 +1319,54 @@
       "sha256": "e22afcc625ac17c430db9bd9c684004226f8766cff350a8b49b95cb77ac1b6a6"
     },
     {
+      "path": "/admin/newsletter/campaigns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/admin/newsletter/campaigns/route.ts",
+      "sha256": "126267f8a144782bdf36bb8d9b89955563b247816861831a864b6c46f4cb5d0e"
+    },
+    {
+      "path": "/admin/newsletter/campaigns/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/admin/newsletter/campaigns/[id]/route.ts",
+      "sha256": "2f87fc7811f50f2c7ac76e66fee7107726fb10c428940b4ea1a107142d80cfe8"
+    },
+    {
+      "path": "/admin/newsletter/campaigns/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/admin/newsletter/campaigns/[id]/cancel/route.ts",
+      "sha256": "cd946960efbdf907cd13880203d53834358e45fc0cd50d9be4da55f04e6a71cb"
+    },
+    {
+      "path": "/admin/newsletter/campaigns/:id/send",
+      "methods": [
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/admin/newsletter/campaigns/[id]/send/route.ts",
+      "sha256": "c5cc1394f242f50f15d68080746291ac02c9ad736972604baba782100562fee4"
+    },
+    {
+      "path": "/admin/newsletter/campaigns/:id/test",
+      "methods": [
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/admin/newsletter/campaigns/[id]/test/route.ts",
+      "sha256": "f4156d132fa543fc1eff4cd6b665e97dbbecd9551f5b95cdf0475663c9c45302"
+    },
+    {
       "path": "/admin/nexus/admin-2fa",
       "methods": [
         "DELETE",
@@ -1456,7 +1523,7 @@
       ],
       "source": "backend/src/api/admin/product-catalogue/route.ts",
       "feature": "products",
-      "sha256": "e2e67bc6785129ce6e0d87f19a76b42e3176fe8a7a6cdde099faf8471efd3fca"
+      "sha256": "660eff9ba7d9030389773addc60c1f4280ecfcb449b4031e6ffaf7ba59349a93"
     },
     {
       "path": "/admin/products/:id/protected-media",
@@ -1922,6 +1989,25 @@
       "sha256": "efe9279ae2c7606bddbba930eef714bf00a456738e71c9214568a06e2167e258"
     },
     {
+      "path": "/store/newsletter/unsubscribe/link",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/store/newsletter/unsubscribe/link/route.ts",
+      "sha256": "07a2c1c92ee2de4bef9e1fda9cda0f9f0fb9e44c6a6ab8b4ad12f2c4183a946e"
+    },
+    {
+      "path": "/store/nexus-auth/logout",
+      "methods": [
+        "POST"
+      ],
+      "feature": "customer-recovery",
+      "source": "backend/src/api/store/nexus-auth/logout/route.ts",
+      "sha256": "c834b6b8295fd71bf9bfad494beac2d0243bd63a1cb4b9c5a81f5fbfec0c6a79"
+    },
+    {
       "path": "/store/nexus-cart",
       "methods": [
         "POST"
@@ -2004,15 +2090,6 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
-    },
-    {
-      "path": "/store/nexus-auth/logout",
-      "methods": [
-        "POST"
-      ],
-      "feature": "customer-recovery",
-      "source": "backend/src/api/store/nexus-auth/logout/route.ts",
-      "sha256": "c834b6b8295fd71bf9bfad494beac2d0243bd63a1cb4b9c5a81f5fbfec0c6a79"
     }
   ],
   "native_medusa_version": "2.19.0",
@@ -4523,6 +4600,7 @@
       "backend/src/jobs/legal-rate-cleanup.ts",
       "backend/src/jobs/membership-access-reconcile.ts",
       "backend/src/jobs/membership-billing.ts",
+      "backend/src/jobs/newsletter-send.ts",
       "backend/src/jobs/ops-retention.ts"
     ],
     "subscribers": [
@@ -4589,6 +4667,8 @@
       "backend/src/modules/membership/models/membership-mandate.ts",
       "backend/src/modules/membership/models/membership-receipt.ts",
       "backend/src/modules/membership/models/membership.ts",
+      "backend/src/modules/newsletter/models/newsletter-campaign.ts",
+      "backend/src/modules/newsletter/models/newsletter-delivery.ts",
       "backend/src/modules/ops-audit/models/ops-audit-entry.ts",
       "backend/src/modules/ops-audit/models/ops-event.ts",
       "backend/src/modules/reset-journal/models/reset-journal-entry.ts"
@@ -4606,6 +4686,7 @@
       "backend/src/modules/legal/index.ts",
       "backend/src/modules/membership-stripe/index.ts",
       "backend/src/modules/membership/index.ts",
+      "backend/src/modules/newsletter/index.ts",
       "backend/src/modules/notification-log/index.ts",
       "backend/src/modules/notification-resend/index.ts",
       "backend/src/modules/notification-zeptomail/index.ts",
@@ -4906,7 +4987,13 @@
     "backend/src/modules/legal/__tests__/newsletter.unit.spec.ts",
     "backend/src/modules/legal/__tests__/policy.unit.spec.ts",
     "backend/src/modules/legal/__tests__/routes.unit.spec.ts",
+    "backend/src/modules/legal/__tests__/unsubscribe-consent.unit.spec.ts",
     "backend/src/modules/membership-stripe/__tests__/service.unit.spec.ts",
+    "backend/src/modules/newsletter/__tests__/campaign-state.unit.spec.ts",
+    "backend/src/modules/newsletter/__tests__/sanitize.unit.spec.ts",
+    "backend/src/modules/newsletter/__tests__/sender.unit.spec.ts",
+    "backend/src/modules/newsletter/__tests__/unsubscribe-link.unit.spec.ts",
+    "backend/src/modules/notification-resend/__tests__/headers.unit.spec.ts",
     "backend/src/modules/notification-zeptomail/__tests__/template-texts.unit.spec.ts",
     "backend/src/modules/notification-zeptomail/__tests__/zeptomail.unit.spec.ts",
     "backend/src/modules/ops-audit/__tests__/edge-ingest.unit.spec.ts",
@@ -5032,7 +5119,7 @@
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
     "nexus/tests/workers/voucherConcurrency.test.ts",
-    "storefront-prototype/test/digital-products.test.mjs"
+    "storefront-prototype/test/digital-content.test.mjs"
   ],
   "candidate_branch": "codex/admin-theming"
 }

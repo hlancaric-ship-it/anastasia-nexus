@@ -18,6 +18,7 @@ import { openPrintWindow, fillPrintWindow, openPrintHtml, PRINT_FIELDS } from '.
 import { voucherHtml, voucherListHtml, VOUCHER_CSS } from './voucher.mjs';
 import { contentPages, contentPage, wireContentPage } from './content.mjs';
 import { securityView } from './security.mjs';
+import { newsletterView } from './newsletter.mjs';
 
 // --- Rola administrátora: vlastník (všetko) alebo asistent (denná práca bez peňazí a rolí) ---
 // Rolu číta server (GET /admin/nexus/admin-roles); klient si ju len zobrazuje.
@@ -3066,16 +3067,11 @@ async function vEmailDetail(view, t) {
   };
   preview();
 }
-async function vNewsletter(view) {
-  view = freshView(view);
-  view.innerHTML = '<div class="muted">Načítavam…</div>';
-  const { consents } = await api('/admin/newsletter?limit=200');
-  listView(view, {
-    title: 'Newsletter — súhlasy', rows: (consents || []).map((c, i) => ({ ...c, id: c.id ?? i })), empty: 'Zatiaľ sa nikto neprihlásil na newsletter. Prihlásenia pribudnú, keď niekto vyplní formulár na webe.',
-    card: c => `<div class="rc-body"><div class="rc-title">${esc(c.email)}</div><div class="rc-fields">
-      <span class="rc-f"><em>Stav</em><span class="pill ${c.status === 'subscribed' || c.status === 'active' ? 'ok' : 'off'}">${esc(c.status || '—')}</span></span>
-      <span class="rc-f"><em>Zdroj</em>${esc(c.source || '—')}</span></div></div>`,
-  });
+// Newsletter: kampane, test a rozosielanie. Obrazovka je v samostatnom module.
+let newsletterScreen;
+function vNewsletter(view) {
+  newsletterScreen ||= newsletterView({ api, esc, fmtDate, freshView });
+  return newsletterScreen(view);
 }
 // --- Obsah → Stránky a texty: texty webových stránok editovateľné v rich texte ---
 async function vPageTexts(view) {

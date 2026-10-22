@@ -1,7 +1,7 @@
 # Katalog vlastních backend API a modulů
 
-**Generováno ze zdrojáku:** `find backend/src/api -name route.ts` — **114 route souborů, 140 HTTP metod**.
-Stav: 21. 10. 2026 (vetva `release/predani-faze1`).
+**Generováno ze zdrojáku:** `find backend/src/api -name route.ts` — **125 route souborů, 159 HTTP metod**.
+Stav: 22. 10. 2026 (vetva `release/predani-faze1`).
 
 Níže je přesný výčet vlastních tras. Nativní Medusa rozhraní (produkty, košíky, objednávky, payment collections, customer/auth, nativní admin) tu **nejsou duplikována** — katalog vlastních tras doplňuje, nenahrazuje.
 
@@ -11,7 +11,7 @@ Telo požiadavky, query, chyby a oprávnenia určujú implementácia trasy a jej
 
 ## Store API (predná časť)
 
-Zverejňovací kľúč + pri osobných údajoch identita zákazníka. **39 tras, 42 metod.**
+Zverejňovací kľúč + pri osobných údajoch identita zákazníka. **44 tras, 50 metod.**
 
 | Metody | Cesta | Čo rieši | Zdroj |
 |---|---|---|---|
@@ -48,6 +48,7 @@ Zverejňovací kľúč + pri osobných údajoch identita zákazníka. **39 tras,
 | GET | `/store/memberships` | Zoznam členstiev zákazníka. | `src/api/store/memberships/route.ts` |
 | POST | `/store/newsletter` | Prihlásenie na newsletter (zaznamená sa súhlas s verziou textu). | `src/api/store/newsletter/route.ts` |
 | POST | `/store/newsletter/unsubscribe` | Odhlásenie z newslettru tokenom z e-mailu. | `src/api/store/newsletter/unsubscribe/route.ts` |
+| GET, POST | `/store/newsletter/unsubscribe/link` | Odkaz z kampane: GET zobrazí potvrdenie, POST odhlási (aj jednoklikové `List-Unsubscribe`). | `src/api/store/newsletter/unsubscribe/link/route.ts` |
 | POST | `/store/nexus-cart` | Serverový prepočet košíka: cena, zľava podľa úrovne, kupón, darčekový poukaz, DPH. | `src/api/store/nexus-cart/route.ts` |
 | GET, POST | `/store/nexus-checkout/options` | Možnosti dopravy a platby; POST zapíše výber a vytvorí platobnú session. | `src/api/store/nexus-checkout/options/route.ts` |
 | POST | `/store/nexus-checkout` | Dokončenie objednávky: súhlas -> kontrola ceny -> posúdenie rizika -> objednávka. | `src/api/store/nexus-checkout/route.ts` |
@@ -75,7 +76,7 @@ Podpísané správy medzi službami -- nie používateľské API. **2 tras, 2 me
 
 ## Admin API (správca)
 
-Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **71 tras, 94 metod.**
+Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **77 tras, 105 metod.**
 
 | Metody | Cesta | Čo rieši | Zdroj |
 |---|---|---|---|
@@ -120,6 +121,11 @@ Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **71 
 | GET | `/admin/memberships` | Prehľad Klubu: členovia, nákupy členstva, produkty a obnovy platieb. | `src/api/admin/memberships/route.ts` |
 | GET, POST | `/admin/my-theme` | Vzhľad administrácie pre konkrétneho správcu (s revíziou proti súbehu). | `src/api/admin/my-theme/route.ts` |
 | GET | `/admin/newsletter` | Zoznam súhlasov s newsletterom (voliteľne export CSV). | `src/api/admin/newsletter/route.ts` |
+| GET, POST | `/admin/newsletter/campaigns` | Zoznam kampaní s číslami pre prehľad; POST vytvorí koncept (obsah sa sanitizuje). | `src/api/admin/newsletter/campaigns/route.ts` |
+| GET, POST, DELETE | `/admin/newsletter/campaigns/:id` | Detail kampane, úprava len v stave konceptu, zmazanie konceptu. | `src/api/admin/newsletter/campaigns/[id]/route.ts` |
+| POST | `/admin/newsletter/campaigns/:id/test` | Testovacia kópia kampane, len na adresy @l-code-dynamics.com. | `src/api/admin/newsletter/campaigns/[id]/test/route.ts` |
+| POST | `/admin/newsletter/campaigns/:id/send` | Zafrontovanie kampane: snapshot prihlásených súhlasov a stav `queued`. | `src/api/admin/newsletter/campaigns/[id]/send/route.ts` |
+| POST | `/admin/newsletter/campaigns/:id/cancel` | Zrušenie odosielania, zvyšné pending doručenia sa označia ako skipped. | `src/api/admin/newsletter/campaigns/[id]/cancel/route.ts` |
 | POST | `/admin/nexus/customers/:id/tier` | Ručné priradenie vernostnej úrovne zákazníkovi (alebo zrušenie ručného zámku a automatický prepočet). | `src/api/admin/nexus/customers/[id]/tier/route.ts` |
 | POST | `/admin/nexus/customers/tiers` | Hromadné priradenie vernostnej úrovne vybraným zákazníkom. | `src/api/admin/nexus/customers/tiers/route.ts` |
 | GET | `/admin/nexus/loyalty-customers` | Prehľad zákazníkov s ich vernostnou úrovňou (serverové filtrovanie a stránkovanie). | `src/api/admin/nexus/loyalty-customers/route.ts` |
@@ -160,6 +166,7 @@ Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **71 
 | `legal` | legal_consent, legal_withdrawal, legal_contract_withdrawal, newsletter_consent, newsletter_consent_event | Súhlasy, odstúpenie od zmluvy (prihlásený zákazník aj online formulár) a newsletter. |
 | `membership` | membership, membership_receipt, membership_checkout, membership_mandate, membership_billing_attempt, membership_initial_payment | Klub: členstvo, zmluva, mandát, obnovy a platby. |
 | `membership-stripe` | bez vlastných modelov | Stripe provider Klubu (platba až po overení session). |
+| `newsletter` | newsletter_campaign, newsletter_delivery | Kampane, snapshot doručení a podklady pre odosielanie cez notification modul. |
 | `notification-log` | bez vlastných modelov | Záložný provider: e-mail sa iba zapíše do logu (bez adresáta a obsahu). |
 | `notification-resend` | bez vlastných modelov | Transakčné e-maily cez Resend (hlavný provider). |
 | `notification-zeptomail` | bez vlastných modelov | Záložný provider e-mailov (nasadenia bez RESEND_API_KEY). |

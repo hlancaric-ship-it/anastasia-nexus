@@ -192,6 +192,8 @@ const modules: Array<Record<string, unknown>> = [
   { resolve: "./src/modules/coupon-link" },
   { resolve: "./src/modules/email-template" },
   { resolve: "./src/modules/legal" },
+  // Newsletter: kampane, snapshot doručení a odosielanie cez notification modul (job newsletter-send).
+  { resolve: "./src/modules/newsletter" },
   { resolve: "./src/modules/customer-privacy" },
   { resolve: "./src/modules/auth-security" },
   // Klub ANASTASIA: členství, smlouvy, obnovy a přístup (vlastní Codex, viz docs/wp/membership-checkout.md)

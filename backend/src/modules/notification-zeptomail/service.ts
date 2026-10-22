@@ -44,6 +44,29 @@ export function recipientAllowed(to: string, allowlist: string[] | undefined): b
 const SAFE_CODE_RE = /^[A-Za-z0-9_.-]{1,40}$/
 
 /**
+ * Voliteľné hlavičky e-mailu (napr. List-Unsubscribe pre newsletter). Povoľujeme len
+ * hlavičky, ktoré backend naozaj používa, a len tlačiteľné ASCII bez CR/LF –
+ * do hlavičiek sa tak nedá prepašovať ďalší príkaz ani osobné údaje.
+ */
+const SAFE_HEADER_NAME = /^[A-Za-z0-9-]{1,64}$/
+const ALLOWED_HEADERS = new Set(["list-unsubscribe", "list-unsubscribe-post"])
+export type ProviderHeader = { name: string; value: string }
+
+export function providerHeaders(providerData: unknown): ProviderHeader[] {
+  const list = (providerData as any)?.headers
+  if (!Array.isArray(list)) return []
+  const out: ProviderHeader[] = []
+  for (const entry of list) {
+    const name = typeof entry?.name === "string" ? entry.name.trim() : ""
+    const value = typeof entry?.value === "string" ? entry.value.trim() : ""
+    if (!SAFE_HEADER_NAME.test(name) || !ALLOWED_HEADERS.has(name.toLowerCase())) continue
+    if (!value || value.length > 998 || /[^\x20-\x7E]/.test(value)) continue
+    out.push({ name, value })
+  }
+  return out
+}
+
+/**
  * Kódy chyb z odpovědi – Zoho CPaaS vrací `data.error_code` (objekt i pole), klasický ZeptoMail
  * `error.code` + `error.details[].code`. Do zprávy jdou jen kódy, nikdy texty (mohou obsahovat adresu).
  */
@@ -149,6 +172,8 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
       return { content: a.content, name: a.filename, mime_type: a.content_type || "application/octet-stream" }
     })
 
+    const headers = providerHeaders(notification.provider_data)
+
     return {
       from: { address: from, ...(this.options_.fromName ? { name: this.options_.fromName } : {}) },
       to: [{ email_address: { address: to } }],
@@ -160,6 +185,7 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
       ...(rendered.html ? { htmlbody: rendered.html } : {}),
       ...(rendered.text ? { textbody: rendered.text } : {}),
       ...(attachments.length ? { attachments } : {}),
+      ...(headers.length ? { headers } : {}),
       track_clicks: false,
       track_opens: false,
       client_reference: notification.template.slice(0, 100),

@@ -74,6 +74,9 @@ export default class ResendNotificationService extends ZeptoMailNotificationServ
       ...(payload.attachments?.length
         ? { attachments: payload.attachments.map(a => ({ filename: a.name, content: a.content, content_type: a.mime_type })) }
         : {}),
+      ...(payload.headers?.length
+        ? { headers: Object.fromEntries(payload.headers.map(h => [h.name, h.value])) }
+        : {}),
       tags: [{ name: "template", value: payload.client_reference.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 256) }],
     }
   }

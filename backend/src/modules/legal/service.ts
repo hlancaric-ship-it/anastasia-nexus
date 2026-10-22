@@ -52,6 +52,22 @@ class LegalModuleService extends MedusaService({ NewsletterConsentEvent, LegalCo
     }
     return { unsubscribed:true }
   }
+  /**
+   * Odhlásenie podpísaným odkazom z kampane: v DB je uložený len `token_hash`, kampaň preto
+   * podpisuje `consent_id` (HMAC) a odhlásenie ide cez ten istý zápis stavu a eventu.
+   */
+  @InjectTransactionManager()
+  async unsubscribeConsent(consentId: string, @MedusaContext() context: Context = {}) {
+    if (typeof consentId !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(consentId)) throw new LegalError("INVALID_UNSUBSCRIBE_LINK", 404)
+    const db = this.db(context)
+    const row = await db("newsletter_consent").where({id:consentId}).whereNull("deleted_at").forUpdate().first()
+    if (!row) throw new LegalError("INVALID_UNSUBSCRIBE_LINK", 404)
+    if (row.status !== "unsubscribed") {
+      await db("newsletter_consent").where({id:row.id}).update({status:"unsubscribed",unsubscribed_at:new Date(),updated_at:new Date()})
+      await db("newsletter_consent_event").insert({id:`nce_${randomUUID()}`,consent_id:row.id,status:"unsubscribed",source:row.source,text_version:row.text_version,occurred_at:new Date()})
+    }
+    return { unsubscribed: true }
+  }
   @InjectTransactionManager()
   async requestWithdrawal(input: {order_id:string;customer_id:string;items:any;reason:string|null}, @MedusaContext() context: Context = {}) {
     const db=this.db(context); await this.lock(db, `withdrawal:${input.order_id}`)
