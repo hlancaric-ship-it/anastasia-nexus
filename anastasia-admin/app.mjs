@@ -699,7 +699,7 @@ async function vProducts(view) {
       ]);
       const products = data.products || [];
       // Katalóg zo staršieho jadra vracia varianty bez cien a SKU – doplníme ich zo zoznamu produktov.
-      if (!data.fallback && products.some(p => (p.variants || []).some(v => !v?.id || !Array.isArray(v.prices)))) {
+      if (!data.fallback && products.some(p => !(p.variants || []).length || p.variants.some(v => !v?.id || !Array.isArray(v.prices)))) {
         try {
           const ids = products.map(p => `id[]=${encodeURIComponent(p.id)}`).join('&');
           const full = await api(`/admin/products?${ids}&limit=${products.length}&fields=id,*variants,*variants.prices`);
