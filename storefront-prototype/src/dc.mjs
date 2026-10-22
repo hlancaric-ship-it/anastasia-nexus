@@ -225,7 +225,8 @@ export function chrome(page) {
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   // Obě menu čtou stejný seznam; původní návrhové duplicity se nepřenášejí.
   const menuBrand=html=>{
-    html=html.replace(/(<a\b[^>]*>)\s*Zdravý svet\s*<\/a>/g, '$1Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, '$1Klub</a>');
+    // Položka účtu v menu (aj ikona) je označená pre runtime: text a cesta podľa prihlásenia.
+    html=html.replace(/(<a\b[^>]*?)(>)\s*Zdravý svet\s*<\/a>/g, '$1 data-menu-account$2Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, '$1Klub</a>').replace(/(<a\b[^>]*aria-label="Môj účet")/g, '$1 data-menu-account');
     let index=0;
     // Poradie polí menu je v semene spoločné pre všetky skupiny (nie resetované).
     let menuField=0;

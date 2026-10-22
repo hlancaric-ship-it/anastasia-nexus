@@ -9,6 +9,8 @@ import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit} from '/i18n.mjs';
 import {initWithdrawalForm} from '/withdrawal-form.mjs';
 import {initResetZone} from '/reset-zone.mjs';
+import {setAccountLink,setAccountVisibility} from '/account-links.mjs';
+import {JWT_KEY} from '/lib/api/http.mjs';
 let storage;try{storage=window.sessionStorage;}catch{}
 const api=createApi(storage);
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
@@ -17,9 +19,12 @@ function toast(message){const el=$('.toast');el.textContent=message;el.hidden=fa
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
 updateCount().catch(()=>{});
 window.addEventListener('unhandledrejection',event=>{const reason=String(event.reason||'');if(/Failed to fetch|NetworkError|Load failed/i.test(reason))event.preventDefault();});
-for(const link of $$('[data-global-account]')) {
-  Promise.resolve().then(()=>typeof api.isLoggedIn==='function'&&api.isLoggedIn()).then(logged=>{if(logged){link.href='/ucet';link.querySelector('span').textContent='Môj účet';}}).catch(()=>{});
-}
+// Prihlásenie zákazníka: token v prehliadači (kľúč je JWT_KEY z API adaptéra, src/lib/api/http.mjs).
+const customerLogged=()=>{try{return Boolean(storage&&storage.getItem(JWT_KEY));}catch{return false;}};
+// Ikona účtu v hlavičke aj položka účtu v menu idú podľa prihlásenia (účet / prihlásenie).
+for(const link of $$('[data-global-account],[data-menu-account]'))setAccountLink(link,customerLogged());
+// Odkaz na účet na prihlásení vidí len prihlásený zákazník.
+for(const link of $$('[data-my-account]'))setAccountVisibility(link,customerLogged());
 // Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
 const kolTrack=$('.kol-track');
 if(kolTrack)(async()=>{
