@@ -11,10 +11,9 @@ Značení: **[OVĚŘENO ČTENÍM KÓDU]** = viděno přímo v souboru. **[ODVOZE
 **[OVĚŘENO ČTENÍM KÓDU]** `nexus/domains/pricing/StaticPricingConfigurationProvider.ts:7-32`, konstanta `DEFAULT_ANASTASIA_PRICING_CONFIG`:
 
 ```
-loyaltyTiers: { ZR4: 0.04, ZR6: 0.06, ZR8: 0.08, ZR10: 0.10, ZR12: 0.12,
-                ZR14: 0.14, ZR16: 0.16, ZR18: 0.18, ZR20: 0.20, ZR25: 0.25 }
-brandLimits: { DELPHIN: 0.25, MIVARDI: 0.20, MIKADO: 0.15, 'FISHING POINT': 0.10 }
-brandSaleDiscounts: { DELPHIN: 0.15, MIVARDI: 0.10, MIKADO: 0.09 }
+loyaltyTiers: { <úroveň>: <sleva>, … }   // převzaté výchozí úrovně, ne ANASTASIA
+brandLimits: { <značka>: <limit>, … }   // převzatá výchozí data, ne ANASTASIA
+brandSaleDiscounts: { <značka>: <sleva>, … }
 ```
 
 Dvě věci k tomu:
