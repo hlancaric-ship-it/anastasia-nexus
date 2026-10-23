@@ -70,7 +70,7 @@ export const cookieSettingsLink = () =>
 
 /** Lišta prvej vrstvy + panel nastavení. markup je v statickom HTML, skript iba spravuje viditeľnosť. */
 export const cookieConsent = () => `
-<div class="cookie-banner" id="cookie-banner" role="region" aria-label="${e(settingsLinkLabel)}" data-sk-only hidden>
+<div class="cookie-banner" id="cookie-banner" role="region" aria-label="${e(settingsLinkLabel)}" hidden>
   <div class="cookie-banner-inner">
     <p class="cookie-banner-text">${e(bannerBody)}</p>
     <div class="cookie-banner-actions">
@@ -80,7 +80,7 @@ export const cookieConsent = () => `
     </div>
   </div>
 </div>
-<div class="cookie-settings" id="cookie-settings" role="dialog" aria-modal="true" aria-labelledby="cookie-settings-title" data-sk-only hidden>
+<div class="cookie-settings" id="cookie-settings" role="dialog" aria-modal="true" aria-labelledby="cookie-settings-title" hidden>
   <div class="cookie-settings-inner">
     <h2 id="cookie-settings-title">${e(settingsLinkLabel)}</h2>
     <ul class="cookie-categories">

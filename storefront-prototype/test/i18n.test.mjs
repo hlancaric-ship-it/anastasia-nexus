@@ -45,14 +45,25 @@ function translate(text, lang) {
 }
 
 // Značky a názvy značek smí zůstat latinkou i v RU verzi.
-const ALLOWED_LATIN = /\b(ANASTASIA|ACADEMY|RESET|LIGHT|FOR|THE|FUTURE|OZ|Facebook|YouTube|Pharmanews|GDPR|EMA|AI|SK|EN|RU|Cookies)\b|[\w.+-]+@[\w-]+\.[\w.]+/gi;
+const ALLOWED_LATIN = /\b(ANASTASIA|ACADEMY|RESET|LIGHT|FOR|THE|FUTURE|OZ|Facebook|YouTube|Pharmanews|GDPR|EMA|AI|SK|EN|RU|Cookies?|cookie)\b|[\w.+-]+@[\w-]+\.[\w.]+/gi;
 const SK_DIACRITICS = /[ľĺŕňťďľĺŕňťďšžýáíéúóäôč]/i;
+const UNTRANSLATED_NAMES = new Set([
+  'RESET 40+', 'AI ANASTASIA', 'Pharmanews', 'AI ANASTASIA Academy',
+  'AI ANASTASIA Longevity Academy', 'AI ANASTASIA RESET 40+',
+  'AI ANASTASIA ACADEMY', 'ACADEMY', 'ANASTASIA OZ', 'ANASTASIA.ACADEMY',
+  'ANASTASIA OZ — Light for the Future', 'ANASTASIA — Light for the Future',
+  'ANASTASIA ACADEMY', 'Facebook', 'YouTube', 'Lucia', 'Cookies', '© 2026 ANASTASIA · Light for the Future',
+]);
 
 test('dictionary is complete for all three languages', () => {
   for (const [key, value] of Object.entries(DICT)) {
     assert.ok(Array.isArray(value) && value.length === 2, `${key}: needs [en, ru]`);
     assert.ok(value[0] && value[0].trim(), `${key}: missing English`);
     assert.ok(value[1] && value[1].trim(), `${key}: missing Russian`);
+    if (!UNTRANSLATED_NAMES.has(key)) {
+      assert.notEqual(value[0].trim(), key.trim(), `${key}: English is still Slovak`);
+      assert.notEqual(value[1].trim(), key.trim(), `${key}: Russian is still Slovak`);
+    }
     assert.ok(!SK_DIACRITICS.test(value[0]), `${key}: English keeps Slovak diacritics`);
   }
   for (const lang of LANGS) assert.ok(SK_ONLY_NOTE[lang], `missing note for ${lang}`);
