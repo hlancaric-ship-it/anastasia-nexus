@@ -1,0 +1,247 @@
+/* Knihovna zakoupených programů - RESET 40+ */
+.library-page { padding: clamp(40px, 6vw, 80px) 0; }
+
+.library-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(24px, 4vw, 48px);
+}
+
+/* Desktop: dvousloupcový layout */
+@media (min-width: 768px) {
+  .library-container {
+    grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+    align-items: start;
+  }
+  .library-player-section.desktop { display: block; }
+  .library-player-section.mobile { display: none; }
+}
+
+/* Mobil: přehrávač nahoře */
+@media (max-width: 767px) {
+  .library-container {
+    gap: 24px;
+  }
+  .library-player-section.mobile {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(20px);
+    padding: clamp(16px, 3vw, 24px);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  .library-player-section.desktop { display: none; }
+}
+
+.library-player-box {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.library-player-box video, .library-player-box audio {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.library-player-title {
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 300;
+  margin: 0 0 16px 0;
+  color: #283020;
+}
+
+.library-player-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Filtr */
+.library-filter-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .library-filter-box {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.library-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(40, 48, 32, 0.2);
+  font-size: 14px;
+  font-family: Figtree, sans-serif;
+}
+
+.library-filter-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.library-filter-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(40, 48, 32, 0.2);
+  background: #fff;
+  font-size: 13px;
+  font-family: Figtree, sans-serif;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.library-filter-btn.active {
+  background: #283020;
+  color: #EFE5C7;
+  border-color: #283020;
+}
+
+/* Akordeon */
+.library-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.library-week-panel {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 200ms ease;
+}
+
+.library-week-panel:active {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.library-week-summary {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  cursor: pointer;
+  list-style: none;
+  gap: 16px;
+}
+
+.library-week-summary::-webkit-details-marker { display: none; }
+
+.library-week-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex: 1;
+}
+
+.library-week-title {
+  font-size: clamp(16px, 2vw, 18px);
+  font-weight: 300;
+  margin: 0;
+  color: #283020;
+}
+
+.library-week-count {
+  font-size: 12px;
+  color: rgba(40, 48, 32, 0.6);
+}
+
+.library-week-content {
+  padding: 0 18px 18px 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 300ms ease, padding 300ms ease;
+}
+
+.library-week-panel[open] .library-week-content {
+  max-height: 2000px;
+  padding-top: 18px;
+}
+
+/* Položky v akordeonu */
+.library-section-title {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: rgba(40, 48, 32, 0.7);
+  margin: 16px 0 8px 0;
+}
+
+.library-item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #F9FAF7;
+  margin-bottom: 6px;
+  transition: all 200ms ease;
+}
+
+.library-item-row.active {
+  background: #EFE5C7;
+}
+
+.library-item-row.completed .library-item-check {
+  display: inline-block;
+}
+
+.library-item-title {
+  flex: 1;
+  font-size: 14px;
+  color: #283020;
+}
+
+.library-item-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  min-width: auto;
+}
+
+.library-item-check {
+  display: none;
+  font-size: 14px;
+  color: #283020;
+}
+
+/* Vodoznak */
+.library-watermark {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+/* Chybové hlášky */
+.library-error {
+  color: #C92A2A;
+  margin-top: 12px;
+}
+
+/* Tlačítka přehrávače */
+.library-prev-btn, .library-next-btn {
+  min-width: 120px;
+}

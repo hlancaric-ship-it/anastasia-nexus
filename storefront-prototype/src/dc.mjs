@@ -59,6 +59,7 @@ function rewriteLinks(html, {page, region}) {
     let target;
     if ((region === 'menu' || region === 'header') && (ROUTES[label] || ROUTES[text])) target = ROUTES[label] || ROUTES[text];
     else if (href.startsWith('/')) target = href; // už přeložená routa (iterace)
+    else if (href.startsWith('https://')) target = href;
     else if (href.startsWith('tel:')) target = PHONE;
     else if (label && EXTERNAL[label]) target = EXTERNAL[label];
     else if (label === 'EN' || label === 'RU') target = null; // jazykové mutace zatím nejsou
@@ -238,11 +239,15 @@ export function chrome(page) {
       // Kľúče polí menu z administrácie (rovnaké poradie ako v semene).
       const slug=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'');
       const base=`global__menu-${slug(group.title)}`;
-      const link=(label,href,heading=false)=>`<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355" data-content="${base}__${menuField++}-text">${escape(label)}</a>`;
+      const link=(label,href,heading=false)=>{const field=menuField++;const content=group.title==='Svet ANASTASIA'&&href.startsWith('https://')?'':` data-content="${base}__${field}-text"`;return `<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355"${content}>${escape(label)}</a>`;};
       const title=group.title==='Obchod'?link(group.title,group.href,true):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px" data-content="${base}__${menuField++}-text">${escape(group.title)}</span>`;
-      return wrapper+title+group.links.map(([label,href])=>link(label,href)).join('')+'</div>';
+      return wrapper+title+group.links.map(item=>{if(!item){menuField++;return '';}const [label,href]=item;return link(label,href);}).join('')+'</div>';
     });
-    return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
+    return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark)
+      .replaceAll('background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.04) 30%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.08) 100%),rgba(26,34,22,0.42)', 'background:#F5F2E8')
+      .replaceAll('color:#EFE5C7','color:#283020')
+      .replaceAll('color:#C9A355','color:#735218')
+      .replaceAll('backdrop-filter:blur(40px) saturate(170%) brightness(0.52);-webkit-backdrop-filter:blur(40px) saturate(170%) brightness(0.52);text-shadow:0 1px 14px rgba(0,0,0,0.35);','');
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
   const headerHtml=convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">').replace('<header ','<header id="lh-top" class="lh-top" ');
