@@ -10,6 +10,7 @@
 - Hlavné stránky `/`, `/eshop/`, `/o-lucii/`, `/denny-stacionar-vysna-slana/`, `/kontakt/`, `/vop/`, `/gdpr/`, `/reklamacie/`, `/zdravy-svet/`, `/konzultacie/` a `/reset-40/` vracajú 200.
 - Médiá `/media/legacy-75110b14202a.png`, `/media/legacy-4b8bf0b4e9f0.png`, `/media/learning.jpg`, `/media/ambient/07.mp3` a `/media/ambient/08.mp3` vracajú 200. V `public/media` aj `dist/media` je 39 súborov.
 - Vytvorené screenshoty úvodnej obrazovky pre SK/EN/RU v rozmeroch 390×844 a 1440×900 sú v `/tmp/anastasia-test-{sk,en,ru}-{390,1440}.png`. Zobrazujú úvod/preloader, preto nepotvrdzujú preklady obsahu po vstupe na web.
+- Vytvorené screenshoty katalógovej stránky po vstupe na web v SK/EN/RU pri 390 a 1440 px sú v `/tmp/anastasia-test-content-{sk,en,ru}-{390,1440}.png`. Vizuálne potvrdené: EN/RU preklad nadpisu a úvodu funguje, nepreložený katalógový obsah je označený poznámkou v zvolenom jazyku. Toto nie je úplný audit ďalších stránok ani ich dynamických stavov.
 
 ## Testy a buildy
 
