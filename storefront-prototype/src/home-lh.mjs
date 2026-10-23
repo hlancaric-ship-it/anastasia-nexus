@@ -128,10 +128,10 @@ export function homeSections(products = []) {
   const hero = `
 <section class="lh-intro" id="lh-intro" aria-labelledby="lh-ih">
   <div class="lh-intro__stage">
-    <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="none" fetchpriority="low" aria-hidden="true">
-      <source data-lh-src="/media/hero-480p.mp4" media="(max-width: 600px)" type="video/mp4">
-      <source data-lh-src="/media/hero-720p.mp4" media="(max-width: 1024px)" type="video/mp4">
-      <source data-lh-src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
+    <video class="lh-intro__video" id="lh-intro-video" autoplay muted loop playsinline preload="auto" fetchpriority="high" aria-hidden="true">
+      <source src="/media/hero-480p.mp4" data-lh-src="/media/hero-480p.mp4" media="(max-width: 600px)" type="video/mp4">
+      <source src="/media/hero-720p.mp4" data-lh-src="/media/hero-720p.mp4" media="(max-width: 1024px)" type="video/mp4">
+      <source src="/media/hero-1080p.mp4" data-lh-src="/media/hero-1080p.mp4" type="video/mp4" data-content="global__video__0-video">
     </video>
     <p class="lh-intro__fallback" aria-hidden="true">ANASTASIA</p>
     <div class="lh-intro__veil" aria-hidden="true"></div>
@@ -208,6 +208,12 @@ export function homeSections(products = []) {
       <a class="lh-cta lh-cta--gold" href="/zdravy-svet" data-content="home__uvod__2-text">Vstúpte do zdravého sveta ${arrow}</a>
     </div>
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
+    <div class="lh-post-entry" aria-live="polite">
+      <img src="/assets/brand-mark.svg" alt="" width="62" height="62">
+      <p class="lh-post-entry__brand">ANASTASIA</p><p class="lh-post-entry__tag">Light for the future</p>
+      <p class="lh-post-entry__claim">Kozmetika na mieru a programy pre zdravie</p>
+      <nav aria-label="Ponuka"><a href="/eshop">Obchod</a><a href="/eshop/produkt/reset-40-plus">RESET 40+</a></nav>
+    </div>
     <button class="lh-intro__sound" type="button" data-lh-sound aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk">
       <svg class="lh-sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg>
       <svg class="lh-sound-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path d="m9 17 6 6m0-6-6 6"/></svg>
@@ -355,19 +361,20 @@ export const HOME_CSS = `
 .lh-cta--gold:hover{background:#fff;border-color:transparent}
 
 /* --- Úvod: maska se slovem ANASTASIA, video prosvítá jen písmeny ---------- */
-.lh-intro{position:relative;height:100svh;min-height:640px}
+.lh-intro{position:relative;height:100svh;min-height:640px;pointer-events:none}
 .motion .lh-intro{height:380svh}
 /* Po prvním přehrání je úvod hero sekcí: bez zoomu, bez kategorií. */
 html.lh-hero-mode .lh-intro{height:100svh;min-height:640px}
 html.lh-hero-mode .lh-intro__cats{display:none}
-.lh-intro__stage{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--lh-paper,#F5F2E8)}
-.lh-intro__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease}
+.lh-intro__stage{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--lh-paper,#F5F2E8);pointer-events:none}
+.lh-intro__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease;pointer-events:none}
 .lh-intro__video.lh-ready{opacity:1}
 .lh-intro__tint{display:none}
 .motion .lh-intro__tint{display:block;position:absolute;inset:0;background:rgba(14,20,13,.4)}
 .lh-intro__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,20,13,.5),rgba(14,20,13,.28) 40%,rgba(14,20,13,.8)),radial-gradient(120% 70% at 0% 100%,rgba(14,20,13,.55),transparent 70%)}
+.lh-intro__veil,.lh-intro__tint{pointer-events:none}
 .motion .lh-intro__veil{opacity:0}
-.lh-intro__mask{position:absolute;inset:0;display:block}
+.lh-intro__mask{position:absolute;inset:0;display:block;pointer-events:none}
 
 .motion .lh-intro__mask{display:block}
 .lh-intro__mask svg{position:absolute;inset:0 var(--lh-gut,16px);width:calc(100% - 2*var(--lh-gut,16px));height:100%;overflow:visible}
@@ -434,7 +441,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 @media (prefers-reduced-motion:reduce){.lh-say--two{display:none}}
 .motion .lh-say{opacity:0}
 .motion .lh-say--one,.motion .lh-say--two{opacity:0}
-.lh-vid-btn{position:absolute;right:auto;left:calc(var(--lh-gut,16px) + 8px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#1E281C;font:inherit;font-size:13px;cursor:pointer;opacity:0;display:grid;place-items:center;transition:opacity .5s}
+.lh-vid-btn{position:absolute;right:auto;left:calc(var(--lh-gut,16px) + 8px);bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#1E281C;font:inherit;font-size:13px;cursor:pointer;opacity:0;display:grid;place-items:center;transition:opacity .5s;pointer-events:auto}
 .motion .lh-vid-btn{opacity:1}
 .lh-scroll-cue{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--lh-muted,#6E7468);display:flex;flex-direction:column;align-items:center;gap:10px}
 .lh-scroll-cue i{width:1px;height:44px;background:linear-gradient(var(--site-accent-light,#D8C598),transparent);animation:lh-cue 2.2s ease-in-out infinite}
@@ -566,13 +573,28 @@ html.lh-mobile-intro .lh-or{display:none!important}
 .lh-intro__fallback{display:none;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:300;font-size:clamp(38px,11vw,72px);letter-spacing:.04em;color:#283020}
 @supports (mask:url(#lhWord)){.lh-intro__fallback{display:none!important}}
 @media (max-width:768px),(pointer:coarse){.motion .lh-intro__mask #lh-word-tint{opacity:.88!important}}
-.lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s}
+.lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s;pointer-events:auto}
+.lh-post-entry{position:absolute;z-index:3;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff;text-shadow:0 2px 18px #201e2c;opacity:0;pointer-events:none;transition:opacity .8s;padding:24px;background:linear-gradient(90deg,transparent,#211f2c66 18%,#211f2c66 82%,transparent)}
+html.lh-entered .lh-post-entry{opacity:1}
+.lh-post-entry img{width:62px;height:62px;max-width:62px;object-fit:contain;flex:none;filter:brightness(0) invert(1);margin-bottom:12px}
+.lh-post-entry__brand{font-size:clamp(22px,3vw,34px);letter-spacing:.28em;margin:0;padding-left:.28em}
+.lh-post-entry__tag{font-size:11px;letter-spacing:.3em;text-transform:uppercase;margin:5px 0 24px}
+.lh-post-entry__claim{font:300 clamp(21px,3vw,36px)/1.2 Fraunces,serif;margin:0 0 24px;max-width:25ch}
+.lh-post-entry nav{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.lh-post-entry nav a{display:inline-flex;align-items:center;min-height:46px;padding:0 24px;border:1px solid #d8d5ef;border-radius:30px;background:#73729c;color:white;text-decoration:none;text-shadow:none;letter-spacing:.12em;pointer-events:auto}
+html.lh-mobile-intro .lh-intro__stage{background:#e9e9f2}
+html.lh-mobile-intro #lh-paper{opacity:.88}
+html.lh-mobile-intro #lh-word-tint{opacity:0!important}
+html.lh-mobile-intro .lh-intro__meta .k{color:#403f62;text-shadow:0 1px 0 white}
+html.lh-mobile-intro .lh-cat{color:#403f62!important;-webkit-text-fill-color:#403f62!important;text-shadow:0 1px 0 #fff,0 0 3px #fff!important}
+html.lh-mobile-intro .lh-enter,html.lh-mobile-intro .lh-vid-btn,html.lh-mobile-intro .lh-intro__sound{background:#73729c!important;border-color:#a7a5cf!important;color:#fff!important}
 .lh-intro__sound .lh-sound-on{display:none}
 .lh-intro__sound.is-on{background:var(--site-accent-light,#D8C598)!important;border-color:var(--site-accent,#C9A355)!important;color:#1E281C!important}
 .lh-intro__sound.is-on .lh-sound-on{display:block}
 .lh-intro__sound.is-on .lh-sound-off{display:none}
 .lh-intro__sound .media-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .lh-chrome-in .lh-intro__sound{opacity:0;pointer-events:none}
+html.lh-entered .lh-intro__sound{opacity:1;pointer-events:auto}
 
 
 .lh-scroll-cue__wheel{width:20px;height:32px;border:1px solid currentColor;border-radius:12px;display:grid;place-items:start center;padding-top:6px}

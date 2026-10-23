@@ -61,10 +61,7 @@ if (gsap && ScrollTrigger) {
   if (mobileIntro) {
     document.documentElement.classList.add('lh-locked');
     document.documentElement.classList.add('lh-mobile-intro');
-    // r15/4: na mobile sa hero video načíta až pri ťuknutí na Vstúpte – predtým
-    // je LCP text (krémová plocha s tmavými písmenami), nie frame videa.
-    const introVideo=$('#lh-intro-video');
-    if(introVideo){for(const source of introVideo.querySelectorAll('source[data-lh-src]'))source.removeAttribute('src');}
+    // Video zůstává připojené i na mobilu, aby hrálo v masce už při preloaderu.
     if (window.__anaLenis) window.__anaLenis.stop();
   }
   const introP = {value: 0};
@@ -246,7 +243,7 @@ if (gsap && ScrollTrigger) {
           document.documentElement.classList.remove('lh-locked');
           if (window.__anaLenis) window.__anaLenis.start();
         };
-        timeline.eventCallback('onComplete', () => { unlock(); markIntroSeen(); showChrome(); });
+        timeline.eventCallback('onComplete', () => { unlock(); markIntroSeen(); showChrome(); document.documentElement.classList.add('lh-entered'); });
       }
     };
     (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
@@ -325,7 +322,8 @@ if (gsap && ScrollTrigger) {
   const sound = $('[data-lh-sound]');
   if (sound) {
     const sync = () => {
-      const on = window.anaSoundState ? window.anaSoundState() : false;
+      const video = $('#lh-intro-video');
+      const on = Boolean(video && !video.muted);
       sound.setAttribute('aria-pressed', String(on));
       sound.setAttribute('aria-label', on ? 'Vypnúť zvuk' : 'Zapnúť zvuk');
       sound.setAttribute('title', on ? 'Vypnúť zvuk' : 'Zapnúť zvuk');
@@ -333,11 +331,15 @@ if (gsap && ScrollTrigger) {
       const label = sound.querySelector('.media-label');
       if (label) label.textContent = on ? 'Zvuk zapnutý' : 'Zvuk vypnutý';
     };
-    document.addEventListener('ana:sound', sync);
+    document.addEventListener('ana:video-sound', sync);
     // Stav zvuku je jednotný pre všetky tlačidlá – kontrolujeme ho aj priamo.
     setInterval(sync, 600);
     sound.addEventListener('click', async () => {
-      if (window.anaToggleAmbient) await window.anaToggleAmbient();
+      const video = $('#lh-intro-video');
+      if (!video) return;
+      if (video.muted) { try { video.muted = false; await video.play(); } catch { video.muted = true; } }
+      else video.muted = true;
+      document.dispatchEvent(new CustomEvent('ana:video-sound'));
       sync();
     });
     sync();
@@ -362,9 +364,12 @@ if (gsap && ScrollTrigger) {
     if(iv){for(const source of iv.querySelectorAll('source[data-lh-src]')){if(!source.getAttribute('src'))source.setAttribute('src',source.dataset.lhSrc);}iv.load();iv.play().catch(()=>{});}
     if (!t.isActive()) t.play(0);
   });
-  // r12/2: klik na VSTÚPTE je gestum – hudba sa spustí pri ňom (iOS/Android).
-  if (cue) cue.addEventListener('click', ()=>{
-    try{ if(window.anaSoundState&&!window.anaSoundState()&&window.anaToggleAmbient) window.anaToggleAmbient(); }catch{}
+  // Klik na Vstúpte je gesto, ve kterém zkusíme spustit video se zvukem.
+  if (cue) cue.addEventListener('click', async ()=>{
+    const video=$('#lh-intro-video'); if(!video)return;
+    try { video.muted=false; await video.play(); }
+    catch { video.muted=true; video.play().catch(()=>{}); }
+    document.dispatchEvent(new CustomEvent('ana:video-sound'));
   });
   addEventListener('keydown', event => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -381,16 +386,14 @@ if (gsap && ScrollTrigger) {
   const videos = [$('#lh-intro-video'), $('#lh-sky-video')].filter(Boolean);
   // Úvodné video sa načíta až po prvej kresbe (LCP) a pri slabom pripojení
   // alebo úspore dát vôbec – ostane krémová plocha so slovom.
-  const connection=navigator.connection||{};
-  const heavy=Boolean(connection.saveData)||/^(slow-2g|2g)$/.test(String(connection.effectiveType||''));
   const loadIntroVideo=()=>{
-    const video=$('#lh-intro-video');if(!video||heavy)return;
+    const video=$('#lh-intro-video');if(!video)return;
     for(const source of video.querySelectorAll('source[data-lh-src]')){
       if(!source.src)source.setAttribute('src',source.dataset.lhSrc);
     }
     video.load();video.play().catch(()=>{});
   };
-  if('requestIdleCallback' in window)requestIdleCallback(loadIntroVideo,{timeout:2500});else setTimeout(loadIntroVideo,600);
+  loadIntroVideo();
   // Rozměry po nabití videa se přepočítají, ale ne během skrolu.
   let refreshed = false;
   // Bez souboru (media/ je zatím prázdná) video kreslí černou a poster se

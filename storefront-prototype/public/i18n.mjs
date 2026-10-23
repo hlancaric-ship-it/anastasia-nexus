@@ -20,6 +20,8 @@ export const LANGS = ['sk', 'en', 'ru'];
 export const LANG_KEY = 'ana-lang-manual';
 
 export const DICT = {
+  'Administrácia': ['Administration', 'Администрирование'],
+  'Kozmetika na mieru a programy pre zdravie': ['Custom cosmetics and health programmes', 'Индивидуальная косметика и программы для здоровья'],
   'OBCHOD': ['SHOP', 'МАГАЗИН'],
   'ANASTASIA / KONTAKT': ['ANASTASIA / CONTACT', 'ANASTASIA / КОНТАКТЫ'],
   // r17: preklady pre /eshop, /reset-40, /kontakt a záložky účtu (doplnené o chýbajúce texty).
