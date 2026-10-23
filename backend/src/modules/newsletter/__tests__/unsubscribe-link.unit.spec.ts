@@ -77,6 +77,11 @@ describe("šablóna e-mailu", () => {
     expect(text).toContain(link)
   })
 
+  it("vykreslí nadpisy obsahu v kontrastnej levanduľovej", () => {
+    const { html } = renderCampaignEmail({ subject: "Novinky", bodyHtml: "<h2>Nový článok</h2><p>Text</p>" })
+    expect(html).toContain('<h2 style="color:#73729c">Nový článok</h2>')
+  })
+
   it("testovací e-mail bez súhlasu nemá vymyslený odkaz", () => {
     const { html } = renderCampaignEmail({ subject: "Test", bodyHtml: "<p>Test</p>", unsubscribeUrl: null })
     expect(html).not.toContain("unsubscribe/link")

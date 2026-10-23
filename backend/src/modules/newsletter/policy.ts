@@ -252,6 +252,7 @@ export type CampaignEmailInput = {
 export function renderCampaignEmail(input: CampaignEmailInput): { html: string; text: string } {
   const preheader = String(input.preheader ?? "").trim()
   const unsubscribe = input.unsubscribeUrl ? String(input.unsubscribeUrl) : ""
+  const bodyHtml = input.bodyHtml.replace(/<(h[23])>/gi, '<$1 style="color:#73729c">')
   const footer = unsubscribe
     ? `<p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
 <p style="margin:0"><a href="${escapeHtml(unsubscribe)}" style="font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.accent};text-decoration:underline">Odhlásiť sa z odberu</a></p>`
@@ -276,7 +277,7 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
 <div style="height:1px;background:${BRAND.lavender};opacity:0.35;margin:22px 0 0"></div>
 </td></tr>
 <tr><td style="padding:26px 40px 8px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.75;color:${BRAND.ink}">
-${input.bodyHtml}
+${bodyHtml}
 </td></tr>
 <tr><td style="padding:28px 40px 34px">
 <div style="height:1px;background:${BRAND.accent};opacity:0.25;margin:0 0 20px"></div>
