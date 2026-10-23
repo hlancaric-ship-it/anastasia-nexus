@@ -8,6 +8,11 @@ test('real catalogue keeps server price, media and full description; canonical c
  globalThis.fetch=async()=>({ok:true,status:200,json:async()=>({products:[record,{...record,metadata:{gift_voucher:true}}]})});
  const products=await store().getProducts({category:'bio-kozmetika-bez-chemie'});assert.equal(products.length,1);const p=products[0];assert.equal(p.name,record.title);assert.match(p.priceLabel,/9,37/);assert.equal(p.image,record.thumbnail);assert.deepEqual(p.images,[record.thumbnail]);assert.equal(p.descriptionHtml,record.description);assert.equal(p.longDescription,record.metadata.description_text);assert.equal(p.category,'BIOKOZMETIKA');
 });
+test('API-hosted static product images keep their public API URL instead of a missing storefront proxy path',async()=>{
+ const staticImage='https://api.test/static/product.jpg';
+ globalThis.fetch=async()=>({ok:true,status:200,json:async()=>({products:[{...record,thumbnail:staticImage,images:[{url:staticImage}]}]})});
+ const [product]=await store().getProducts();assert.equal(product.image,staticImage);assert.deepEqual(product.images,[staticImage]);
+});
 test('unavailable catalogue rejects instead of returning mock products',async()=>{globalThis.fetch=async()=>({ok:false,status:503,json:async()=>({})});await assert.rejects(store().getProducts());});
 test('only the three agreed categories are exposed even when server retains archived categories',async()=>{
  globalThis.fetch=async()=>({ok:true,status:200,json:async()=>({product_categories:['BIOKOZMETIKA','AI ANASTASIA ACADEMY','Zdravé doplnky výživy','Programy a služby','Kozmetika','VETERINA'].map(name=>({name}))})});assert.deepEqual(await store().getCategories(),['AI ANASTASIA ACADEMY','BIOKOZMETIKA','Zdravé doplnky výživy']);

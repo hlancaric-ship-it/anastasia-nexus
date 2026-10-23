@@ -19,6 +19,13 @@ function toast(message){const el=$('.toast');el.textContent=message;el.hidden=fa
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
 updateCount().catch(()=>{});
 window.addEventListener('unhandledrejection',event=>{const reason=String(event.reason||'');if(/Failed to fetch|NetworkError|Load failed/i.test(reason))event.preventDefault();});
+// Chybějící fotografie z katalogu nahradí lokální tematický obrázek, nejvýše jednou.
+document.addEventListener('error',event=>{
+  const img=event.target;
+  if(!(img instanceof HTMLImageElement)||!img.dataset.fallback||img.dataset.fallbackUsed)return;
+  img.dataset.fallbackUsed='1';
+  img.src=img.dataset.fallback;
+},true);
 // Prihlásenie zákazníka: token v prehliadači (kľúč je JWT_KEY z API adaptéra, src/lib/api/http.mjs).
 const customerLogged=()=>{try{return Boolean(storage&&storage.getItem(JWT_KEY));}catch{return false;}};
 // Ikona účtu v hlavičke aj položka účtu v menu idú podľa prihlásenia (účet / prihlásenie).
