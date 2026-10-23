@@ -342,6 +342,7 @@ export const DICT = {
   'Program Nič nemusíš nájdete v aktuálnej ponuke ANASTASIA.': ['The Nothing Is Required programme is available in the current ANASTASIA selection.', 'Программа «Ничего не нужно» доступна в текущем каталоге ANASTASIA.'],
   'Pozrieť program': ['View the programme', 'Посмотреть программу'],
   'Lekáreň ANASTASIA': ['ANASTASIA Pharmacy', 'Аптека ANASTASIA'],
+  'Otázka k produktu, programu alebo konzultácii? Zavolajte alebo napíšte.': ['A question about a product, programme or consultation? Call or email us.', 'Есть вопрос о товаре, программе или консультации? Позвоните или напишите.'],
   'a denný stacionár': ['and day centre', 'и дневной центр'],
   'Denný stacionár vo Vyšnej Slanej · plánované otvorenie jeseň 2026.': ['Day centre in Vysna Slana · scheduled to open in autumn 2026.', 'Дневной центр в Вышна-Слане · планируемое открытие осенью 2026 года.'],
   'Osobný odber sa uskutočňuje po potvrdení pripravenosti a v oznámenom čase.': ['Collection is available after readiness is confirmed, at the notified time.', 'Самовывоз возможен после подтверждения готовности, в согласованное время.'],

@@ -225,15 +225,26 @@ export function homeSections(products = [], activeCategories = []) {
   const bySlug = slug => products.find(p => p.slug === slug);
   const price = p => p?.price ?? p?.priceLabel ?? '';
   const priced = p => Boolean(price(p) && !/cena sa doplní|price unavailable/i.test(String(price(p))) && /\d/.test(String(price(p))));
+  const amount = p => Number(String(price(p)).replace(/\s/g, '').replace(',', '.').replace(/[^\d.]/g, '')) || Number.POSITIVE_INFINITY;
   const media = p => p?.image && !/placeholder|\.svg(?:\?|$)|\/blog\//i.test(p.image) ? p.image : p?.images?.find(src => !/placeholder|\.svg(?:\?|$)|\/blog\//i.test(src)) || '';
   const realProducts = products.filter(p => media(p) && p.slug && priced(p));
-  const categoryLinks = activeCategories.slice(0, 4).map((name, i) => {
-    const p = products.find(item => item.category === name && media(item) && priced(item));
+  const categoryOrder = ['BIOKOZMETIKA', 'Zdravé doplnky výživy', 'Konzultácie', 'AI ANASTASIA ACADEMY'];
+  const categoryProducts = {
+    'BIOKOZMETIKA': 'bio-sprchovy-gel',
+    'Zdravé doplnky výživy': 'antibioticky-prasok',
+    'Konzultácie': 'online-zdravotna-konzultacia',
+    'AI ANASTASIA ACADEMY': 'reset-40-plus',
+  };
+  const categoryLinks = categoryOrder.filter(name => activeCategories.includes(name)).map((name, i) => {
+    const categoryItems = realProducts.filter(item => item.category === name);
+    const p = realProducts.find(item => item.slug === categoryProducts[name]) || categoryItems[0];
+    const from = categoryItems.reduce((lowest, item) => amount(item) < amount(lowest) ? item : lowest, p);
     if (!p) return '';
     const href = name === 'Konzultácie' ? '/konzultacie' : `/eshop?category=${encodeURIComponent(name)}`;
-    return `<a class="lh-world" href="${href}"><img src="${e(media(p))}" alt="${e(p.name)}" loading="lazy"><span class="lh-world__n">0${i + 1}</span><span class="lh-world__copy"><small>${e(name)}</small><strong>${e(name)}</strong><span><small>od</small> ${e(price(p))}</span></span></a>`;
+    return `<a class="lh-world" href="${href}"><img src="${e(media(p))}" alt="${e(p.name)}" loading="lazy"><span class="lh-world__n">0${i + 1}</span><span class="lh-world__copy"><small>${e(name)}</small><strong>${e(name)}</strong><span><small>od</small> ${e(price(from))}</span></span></a>`;
   }).filter(Boolean).join('');
-  const featured = realProducts.slice(0, 6).map((p, i) => `<article class="lh-product"><a href="/eshop/produkt/${encodeURIComponent(p.slug)}"><img src="${e(media(p))}" alt="${e(p.name)}" loading="lazy"><span class="lh-product__n">0${i + 1}</span><h3>${e(p.name)}</h3></a><p>${e(price(p))}</p><button class="lh-cta" type="button" data-add-to-cart="${e(p.slug)}">Do košíka ${arrow}</button></article>`).join('');
+  const featuredPriority = ['bio-sprchovy-gel', 'antibioticky-prasok', 'pletova-voda', 'reset-40-plus', 'online-zdravotna-konzultacia'];
+  const featured = featuredPriority.map(slug => realProducts.find(p => p.slug === slug)).filter(Boolean).map((p, i) => `<article class="lh-product"><a href="/eshop/produkt/${encodeURIComponent(p.slug)}"><img src="${e(media(p))}" alt="${e(p.name)}" loading="lazy"><span class="lh-product__n">0${i + 1}</span><h3>${e(p.name)}</h3></a><p>${e(price(p))}</p><button class="lh-cta" type="button" data-add-to-cart="${e(p.slug)}">Do košíka ${arrow}</button></article>`).join('');
   const resetProduct = bySlug('reset-40-plus');
   const nic = bySlug('nic-nemusis');
   const online = bySlug('online-zdravotna-konzultacia');
@@ -255,7 +266,8 @@ export function homeSections(products = [], activeCategories = []) {
 <section class="lh-contact" data-sk-only data-screen-label="08 Kontakt">
   <p class="lh-eyebrow" data-content="home__kontakt__1-text">Kontakt</p>
   <h2 class="lh-display" data-content="home__kontakt__0-text">Kontakt</h2>
-  <p class="lh-lead lh-lead--center" data-content="home__kontakt__2-rich">Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás.</p>
+  <p class="lh-lead lh-lead--center">Otázka k produktu, programu alebo konzultácii? Zavolajte alebo napíšte.</p>
+  <p class="lh-contact__details"><a href="tel:+421905363778">+421 905 363 778</a><span> · </span><a href="mailto:zdravysvet@anastasiaoz.eu">zdravysvet@anastasiaoz.eu</a></p>
   <a class="lh-cta" href="/kontakt" data-content="home__kontakt__3-text">Napíšte nám ${arrow}</a>
 </section>`;
 
@@ -499,6 +511,7 @@ html.lh-entered .lh-post-entry{opacity:1}
 .lh-post-entry__claim{font:300 clamp(21px,3vw,36px)/1.2 Fraunces,serif;margin:0 0 24px;max-width:25ch}
 .lh-post-entry nav{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .lh-post-entry nav a{display:inline-flex;align-items:center;min-height:46px;padding:0 24px;border:1px solid #d8d5ef;border-radius:30px;background:#73729c;color:white;text-decoration:none;text-shadow:none;letter-spacing:.12em;pointer-events:auto}
+.lh-post-entry nav a:nth-child(2){min-height:0;padding:0 0 5px;border:0;border-bottom:1px solid rgba(255,255,255,.8);border-radius:0;background:transparent;color:#fff}
 html.lh-mobile-intro .lh-intro__stage{background:#e9e9f2}
 html.lh-mobile-intro .lh-intro__mask svg{inset:0;width:100%}
 html.lh-mobile-intro #lh-paper{opacity:.88}
@@ -690,13 +703,14 @@ html.lh-mobile-intro #lh-paper{opacity:1}
 .lh-program>div{padding:clamp(36px,6vw,84px)}
 .lh-pharmacy{grid-template-columns:minmax(0,1.2fr) minmax(280px,.7fr);gap:28px 7vw}
 .lh-pharmacy__main img{display:block;width:100%;height:auto;max-height:680px;object-fit:contain}
-.lh-pharmacy__room{margin:50px 0 0;grid-row:2;grid-column:1/-1;max-width:100%}
+.lh-pharmacy__room{margin:50px 0 0;grid-row:auto;grid-column:1/-1;max-width:100%}
 .lh-pharmacy__room img{display:block;width:100%;height:auto;max-height:600px;object-fit:contain}
 .lh-pharmacy__room:nth-of-type(4){max-width:76%;margin-left:auto}
 .lh-pharmacy__room figcaption{padding:12px 0;color:#73729c;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
-.lh-consult{grid-template-columns:1.1fr .65fr}
+.lh-consult{grid-template-columns:minmax(260px,.55fr) minmax(0,1.2fr);gap:clamp(42px,8vw,120px)}
+.lh-consult>img{grid-column:1;grid-row:1}.lh-consult>div{grid-column:2;grid-row:1;max-width:680px}
 .lh-consult>img{height:auto;max-height:620px;object-fit:contain}
-.lh-contact h2{font-size:clamp(44px,7vw,82px)}
+.lh-contact h2{font-size:clamp(44px,7vw,82px)}.lh-contact__details{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:20px 0;color:#403f62}.lh-contact__details a{color:inherit;text-decoration:none}
 @media(max-width:760px){
  .lh-post-entry__claim{font-size:clamp(36px,11vw,52px);margin:10px 0 20px}
  .lh-post-entry nav{gap:18px}
@@ -712,6 +726,8 @@ html.lh-mobile-intro #lh-paper{opacity:1}
  .lh-pharmacy__room:nth-of-type(4){max-width:100%;margin-left:0}
  .lh-program{grid-template-columns:1fr}
  .lh-program>img{max-height:72vh}
+ .lh-consult>img{grid-column:1;grid-row:1;max-width:76%;margin:0 auto}
+ .lh-consult>div{grid-column:1;grid-row:2}
 }
 @media(max-width:760px){
  .lh-worlds{grid-template-columns:minmax(0,1fr);gap:26px;padding-inline:24px}
@@ -729,6 +745,7 @@ html.lh-mobile-intro #lh-paper{opacity:1}
  .lh-product:nth-child(even){margin-top:0}
  .lh-product .lh-cta{justify-self:start;max-width:100%;white-space:normal}
 }
+html.lh-mobile-intro .lh-post-entry nav a:last-child{min-height:0!important;padding:0 0 5px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.85)!important;border-radius:0!important;background:transparent!important;color:#fff!important}
 @media(prefers-reduced-motion:reduce){.lh-world img,.lh-product img{transition:none!important}}
 
 `;
