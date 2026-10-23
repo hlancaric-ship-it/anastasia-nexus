@@ -41,6 +41,8 @@ window.addEventListener('unhandledrejection',event=>{const reason=String(event.r
 const customerLogged=()=>{try{return Boolean(storage&&storage.getItem(JWT_KEY));}catch{return false;}};
 // Ikona účtu v hlavičke aj položka účtu v menu idú podľa prihlásenia (účet / prihlásenie).
 for(const link of $$('[data-global-account],[data-menu-account]'))setAccountLink(link,customerLogged());
+for(const link of $$('[data-global-account],[data-menu-account]')){if(link.parentElement?.querySelector(':scope > [data-register-link]'))continue;const register=document.createElement('a');register.href='/nova-registracia?mode=register';register.dataset.registerLink='';register.className=link.classList.contains('header-account')?'header-register':'menu-register';register.textContent='Zaregistrovať sa';link.insertAdjacentElement('afterend',register);}
+const checkoutEmail=$('#checkout-form [name="email"]');if(checkoutEmail&&!checkoutEmail.closest('label')?.nextElementSibling?.matches('[data-checkout-register]')){const link=document.createElement('a');link.href='/nova-registracia?mode=register';link.dataset.checkoutRegister='';link.className='text-link';link.textContent='Vytvoriť účet';checkoutEmail.closest('label')?.insertAdjacentElement('afterend',link);}
 // Odkaz na účet na prihlásení vidí len prihlásený zákazník.
 for(const link of $$('[data-my-account]'))setAccountVisibility(link,customerLogged());
 // Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
@@ -566,6 +568,10 @@ if(checkoutForm){
   }
 }
 $('#login-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;$('.form-status',form).textContent=(await api.requestMagicLink(form.elements.email.value)).message;});
+const authTabs=$$('.auth-tabs [role=tab]'),authPanels=$$('.auth-panel');
+authTabs.forEach(tab=>tab.addEventListener('click',()=>{authTabs.forEach(item=>item.setAttribute('aria-selected',String(item===tab)));authPanels.forEach(panel=>{panel.hidden=panel.id!==tab.getAttribute('aria-controls');});}));
+if(new URLSearchParams(location.search).get('mode')==='register')$('#tab-register')?.click();
+$('#registration-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,status=$('.form-status',form),button=$('button[type=submit]',form);if(!form.reportValidity())return;button.disabled=true;status.textContent='Odosielame požiadavku…';try{const result=await api.requestRegistrationLink({first_name:form.elements.first_name.value,last_name:form.elements.last_name.value,email:form.elements.email.value,newsletter:form.elements.newsletter.checked});status.textContent=result.message;if(result.ok)form.reset();}catch{status.textContent='Registráciu sa nepodarilo odoslať. Skúste to znova.';}finally{button.disabled=false;}});
 if($('#magic-confirm')){
   const r=await api.confirmMagicLink();$('#magic-confirm').textContent=r.message;history.replaceState(null,'',location.pathname);
   // Návrat len na vlastnú stránku (cesta začínajúca jedným „/“), uložený pred prihlásením.

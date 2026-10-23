@@ -1,4 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from "crypto"
+import { z } from "zod"
 
 /** Čistá logika magic-link přihlášení (bez infrastruktury, testovatelná). */
 
@@ -10,6 +11,28 @@ export function normalizeEmail(email: unknown): string | null {
   if (typeof email !== "string") return null
   const trimmed = email.trim().toLowerCase()
   return EMAIL_RE.test(trimmed) && trimmed.length <= 254 ? trimmed : null
+}
+
+export function parseRegistration(body: Record<string, unknown>, email: string, env: NodeJS.ProcessEnv = process.env) {
+  const terms = env.LEGAL_TERMS_VERSION?.trim(), privacy = env.LEGAL_PRIVACY_VERSION?.trim(), newsletter = env.NEWSLETTER_CONSENT_VERSION?.trim()
+  if (!terms || terms.length > 100 || !privacy || privacy.length > 100) return null
+  const schema = z.object({
+    first_name: z.string().trim().min(1).max(100).refine(value => !/[<>\u0000-\u001f]/.test(value)),
+    last_name: z.string().trim().min(1).max(100).refine(value => !/[<>\u0000-\u001f]/.test(value)),
+    terms_accepted: z.literal("true"), privacy_acknowledged: z.literal("true"),
+    terms_version: z.literal(terms), privacy_version: z.literal(privacy),
+    newsletter_accepted: z.enum(["true", "false"]), newsletter_version: z.string().optional(),
+  })
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) return null
+  if (parsed.data.newsletter_accepted === "true" && (!newsletter || newsletter.length > 100 || parsed.data.newsletter_version !== newsletter)) return null
+  return {
+    email, first_name: parsed.data.first_name, last_name: parsed.data.last_name,
+    terms_version: terms, privacy_version: privacy,
+    newsletter_accepted: parsed.data.newsletter_accepted === "true",
+    newsletter_version: parsed.data.newsletter_accepted === "true" ? newsletter! : null,
+    accepted_at: new Date().toISOString(),
+  }
 }
 
 export function sha256Hex(value: string): string {

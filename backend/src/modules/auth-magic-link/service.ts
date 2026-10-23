@@ -6,11 +6,13 @@ import type {
   AuthenticationResponse,
   AuthIdentityProviderService,
 } from "@medusajs/framework/types"
-import { generateToken, MAGIC_LINK_TTL_SECONDS, normalizeEmail } from "./policy"
+import { generateToken, MAGIC_LINK_TTL_SECONDS, normalizeEmail, parseRegistration, sha256Hex } from "./policy"
+import { randomUUID } from "node:crypto"
 
 import { storeLink, consumeLink } from "./state"
 
 export const MAGIC_LINK_REQUESTED_EVENT = "auth-magic-link.requested"
+export const AUTH_REGISTRATION_CONFIRMED_EVENT = "auth-magic-link.registration-confirmed"
 
 type PgLike = { raw: (sql: string, bindings?: unknown[]) => Promise<{ rows: any[] }> }
 type EventBusLike = { emit: (data: { name: string; data: Record<string, unknown> }) => Promise<void> }
@@ -58,6 +60,13 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
     if (!email) return { success: false, error: "INVALID_EMAIL" }
 
     if (!body.token) {
+      if (body.mode === "registration") {
+        const registration = parseRegistration(body, email)
+        if (!registration) return { success: false, error: "INVALID_REGISTRATION" }
+        await this.pg_.raw(`insert into auth_registration_state (id,payload,expires_at) values (?,?::jsonb,now()+interval '30 minutes') on conflict (id) do update set payload=excluded.payload,expires_at=excluded.expires_at,updated_at=now()`, [sha256Hex(email), JSON.stringify(registration)])
+      } else {
+        await this.pg_.raw(`delete from auth_registration_state where id=?`, [sha256Hex(email)])
+      }
       return this.requestLink(email, authIdentityProviderService)
     }
     return this.confirmLink(email, body.token, authIdentityProviderService)
@@ -84,6 +93,20 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
       return { success: false, error: "INVALID_OR_EXPIRED_TOKEN" }
     }
 
+    const registration = await this.pg_.raw(`select payload from auth_registration_state where id=? and expires_at>now()`, [sha256Hex(email)])
+    if (registration.rows[0]?.payload) {
+      const existing = await this.pg_.raw(`select id from customer where lower(email)=lower(?) and deleted_at is null`, [email])
+      if (existing.rows.length === 0) {
+        const data = registration.rows[0].payload
+        const consent = { terms: { accepted: true, version: data.terms_version, accepted_at: data.accepted_at }, privacy: { acknowledged: true, version: data.privacy_version, acknowledged_at: data.accepted_at }, newsletter: { accepted: data.newsletter_accepted, version: data.newsletter_version, accepted_at: data.newsletter_accepted ? data.accepted_at : null } }
+        await this.pg_.raw(`insert into customer (id,email,first_name,last_name,has_account,metadata,created_at,updated_at) values (?,?,?,?,false,?::jsonb,now(),now()) on conflict do nothing`, [`cus_${randomUUID().replace(/-/g, "")}`, email, data.first_name, data.last_name, JSON.stringify({ registration_consents: consent })])
+        if (data.newsletter_accepted && data.newsletter_version) {
+          try { await this.eventBus_.emit({ name: AUTH_REGISTRATION_CONFIRMED_EVENT, data: { email, newsletter_version: data.newsletter_version } }) }
+          catch (error) { this.logger_.error("[auth-magic-link] newsletter consent event failed", error as Error) }
+        }
+      }
+    }
+
     let authIdentity
     try {
       authIdentity = await authIdentityProviderService.retrieve({ entity_id: email })
@@ -93,6 +116,7 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
     }
 
     authIdentity = await this.linkExistingCustomer(authIdentity, email)
+    if (registration.rows[0]?.payload) await this.pg_.raw(`delete from auth_registration_state where id=?`, [sha256Hex(email)])
     return { success: true, authIdentity }
   }
 

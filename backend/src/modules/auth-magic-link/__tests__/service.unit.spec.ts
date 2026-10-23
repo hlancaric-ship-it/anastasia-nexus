@@ -1,8 +1,9 @@
 import { MedusaError, ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
-import MagicLinkAuthService, { MAGIC_LINK_REQUESTED_EVENT } from "../service"
+import MagicLinkAuthService, { AUTH_REGISTRATION_CONFIRMED_EVENT, MAGIC_LINK_REQUESTED_EVENT } from "../service"
 import { sha256Hex, stateKey } from "../policy"
 import { storeLink, consumeLink } from "../state"
 jest.mock("../state")
+afterEach(() => { delete process.env.LEGAL_TERMS_VERSION; delete process.env.LEGAL_PRIVACY_VERSION; delete process.env.NEWSLETTER_CONSENT_VERSION })
 
 function makeProvider(overrides: { pgRows?: Record<string, any[][]>; emit?: jest.Mock } = {}) {
   const emit = overrides.emit ?? jest.fn(async () => undefined)
@@ -41,6 +42,42 @@ function makeAuthIdentityProviderService(overrides: Partial<Record<string, jest.
 }
 
 describe("MagicLinkAuthService.authenticate", () => {
+  it("odmietne registráciu bez platných polí a povinných súhlasov", async () => {
+    process.env.LEGAL_TERMS_VERSION = "terms-v1"; process.env.LEGAL_PRIVACY_VERSION = "privacy-v1"
+    const { svc, emit } = makeProvider()
+    const auth = makeAuthIdentityProviderService()
+    const result = await svc.authenticate({ body: { email: "a@b.sk", mode: "registration", first_name: "", last_name: "Test", terms_accepted: "false", privacy_acknowledged: "true", terms_version: "terms-v1", privacy_version: "privacy-v1" } }, auth)
+    expect(result).toEqual({ success: false, error: "INVALID_REGISTRATION" })
+    expect(emit).not.toHaveBeenCalled()
+    delete process.env.LEGAL_TERMS_VERSION; delete process.env.LEGAL_PRIVACY_VERSION
+  })
+
+  it("po overení vytvorí zákazníka s menom a verziovanými súhlasmi a odovzdá newsletter consent modulu", async () => {
+    process.env.LEGAL_TERMS_VERSION = "terms-v1"; process.env.LEGAL_PRIVACY_VERSION = "privacy-v1"
+    process.env.NEWSLETTER_CONSENT_VERSION = "news-v1"
+    const payload = { first_name: "Anna", last_name: "Testová", terms_version: "terms-v1", privacy_version: "privacy-v1", newsletter_accepted: true, newsletter_version: "news-v1", accepted_at: "2026-10-23T10:00:00.000Z" }
+    const { svc, calls, emit } = makeProvider({ pgRows: { "select": [[{ payload }], [], []], "with c": [[]] } })
+    const auth = makeAuthIdentityProviderService()
+    const email = "a@b.sk"; auth.__store.set(stateKey(email), { email, tokenHash: sha256Hex("tok") })
+    const result: any = await svc.authenticate({ body: { email, token: "tok" } }, auth)
+    expect(result.success).toBe(true)
+    const customerInsert = calls.find(call => call.sql.includes("insert into customer"))
+    expect(customerInsert?.bindings).toEqual(expect.arrayContaining(["Anna", "Testová", expect.stringContaining('"version":"terms-v1"')]))
+    expect(emit).toHaveBeenCalledWith({ name: AUTH_REGISTRATION_CONFIRMED_EVENT, data: { email, newsletter_version: "news-v1" } })
+    delete process.env.LEGAL_TERMS_VERSION; delete process.env.LEGAL_PRIVACY_VERSION; delete process.env.NEWSLETTER_CONSENT_VERSION
+  })
+
+  it("existujúci e-mail zostane prihlásením a registračné údaje sa na zákazníka neprepíšu", async () => {
+    process.env.LEGAL_TERMS_VERSION = "terms-v1"; process.env.LEGAL_PRIVACY_VERSION = "privacy-v1"
+    const { svc, calls } = makeProvider({ pgRows: { "select": [[{ payload: { first_name: "Other", last_name: "Person", newsletter_accepted: true, newsletter_version: "news-v1" } }], [{ id: "cus_existing" }], []], "with c": [[]] } })
+    const auth = makeAuthIdentityProviderService(); const email = "a@b.sk"
+    auth.__store.set(stateKey(email), { email, tokenHash: sha256Hex("tok") })
+    const result: any = await svc.authenticate({ body: { email, token: "tok" } }, auth)
+    expect(result.success).toBe(true)
+    expect(calls.some(call => call.sql.includes("insert into customer"))).toBe(false)
+    delete process.env.LEGAL_TERMS_VERSION; delete process.env.LEGAL_PRIVACY_VERSION
+  })
+
   it("fáze 1: uloží jen hash tokenu a vyžádá odeslání eventem; link v URL nese syrový token, ne hash", async () => {
     const { svc, emit } = makeProvider()
     const auth = makeAuthIdentityProviderService()
@@ -109,7 +146,7 @@ describe("MagicLinkAuthService.authenticate", () => {
     expect(result.success).toBe(true)
     expect(result.authIdentity.app_metadata).toEqual({})
     // jediný CTE pokus (bez rozlišení "neexistuje" vs. "duplicitní") + jeden zpětný select, nic víc
-    expect(calls).toHaveLength(2)
+    expect(calls).toHaveLength(3)
   })
 
   it("již propojená identita: jen obnoví has_account, žádný další SQL update identity", async () => {
@@ -120,8 +157,8 @@ describe("MagicLinkAuthService.authenticate", () => {
     auth.__store.set(stateKey("a@b.sk"), { email: "a@b.sk", tokenHash: sha256Hex("tok") })
     const result: any = await svc.authenticate({ body: { email: "a@b.sk", token: "tok" } }, auth)
     expect(result.authIdentity.app_metadata).toEqual({ customer_id: "cus_1" })
-    expect(calls).toHaveLength(1)
-    expect(calls[0].sql).toContain("update customer")
+    expect(calls).toHaveLength(2)
+    expect(calls[1].sql).toContain("update customer")
   })
 
   it("propojená identita s nesouhlasícím e-mailem (manipulovaný stav) se odmítne", async () => {

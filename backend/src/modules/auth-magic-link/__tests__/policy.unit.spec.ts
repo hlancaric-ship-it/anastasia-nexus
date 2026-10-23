@@ -1,6 +1,15 @@
-import { generateToken, isValidMagicLinkAttempt, normalizeEmail, sha256Hex, stateKey, timingSafeEqualHex } from "../policy"
+import { generateToken, isValidMagicLinkAttempt, normalizeEmail, parseRegistration, sha256Hex, stateKey, timingSafeEqualHex } from "../policy"
 
 describe("auth-magic-link policy", () => {
+  it("validates registration fields and versioned mandatory consents", () => {
+    const env = { LEGAL_TERMS_VERSION: "terms-v1", LEGAL_PRIVACY_VERSION: "privacy-v2", NEWSLETTER_CONSENT_VERSION: "news-v3" } as NodeJS.ProcessEnv
+    const body = { first_name: " Anna ", last_name: "Testová", terms_accepted: "true", privacy_acknowledged: "true", terms_version: "terms-v1", privacy_version: "privacy-v2", newsletter_accepted: "false" }
+    expect(parseRegistration(body, "anna@example.test", env)).toMatchObject({ first_name: "Anna", terms_version: "terms-v1", privacy_version: "privacy-v2", newsletter_accepted: false })
+    expect(parseRegistration({ ...body, terms_accepted: "false" }, "anna@example.test", env)).toBeNull()
+    expect(parseRegistration({ ...body, first_name: "<script>" }, "anna@example.test", env)).toBeNull()
+    expect(parseRegistration({ ...body, newsletter_accepted: "true", newsletter_version: "old" }, "anna@example.test", env)).toBeNull()
+    expect(parseRegistration({ ...body, newsletter_accepted: "true", newsletter_version: "news-v3" }, "anna@example.test", env)).toMatchObject({ newsletter_accepted: true, newsletter_version: "news-v3" })
+  })
   it("normalizeEmail ořízne, zmenší a odmítne neplatné", () => {
     expect(normalizeEmail(" A@B.sk ")).toBe("a@b.sk")
     expect(normalizeEmail("spatne")).toBeNull()

@@ -21,6 +21,7 @@ describe("auth-magic-link PostgreSQL integration", () => {
       // persistent customer, order, entitlement, or auth data and rolls back.
       await client.query(`
         create temporary table auth_link_state (id text primary key, token_hash text not null, expires_at timestamptz not null, updated_at timestamptz null) on commit drop;
+        create temporary table auth_registration_state (id text primary key, payload jsonb not null, expires_at timestamptz not null) on commit drop;
         create temporary table customer (
           id text primary key, email text not null, has_account boolean not null,
           deleted_at timestamptz null, updated_at timestamptz null

@@ -611,6 +611,23 @@ export function createHttpApi(storage, config) {
       catch { return { ok: false, message: 'Služba je dočasne nedostupná. Skúste to znova o chvíľu.' }; }
       return { ok: true, message: 'Ak účet existuje, poslali sme vám prihlasovací odkaz na e-mail.' };
     },
+    async requestRegistrationLink(input) {
+      try {
+        const versions = await call('/store/legal/versions');
+        if (!versions.ok || !versions.data?.terms_version || !versions.data?.privacy_version) return { ok: false, message: 'Registráciu sa teraz nepodarilo bezpečne overiť. Skúste to neskôr.' };
+        const response = await call('/auth/customer/magic-link', { method: 'POST', body: {
+          email: String(input.email || ''), mode: 'registration', first_name: String(input.first_name || ''), last_name: String(input.last_name || ''),
+          terms_accepted: 'true', privacy_acknowledged: 'true', terms_version: versions.data.terms_version, privacy_version: versions.data.privacy_version,
+          newsletter_accepted: input.newsletter ? 'true' : 'false', newsletter_version: input.newsletter ? String(versions.data.newsletter_version || '') : '',
+        } });
+        if (response.status === 429) return { ok: false, message: 'Odosielate požiadavky príliš často. Skúste to znova o chvíľu.' };
+        const authError = response.data?.message || response.data?.error;
+        if (authError === 'INVALID_REGISTRATION' || authError === 'INVALID_EMAIL') return { ok: false, message: 'Skontrolujte meno, priezvisko, e-mail a povinné súhlasy.' };
+        // Medusa maps the provider's account-enumeration-safe LINK_SENT result to HTTP 401.
+        if (response.status >= 400 && !(response.status === 401 && authError === 'LINK_SENT')) return { ok: false, message: 'Registráciu sa nepodarilo odoslať. Skúste to znova o chvíľu.' };
+        return { ok: true, message: 'Ak účet existuje, poslali sme vám odkaz na e-mail.' };
+      } catch { return { ok: false, message: 'Služba je dočasne nedostupná. Skúste to znova o chvíľu.' }; }
+    },
     // Prihlásenie/registrácia e-mailom (magic link).
     // Poradie (Medusa v2): 1) potvrdenie odkazu → token identity, 2) POST /store/customers
     // (založí zákazníka a naviaže ho na identitu), 3) NOVÝ prihlasovací token s actor_id.
