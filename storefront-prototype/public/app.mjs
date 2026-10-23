@@ -238,6 +238,19 @@ const toggleAmbient=async()=>{
   ambOff=false;try{localStorage.removeItem(AMB_OFF);}catch{}
   try{await amb.play();soundLabel();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}
 };
+const stopAmbientForLibrary=()=>{if(!amb.paused)amb.stop();};
+document.addEventListener('ana:media-play',stopAmbientForLibrary);
+const footer=document.querySelector('.site-footer');
+if(footer){
+  const floatingChrome=[...document.querySelectorAll('#lh-top,header')].filter(el=>el.id==='lh-top'||el.querySelector('[data-menu-open]'));
+  if(floatingChrome.length){
+    const footerObserver=new IntersectionObserver(entries=>{
+      const visible=entries.some(entry=>entry.isIntersecting);
+      floatingChrome.forEach(el=>el.classList.toggle('ana-footer-obscured',visible));
+    },{threshold:0});
+    footerObserver.observe(footer);
+  }
+}
 heroVideo?.addEventListener('play',videoLabel);heroVideo?.addEventListener('pause',videoLabel);videoLabel();soundLabel();
 let userPaused=false;
 const vio=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.isIntersecting&&!(v===heroVideo&&userPaused)&&!reducedMotion.matches)v.play?.().catch(()=>{});else if(!en.isIntersecting)v.pause?.();}));

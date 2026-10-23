@@ -168,9 +168,11 @@ export function homeSections(products = []) {
       </a>
       <a class="lh-brand lh-brand--main" href="/" aria-label="ANASTASIA OZ — Light for the Future">
         <span class="lh-brand__lock">
-          <img class="lh-brand__mark" src="/assets/lucia-logo.png" alt="ANASTASIA OZ — Light for the Future" width="110" height="165">
-          <img class="lh-brand__img--shine" src="/assets/lucia-logo.png" alt="" aria-hidden="true" width="110" height="165">
+          <img class="lh-brand__mark" src="/assets/logo-mark.png" alt="" width="72" height="72">
+          <img class="lh-brand__img--shine" src="/assets/logo-mark.png" alt="" aria-hidden="true" width="72" height="72">
         </span>
+        <span class="lh-brand__name">ANASTASIA</span>
+        <span class="lh-brand__sub">LIGHT FOR THE FUTURE</span>
       </a>
       <a class="lh-brand lh-brand--ai" href="/ai-anastasia" aria-label="AI ANASTASIA">
         <span class="lh-brand__lock lh-brand__lock--mark">
@@ -376,28 +378,34 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro__brands{position:absolute;top:clamp(24px,5vh,58px);left:0;right:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:56px;color:#EFE5C7;pointer-events:none}
 /* r17/1: rada troch log je na desktope aspoň 48 px pod hlavičkou. */
 @media (min-width:761px) and (pointer:fine){.lh-intro__brands{top:clamp(112px,11vh,150px)}}
-.motion .lh-intro__brands{color:var(--lh-ink,#1E281C)}
+.motion .lh-intro__brands{color:#EFE5C7}
 .lh-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:inherit;pointer-events:auto;opacity:1}
 .motion .lh-brand{opacity:0}
 .lh-brand--academy{order:1;height:96px}
 .lh-brand--main{order:2;height:96px}
 .lh-brand--ai{order:3;height:96px}
+.lh-brand--main{height:124px;gap:2px}
+.lh-brand--main .lh-brand__lock{height:72px;width:72px}
+.lh-brand--main .lh-brand__mark,.lh-brand--main .lh-brand__img--shine{height:72px;width:72px}
 .lh-brand__lock{position:relative;display:flex;align-items:center;justify-content:center;height:100%}
 .lh-brand__lock--mark{height:auto;width:46px}
 .lh-brand__mark{height:100%;width:auto;display:block}
-.lh-brand--main .lh-brand__mark{filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
-.motion .lh-brand--main .lh-brand__mark{filter:none}
+.lh-brand--main .lh-brand__mark{filter:none}
 .lh-brand__lock--mark .lh-brand__mark{height:auto;width:100%}
 /* Zlatý odlesk: kopie loga pod maskou, která se posouvá přes obraz. */
 .lh-brand__img--shine{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:sepia(.85) saturate(2.6) hue-rotate(3deg) brightness(1.05);-webkit-mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);mask-image:linear-gradient(100deg,transparent 46%,#000 50%,transparent 54%);-webkit-mask-size:250% 100%;mask-size:250% 100%;-webkit-mask-position:150% 0;mask-position:150% 0}
 .lh-brand__stem{width:1px;height:22px;background:linear-gradient(180deg,rgba(201,163,85,0),var(--site-accent,#C9A355))}
 .lh-brand__name{font-weight:200;font-size:clamp(16px,1.4vw,26px);letter-spacing:.3em;padding-left:.3em;white-space:nowrap;--lh-shim-base:var(--lh-ink,#1E281C)}
 .lh-brand__sub{color:#8A6520!important;display:flex;align-items:center;gap:10px;font-weight:300;font-size:clamp(10px,.95vw,14px);letter-spacing:.44em;padding-left:.44em;color:var(--site-accent,#C9A355);white-space:nowrap;--lh-shim-base:var(--site-accent,#C9A355)}
+.motion .lh-brand__name,.motion .lh-brand__sub{background:none!important;-webkit-text-fill-color:#EFE5C7!important;color:#EFE5C7!important;text-shadow:0 1px 12px rgba(14,20,13,.28)}
+.motion .lh-brand__sub{color:#D8C598!important;-webkit-text-fill-color:#D8C598!important}
+.motion .lh-brand__mark{filter:brightness(0) invert(.92) sepia(.12) saturate(.75)!important}
 .lh-brand__sub i{width:20px;height:1px;background:currentColor}
 .lh-shimmer-text--gold{--lh-shim-base:var(--site-accent,#C9A355)}
 /* Odlesk textu: barva zůstává, přes ni přejede úzký zlatý pruh. */
 .motion .lh-shimmer-text,.motion .lh-cat{background-image:linear-gradient(100deg,var(--lh-shim-base,#1E281C) 0 46%,#D8C598 48%,#F3E3B0 50%,var(--lh-shim-base,#1E281C) 52% 100%);background-size:250% 100%;background-position:150% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
 .motion .lh-cat{--lh-shim-base:var(--lh-ink,#1E281C)}
+.motion .lh-cat{background:none!important;-webkit-text-fill-color:#EFE5C7!important;color:#EFE5C7!important;text-shadow:0 1px 10px rgba(14,20,13,.28)!important}
 @media (max-width:699.98px){
   .lh-intro__brands{top:clamp(16px,2.6vh,34px);gap:12px 22px}
   .lh-brand--main{flex:0 0 auto;height:58px}
@@ -449,7 +457,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 /* Počas úvodu (preloader) nie je hlavička vidieť vôbec; plynulo príde až s bočnou lištou po zoskrolovaní úvodu. */
 .lh-intro-page .lh-top{transition:opacity .5s var(--ana-ease-soft),transform .5s var(--ana-ease-soft)}
 .lh-intro-page:not(.lh-chrome-in) .lh-top{opacity:0;transform:translateY(-10px);pointer-events:none}
-/* Boční lišta se na začátku úvodu schová a po prvním skrolu se vrátí. */
+/* Boční lišta se na začátku úvodu schová a vrátí se po preloaderu. */
 .lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .4s var(--ana-ease-soft),transform .4s var(--ana-ease-soft)}
 .lh-intro-page.lh-chrome-in #ana-rail{opacity:1;transform:none;pointer-events:auto}
 /* r17/5: jedno Menu – v hlavičke kým bočná lišta nie je vidieť, potom už len v lište. */
@@ -508,6 +516,12 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
   .lh-intro__brands{top:62px;gap:0 14px;flex-wrap:nowrap;justify-content:center}
   .lh-brand--main,.lh-brand--academy,.lh-brand--ai{height:58px;flex:0 0 auto}
+  .lh-brand--main{gap:2px}
+  .lh-brand--main .lh-brand__lock{height:30px}
+  .lh-brand--main .lh-brand__mark{height:30px;width:30px}
+  .lh-brand--main .lh-brand__img--shine{height:30px;width:30px}
+  .lh-brand--main .lh-brand__name{font-size:10px}
+  .lh-brand--main .lh-brand__sub{font-size:8px}
   .lh-brand__lock--mark{width:26px}
   .lh-brand__name{font-size:11px;letter-spacing:.18em;padding-left:.18em}
   .lh-brand__sub{font-size:8px;letter-spacing:.22em;padding-left:.22em;gap:5px}
