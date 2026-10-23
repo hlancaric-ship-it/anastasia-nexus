@@ -84,5 +84,9 @@ export function legacyPage(page,{about=false,contactForm='',path=''}={}){
     const mode=about?'author-quote':i===0?'source-opening':images.length?'source-gallery':'source-chapter';
     return `<section class="section ${mode} ${images.length?'has-photo':''}"><div class="story-copy">${group.map(render).join('')}</div>${about?'':visual}</section>`;
   }).join('');
-  return `${opening}${title}<article class="legacy-story ${reading?'reading-story':''} ${about?'lucia-story':''}">${body}</article>${about?`<section class="author-film">${media('/media/poster.jpg','',true)}${button('/konzultacie','Konzultácie','light')}</section>`:''}${consult?`<section class="section booking-cta">${button('/konzultacie/rezervacia','Vybrať termín konzultácie')}</section>`:''}${contactForm}${button('/','Na úvod','legacy-back')}`;
+  // Text „OBJEDNAŤ TERMÍN TU“ zo starého webu bol mŕtvy: na konzultáciách z neho je jediné tlačidlo na rezerváciu.
+  const bookRe=/<p class="source-text"([^>]*)>\s*(?:<a class="source-link" href="([^"]*)"[^>]*>)?\s*(OBJ?EDNA[ŤT][^<]{0,40}TERM[IÍ]N[^<]{0,20})(?:<\/a>)?\s*<\/p>/i;
+  const inlineBooking=consult&&bookRe.test(body);
+  const story=inlineBooking?body.replace(bookRe,(_,attrs,href,text)=>`<p class="source-book"${attrs}><a class="button" href="${href||'/konzultacie/rezervacia'}">${text.trim()} ${arrow}</a></p>`):body;
+  return `${opening}${title}<article class="legacy-story ${reading?'reading-story':''} ${about?'lucia-story':''}">${story}</article>${about?`<section class="author-film">${media('/media/poster.jpg','',true)}${button('/konzultacie','Konzultácie','light')}</section>`:''}${consult&&!inlineBooking?`<section class="section booking-cta">${button('/konzultacie/rezervacia','Vybrať termín konzultácie')}</section>`:''}${contactForm}${button('/','Na úvod','legacy-back')}`;
 }

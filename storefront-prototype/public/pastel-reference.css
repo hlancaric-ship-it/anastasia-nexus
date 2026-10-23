@@ -136,9 +136,13 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
 
 /* About page: show its headline immediately, balance it against the portrait,
    and keep the legacy quote readable on the lavender surface. */
-#ana-rail{background:#e9e9f2!important;background-image:none!important;color:#403f62!important;border-color:#a7a5cf66!important}
-#ana-rail{background-color:#e9e9f2!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#ana-rail{background:rgba(255,255,255,.06)!important;background-image:none!important;color:#403f62!important;border-color:rgba(255,255,255,.32)!important}
+#ana-rail{box-shadow:1px 0 0 rgba(255,255,255,.18) inset!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
 #ana-rail :is(a,button,span,svg){color:#403f62!important;text-shadow:none!important}
+/* Bezfarebné matné sklo: lišta preberá farbu podkladu, mení sa iba farba písma. */
+#ana-rail[data-tone="dark"]{border-color:rgba(255,255,255,.22)!important}
+#ana-rail[data-tone="dark"] :is(a,button,span,svg){color:#fff!important}
+#ana-rail[data-tone="light"]{border-color:rgba(64,63,98,.12)!important}
 .legacy-main .lucia-opening{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:1fr auto;align-items:center;column-gap:clamp(28px,5vw,76px);min-height:0;height:auto;padding:clamp(48px,7vh,86px) clamp(28px,5vw,76px) 32px;background:#e9e9f2!important;color:#403f62!important}
 .legacy-main .lucia-opening>h1{grid-column:1;grid-row:1;align-self:center;margin:0!important;max-width:100%;font-size:clamp(58px,7.4vw,112px);line-height:1.02;color:#403f62!important;opacity:1!important;visibility:visible!important;transform:none!important}
 .legacy-main .lucia-opening>h1 span{color:#73729c!important}
@@ -235,9 +239,9 @@ html,body{overflow-x:clip!important}
 .lh-card[data-category-symbol] .lh-card__txt h3 small{color:#73729c!important}
 .lh-card[data-category-symbol] .lh-card__txt .lh-cta{background:#73729c!important;color:#fff!important;border-color:#73729c!important}
 .lh-sky__stage{background:#e9e9f2!important}
-.lh-contact{background:#e9e9f2!important;color:#403f62!important}
-.lh-contact .lh-display,.lh-contact .lh-caps,.lh-contact .lh-eyebrow{color:#403f62!important}
-.lh-contact .lh-cta{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
+:not(.lh-flow)>.lh-contact{background:#e9e9f2!important;color:#403f62!important}
+:not(.lh-flow)>.lh-contact .lh-display,:not(.lh-flow)>.lh-contact .lh-caps,:not(.lh-flow)>.lh-contact .lh-eyebrow{color:#403f62!important}
+:not(.lh-flow)>.lh-contact .lh-cta{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
 .lh-list .lh-row{border-color:#a7a5cf88!important;color:#403f62!important}
 .lh-list .lh-row :is(small,strong,.lh-row__n){color:#403f62!important}
 .lh-list .lh-row__arrow{color:#73729c!important}
@@ -325,3 +329,179 @@ html,body{overflow-x:clip!important}
 #dc-top-menu>div:nth-child(4) a[style*="font-size:25px"],#dc-side-menu a[style*="font-size:19px"]{font-family:Fraunces,Georgia,serif!important;font-weight:300!important;color:#73729c!important}
 #dc-top-menu a:hover,#dc-side-menu a:hover{color:#73729c!important}
 @media(max-width:760px){.shop-catalog .catalog-controls{padding-right:0!important}.shop-checkout .checkout-steps{width:100%!important;max-width:none!important;margin:0 0 20px!important}.shop-checkout .checkout-steps li:last-child{margin-right:0!important}}
+
+.menu-brand-logos{grid-column:1/-1;width:100%;display:flex;gap:40px;justify-content:center;align-items:flex-start;margin-top:36px;padding-top:28px;border-top:1px solid rgba(64,63,98,.15)}
+.menu-brand-logos a{display:flex;flex-direction:column;align-items:center;gap:10px;text-decoration:none;color:#403f62;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.menu-brand-logos img{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#fff;box-shadow:0 6px 18px rgba(64,63,98,.12);transition:transform .25s}
+.menu-brand-logos a:hover img{transform:translateY(-3px)}
+@media(max-width:600px){.menu-brand-logos{gap:18px}.menu-brand-logos img{width:56px;height:56px}.menu-brand-logos a{font-size:9px}}
+
+/* --- Lanserhof / SHA podstránky 23. 10.: celoplošný úvod text + fotka, pásy bez kariet --- */
+.legacy-main{container-type:inline-size}
+.lan-hero{display:grid!important;grid-template-columns:5fr 7fr;width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw) clamp(40px,5vw,80px)!important;min-height:min(100svh,920px);background:#f6f2ea;border-radius:0!important;overflow:hidden}
+.lan-hero--flip{grid-template-columns:7fr 5fr}.lan-hero--flip .lan-hero__text{order:2}
+.lan-hero--sage{background:#e9eee4}.lan-hero--olive{background:#eef0e6}.lan-hero--lavender{background:#eeecf5}
+.lan-hero__text{display:flex;flex-direction:column;justify-content:center;gap:22px;padding:clamp(56px,6vw,112px) clamp(28px,5vw,96px)!important;text-align:left}
+.lan-hero__text .page-intro{margin:0!important;padding:0!important;border:0!important;max-width:none!important;text-align:left!important}
+.lan-hero .page-intro .eyebrow{font:italic 300 clamp(21px,1.9vw,30px)/1.2 'Fraunces',Georgia,serif!important;letter-spacing:0!important;text-transform:none!important;color:#8a7a55!important;margin:0 0 14px!important}
+.lan-hero .page-intro .eyebrow::first-letter{text-transform:uppercase}
+.lan-hero .page-intro h1{font:300 clamp(38px,4.4vw,72px)/1.04 'Fraunces',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.02em!important;color:#3d3c5c!important;margin:0 0 20px!important}
+.lan-hero .page-intro .lead,.lan-hero .zs-lead{font-size:16px!important;line-height:1.7!important;color:#5b5a6e!important;max-width:46ch!important;margin:0!important}
+.lan-hero__photo{position:relative;margin:0!important;overflow:hidden;min-height:420px;border-radius:0!important}
+.lan-hero__photo>img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover;border-radius:0!important}
+.lan-hero .text-link{align-self:flex-start}
+/* eshop: úvod s olivovou fotkou Lucie */
+.shop-catalog>.lan-hero{min-height:min(78svh,720px)}
+.shop-catalog>.lan-hero .lan-hero__photo>img{object-position:62% 30%}
+/* Zdravý svet */
+.section.lan-page{padding-top:0!important;max-width:none!important}
+.zs-intro.lan-page{padding:0!important;margin:0!important}
+.legacy-main>.zs-statement{width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw)!important;padding:clamp(80px,10vw,160px) clamp(24px,8vw,160px)!important;background:#e9eee4!important;border-radius:0!important;text-align:center}
+.legacy-main .zs-statement .eyebrow,.legacy-main .zs-offer .eyebrow{font:italic 300 clamp(21px,1.9vw,30px)/1.2 'Fraunces',Georgia,serif!important;letter-spacing:0!important;text-transform:none!important;color:#8a7a55!important}
+.legacy-main .zs-statement h2,.legacy-main .zs-offer h2,.legacy-main .zs-story-heading h2{font:300 clamp(30px,3.4vw,54px)/1.12 'Fraunces',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.02em!important;color:#3d3c5c!important}
+.legacy-main .zs-statement .zs-statement-copy{max-width:58ch;margin:24px auto 0!important;font-size:17px;line-height:1.75;color:#5b5a6e!important}
+.legacy-main>.zs-story{display:grid!important;grid-template-columns:7fr 5fr;width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw)!important;padding:0!important;min-height:min(100svh,900px);background:#f6f2ea;border:0!important;gap:0!important;align-items:stretch!important}
+.legacy-main>.zs-story>.zs-follow-image{position:relative;width:auto!important;margin:0!important;border-radius:0!important;overflow:hidden;min-height:420px}
+.legacy-main>.zs-story>.zs-follow-image img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover!important}
+.zs-story-heading{display:flex;align-items:center;padding:clamp(56px,6vw,112px) clamp(28px,5vw,96px)!important;margin:0!important;max-width:none!important}
+.legacy-main>.zs-reading{max-width:1180px!important;margin:0 auto!important;padding:clamp(80px,9vw,150px) clamp(24px,5vw,64px)!important;display:grid!important;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,80px)}
+.zs-reading p{margin:0!important;font-size:17px!important;line-height:1.8!important;color:#5b5a6e!important}
+.legacy-main>.zs-offer{width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw)!important;padding:clamp(80px,9vw,150px) clamp(24px,8vw,160px)!important;background:#eeecf5!important;border-radius:0!important;text-align:center}
+.zs-offer p:not(.eyebrow){max-width:52ch;margin:20px auto 0!important;font-size:17px;line-height:1.75;color:#5b5a6e}
+.legacy-main>.zs-closing{width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw)!important;padding:clamp(80px,9vw,150px) clamp(24px,8vw,160px)!important;background:#f6f2ea!important;border-radius:0!important}
+.zs-closing .world-invitation{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,80px);align-items:center;background:none!important;box-shadow:none!important;border:0!important;padding:0!important}
+.zs-closing h3{font:300 clamp(30px,3.4vw,54px)/1.12 'Fraunces',Georgia,serif!important;text-transform:uppercase;letter-spacing:.02em;color:#3d3c5c!important;margin:0!important}
+.zs-closing p{font-size:17px;line-height:1.75;color:#5b5a6e}.zs-closing .zs-signature{font:italic 300 24px 'Fraunces',Georgia,serif;color:#8a7a55}
+/* Darčekový poukaz: formulár vľavo, poukaz na levanduľovom pozadí vpravo */
+.voucher-page{padding:0!important;margin:0!important}
+.voucher-split{margin-bottom:0!important}
+.voucher-split #gift-voucher-form{display:grid;gap:14px;max-width:520px;margin:8px 0 0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+.voucher-split #gift-voucher-form input,.voucher-split #gift-voucher-form select,.voucher-split #gift-voucher-form textarea{background:#fff!important;border:1px solid rgba(61,60,92,.18)!important;border-radius:2px!important}
+.voucher-split #gift-voucher-form .button{justify-self:start;border-radius:999px!important;text-transform:uppercase;font-size:13px!important;letter-spacing:.08em}
+.voucher-stage{display:flex!important;align-items:center;justify-content:center;background:linear-gradient(160deg,#e4e1f1,#f3f1f8)!important;padding:clamp(40px,6vw,96px)!important}
+.voucher-stage .voucher-preview{width:min(460px,100%);margin:0!important;position:relative;z-index:1}
+.voucher-stage .voucher-preview__paper{box-shadow:0 40px 80px -40px rgba(61,60,92,.45)!important}
+/* Pokladňa: prihlásenie a registrácia ako samostatný riadok, nie cez tlačidlo */
+#checkout-form .checkout-account{display:block!important;margin:4px 0 6px!important;font-size:14px;color:#5b5a6e}
+#checkout-form .checkout-account a{color:#73729c;text-decoration:underline;text-underline-offset:3px}
+#checkout-loading .text-link{margin-left:6px;color:#73729c;text-decoration:underline}
+@media(max-width:999.98px){
+ .lan-hero,.lan-hero--flip,.legacy-main>.zs-story{grid-template-columns:1fr!important;min-height:0}
+ .lan-hero__photo,.legacy-main>.zs-story>.zs-follow-image{order:-1;height:min(118vw,72svh);min-height:0}
+ .lan-hero--flip .lan-hero__text{order:2}
+ .lan-hero__text{padding:48px 24px!important}
+ .voucher-stage{order:2!important;height:auto!important;padding:48px 24px!important}
+ .legacy-main>.zs-reading,.zs-closing .world-invitation{grid-template-columns:1fr}
+}
+.zs-intro .lan-hero{margin-bottom:0!important}
+.legacy-main>.zs-reading,.legacy-main>.zs-offer,.legacy-main>.zs-closing,.legacy-main>.zs-statement,.legacy-main>.zs-story{border-radius:0!important;box-shadow:none!important;margin-top:0!important;margin-bottom:0!important}
+.legacy-main>.zs-reading{background:#fff!important;max-width:none!important;width:100cqw!important;margin-inline:calc(50% - 50cqw)!important;padding-inline:max(clamp(24px,5vw,64px),calc((100cqw - 1180px)/2))!important}
+
+/* --- Lanserhof: všetky staršie obsahové stránky (konzultácie, supervízia, astrológia, stacionár…) --- */
+.legacy-main .ana-atmosphere{display:none!important}
+.legacy-main>.source-title{width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw)!important;padding:clamp(72px,9vw,150px) clamp(28px,6vw,120px) clamp(40px,5vw,72px)!important;background:#f6f2ea!important;border-radius:0!important;text-align:left!important}
+.legacy-main>.source-title h1,.legacy-main .legacy-story>.source-opening .story-copy>h1{font:300 clamp(40px,5vw,84px)/1.02 'Fraunces',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.02em!important;color:#3d3c5c!important;margin:0 0 28px!important}
+.legacy-main .legacy-story{max-width:none!important;padding:0!important;margin:0!important}
+.legacy-main .legacy-story>.section{border-radius:0!important;box-shadow:none!important;margin:0!important}
+.legacy-main .legacy-story>.has-photo{display:grid!important;grid-template-columns:7fr 5fr;gap:0!important;width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw)!important;padding:0!important;align-items:stretch!important;background:#f6f2ea!important}
+.legacy-main .legacy-story>.has-photo:nth-child(even){grid-template-columns:5fr 7fr;background:#eeecf5!important}
+.legacy-main .legacy-story>.has-photo:nth-child(even)>.story-copy{order:2}
+.legacy-main .legacy-story>.has-photo>.story-copy{padding:clamp(64px,7vw,128px) clamp(28px,6vw,120px)!important;max-width:none!important;margin:0!important;align-self:center}
+.legacy-main .legacy-story>.has-photo>.source-media,.legacy-main .legacy-story>.has-photo>figure{position:sticky!important;top:0;height:100svh!important;max-height:none!important;margin:0!important;border-radius:0!important;overflow:hidden;align-self:start}
+.legacy-main .legacy-story>.has-photo>figure~figure{display:none}
+.legacy-main .legacy-story>.has-photo figure img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important}
+.legacy-main .legacy-story>.source-chapter{max-width:none!important;width:100cqw!important;margin:0 calc(50% - 50cqw)!important;padding:clamp(64px,7vw,128px) max(28px,calc((100cqw - 860px)/2))!important;background:#fff!important}
+.legacy-main .legacy-story>.source-chapter:nth-child(odd){background:#f6f2ea!important}
+.legacy-main .legacy-story h2{font:300 clamp(30px,3.2vw,52px)/1.1 'Fraunces',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.02em!important;color:#3d3c5c!important;margin:0 0 24px!important}
+.legacy-main .legacy-story h3{font:italic 300 clamp(21px,1.9vw,30px)/1.25 'Fraunces',Georgia,serif!important;color:#8a7a55!important;margin:32px 0 12px!important;text-transform:none!important}
+.legacy-main .legacy-story .source-text{font-size:17px!important;line-height:1.78!important;color:#5b5a6e!important;max-width:62ch}
+.legacy-main .legacy-story .source-structure{margin:8px 0 28px!important;max-width:62ch}
+.legacy-main .legacy-story .source-structure :is(ul,ol){list-style:none!important;margin:0!important;padding:0!important}
+.legacy-main .legacy-story .source-structure li{padding:14px 0 14px 28px!important;border-bottom:1px solid rgba(61,60,92,.14);position:relative;font-size:16px;line-height:1.6;color:#3d3c5c}
+.legacy-main .legacy-story .source-structure li::before{content:"";position:absolute;left:4px;top:24px;width:10px;height:1px;background:#a8884f}
+.legacy-main .legacy-story .source-structure li:has(>:is(ul,ol)){padding:0!important;border:0!important}
+.legacy-main .legacy-story .source-structure li:has(>:is(ul,ol))::before{display:none!important}
+.legacy-main .legacy-story .source-book{margin:36px 0 0!important}
+.legacy-main .source-book .button,.legacy-main>.booking-cta .button{display:inline-flex!important;align-items:center;gap:14px;border-radius:999px!important;padding:14px 18px 14px 26px!important;background:transparent!important;border:1px solid #3d3c5c!important;color:#3d3c5c!important;font:500 13px/1 Figtree,sans-serif!important;letter-spacing:.1em!important;text-transform:uppercase!important;box-shadow:none!important}
+.legacy-main .source-book .button svg,.legacy-main>.booking-cta .button svg{width:30px;height:30px;padding:8px;border-radius:50%;background:#3d3c5c;color:#fff;stroke:#fff}
+.legacy-main>.booking-cta{width:100cqw!important;max-width:none!important;margin:0 calc(50% - 50cqw)!important;padding:clamp(64px,8vw,120px) 24px!important;background:#eeecf5!important;border:0!important;border-radius:0!important;text-align:center;display:flex!important;justify-content:center}
+.legacy-main>.legacy-back{display:flex!important;width:max-content;margin:clamp(40px,5vw,72px) auto!important;background:transparent!important;color:#3d3c5c!important;border:1px solid rgba(61,60,92,.3)!important;border-radius:999px!important;box-shadow:none!important;position:static!important}
+@media(max-width:999.98px){
+ .legacy-main .legacy-story>.has-photo,.legacy-main .legacy-story>.has-photo:nth-child(even){grid-template-columns:1fr!important}
+ .legacy-main .legacy-story>.has-photo>.story-copy{order:2!important;padding:48px 24px!important}
+ .legacy-main .legacy-story>.has-photo>.source-media,.legacy-main .legacy-story>.has-photo>figure{position:relative!important;height:min(118vw,72svh)!important;order:1}
+ .legacy-main .legacy-story>.source-chapter{padding:56px 24px!important}
+ .legacy-main>.source-title{padding:56px 24px 32px!important}
+}
+
+/* Lanserhof: striedajúce sa celoplošné pásy (konzultácie a ďalšie zoznamy) */
+.legacy-main .lan-page{padding:0!important;max-width:none!important}
+.legacy-main .lan-rows{width:100cqw;margin:0 calc(50% - 50cqw)!important}
+.legacy-main .lan-row{display:grid!important;grid-template-columns:7fr 5fr;min-height:min(86svh,760px);margin:0!important;border-radius:0!important;box-shadow:none!important;background:#f6f1e8}
+.legacy-main .lan-row--lavender{background:#e9e5f1}
+.legacy-main .lan-row--sage{background:#e3e7dc}
+.legacy-main .lan-row--flip{grid-template-columns:5fr 7fr}
+.legacy-main .lan-row--flip .lan-row__photo{order:2}
+.legacy-main .lan-row__photo{position:relative;overflow:hidden;display:block;border-radius:0!important;min-height:100%}
+.legacy-main .lan-row__photo img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover;border-radius:0!important;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.legacy-main .lan-row:hover .lan-row__photo img{transform:scale(1.03)}
+.legacy-main .lan-row__text{display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,6vw,104px) clamp(28px,5vw,88px)!important}
+.legacy-main .lan-row__index{font-family:Fraunces,Georgia,serif!important;font-style:italic;font-size:18px!important;color:#a8884f!important;margin:0 0 18px!important;letter-spacing:.02em}
+.legacy-main .lan-row__text h2{font-family:Fraunces,Georgia,serif!important;font-weight:300!important;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(28px,3vw,46px)!important;line-height:1.08!important;color:#2f2e4a!important;margin:0 0 20px!important;max-width:14ch}
+.legacy-main .lan-row__price{font-size:15px!important;letter-spacing:.14em;text-transform:uppercase;color:#6d6a8e!important;margin:0 0 22px!important}
+.legacy-main .lan-row__desc{font-size:16px!important;line-height:1.7!important;color:#4a4865!important;max-width:44ch;margin:0 0 34px!important}
+.legacy-main .lan-row__actions{display:flex;flex-wrap:wrap;gap:12px}
+.legacy-main .lan-row__actions .arrow,.legacy-main .lan-page .button .arrow{width:14px!important;height:14px!important;flex:none}
+@media (max-width:999.98px){
+  .legacy-main .lan-row,.legacy-main .lan-row--flip{grid-template-columns:1fr;min-height:0}
+  .legacy-main .lan-row--flip .lan-row__photo{order:0}
+  .legacy-main .lan-row__photo{height:min(110vw,64svh);min-height:0}
+  .legacy-main .lan-row__text{padding:40px 22px 52px!important}
+  .legacy-main .lan-row__text h2{max-width:none}
+}
+.legacy-main .lan-row__text h2{hyphens:manual!important;overflow-wrap:normal!important;word-break:normal!important;max-width:17ch;font-size:clamp(26px,2.6vw,42px)!important}
+.legacy-main .consult-page .lan-hero{margin-bottom:0!important}
+/* Lanserhof: zoznam odkazov ako celoplošné riadky */
+.legacy-main .lan-links{display:block;width:100cqw;margin:0 calc(50% - 50cqw) clamp(40px,5vw,80px)!important;padding:0 clamp(24px,6vw,110px);background:#fff}
+.legacy-main .lan-links>a{display:grid;grid-template-columns:72px 1fr auto;align-items:center;gap:24px;padding:clamp(26px,3vw,44px) 0;border-top:1px solid #dcd8e6;color:#3d3c5c;text-decoration:none;transition:padding .35s,background .35s}
+.legacy-main .lan-links>a:last-child{border-bottom:1px solid #dcd8e6}
+.legacy-main .lan-links>a:hover{padding-left:16px}
+.legacy-main .lan-links__index{font:italic 300 22px/1 'Fraunces',Georgia,serif;color:#a8884f}
+.legacy-main .lan-links__name{font:300 clamp(26px,3.2vw,52px)/1.08 'Fraunces',Georgia,serif;text-transform:uppercase;letter-spacing:.02em}
+.legacy-main .lan-links .arrow{width:20px;height:20px}
+@media(max-width:699.98px){.legacy-main .lan-links>a{grid-template-columns:40px 1fr auto;gap:12px}.legacy-main .lan-links__index{font-size:18px}}
+/* Lanserhof: úvod bez fotky (klub, kontakt, AI, právne stránky) ako celoplošný pás */
+.legacy-main .section:not(.lan-page)>.page-intro{width:100cqw;max-width:none!important;margin:0 calc(50% - 50cqw) clamp(36px,4vw,64px)!important;padding:clamp(64px,8vw,140px) clamp(24px,6vw,110px) clamp(48px,6vw,96px)!important;background:#f6f1e8;border:0!important;text-align:left!important}
+.legacy-main .section:not(.lan-page)>.page-intro .eyebrow{font:italic 300 clamp(20px,1.8vw,28px)/1.2 'Fraunces',Georgia,serif!important;letter-spacing:0!important;text-transform:none!important;color:#8a7a55!important;margin:0 0 14px!important}
+.legacy-main .section:not(.lan-page)>.page-intro .eyebrow::first-letter{text-transform:uppercase}
+.legacy-main .section:not(.lan-page)>.page-intro h1{font:300 clamp(36px,4.6vw,76px)/1.04 'Fraunces',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.02em!important;color:#3d3c5c!important;max-width:20ch!important;margin:0!important}
+.legacy-main .section:not(.lan-page)>.page-intro .lead{font-size:17px!important;line-height:1.7!important;color:#5b5a6e!important;max-width:56ch!important;margin:22px 0 0!important}
+.legacy-main .section:not(.lan-page):has(>.page-intro){padding-top:0!important}
+.legacy-main .section>.ana-atmosphere{display:none!important}
+/* ostré hrany namiesto zaoblených kariet */
+.legacy-main :is(.content-landscape,.empty-state,.contact-aside,.contact-aside>img,.contact-lucia,.order-summary,.auth-visual,.article-image,.editorial-card img,.portrait-placeholder,.detail-image,.cart-line>img,.lesson,.account-program,.program-visual){border-radius:0!important}
+.legacy-main .section:not(.lan-page):has(>.page-intro){max-width:none!important;margin-left:0!important;margin-right:0!important}
+.legacy-main .section.reading-width:has(>.page-intro)>:not(.page-intro){max-width:900px}
+/* úvod + fotka (programy, výuka, blog) ako celoplošný split */
+.legacy-main .section:has(>.page-intro+.content-landscape){display:grid!important;grid-template-columns:5fr 7fr;column-gap:0}
+.legacy-main .section:has(>.page-intro+.content-landscape)>*{grid-column:1/-1}
+.legacy-main .section:has(>.page-intro+.content-landscape)>.page-intro{grid-column:1;width:auto!important;margin:0 0 clamp(40px,5vw,80px) calc(50% - 50cqw)!important;display:flex;flex-direction:column;justify-content:center;min-height:min(86svh,780px)}
+.legacy-main .section:has(>.page-intro+.content-landscape)>.page-intro h1{font-size:clamp(34px,3.6vw,60px)!important}
+.legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape{grid-column:2;position:relative;height:auto!important;margin:0 calc(-1*clamp(24px,6.3vw,110px)) clamp(40px,5vw,80px) 0!important}
+.legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover;filter:none!important;transform:none!important}
+.legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape .simpleParallax{position:absolute;inset:0;height:100%}
+@media(max-width:999.98px){.legacy-main .section:has(>.page-intro+.content-landscape){grid-template-columns:1fr}.legacy-main .section:has(>.page-intro+.content-landscape)>.page-intro{grid-column:1;min-height:0;margin:0 calc(50% - 50cqw) 0!important;width:100cqw!important}.legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape{grid-column:1;width:100cqw;margin:0 calc(50% - 50cqw) clamp(32px,6vw,56px)!important;height:min(100vw,60svh)!important}}
+/* editorial odkazy ako Lanserhof riadky */
+.legacy-main .editorial-links{display:block!important;margin-top:0!important}
+.legacy-main .editorial-links>a{display:grid!important;grid-template-columns:1fr auto;align-items:center;gap:6px 24px;padding:clamp(24px,3vw,40px) 0!important;border-top:1px solid #dcd8e6!important;transition:padding .35s}
+.legacy-main .editorial-links>a:last-child{border-bottom:1px solid #dcd8e6!important}
+.legacy-main .editorial-links>a:hover{padding-left:16px!important}
+.legacy-main .editorial-links .eyebrow{grid-column:1;font:italic 300 18px/1.2 'Fraunces',Georgia,serif!important;letter-spacing:0!important;text-transform:none!important;color:#a8884f!important}
+.legacy-main .editorial-links h2{grid-column:1;margin:0!important;font:300 clamp(26px,3.2vw,52px)/1.08 'Fraunces',Georgia,serif!important;text-transform:uppercase;letter-spacing:.02em!important;color:#3d3c5c}
+.legacy-main .editorial-links .arrow{grid-column:2;grid-row:1/3;position:static!important;margin:0!important;width:20px;height:20px}
+.legacy-main .section:has(>.page-intro+.content-landscape){padding-left:0!important;padding-right:0!important}
+.legacy-main .section:has(>.page-intro+.content-landscape)>:not(.page-intro,.content-landscape){padding-left:clamp(24px,6.3vw,110px);padding-right:clamp(24px,6.3vw,110px)}
+.legacy-main .section:has(>.page-intro+.content-landscape)>.page-intro{margin:0 0 clamp(40px,5vw,80px)!important}
+.legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape{margin:0 0 clamp(40px,5vw,80px)!important}
+@media(max-width:999.98px){.legacy-main .section:has(>.page-intro+.content-landscape)>.page-intro{margin:0!important;width:auto!important}.legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape{width:auto;margin:0 0 clamp(32px,6vw,56px)!important}}
+.legacy-main .section:has(>.page-intro){box-shadow:none!important;border:0!important;border-radius:0!important;background-color:#fff!important}
