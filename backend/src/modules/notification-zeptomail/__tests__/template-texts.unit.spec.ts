@@ -30,7 +30,7 @@ describe("šablony – katalóg pre admin", () => {
   })
 
   it("povinné sú len prihlásenie, poukazy, kontaktný formulár a potvrdenie odstúpenia od zmluvy", () => {
-    expect(listTemplateDefs().filter(d => d.required).map(d => d.name).sort()).toEqual(["contact-form-admin", "contract-withdrawal-received-sk", "gift-voucher-buyer-sk", "gift-voucher-recipient-sk", "magic-link-sk"])
+    expect(listTemplateDefs().filter(d => d.required).map(d => d.name).sort()).toEqual(["admin-invite", "contact-form-admin", "contract-withdrawal-received-sk", "gift-voucher-buyer-sk", "gift-voucher-recipient-sk", "magic-link-sk", "set-password-sk"])
     expect(getTemplateDef("neexistuje")).toBeNull()
   })
 })

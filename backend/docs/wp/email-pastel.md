@@ -1,6 +1,18 @@
 # E-maily ANASTASIA – pastelový layout
 
-Stav: `PARTIAL`.
+Stav: `PARTIAL` (pokračování 2026-10-23).
+
+## Pokračování 2026-10-23
+
+Logo šablon ZeptoMail je přepojeno na `https://anastasia-test.l-code-dynamics.com/assets/logo-mark.png`; `curl -I` ověřil `200 image/png`. HTML používá PNG, atributy `width="52"` a `height="52"` už byly přítomné.
+
+Do katalogu přibyly `set-password-sk` a `admin-invite`. Přibyl subscriber pro `invite.created`, který předá pozvánku stávajícímu `sendEmail`. Tvar payloadu Medusa invite eventu a skutečné vytvoření použitelného invite URL nebyly ověřeny běhovým testem. Migrace v `scripts/migrate-legacy-customers-orders.ts` zůstala beze změny.
+
+Zbývá: kompletní ruční překlady všech šablon do EN/RU a výběr locale podle zákazníka/objednávky/metadat není implementován. Newsletterový `renderCampaignEmail` je distribuční HTML pro kampaně, nikoli potvrzení přihlášení; store endpoint newsletteru pouze zapíše souhlas, potvrzovací e-mail nespouští. V prohledaném backendu nebyl nalezen e-mail o zpřístupnění digitálního obsahu/knihovny. Tyto dvě cesty proto nebylo co vizuálně sjednotit.
+
+Náhledy pro 20 katalogových šablon a `index.html` jsou v `~/Desktop/ANASTASIA-K-ODESLANI/2026-10-23/emaily-nahled/`. Screenshoty jednotlivých šablon se nestihly kompletně vygenerovat; dostupné jsou screenshoty indexu 390/600 px a část screenshotů šablon. EN/RU náhledy chybí, protože odpovídající překlady nejsou hotové.
+
+Ověření: `cd backend && npx jest src/modules/notification-zeptomail/__tests__/template-texts.unit.spec.ts --runInBand` (18/18 PASS); `cd backend && npx tsc --noEmit` (PASS).
 
 Transakční a kampaňové e-maily používají společný vizuální směr: krémové pozadí, lesní zelenou, levandulový akcent, kartu širokou nejvýše 600 px, tabulkovou strukturu a inline styly. Hlavička načítá logo absolutně z `https://media.anastasiaoz.eu/logo-mark.png`. Patička obsahuje LUCRAT spol. s r.o., IČO 36652164, web a kontaktní e-mail. Transakční renderer nadále vrací HTML i plain text a zachovává veřejné API i předměty.
 

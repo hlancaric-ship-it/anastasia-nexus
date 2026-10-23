@@ -44,7 +44,7 @@ const CREAM = "#f7f2e8"
 const SURFACE = "#fffcf8"
 const INK = "#191b18"
 const MUTED = "#625f59"
-const LOGO_URL = "https://media.anastasiaoz.eu/logo-mark.png"
+const LOGO_URL = "https://anastasia-test.l-code-dynamics.com/assets/logo-mark.png"
 
 export const SLOT_MAX_LENGTH: Record<SlotKind, number> = { line: 160, text: 1000 }
 
@@ -795,6 +795,48 @@ const CATALOG: Entry[] = [
       ],
       button: button(r("button"), data.admin_url),
     }),
+  },
+  {
+    name: "set-password-sk",
+    label: "Nastavenie hesla po prenose účtu",
+    description: "Odkaz na nastavenie hesla pre zákaznícky účet.",
+    required: true,
+    audience: "customer",
+    placeholders: [],
+    slots: [
+      SUBJECT("Nastavte si heslo k svojmu účtu ANASTASIA"),
+      HEADING("Váš účet je pripravený"),
+      text("intro", "Úvodný text", "Váš účet a história nákupov boli prenesené. Nastavte si heslo, aby ste mohli pokračovať."),
+      line("button", "Tlačidlo", "Nastaviť heslo"),
+    ],
+    sample: { url: "https://anastasiaoz.eu/ucet/nastavit-heslo?token=ukazka" },
+    vars: () => ({}),
+    build: (data, t, r) => {
+      const url = safeUrl(data.url)
+      if (!url) throw new Error("set-password-sk: missing url")
+      return { subject: r("subject"), heading: r("heading"), blocks: p(t("intro")), button: { label: r("button"), url } }
+    },
+  },
+  {
+    name: "admin-invite",
+    label: "Pozvánka do administrácie",
+    description: "Pozvánka pre nového správcu.",
+    required: true,
+    audience: "admin",
+    placeholders: [P.email],
+    slots: [
+      SUBJECT("Pozvánka do administrácie ANASTASIA"),
+      HEADING("Boli ste pozvaní do administrácie"),
+      text("intro", "Úvodný text", "Účet pre {email} je pripravený. Pozvánku prijmete cez tlačidlo nižšie."),
+      line("button", "Tlačidlo", "Prijať pozvánku"),
+    ],
+    sample: { email: "spravca@example.test", invite_url: "https://anastasiaoz.eu/admin/pozvanka?token=ukazka" },
+    vars: data => ({ email: str(data.email) }),
+    build: (data, t, r) => {
+      const url = safeUrl(data.invite_url ?? data.url)
+      if (!url) throw new Error("admin-invite: missing invite_url")
+      return { subject: r("subject"), heading: r("heading"), blocks: p(t("intro")), button: { label: r("button"), url } }
+    },
   },
   {
     name: "contact-form-admin",
