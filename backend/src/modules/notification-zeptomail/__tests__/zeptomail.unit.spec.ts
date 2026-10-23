@@ -167,6 +167,7 @@ describe("ZeptoMail – šablony", () => {
       "gift-voucher-recipient-sk": { code: "ABCD-EFGH" },
       "set-password-sk": { url: "https://anastasiaoz.eu/ucet/nastavit-heslo?token=ukazka" },
       "admin-invite": { invite_url: "https://anastasiaoz.eu/admin/pozvanka?token=ukazka" },
+      "admin-password-reset": { url: "https://anastasiaoz.eu/admin/#/obnova-hesla/ukazka" },
     }
     for (const name of TEMPLATE_NAMES) {
       const out = renderTemplate(name, minimal[name] ?? {})

@@ -839,6 +839,27 @@ const CATALOG: Entry[] = [
     },
   },
   {
+    name: "admin-password-reset",
+    label: "Obnova hesla do administrácie",
+    description: "Odkaz na nastavenie nového hesla pre správcu.",
+    required: true,
+    audience: "admin",
+    placeholders: [P.email],
+    slots: [
+      SUBJECT("Obnova hesla do administrácie ANASTASIA"),
+      HEADING("Nastavte si nové heslo"),
+      text("intro", "Úvodný text", "Pre účet {email} sme dostali žiadosť o obnovu hesla. Odkaz platí 15 minút. Ak ste o obnovu nežiadali, e-mail ignorujte."),
+      line("button", "Tlačidlo", "Nastaviť nové heslo"),
+    ],
+    sample: { email: "spravca@example.test", url: "https://anastasiaoz.eu/admin/#/obnova-hesla/ukazka" },
+    vars: data => ({ email: str(data.email) }),
+    build: (data, t, r) => {
+      const url = safeUrl(data.url)
+      if (!url) throw new Error("admin-password-reset: missing url")
+      return { subject: r("subject"), heading: r("heading"), blocks: p(t("intro")), button: { label: r("button"), url } }
+    },
+  },
+  {
     name: "contact-form-admin",
     label: "Správa z kontaktného formulára (pre Vás)",
     description: "Interný e-mail so správou z webu. Odpoveď ide priamo na e-mail odosielateľky. Nedá sa vypnúť – inak by sa správy strácali.",
