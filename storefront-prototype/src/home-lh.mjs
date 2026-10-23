@@ -459,6 +459,8 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 /* Počas úvodu (preloader) nie je hlavička vidieť vôbec; plynulo príde až s bočnou lištou po zoskrolovaní úvodu. */
 .lh-intro-page .lh-top{transition:opacity .5s var(--ana-ease-soft),transform .5s var(--ana-ease-soft)}
 .lh-intro-page:not(.lh-chrome-in) .lh-top{opacity:0;transform:translateY(-10px);pointer-events:none}
+/* Úvod je od prvního vykreslení v režimu preloaderu (třídy na <html> z buildu), obsah bez odsazení lišty. */
+.lh-intro-page:not(.lh-chrome-in) .dc-root{padding-left:0!important}
 /* Boční lišta se na začátku úvodu schová a vrátí se po preloaderu. */
 .lh-intro-page #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .4s var(--ana-ease-soft),transform .4s var(--ana-ease-soft)}
 .lh-intro-page.lh-chrome-in #ana-rail{opacity:1;transform:none;pointer-events:auto}
