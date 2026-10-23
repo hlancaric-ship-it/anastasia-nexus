@@ -2,7 +2,10 @@ import type { MedusaContainer } from "@medusajs/framework/types"
 import { Modules, NotificationStatus } from "@medusajs/framework/utils"
 import { EMAIL_TEMPLATE_MODULE } from "../../modules/email-template"
 import type { EmailTemplateOverrideRow } from "../../modules/email-template/service"
-import { getTemplateDef, validateTexts } from "../../modules/notification-zeptomail/templates"
+import { getTemplateDef, renderTemplate, validateTexts } from "../../modules/notification-zeptomail/templates"
+import { recipientAllowed } from "../../modules/notification-zeptomail/service"
+import { resolveDeployEnv } from "../deploy-env"
+import { emailRecipientAllowlist, usesMedusaEmails } from "./recipients"
 import { recordEvent } from "../observability/events"
 
 /**
@@ -106,6 +109,14 @@ export async function sendEmail(container: Container, input: SendEmailInput): Pr
   const data = { ...(input.data ?? {}) }
   if (Object.keys(settings.texts).length) data.texts = settings.texts
   else delete data.texts
+  // Medusa Emails nezná naše šablony ani allowlist: obsah se renderuje tady a mimo seznam se nic neodešle.
+  const deploy = resolveDeployEnv()
+  const medusaEmails = usesMedusaEmails(deploy)
+  if (medusaEmails && !recipientAllowed(input.to, emailRecipientAllowlist(deploy))) {
+    await recordEvent(container as MedusaContainer, "info", "notification", "send_suppressed", { ...fields, reason: "recipient_not_allowlisted" })
+    return { status: "disabled" }
+  }
+  const content = medusaEmails ? renderTemplate(input.template, data) : null
   let created: unknown
   try {
     created = await notifications.createNotifications({
@@ -113,6 +124,7 @@ export async function sendEmail(container: Container, input: SendEmailInput): Pr
       channel: "email",
       template: input.template,
       data,
+      ...(content ? { content: { subject: content.subject, html: content.html, text: content.text } } : {}),
       ...(input.idempotency_key ? { idempotency_key: input.idempotency_key } : {}),
       ...(input.resource_id ? { resource_id: input.resource_id } : {}),
       ...(input.resource_type ? { resource_type: input.resource_type } : {}),

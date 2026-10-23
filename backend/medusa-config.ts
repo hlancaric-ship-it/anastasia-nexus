@@ -1,5 +1,6 @@
 import { loadEnv, defineConfig, Modules } from '@medusajs/framework/utils'
 import { resolveDeployEnv } from './src/lib/deploy-env'
+import { emailRecipientAllowlist as emailRecipientAllowlist_, usesMedusaEmails } from './src/lib/email/recipients'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
@@ -108,13 +109,7 @@ const fileProvider = s3Configured
 
 // --- Notifikace: e-maily přes ZeptoMail, pokud je nastavený klíč; jinak jen log bez osobních údajů (viz docs/DEPLOY.md) ---
 const zeptoMailEnabled = Boolean(env("ZEPTOMAIL_API_KEY"))
-// Testovací provoz (PAYMENTS_TEST_MODE na ostrém Cloudu, staging, náhledy PR): e-maily jen na EMAIL_RECIPIENT_ALLOWLIST,
-// bez seznamu neodejde nic. Ostrý provoz bez omezení, pokud seznam výslovně nenastavíš.
-const emailRecipientAllowlistRaw = env("EMAIL_RECIPIENT_ALLOWLIST")
-const emailTestTraffic = deploy.paymentsTestMode || (deploy.onCloud && deploy.cloudType !== "production")
-const emailRecipientAllowlist = emailRecipientAllowlistRaw || emailTestTraffic
-  ? (emailRecipientAllowlistRaw || "").split(",").map((entry) => entry.trim()).filter(Boolean)
-  : undefined
+const emailRecipientAllowlist = emailRecipientAllowlist_(deploy)
 // Resend má prednosť pred ZeptoMailom (rozhodnutie 2026-10-20); kanál email smie mať len jeden provider.
 const resendEnabled = Boolean(env("RESEND_API_KEY"))
 const notificationProviders: Array<Record<string, unknown>> = resendEnabled
@@ -151,6 +146,9 @@ const notificationProviders: Array<Record<string, unknown>> = resendEnabled
       // kanál feed (in-app) zůstává na log provideru – jeden kanál smí mít jen jeden provider
       { resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } },
     ]
+  // Cloud bez vlastního poskytovatele: kanál email nechat volný, doručí ho Medusa Emails (šablony a allowlist řeší sendEmail).
+  : usesMedusaEmails(deploy)
+  ? [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } }]
   : [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["email", "feed"] } }]
 
 const modules: Array<Record<string, unknown>> = [

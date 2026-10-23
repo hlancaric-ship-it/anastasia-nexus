@@ -118,3 +118,40 @@ describe("sendEmail", () => {
     expect(await sendEmail(container, { to: TO, template: "order-placed-sk", idempotency_key: "k" })).toEqual({ status: "duplicate" })
   })
 })
+
+describe("sendEmail cez Medusa Emails (Cloud bez vlastného poskytovateľa)", () => {
+  const saved = { ...process.env }
+  beforeEach(() => {
+    process.env.EXECUTION_CONTEXT = "medusa-cloud"
+    process.env.MEDUSA_CLOUD_ENVIRONMENT_TYPE = "production"
+    process.env.PAYMENTS_TEST_MODE = "1"
+    process.env.EMAIL_RECIPIENT_ALLOWLIST = "@example.test"
+    delete process.env.RESEND_API_KEY
+    delete process.env.ZEPTOMAIL_API_KEY
+  })
+  afterEach(() => { process.env = { ...saved } })
+
+  it("pošle vyrenderovaný predmet a HTML, Medusa Emails naše šablóny nepozná", async () => {
+    const { container, notifications } = makeContainer()
+    await sendEmail(container, { to: TO, template: "order-placed-sk", data: { order_display_id: "1" } })
+    const sent = (notifications.createNotifications.mock.calls[0] as any[])[0]
+    expect(sent.template).toBe("order-placed-sk")
+    expect(sent.content.subject).toBeTruthy()
+    expect(sent.content.html).toContain("<")
+    expect(sent.content.text).toBeTruthy()
+  })
+
+  it("v testovacom provoze mimo allowlistu nič nepošle", async () => {
+    const { container, notifications } = makeContainer()
+    const out = await sendEmail(container, { to: "cudzi@gmail.com", template: "order-placed-sk", data: { order_display_id: "1" } })
+    expect(out).toEqual({ status: "disabled" })
+    expect(notifications.createNotifications).not.toHaveBeenCalled()
+  })
+
+  it("s kľúčom Resend obsah nerenderuje, robí to provider", async () => {
+    process.env.RESEND_API_KEY = "re_test"
+    const { container, notifications } = makeContainer()
+    await sendEmail(container, { to: TO, template: "order-placed-sk", data: { order_display_id: "1" } })
+    expect((notifications.createNotifications.mock.calls[0] as any[])[0].content).toBeUndefined()
+  })
+})
