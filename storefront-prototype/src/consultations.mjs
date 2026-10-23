@@ -12,7 +12,8 @@ export const consultations = () => {
   const products = api.getProducts();
   const consults = products.filter(p => {
     const handle = p.slug;
-    return CONSULTATION_HANDLES[handle] && (p.metadata?.product_kind === 'service' || p.category === 'AI ANASTASIA ACADEMY');
+    // Konzultácie sú v kategórii AI ANASTASIA ACADEMY a majú špecifické slugy
+    return CONSULTATION_HANDLES[handle];
   });
 
   if (!consults.length) {

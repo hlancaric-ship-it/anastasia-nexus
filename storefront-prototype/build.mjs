@@ -75,11 +75,12 @@ add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','
 add('/prihlasenie','Prihlásenie',views.login());
 add('/nova-registracia/vyhody','Výhody registrácie',views.registrationBenefits());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
 add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.reset());add('/reset-40/knihovna','Moje programy',views.reset(true));
-add('/klub','Klub ANASTASIA',views.klub());add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());add('/konzultacie','Konzultácie',views.konzultacie());
+add('/klub','Klub ANASTASIA',views.klub());add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());add2('/konzultacie','Konzultácie',views.konzultacie(),true);
 add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy());
 for(const [alias,target] of Object.entries(api.getAliases())){const source=routes.get(target);if(!source)throw new Error(`Missing alias target ${target}`);routes.set(alias,source);}
 for(const [path,page] of Object.entries(legacyContent)){
   const existing=routes.get(path);
+  if(existing && existing.design)continue;
   if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
@@ -110,7 +111,7 @@ const legacyCss=()=>`<link rel="stylesheet" href="/tokens.css${V}"><link rel="st
 const document=(...args)=>tokenizeColors(renderDocument(...args));
 const renderDocument=(path,{title,body,design})=>{
   const customerLogin=['/prihlasenie','/prihlasenie/potvrdit','/nova-registracia'].includes(path);
-  const c=CHROME[path==='/zdravy-svet'?'world':design||'other'];
+  const c=CHROME[path==='/zdravy-svet'?'world':typeof design==='string'?design:(design?'home':'other')];
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1"${path==='/o-lucii'?' data-sk-only':''}>${body.replace('%%HEADER%%',c.header)}</main>${c.footer}</div>`
     :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'var(--center-main)':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1" data-sk-only>${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;

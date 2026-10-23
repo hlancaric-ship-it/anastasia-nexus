@@ -9,15 +9,11 @@ const txt = value => e(String(value ?? ''));
 const url = value => { const s=String(value||''); return isMediaUrl(s) ? txt(s) : '/assets/product-sun.svg'; };
 const source = p => { const s=String(p.description||'').trim(); return /^Podrobnosti a podmienky nájdete v detaile produktu\.?$/.test(s) ? '' : s; };
 const formatDescription = p => {
-  const s = source(p);
-  if (!s) return '';
-  // Merge multiple empty lines
-  let formatted = s.replace(/\n\s*\n/g, '\n\n');
-  // Extract first ~600 chars for intro
-  const excerpt = formatted.length > 600 ? formatted.slice(0, 600).replace(/\s+\S*$/, '') + '…' : formatted;
-  // Show full text with "Zobraziť viac" toggle
-  const showMore = formatted.length > 600 ? `<details><summary>Zobraziť viac</summary><div class="pd-full-description">${formatted}</div></details>` : `<div class="pd-full-description">${formatted}</div>`;
-  return `<p class="pd-intro">${excerpt}</p>${showMore}`;
+  const s = source(p).replace(/\n\s*\n/g, '\n\n').trim();
+  if (!s) return '<p class="pd-intro" data-product-intro hidden></p>';
+  const excerpt = s.length > 600 ? s.slice(0, 600).replace(/\s+\S*$/, '') + '…' : s;
+  const more = s.length > 600 ? `<details><summary>Zobraziť viac</summary><div class="pd-full-description">${txt(s)}</div></details>` : '';
+  return `<p class="pd-intro" data-product-intro>${txt(excerpt)}</p>${more}`;
 };
 const book = p => `<form class="add-product pd-purchase" data-code="${txt(p.code)}"><label>Množstvo<input name="quantity" type="number" min="1" max="99" value="1" required></label><button class="button pd-buy" type="submit">Pridať do košíka ${arrow}</button></form><p class="form-status" role="status"></p>`;
 const crumb = p => `<nav class="pd-breadcrumbs" aria-label="Drobečková navigácia"><a href="/eshop">Obchod</a><span aria-hidden="true">/</span><a href="/eshop?category=${encodeURIComponent(p.category)}">${txt(p.category)}</a><span aria-hidden="true">/</span><span aria-current="page">${txt(p.name)}</span></nav>`;
