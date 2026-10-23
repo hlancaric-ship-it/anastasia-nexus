@@ -112,7 +112,10 @@ const zeptoMailEnabled = Boolean(env("ZEPTOMAIL_API_KEY"))
 const emailRecipientAllowlist = emailRecipientAllowlist_(deploy)
 // Resend má prednosť pred ZeptoMailom (rozhodnutie 2026-10-20); kanál email smie mať len jeden provider.
 const resendEnabled = Boolean(env("RESEND_API_KEY"))
-const notificationProviders: Array<Record<string, unknown>> = resendEnabled
+// Cloud: kanál email nechat volný, doručí ho Medusa Emails (šablony a allowlist řeší sendEmail).
+const notificationProviders: Array<Record<string, unknown>> = usesMedusaEmails(deploy)
+  ? [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } }]
+  : resendEnabled
   ? [
       {
         resolve: "./src/modules/notification-resend",
@@ -146,9 +149,6 @@ const notificationProviders: Array<Record<string, unknown>> = resendEnabled
       // kanál feed (in-app) zůstává na log provideru – jeden kanál smí mít jen jeden provider
       { resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } },
     ]
-  // Cloud bez vlastního poskytovatele: kanál email nechat volný, doručí ho Medusa Emails (šablony a allowlist řeší sendEmail).
-  : usesMedusaEmails(deploy)
-  ? [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["feed"] } }]
   : [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["email", "feed"] } }]
 
 const modules: Array<Record<string, unknown>> = [

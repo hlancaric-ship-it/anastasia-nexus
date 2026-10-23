@@ -1,6 +1,6 @@
 /**
  * Kdo smí dostat e-mail a kdo ho doručí. Čistá funkce bez závislostí, používá ji medusa-config.ts
- * (Resend/ZeptoMail provider) i sendEmail (Medusa Emails na Cloudu), proto žádné importy z frameworku.
+ * (Resend/ZeptoMail provider mimo Cloud) i sendEmail (Medusa Emails na Cloudu), proto žádné importy z frameworku.
  */
 import type { DeployEnv } from "../deploy-env"
 
@@ -16,7 +16,7 @@ export function emailRecipientAllowlist(deploy: Pick<DeployEnv, "onCloud" | "clo
   return raw || testTraffic ? raw.split(",").map((entry) => entry.trim()).filter(Boolean) : undefined
 }
 
-/** Na Cloudu bez vlastního poskytovatele doručuje kanál email Medusa Emails (vestavěná služba Cloudu). */
-export function usesMedusaEmails(deploy: Pick<DeployEnv, "onCloud">, env: Env = process.env): boolean {
-  return deploy.onCloud && !(env.RESEND_API_KEY || "").trim() && !(env.ZEPTOMAIL_API_KEY || "").trim()
+/** Na Cloudu doručuje kanál email vždy Medusa Emails (rozhodnutí 2026-10-23), Resend/ZeptoMail jen mimo Cloud. */
+export function usesMedusaEmails(deploy: Pick<DeployEnv, "onCloud">): boolean {
+  return deploy.onCloud
 }
