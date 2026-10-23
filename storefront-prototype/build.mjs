@@ -27,6 +27,11 @@ if(process.env.ANASTASIA_PUBLISHABLE_KEY&&process.env.ANASTASIA_REGION_ID){
  catalogProducts=await store.getProducts();if(!catalogProducts.length)throw new Error('Real catalog build returned no products');
 }
 const catalog=category=>views.catalog(category,catalogProducts);
+const luciaImages=`<style>.lucia-real-photos{max-width:1320px;margin:0 auto;padding:clamp(48px,7vw,96px) clamp(20px,4vw,64px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,3vw,40px);color:#3a3a33}.lucia-real-photos figure{margin:0;overflow:hidden;border-radius:24px;background:#e8e1f1}.lucia-real-photos img{display:block;width:100%;height:100%;min-height:280px;max-height:620px;object-fit:cover}.lucia-real-photos figcaption{padding:14px 18px;font:300 15px/1.5 Figtree,sans-serif}.lucia-real-photos h2{grid-column:1/-1;margin:0;font:300 clamp(32px,4vw,52px)/1.12 Fraunces,serif;color:#3a3a33}.photo-gallery.photo-gallery--lucia{background:#f5f2e8}.photo-gallery--lucia figure{overflow:hidden;border-radius:24px}.photo-gallery--lucia img{width:100%;height:100%;object-fit:cover}@media(max-width:680px){.lucia-real-photos{grid-template-columns:1fr}.lucia-real-photos h2{grid-column:auto}.lucia-real-photos img{min-height:220px;max-height:420px}}</style>`;
+const luciaPhoto=(name,alt)=>`<figure><img src="/img/lucia/${name}-1600.webp" srcset="/img/lucia/${name}-800.webp 800w, /img/lucia/${name}-1600.webp 1600w" sizes="(max-width: 800px) 100vw, 640px" alt="${alt}" loading="lazy" decoding="async"><figcaption>${alt}</figcaption></figure>`;
+const pharmacyStory=`${luciaImages}<section class="lucia-real-photos"><h2>Zdravá lekáreň ANASTASIA</h2>${luciaPhoto('lekaren','Interiér lekárne ANASTASIA vo Vyšnej Slanej')}</section>`;
+const aboutPhotos=`${luciaImages}<section class="lucia-real-photos"><h2>Osobne a vo Vyšnej Slanej</h2>${luciaPhoto('lucia-portret','Lucia Rogožanová v priestoroch ANASTASIA')}${luciaPhoto('lekaren','Svetlý interiér lekárne ANASTASIA')}</section>`;
+const stationPhotos=`${luciaImages}<section class="section photo-gallery photo-gallery--lucia"><h2>Denný stacionár Vyšná Slaná</h2><div class="photo-gallery-grid">${luciaPhoto('stacionar-priestor','Spoločenský priestor denného stacionára vo Vyšnej Slanej')}${luciaPhoto('stacionar-poradna','Poradenská miestnosť denného stacionára')}${luciaPhoto('stacionar-kresla','Oddychová časť denného stacionára')}</div></section>`;
 // Denný stacionár: fotografie z dodaných souborů (public/media/ds).
 const dsPhotos=(dir,files)=>`<section class="section photo-gallery">${files.map(f=>`<figure><img src="/media/ds/${f}" alt="Denný stacionár Vyšná Slaná – ${f.replace(/\.[a-z]+$/,'').replace(/[_-]/g,' ')}" loading="lazy" width="1200" height="800"></figure>`).join('')}</section>`;
 // Jedno písmo: Outfit sa nahrádza Figtree (22. 10.).
@@ -65,7 +70,7 @@ const add=(path,title,body)=>routes.set(path,{title,body});
 const dcProducts=catalogProducts.slice(0,4).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,slug:e(p.slug),name:e(p.name),cat:e(p.category),price:e(p.priceLabel),priceLabel:e(p.priceLabel),img:p.image,add:e(p.code)}));
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 add2('/','Light for the Future',homeSections(dcProducts),'home');
-add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
+add('/eshop','Obchod',catalog()+pharmacyStory);add('/eshop/kategorie','Kategórie',views.categories());
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmetika'));
 for(const [slug,cat] of [['kozmetika','Kozmetika'],['bylinky-a-vyziva','Bylinky a výživa'],['programy-a-sluzby','Programy a služby']])add(`/eshop/kategoria/${slug}`,cat,catalog(cat));
 for(const p of catalogProducts)add(`/eshop/produkt/${p.slug}`,p.name,views.product(p,catalogProducts));
@@ -88,12 +93,12 @@ for(const [path,page] of Object.entries(legacyContent)){
     const dsGallery=path==='/denny-stacionar-vysna-slana/ds-dnes'
       ? dsPhotos('ds',['img_1.jpg','img_2.jpg','img_3.jpg','img_4.jpg','img_5.jpg','propagacia.jpg'])
       : '';
-    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?`<section class="section photo-gallery"><figure><img src="/img/vonkajsi-vchod.webp" alt="Denný stacionár Vyšná Slaná – vonkajší vchod" loading="lazy" width="1200" height="800"></figure></section>`+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':'')+dsGallery);
+    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?`<section class="section photo-gallery"><figure><img src="/img/vonkajsi-vchod.webp" alt="Denný stacionár Vyšná Slaná – vonkajší vchod" loading="lazy" width="1200" height="800"></figure></section>`+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>'+stationPhotos:'')+dsGallery);
   }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
 }
 add('/zdravy-svet','Zdravý svet',views.zdravySvet());
-add2('/o-lucii','O Lucii',aboutSections(),'about');
+add2('/o-lucii','O Lucii',aboutSections()+aboutPhotos,'about');
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
 // Drafty starého webu (ve výpisu mali stav 404) na novom webe tiež 404 – nie výpis e-shopu.

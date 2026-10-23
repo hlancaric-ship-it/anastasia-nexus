@@ -17,7 +17,7 @@ const INK = '#1E281C';
 const IMG = {
   hero: '/assets/hero-forest.jpg',
   sky: '/assets/night-sky.jpg',
-  lucia: '/assets/lucia-portrait.jpg',
+  lucia: '/img/lucia/lucia-portret-hero-1600.webp',
   tree: '/assets/tree.jpg',
   longevity: '/assets/lucia-longevity.png',
   // Veľké fotky z public/media/ (min. 1600px šírka)

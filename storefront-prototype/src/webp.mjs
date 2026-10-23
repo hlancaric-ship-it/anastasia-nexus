@@ -22,6 +22,12 @@ export function webpFor(src) {
 }
 
 export function picture(src, alt, attrs = '') {
+  const lucia = /^\/img\/lucia\/([a-z0-9-]+)-1600\.webp$/.exec(String(src || ''));
+  if (lucia) {
+    const small = `/img/lucia/${lucia[1]}-800.webp`;
+    const candidates = `${small} 800w, ${src} 1600w`;
+    return `<picture><source srcset="${e(candidates)}" sizes="(max-width: 800px) 100vw, 1600px" type="image/webp"><img src="${e(src)}" srcset="${e(candidates)}" sizes="(max-width: 800px) 100vw, 1600px" alt="${e(alt)}" ${attrs}></picture>`;
+  }
   const webp = webpFor(src);
   // WebP je v src, aby prehliadač netahal naraz dva súbory (scanner stiahne img
   // ešte pred spracovaním <source>). JPG ostáva v <noscript> ako záloha.
