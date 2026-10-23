@@ -2,7 +2,7 @@
 // Len texty a štruktúra (žiadna logika). Popisuje výhradne obrazovky a akcie, ktoré v admine skutočne fungujú.
 // Pri zmene funkcie v app.mjs uprav aj príslušný text tu. Texty slovensky, vykanie, bez technických výrazov.
 
-export const SUPPORT_EMAIL = 'podpora@l-code-dynamics.com';
+export const SUPPORT_EMAIL = 'ceo@l-code-dynamics.com';
 
 // Úvodná prehliadka. target = CSS selektor zvýrazneného prvku (null = krok bez zvýraznenia),
 // sidebar = prvok je v bočnom paneli (na mobile ho prehliadka vysunie).

@@ -253,7 +253,7 @@ nie je možné znížiť na asistenta (inak by administrácia nemala vlastníka)
 - **Potrebujete poradiť?** vľavo dole – sprievodca so 23 návodmi (aj prehliadka celej aplikácie).
 - **Skratky na klávesnici:** `/` hľadanie, `g` + písmeno (napr. `g` + `o` = Objednávky), `?` otvorí nápovedu.
 - **História zmien** (Nastavenia → História zmien) – kto a čo zmenil.
-- **podpora@l-code-dynamics.com** – keď niečo nejde alebo potrebujete poradiť; napíšte, čo ste
+- **ceo@l-code-dynamics.com** – keď niečo nejde alebo potrebujete poradiť; napíšte, čo ste
   robili a čo sa zobrazilo, a pomôžeme.
 
 ---

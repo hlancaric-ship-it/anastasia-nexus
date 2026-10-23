@@ -3315,7 +3315,7 @@ async function vDopravaPlatby(view) {
   const locsHtml = !sl ? unread : `<div class="rc-grid">${locs.map(l => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(l.name)}</div><div class="rc-fields">
       <span class="rc-f"><em>Adresa</em>${esc([l.address?.address_1, l.address?.city, (l.address?.country_code || '').toUpperCase()].filter(Boolean).join(', ') || '—')}</span></div></div></div>`).join('') || '<div class="empty">Žiadny sklad.</div>'}</div>`;
   view.innerHTML = blk('Predajné regióny a platby', regionsHtml) + blk('Spôsoby dopravy', optionsHtml) + blk('Sklady', locsHtml)
-    + `<p class="muted" style="font-size:12px">Prehľad je len na čítanie. Platobné brány a dopravcov s prístupovými kľúčmi zapája náš tím bezpečne na serveri — kľúče sa v administrácii nikdy nezobrazujú. Ak potrebujete zmenu, napíšte na <a href="mailto:podpora@l-code-dynamics.com">podpora@l-code-dynamics.com</a>.</p>`;
+    + `<p class="muted" style="font-size:12px">Prehľad je len na čítanie. Platobné brány a dopravcov s prístupovými kľúčmi zapája náš tím bezpečne na serveri — kľúče sa v administrácii nikdy nezobrazujú. Ak potrebujete zmenu, napíšte na <a href="mailto:ceo@l-code-dynamics.com">ceo@l-code-dynamics.com</a>.</p>`;
 }
 // --- Používatelia a pozvánky (natívne /admin/users, /admin/invites). Roly (RBAC) zatiaľ nie sú zapnuté: každý správca má plný prístup. ---
 const inviteLink = (t) => `${location.origin}${location.pathname}#/pozvanka/${encodeURIComponent(t)}`;

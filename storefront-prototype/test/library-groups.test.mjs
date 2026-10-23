@@ -37,6 +37,20 @@ test('groupLibraryItems: PDF grouping', () => {
   assert.strictEqual(grouped[0].pdfs.length, 2)
 })
 
+test('groupLibraryItems: titled week materials stay visible as PDFs', () => {
+  const entitlements = makeMockEntitlements('reset-40-plus', [
+    'reset-40-plus/tyzden-15/material.pdf',
+    'reset-40-plus/tyzden-16/uvod.pdf',
+    'reset-40-plus/tyzden-16/zaver.pdf',
+  ])
+  const grouped = groupLibraryItems(entitlements)
+  assert.deepStrictEqual(grouped.map(week => week.week), [15, 16])
+  assert.deepStrictEqual(grouped[0].pdfs.map(item => item.key), ['reset-40-plus/tyzden-15/material.pdf'])
+  assert.deepStrictEqual(grouped[1].pdfs.map(item => item.key), [
+    'reset-40-plus/tyzden-16/uvod.pdf', 'reset-40-plus/tyzden-16/zaver.pdf',
+  ])
+})
+
 test('groupLibraryItems: Nic nemusíš includes preview and protected audios', () => {
   const entitlements = makeMockEntitlements('nic-nemusis', [
     'nic-nemusis/A1_navrat-zo-sluzby.mp3',

@@ -22,7 +22,7 @@ export function groupLibraryItems(entitlements = []) {
       for (const media of product.media) {
         const key = media.key || ''
         const lesson = /lekcia-(\d{2})\.mp4$/.exec(key)
-        const pdf = /tyzden-(\d{2})\/(samostudium|den-\d+)\.pdf$/.exec(key)
+        const pdf = /tyzden-(\d{2})\/[^/]+\.pdf$/.exec(key)
         const weekNum = lesson ? Math.max(1, Number(lesson[1])) : pdf ? Number(pdf[1]) : null
         if (!weekNum) continue
         const kind = media.kind === 'document' && key.endsWith('.pdf') ? 'pdf' : media.kind
