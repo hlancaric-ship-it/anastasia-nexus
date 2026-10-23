@@ -16,7 +16,7 @@ const icons={
 // r12/9: symboly dlaždíc príjdú z Figma návrhu ako SVG (public/assets/symbols/).
 // Kým nie sú v repu, dlaždice ostane bez obrázka – len s názvom.
 const iconPath=category=>icons[category]||icons[category.toUpperCase()]||icons[category==='Biokozmetika'?'BIOKOZMETIKA':'']||icons['Bylinky a výživa'];
-export const symbolFor=category=>`<svg class="catalog-nav-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${iconPath(category)}"/></svg>`;
+export const symbolFor=category=>`<svg class="catalog-nav-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPath(category)}</svg>`;
 
 const TILES=[['AI ANASTASIA ACADEMY','Programy a služby','/eshop?category=sebarozvoj'],['BIOKOZMETIKA','Biokozmetika','/eshop?category=bio-kozmetika-bez-chemie'],['Zdravé doplnky výživy','Zdravé doplnky výživy','/eshop?category=zdrave-doplnky-vyzivy'],['Darčekový poukaz','Darčekový poukaz','/darcekovy-poukaz']];
 

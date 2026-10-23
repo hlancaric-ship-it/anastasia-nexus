@@ -121,6 +121,54 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
  .about-intro .about-words p:not(.eyebrow){font-size:16px}
 }
 
+/* About page: show its headline immediately, balance it against the portrait,
+   and keep the legacy quote readable on the lavender surface. */
+#ana-rail{background:#e9e9f2!important;background-image:none!important;color:#403f62!important;border-color:#a7a5cf66!important}
+#ana-rail{background-color:#e9e9f2!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#ana-rail :is(a,button,span,svg){color:#403f62!important;text-shadow:none!important}
+.legacy-main .lucia-opening{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:1fr auto;align-items:center;column-gap:clamp(28px,5vw,76px);min-height:0;height:auto;padding:clamp(48px,7vh,86px) clamp(28px,5vw,76px) 32px;background:#e9e9f2!important;color:#403f62!important}
+.legacy-main .lucia-opening>h1{grid-column:1;grid-row:1;align-self:center;margin:0!important;max-width:100%;font-size:clamp(58px,7.4vw,112px);line-height:1.02;color:#403f62!important;opacity:1!important;visibility:visible!important;transform:none!important}
+.legacy-main .lucia-opening>h1 span{color:#73729c!important}
+.legacy-main .lucia-opening .source-media{grid-column:2;grid-row:1;width:100%;height:clamp(500px,68vh,740px);min-height:0;margin:0!important;border-radius:120px 0 0 0;overflow:hidden}
+.legacy-main .lucia-opening .source-media img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.legacy-main .lucia-opening .lucia-caption{grid-column:2;grid-row:2;margin:14px 0 0!important;color:#403f62!important}
+.legacy-main .author-quote{background:#e9e9f2!important;color:#403f62!important}
+.legacy-main .author-quote .story-copy :is(h1,h2,h3,h4,p,li){color:#403f62!important}
+.legacy-main .lucia-opening .reveal{opacity:1!important;visibility:visible!important;transform:none!important}
+@media(max-width:768px){
+ .legacy-main .lucia-opening{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;gap:0;padding:44px 20px 28px}
+ .legacy-main .lucia-opening>h1{grid-column:1;grid-row:1;font-size:clamp(54px,12vw,78px);margin:12px 0 26px!important}
+ .legacy-main .lucia-opening .source-media{grid-column:1;grid-row:2;width:92%;height:min(112vw,460px);margin:0 0 0 auto!important;border-radius:80px 0 0 0}
+ .legacy-main .lucia-opening .lucia-caption{grid-column:1;grid-row:3;margin:12px 0 0 8%!important}
+}
+
+/* The approved O Lucii editorial page has its own generated section structure. */
+.dc-root section[data-screen-label="01 Úvod"]{background:#e9e9f2!important;color:#403f62!important}
+.dc-root section[data-screen-label="01 Úvod"] #lh-top{color:#403f62!important;border-color:#a7a5cf66!important}
+.dc-root section[data-screen-label="01 Úvod"] #lh-top :is(a,button,span){color:#403f62!important}
+.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)!important;align-items:center!important}
+.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child{justify-content:center!important;padding-block:clamp(40px,6vw,88px)!important;gap:clamp(22px,2.6vw,38px)!important;color:#403f62!important}
+.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child :is(a,div,h1,p,span){color:#403f62!important}
+.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child h1{font-size:clamp(55px,6vw,112px)!important;line-height:.98!important}
+.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(480px,70vh,820px)!important}
+.dc-root section[data-screen-label="01b Dôvera"]{background:#e9e9f2!important;color:#403f62!important;padding-block:clamp(30px,4vw,56px)!important;margin-bottom:0!important}
+.dc-root section[data-screen-label="02 O mne"]{background:#fff!important;color:#403f62!important;padding-top:clamp(36px,5vw,68px)!important;margin-top:0!important}
+.dc-root section[data-screen-label="03 Citát"]{background:#e9e9f2!important;color:#403f62!important;border-color:#a7a5cf!important}
+.dc-root section[data-screen-label="03 Citát"] :is(h1,h2,h3,h4,p,a,span,strong){color:#403f62!important;text-shadow:none!important}
+.dc-root section[data-screen-label="04 AI ANASTASIA"]{background:#fff!important;color:#403f62!important}
+.dc-root section[data-screen-label="05 Témy"]{background:#e9e9f2!important;color:#403f62!important}
+.dc-root section[data-screen-label="06 Presvedčenie"]{background:#fff!important;color:#403f62!important}
+.dc-root section[data-screen-label="07 Vízia"]{color:#fff!important}
+.dc-root section[data-screen-label="07 Vízia"] :is(h1,h2,h3,h4,p,a,span,strong){color:#fff!important}
+.dc-root section[data-screen-label="08 Poďakovanie"]{background:#e9e9f2!important;color:#403f62!important}
+.dc-root section[data-screen-label="09 Čím môžem pomôcť"]{background:#73729c!important;color:#fff!important}
+.dc-root section[data-screen-label="09 Čím môžem pomôcť"] :is(h1,h2,h3,h4,p,a,span,strong){color:#fff!important}
+@media(max-width:699.98px){
+ .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]{grid-template-columns:minmax(0,1fr)!important}
+ .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child{padding:42px 22px!important}
+ .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(420px,112vw,560px)!important}
+}
+
 /* Finish the public theme after the legacy and generated design sheets. */
 :root{--site-main:#73729c!important;--site-deep:#5d5c82!important;--site-dark:#403f62!important;--site-accent:#a7a5cf!important;--site-accent-deep:#73729c!important;--site-accent-light:#e9e9f2!important;--site-cream:#fff!important;--ana-paper:#fff!important;--ana-forest:#403f62!important;--ana-footer-top:#e9e9f2!important;--ana-footer-bottom:#e9e9f2!important}
 html,body,.dc-root,.legacy-shell,.legacy-main,#main{background:#fff!important;color:#292833!important}

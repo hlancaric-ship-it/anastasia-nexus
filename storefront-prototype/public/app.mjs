@@ -15,6 +15,14 @@ import {JWT_KEY} from '/lib/api/http.mjs';
 let storage;try{storage=window.sessionStorage;}catch{}
 const api=createApi(storage);
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
+// Product media can be temporarily unavailable while catalogue URLs are repaired.
+// Keep the designed local placeholder visible and never paint the browser's alt text.
+document.addEventListener('error',event=>{
+  const img=event.target;
+  if(!(img instanceof HTMLImageElement)||!img.closest('.shop-page,.pd-page,.shop-mini-cart'))return;
+  if(img.dataset.placeholderApplied)return;
+  img.dataset.placeholderApplied='true';img.alt='';img.src='/assets/product-placeholder.svg';
+},true);
 let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}

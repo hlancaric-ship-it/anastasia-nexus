@@ -98,3 +98,23 @@
 .shop-mini-panel footer a.shop-mini-checkout{background:#8870b2}
 @media(max-width:760px){.shop-page{padding:26px 18px 58px}.shop-page .page-intro{margin-bottom:20px}.shop-catalog .catalog-controls{grid-template-columns:1fr 1fr}.shop-catalog .catalog-controls .search-label{grid-column:1/-1}.shop-catalog .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.shop-catalog .product-image{aspect-ratio:.92}.shop-catalog .product-caption{min-height:83px;padding:11px}.shop-catalog .product-caption h3{font-size:14px}.shop-catalog .product-caption p{font-size:13px}.shop-catalog .product-caption>.arrow{width:30px;height:30px;padding:7px}.shop-catalog .product-info{padding:0 11px 12px}.shop-cart .cart-layout,.shop-checkout .checkout-grid{grid-template-columns:1fr;gap:18px}.shop-cart .cart-line{grid-template-columns:62px minmax(0,1fr) auto;gap:10px}.shop-cart .cart-line>img{width:62px;height:72px}.shop-cart .cart-line h2{font-size:14px}.shop-cart .remove-line{font-size:11px;padding:6px}.shop-checkout .checkout-steps{gap:16px;justify-content:space-between}.shop-checkout .checkout-steps li{font-size:11px}.pd-physical .pd-physical-layout{grid-template-columns:1fr;gap:18px}.pd-physical .pd-main-image{aspect-ratio:1.1;max-height:520px}.pd-physical .pd-info h1{font-size:38px}.pd-physical .pd-accordions{margin-top:22px}}
 @media(max-width:420px){.shop-page{padding-inline:14px}.shop-catalog .catalog-controls{gap:10px}.shop-catalog .catalog-controls label{font-size:10px}.shop-catalog .catalog-grid{gap:9px}.shop-catalog .product-caption>.arrow{display:none}.shop-cart .cart-line{grid-template-columns:56px minmax(0,1fr);}.shop-cart .cart-line>img{width:56px;height:66px}.shop-cart .remove-line{grid-column:2;justify-self:start;height:44px}.shop-checkout #checkout-form fieldset,.shop-checkout .order-summary{padding:16px}}
+
+/* Final storefront corrections: compact catalogue rows, explicit symbols and a
+   lavender fallback while remote product photography is being repaired. */
+.shop-catalog .catalog-grid{align-items:start!important;grid-auto-rows:auto!important}
+.shop-catalog .product-card{align-self:start!important;height:auto!important;min-height:0!important}
+.shop-catalog .product-info p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;max-height:4.8em;line-height:1.6}
+.shop-catalog .product-image{background:#e9e9f2!important}
+.shop-catalog .product-image:after,.pd-related .product-image:after{display:none!important}
+.shop-catalog .product-image img,.pd-related .product-image img{filter:none!important;transform:none!important}
+.shop-catalog .product-image img,.pd-page .pd-main-image img,.product-media{background:#e9e9f2 url('/assets/product-placeholder.svg') center/cover no-repeat;color:transparent;font-size:0;text-indent:-9999px}
+.shop-catalog .catalog-nav-tile{justify-content:center!important;gap:8px!important}
+.shop-catalog .catalog-nav-tile .catalog-nav-symbol{display:block!important;visibility:visible!important;width:18px!important;height:18px!important;flex:0 0 18px!important;color:#73729c!important;opacity:1!important}
+.shop-catalog .catalog-nav-tile>span{flex:none!important}
+.shop-page{--shop-paper:#fff!important;--shop-ink:#292833!important;--shop-olive:#73729c!important;--shop-gold:#a58a56!important;--shop-lav:#73729c!important;background:radial-gradient(ellipse at 100% 10%,#e9e9f2 0,transparent 34%),#fff!important;color:#292833!important}
+.shop-page .product-caption,.shop-page .product-info{background:#fff!important;color:#292833!important}
+.shop-page .product-caption p,.shop-page .product-info p{color:#403f62!important}
+.shop-page .button:not(.outline),.shop-page .product-info .button{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
+.shop-page .catalog-nav-tile[aria-current=page]{background:#e9e9f2!important;border-color:#a7a5cf!important;color:#403f62!important}
+.shop-page .catalog-nav-tile{background:#fff!important;border-color:#a7a5cf!important;color:#403f62!important}
+.shop-page .catalog-nav-tile .catalog-nav-symbol{color:#73729c!important}
