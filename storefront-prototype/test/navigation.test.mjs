@@ -7,7 +7,7 @@ const expected=new Map(Object.entries({
  'Obchod':'/eshop','AI ANASTASIA Academy':'/eshop?category=sebarozvoj','Biokozmetika':'/eshop?category=bio-kozmetika-bez-chemie','Zdravé doplnky výživy':'/eshop?category=zdrave-doplnky-vyzivy',
  'Darčekový poukaz':'/darcekovy-poukaz','Konzultácie':'/konzultacie','Denný stacionár Vyšná Slaná':'/denny-stacionar-vysna-slana',
  'Zdravý svet':'/zdravy-svet','O Lucii':'/o-lucii','Recenzie zákazníkov':'/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com','AI ANASTASIA':'https://www.aianastasia.com/','ANASTASIA Academy':'/',
- 'Klub':'/klub','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
+ 'Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik',
 }));
 const htmlFor=path=>readFile(new URL((path==='/'?'':path.slice(1)+'/')+'index.html',dist),'utf8');
 const attribute=(text,name)=>text.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
@@ -25,8 +25,17 @@ test('both menus on every route link to the page promised by their labels',async
     assert.ok(routes.includes(new URL(href,'http://local').pathname),`${path} ${id}: target exists`);labels.add(label);occurrences.set(label,(occurrences.get(label)||0)+1);
    }
    for(const label of expected.keys()){assert.ok(labels.has(label),`${path} ${id}: ${label} available`);if(label!=='Môj účet')assert.equal(occurrences.get(label),1,`${path} ${id}: ${label} not duplicated`);}
+   assert.ok(!labels.has('Klub'),`${path} ${id}: Klub stays hidden for now`);
   }
  }
+});
+test('Klub is hidden from the footer while the reserved page route remains available',async()=>{
+ const html=await htmlFor('/');
+ const footer=html.match(/<footer\b[^>]*>([\s\S]*?)<\/footer>/)?.[1];
+ assert.ok(footer,'footer exists');
+ assert.doesNotMatch(footer,/>\s*Klub\s*</);
+ assert.match(html,/\.site-footer \.sf-bottom>div:last-child\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.ok(routes.includes('/klub'));
 });
 test('all internal menu and header links resolve, including their fragment targets',async()=>{
  const pages=new Map(await Promise.all(routes.map(async path=>[path,await htmlFor(path)])));

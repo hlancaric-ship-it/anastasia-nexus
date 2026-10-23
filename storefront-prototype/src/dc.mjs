@@ -170,7 +170,7 @@ const ids = html => html
 
 // Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
 const FOOTER_GROUPS = {
-  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Klub', '/klub'], ['Zdravý svet', '/zdravy-svet']],
+  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Zdravý svet', '/zdravy-svet']],
   'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Supervízia', '/konzultacie/supervizia'], ['Astrológia', '/konzultacie/astrologicky-profil-zdravia-a-vitality']],
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravá lekáreň', '/zdrava-lekaren'], ['Denný stacionár Vyšná Slaná', '/denny-stacionar-vysna-slana'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
@@ -242,7 +242,7 @@ export function chrome(page) {
       const title=group.title==='Obchod'?link(group.title,group.href,true):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px" data-content="${base}__${menuField++}-text">${escape(group.title)}</span>`;
       return wrapper+title+group.links.map(([label,href])=>link(label,href)).join('')+'</div>';
     });
-    return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
+    return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark).replace(/<a\b[^>]*>\s*Klub\s*<\/a>/g,'').replaceAll('rgba(26,34,22,0.42)','rgba(26,34,22,0.9)');
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
   const headerHtml=convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">').replace('<header ','<header id="lh-top" class="lh-top" ');
@@ -310,7 +310,11 @@ ${HOME_CSS}
 .site-footer .sf-brands>*>div>span[style*="font-size:clamp(16px"]{font-size:clamp(16px,1.5vw,22px)!important}
 .site-footer .sf-brands>*>div{gap:8px!important;padding-bottom:0!important}
 .site-footer .sf-brands>*>div>span[style*="height:46px"]{height:24px!important}
-.site-footer .sf-bottom{padding-top:20px!important;align-items:center;row-gap:12px!important}
+.site-footer .sf-bottom{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start!important;gap:14px 24px!important}
+.site-footer .sf-bottom>div:first-child{grid-column:1/-1;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px!important;min-width:0}
+.site-footer .sf-bottom>span{grid-column:1/-1}
+.site-footer .sf-bottom>div:last-child{grid-column:1/-1;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px 24px!important;width:100%;min-width:0}
+.site-footer .sf-bottom>div:last-child a{display:block;min-width:0;white-space:normal!important;overflow-wrap:anywhere;line-height:1.4}
 @media(max-width:999.98px){.site-footer .sf-top{grid-template-columns:1fr}}
 @media(max-width:699.98px){
 .site-footer .sf-links{grid-template-columns:1fr 1fr;gap:26px 18px!important}
@@ -324,7 +328,8 @@ ${HOME_CSS}
 .site-footer .sf-brands>*>div>span:last-child{font-size:8px!important;letter-spacing:.3em!important;gap:6px!important}
 .site-footer .sf-brands>*>div>span:last-child>span{width:10px!important}
 .site-footer .sf-brands>*>span{font-size:8px!important;letter-spacing:1.4px!important;text-align:center}
-.site-footer .sf-bottom{flex-direction:column;align-items:flex-start}
+.site-footer .sf-bottom{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px!important}
+.site-footer .sf-bottom>div:first-child,.site-footer .sf-bottom>div:last-child{gap:14px 18px!important}
 }
 :is(.dc-root,.dc-chrome) .header-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
 :is(.dc-root,.dc-chrome) .header-brand-emblem{position:relative;display:block;width:36px;height:36px;overflow:hidden;border-radius:50%;flex-shrink:0}
