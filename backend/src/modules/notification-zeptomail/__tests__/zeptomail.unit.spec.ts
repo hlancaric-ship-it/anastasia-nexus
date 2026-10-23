@@ -165,6 +165,7 @@ describe("ZeptoMail – šablony", () => {
     const minimal: Record<string, Record<string, unknown>> = {
       "magic-link-sk": { url: "https://anastasiaoz.eu/x" },
       "gift-voucher-recipient-sk": { code: "ABCD-EFGH" },
+      "set-password-sk": { url: "https://anastasiaoz.eu/ucet/nastavit-heslo?token=ukazka" },
     }
     for (const name of TEMPLATE_NAMES) {
       const out = renderTemplate(name, minimal[name] ?? {})
@@ -183,7 +184,7 @@ describe("ZeptoMail – šablony", () => {
     const out = renderTemplate("gift-voucher-recipient-sk", { code: "ABCD-EFGH", recipient_name: "<script>alert(1)</script>", message: `"><img src=x onerror=alert(1)>` })
     expect(out.html).not.toContain("<script>")
     expect(out.html.match(/<img\b/g)).toHaveLength(1)
-    expect(out.html).toContain('src="https://media.anastasiaoz.eu/logo-mark.png"')
+    expect(out.html).toContain('src="https://anastasia-test.l-code-dynamics.com/assets/logo-mark.png"')
     expect(out.html).not.toMatch(/<img\b[^>]*\bonerror=/i)
     expect(out.html).toContain("&lt;script&gt;")
     expect(() => renderTemplate("magic-link-sk", { url: "javascript:alert(1)" })).toThrow(/missing url/)
