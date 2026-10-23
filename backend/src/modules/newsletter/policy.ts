@@ -210,13 +210,13 @@ export function remainingDailyBudget(sentLast24h: number, limit: number, batch: 
 // --- Šablóna e-mailu ---
 
 const BRAND = {
-  cream: "#fbf8f2",
-  card: "#fffdf8",
-  lavender: "#8e7cc3",
-  sage: "#5f7a5a",
-  ink: "#2c2a23",
-  muted: "#7a7368",
-  line: "#ece4d6",
+  cream: "#e9e9f2",
+  card: "#ffffff",
+  lavender: "#a7a5cf",
+  accent: "#73729c",
+  ink: "#2b2a3a",
+  muted: "#55546b",
+  line: "#a7a5cf",
 }
 
 /** Prevod sanitizovaného HTML na čitateľný text (pätička sa pridáva zvlášť). */
@@ -254,7 +254,7 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
   const unsubscribe = input.unsubscribeUrl ? String(input.unsubscribeUrl) : ""
   const footer = unsubscribe
     ? `<p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
-<p style="margin:0"><a href="${escapeHtml(unsubscribe)}" style="font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.sage};text-decoration:underline">Odhlásiť sa z odberu</a></p>`
+<p style="margin:0"><a href="${escapeHtml(unsubscribe)}" style="font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.accent};text-decoration:underline">Odhlásiť sa z odberu</a></p>`
     : `<p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.</p>`
 
   const html = `<!doctype html>
@@ -271,19 +271,19 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:${BRAND.card};border:1px solid ${BRAND.line};border-radius:14px">
 <tr><td style="padding:36px 40px 0;text-align:center">
 <img src="https://media.anastasiaoz.eu/logo-mark.png" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;margin:0 auto 10px;object-fit:contain;border:0">
-<div style="font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:300;letter-spacing:6px;color:${BRAND.sage};text-transform:uppercase">ANASTASIA</div>
-<div style="font-family:Figtree,Arial,sans-serif;font-size:10px;letter-spacing:3px;color:${BRAND.lavender};text-transform:uppercase;padding-top:8px">Light for the future</div>
+<div style="font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:300;letter-spacing:6px;color:${BRAND.accent};text-transform:uppercase">ANASTASIA</div>
+<div style="font-family:Figtree,Arial,sans-serif;font-size:10px;letter-spacing:3px;color:${BRAND.muted};text-transform:uppercase;padding-top:8px">Light for the future</div>
 <div style="height:1px;background:${BRAND.lavender};opacity:0.35;margin:22px 0 0"></div>
 </td></tr>
 <tr><td style="padding:26px 40px 8px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.75;color:${BRAND.ink}">
 ${input.bodyHtml}
 </td></tr>
 <tr><td style="padding:28px 40px 34px">
-<div style="height:1px;background:${BRAND.sage};opacity:0.25;margin:0 0 20px"></div>
+<div style="height:1px;background:${BRAND.accent};opacity:0.25;margin:0 0 20px"></div>
 <p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
 ${footer}
-<p style="margin:14px 0 0;font-family:Fraunces,Georgia,serif;font-size:11px;letter-spacing:2px;color:${BRAND.sage};text-transform:uppercase">ANASTASIA · Light for the future</p>
-<p style="margin:10px 0 0;font-family:Figtree,Arial,sans-serif;font-size:11px;line-height:1.6;color:${BRAND.muted}">LUCRAT spol. s r.o. · IČO 36652164 · <a href="https://anastasiaoz.eu" style="color:${BRAND.sage}">anastasiaoz.eu</a></p>
+<p style="margin:14px 0 0;font-family:Fraunces,Georgia,serif;font-size:11px;letter-spacing:2px;color:${BRAND.accent};text-transform:uppercase">ANASTASIA · Light for the future</p>
+<p style="margin:10px 0 0;font-family:Figtree,Arial,sans-serif;font-size:11px;line-height:1.6;color:${BRAND.muted}">LUCRAT spol. s r.o. · IČO 36652164 · <a href="https://anastasiaoz.eu" style="color:${BRAND.accent}">anastasiaoz.eu</a></p>
 </td></tr>
 </table>
 </td></tr>

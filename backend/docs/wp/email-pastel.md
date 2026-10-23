@@ -6,6 +6,12 @@ Stav: `PARTIAL` (pokračování 2026-10-23).
 
 Logo šablon ZeptoMail je přepojeno na `https://anastasia-test.l-code-dynamics.com/assets/logo-mark.png`; `curl -I` ověřil `200 image/png`. HTML používá PNG, atributy `width="52"` a `height="52"` už byly přítomné.
 
+## Paleta e-mailů (2026-10-23)
+
+Transakční šablony i newsletter používají společnou paletu: bílý povrch, `#e9e9f2` pozadí, `#a7a5cf` dekorativní levandulové linky, `#73729c` nadpisy a tlačítka a `#2b2a3a` text. `#73729c` na bílé má kontrast přibližně 4.7:1 (WCAG AA pro běžný text); `#55546b` se používá pro drobnější sekundární text. Tmavě zelená se pro ovládací prvky nepoužívá. Náhled uvítacího e-mailu používá neutrální „Vitajte“ bez jména.
+
+Aktualizovány jsou testy obou renderovacích cest v `notification-zeptomail` a `newsletter`. Nasazení vyžaduje zálohu testovací DB a rebuild služby `backend` přes existující Compose projekt `anastasia-test` v `~/anastasia-test/src/ops/test-server`; záložní cesta: `~/db-backups/pre-backend-deploy-20261023.dump`.
+
 Do katalogu přibyly `set-password-sk` a `admin-invite`. Přibyl subscriber pro `invite.created`, který předá pozvánku stávajícímu `sendEmail`. Tvar payloadu Medusa invite eventu a skutečné vytvoření použitelného invite URL nebyly ověřeny běhovým testem. Migrace v `scripts/migrate-legacy-customers-orders.ts` zůstala beze změny.
 
 Zbývá: kompletní ruční překlady všech šablon do EN/RU a výběr locale podle zákazníka/objednávky/metadat není implementován. Newsletterový `renderCampaignEmail` je distribuční HTML pro kampaně, nikoli potvrzení přihlášení; store endpoint newsletteru pouze zapíše souhlas, potvrzovací e-mail nespouští. V prohledaném backendu nebyl nalezen e-mail o zpřístupnění digitálního obsahu/knihovny. Tyto dvě cesty proto nebylo co vizuálně sjednotit.

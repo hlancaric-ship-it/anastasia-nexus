@@ -33,6 +33,17 @@ describe("šablony – katalóg pre admin", () => {
     expect(listTemplateDefs().filter(d => d.required).map(d => d.name).sort()).toEqual(["admin-invite", "contact-form-admin", "contract-withdrawal-received-sk", "gift-voucher-buyer-sk", "gift-voucher-recipient-sk", "magic-link-sk", "set-password-sk"])
     expect(getTemplateDef("neexistuje")).toBeNull()
   })
+
+  it("použije levanduľovú paletu s kontrastným nadpisom a tlačidlom v náhľade", () => {
+    const preview = renderPreview("customer-welcome-sk")
+    expect(preview.html).toContain("background:#e9e9f2")
+    expect(preview.html).toContain("background:#73729c")
+    expect(preview.html).toContain("color:#73729c")
+    expect(preview.html).toContain("color:#2b2a3a")
+    expect(preview.html).toContain("Vitajte</h1>")
+    expect(preview.html).not.toContain("Jana")
+    expect(preview.html).not.toMatch(/#(?:2d4936|6b1d2e)/i)
+  })
 })
 
 describe("šablony – objednávka", () => {

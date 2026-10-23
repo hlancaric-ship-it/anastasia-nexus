@@ -38,12 +38,12 @@ export type TemplateDef = {
 
 const TIME_ZONE = "Europe/Bratislava"
 const BRAND = "ANASTASIA"
-const ACCENT = "#2d4936"
-const LAVENDER = "#b8a0ce"
-const CREAM = "#f7f2e8"
-const SURFACE = "#fffcf8"
-const INK = "#191b18"
-const MUTED = "#625f59"
+const ACCENT = "#73729c"
+const LAVENDER = "#a7a5cf"
+const CREAM = "#e9e9f2"
+const SURFACE = "#ffffff"
+const INK = "#2b2a3a"
+const MUTED = "#55546b"
 const LOGO_URL = "https://anastasia-test.l-code-dynamics.com/assets/logo-mark.png"
 
 export const SLOT_MAX_LENGTH: Record<SlotKind, number> = { line: 160, text: 1000 }
@@ -343,7 +343,7 @@ const CATALOG: Entry[] = [
       text("outro", "Záverečný text", "Ak budete mať akúkoľvek otázku, stačí odpovedať na tento e-mail.", true),
       line("button", "Tlačidlo", "Môj účet"),
     ],
-    sample: { first_name: "Jana", url: "https://anastasiaoz.eu/ucet" },
+    sample: { url: "https://anastasiaoz.eu/ucet" },
     vars: data => ({ meno: str(data.first_name) }),
     build: (data, t, r) => ({
       subject: r("subject"),
@@ -892,7 +892,7 @@ export function listTemplateDefs(): TemplateDef[] {
 function renderHtml(body: Body): string {
   const blocks = body.blocks.map(block => {
     if (block.kind === "quote") {
-      return `<p style="margin:0 0 16px;padding:12px 16px;border-left:3px solid ${LAVENDER};background:#f7f2e8;font-style:italic;white-space:pre-line">${escapeHtml(block.text)}</p>`
+      return `<p style="margin:0 0 16px;padding:12px 16px;border-left:3px solid ${LAVENDER};background:${CREAM};font-style:italic;white-space:pre-line">${escapeHtml(block.text)}</p>`
     }
     if (block.kind === "code") {
       return `<p style="margin:0 0 6px;font-size:13px;color:#6b6b6b">${escapeHtml(block.label)}</p>` +
@@ -915,14 +915,14 @@ function renderHtml(body: Body): string {
 <html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(body.subject)}</title></head>
 <body style="margin:0;padding:0;background:${CREAM};color:${INK};-webkit-text-size-adjust:100%">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${CREAM}" style="width:100%;background:${CREAM}"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${SURFACE}" style="width:100%;max-width:600px;background:${SURFACE};border:1px solid #eae3d8;border-radius:12px;overflow:hidden;color:${INK}">
-<tr><td align="center" style="padding:24px 24px 16px;border-bottom:1px solid #eae3d8"><img src="${LOGO_URL}" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;object-fit:contain;border:0"><div style="padding-top:10px;font-family:Fraunces,Georgia,serif;font-size:12px;letter-spacing:4px;color:${ACCENT}">${BRAND}</div></td></tr>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${SURFACE}" style="width:100%;max-width:600px;background:${SURFACE};border:1px solid ${LAVENDER};border-radius:12px;overflow:hidden;color:${INK}">
+<tr><td align="center" style="padding:24px 24px 16px;border-bottom:1px solid ${LAVENDER}"><img src="${LOGO_URL}" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;object-fit:contain;border:0"><div style="padding-top:10px;font-family:Fraunces,Georgia,serif;font-size:12px;letter-spacing:4px;color:${ACCENT}">${BRAND}</div></td></tr>
 <tr><td style="padding:28px 32px 22px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.7;color:${INK}">
 <h1 style="margin:0 0 18px;font-family:Fraunces,Georgia,serif;font-size:28px;line-height:1.25;font-weight:300;color:${ACCENT}">${escapeHtml(body.heading)}</h1>
 ${blocks}
 ${button}
 </td></tr>
-<tr><td style="padding:18px 32px 22px;border-top:1px solid #eae3d8;font-family:Figtree,Arial,sans-serif;font-size:12px;line-height:1.7;color:${MUTED}">LUCRAT spol. s r.o. · IČO 36652164<br><a href="https://anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">anastasiaoz.eu</a> · <a href="mailto:info@anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">info@anastasiaoz.eu</a></td></tr>
+<tr><td style="padding:18px 32px 22px;border-top:1px solid ${LAVENDER};font-family:Figtree,Arial,sans-serif;font-size:12px;line-height:1.7;color:${MUTED}">LUCRAT spol. s r.o. · IČO 36652164<br><a href="https://anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">anastasiaoz.eu</a> · <a href="mailto:info@anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">info@anastasiaoz.eu</a></td></tr>
 </table></td></tr></table>
 </body></html>`
 }
