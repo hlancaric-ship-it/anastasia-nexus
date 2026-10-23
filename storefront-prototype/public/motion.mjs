@@ -41,6 +41,19 @@ const markIntroSeen = () => { try { sessionStorage.setItem('ana-intro-seen', '1'
 const start = () => {
 gsap = window.gsap;
 ScrollTrigger = window.ScrollTrigger;
+// Shared storefront atmosphere: only image-free content sections receive a soft
+// glass surface and one distinct, real source image. The hero is never included.
+const atmosphereSources = ['olive-branch', 'lavender', 'pharmacy-glass', 'botanical-light'];
+const atmosphereSections = $$('main section:not(:has(img,video))').filter(el => !el.closest('.lh-intro,.hero'));
+atmosphereSections.forEach((el, index) => {
+  const key = atmosphereSources[index % atmosphereSources.length];
+  el.dataset.atmosphere = key;
+  const layer = document.createElement('span');
+  layer.className = 'ana-atmosphere';
+  layer.dataset.source = key;
+  layer.setAttribute('aria-hidden', 'true');
+  el.prepend(layer);
+});
 if (gsap && ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
 
@@ -52,6 +65,23 @@ if (gsap && ScrollTrigger) {
   // ScrollTrigger musí vědět o Lenis scrollu, jinak scrub laguje.
   const lenis = window.__anaLenis;
   if (lenis) lenis.on('scroll', () => ScrollTrigger.update());
+
+  // Each stacionár photograph has its own restrained parallax travel. This is
+  // kept separate from the lighter-touch desktop-only effects used elsewhere.
+  if (!reduce) $$('[data-parallax-speed]').forEach(frame => {
+    const image = $('img', frame);
+    if (!image) return;
+    const speed = Number(frame.dataset.parallaxSpeed) || 9;
+    gsap.fromTo(image, {yPercent: -speed}, {yPercent: speed, ease: 'none', scrollTrigger: {
+      trigger: frame, start: 'top bottom', end: 'bottom top', scrub: true,
+    }});
+  });
+
+  if (!reduce) $$('.ana-atmosphere').forEach(layer => {
+    gsap.fromTo(layer, {y: -18}, {y: 18, ease: 'none', scrollTrigger: {
+      trigger: layer.parentElement, start: 'top bottom', end: 'bottom top', scrub: true,
+    }});
+  });
 
   const intro = $('#lh-intro');
   const top = $('#lh-top');

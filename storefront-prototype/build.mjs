@@ -173,7 +173,20 @@ await writeFile(join(out,'dc.css'),centerThemeCss()+'\n'+siteThemeCss()+'\n'+tok
   '.legacy-shell>.dc-chrome:first-child{background:transparent!important;height:0;margin:0!important;padding:0!important;border:0!important}.legacy-shell>.dc-chrome:first-child>header{position:fixed!important;top:14px;right:clamp(16px,3vw,48px);left:auto;z-index:45;display:flex!important;padding:0!important;border:0!important;background:none!important;pointer-events:none}.legacy-shell>.dc-chrome:first-child>header>div{display:contents!important}.legacy-shell>.dc-chrome:first-child>header .header-brand,.legacy-shell>.dc-chrome:first-child>header>div>:not(dc-wide):not(dc-narrow),.legacy-shell>.dc-chrome:first-child>header dc-wide:not(:has(.dch1)),.legacy-shell>.dc-chrome:first-child>header dc-narrow:not(:has(.dch0)){display:none!important}.legacy-shell>.dc-chrome:first-child>header :is(.dch0,.dch1){pointer-events:auto;background:var(--site-main)!important;color:var(--site-cream)!important;border-radius:80px!important;padding:0 22px!important;height:50px!important}',
   '/* 22. 10. Lucky: jedno písmo všade – nadpisy Fraunces 300, text Figtree. */',
   'h1,h2,h3{font-family:Fraunces,Georgia,"Times New Roman",serif!important;font-weight:300!important}',
-  dcCss()].join('\n')));
+  dcCss(),
+  `.dc-root main section[data-atmosphere],.legacy-main section[data-atmosphere]{position:relative;isolation:isolate;overflow:hidden;border:1px solid rgba(164,129,191,.26);border-radius:22px;box-shadow:0 5px 22px rgba(112,74,150,.05);backdrop-filter:blur(13px) saturate(108%);-webkit-backdrop-filter:blur(13px) saturate(108%)}
+.dc-root main section[data-atmosphere="olive-branch"],.legacy-main section[data-atmosphere="olive-branch"]{background:linear-gradient(112deg,rgba(233,233,242,.83) 0%,rgba(255,255,255,.88) 72%)}
+.dc-root main section[data-atmosphere="lavender"],.legacy-main section[data-atmosphere="lavender"]{background:linear-gradient(105deg,rgba(255,255,255,.86) 0%,rgba(233,233,242,.83) 100%)}
+.dc-root main section[data-atmosphere="pharmacy-glass"],.legacy-main section[data-atmosphere="pharmacy-glass"]{background:linear-gradient(110deg,rgba(244,240,231,.84) 0%,rgba(255,255,255,.9) 76%)}
+.dc-root main section[data-atmosphere="botanical-light"],.legacy-main section[data-atmosphere="botanical-light"]{background:linear-gradient(115deg,rgba(233,233,242,.84) 0%,rgba(255,255,255,.9) 92%)}
+.dc-root .ana-atmosphere,.legacy-main .ana-atmosphere{position:absolute;z-index:0;inset:-8% -2%;pointer-events:none;background-position:center;background-size:cover;background-repeat:no-repeat;opacity:.12;filter:grayscale(.48) saturate(.62);mask-image:linear-gradient(90deg,transparent,#000 16%,#000 78%,transparent),linear-gradient(0deg,transparent,#000 10%,#000 72%,transparent);mask-composite:intersect}
+.ana-atmosphere[data-source="olive-branch"]{background-image:url('/img/atmosphere/olive-branch.webp')}
+.ana-atmosphere[data-source="lavender"]{background-image:url('/img/atmosphere/lavender.webp')}
+.ana-atmosphere[data-source="pharmacy-glass"]{background-image:url('/img/atmosphere/pharmacy-glass.webp')}
+.ana-atmosphere[data-source="botanical-light"]{background-image:url('/img/botanical-light.webp')}
+.dc-root main section[data-atmosphere]>*:not(.ana-atmosphere),.legacy-main section[data-atmosphere]>*:not(.ana-atmosphere){position:relative;z-index:1}
+@media(max-width:760px){.dc-root .ana-atmosphere,.legacy-main .ana-atmosphere{inset:-2% -26%;opacity:.09}}
+@media(prefers-reduced-motion:reduce){.dc-root .ana-atmosphere,.legacy-main .ana-atmosphere{transform:none!important;will-change:auto!important}}`].join('\n')));
 await writeFile(join(out,'center-theme.js'),centerThemeBoot());
 await writeFile(join(out,'site-theme.js'),siteThemeBoot());
 await writeFile(join(out,'account-guard.js'),accountGuardBoot(JWT_KEY));
