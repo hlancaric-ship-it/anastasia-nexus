@@ -270,18 +270,20 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
 <tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:${BRAND.card};border:1px solid ${BRAND.line};border-radius:14px">
 <tr><td style="padding:36px 40px 0;text-align:center">
-<div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:8px;color:${BRAND.sage};text-transform:uppercase">ANASTASIA</div>
-<div style="font-family:Georgia,'Times New Roman',serif;font-size:10px;letter-spacing:4px;color:${BRAND.lavender};text-transform:uppercase;padding-top:8px">Light for the future</div>
+<img src="https://media.anastasiaoz.eu/logo-mark.png" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;margin:0 auto 10px;object-fit:contain;border:0">
+<div style="font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:300;letter-spacing:6px;color:${BRAND.sage};text-transform:uppercase">ANASTASIA</div>
+<div style="font-family:Figtree,Arial,sans-serif;font-size:10px;letter-spacing:3px;color:${BRAND.lavender};text-transform:uppercase;padding-top:8px">Light for the future</div>
 <div style="height:1px;background:${BRAND.lavender};opacity:0.35;margin:22px 0 0"></div>
 </td></tr>
-<tr><td style="padding:26px 40px 8px;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.75;color:${BRAND.ink}">
+<tr><td style="padding:26px 40px 8px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.75;color:${BRAND.ink}">
 ${input.bodyHtml}
 </td></tr>
 <tr><td style="padding:28px 40px 34px">
 <div style="height:1px;background:${BRAND.sage};opacity:0.25;margin:0 0 20px"></div>
 <p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
 ${footer}
-<p style="margin:14px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:2px;color:${BRAND.sage};text-transform:uppercase">ANASTASIA · Light for the future</p>
+<p style="margin:14px 0 0;font-family:Fraunces,Georgia,serif;font-size:11px;letter-spacing:2px;color:${BRAND.sage};text-transform:uppercase">ANASTASIA · Light for the future</p>
+<p style="margin:10px 0 0;font-family:Figtree,Arial,sans-serif;font-size:11px;line-height:1.6;color:${BRAND.muted}">LUCRAT spol. s r.o. · IČO 36652164 · <a href="https://anastasiaoz.eu" style="color:${BRAND.sage}">anastasiaoz.eu</a></p>
 </td></tr>
 </table>
 </td></tr>
@@ -292,6 +294,8 @@ ${footer}
   const text = [
     htmlToText(input.bodyHtml),
     "— ANASTASIA · Light for the future",
+    "LUCRAT spol. s r.o. · IČO 36652164 · https://anastasiaoz.eu",
+    "info@anastasiaoz.eu",
     unsubscribe
       ? `Odhlásiť sa z odberu: ${unsubscribe}`
       : "Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.",

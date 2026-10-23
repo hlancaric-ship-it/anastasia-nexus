@@ -170,14 +170,21 @@ describe("ZeptoMail – šablony", () => {
       const out = renderTemplate(name, minimal[name] ?? {})
       expect(out.subject).toBeTruthy()
       expect(out.html).toContain("<!doctype html>")
-      expect(out.text).toContain("ANASTASIA")
+      expect(out.html).toContain('lang="sk"')
+      expect(out.html).toContain('max-width:600px')
+      expect(out.html).toContain('font-family:Fraunces,Georgia,serif')
+      expect(out.html).toContain('font-family:Figtree,Arial,sans-serif')
+      expect(out.html).toContain("IČO 36652164")
+      expect(out.text).toContain("LUCRAT spol. s r.o.")
     }
   })
 
   it("escapuje data a nepustí nebezpečné odkazy", () => {
     const out = renderTemplate("gift-voucher-recipient-sk", { code: "ABCD-EFGH", recipient_name: "<script>alert(1)</script>", message: `"><img src=x onerror=alert(1)>` })
     expect(out.html).not.toContain("<script>")
-    expect(out.html).not.toContain("<img")
+    expect(out.html.match(/<img\b/g)).toHaveLength(1)
+    expect(out.html).toContain('src="https://media.anastasiaoz.eu/logo-mark.png"')
+    expect(out.html).not.toMatch(/<img\b[^>]*\bonerror=/i)
     expect(out.html).toContain("&lt;script&gt;")
     expect(() => renderTemplate("magic-link-sk", { url: "javascript:alert(1)" })).toThrow(/missing url/)
     expect(renderTemplate("chat-admin-reply", { url: "data:text/html,x" }).html).not.toContain("data:text/html")

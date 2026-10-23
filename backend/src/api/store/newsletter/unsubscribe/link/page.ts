@@ -48,12 +48,13 @@ export function renderUnsubscribePage(input: {
 <title>${escapeAttr(copy.title)} – ANASTASIA</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#fbf8f2;color:#2c2a23;font:15px/1.7 Helvetica,Arial,sans-serif}
-.un{width:100%;max-width:520px;background:#fffdf8;border:1px solid #ece4d6;border-radius:14px;padding:40px 36px;text-align:center}
-.un-brand{font-family:Georgia,'Times New Roman',serif;font-size:20px;letter-spacing:7px;color:#5f7a5a;text-transform:uppercase}
-.un-sub{font-family:Georgia,'Times New Roman',serif;font-size:10px;letter-spacing:4px;color:#8e7cc3;text-transform:uppercase;padding-top:8px}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#f7f2e8;color:#191b18;font:15px/1.7 Figtree,Arial,sans-serif}
+.un{width:100%;max-width:600px;background:#fffcf8;border:1px solid #eae3d8;border-radius:12px;padding:40px 36px;text-align:center}
+.un-logo{display:block;width:52px;height:52px;margin:0 auto 10px;object-fit:contain}
+.un-brand{font-family:Fraunces,Georgia,serif;font-size:20px;font-weight:300;letter-spacing:7px;color:#2d4936;text-transform:uppercase}
+.un-sub{font-family:Figtree,Arial,sans-serif;font-size:10px;letter-spacing:4px;color:#8e7cc3;text-transform:uppercase;padding-top:8px}
 .un-line{height:1px;background:#8e7cc3;opacity:.35;margin:22px 0 26px}
-.un h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:26px;line-height:1.3;margin:0 0 12px;color:#2c2a23}
+.un h1{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:26px;line-height:1.3;margin:0 0 12px;color:#2d4936}
 .un p{margin:0 0 22px;color:#5b564c}
 .un button{appearance:none;border:0;border-radius:999px;background:#5f7a5a;color:#fffdf8;font:inherit;padding:13px 30px;cursor:pointer}
 .un button:hover{background:#4d6349}
@@ -62,6 +63,7 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
 </head>
 <body>
 <main class="un">
+<img class="un-logo" src="https://media.anastasiaoz.eu/logo-mark.png" alt="ANASTASIA" width="52" height="52">
 <div class="un-brand">ANASTASIA</div>
 <div class="un-sub">Light for the future</div>
 <div class="un-line"></div>
@@ -69,6 +71,7 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
 <p>${escapeAttr(copy.text)}</p>
 ${form}
 <small>Odkaz je platný len pre e-mail, ktorý ste dostali. Nič sa nemení na vašich objednávkach ani na prístupe k účtu.</small>
+<small>LUCRAT spol. s r.o. · IČO 36652164 · <a href="https://anastasiaoz.eu">anastasiaoz.eu</a></small>
 </main>
 </body>
 </html>`

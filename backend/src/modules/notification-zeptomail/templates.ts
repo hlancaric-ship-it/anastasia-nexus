@@ -38,7 +38,13 @@ export type TemplateDef = {
 
 const TIME_ZONE = "Europe/Bratislava"
 const BRAND = "ANASTASIA"
-const ACCENT = "#6d1f2f"
+const ACCENT = "#2d4936"
+const LAVENDER = "#b8a0ce"
+const CREAM = "#f7f2e8"
+const SURFACE = "#fffcf8"
+const INK = "#191b18"
+const MUTED = "#625f59"
+const LOGO_URL = "https://media.anastasiaoz.eu/logo-mark.png"
 
 export const SLOT_MAX_LENGTH: Record<SlotKind, number> = { line: 160, text: 1000 }
 
@@ -844,7 +850,7 @@ export function listTemplateDefs(): TemplateDef[] {
 function renderHtml(body: Body): string {
   const blocks = body.blocks.map(block => {
     if (block.kind === "quote") {
-      return `<p style="margin:0 0 16px;padding:12px 16px;border-left:3px solid ${ACCENT};background:#faf6f6;font-style:italic;white-space:pre-line">${escapeHtml(block.text)}</p>`
+      return `<p style="margin:0 0 16px;padding:12px 16px;border-left:3px solid ${LAVENDER};background:#f7f2e8;font-style:italic;white-space:pre-line">${escapeHtml(block.text)}</p>`
     }
     if (block.kind === "code") {
       return `<p style="margin:0 0 6px;font-size:13px;color:#6b6b6b">${escapeHtml(block.label)}</p>` +
@@ -860,21 +866,21 @@ function renderHtml(body: Body): string {
     return `<p style="margin:0 0 16px;white-space:pre-line">${escapeHtml(block.text)}</p>`
   }).join("\n")
   const button = body.button
-    ? `<p style="margin:24px 0"><a href="${escapeHtml(body.button.url)}" style="display:inline-block;padding:12px 24px;background:${ACCENT};color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold">${escapeHtml(body.button.label)}</a></p>` +
-      `<p style="margin:0 0 16px;font-size:12px;color:#6b6b6b;word-break:break-all">Ak tlačidlo nefunguje, skopírujte do prehliadača: ${escapeHtml(body.button.url)}</p>`
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0"><tr><td bgcolor="${ACCENT}" style="border-radius:9px;background:${ACCENT}"><a href="${escapeHtml(body.button.url)}" style="display:inline-block;padding:13px 24px;background:${ACCENT};color:#ffffff;text-decoration:none;border-radius:9px;font-weight:bold;font-family:Figtree,Arial,sans-serif">${escapeHtml(body.button.label)}</a></td></tr></table>` +
+      `<p style="margin:0 0 16px;font-size:12px;color:${MUTED};word-break:break-all;font-family:Figtree,Arial,sans-serif">Ak tlačidlo nefunguje, skopírujte do prehliadača: ${escapeHtml(body.button.url)}</p>`
     : ""
   return `<!doctype html>
-<html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(body.subject)}</title></head>
-<body style="margin:0;padding:0;background:#f4f1ee">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ee"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.5;color:#2b2b2b">
-<tr><td style="padding:24px 28px 8px;font-size:13px;letter-spacing:3px;color:${ACCENT}">${BRAND}</td></tr>
-<tr><td style="padding:8px 28px 20px">
-<h1 style="margin:0 0 16px;font-size:22px;font-weight:normal;color:${ACCENT}">${escapeHtml(body.heading)}</h1>
+<html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(body.subject)}</title></head>
+<body style="margin:0;padding:0;background:${CREAM};color:${INK};-webkit-text-size-adjust:100%">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${CREAM}" style="width:100%;background:${CREAM}"><tr><td align="center" style="padding:24px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${SURFACE}" style="width:100%;max-width:600px;background:${SURFACE};border:1px solid #eae3d8;border-radius:12px;overflow:hidden;color:${INK}">
+<tr><td align="center" style="padding:24px 24px 16px;border-bottom:1px solid #eae3d8"><img src="${LOGO_URL}" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;object-fit:contain;border:0"><div style="padding-top:10px;font-family:Fraunces,Georgia,serif;font-size:12px;letter-spacing:4px;color:${ACCENT}">${BRAND}</div></td></tr>
+<tr><td style="padding:28px 32px 22px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.7;color:${INK}">
+<h1 style="margin:0 0 18px;font-family:Fraunces,Georgia,serif;font-size:28px;line-height:1.25;font-weight:300;color:${ACCENT}">${escapeHtml(body.heading)}</h1>
 ${blocks}
 ${button}
 </td></tr>
-<tr><td style="padding:16px 28px;border-top:1px solid #eee;font-size:12px;color:#8a8a8a">${BRAND} · anastasiaoz.eu</td></tr>
+<tr><td style="padding:18px 32px 22px;border-top:1px solid #eae3d8;font-family:Figtree,Arial,sans-serif;font-size:12px;line-height:1.7;color:${MUTED}">LUCRAT spol. s r.o. · IČO 36652164<br><a href="https://anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">anastasiaoz.eu</a> · <a href="mailto:info@anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">info@anastasiaoz.eu</a></td></tr>
 </table></td></tr></table>
 </body></html>`
 }
@@ -888,7 +894,7 @@ function renderText(body: Body): string {
     else lines.push(block.text, "")
   }
   if (body.button) lines.push(`${body.button.label}: ${body.button.url}`, "")
-  lines.push("--", `${BRAND} · anastasiaoz.eu`)
+  lines.push("--", "LUCRAT spol. s r.o. · IČO 36652164", "https://anastasiaoz.eu", "info@anastasiaoz.eu")
   return lines.join("\n")
 }
 
