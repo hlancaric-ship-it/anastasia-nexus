@@ -314,9 +314,9 @@ ${HOME_CSS}
 @media(max-width:999.98px){.site-footer .sf-top{grid-template-columns:1fr}}
 @media(max-width:699.98px){
 .site-footer .sf-links{grid-template-columns:1fr 1fr;gap:26px 18px!important}
-.site-footer .sf-links>div:nth-child(3){grid-column:1/-1;display:block!important;columns:2;column-gap:18px}
-.site-footer .sf-links>div:nth-child(3)>span{display:block;column-span:all;margin-bottom:14px!important}
-.site-footer .sf-links>div:nth-child(3)>a{display:block;margin-bottom:10px;break-inside:avoid}
+.site-footer .sf-links>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px 18px!important;min-width:0;columns:unset!important;column-count:unset!important}
+.site-footer .sf-links>div:nth-child(3)>span{grid-column:1/-1;display:block;margin-bottom:0!important}
+.site-footer .sf-links>div:nth-child(3)>a{display:block!important;min-width:0;max-width:100%;margin:0!important;white-space:normal!important;overflow-wrap:anywhere;line-height:1.4}
 .site-footer .sf-brands>*{grid-template-rows:70px auto!important;row-gap:10px!important}
 .site-footer .sf-brands>*>img{height:66px!important}
 .site-footer .sf-brands>*>div>img{height:40px!important}
