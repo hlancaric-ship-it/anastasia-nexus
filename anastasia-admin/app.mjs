@@ -3276,14 +3276,12 @@ async function vMediaLibrary(view) {
 // --- Ambasádori: Fáza 2 – pripravujeme (UI nad prázdnymi dátami, backend ešte nemá) ---
 const AMBASSADOR_PHASE = 'Fáza 2 – pripravujeme';
 const AMBASSADOR_STATUS = { active: ['aktívny', 'ok'], invited: ['pozvaný', 'warn'], paused: ['pozastavený', 'off'], draft: ['rozpracovaný', 'off'] };
-const AMBASSADOR_COLUMNS = [['Meno', 'Meno'], ['E-mail', 'E-mail'], ['Kód / odkaz', 'Kód / odkaz'], ['Provize', 'Provize'], ['Obrat', 'Obrat'], ['Stav', 'Stav']];
+const AMBASSADOR_COLUMNS = [['Meno', 'Meno'], ['E-mail', 'E-mail'], ['Kód / odkaz', 'Kód / odkaz'], ['Provízia', 'Provízia'], ['Obrat', 'Obrat'], ['Stav', 'Stav']];
 async function vAmbasadori(view) {
   view = freshView(view);
-  view.innerHTML = '<div class="muted">Načítavam ambasádorov…</div>';
-  let list = [];
-  try { list = (await api('/admin/ambassadors?limit=100')).ambassadors || []; }
-  catch (e) { if (e.message === '401') throw e; list = []; }
-  const commission = Number((await api('/admin/ambassadors/settings').catch(() => ({}))).commission_percent ?? 10);
+  // Jadro endpointy ambasádorov dodá až vo Fáze 2, dovtedy sa nič nevolá (inak chyby v konzole).
+  const list = [];
+  const commission = '';
   view.innerHTML = `<div class="card" style="margin-bottom:16px"><div class="card-h">Ambasádori<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span></div></div><div class="card-b">
     <p class="muted" style="margin-top:0">Ambasadorský režim (odporúčanie zákazníkov za províziu) pripravujeme. Zatiaľ sa na webe nič nezapína a žiadne provízie sa nevyplácajú.
     Návrh dátového modelu máme pripravený, režim zapneme v druhej fáze.</p>
@@ -3292,8 +3290,8 @@ async function vAmbasadori(view) {
     </tbody></table></div>` : '<div class="empty">Zatiaľ nemáme žiadnych ambasádorov – režim sa pripravuje.</div>'}
   </div></div>
   <div class="card"><div class="card-h">Nastavenie provízie</div><div class="card-b">
-    <p class="muted" style="margin-top:0">Provízia sa počíta z výšky objednávky, ktorú ambasADOR priviedol, a vypláca sa mu podľa dohodnutého cyklu. Percento ani výplaty sa zatiaľ nemenia.</p>
-    <div class="row"><div><label>Provizia (%)</label><input id="am-commission" type="number" min="0" max="100" step="1" value="${esc(String(commission))}" disabled></div>
+    <p class="muted" style="margin-top:0">Provízia sa počíta z výšky objednávky, ktorú ambasádor priviedol, a vypláca sa mu podľa dohodnutého cyklu. Percento ani výplaty sa zatiaľ nemenia.</p>
+    <div class="row"><div><label>Provízia (%)</label><input id="am-commission" type="number" min="0" max="100" step="1" value="${esc(String(commission))}" placeholder="nastavíte vo Fáze 2" disabled></div>
     <div><label>Stav režimu</label><div><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span></div></div></div>
     <p class="muted" style="font-size:12px;margin-top:10px">Ovládanie bude aktívne, keď backend dodá atribúcie objednávok a prevádzku provízie.</p>
   </div></div>`;
@@ -3301,9 +3299,9 @@ async function vAmbasadori(view) {
 }
 function vAmbasadorDetail(view, a) {
   view = freshView(view);
-  view.innerHTML = `<div class="card"><div class="card-h">AmbasADOR<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span><button class="btn ghost" id="am-back">Späť</button></div></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Ambasádor<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span><button class="btn ghost" id="am-back">Späť</button></div></div><div class="card-b">
     <div class="row"><div><label>Meno</label><div>${esc(a.name || a.customer_label || '—')}</div></div><div><label>E-mail</label><div>${esc(a.email || '—')}</div></div></div>
-    <div class="row"><div><label>Kód / odkaz</label><div>${esc(a.code || a.referral_code || '—')}</div></div><div><label>Provize</label><div>${esc(String(a.commission_percent ?? '—'))} %</div></div></div>
+    <div class="row"><div><label>Kód / odkaz</label><div>${esc(a.code || a.referral_code || '—')}</div></div><div><label>Provízia</label><div>${esc(String(a.commission_percent ?? '—'))} %</div></div></div>
     <div class="row"><div><label>Obrat</label><div>${esc(a.revenue != null ? fmtEur(a.revenue) : '—')}</div></div><div><label>Stav</label><div>${statusPill(AMBASSADOR_STATUS, a.status || 'draft')}</div></div></div>
     <p class="muted" style="font-size:12px;margin-top:12px">Detail ambasadora bude obsahovať odkaz na odporúčanie, zoznam privedených objednávok a prehľad výplat.</p>
   </div></div>`;
@@ -3393,12 +3391,17 @@ async function vPouzivatelia(view, notice) {
     try { await api(`/admin/invites/${encodeURIComponent(b.dataset.del)}`, { method: 'DELETE' }); await vPouzivatelia(view, '<div class="notice">Pozvánka je zrušená.</div>'); }
     catch (err) { fail(b, err); } });
 }
+// E-mail z pozvánky (JWT payload) na predvyplnenie, overuje ho až server.
+function inviteEmail(token) {
+  try { const p = String(token || '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const d = JSON.parse(decodeURIComponent(escape(atob(p)))); return typeof d.email === 'string' ? d.email : ''; }
+  catch { return ''; }
+}
 // Prijatie pozvánky (bez prihlásenia): registrácia identity → prijatie pozvánky → prihlásenie.
 function renderInviteAccept(invToken, msg) {
   root.innerHTML = authShell(`<form class="box" id="ia">
     <p class="eyebrow">Pozvánka do administrácie</p><h1>Vytvorte si účet</h1><p class="intro">Po vytvorení účtu vás rovno prihlásime.</p>
     ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
-    <label for="ia-email">E-mail (ten, na ktorý prišla pozvánka)</label><input id="ia-email" type="email" required autocomplete="username">
+    <label for="ia-email">E-mail (ten, na ktorý prišla pozvánka)</label><input id="ia-email" type="email" required autocomplete="username" value="${esc(inviteEmail(invToken))}">
     <div class="row"><div><label for="ia-first">Meno</label><input id="ia-first" required autocomplete="given-name"></div><div><label for="ia-last">Priezvisko</label><input id="ia-last" required autocomplete="family-name"></div></div>
     <label for="ia-pass">Heslo (aspoň 12 znakov)</label><input id="ia-pass" type="password" minlength="12" required autocomplete="new-password">
     <button class="btn primary" type="submit">Vytvoriť účet</button>
@@ -3419,6 +3422,61 @@ function renderInviteAccept(invToken, msg) {
       await login(email, password);
       location.hash = '#/';
     } catch (err) { renderInviteAccept(invToken, err.message); }
+  };
+}
+// --- Obnova hesla správcu: jadro pošle e-mail s jednorazovým odkazom #/obnova-hesla/<token> (platí 15 minút). ---
+function renderForgotPassword(msg, sent) {
+  root.innerHTML = authShell(`<form class="box" id="fp">
+    <p class="eyebrow">Administrácia</p><h1>Obnova hesla</h1>
+    <p class="intro">${sent ? 'Ak k tomuto e-mailu existuje účet správcu, poslali sme naň odkaz na nastavenie nového hesla. Odkaz platí 15 minút.' : 'Zadajte e-mail, ktorým sa prihlasujete. Pošleme vám odkaz na nastavenie nového hesla.'}</p>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
+    ${sent ? '' : `<label for="fp-email">E-mail</label><input id="fp-email" type="email" required autocomplete="username" placeholder="vas@email.sk">
+    <button class="btn primary" type="submit">Poslať odkaz</button>`}
+    <p style="margin:14px 0 0;text-align:center"><a href="#/">Späť na prihlásenie</a></p>
+  </form>`);
+  const form = root.querySelector('#fp');
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const identifier = root.querySelector('#fp-email')?.value.trim();
+    if (!identifier) return;
+    form.querySelector('button[type=submit]').disabled = true;
+    try {
+      const res = await fetch(API + '/auth/user/emailpass/reset-password', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ identifier }) });
+      if (res.status === 429) throw new Error('Príliš veľa pokusov. Skúste to o pár minút.');
+      if (!res.ok && res.status >= 500) throw new Error('Odkaz sa nepodarilo odoslať. Skúste to znova.');
+      // Odpoveď je zámerne rovnaká pre existujúci aj neexistujúci účet.
+      renderForgotPassword('', true);
+    } catch (err) { renderForgotPassword(err.message === 'Failed to fetch' ? 'Jadro je nedostupné. Skúste to znova.' : err.message); }
+  };
+}
+function renderResetPassword(resetToken, msg) {
+  root.innerHTML = authShell(`<form class="box" id="rp">
+    <p class="eyebrow">Administrácia</p><h1>Nové heslo</h1><p class="intro">Zvoľte si nové heslo. Po uložení sa ním hneď prihlásite.</p>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
+    <label for="rp-email">E-mail</label><input id="rp-email" type="email" required autocomplete="username" placeholder="vas@email.sk">
+    <label for="rp-pass">Nové heslo (aspoň 12 znakov)</label><input id="rp-pass" type="password" minlength="12" required autocomplete="new-password">
+    <label for="rp-pass2">Nové heslo znova</label><input id="rp-pass2" type="password" minlength="12" required autocomplete="new-password">
+    <button class="btn primary" type="submit">Uložiť heslo</button>
+    <p style="margin:14px 0 0;text-align:center"><a href="#/zabudnute-heslo">Poslať nový odkaz</a></p>
+  </form>`);
+  root.querySelector('#rp').onsubmit = async (e) => {
+    e.preventDefault();
+    const email = root.querySelector('#rp-email').value.trim();
+    const password = root.querySelector('#rp-pass').value, again = root.querySelector('#rp-pass2').value;
+    if (password.length < 12) return renderResetPassword(resetToken, 'Heslo musí mať aspoň 12 znakov.');
+    if (password !== again) return renderResetPassword(resetToken, 'Heslá sa nezhodujú.');
+    e.target.querySelector('button[type=submit]').disabled = true;
+    try {
+      const res = await fetch(API + '/auth/user/emailpass/update', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + resetToken }, body: JSON.stringify({ password }) });
+      if (res.status === 401) throw new Error('Odkaz je neplatný, už bol použitý alebo vypršal. Pošlite si nový.');
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || d.success === false) throw new Error(d?.message || 'Heslo sa nepodarilo uložiť.');
+      try {
+        const result = await login(email, password);
+        if (result.challenge) { history.replaceState(null, '', '#/'); renderLogin('', result.challenge); return; }
+        location.hash = '#/';
+      } catch { location.hash = '#/'; renderLogin('Heslo je zmenené. Prihláste sa ním.'); }
+    } catch (err) { renderResetPassword(resetToken, err.message === 'Failed to fetch' ? 'Jadro je nedostupné. Skúste to znova.' : err.message); }
   };
 }
 // --- Pripojenia: produktové feedy a dopravca (Nastavenia → Pripojenia) ---
@@ -4107,6 +4165,8 @@ async function route() {
   if (TOUR_OPEN && !TOUR_NAVIGATING) TOUR_OPEN.close(false);
   const parts = (location.hash.replace(/^#\/?/, '') || '').split('/');
   if (parts[0] === 'pozvanka' && parts[1]) return renderInviteAccept(decodeURIComponent(parts[1]));
+  if (parts[0] === 'zabudnute-heslo') return renderForgotPassword();
+  if (parts[0] === 'obnova-hesla' && parts[1]) return renderResetPassword(decodeURIComponent(parts[1]));
   if (!token) return renderLogin();
   const key = parts[0];
   const r = ROUTES[key] || ROUTES[''];
@@ -4150,9 +4210,10 @@ function renderLogin(msg, challenge) {
     ${challenge ? `<label for="l-code">Kód z aplikácie</label><input id="l-code" inputmode="numeric" autocomplete="one-time-code" maxlength="20" placeholder="napr. 123456" autofocus>
       <p class="muted" style="font-size:12px">Ak nemáte telefón s aplikáciou, vložte jeden zo záložných kódov, ktoré ste si uložili.</p>
       <button class="btn primary" type="submit">Overiť a prihlásiť sa</button>`
-    : `<label for="l-email">E-mail</label><input id="l-email" type="email" value="admin@anastasia.local" autocomplete="username">
+    : `<label for="l-email">E-mail</label><input id="l-email" type="email" placeholder="vas@email.sk" autocomplete="username" required>
       <label for="l-pass">Heslo</label><input id="l-pass" type="password" autocomplete="current-password">
-      <button class="btn primary" type="submit">Prihlásiť sa</button>`}
+      <button class="btn primary" type="submit">Prihlásiť sa</button>
+      <p style="margin:14px 0 0;text-align:center"><a href="#/zabudnute-heslo">Zabudli ste heslo?</a></p>`}
     <p class="api-note">Jadro: ${esc(API)}</p>
   </form>`);
   root.querySelector('#lf').onsubmit = async (e) => {
@@ -4209,9 +4270,9 @@ document.addEventListener('click', async (e) => {
     const d = await api('/admin/products?handle=reset-40-plus&fields=id');
     const id = d?.products?.[0]?.id;
     history.pushState(null, '', '#/produkty');
-    root.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.getAttribute('href') === '#/produkty'));
+    // Celý shell sekcie Produkty, inak ostane rozloženie prehľadu s pevnou výškou a obsah sa nedá posúvať.
+    await route();
     if (id) vProductDetail(root.querySelector('#view'), id, { tab: 'obsah' });
-    else route();
   } catch { location.hash = '#/produkty'; }
 });
 window.addEventListener('hashchange', route);
