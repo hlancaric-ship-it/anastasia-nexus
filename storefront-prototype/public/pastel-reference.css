@@ -108,6 +108,7 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
 .site-footer .sf-bottom{justify-content:flex-start!important;gap:12px 20px!important;line-height:1.5!important}
 .legacy-main :is(button,a,input,select,textarea){scroll-margin-top:88px}
 .legacy-main :is(.customer-center,.customer-login,.library-page) .button:not(.outline){background:#73729c!important;border-color:#73729c!important;color:#fff!important}
+.legacy-main :is(.shop-cart,.shop-checkout) .button:not(.outline){background:#73729c!important;border-color:#73729c!important;color:#fff!important}
 .legacy-main .auth-tabs button{min-height:44px;color:#73729c}
 .legacy-main .auth-tabs button[aria-selected=true]{border-color:#73729c;color:#403f62}
 .legacy-main .auth-copy .button{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
