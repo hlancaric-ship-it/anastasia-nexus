@@ -1,17 +1,21 @@
 const mediaOrigin=process.env.ANASTASIA_MEDIA_ORIGIN||'';
 if(mediaOrigin&&(!/^https?:\/\/[a-zA-Z0-9.:-]+$/.test(mediaOrigin)||!(mediaOrigin.startsWith('https://')||/^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?$/.test(mediaOrigin))))throw Error('Invalid media origin');
 import {mkdir,writeFile,readFile,cp} from 'node:fs/promises';
+import {readFileSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
 import {legacyContent,legacyPage} from './src/legacy.mjs';
 import {chrome,homeSections,aboutSections,dcCss,ROOT_STYLE,HELMET_CSS} from './src/dc.mjs';
+import {HOME_CSS} from './src/home-lh.mjs';
+import {cookieConsent} from './src/cookie-consent.mjs';
 import {api} from './src/lib/api/index.mjs';
-import {createHttpApi} from './src/lib/api/http.mjs';
+import {createHttpApi,JWT_KEY} from './src/lib/api/http.mjs';
 import {FEATURED_SLUGS} from './src/lib/api/catalog.mjs';
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
 import {centerThemeCss,centerThemeBoot} from './src/center-themes.mjs';
 import {siteThemes,siteThemeCss,siteThemeBoot,tokenizeColors} from './src/site-themes.mjs';
+import {accountGuardBoot} from './src/account-guard.mjs';
 // Motiv webu volí Lucia v adminu; v produkci ho dosadí server, v náhledu SITE_THEME=bordo node build.mjs.
 const siteTheme=process.env.SITE_THEME||siteThemes[0].id;
 if(!siteThemes.some(t=>t.id===siteTheme))throw new Error(`Unknown SITE_THEME ${siteTheme}`);
@@ -24,6 +28,36 @@ if(process.env.ANASTASIA_PUBLISHABLE_KEY&&process.env.ANASTASIA_REGION_ID){
 const catalog=category=>views.catalog(category,catalogProducts);
 // Denný stacionár: fotografie z dodaných souborů (public/media/ds).
 const dsPhotos=(dir,files)=>`<section class="section photo-gallery">${files.map(f=>`<figure><img src="/media/ds/${f}" alt="Denný stacionár Vyšná Slaná – ${f.replace(/\.[a-z]+$/,'').replace(/[_-]/g,' ')}" loading="lazy" width="1200" height="800"></figure>`).join('')}</section>`;
+// Jedno písmo: Outfit sa nahrádza Figtree (22. 10.).
+const unifyFont=html=>html.replaceAll('Outfit,sans-serif','Figtree,"Helvetica Neue",sans-serif')
+  // Bez zdvojených odkazov: Zdravá lekáreň = Obchod, Programy a služby = AI ANASTASIA Academy.
+  .replace(/<dc-wide><a href="\/eshop\?category=[^"]*">Programy a služby<\/a><\/dc-wide>/g,'')
+  .replace(/<a href="\/eshop\?category=sebarozvoj">Programy a služby<\/a>/g,'')
+  .replace(/<a(?=[^>]*href="\/zdrava-lekaren")[^>]*>[\s\S]*?<\/a>/g,'')
+  // AI ANASTASIA a Academy majú vlastné weby (napojenie na jadro vo fáze 2).
+  // Odkazy rovno na cieľ presmerovania, externé weby v novom okne.
+  .replace(/href="(\/[^"?#]*?)\/?"/g,(m,path)=>{const hit=DUPLICATE_REDIRECTS.find(([from])=>from===path);if(!hit)return m;const to=hit[1];return to.startsWith('https://')?`href="${to}" target="_blank" rel="noopener"`:`href="${to}"`;})
+  .replaceAll('href="/ai-anastasia-academy"','href="https://www.anastasia.academy/" target="_blank" rel="noopener"')
+  .replaceAll('href="/ai-anastasia"','href="https://www.aianastasia.com/" target="_blank" rel="noopener"');
+// Zdvojené stránky: jedna adresa na obsah, ostatné 301 (22. 10.).
+const DUPLICATE_REDIRECTS=[
+  ['/zdrava-lekaren','/eshop/'],['/eshop/kategoria/-vsetko-','/eshop/'],['/eshop/kategorie','/eshop/'],
+  ['/eshop/kategoria/bio-kozmetika-bez-chemie','/eshop/?category=bio-kozmetika-bez-chemie'],['/eshop/kategoria/kozmetika','/eshop/?category=bio-kozmetika-bez-chemie'],
+  ['/eshop/kategoria/bylinky-a-vyziva','/eshop/?category=zdrave-doplnky-vyzivy'],['/eshop/kategoria/programy-a-sluzby','/eshop/?category=sebarozvoj'],
+  ['/nova-registracia','/prihlasenie/'],['/eshop/produkt/astrologia','/eshop/produkt/astrologia-zdravie-predispozicia/'],
+  ['/ai-anastasia-academy','https://www.anastasia.academy/'],['/ai-anastasia','https://www.aianastasia.com/'],['/eshop/produkt/ritualne-sviecky-voskove','/eshop/'],['/eshop/produkt/saty-lanove','/eshop/'],
+  // Obsah AI ANASTASIA a Academy patrí na ich weby, prázdne stránky preč (22. 10.).
+  ['/programy','https://www.anastasia.academy/'],['/vyuka','https://www.anastasia.academy/'],['/programy/individualne','https://www.anastasia.academy/'],['/programy/pre-firmy','https://www.anastasia.academy/'],['/blog/zdrava-lekaren-aktuality','https://www.anastasia.academy/'],
+  ['/pre-odbornikov','/konzultacie/supervizia/'],['/astrologia','/konzultacie/astrologicky-profil-zdravia-a-vitality/'],['/konzultacie/astrologia','/konzultacie/astrologicky-profil-zdravia-a-vitality/'],
+  ['/online-zdravotna-konzultacia','/konzultacie/online-zdravotna-konzultacia/'],['/ai-anastasia/recenzie-zakaznikov','/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com/'],
+  ['/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny','https://www.aianastasia.com/insights'],['/ai-anastasia/recenzie-farmaceutickych-produktov','https://www.aianastasia.com/expert-rating'],
+  // Zvyšné staré adresy z prehľadu starého webu (22. 10.).
+  ['/eshop/kategoria/sebarozvoj','/eshop/?category=sebarozvoj'],['/eshop/kategoria/zdrave-doplnky-vyzivy','/eshop/?category=zdrave-doplnky-vyzivy'],
+  ['/eshop/kategoria/Podkategoria41','/eshop/'],['/eshop/kategoria/podkategoria21','/eshop/'],
+  ['/moj-ucet','/ucet/'],
+  // Produkty, ktoré starý web už nepredáva (bez ceny a mimo e-shopu, 23. 10.).
+  ['/eshop/produkt/kava-zdrava','/eshop/'],['/eshop/produkt/telove-maslo','/eshop/'],['/eshop/produkt/vydymovanie-zmes','/eshop/'],['/eshop/produkt/lanova-sukna','/eshop/'],['/moj-ucet/prihlasenie','/prihlasenie/'],['/zabudnute-heslo','/prihlasenie/'],
+];
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
@@ -41,19 +75,19 @@ add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','
 add('/prihlasenie','Prihlásenie',views.login());
 add('/nova-registracia/vyhody','Výhody registrácie',views.registrationBenefits());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
 add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.reset());add('/reset-40/knihovna','Moje programy',views.reset(true));
-// Klub je mimo rozsah (Lucky 21. 10.) – stránka ostáva v kóde, ale je nedostupná.
-add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());
+add('/klub','Klub ANASTASIA',views.klub());add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());add2('/konzultacie','Konzultácie',views.konzultacie(),true);
 add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy());
 for(const [alias,target] of Object.entries(api.getAliases())){const source=routes.get(target);if(!source)throw new Error(`Missing alias target ${target}`);routes.set(alias,source);}
 for(const [path,page] of Object.entries(legacyContent)){
   const existing=routes.get(path);
+  if(existing && existing.design)continue;
   if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
     const dsGallery=path==='/denny-stacionar-vysna-slana/ds-dnes'
       ? dsPhotos('ds',['img_1.jpg','img_2.jpg','img_3.jpg','img_4.jpg','img_5.jpg','propagacia.jpg'])
       : '';
-    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?dsPhotos('ds',['vonkajsi-vchod.jpg'])+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':'')+dsGallery);
+    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?`<section class="section photo-gallery"><figure><img src="/img/vonkajsi-vchod.webp" alt="Denný stacionár Vyšná Slaná – vonkajší vchod" loading="lazy" width="1200" height="800"></figure></section>`+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>':'')+dsGallery);
   }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
 }
@@ -68,16 +102,20 @@ const CHROME={home:chrome('home'),about:chrome('about'),world:chrome('world'),ot
 const CTX='font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7';
 const VERSION=Date.now().toString(36);
 const V='?v='+VERSION;
-const BOOT_CSS=`<style>html,body{margin:0;background:#F5F2E8}.dc-root,.legacy-shell{background:#F5F2E8}html:not(.ana-booted) .dc-chrome,html:not(.ana-booted) .lh-say--one,html:not(.ana-booted) .lh-say--two{visibility:hidden}</style>`;
-const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script src="/vendor/lenis.min.js" defer></script><script src="/vendor/gsap.min.js" defer></script><script src="/vendor/ScrollTrigger.min.js" defer></script><script type="module" src="/app.mjs'+V+'"></script><script type="module" src="/motion.mjs'+V+'"></script>';
+const bootCss=(design)=>design?`<style>html,body{margin:0;background:#F5F2E8}.dc-root,.legacy-shell{background:#F5F2E8}html:not(.motion) .lh-say--one,html:not(.motion) .lh-say--two{visibility:hidden}</style>`:`<style>html,body{margin:0;background:#F5F2E8}.dc-root,.legacy-shell{background:#F5F2E8}html:not(.ana-booted) .dc-chrome,html:not(.ana-booted) .lh-say--one,html:not(.ana-booted) .lh-say--two{visibility:hidden}</style>`;
+const scripts='<div class="toast" role="status" hidden></div><div class="page-transition" aria-hidden="true"></div><script type="module" src="/boot.mjs'+V+'" async></script>';
+const TOKENS_CSS=readFileSync(join(root,'public','tokens.css'),'utf8');
+// Kritické CSS prvej obrazovky je inline v hlavičke, zvyšok sa doplní neblokujúco (data-late).
+const designCss=()=>`<style>${TOKENS_CSS}${siteThemeCss()}${HELMET_CSS}${HOME_CSS}</style><link rel="stylesheet" href="/base.css${V}" media="print" data-late><link rel="stylesheet" href="/dc.css${V}" media="print" data-late><link rel="stylesheet" href="/product-detail.css${V}" media="print" data-late><noscript><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}"></noscript>`;
+const legacyCss=()=>`<link rel="stylesheet" href="/tokens.css${V}"><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}">`;
 const document=(...args)=>tokenizeColors(renderDocument(...args));
 const renderDocument=(path,{title,body,design})=>{
   const customerLogin=['/prihlasenie','/prihlasenie/potvrdit','/nova-registracia'].includes(path);
-  const c=CHROME[path==='/zdravy-svet'?'world':design||'other'];
+  const c=CHROME[path==='/zdravy-svet'?'world':typeof design==='string'?design:(design?'home':'other')];
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1"${path==='/o-lucii'?' data-sk-only':''}>${body.replace('%%HEADER%%',c.header)}</main>${c.footer}</div>`
     :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'var(--center-main)':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1" data-sk-only>${body}</main><div class="dc-chrome" style="${CTX}">${c.footer}</div></div>`;
-  return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="ana-country" content=""><meta name="description" content="${e(title)} — lokálny náhľad storefrontu ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/outfit.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/tokens.css${V}"><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}"><script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}</head>${BOOT_CSS}<body${design?` class="dc-page${path==='/'?' lh-intro-page':''}"`:path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
+  return `<!doctype html><html lang="sk"${siteTheme===siteThemes[0].id?'':` data-site-theme="${siteTheme}"`}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#283020"><meta name="robots" content="noindex,nofollow"><meta name="ana-country" content=""><meta name="description" content="${e(title)} — ANASTASIA."><title>${e(title)} — ANASTASIA</title><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="modulepreload" href="/boot.mjs${V}"><link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/figtree-latin-ext.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/fraunces-latin-italic.woff2" as="font" type="font/woff2" crossorigin>${design?designCss():legacyCss()}<script src="/site-theme.js"></script>${path==='/ucet'||customerLogin?'<script src="/center-theme.js"></script>':''}${path==='/ucet'?'<script src="/account-guard.js"></script>':''}</head>${bootCss(design)}<body${design?` class="dc-page${path==='/'?' lh-intro-page':''}"`:path==='/ucet'?' class="customer-page"':customerLogin?' class="customer-login"':''}><a class="skip-link" href="#main">Preskočiť na obsah</a>${cookieConsent()}${shell}<div class="dc-chrome" style="${CTX}">${c.overlay}${c.rail}${c.menus}</div>${scripts}</body></html>`;
 };
 await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));await cp(join(root,'src/site-themes.mjs'),join(out,'site-themes.mjs'));
 {
@@ -89,10 +127,12 @@ await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:tr
  }
  await writeFile(file,source);
 }
-for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),document(path,page));}
+for(const [from] of DUPLICATE_REDIRECTS)routes.delete(from);
+await writeFile(join(out,'_redirects'),DUPLICATE_REDIRECTS.flatMap(([from,to])=>[`${from} ${to} 301`,`${from}/ ${to} 301`]).join('\n')+'\n');
+for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),unifyFont(document(path,page)));}
 // styles.css ve vrstvě: neoznačená pravidla z dc.css (reset a inline návrh) mají vždy přednost.
 await writeFile(join(out,'base.css'),'@import url("/styles.css") layer(legacy);\n');
-await writeFile(join(out,'styles.css'),tokenizeColors(await readFile(join(out,'styles.css'),'utf8')));
+await writeFile(join(out,'styles.css'),unifyFont(tokenizeColors(await readFile(join(out,'styles.css'),'utf8'))));
 // Detail produktu má vlastní paletu a musí sledovat motiv stejně jako zbytek.
 await writeFile(join(out,'product-detail.css'),tokenizeColors(await readFile(join(out,'product-detail.css'),'utf8')));
 // Definice motivů se netokenizují (jinak by --site-main:#283020 odkazoval sám na sebe).
@@ -108,12 +148,18 @@ await writeFile(join(out,'dc.css'),centerThemeCss()+'\n'+siteThemeCss()+'\n'+tok
   '@media (min-width:1000px){:root{--rail-pad:52px;--rail-neg:-52px;--cap-left:72px;--menu-right:24px}}',
   '.dc-root dc-wide,.dc-chrome dc-wide{display:contents}.dc-root dc-narrow,.dc-chrome dc-narrow{display:none}@media (max-width:999.98px){.dc-root dc-wide,.dc-chrome dc-wide{display:none}.dc-root dc-narrow,.dc-chrome dc-narrow{display:contents}}',
   '/* Přístupnost: v návrhu se na úzkém displeji tlačítko „Zavrieť“ horního menu ocitne mimo panel (vodorovný scroll uvnitř menu); řádek se zalomí. */@media (max-width:999.98px){#dc-top-menu>div:nth-child(3){flex-wrap:wrap;row-gap:10px}}',
-  '.legacy-shell{padding-left:var(--rail-pad)}.legacy-shell>.dc-chrome{overflow-x:clip}.legacy-main>*{margin-left:var(--rail-neg);border-left:var(--rail-pad) solid transparent}',
+  '.legacy-shell{padding-left:var(--rail-pad)}.legacy-shell>.dc-chrome{overflow-x:clip}.legacy-main>:not(.legal-doc){margin-left:var(--rail-neg);border-left:var(--rail-pad) solid transparent}',
   '.legacy-main>.zs-follow-image{border-left:0}',
   '.legacy-shell>.dc-chrome:has(footer){overflow-x:visible}.legacy-shell footer{overflow-x:clip}',
+  '/* 22. 10. Lucky: žiadna horná lišta. Vpravo hore len tlačidlo Menu, vľavo bočná lišta. */',
+  '.lh-top{background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:none;display:flex!important;justify-content:flex-end!important}.lh-top>*:not(.lh-top__side),.lh-top__side>*:not(.lh-top__menu),.lh-top__side--right>*{display:none!important}.lh-top__side{pointer-events:none}.lh-intro-page.lh-chrome-in .lh-top__menu{opacity:1!important}.lh-top__menu{display:inline-flex!important;pointer-events:auto!important;background:var(--site-main)!important;color:var(--site-cream)!important;border-color:rgba(201,163,85,.35)!important}',
+  '.legacy-shell>.dc-chrome:first-child{background:transparent!important;height:0;margin:0!important;padding:0!important;border:0!important}.legacy-shell>.dc-chrome:first-child>header{position:fixed!important;top:14px;right:clamp(16px,3vw,48px);left:auto;z-index:45;display:flex!important;padding:0!important;border:0!important;background:none!important;pointer-events:none}.legacy-shell>.dc-chrome:first-child>header>div{display:contents!important}.legacy-shell>.dc-chrome:first-child>header .header-brand,.legacy-shell>.dc-chrome:first-child>header>div>:not(dc-wide):not(dc-narrow),.legacy-shell>.dc-chrome:first-child>header dc-wide:not(:has(.dch1)),.legacy-shell>.dc-chrome:first-child>header dc-narrow:not(:has(.dch0)){display:none!important}.legacy-shell>.dc-chrome:first-child>header :is(.dch0,.dch1){pointer-events:auto;background:var(--site-main)!important;color:var(--site-cream)!important;border-radius:80px!important;padding:0 22px!important;height:50px!important}',
+  '/* 22. 10. Lucky: jedno písmo všade – nadpisy Fraunces 300, text Figtree. */',
+  'h1,h2,h3{font-family:Fraunces,Georgia,"Times New Roman",serif!important;font-weight:300!important}',
   dcCss()].join('\n')));
 await writeFile(join(out,'center-theme.js'),centerThemeBoot());
 await writeFile(join(out,'site-theme.js'),siteThemeBoot());
+await writeFile(join(out,'account-guard.js'),accountGuardBoot(JWT_KEY));
 await writeFile(join(out,'404.html'),document('/404',{title:'Stránka nenájdená',body:views.notFound()}));
 await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';

@@ -8,6 +8,13 @@ const digital = p => (SHOP_BY_HANDLE.get(p.slug)?.category || p.category) === 'P
 const txt = value => e(String(value ?? ''));
 const url = value => { const s=String(value||''); return isMediaUrl(s) ? txt(s) : '/assets/product-sun.svg'; };
 const source = p => { const s=String(p.description||'').trim(); return /^Podrobnosti a podmienky nájdete v detaile produktu\.?$/.test(s) ? '' : s; };
+const formatDescription = p => {
+  const s = source(p).replace(/\n\s*\n/g, '\n\n').trim();
+  if (!s) return '<p class="pd-intro" data-product-intro hidden></p>';
+  const excerpt = s.length > 600 ? s.slice(0, 600).replace(/\s+\S*$/, '') + '…' : s;
+  const more = s.length > 600 ? `<details><summary>Zobraziť viac</summary><div class="pd-full-description">${txt(s)}</div></details>` : '';
+  return `<p class="pd-intro" data-product-intro>${txt(excerpt)}</p>${more}`;
+};
 const book = p => `<form class="add-product pd-purchase" data-code="${txt(p.code)}"><label>Množstvo<input name="quantity" type="number" min="1" max="99" value="1" required></label><button class="button pd-buy" type="submit">Pridať do košíka ${arrow}</button></form><p class="form-status" role="status"></p>`;
 const crumb = p => `<nav class="pd-breadcrumbs" aria-label="Drobečková navigácia"><a href="/eshop">Obchod</a><span aria-hidden="true">/</span><a href="/eshop?category=${encodeURIComponent(p.category)}">${txt(p.category)}</a><span aria-hidden="true">/</span><span aria-current="page">${txt(p.name)}</span></nav>`;
 const photo = p => `<div class="pd-main-image"><img data-product-main-image src="${url(p.image)}" alt="${txt(p.name)}" width="1000" height="760"><span class="pd-image-number" aria-hidden="true">ANASTASIA</span><span class="pd-gallery-actions" data-gallery-actions hidden><button type="button" data-gallery-previous aria-label="Predchádzajúci obrázok">←</button><button type="button" data-gallery-next aria-label="Ďalší obrázok">→</button></span></div><div class="pd-thumbnails" data-product-thumbnails hidden aria-label="Fotografie produktu"></div>`;
@@ -16,7 +23,7 @@ const disclosures = (p, isDigital) => `<div class="pd-accordions" data-product-a
 const productName = p => `<p class="pd-eyebrow" data-product-category>${txt(p.category)}</p><h1 data-product-title>${txt(p.name)}</h1><p class="pd-price" data-product-price>${txt(p.priceLabel)}</p><p class="pd-sku">KÓD <span data-product-sku>${txt(p.sku||p.code)}</span></p><p class="pd-availability"><span class="status-dot" aria-hidden="true"></span><span data-product-availability>${txt(p.availability||'Skladom')}</span></p>`;
 // Audio ukážka „Nič nemusíš“ (starý web: /media/vv2nhaeb/a0_nic-nemusis.mp3).
 const audioSample = p => p.slug==='nic-nemusis'?'<div class="pd-audio-sample"><h2>Audio ukážka 0</h2><audio controls preload="none" src="/media/a0_nic-nemusis.mp3">Prehrávač audio podporuje váš prehliadač.</audio><p>Časť audio cyklu „Nič nemusíš“.</p></div>':'';
-const intro = p => {const s=source(p).replace(/\s+/g,' ').trim();const excerpt=s.length>220?s.slice(0,220).replace(/\s+\S*$/, '')+'…':s;return `<p class="pd-intro" data-product-intro ${excerpt?'':'hidden'}>${txt(excerpt)}</p>`;};
+const intro = p => formatDescription(p);
 const related = (p, products) => {const options=products.filter(x=>x.slug!==p.slug && digital(x)===digital(p)).slice(0,4);return options.length?`<section class="pd-related"><div class="pd-related-head"><h2>Objavte aj.</h2>${button('/eshop','Všetky produkty','outline')}</div><div class="product-grid">${options.map(card).join('')}</div></section>`:'';};
 
 const figmaAsset = name => '/assets/digital-product/'+name+'.svg';

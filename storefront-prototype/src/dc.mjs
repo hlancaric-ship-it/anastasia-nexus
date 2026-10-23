@@ -6,6 +6,7 @@ import {homeSections as homeLhSections, HOME_CSS, LH_HEADER} from './home-lh.mjs
 import {fileURLToPath} from 'node:url';
 import {escape} from './components.mjs';
 import {menuGroups} from './lib/menu-navigation.mjs';
+import {cookieSettingsLink} from './cookie-consent.mjs';
 
 const read = name => readFileSync(fileURLToPath(new URL(`../design/${name}`, import.meta.url)), 'utf8');
 const SOURCES = {home: read('homepage-v2.dc.html'), about: read('o-lucii.dc.html')};
@@ -22,7 +23,7 @@ const ROUTES = {
   'Celý obchod': '/eshop', 'Obchod': '/eshop',
   'AI ANASTASIA ACADEMY': '/eshop?category=sebarozvoj', 'BIOKOZMETIKA': '/eshop?category=bio-kozmetika-bez-chemie', 'Zdravé doplnky výživy': '/eshop?category=zdrave-doplnky-vyzivy', 'Programy a služby': '/eshop?category=sebarozvoj',
   'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/eshop?category=sebarozvoj',
-  'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
+  'Klub': '/klub', 'Moja knižnica': '/ucet', 'Výuka': '/eshop/produkt/vyuka-vedomeho-vnimania', 'Aktuality': '/zdrava-lekaren',
   'Konzultácie': '/konzultacie', 'Všetky konzultácie': '/konzultacie', 'Služby': '/konzultacie',
   'Online konzultácia': '/konzultacie/online-zdravotna-konzultacia', 'Supervízia': '/konzultacie/supervizia',
   'Astrologický profil': '/konzultacie/astrologicky-profil-zdravia-a-vitality', 'Astrológia': '/konzultacie/astrologicky-profil-zdravia-a-vitality',
@@ -169,11 +170,22 @@ const ids = html => html
 
 // Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
 const FOOTER_GROUPS = {
-  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Zdravý svet', '/zdravy-svet']],
+  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Klub', '/klub'], ['Zdravý svet', '/zdravy-svet']],
   'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Supervízia', '/konzultacie/supervizia'], ['Astrológia', '/konzultacie/astrologicky-profil-zdravia-a-vitality']],
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravá lekáreň', '/zdrava-lekaren'], ['Denný stacionár Vyšná Slaná', '/denny-stacionar-vysna-slana'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
 const FOOTER_BRANDS = {'ANASTASIA.ACADEMY': '/ai-anastasia-academy', 'AI ANASTASIA': '/ai-anastasia'};
+// Odkazy na päť právnych stránok (r19 bod 5): VOP, GDPR, reklamácie, odstúpenie od zmluvy, cookies.
+const LEGAL_LINKS = [['Obchodné podmienky','/vop'],['Súkromie a GDPR','/gdpr'],['Reklamácie','/reklamacie'],['Odstúpenie od zmluvy','/odstupenie'],['Cookies','/cookies']];
+function footerLegalLinks(html) {
+  return html.replace(/(<div style="display:flex;gap:28px;flex-wrap:wrap">)(?:<a href="#">[^<]*<\/a>)+/,
+    (_, head) => head + LEGAL_LINKS.map(([t,h])=>`<a href="${h}">${t}</a>`).join(''));
+}
+// Odkaz „Nastavenia cookies“ v pätičke (názov je z textu klientky): otvorí panel, kde sa voľba zmení.
+function withCookieSettings(html) {
+  if (!html.includes('<a href="/cookies">Cookies</a>')) throw new Error('dc: v patičce chybí odkaz Cookies');
+  return html.replace('<a href="/cookies">Cookies</a>', `<a href="/cookies">Cookies</a>${cookieSettingsLink()}`);
+}
 function footerLinks(html) {
   let out = html;
   for (const [title, links] of Object.entries(FOOTER_GROUPS)) {
@@ -182,9 +194,27 @@ function footerLinks(html) {
   // Loga Academy a AI ANASTASIA jsou odkazy na své stránky (stejný styl, jen <a> místo <div>).
   // Kontakt v päte ako na starom webe: telefón, e-mail a odkaz na Cookies.
   out = out.replace(/(<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:12px;color:#C4C7B6">)/,
-    '$1<div style="display:flex;gap:24px;flex-wrap:wrap"><a href="tel:+421905363778">+421 905 363 778</a><a href="mailto:zdravysvet@anastasiaoz.eu">zdravysvet@anastasiaoz.eu</a><a href="/gdpr#cookies">Cookies</a></div>');
+    '$1<div style="display:flex;gap:24px;flex-wrap:wrap"><a href="tel:+421905363778">+421 905 363 778</a><a href="mailto:zdravysvet@anastasiaoz.eu">zdravysvet@anastasiaoz.eu</a></div>');
   return out.replace(/<div (style="display:grid;grid-template-rows:clamp\(170px,17vw,240px\) auto;[^"]*")>((?:(?!<\/?div\b)[\s\S]|<div\b[\s\S]*?<\/div>)*?<span [^>]*>([^<]+)<\/span>)<\/div>/g,
     (whole, style, inner, label) => FOOTER_BRANDS[label] ? `<a href="${FOOTER_BRANDS[label]}" class="footer-brand" ${style}>${inner}</a>` : whole);
+}
+
+// Jednotná kompaktná pätička na všetkých stránkach: triedy namiesto výberu podľa inline štýlov návrhu.
+const FOOTER_PARTS = [
+  ['<footer ', '<footer class="site-footer" '],
+  ['<div style="max-width:1560px;margin:0 auto;padding:clamp(80px', '<div class="sf-wrap" style="max-width:1560px;margin:0 auto;padding:clamp(80px'],
+  ['<div style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom', '<div class="sf-top" style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom'],
+  ['<div style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px', '<div class="sf-news" style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px'],
+  ['<div style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"', '<div class="sf-links" style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"'],
+  ['<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end', '<div class="sf-brands" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end'],
+  ['<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px', '<div class="sf-bottom" style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px'],
+];
+function footerClasses(html) {
+  for (const [from, to] of FOOTER_PARTS) {
+    if (!html.includes(from)) throw new Error(`dc: v pätičke chýba časť ${from.slice(0, 60)}`);
+    html = html.replace(from, to);
+  }
+  return html;
 }
 
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
@@ -195,9 +225,8 @@ export function chrome(page) {
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   // Obě menu čtou stejný seznam; původní návrhové duplicity se nepřenášejí.
   const menuBrand=html=>{
-    // Zvyšný odkaz „O Lucii“ z návrhu odstránime ešte pred vložením skupín – tie ho obsahujú.
-    html=html.replace(/<a\b[^>]*>\s*O Lucii\s*<\/a>/g,'');
-    html=html.replace(/(<a\b[^>]*>)\s*Zdravý svet\s*<\/a>/g, '$1Môj účet</a>');
+    // Položka účtu v menu (aj ikona) je označená pre runtime: text a cesta podľa prihlásenia.
+    html=html.replace(/(<a\b[^>]*?)(>)\s*Zdravý svet\s*<\/a>/g, '$1 data-menu-account$2Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, '$1Klub</a>').replace(/(<a\b[^>]*aria-label="Môj účet")/g, '$1 data-menu-account');
     let index=0;
     // Poradie polí menu je v semene spoločné pre všetky skupiny (nie resetované).
     let menuField=0;
@@ -221,7 +250,7 @@ export function chrome(page) {
   const header=page==='home'?headerHtml.replace('style="position:relative;z-index:2;','style="position:absolute;left:0;right:0;top:0;z-index:4;'):headerHtml;
   return {
     header: page==='home' ? LH_HEADER : header,
-    footer: bleed(convert(footerLinks(src.footer), {page: linkPage, region: 'footer'})),
+    footer: bleed(withCookieSettings(convert(footerClasses(footerLegalLinks(footerLinks(src.footer))), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
@@ -248,7 +277,7 @@ export function aboutSections() {
 
 // overflow-x:clip místo hidden — hidden by z kořene udělal scroll kontejner
 // a sticky sekce (úvod, obloha) by se držely vůči němu místo vůči oknu.
-export const ROOT_STYLE = 'font-family:Outfit,sans-serif;font-weight:300;color:#EFE5C7;background:transparent;overflow-x:clip;padding:0 0 0 var(--rail-pad)';
+export const ROOT_STYLE = 'font-family:Figtree,sans-serif;font-weight:300;color:#EFE5C7;background:transparent;overflow-x:clip;padding:0 0 0 var(--rail-pad)';
 // Globální styly z <helmet> návrhu (rozsah omezen na stránky v novém vzhledu tam, kde by rozbily starší obsah).
 // Plynulé přechody mezi sekcemi: smoothstep místo lineárního gradientu, aby na konci přechodu nevznikla viditelná hrana.
 const SMOOTH = [0, .028, .104, .216, .352, .5, .648, .784, .896, .972, 1];
@@ -258,6 +287,45 @@ const easeVar = (color, a0, a1, p0, p1) => SMOOTH.map((k, i) => `color-mix(in sr
 const CREAM = '245,242,232', MASK = '0,0,0';
 export const HELMET_CSS = `
 ${HOME_CSS}
+/* Pätička – rovnaká a kompaktná na všetkých stránkach: newsletter vľavo, tri skupiny odkazov vedľa seba, menšie logá. */
+.site-footer .sf-wrap{max-width:1320px!important;padding:clamp(44px,5vw,72px) clamp(20px,4vw,64px) 26px!important}
+.site-footer .sf-top{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:36px clamp(40px,6vw,96px)!important;padding-bottom:clamp(32px,4vw,52px)!important;align-items:start}
+.site-footer .sf-news{gap:14px!important}
+.site-footer .sf-news>p:first-child{font-size:clamp(32px,3.2vw,46px)!important}
+.site-footer .sf-news>p:first-child,.site-footer .sf-links>div>span,.site-footer .sf-links a,.site-footer .sf-bottom,.site-footer .sf-bottom a{color:var(--site-cream,#EFE5C7)!important}
+.site-footer .sf-news>p:not(:first-child){color:#C4C7B6!important}
+.site-footer .sf-news input{color:var(--site-cream,#EFE5C7)!important;border-color:rgba(239,229,199,.6)!important}
+.site-footer .sf-news input::placeholder{color:#C4C7B6!important;opacity:1}
+.site-footer .sf-links a:hover,.site-footer .sf-bottom a:hover{color:var(--site-accent-light,#D8C598)!important}
+.site-footer .sf-brands>*>span,.site-footer .sf-brands>*>div span{color:var(--site-cream,#EFE5C7)!important}
+.site-footer .sf-brands>*>img,.site-footer .sf-brands>*>div img{filter:brightness(0) invert(.9)!important}
+.site-footer .sf-links{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px clamp(18px,3vw,44px)!important;width:100%}
+.site-footer .sf-links>div{display:flex!important;flex-direction:column!important;gap:10px!important;min-width:0!important}
+.site-footer .sf-links>div>span{margin-bottom:4px!important}
+.site-footer .sf-links a{line-height:1.35;overflow-wrap:anywhere}
+.site-footer .sf-brands{gap:clamp(12px,4vw,64px)!important;padding:26px 0 30px!important;border-top:1px solid rgba(201,163,85,.18);border-bottom:1px solid rgba(201,163,85,.18)}
+.site-footer .sf-brands>*{grid-template-rows:clamp(92px,8vw,118px) auto!important;row-gap:12px!important}
+.site-footer .sf-brands>*>img{height:clamp(88px,7.6vw,112px)!important;width:auto!important}
+.site-footer .sf-brands>*>div>img{height:clamp(54px,4.8vw,72px)!important;width:auto!important}
+.site-footer .sf-brands>*>div>span[style*="font-size:clamp(16px"]{font-size:clamp(16px,1.5vw,22px)!important}
+.site-footer .sf-brands>*>div{gap:8px!important;padding-bottom:0!important}
+.site-footer .sf-brands>*>div>span[style*="height:46px"]{height:24px!important}
+.site-footer .sf-bottom{padding-top:20px!important;align-items:center;row-gap:12px!important}
+@media(max-width:999.98px){.site-footer .sf-top{grid-template-columns:1fr}}
+@media(max-width:699.98px){
+.site-footer .sf-links{grid-template-columns:1fr 1fr;gap:26px 18px!important}
+.site-footer .sf-links>div:nth-child(3){grid-column:1/-1;display:block!important;columns:2;column-gap:18px}
+.site-footer .sf-links>div:nth-child(3)>span{display:block;column-span:all;margin-bottom:14px!important}
+.site-footer .sf-links>div:nth-child(3)>a{display:block;margin-bottom:10px;break-inside:avoid}
+.site-footer .sf-brands>*{grid-template-rows:70px auto!important;row-gap:10px!important}
+.site-footer .sf-brands>*>img{height:66px!important}
+.site-footer .sf-brands>*>div>img{height:40px!important}
+.site-footer .sf-brands>*>div>span{letter-spacing:.18em!important;padding-left:.18em!important;font-size:13px!important}
+.site-footer .sf-brands>*>div>span:last-child{font-size:8px!important;letter-spacing:.3em!important;gap:6px!important}
+.site-footer .sf-brands>*>div>span:last-child>span{width:10px!important}
+.site-footer .sf-brands>*>span{font-size:8px!important;letter-spacing:1.4px!important;text-align:center}
+.site-footer .sf-bottom{flex-direction:column;align-items:flex-start}
+}
 :is(.dc-root,.dc-chrome) .header-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
 :is(.dc-root,.dc-chrome) .header-brand-emblem{position:relative;display:block;width:36px;height:36px;overflow:hidden;border-radius:50%;flex-shrink:0}
 :is(.dc-root,.dc-chrome) .header-brand-emblem img{position:absolute;width:116.62%;height:auto;max-width:none;left:-8.45%;top:-34.01%;filter:invert(1) sepia(.3) saturate(1.4) brightness(.95)}
@@ -268,6 +336,27 @@ ${HOME_CSS}
 :is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:64px!important;min-height:64px!important;padding-block:8px!important}
 :is(.dc-root,.dc-chrome) header [data-menu-open]{height:40px!important;font-size:13px!important;gap:12px!important}
 :is(.dc-root,.dc-chrome) .header-account{display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
+/* Nic nesmí stránku rozšířit do strany (mobil by ji oddálil a „ujížděla“). */
+html,body{overflow-x:clip}
+/* Mobilní menu: celé na jednom displeji (zbytek dorovná fitMenu v app.mjs i při zvětšeném písmu). */
+@media(max-width:760px){#dc-top-menu{top:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;max-height:none!important;border-radius:0!important;padding:16px 18px 18px!important;gap:14px!important}
+#dc-top-menu{overflow-x:hidden!important}
+#dc-top-menu>div:nth-child(3){flex-wrap:nowrap!important;gap:8px!important}
+#dc-top-menu>div:nth-child(3)>div:first-child{gap:10px!important;min-width:0}
+#dc-top-menu .menu-brand-mark{width:40px;height:40px}
+#dc-top-menu>div:nth-child(3)>div:first-child span[style*="font-size:20px"]{font-size:14px!important;letter-spacing:3px!important}
+#dc-top-menu>div:nth-child(3)>div:first-child span[style*="font-size:7px"]{display:none!important}
+#dc-top-menu>div:nth-child(3)>div:last-child{gap:2px!important;flex-shrink:0}
+#dc-top-menu>div:nth-child(4)>div,#dc-top-menu>div:nth-child(4) a{min-width:0;overflow-wrap:break-word;white-space:normal!important}
+#dc-top-menu>div:nth-child(4) a span{max-width:100%;white-space:normal!important}
+#dc-top-menu>div:nth-child(4){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;row-gap:14px!important;column-gap:18px!important}
+#dc-top-menu>div:nth-child(4)>div{padding:0!important;border:0!important;gap:0!important}
+#dc-top-menu>div:nth-child(4) [style*="font-size:25px"]{font-size:19px!important;margin-bottom:2px!important}
+#dc-top-menu>div:nth-child(4) a[style*="font-size:14px"]{padding:5px 0!important}
+#dc-top-menu>div:nth-child(5){grid-template-columns:1fr!important;gap:10px!important;padding-top:12px!important}
+#dc-top-menu>div:nth-child(5)>div:first-child{gap:10px!important}
+#dc-top-menu>div:nth-child(5)>div:nth-child(2){display:none!important}
+#dc-top-menu>div:nth-child(5) a[style*="font-size:30px"]{font-size:21px!important}}
 :is(.dc-root,.dc-chrome) .header-account svg{width:16px;height:16px}
 :is(.dc-root,.dc-chrome) [role="dialog"] a[aria-label="Môj účet"]>span{transform:scale(.8)}
 @media(max-width:999.98px){:is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:60px!important;min-height:60px!important}}
@@ -275,13 +364,6 @@ ${HOME_CSS}
 @media(max-width:699.98px){
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]:has(>span[style*="height:1px"]){letter-spacing:2px!important;font-size:10px!important;gap:10px!important}
 section[data-screen-label="01 Hero"] div[style*="text-transform:uppercase"]>span[style*="height:1px"]{width:24px!important}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]{display:grid!important;grid-template-columns:1fr 1fr;gap:34px 18px!important;width:100%;flex:1 1 100%!important}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div{gap:11px!important;min-width:0}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>a{font-size:14px!important;line-height:1.3}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div>:first-child{margin-bottom:4px}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;column-gap:18px}
-footer div[style*="flex-wrap:wrap;gap:40px clamp(36px,5vw,88px)"]>div:nth-child(3)>:first-child{grid-column:1/-1}
-footer div[style*="padding-bottom:clamp(60px,7vw,110px)"]{padding-bottom:44px!important;gap:44px!important}
 #o-lucii{grid-template-columns:1fr!important}
 #o-lucii>div:last-child{display:contents!important}
 #o-lucii>div:last-child>*{margin-inline:24px!important}
@@ -373,7 +455,7 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#F5F2E8}
 .hero-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,24,15,.46) 0%,rgba(16,24,15,.18) 28%,rgba(16,24,15,.58) 58%,rgba(8,12,7,.86) 82%,rgba(4,6,4,.94) 100%)}
 .hero-ghost{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-weight:100;font-size:clamp(110px,20vw,360px);letter-spacing:-.06em;line-height:.8;color:rgba(239,229,199,.07);white-space:nowrap;pointer-events:none;user-select:none}
 [data-screen-label="01 Hero"] h1{font-weight:100}
-/* Outfit je variabilní font (100–900) — bez toho se váha 100 syntetizuje z 200
+/* Figtree je variabilní font (300–600) — bez toho se váha 300 syntetizuje z 400
    a display vypadá tlustší, než je v návrhu. */
 .dc-root,.dc-chrome{font-synthesis:none}
 .wisdom figure{margin:0 auto;max-width:1180px;display:flex;flex-direction:column;align-items:center;gap:clamp(28px,3.4vw,48px)}

@@ -1,16 +1,16 @@
 {
- "generated_at": "2026-10-21T09:53:55.990Z",
+ "generated_at": "2026-10-21T20:22:46.465Z",
  "source": "/Users/lucky/anastasia-nexus-codex-storefront-design/storefront-prototype",
  "stats": {
-  "pages": 19,
-  "sections": 77,
-  "fields": 1529,
+  "pages": 22,
+  "sections": 82,
+  "fields": 1572,
   "byType": {
-   "text": 298,
+   "text": 324,
    "image": 20,
-   "link": 115,
+   "link": 122,
    "video": 1,
-   "rich": 1095
+   "rich": 1105
   }
  },
  "pages": [
@@ -83,15 +83,15 @@
       {
        "key": "global__menu-obchod__1-text",
        "type": "text",
-       "label": "Položka menu – AI ANASTASIA ACADEMY",
-       "value": "AI ANASTASIA ACADEMY",
+       "label": "Položka menu – AI ANASTASIA Academy",
+       "value": "AI ANASTASIA Academy",
        "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "global__menu-obchod__1-link",
        "type": "link",
-       "label": "Odkaz položky menu – AI ANASTASIA ACADEMY",
+       "label": "Odkaz položky menu – AI ANASTASIA Academy",
        "value": "/eshop?category=sebarozvoj",
        "max_length": 500,
        "lang": "sk"
@@ -99,15 +99,15 @@
       {
        "key": "global__menu-obchod__2-text",
        "type": "text",
-       "label": "Položka menu – BIOKOZMETIKA",
-       "value": "BIOKOZMETIKA",
+       "label": "Položka menu – Biokozmetika",
+       "value": "Biokozmetika",
        "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "global__menu-obchod__2-link",
        "type": "link",
-       "label": "Odkaz položky menu – BIOKOZMETIKA",
+       "label": "Odkaz položky menu – Biokozmetika",
        "value": "/eshop?category=bio-kozmetika-bez-chemie",
        "max_length": 500,
        "lang": "sk"
@@ -397,7 +397,7 @@
   },
   {
    "key": "home",
-   "title": "Domovská stránka",
+   "title": "Úvod",
    "path": "/",
    "sections": [
     {
@@ -408,32 +408,42 @@
       {
        "key": "home__uvod__0-text",
        "type": "text",
-       "label": "Úvod – nadpis",
+       "label": "Nadpis 1",
        "value": "Vitajte.",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__uvod__1-rich",
        "type": "rich",
-       "label": "Úvod – poznámka",
-       "value": "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.",
+       "label": "Odsek 2",
+       "value": "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.",
        "max_length": 2000,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__uvod__2-text",
        "type": "text",
-       "label": "Úvod – tlačidlo",
+       "label": "Nadpis 3",
        "value": "Vstúpte do zdravého sveta",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
+      },
+      {
+       "key": "home__uvod__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Zdravý svet",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__uvod__4-rich",
+       "type": "rich",
+       "label": "Odsek 5",
+       "value": "Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.",
+       "max_length": 2000,
+       "lang": "sk"
       }
      ]
     },
@@ -445,32 +455,34 @@
       {
        "key": "home__manifest__0-text",
        "type": "text",
-       "label": "Manifest – nadpis",
-       "value": "Nie ako ponuka riešení.",
+       "label": "Nadpis 1",
+       "value": "Priestor pre zdravie, poznanie a vedomý život.",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__manifest__1-text",
        "type": "text",
-       "label": "Manifest – zvýraznený nadpis",
-       "value": "ALE AKO PRIESTOR",
+       "label": "Nadpis 2",
+       "value": "Vitajte",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__manifest__2-rich",
        "type": "rich",
-       "label": "Manifest – text",
-       "value": "Kde veci nemusia byť urýchľované, vysvetľované ani riadené. Priestor pre zdravie, poznanie a vedomý život — bez tlaku a bez zbytočného ruchu.",
+       "label": "Odsek 3",
+       "value": "Kde veci nemusia byť urýchľované, vysvetľované ani riadené.",
        "max_length": 2000,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
+      },
+      {
+       "key": "home__manifest__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Zdravý svet",
+       "max_length": 160,
+       "lang": "sk"
       }
      ]
     },
@@ -482,22 +494,26 @@
       {
        "key": "home__kolekcia__0-text",
        "type": "text",
-       "label": "Kolekcia – nadpis",
-       "value": "Vybrané",
+       "label": "Nadpis 1",
+       "value": "Kolekcia",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__kolekcia__1-text",
        "type": "text",
-       "label": "Kolekcia – zvýraznený nadpis",
-       "value": "PRE VÁS.",
+       "label": "Nadpis 2",
+       "value": "Kolekcia",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
+      },
+      {
+       "key": "home__kolekcia__2-text",
+       "type": "text",
+       "label": "Nadpis 3",
+       "value": "Celý obchod",
+       "max_length": 160,
+       "lang": "sk"
       }
      ]
     },
@@ -509,113 +525,211 @@
       {
        "key": "home__program__0-text",
        "type": "text",
-       "label": "Program – nadpis",
-       "value": "Nová kapitola",
+       "label": "Nadpis 1",
+       "value": "AI ANASTASIA Longevity Academy",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__program__1-text",
        "type": "text",
-       "label": "Program – zvýraznený nadpis",
-       "value": "SA ZAČÍNA VAMI.",
+       "label": "Nadpis 2",
+       "value": "Program RESET 40+",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__program__2-rich",
        "type": "rich",
-       "label": "Program – text",
-       "value": "Šestnásť tematických týždňov. Jednorazový vzdelávací program vo vlastnom tempe — bez zbytočného zhonu a bez strachu, že niečo zmeškáte.",
+       "label": "Odsek 3",
+       "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.",
        "max_length": 2000,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
+      },
+      {
+       "key": "home__program__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Objaviť RESET 40+",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "sluzby",
+     "title": "Služby",
+     "order": 4,
+     "fields": [
+      {
+       "key": "home__sluzby__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Čo získate?",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__sluzby__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Sprevádzanie",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__sluzby__2-text",
+       "type": "text",
+       "label": "Nadpis 3",
+       "value": "Všetky konzultácie",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    },
+    {
+     "key": "svet",
+     "title": "Svet",
+     "order": 5,
+     "fields": [
+      {
+       "key": "home__svet__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "home__svet__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Objaviť",
+       "max_length": 160,
+       "lang": "sk"
       }
      ]
     },
     {
      "key": "reset",
      "title": "RESET 40+",
-     "order": 4,
+     "order": 6,
      "fields": [
       {
        "key": "home__reset__0-text",
        "type": "text",
-       "label": "RESET 40+ – nadpis",
-       "value": "Šestnásť týždňov.",
+       "label": "Nadpis 1",
+       "value": "AI ANASTASIA RESET 40+",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__reset__1-text",
        "type": "text",
-       "label": "RESET 40+ – podnadpis",
-       "value": "Vlastné tempo.",
+       "label": "Nadpis 2",
+       "value": "16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       }
      ]
     },
     {
      "key": "obloha",
      "title": "Obloha",
-     "order": 5,
+     "order": 7,
      "fields": [
       {
        "key": "home__obloha__0-text",
        "type": "text",
-       "label": "Obloha – nadpis",
-       "value": "Čo o vás vie",
+       "label": "Nadpis 1",
+       "value": "Čo môžeme spolu riešiť?",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
+      },
+      {
+       "key": "home__obloha__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Pod hviezdami · Konzultácia",
+       "max_length": 160,
+       "lang": "sk"
       }
      ]
     },
     {
      "key": "kontakt",
      "title": "Kontakt",
-     "order": 6,
+     "order": 8,
      "fields": [
       {
        "key": "home__kontakt__0-text",
        "type": "text",
-       "label": "Kontakt – nadpis",
-       "value": "Potrebujete",
+       "label": "Nadpis 1",
+       "value": "Kontakt",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__kontakt__1-text",
        "type": "text",
-       "label": "Kontakt – zvýraznený nadpis",
-       "value": "POMOC?",
+       "label": "Nadpis 2",
+       "value": "Kontakt",
        "max_length": 160,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
       },
       {
        "key": "home__kontakt__2-rich",
        "type": "rich",
-       "label": "Kontakt – text",
-       "value": "Či už viete, čo hľadáte, alebo práve neviete, odkiaľ začať — napíšte nám. Ozveme sa osobne.",
+       "label": "Odsek 3",
+       "value": "Otázka k produktu, programu alebo konzultácii? Tu je priestor pre vás.",
        "max_length": 2000,
-       "lang": "sk",
-       "hint": null,
-       "alt": null
+       "lang": "sk"
+      },
+      {
+       "key": "home__kontakt__3-text",
+       "type": "text",
+       "label": "Nadpis 4",
+       "value": "Napíšte nám",
+       "max_length": 160,
+       "lang": "sk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "eshop",
+   "title": "Obchod",
+   "path": "/eshop",
+   "sections": [
+    {
+     "key": "katalog",
+     "title": "Obchod",
+     "order": 0,
+     "fields": [
+      {
+       "key": "eshop__katalog__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Veci, ktoré majú zmysel.",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "eshop__katalog__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "OBCHOD",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "eshop__katalog__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "Malé každodenné rituály. Objavte produkty a programy sveta ANASTASIA.",
+       "max_length": 2000,
+       "lang": "sk"
       }
      ]
     }
@@ -11955,14 +12069,14 @@
    "sections": [
     {
      "key": "vop-1",
-     "title": "Všeobecné obchodné podmienky (ďalej len \"VOP\")",
+     "title": "Všeobecné obchodné podmienky",
      "order": 0,
      "fields": [
       {
        "key": "vop__vop-1__0-text",
        "type": "text",
        "label": "Nadpis 1",
-       "value": "Všeobecné obchodné podmienky (ďalej len \"VOP\")",
+       "value": "Všeobecné obchodné podmienky",
        "max_length": 160,
        "lang": "sk"
       },
@@ -11970,7 +12084,7 @@
        "key": "vop__vop-1__1-text",
        "type": "text",
        "label": "Nadpis 2",
-       "value": "I. Úvodné ustanovenia",
+       "value": "1 Predávajúci a kontakty",
        "max_length": 160,
        "lang": "sk"
       },
@@ -11978,7 +12092,7 @@
        "key": "vop__vop-1__2-rich",
        "type": "rich",
        "label": "Odsek 3",
-       "value": "1.1 Tieto Všeobecné obchodné podmienky (ďalej len „VOP\") upravujú zmluvný vzťah medzi predávajúcim a prevádzkujúcim svoj obchod na nižšie uvedenej internetovej adrese ako predávajúcim na strane jednej (ďalej len „predávajúci\") a fyzickou osobou spotrebiteľom, ako kupujúcim na strane druhej (ďalej len „kupujúci\"), a to prostredníctvom internetového obchodu predávajúceho. Internetový obchod je predávajúcim prevádzkovaný prostredníctvom webového rozhrania (ďalej len „webové rozhranie\").",
+       "value": "1.1 Predávajúcim a poskytovateľom obchodnej ponuky e-shopu je LUCRAT spol. s r.o., so sídlom Sokolská 1646/88, 960 01 Zvolen, Slovenská republika, IČO 36652164, DIČ 2022216372, IČ DPH SK2022216372 (ďalej „predávajúci“). Spoločnosť je zapísaná v obchodnom registri Okresného súdu Banská Bystrica, oddiel Sro, vložka 11855/S. ANASTASIA je označenie e-shopu; zmluvnou stranou je LUCRAT spol. s r.o.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -11986,31 +12100,49 @@
        "key": "vop__vop-1__3-rich",
        "type": "rich",
        "label": "Odsek 4",
-       "value": "Predávajúcim je LUCRAT spol. s.r.o.",
+       "value": "1.2 E-shop: https://www.anastasiaoz.eu. E-mail pre objednávky, reklamácie, odstúpenia a ochranu údajov: zdravysvet@anastasiaoz.eu. Telefón: +421 905 363 778. Kontaktná osoba: Mgr. Lucia Rogožanová, MBA. IBAN: SK43 0200 0000 0052 3107 0754.",
        "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__3-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – https://www.anastasiaoz.eu",
+       "value": "https://www.anastasiaoz.eu",
+       "label_text": "https://www.anastasiaoz.eu",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__3-link-1",
+       "type": "link",
+       "label": "Odkaz 2 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__4-rich",
        "type": "rich",
        "label": "Odsek 5",
-       "value": "IČO: 36652164",
+       "value": "1.3 Adresa na vrátenie tovaru, reklamácie tovaru a osobný odber: LUCRAT spol. s r.o., Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná, Slovenská republika. Osobný odber sa uskutočňuje po potvrdení pripravenosti a v oznámenom čase.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__5-rich",
-       "type": "rich",
-       "label": "Odsek 6",
-       "value": "sídlo: Sokolská 88, 960 01 Zvolen",
-       "max_length": 2000,
+       "key": "vop__vop-1__5-text",
+       "type": "text",
+       "label": "Nadpis 6",
+       "value": "2 Pôsobnosť a predmet zmluvy",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__6-rich",
        "type": "rich",
        "label": "Odsek 7",
-       "value": "spoločnosť zapísaná v Obchodnom registri Okresného súdu Bratislava I. odd.: Sro,",
+       "value": "2.1 Tieto VOP upravujú objednávky uzavreté na diaľku cez e-shop a individuálne dohodnuté objednávky e-mailom, pri ktorých boli VOP poskytnuté pred uzavretím zmluvy. Spotrebiteľom je fyzická osoba, ktorá nekoná v rámci podnikania alebo povolania. Samotné uvedenie IČO nerozhoduje o spotrebiteľskom postavení.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12018,7 +12150,7 @@
        "key": "vop__vop-1__7-rich",
        "type": "rich",
        "label": "Odsek 8",
-       "value": "vložka č. 11855/S",
+       "value": "2.2 Predmet, rozsah, jazyk, cena, termín dodania, technické požiadavky a prípadné podmienky prístupu vyplývajú z opisu produktu a objednávky. Individuálne dojednania majú prednosť, nesmú však obmedziť kogentné spotrebiteľské práva. Podnikateľské objednávky možno upraviť osobitnou dohodou; zákonné práva určené spotrebiteľom sa podnikateľom automaticky nepriznávajú.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12026,7 +12158,7 @@
        "key": "vop__vop-1__8-rich",
        "type": "rich",
        "label": "Odsek 9",
-       "value": "Názov lekárne: Lekáreň ANASTASIA",
+       "value": "2.3 Digitálny obsah zahŕňa najmä PDF a nahraté videá. Živá konzultácia alebo koučing sú službou aj pri realizácii cez internet. Kurz môže pozostávať z digitálneho obsahu aj živých služieb. Rozsah jednotlivých častí a ich cena alebo spôsob rozdelenia ceny musia byť zrozumiteľné pred objednaním. O právnej povahe individuálneho protokolu rozhoduje skutočný obsah plnenia, nie iba formát PDF.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12034,7 +12166,7 @@
        "key": "vop__vop-1__9-rich",
        "type": "rich",
        "label": "Odsek 10",
-       "value": "Vedúci lekárne: Mgr. Lucia Rogožanová, MBA",
+       "value": "2.4 Kurzy, koučing, supervízia a astrologické profily majú vzdelávací alebo sebarozvojový účel. Astrologický profil je interpretačný produkt, nie vedecká diagnóza alebo záruka budúcich udalostí. Mgr. Lucia Rogožanová, MBA je zdravotnícky pracovník – farmaceut a poskytuje lekárenskú starostlivosť v rozsahu svojho odborného oprávnenia. Pri nej môže prijímať a odborne vyhodnocovať potrebné zdravotné informácie. Pred objednaním musí byť jasné, či ide o všeobecnú poradenskú službu, alebo o konkrétny úkon lekárenskej starostlivosti, a kto je jeho oprávneným poskytovateľom. Samotná kvalifikácia osoby nemení všetky produkty e-shopu na zdravotnú starostlivosť.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12042,23 +12174,23 @@
        "key": "vop__vop-1__10-rich",
        "type": "rich",
        "label": "Odsek 11",
-       "value": "Kód poskytovateľa zdravotnej starostlivosti: P54532160301",
+       "value": "2.5 Na konkrétne plnenie, ktoré je zdravotnou starostlivosťou alebo službou s ňou súvisiacou, sa použijú príslušné zdravotnícke predpisy. Osobitný režim zmlúv na diaľku podľa § 14 až 22 zákona č. 108/2024 Z. z. sa na takéto plnenie nevzťahuje; nejde však o výnimku pre všetky služby poskytované farmaceutom. Články 9 a 10 týchto VOP a reklamačné pravidlá pre digitálne plnenia sa uplatňujú na bežný predaj a služby v ich zákonnej pôsobnosti. Poskytovateľom zdravotnej starostlivosti je spoločnosť LUCRAT spol. s..o. , povolenie na poskytovanie lekárenskej starostlivosti pre lekáreň ANASTASIA vydal  VÚC Košice pod číslom 08446/2025/ODDZ-36996 dňa 18.08.2025: , konkrétny rozsah a osobitné informácie vrátane postupu pri žiadosti o nápravu zdravotnej starostlivosti sa riadia prevádzkovým a reklamačným poriadkom lekárne ANASTASIA. .",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__11-rich",
-       "type": "rich",
-       "label": "Odsek 12",
-       "value": "Číslo povolenia:08446/2025/ODDZ-36996",
-       "max_length": 2000,
+       "key": "vop__vop-1__11-text",
+       "type": "text",
+       "label": "Nadpis 12",
+       "value": "3 Objednávka a uzavretie zmluvy",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__12-rich",
        "type": "rich",
        "label": "Odsek 13",
-       "value": "Informačná služba:",
+       "value": "3.1 Kupujúci vyberie produkt, uvedie potrebné údaje, zvolí dopravu a platbu a pred odoslaním môže skontrolovať a opraviť chyby. Bezprostredne pred odoslaním vidí hlavné vlastnosti produktu, celkovú cenu, prípadné opakované platby, trvanie záväzku a podmienky jeho ukončenia.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12066,7 +12198,7 @@
        "key": "vop__vop-1__13-rich",
        "type": "rich",
        "label": "Odsek 14",
-       "value": "Telefón: +421 905 363 778",
+       "value": "3.2 Záväzná objednávka sa odosiela tlačidlom „Objednávka s povinnosťou platby“ alebo iným rovnako jednoznačným označením. Potvrdenie doručenia objednávky sa odošle bezodkladne e-mailom. Zmluva vzniká doručením výslovného prijatia objednávky predávajúcim. Ak automatický e-mail obsahuje aj výslovné prijatie, zmluva vzniká týmto e-mailom.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12074,24 +12206,15 @@
        "key": "vop__vop-1__14-rich",
        "type": "rich",
        "label": "Odsek 15",
-       "value": "Adresa internetového obchodu predávajúceho: www.anastaziaoz.eu (ďalej len „internetový obchod\" )",
+       "value": "3.3 Pri individuálnej ponuke predávajúci najprv oznámi špecifikáciu, konečnú cenu, termín a podmienky. Zmluva vzniká písomným prijatím tejto ponuky kupujúcim podľa pokynov v ponuke. Dodatočné zmeny ceny alebo rozsahu vyžadujú dohodu; nemožno ich jednostranne doplniť po platbe.",
        "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__14-link-0",
-       "type": "link",
-       "label": "Odkaz 1 – www.anastaziaoz.eu",
-       "value": "http://www.anastaziaoz.eu",
-       "label_text": "www.anastaziaoz.eu",
-       "max_length": 500,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__15-rich",
        "type": "rich",
        "label": "Odsek 16",
-       "value": "1.2 Spotrebiteľom sa rozumie fyzická osoba, ktorá pri uzatváraní a plnení kúpnej zmluvy s predávajúcim, s cieľom nákupu výrobkov, určených na priamu osobnú spotrebu fyzických osôb, a to najmä pre samotnú fyzickú osobu alebo pre príslušníkov svojej domácnosti.",
+       "value": "3.4 Potvrdenie zmluvy na trvanlivom médiu obsahuje objednané plnenie, cenu, VOP a poučenie o odstúpení, prípadne udelené súhlasy so skorším plnením. Predávajúci ho poskytne v zákonnej lehote, najneskôr pri dodaní tovaru alebo pred začatím služby; súhlasy s digitálnym obsahom potvrdí pred jeho sprístupnením. Samotný odkaz na meniteľnú webovú stránku nenahrádza toto potvrdenie.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12099,23 +12222,23 @@
        "key": "vop__vop-1__16-rich",
        "type": "rich",
        "label": "Odsek 17",
-       "value": "1.3 Kupujúci berie na vedomie, že v rámci internetového obchodu sú okrem iného ponúkané aj lieky, ktoré sú určené iba fyzickým osobám a nie sú určené pre podnikateľský nákup liečiv či nákup liečiv právnickou osobou. Objednávka na jednu osobu a jeden deň je obmedzená počtom 10 balení.",
+       "value": "3.5 Zmluva sa uzatvára v slovenskom jazyku, prípadne v ďalšom jazyku výslovne ponúkanom v objednávke. Predávajúci uchováva zmluvné podklady a na požiadanie poskytne zákazníkovi jeho zmluvu. Náklady internetového pripojenia alebo bežného telefonovania znáša zákazník podľa svojho operátora; predávajúci neuplatňuje osobitnú zvýšenú tarifu.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__17-rich",
-       "type": "rich",
-       "label": "Odsek 18",
-       "value": "1.4 Predmetom týchto VOP je úprava vzájomných práv a povinností zmluvných strán, t.j. predávajúceho a kupujúceho, vzniknutých na základe kúpnej zmluvy, uzatvorenej prostredníctvom internetového obchodu predávajúceho (ďalej len „kúpna zmluva\").",
-       "max_length": 2000,
+       "key": "vop__vop-1__17-text",
+       "type": "text",
+       "label": "Nadpis 18",
+       "value": "4 Ceny a platby",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__18-rich",
        "type": "rich",
        "label": "Odsek 19",
-       "value": "1.5 Právne vzťahy medzi predávajúcim a kupujúcim - spotrebiteľom, ktoré nie sú vyslovene upravené v týchto VOP a/alebo v zmluve uzatvorenej medzi predávajúcim a kupujúcim, sa riadia príslušnými ustanoveniami zákona č. 40/1964 Zb. Občiansky zákonník, v znení neskorších predpisov a zákonom č. 250/2007 Z. z. o ochrane spotrebiteľa, v znení neskorších predpisov.",
+       "value": "4.1 Ceny sú uvádzané v EUR vrátane príslušnej DPH a povinných poplatkov. Doprava a ďalšie dohodnuté náklady sú vyčíslené pred odoslaním objednávky. Pri predaji do zahraničia sa príslušná daň a konečná cena zobrazia podľa pravidiel platných pre konkrétnu objednávku. Nepovinné doplnky vyžadujú aktívny výber zákazníka.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12123,7 +12246,7 @@
        "key": "vop__vop-1__19-rich",
        "type": "rich",
        "label": "Odsek 20",
-       "value": "1.6 V prípade akýchkoľvek rozdielov medzi VOP a kúpnou zmluvou uzatvorenou medzi predávajúcim a kupujúcim, má prednosť text zmluvy s tým, že VOP tvoria neoddeliteľnú súčasť kúpnej zmluvy. Kúpna zmluva a obchodné podmienky sú vyhotovené v slovenskom jazyku. Kúpnu zmluvu možno uzavrieť v slovenskom jazyku.",
+       "value": "4.2 Platba je možná prostredníctvom Stripe spôsobmi dostupnými v objednávke a bankovým prevodom, ak je ponúknutý. Konkrétny spôsob a splatnosť sú uvedené pred objednaním. [doplní prevádzkovateľ] Pri prevode je cena uhradená pripísaním na účet, pri online platbe po potvrdení úspešnej úhrady.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12131,7 +12254,7 @@
        "key": "vop__vop-1__20-rich",
        "type": "rich",
        "label": "Odsek 21",
-       "value": "1.7 Kupujúci pred odoslaním objednávky potvrdí, že sa zoznámil s týmito VOP a že s týmito VOP súhlasí zaškrtnutím príslušného poľa v objednávkovom formulári.",
+       "value": "4.3 Predplatné musí mať uvedenú cenu za každé fakturačné obdobie, jeho dĺžku, celkové minimálne záväzky a prípadné automatické obnovovanie. Jednorazový nákup nezakladá oprávnenie na ďalšie opakované platby.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12139,31 +12262,31 @@
        "key": "vop__vop-1__21-rich",
        "type": "rich",
        "label": "Odsek 22",
-       "value": "1.8 Kupujúci berie na vedomie, že na účely úpravy jeho vzťahu k predávajúcemu sa za",
+       "value": "4.4 Ak sa predávajúci s kupujúcim nedohodne na zmene alebo produkt nemôže dodať, neprijme objednávku, prípadne dohodne ukončenie už uzavretej zmluvy alebo postupuje podľa zákona. Prijatú platbu za nedodané plnenie vráti bez zbytočného odkladu. Zjavná chyba ceny neoprávňuje predávajúceho ľubovoľne zrušiť platne uzavretú zmluvu.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__22-rich",
-       "type": "rich",
-       "label": "Odsek 23",
-       "value": "účinné považujú VOP v znení platnom a účinnom v momente odoslania objednávky. Kópiu VOP dostane kupujúci ako prílohu potvrdenia objednávky na zadanú emailovú adresu. Predávajúci je oprávnený znenie VOP meniť či doplňovať akýmikoľvek zmenami, čím ale nie sú dotknuté práva a povinnosti, ktoré vznikli počas účinnosti predchádzajúceho znenia VOP.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__23-text",
+       "key": "vop__vop-1__22-text",
        "type": "text",
-       "label": "Nadpis 24",
-       "value": "II. Kúpna zmluva – všeobecné ustanovenia",
+       "label": "Nadpis 23",
+       "value": "5 Digitálne produkty a kurzy",
        "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__23-rich",
+       "type": "rich",
+       "label": "Odsek 24",
+       "value": "5.1 Prístup ku kurzu sa aktivuje po prijatí platby bez zbytočného odkladu pri splnení pravidiel skoršieho dodania podľa článku 9. Pri postupnom kurze opis produktu určí harmonogram lekcií. Individuálne pripravované PDF dokumenty sa vyhotovia a odošlú najneskôr do 72 hodín od uzavretia zmluvy, prijatia platby a dodania všetkých vopred určených nevyhnutných podkladov; lehota začína splnením poslednej z týchto podmienok. Iná lehota je možná na základe individuálnej písomnej dohody. Ak chýbajú podklady, predávajúci o tom zákazníka bezodkladne informuje. Pri digitálnom obsahu bez súhlasu so skorším dodaním sa obsah odošle až po uplynutí lehoty na odstúpenie; o tomto neskoršom dodaní musí byť zákazník informovaný pred objednaním. PDF sa doručuje elektronicky na dohodnutý kontakt, pri citlivom obsahu bezpečným spôsobom.",
+       "max_length": 2000,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__24-rich",
        "type": "rich",
        "label": "Odsek 25",
-       "value": "2.1 Predmetom kúpnej zmluvy je predaj tovaru predávajúcim kupujúcemu, pričom v niektorých prípadoch môže ísť o internetový výdaj liekov špecifikovaných ust § 22 ods. 1 zákona č. 362/2011 Z. z. (ďalej len „zákon o liekoch\") t.j. liekov, ktorých výdaj nie je viazaný na lekársky predpis a/alebo zdravotníckych pomôcok v zmysle § 22 ods. (b) zákona o liekoch (v ďalšom texte ako „zdravotnícke pomôcky\"). Pod tovarom sa rozumejú taktiež zdravotnícke potreby, potravinové doplnky a kozmetika a spolu s liekmi, ktorých výdaj nie je viazaný na lekársky predpis, zdravotníckymi pomôckami sa spoločne označujú pre účely týchto VOP ďalej len ako „tovar\". Prostredníctvom internetového obchodu nemožno zakúpiť lieky, ktorých výdaj je viazaný na lekársky predpis. Lieky s obsahom drogového prekurzora, môžu byť vydané prostredníctvom internetového obchodu len v takom počte balení, v akom je to potrebné na jeden liečebný cyklus.",
+       "value": "5.2 Kurzy označené ako zakúpené s neobmedzeným prístupom nemajú zmluvne stanovený dátum skončenia prístupu. Nevyžaduje sa nové predplatné na zachovanie už zakúpeného obsahu. Technická migrácia nesmie sama osebe odňať prístup. Ak predávajúci nemôže záväzok ďalej plniť, dohodne rovnocenné riešenie so zákazníkom; tým nie sú dotknuté práva zákazníka pri nesplnení zmluvy. Neobmedzený prístup automaticky nezahŕňa nové samostatné kurzy alebo osobné konzultácie, pokiaľ neboli súčasťou ponuky.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12171,7 +12294,7 @@
        "key": "vop__vop-1__25-rich",
        "type": "rich",
        "label": "Odsek 26",
-       "value": "2.2 Internetový obchod prevádzkovaný predávajúcim obsahuje tovar ponúkaný predávajúcim na predaj, a to vrátane uvedenia nasledujúcich informácií:",
+       "value": "5.3 Opis produktu uvádza, či je obsah na stiahnutie alebo prehrávanie online, formát súborov, potrebné programy a zariadenia, jazyk, dostupné titulky a obmedzenia kompatibility.  Bezplatne sa poskytujú aktualizácie potrebné na zachovanie zákonného súladu plnenia počas zákonom vyžadovanej doby. Zmluva nezaručuje nové tematické rozšírenia, ktoré neboli objednané.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12179,7 +12302,7 @@
        "key": "vop__vop-1__26-rich",
        "type": "rich",
        "label": "Odsek 27",
-       "value": "a. názov produktu; b. fotografia produktu; môžu byť pritom použité aj fotografie, ktoré sa môžu líšiť napríklad vo farbe od balení produktu; pre posúdenie súladu produktu s konkrétnou ponukou je vždy rozhodujúci textový popis ponuky; c. špecifikácia produktu podľa jeho povahy; d. cena produktu - je vždy uvedená ako cena konečná vrátane DPH, pokiaľ neurčuje inak legislatíva, pričom nezahŕňa náklady na dopravu tovaru k zákazníkovi, ak nie je v ponuke uvedené inak, pričom ponuka predaja tovaru a ceny tohto tovaru zostávajú v platnosti po dobu, kedy sú zobrazované vo webovom rozhraní; e. povinné informácie podľa zákona č 362/2011 Z. z., zákon o liekoch v znení neskorších predpisov a vyhlášky Ministerstva zdravotníctva SR č. 21/2012 Z.z.",
+       "value": "5.4 Kupujúci získava nevýhradné oprávnenie používať zakúpený obsah pre vlastnú potrebu v dohodnutom rozsahu. Bez príslušného oprávnenia ho nesmie verejne šíriť, predávať ani zdieľať prístupové údaje. Zákonné výnimky z autorského práva zostávajú zachované. Ak objednávka zahŕňa tímovú alebo profesijnú licenciu, jej rozsah sa dohodne osobitne.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12187,39 +12310,57 @@
        "key": "vop__vop-1__27-rich",
        "type": "rich",
        "label": "Odsek 28",
-       "value": "2.3 Webové rozhranie obchodu obsahuje aj informácie o nákladoch spojených s balením a dodaním tovaru. Informácie o nákladoch spojených s balením a dodaním tovaru uvedené vo webovom rozhraní obchodu platia iba v prípadoch, keď je tovar doručovaný v rámci územia Slovenskej republiky.",
+       "value": "5.5 Pri technickom probléme zákazník kontaktuje predávajúceho. Krátka primeraná údržba sa oznámi, ak je to možné, vopred. VOP nevylučujú zákonné nároky pri výpadkoch. Zablokovanie účtu pri zneužití musí byť primerané a odôvodnené; predávajúci podľa okolností umožní nápravu a neodoberie zaplatené práva svojvoľne.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__28-rich",
-       "type": "rich",
-       "label": "Odsek 29",
-       "value": "2.4 Nákup tovaru môže kupujúci uskutočniť prostredníctvom svojho užívateľského rozhrania na základe registrácie do webového rozhrania.",
-       "max_length": 2000,
+       "key": "vop__vop-1__28-text",
+       "type": "text",
+       "label": "Nadpis 29",
+       "value": "6 Konzultácie a individuálne služby",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__29-rich",
        "type": "rich",
        "label": "Odsek 30",
-       "value": "2.5 Za účelom registrácie je kupujúci povinný uvádzať správne a pravdivo všetky požadované údaje a tieto údaje aktualizovať vždy pri ich zmene. Užívateľský účet každého kupujúceho je chránený užívateľským menom a heslom. Predávajúci si vyhradzuje právo užívateľský účet zrušiť kedykoľvek podľa vlastného uváženia. Registráciou kupujúci súhlasí so zasielaním informácií súvisiacich s tovarom a obchodných oznámení na adresu elektronickej pošty kupujúceho.",
+       "value": "6.1 Konzultácia sa uskutoční až po prijatí platby. Termín sa dohodne písomne, najmä e-mailom na zdravysvet@anastasiaoz.eu, a predávajúci ho písomne potvrdí. Interný rezervačný systém nie je v súčasnosti zavedený. Prípadný kontaktný formulár je iba žiadosťou o dohodnutie termínu, nie automatickým potvrdením rezervácie. Pred objednaním sú uvedené trvanie, forma, cena, miesto alebo online spôsob realizácie a potrebné technické podmienky.",
        "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__29-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__30-rich",
        "type": "rich",
        "label": "Odsek 31",
-       "value": "2.6 Kupujúci berie na vedomie, že užívateľský účet nemusí byť dostupný nepretržite, a to najmä s ohľadom na nutnú údržbu hardvérového a softvérového vybavenia predávajúceho, popr. nutnú údržbu hardvérového a softvérového vybavenia tretích osôb.",
+       "value": "6.2 Zákazník môže požiadať o zmenu termínu, ak oznámi neúčasť e-mailom na zdravysvet@anastasiaoz.eu najmenej 24 hodín pred dohodnutým začiatkom konzultácie. Zmena sa uskutoční po vzájomnej dohode; nový termín je záväzný po písomnom potvrdení predávajúcim. Uhradená cena sa použije na dohodnutý náhradný termín bez poplatku za túto zmenu.",
        "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__30-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__31-rich",
        "type": "rich",
        "label": "Odsek 32",
-       "value": "2.7 Akciová cena platí na tovar, ktorý je reálne skladom a len do vypredania zásob, pokiaľ nie je v podmienkach akcie uvedené inak",
+       "value": "6.3 Pri oznámení kratšom ako 24 hodín pred termínom alebo pri neúčasti bez oznámenia nie je náhradný termín automaticky zaručený; ďalší postup sa dohodne individuálne. Tieto VOP nezavádzajú paušálny storno poplatok ani automatické prepadnutie celej zaplatenej ceny. Zákonné odstúpenie od zmluvy sa neposudzuje ako zmluvné storno. Ak termín zruší predávajúci, ponúkne náhradný termín; ak zákazník nesúhlasí, vráti cenu neposkytnutého plnenia bez zbytočného odkladu, najneskôr do 14 dní.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12227,31 +12368,31 @@
        "key": "vop__vop-1__32-rich",
        "type": "rich",
        "label": "Odsek 33",
-       "value": "2.8 Ak predávajúci pri predaji výrobku ponúkne kupujúcemu k predanému tovaru bezplatne iný tovar ako dar, je na rozhodnutí kupujúceho či ponúkaný dar príjme. Dar nie je predaným výrobkom a preto sa naň nevzťahuje záruka a predávajúci za jeho prípadné vady nezodpovedá. Ak predávajúci vie o vadách výrobku, ktoré ponúka kupujúcemu ako dar, je povinný kupujúceho pri ponuke daru na ne upozorniť. Ak sa na darovanom tovare objavia vady, na ktoré predávajúci kupujúceho neupozornil, je kupujúci oprávnený dar vrátiť. V prípade, ak kupujúcemu vznikne právo odstúpiť od zmluvy o kúpe výrobku, je povinný predávajúcemu vrátiť všetko čo podľa zmluvy dostal, t.j. spolu s kúpeným tovarom je povinný vrátiť aj výrobok prijatý ako dar.",
+       "value": "6.4 Pri konzultáciách a supervízii zákazník neuvádza identifikačné údaje tretích osôb, ak nie sú nevyhnutné a zákonne spracúvané. Prípady tretích osôb sa prerokúvajú v anonymizovanej podobe. Nahrávanie ani automatický prepis nie sú súčasťou objednávky; vyžadujú osobitné zákonné nastavenie a informovanie účastníkov.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__33-text",
-       "type": "text",
-       "label": "Nadpis 34",
-       "value": "III. Uzavretie kúpnej zmluvy",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__34-rich",
+       "key": "vop__vop-1__33-rich",
        "type": "rich",
-       "label": "Odsek 35",
-       "value": "3.1 Na účely objednania tovaru vyplní kupujúci objednávkový formulár vo webovom rozhraní. Objednávkový formulár obsahuje najmä informácie o:",
+       "label": "Odsek 34",
+       "value": "6.5 Predávajúci neposkytuje záruku konkrétneho zdravotného, osobného, profesijného alebo finančného výsledku. Zodpovedá však za dohodnutý obsah, rozsah a odbornú starostlivosť v medziach poskytovanej služby. Toto ustanovenie neslúži na vylúčenie reklamácií alebo zodpovednosti za škodu.",
        "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__34-text",
+       "type": "text",
+       "label": "Nadpis 35",
+       "value": "7 Kozmetika na mieru a doručenie",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__35-rich",
        "type": "rich",
        "label": "Odsek 36",
-       "value": "a. objednávanom tovare, ktorý kupujúci vložil do elektronického nákupného košika webového rozhrania; b. spôsob úhrady kúpnej ceny tovaru, údaje o požadovanom spôsobe doručenia objednávaného tovaru a c. informácie o nákladoch spojených s dodaním tovaru (ďalej spoločne len ako „objednávka\").",
+       "value": "7.1 Lekáreň ANASTASIA disponuje povolením na individuálnu prípravu liekov. Personalizované prípravky sa pripravujú v schválenom laboratóriu lekárne v rozsahu platného povolenia a príslušných právnych predpisov, za prísnych hygienických podmienok, lege artis a s odbornou starostlivosťou. Pri výrobkoch ponúkaných ako kozmetika sa uplatnia predpisy pre kozmetické výrobky; právne zaradenie konkrétneho prípravku sa posudzuje podľa jeho vlastností, účelu a prezentácie. Označenie „liečebná kozmetika“ samo osebe neurčuje jeho právny režim. Pred objednaním zákazník dostane opis výrobku, dohodnutú individualizáciu, množstvo, cenu a termín dodania. Predávajúci zaznamená schválenú špecifikáciu. Za tovar na mieru sa nepovažuje automaticky každý výrobok vyrobený až po objednávke.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12259,7 +12400,7 @@
        "key": "vop__vop-1__36-rich",
        "type": "rich",
        "label": "Odsek 37",
-       "value": "3.2 Pred zaslaním objednávky predávajúcemu je kupujúcemu umožnené skontrolovať a meniť údaje, ktoré do objednávky kupujúci vložil a to i s ohľadom na možnosť kupujúceho zisťovať a opravovať chyby vzniknuté pri zadávaní dát do objednávky. Údaje uvedené v objednávke sú predávajúcim považované za správne. Predávajúci bezodkladne po obdržaní objednávky toto obdržanie kupujúcemu potvrdí elektronickou poštou, a to na adresu elektronickej pošty kupujúceho uvedenú v používateľskom rozhraní, či v objednávke (ďalej len „elektronická adresa kupujúceho\").",
+       "value": "7.2 Predaj je určený zákazníkom vo všetkých európskych krajinách. Tovar sa doručuje Slovenskou poštou alebo Packetou podľa dostupnosti pre konkrétnu destináciu; možný je aj osobný odber podľa bodu 1.3. Pred odoslaním objednávky sa zobrazí dostupný spôsob dodania a jeho celková cena. Objednávku možno prijať iba v rozsahu dovolenom uplatniteľnými dovoznými, produktovými a prípadnými sankčnými predpismi. Ak dodanie do konkrétnej destinácie nie je možné, obmedzenie musí byť oznámené pred uzavretím zmluvy. Pri dodaní mimo EÚ sa vopred uvedie režim cla, dovozných daní a ďalších poplatkov.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12267,7 +12408,7 @@
        "key": "vop__vop-1__37-rich",
        "type": "rich",
        "label": "Odsek 38",
-       "value": "3.3 Predávajúci je vždy oprávnený v závislosti na charaktere objednávky (množstvo tovaru, výška kúpnej ceny, predpokladané náklady na dopravu) požiadať kupujúceho o dodatočné potvrdenie objednávky (napríklad písomne alebo telefonicky) pred uzatvorením kúpnej zmluvy.",
+       "value": "7.3 Tovar sa doručí najneskôr do 7 kalendárnych dní od uzavretia zmluvy, prijatia platby a dodania všetkých vopred určených podkladov potrebných na prípravu; lehota začína splnením poslednej z týchto podmienok a zahŕňa prípravu aj prepravu. Pri osobnom odbere bude tovar v tejto lehote pripravený a zákazník o tom dostane oznámenie. Predávajúci prijíma objednávky s týmto záväzkom len tam, kde ho dokáže splniť. Omeškanie dopravcu alebo colné konanie nepredlžujú lehotu automaticky a neodnímajú zákonné práva zákazníka. Pri omeškaní má spotrebiteľ zákonné práva vrátane odstúpenia za podmienok zákona.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12275,7 +12416,7 @@
        "key": "vop__vop-1__38-rich",
        "type": "rich",
        "label": "Odsek 39",
-       "value": "3.4 Zmluvný vzťah medzi predávajúcim a kupujúcim vzniká prijatím potvrdenia prijatia objednávky kupujúcim (akceptáciou), pričom v prípade platby ceny za tovar v hotovosti v prevádzke predávajúceho podľa čl 4.1 a ) VOP dôjde k prijatiu objednávky okamihom zaplatenia kúpnej ceny.",
+       "value": "7.4 Nebezpečenstvo poškodenia prechádza na spotrebiteľa prevzatím tovaru ním alebo určenou treťou osobou odlišnou od dopravcu. Zákonná výnimka sa uplatní, ak si spotrebiteľ sám objednal dopravcu, ktorého predávajúci neponúkol. Zákazníkovi odporúčame oznámiť viditeľné poškodenie zásielky; jeho neoznámenie pri prevzatí neodníma zákonné práva.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12283,23 +12424,23 @@
        "key": "vop__vop-1__39-rich",
        "type": "rich",
        "label": "Odsek 40",
-       "value": "3.5 Kupujúci berie na vedomie, že predávajúci nie je povinný uzavrieť kúpnu zmluvu, a to najmä s osobami, ktoré predtým podstatným spôsobom porušili svoje povinnosti vyplývajúce z kúpnej zmluvy alebo z VOP.",
+       "value": "7.5 Kozmetika sa dodáva so zákonom vyžadovaným označením, zložením, upozorneniami a údajmi o trvanlivosti alebo dobe použiteľnosti po otvorení. Používa sa podľa určenia a pokynov. Individuálna reakcia sa posudzuje podľa okolností; predávajúci nevylučuje plošne zodpovednosť za bezpečnosť, vady či chýbajúce upozornenia.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__40-rich",
-       "type": "rich",
-       "label": "Odsek 41",
-       "value": "3.6 Kupujúci súhlasí s použitím komunikačných prostriedkov na diaľku pri uzatváraní kúpnej zmluvy. Náklady vzniknuté kupujúcemu pri použití komunikačných prostriedkov na diaľku v súvislosti s uzatvorením kúpnej zmluvy (náklady na internetové pripojenie, náklady na telefónne hovory) si hradí kupujúci sám.",
-       "max_length": 2000,
+       "key": "vop__vop-1__40-text",
+       "type": "text",
+       "label": "Nadpis 41",
+       "value": "8 Poukazy zľavové kódy a plánované predplatné",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__41-rich",
        "type": "rich",
        "label": "Odsek 42",
-       "value": "3.7 Ak z dôvodu vypredania zásob alebo nedostupnosti tovaru nie je schopný predávajúci dodať tovar kupujúcemu v lehote dohodnutej v kúpnej zmluve alebo určenej týmito obchodnými a reklamačnými podmienkami alebo za dohodnutú kúpnu cenu, je predávajúci povinný ponúknuť kupujúcemu náhradné plnenie alebo možnosť pre kupujúceho odstúpiť od kúpnej zmluvy (stornovať objednávku). Odstúpiť od kúpnej zmluvy alebo stornovať objednávku môže kupujúci doručením e-mailu. V prípade, ak kupujúci už uhradil kúpnu cenu alebo jej časť, vráti predávajúci už uhradenú kúpnu cenu alebo jej časť v lehote 14 dní odo dňa doručenia e-mailu o odstúpení od kúpnej zmluvy resp. stornovania objednávky kupujúcemu na ním určený účet, pokiaľ sa zmluvné strany nedohodnú inak. V prípade, ak kupujúci v primeranej lehote neprijme náhradné plnenie ponúkané predávajúcim ani neodstúpi od kúpnej zmluvy, je predávajúci oprávnený odstúpiť od kúpnej zmluvy a v prípade, ak kupujúci už uhradil kúpnu cenu alebo jej časť, predávajúci je povinný vrátiť už uhradenú kúpnu cenu alebo jej časť v lehote 14 dní odo dňa doručenia odstúpenia od kúpnej zmluvy kupujúcemu.",
+       "value": "8.1 Predplatiteľské programy sa v súčasnosti neposkytujú. Ich plánovanie nezakladá opakované platby ani automatické obnovovanie žiadneho nákupu. Pred zavedením predplatného predávajúci doplní a zverejní jeho konkrétne podmienky a zákazník ich musí mať k dispozícii pred objednaním.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12307,31 +12448,31 @@
        "key": "vop__vop-1__42-rich",
        "type": "rich",
        "label": "Odsek 43",
-       "value": "3.8 Kúpna zmluva je archivovaná predávajúcim v elektronickej podobe.",
+       "value": "8.2 Darčekové poukazy, zľavové kupóny a zľavové kódy majú platnosť najviac 6 mesiacov od vydania. Presný dátum alebo jednoznačne určené obdobie platnosti je vždy uvedené na poukaze, kupóne alebo v oznámení zľavového kódu a je zákazníkovi dostupné pred nákupom alebo uplatnením. Platený poukaz predstavuje nárok na určené plnenie alebo hodnotu; zľavový kód poskytuje uvedenú zľavu za vopred oznámených podmienok. Nejde o totožné produkty.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__43-text",
-       "type": "text",
-       "label": "Nadpis 44",
-       "value": "IV. Cena",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__44-rich",
+       "key": "vop__vop-1__43-rich",
        "type": "rich",
-       "label": "Odsek 45",
-       "value": "4.1 Cenu tovaru a prípadné náklady spojené s dodaním tovaru podľa kúpnej zmluvy môže kupujúci uhradiť predávajúcemu nasledujúcimi spôsobmi:",
+       "label": "Odsek 44",
+       "value": "8.3 Pri každom poukaze alebo kóde sa pred nákupom alebo uplatnením uvedie hodnota alebo zľava, rozsah použitia, platnosť a prípadné obmedzenia kombinovania.  Platnosť sa po vydaní jednostranne neskracuje. Ak čerpaniu v platnosti bráni dôvod na strane predávajúceho, ponúkne primerané predĺženie alebo iné zákonné vyrovnanie. Uplynutie platnosti sa nepoužije na vylúčenie zákonných nárokov. Samotné zaslanie poukazu e-mailom neznamená automatickú stratu práva odstúpiť. Nevyužitá zľava pri bezplatnom kupóne sa nevypláca v peniazoch.",
        "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__44-text",
+       "type": "text",
+       "label": "Nadpis 45",
+       "value": "9 Odstúpenie od zmluvy bez dôvodu",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__45-rich",
        "type": "rich",
        "label": "Odsek 46",
-       "value": "a. v hotovosti v prevádzke predávajúceho uvedenej v rámci objednávkového formulára tam, kde predávajúci umožňuje osobný odber; b. bezhotovostne prevodom na bankový účet, ktorý predávajúci oznámi kupujúcemu v rámci procesu objednávky (ďalej len „účet predávajúceho\"); c. bezhotovostne prostredníctvom platobného systému; d. bezhotovostne platobnou kartou online; e. dobierkou tam, kde predávajúci umožňuje dopravu tovaru prostredníctvom oprávneného prepravcu.",
+       "value": "9.1 Spotrebiteľ má pri bežnej zmluve uzavretej na diaľku právo odstúpiť bez uvedenia dôvodu do 14 dní. Pri tovare lehota plynie od prevzatia; pri viacerých oddelene dodaných tovaroch jednej objednávky od prevzatia posledného, pri dieloch od posledného dielu, pri pravidelnom dodávaní tovaru od prvej dodávky. Pri službe a digitálnom obsahu bez hmotného nosiča plynie od uzavretia zmluvy. Od kúpy tovaru možno odstúpiť aj pred dodaním.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12339,7 +12480,7 @@
        "key": "vop__vop-1__46-rich",
        "type": "rich",
        "label": "Odsek 47",
-       "value": "4.2 Spoločne s kúpnou cenou je kupujúci povinný zaplatiť predávajúcemu aj náklady spojené s balením a dodaním tovaru dohodnutej výške. Ak nie je uvedené vyslovene inak, kúpnou cenou sa rozumie aj náklady spojené s dodaním tovaru.",
+       "value": "9.2 Stačí pred uplynutím lehoty odoslať jednoznačné vyhlásenie e-mailom alebo listom na kontakty predávajúceho. Vzor v časti C je nepovinný. Online funkcia „Odstúpiť od zmluvy tu“ je dostupná [doplní prevádzkovateľ]. Po vyplnení zákazník aktivuje „Potvrdiť odstúpenie od zmluvy“. Predávajúci bezodkladne pošle potvrdenie doručenia na trvanlivom médiu s obsahom oznámenia, dátumom a časom doručenia. Funkcia nevylučuje odstúpenie e-mailom alebo listom.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12347,7 +12488,7 @@
        "key": "vop__vop-1__47-rich",
        "type": "rich",
        "label": "Odsek 48",
-       "value": "4.3 V prípade platby v hotovosti, či v prípade platby na dobierku je kúpna cena splatná pri prevzatí tovaru.",
+       "value": "9.3 Ak predávajúci neposkytne zákonné poučenie, lehota sa predlžuje podľa § 20 zákona č. 108/2024 Z. z., najviac o 12 mesiacov po uplynutí pôvodnej lehoty. Pri dodatočnom poučení v tomto období plynie nová 14-dňová lehota od jeho poskytnutia.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12355,7 +12496,7 @@
        "key": "vop__vop-1__48-rich",
        "type": "rich",
        "label": "Odsek 49",
-       "value": "4.4 V prípade bezhotovostnej platby je kúpna cena splatná do 48 hodín od odoslania objednávky. Predávajúci je oprávnený odstúpiť od kúpnej zmluvy v prípade, keď' kúpna cena nie je pripísaná v tejto lehote na jeho účet.",
+       "value": "9.4 Právo na odstúpenie bez dôvodu sa nevzťahuje na skutočne individualizovaný tovar vyrobený podľa špecifikácií spotrebiteľa alebo na mieru. Na štandardný tovar sa táto výnimka nevzťahuje len preto, že sa vyrobil na objednávku. Osobitná hygienická výnimka platí iba pre tovar v ochrannom obale, ktorý po jeho porušení nie je vhodné vrátiť z dôvodu ochrany zdravia alebo hygieny. Nevzťahuje sa plošne na všetku kozmetiku. Výnimky neodnímajú práva zo zodpovednosti za vady.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12363,7 +12504,7 @@
        "key": "vop__vop-1__49-rich",
        "type": "rich",
        "label": "Odsek 50",
-       "value": "4.5 V prípade bezhotovostnej platby je kupujúci povinný uhrádzať kúpnu cenu tovaru spolu s uvedením variabilného symbolu platby, ktorý je oznámený kupujúcemu v rámci procesu objednávky. V prípade bezhotovostnej platby je záväzok kupujúceho uhradiť kúpnu cenu splnený okamihom pripísania príslušnej čiastky na účet podľa bodu 4.1 b )",
+       "value": "9.5 Pri platenom digitálnom obsahu bez hmotného nosiča právo zanikne začatím dodávania iba pri splnení všetkých zákonných podmienok: predchádzajúci výslovný súhlas so skorším dodaním, vyhlásenie o riadnom poučení o strate práva a poskytnutie príslušného potvrdenia predávajúcim. Samotná úhrada alebo súhlas s VOP nestačia. Bez tohto súhlasu sa obsah sprístupní po uplynutí lehoty na odstúpenie. Personalizované PDF nie je automaticky tovarom na mieru na účely bodu 9.4.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12371,7 +12512,7 @@
        "key": "vop__vop-1__50-rich",
        "type": "rich",
        "label": "Odsek 51",
-       "value": "4.6 Prípadné zľavy z ceny tovaru poskytnuté predávajúcim kupujúcemu nemožno vzájomne kombinovať.",
+       "value": "9.6 Pri platenej službe právo zanikne až úplným poskytnutím služby, ak sa začala s predchádzajúcim výslovným súhlasom spotrebiteľa pred uplynutím lehoty a spotrebiteľ vyhlásil, že bol o tejto strate práva riadne poučený. Pri odstúpení pred úplným poskytnutím sa uhrádza len zákonná pomerná časť skutočne poskytnutého plnenia, ak boli splnené podmienky skoršieho začatia a informačné povinnosti. Bez nich sa táto úhrada nepožaduje.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12379,23 +12520,23 @@
        "key": "vop__vop-1__51-rich",
        "type": "rich",
        "label": "Odsek 52",
-       "value": "4.7 Ak je to v obchodnom styku obvyklé alebo ak je tak ustanovené všeobecne záväznými právnymi predpismi, vystaví predávajúci ohľadom platieb realizovaných na základe kúpnej zmluvy kupujúcemu daňový doklad - faktúru. Predávajúci je platcom dane z pridanej hodnoty.",
+       "value": "9.7 Výnimka pre digitálny obsah sa neuplatňuje automaticky na každú digitálnu službu, živé stretnutie alebo celý kombinovaný balík. Pri kombinovanom produkte sa práva posudzujú podľa jednotlivých plnení a konkrétnej zmluvy.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__52-rich",
-       "type": "rich",
-       "label": "Odsek 53",
-       "value": "4.8. Daňový doklad-y za predaj tovaru a služby (doprava) bude zákazníkovi dodaný buď priamo s tovarom alebo elektronicky emailom. Dodanie daňového dokladu emailom prebehne najneskôr do 10 dní od prevzatia zásielky zákazníkom. Objednávka a doprava môže byť rozdelená na viac daňových dokladov podľa expedície tovaru.",
-       "max_length": 2000,
+       "key": "vop__vop-1__52-text",
+       "type": "text",
+       "label": "Nadpis 53",
+       "value": "10 Následky odstúpenia",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__53-rich",
        "type": "rich",
        "label": "Odsek 54",
-       "value": "4.9 Prevzatím tovaru na dohodnutom mieste prechádza vlastnícke právo k tovaru na kupujúceho. Kupujúci, ktorý nespĺňa definíciu spotrebiteľa uvedenú v ust. § 2 písm. a) zákona č. 250/2007 Z. z. o ochrane spotrebiteľa a o zmene zákona Slovenskej národnej rady č. 372/1990 Zb. o priestupkoch v znení neskorších predpisov (ďalej len \"Zákon\"),nadobúda vlastnícke právo k tovaru až úplným zaplatením celej kúpnej ceny za tovar.",
+       "value": "10.1 Spotrebiteľ vráti tovar najneskôr do 14 dní od odstúpenia na adresu podľa bodu 1.3; stačí ho v tejto lehote odoslať. Pri riadnom predchádzajúcom poučení znáša priame náklady vrátenia. Pri tovare, ktorý nemožno obvykle vrátiť poštou, sa náklad oznámi vopred. Pri oprávnenej reklamácii platia pravidlá nákladov reklamácie, nie tieto pravidlá bežného vrátenia.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12403,7 +12544,7 @@
        "key": "vop__vop-1__54-rich",
        "type": "rich",
        "label": "Odsek 55",
-       "value": "Nebezpečenstvo škody na tovare prechádza na kupujúceho v čase, keď kupujúci alebo tretia osoba splnomocnená kupujúcim prevezme tovar od predávajúceho alebo od jeho zástupcu, povereného doručiť tovar, alebo keď' tak neurobí včas, tak v čase, keď' predávajúci umožní kupujúcemu nakladať s tovarom a kupujúci tovar neprevezme.",
+       "value": "10.2 Predávajúci vráti do 14 dní od doručenia odstúpenia prijaté platby vrátane nákladov najlacnejšieho bežného spôsobu dodania, ktorý ponúkal. Príplatok za zákazníkom zvolenú drahšiu dopravu sa nevracia. Pri čiastočnom odstúpení sa vrátia platby v rozsahu určenom zákonom. Pri tovare možno refundáciu zadržať do jeho doručenia alebo preukázania odoslania, podľa toho, čo nastane skôr, ak predávajúci neponúkol osobné vyzdvihnutie.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12411,79 +12552,124 @@
        "key": "vop__vop-1__55-rich",
        "type": "rich",
        "label": "Odsek 56",
-       "value": "4.10 Zľavový poukaz (voucher) vydaný predávajúcim, na základe ktorého je kupujúci oprávnený uplatniť zľavu z kúpnej ceny alebo čerpať inú výhodu je možné uplatniť len jedenkrát, pokiaľ nie je na zľavovom poukaze alebo v rámci marketingovej kampane výslovne uvedené inak.",
+       "value": "10.3 Refundácia sa vykoná rovnakým spôsobom ako platba; iný spôsob vyžaduje výslovný súhlas spotrebiteľa a nesmie mu spôsobiť ďalšie náklady. Predávajúci neodpočítava paušálne administratívne ani platobné poplatky.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__56-text",
-       "type": "text",
-       "label": "Nadpis 57",
-       "value": "V.Dodanie",
-       "max_length": 160,
+       "key": "vop__vop-1__56-rich",
+       "type": "rich",
+       "label": "Odsek 57",
+       "value": "10.4 Spotrebiteľ zodpovedá iba za zníženie hodnoty spôsobené zaobchádzaním nad rámec potrebný na zistenie vlastností a funkčnosti; nezodpovedá zaň, ak nebol riadne poučený. Pôvodný prepravný obal nie je všeobecnou podmienkou vrátenia. Odlišné pravidlo ochranného hygienického obalu v bode 9.4 tým nie je dotknuté.",
+       "max_length": 2000,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__57-rich",
        "type": "rich",
        "label": "Odsek 58",
-       "value": "5.1 Predávajúci sa zaväzuje vydať tovar kupujúcemu v nasledujúcich lehotách:",
+       "value": "10.5 Po účinnom odstúpení od zmluvy o digitálnom plnení zákazník prestane obsah používať a poskytovať iným; predávajúci môže ukončiť prístup. Zákonné práva k obsahu vytvorenému alebo poskytnutému zákazníkom a práva na ochranu údajov zostávajú zachované.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__58-rich",
-       "type": "rich",
-       "label": "Odsek 59",
-       "value": "a. v prípade platby v hotovosti sa predávajúci zaväzuje vydať tovar kupujúcemu kedykoľvek po prijatí objednávky kupujúceho v prevádzkarni predávajúceho v priebehu bežnej pracovnej doby, ktorá je uvedená v rámci informácií o predávajúcom objednávkovom rozhraní; b. v prípade platby bezhotovostným spôsobom, t.j. prevodom na účet alebo prostredníctvom platobného systému alebo platobnou kartou, sa predávajúci zaväzuje vydať tovar kupujúcemu v prevádzke predávajúceho, a to kedykoľvek v priebehu bežnej pracovnej doby, ktorá je uvedená v rámci informácií o predávajúcom v objednávkovom rozhraní, najskôr však po tom, čo bude kupujúcemu doručené oznámenie predávajúceho o prijatí ceny za tovar podľa článku 3.4 VOP; c. v prípade platby bezhotovostným spôsobom a zároveň v prípade, že tovar je doručovaný kupujúcemu prostredníctvom dopravcu, sa predávajúci zaväzuje odoslať tovar kupujúcemu v lehote najviac 48 hodín od prijatia úplnej úhrady ceny tovaru a prípadných nákladov spojených s dodaním tovaru tak, aby sa zabezpečilo jeho dodanie kupujúcemu najdlhšie v lehote 3 dní od prijatia úhrady, alebo kupujúcemu najdlhšie v lehote 3 dní od prijatia objednávky oznámiť, že v tejto lehote nie je možné zásielku dodať. V prípade, že nedôjde v tomto odseku k vyššie uvedenej úhrade v lehote do 3 dní od prijatia objednávky, je predávajúci oprávnený odstúpiť od kúpnej zmluvy.",
-       "max_length": 2000,
+       "key": "vop__vop-1__58-text",
+       "type": "text",
+       "label": "Nadpis 59",
+       "value": "11 Reklamácie a riešenie sporov",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__59-rich",
        "type": "rich",
        "label": "Odsek 60",
-       "value": "5.2 Kupujúci sa zaväzuje poskytnúť potrebnú súčinnosť pri preprave, doručovaní a dodaní tovaru, najmä uviesť úplnú a správnu adresu a byť k dispozícii na prevzatie zásielky. Prípadné náklady, ktoré predávajúcemu vzniknú v dôsledku porušenia týchto povinností kupujúcim, nesie kupujúci.",
+       "value": "11.1 Pravidlá reklamácií a zákonné nároky sú uvedené v časti B, ktorá tvorí súčasť týchto VOP. Odstúpenie bez dôvodu sa odlišuje od odstúpenia pre vady alebo omeškanie. Strata práva na prvé z nich neodníma ostatné zákonné práva.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__60-text",
-       "type": "text",
-       "label": "Nadpis 61",
-       "value": "VI. Odstúpenie",
-       "max_length": 160,
+       "key": "vop__vop-1__60-rich",
+       "type": "rich",
+       "label": "Odsek 61",
+       "value": "11.2 Ak spotrebiteľ nie je spokojný s vybavením reklamácie alebo sa domnieva, že boli porušené jeho práva, môže predávajúceho požiadať o nápravu na zdravysvet@anastasiaoz.eu. Ak predávajúci odpovie zamietavo alebo neodpovie do 30 dní od odoslania žiadosti, môže spotrebiteľ podať návrh na alternatívne riešenie sporu príslušnému subjektu podľa zákona č. 391/2015 Z. z.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__60-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__61-rich",
        "type": "rich",
        "label": "Odsek 62",
-       "value": "6.1 V súlade s ustanovením § 8 ods. 1 zákona č. 1 02 / 2014 Z.z. o ochrane spotrebiteľa pri zásielkovom predaji, v znení neskorších predpisov má kupujúci právo od kúpnej zmluvy odstúpiť , a to do štrnástich (14) dní od prevzatia tovaru. Odstúpenie od kúpnej zmluvy musí byť predávajúcemu odoslané do štrnástich (14) dní od prevzatia tovaru. Odstúpenie od kúpnej zmluvy je kupujúci povinný zaslať na adresu prevádzky predávajúceho (bod 1.1 VOP ), resp. e-mailom na adresu \"zdravysvet.anastasiaoz@gmail.com\". V prípade, ak je tovar kompletný vrátane pôvodného obalu, nepoškodený a nenesie známky používania, predlžuje predávajúci vyššie uvedenú lehotu 14 dní na vrátenie tovaru na 30 kalendárnych dní odo dňa prevzatia tovaru.",
+       "value": "11.3 Príslušným subjektom pri sporoch v pôsobnosti SOI je Slovenská obchodná inšpekcia, Bajkalská 21/A, p. p. 29, 827 99 Bratislava 27, e-mail ars@soi.sk alebo adr@soi.sk, web https://www.soi.sk/alternativne-riesenie-spotrebitelskych-sporov. Ďalšie subjekty sú v zozname Ministerstva hospodárstva SR na https://www.mhsr.sk. Právo obrátiť sa na súd nie je dotknuté.",
        "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__61-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – https://www.soi.sk/alternativne-riesenie-spotrebitelskych-sporov",
+       "value": "https://www.soi.sk/alternativne-riesenie-spotrebitelskych-sporov",
+       "label_text": "https://www.soi.sk/alternativne-riesenie-spotrebitelskych-sporov",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__61-link-1",
+       "type": "link",
+       "label": "Odkaz 2 – https://www.mhsr.sk",
+       "value": "https://www.mhsr.sk",
+       "label_text": "https://www.mhsr.sk",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__61-link-2",
+       "type": "link",
+       "label": "Odkaz 3 – ars@soi.sk",
+       "value": "mailto:ars@soi.sk",
+       "label_text": "ars@soi.sk",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "vop__vop-1__61-link-3",
+       "type": "link",
+       "label": "Odkaz 4 – adr@soi.sk",
+       "value": "mailto:adr@soi.sk",
+       "label_text": "adr@soi.sk",
+       "max_length": 500,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__62-rich",
        "type": "rich",
        "label": "Odsek 63",
-       "value": "6.2 V prípade liekov predávajúci zaistí priebeh odstúpenia od zmluvy takým spôsobom, aby nevznikli náklady na strane kupujúceho.",
+       "value": "11.4 Dohľad nad dodržiavaním spotrebiteľských povinností vykonáva najmä SOI v rozsahu svojej pôsobnosti; ochranu osobných údajov dozoruje Úrad na ochranu osobných údajov SR. Pri kozmetike vykonávajú príslušný dozor aj orgány verejného zdravotníctva. Podnet dozornému orgánu nenahrádza súdne alebo alternatívne riešenie individuálneho nároku.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "vop__vop-1__63-rich",
-       "type": "rich",
-       "label": "Odsek 64",
-       "value": "6.3 V prípade odstúpenia od zmluvy sa kúpna zmluva od začiatku ruší s tým, že kupujúci musí tovar vrátiť bez zbytočného odkladu predávajúcemu po odoslaní odstúpenia od zmluvy. Tovar musí byť predávajúcemu vrátený nepoškodený a neopotrebovaný, a ak je to možné , v pôvodnom obale. Nemožnosť odstúpenia od zmluvy sa týka predaja tovaru uzavretého v ochrannom obale, ktorý nie je vhodné vrátiť z dôvodu ochrany zdravia alebo z hygienických dôvodov a ktorého ochranný obal bol po dodaní už porušený (napr. drogéria, cumlíky, vložky do topánok,...).",
-       "max_length": 2000,
+       "key": "vop__vop-1__63-text",
+       "type": "text",
+       "label": "Nadpis 64",
+       "value": "12 Záverečné pravidlá",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "vop__vop-1__64-rich",
        "type": "rich",
        "label": "Odsek 65",
-       "value": "6.4 V lehote pätnástich (15) dní od vrátenia tovaru kupujúcim je predávajúci oprávnený vykonať preskúmanie vráteného tovaru, najmä za účelom zistenia, či vrátený tovar nie je poškodený, opotrebovaný alebo čiastočne spotrebovaný . Ak tovar vrátený kupujúcim bude poškodený, opotrebovaný alebo čiastočne spotrebovaný, vzniká predávajúcemu voči kupujúcemu nárok na náhradu škody jemu tým vzniknuté.",
+       "value": "12.1 Spracúvanie osobných údajov upravuje samostatná informácia v časti D. Uzavretie zmluvy sa nepodmieňuje súhlasom s nepotrebným marketingom alebo voliteľnými cookies.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12491,7 +12677,7 @@
        "key": "vop__vop-1__65-rich",
        "type": "rich",
        "label": "Odsek 66",
-       "value": "6.5 Kupujúci môže odstúpiť od kúpnej zmluvy, predmetom ktorej je kúpa tovaru aj pred začatím plynutia lehoty na odstúpenie od zmluvy.",
+       "value": "12.2 Zmluva sa spravuje právom Slovenskej republiky. Voľba práva neodníma spotrebiteľovi ochranu kogentných ustanovení práva, ktoré by sa použilo bez tejto voľby, najmä práva jeho obvyklého pobytu podľa článku 6 nariadenia Rím I. Príslušnosť súdov sa určuje podľa uplatniteľných predpisov; spotrebiteľ nie je nútený žalovať výlučne na Slovensku.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12499,7 +12685,7 @@
        "key": "vop__vop-1__66-rich",
        "type": "rich",
        "label": "Odsek 67",
-       "value": "6.6. Kupujúci má právo v rámci tejto lehoty po prevzatí tovar rozbaliť a odskúšať obdobným spôsobom ako je obvyklé pri nákupe v klasickom „kamennom\" obchode, a to v rozsahu potrebnom na zistenie povahy, vlastnosti a funkčnosti tovaru.",
+       "value": "12.3 Na objednávku sa vzťahuje verzia VOP poskytnutá pri jej uzavretí. Nové VOP nemenia spätne už uzavreté zmluvy. Zmeny trvajúcich digitálnych plnení sa riadia zákonom, vrátane informačných povinností a práv zákazníka pri nepriaznivej zmene. Neplatnosť ustanovenia neobmedzuje zákonné práva zákazníka.",
        "max_length": 2000,
        "lang": "sk"
       },
@@ -12507,423 +12693,7 @@
        "key": "vop__vop-1__67-rich",
        "type": "rich",
        "label": "Odsek 68",
-       "value": "6.7 Kupujúci je povinný bez zbytočného odkladu, najneskôr však v lehote do 14 dní odo dňa odstúpenia od kúpnej zmluvy zaslať tovar späť na adresu sídla prevádzkovateľa alebo ho odovzdať predávajúcemu alebo osobe poverenej predávajúcim na prevzatie tovaru. Kupujúci znáša náklady na vrátenie tovaru predávajúcemu alebo osobe poverenej predávajúcim na prevzatie tovaru.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__68-rich",
-       "type": "rich",
-       "label": "Odsek 69",
-       "value": "6.8 Predávajúci je povinný bez zbytočného odkladu, najneskôr do 14 dní odo dňa doručenia oznámenia o odstúpení od zmluvy vrátiť kupujúcemu všetky platby, ktoré od neho prijal na základe kúpnej zmluvy alebo v súvislosti s ňou vrátane nákladov na dopravu, dodanie a poštovné a iných nákladov a poplatkov. Predávajúci nie je povinný vrátiť kupujúcemu platby podľa tohto bodu týchto obchodných podmienok pred tým, ako mu je doručený tovar alebo kým kupujúci nepreukáže zaslanie tovaru späť predávajúcemu.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__69-rich",
-       "type": "rich",
-       "label": "Odsek 70",
-       "value": "6.9 Predávajúci je povinný vrátiť kupujúcemu kúpnu cenu za tovar rovnakým spôsobom, aký použil kupujúci pri svojej platbe, pokiaľ sa s kupujúcim nedohodne na inom spôsobe vrátenia platieb bez toho, aby kupujúcemu v tejto súvislosti boli účtované ďalšie poplatky.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__70-rich",
-       "type": "rich",
-       "label": "Odsek 71",
-       "value": "6.9.1 Kupujúci zodpovedá za zníženie hodnoty tovaru, ktoré vzniklo v dôsledku takého zaobchádzania s tovarom, ktoré je nad rámec zaobchádzania potrebného na zistenie vlastnosti a funkčnosti tovaru. V prípade, že kupujúci odstúpi od zmluvy a doručí predávajúcemu tovar, ktorý je používaný, poškodený alebo neúplný, zaväzuje sa kupujúci uhradiť predávajúcemu:",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__71-rich",
-       "type": "rich",
-       "label": "Odsek 72",
-       "value": "a. hodnotu, o ktorú sa znížila hodnota tovaru v zmysle ust. § 457 Občianskeho zákonníka v skutočnej výške; b. náklady, ktoré vznikli predávajúcemu v súvislosti s opravou tovaru a jeho uvedením do pôvodného stavu.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__72-rich",
-       "type": "rich",
-       "label": "Odsek 73",
-       "value": "6.9.2 Kupujúci je povinný v zmysle tohto bodu obchodných podmienok uhradiť predávajúcemu náhrady najviac vo výške rozdielu medzi kúpnou cenou tovaru a hodnotou tovaru v čase odstúpenia od kúpnej zmluvy.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__73-rich",
-       "type": "rich",
-       "label": "Odsek 74",
-       "value": "6.9.3 Ustanovenia čl. 6 týchto obchodných podmienok výslovne neplatia pre subjekty nespĺňajúce definíciu spotrebiteľa uvedenú v ust. § 2 písm. a) zákona 250/2007 Z.z. o ochrane spotrebiteľa.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__74-text",
-       "type": "text",
-       "label": "Nadpis 75",
-       "value": "VII. Informačná služba, nežiaduce účinky",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__75-rich",
-       "type": "rich",
-       "label": "Odsek 76",
-       "value": "7.1 Predávajúci má v rámci svojich internetových stránok zriadenú zákonom požadovanú informačnú službu, ktorá slúži na poskytovanie poradenstva o liekoch, ich kvality a bezpečnosti a zhromažďovanie hlásení o nežiadúcich účinkoch. Kontakty na informačnú službu predávajúceho sú uvedené v rámci internetového obchodu a sú uvedené aj v rámci objednávky, ktorej kópia je zasielaná na elektronickú adresu kupujúceho.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__76-rich",
-       "type": "rich",
-       "label": "Odsek 77",
-       "value": "7.2 V prípade choroby alebo zdravotných ťažkosti sa obráťte na svojho lekára.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__77-rich",
-       "type": "rich",
-       "label": "Odsek 78",
-       "value": "7.3 Kupujúcemu sa u liekov dôrazne odporúča starostlivo čítať písomné informácie a zoznámiť sa so spôsobom užívania daného lieku.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__78-text",
-       "type": "text",
-       "label": "Nadpis 79",
-       "value": "VIII. Záruka, zodpovednosť za vady, spory",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__79-rich",
-       "type": "rich",
-       "label": "Odsek 80",
-       "value": "8.1 Záručná doba na vady dodaného tovaru začína plynúť odo dňa odovzdania tovaru kupujúcemu. Ak nie je pri dodaní tovaru stanovená dlhšia záručná doba, je záručná doba na dodaný tovar 24 mesiacov. Ak zistí kupujúci pri prevzatí tovaru vady, musí tieto skutočnosti oznámiť predávajúcemu vždy elektronicky na emailovú adresu predávajúceho alebo v formulárom v časti Reklamácie na webovej stránke, a to bez zbytočného odkladu,najneskôr však do 5 dní od prevzatia tovaru.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__80-rich",
-       "type": "rich",
-       "label": "Odsek 81",
-       "value": "8.2 V prípade reklamácie liekov zabezpečuje predávajúci reklamáciu takým spôsobom, aby na strane kupujúceho nevznikli náklady spojené s vrátením lieku (poštovné a balné). V prípade zaslania prípravku k reklamácii poštou bude predávajúci náklady na poštovné kupujúcemu kompenzovať. Pred uplatnením reklamácie formou odoslania lieku sa odporúča najprv kontaktovať predávajúceho na elektronickej adrese a dohodnúť si priebeh reklamácie tak , aby sa minimalizovali náklady na oboch stranách, keď najmä v prípade liekov nemusí predávajúci zaslanie prípravku pre reklamáciu vyžadovať.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__81-rich",
-       "type": "rich",
-       "label": "Odsek 82",
-       "value": "8.3 Predávajúci zodpovedá kupujúcemu za to, že predávaná vec je v zhode s kúpnou zmluvou, najmä, že je bez vád. Zhodou s kúpnou zmluvou sa rozumie, že predávaná vec má akosť a úžitkové vlastnosti zmluvou požadované, predávajúcim, výrobcom alebo jeho zástupcom popisované, alebo na základe nimi vykonávanej reklamy očakávané, pripadne akosť a úžitkové vlastnosti pre vec takého druhu obvyklé, že zodpovedá požiadavkám právnych predpisov, je v tomu zodpovedajúcom množstve, miere alebo hmotnosti a zodpovedá účelu, ktorý predávajúci pre použitie veci uvádza alebo pre ktorý sa vec obvykle používa. Za chybný sa považuje hlavne tovar, ktorý nemá obvyklé či prezentované vlastnosti, neslúži na svoj účel, nezodpovedá požiadavkám právnych predpisov či nebol dodaný v dohodnutom množstve. Upozorňujeme, že zvýšenú citlivosť či prípad alergickej reakcie na dodaný tovar nemožno samú osebe považovať za chybu tovaru. Takisto za chybu tovaru nemožno považovať nedostatky v darčekoch a inom bezodplatnom plnení, ktoré poskytujeme nad rámec vašej objednávky.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__82-rich",
-       "type": "rich",
-       "label": "Odsek 83",
-       "value": "8.4 V prípade, že vec pri prevzatí kupujúcim nie je v zhode s kúpnou zmluvou, má kupujúci právo na to, aby predávajúci bezplatne a bez zbytočného odkladu vec uviedol do stavu odpovedajúceho kúpnej zmluve, a to podľa požiadavky kupujúceho buď výmenou veci, alebo jej opravou; nie je takýto postup možný, môže kupujúci požadovať primeranú zľavu z ceny veci alebo od zmluvy odstúpiť. To neplatí, ak kupujúci pred prevzatím veci o rozpore s kúpnou zmluvou vedel alebo rozpor s kúpnou zmluvou sám spôsobil.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__83-rich",
-       "type": "rich",
-       "label": "Odsek 84",
-       "value": "8.5 V prípade tovaru zakúpeného podnikateľom sa takýto zmluvný vzťah spravuje zákonom 513/1991 Zb. Obchodným zákonníkom ( tam, kde je to možné - nie je u liekov ). V takomto prípade sa záruka neposkytuje a kupujúci nemá právo na odstúpenie od zmluvy v zmysle ustanovení týchto VOP.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__84-rich",
-       "type": "rich",
-       "label": "Odsek 85",
-       "value": "8.6 Akékoľvek svoje práva a nároky si môžete voči nám uplatňovať aj v rámci alternatívneho on-line riešeného sporu. On-line riešenie sporu zabezpečuje Európska komisia a slovenské kontaktné miesto riešenia sporov on-line (RSO). Rovnako aj naše nároky voči Vám môžu byť uplatnené prostredníctvom európskej platformy. Sťažnosť môžete podať prostredníctvom platformy riešenia sporov on-line (RSO) na stránke: http://ec.europa.eu/consumers/odr/index_en.htm. Využitie alternatívneho riešenia sporu šetri peniaze a čas, keďže Vaša sťažnosť bude vybavená do 90 dní a bez značných finančných výdavkov. V prípade akýchkoľvek problémov nás kontaktujte na info@pilulka.sk.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__84-link-0",
-       "type": "link",
-       "label": "Odkaz 1 – http://ec.europa.eu/consumers/",
-       "value": "http://ec.europa.eu/consumers/",
-       "label_text": "http://ec.europa.eu/consumers/",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__84-link-1",
-       "type": "link",
-       "label": "Odkaz 2 – info@pilulka.sk",
-       "value": "mailto:info@pilulka.sk",
-       "label_text": "info@pilulka.sk",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__85-text",
-       "type": "text",
-       "label": "Nadpis 86",
-       "value": "IX. Ochrana osobných údajov",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__86-rich",
-       "type": "rich",
-       "label": "Odsek 87",
-       "value": "9.1. Kupujúci na základe objednávky tovaru alebo rezervácie tovaru pre osobný odber v partnerskej lekárni poskytuje predávajúcemu svoje osobné údaje. Za osobné údaje sú podľa čl. 13 Nariadenia Európskeho parlamentu a Rady 2016/679 o ochrane fyzických osôb v súvislosti so spracovaním osobných údajov a o voľnom pohybe týchto údajov a o zrušení smernice 95/46/ES (všeobecné nariadenie o ochrane osobných údajov) (ďalej len „nariadenie GDPR\") považované všetky informácie o identifikovanej alebo identifikovateľnej fyzickej osobe (zákazníkovi); ktorou sa rozumie fyzická osoba, ktorú možno priamo či nepriamo identifikovať, najmä odkazom na určitý identifikátor, napríklad meno, identifikačné číslo, lokalizačné údaje, sieťový identifikátor alebo na jeden či viac zvláštnych prvkov fyzickej, fyziologickej, genetickej, psychickej, ekonomickej, kultúrnej alebo spoločenskej identity tejto fyzickej osoby.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__87-rich",
-       "type": "rich",
-       "label": "Odsek 88",
-       "value": "9.2. Pre účely činnosti uzavretia kúpnej zmluvy a jej splnenia alebo za účelom zaistenia rezervácie osobného odberu tovaru v lekárni, poskytuje kupujúci predávajúcemu údaje o svojom mene, bydlisku, telefónne číslo a e-mailovú adresu (ďalej len „Osobné údaje\"). Meno kupujúceho a adresa jeho bydliska sú poskytované za účelom uzatvorenia kúpnej zmluvy, doručenia tovaru a vystavenia účtovného dokladu. Telefónne spojenie a e-mailová adresa sú poskytované za účelom kontaktovania kupujúceho z dôvodu podania informácie o realizácii kúpnej zmluvy a rezervácie osobného odberu. Spracovanie osobných údajov kupujúceho pre tieto účely nepodlieha v súlade s čl. 6, odst. 1, písm. b) Nariadenia súhlasu zo strany kupujúceho, nakoľko ich spracovanie je nevyhnutné pre splnenie zmluvy s kupujúcim.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__88-rich",
-       "type": "rich",
-       "label": "Odsek 89",
-       "value": "9.3. Súhlas kupujúceho pre spracovanie Osobných údajov je nevyhnutný pre ďalšie účely, pre ktoré ich predávajúci spracováva, a ktorými sú registrácia kupujúceho do Bonus klubu Pilulka, ak sa kupujúci rozhodne do tohoto klubu registrovať, a zasielanie informácií o predávajúcom a o spoločnosti Pilulka.sk, a. s., IČO: 47235225, sídlo: Pestovateľská 17796/3, Bratislava, PSČ 821 04, ktorá je tzv. materskou spoločnosťou predávajúceho (vlastní 100 % podiel v spoločnosti predávajúceho) a prevádzkovateľom lekární, v ktorých môže kupujúci vykonať rezerváciu osobného odberu tovaru. Súhlas kupujúceho pre tieto účely je poskytovaný na základe žiadosti predávajúceho zaslanej e-mailom v rámci potvrdenia objednávky kupujúceho alebo pri registrácii do Bonus klubu Pilulka. Zároveň s udelením súhlasu sú kupujúcemu poskytnuté informácie v zmysle čl. 13 nariadenia GDPR súvisiace so spracovaním Osobných údajov. Z dôvodu zaistenia zasielania informácií o predávajúcom a spoločnosti Herbia a.s., ak je k tomu udelený kupujúcim súhlas, sú Osobné údaje v rozsahu meno a e-mailová adresa poskytované spracovateľom osobných údajov, ktorí podľa pokynu predávajúceho a na základe zmluvy uzatvorenej v súlade s čl. 28 nariadenia GDPR spracovávajú Osobné údaje výlučne pre tieto účely.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__89-rich",
-       "type": "rich",
-       "label": "Odsek 90",
-       "value": "9.4. Tzv. prevádzkovateľom osobných údajov je predávajúci a spoločnosť Pilulka.sk, a. s., ktorí sú v postavení tzv. spoločných prevádzkovateľov podľa čl. 26 nariadenia GDPR s tým, že kupujúci je oprávnený vykonávať svoje práva podľa nariadenia GDPR u každého z prevádzkovateľov i voči každému z nich.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__90-rich",
-       "type": "rich",
-       "label": "Odsek 91",
-       "value": "9.5. Osobné údaje budú uchovávané najdlhšie po dobu 5 rokov od okamžiku ich poskytnutia, a to z dôvodu ich potreby v prípade uplatnenia vady zákazníkom (reklamácie) v premlčacej dobe 3 roky s rezervou 2 rokov pre prípad, že by zo strany kupujúceho došlo k podaniu súdnej žaloby voči predávajúcemu alebo zahájeniu riadenia Štátnym ústavom pre kontrolu liečiv (čl. IX) alebo Slovenskou obchodnou inšpekciou (čl. 11.2).",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__91-rich",
-       "type": "rich",
-       "label": "Odsek 92",
-       "value": "9.6. Informácie podľa čl. 12 nariadenia GDPR sú kupujúcemu poskytované zaslaním tzv. informácie pre zákazníkov v súvislosti s potvrdením jeho objednávky tovaru, a ktorá je tiež zverejnená na www.pilulka.skiizasady-o-ochrane-osobnych-udajov",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__91-link-0",
-       "type": "link",
-       "label": "Odkaz 1 – www.pilulka.skiizasady-o-ochrane-osobnych-udajov",
-       "value": "http://www.pilulka.skiizasady-o-ochrane-osobnych-udajov",
-       "label_text": "www.pilulka.skiizasady-o-ochrane-osobnych-udajov",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__92-rich",
-       "type": "rich",
-       "label": "Odsek 93",
-       "value": "9.7. Dozor nad oblasťou ochrany osobných údajov vykonáva úrad pre ochranu osobných údajov. Slovenská obchodná inšpekcia vykonáva vo vymedzenom rozsahu okrem iného dozor nad dodržovaním zákona b. 250/2007 Zb., o ochrane spotrebiteľa, a zákona 102/2014 Z.z. o ochrane spotrebiteľa pri predaji tovaru alebo poskytovaní služieb na základe zmluvy uzavretej na diaľku v znení neskorších predpisov.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__93-text",
-       "type": "text",
-       "label": "Nadpis 94",
-       "value": "X. Kontrolný orgán",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__94-rich",
-       "type": "rich",
-       "label": "Odsek 95",
-       "value": "Kontrolným orgánom, ktorý vykonáva dozor nad činnosťou predávajúceho je:",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__95-rich",
-       "type": "rich",
-       "label": "Odsek 96",
-       "value": "- v prípade výdaja liečivých prípravkov a zdravotníckych pomôcok",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__96-rich",
-       "type": "rich",
-       "label": "Odsek 97",
-       "value": "Štátny ústav pre kontrolu liečiv",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__97-rich",
-       "type": "rich",
-       "label": "Odsek 98",
-       "value": "Adresa: Kvetná 11, 825 08 Bratislava 26",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__98-rich",
-       "type": "rich",
-       "label": "Odsek 99",
-       "value": "Tel: 421-2-50 70 11 11",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__99-rich",
-       "type": "rich",
-       "label": "Odsek 100",
-       "value": "E-mail: sukl@sukl.sk",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__99-link-0",
-       "type": "link",
-       "label": "Odkaz 1 – E-mail: sukl@sukl.sk",
-       "value": "mailto:sukl@sukl.sk",
-       "label_text": "E-mail: sukl@sukl.sk",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__100-rich",
-       "type": "rich",
-       "label": "Odsek 101",
-       "value": "www: http://www.sukl.sk",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__100-link-0",
-       "type": "link",
-       "label": "Odkaz 1 – http://www.sukl.sk",
-       "value": "http://www.sukl.sk",
-       "label_text": "http://www.sukl.sk",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__101-rich",
-       "type": "rich",
-       "label": "Odsek 102",
-       "value": "- v prípade výdaja ostatného tovaru",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__102-rich",
-       "type": "rich",
-       "label": "Odsek 103",
-       "value": "Slovenská obchodná inšpekcia",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__103-rich",
-       "type": "rich",
-       "label": "Odsek 104",
-       "value": "Inšpektorát pre Košický kraj",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__104-rich",
-       "type": "rich",
-       "label": "Odsek 105",
-       "value": "Adresa: ............",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__105-rich",
-       "type": "rich",
-       "label": "Odsek 106",
-       "value": "E-mail: info@soi.sk",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__105-link-0",
-       "type": "link",
-       "label": "Odkaz 1 – E-mail: info@soi.sk",
-       "value": "mailto:info@soi.sk",
-       "label_text": "E-mail: info@soi.sk",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__106-rich",
-       "type": "rich",
-       "label": "Odsek 107",
-       "value": "www: http://www.soi.ski",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__106-link-0",
-       "type": "link",
-       "label": "Odkaz 1 – http://www.soi.ski",
-       "value": "http://www.soi.ski",
-       "label_text": "http://www.soi.ski",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__106-link-1",
-       "type": "link",
-       "label": "Odkaz 2 – bez textu",
-       "value": "http://www.soi.ski",
-       "label_text": "",
-       "max_length": 500,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__107-text",
-       "type": "text",
-       "label": "Nadpis 108",
-       "value": "XI. Záverečné ustanovenia",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__108-rich",
-       "type": "rich",
-       "label": "Odsek 109",
-       "value": "11.1 . Tieto VOP sú platné a účinné dňom 23. 5. 2018.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__109-rich",
-       "type": "rich",
-       "label": "Odsek 110",
-       "value": "11.2 . Predávajúci je oprávnený tieto VOP meniť či doplňovať akýmikoľvek zmenami, čím ale nie sú dotknuté práva a povinnosti, ktoré vznikli počas účinnosti predchádzajúceho znenia VOP.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "vop__vop-1__110-rich",
-       "type": "rich",
-       "label": "Odsek 111",
-       "value": "11.3 . Vzťah medzi predávajúcim a kupujúcim sa vo veciach neupravených VOP riadia právnymi predpismi Slovenskej republiky , najmä zákonom č 40 / 1964 Zb. , Občianskym zákonníkom, a zákonom o liekoch.",
+       "value": "12.4 Účinnosť: 21.10.2026",
        "max_length": 2000,
        "lang": "sk"
       }
@@ -12933,20 +12703,341 @@
   },
   {
    "key": "reklamacie",
-   "title": "Reklamácie",
+   "title": "Reklamačné pravidlá",
    "path": "/reklamacie",
    "sections": [
     {
      "key": "reklamacie-1",
-     "title": "Reklamácie",
+     "title": "Reklamačné pravidlá",
      "order": 0,
      "fields": [
       {
        "key": "reklamacie__reklamacie-1__0-text",
        "type": "text",
        "label": "Nadpis 1",
-       "value": "Reklamácie",
+       "value": "Reklamačné pravidlá",
        "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "1 Uplatnenie reklamácie",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "Reklamáciu možno uplatniť na zdravysvet@anastasiaoz.eu, listom na sídlo predávajúceho alebo pri tovare na adrese LUCRAT spol. s r.o., Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná. Uveďte kontakt, označenie produktu, opis vady a požadovaný spôsob nápravy. Číslo objednávky alebo doklad pomôže identifikovať nákup; nákup možno preukázať aj inak. Predloženie originálu faktúry, pôvodného obalu alebo použitie konkrétneho formulára nie je všeobecnou podmienkou reklamácie.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__2-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__3-rich",
+       "type": "rich",
+       "label": "Odsek 4",
+       "value": "Predávajúci bezodkladne poskytne písomné potvrdenie o vytknutí vady a uvedie lehotu na jej odstránenie. Pri odmietnutí zodpovednosti poskytne písomné odôvodnenie. Pri službe poskytne potvrdenie a oznámi lehotu odstránenia vady najviac 30 dní od vytknutia vady. Pri tovare a digitálnom plnení oznámená lehota nepresiahne 30 dní, ak dlhšiu lehotu neodôvodňuje objektívny dôvod, ktorý predávajúci nemôže ovplyvniť; existenciu dôvodu preukazuje predávajúci.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__4-text",
+       "type": "text",
+       "label": "Nadpis 5",
+       "value": "2 Tovar vrátane kozmetiky na mieru",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__5-rich",
+       "type": "rich",
+       "label": "Odsek 6",
+       "value": "Predávajúci zodpovedá za vadu existujúcu pri dodaní, ktorá sa prejaví do dvoch rokov od dodania. Zákonná domnienka existencie vady pri dodaní sa uplatní, pokiaľ sa nepreukáže opak alebo je nezlučiteľná s povahou veci či vady. Trvanlivosť a doba po otvorení kozmetiky sa posudzujú podľa povahy výrobku; dvojročná zodpovednosť nie je prísľubom, že spotrebný výrobok vydrží po otvorení dva roky.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__6-rich",
+       "type": "rich",
+       "label": "Odsek 7",
+       "value": "Spotrebiteľ vytkne vadu do dvoch mesiacov od jej zistenia, najneskôr do uplynutia zákonnej doby zodpovednosti. Po prvom odstránení vady opravou sa táto doba predĺži o 12 mesiacov, len raz. Toto pravidlo sa uplatní tam, kde je oprava veci relevantná.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__7-rich",
+       "type": "rich",
+       "label": "Odsek 8",
+       "value": "Spotrebiteľ má primárne právo zvoliť opravu alebo výmenu, ak zvolený spôsob nie je nemožný alebo v porovnaní s druhým neprimerane nákladný. Náprava sa vykoná bezplatne, v primeranej lehote a bez závažných ťažkostí pre spotrebiteľa. Pri kozmetike môže byť primeranou nápravou výmena; oprava obsahu nemusí byť možná alebo bezpečná. Náklady prevzatia a dodania náhrady znáša predávajúci.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__8-rich",
+       "type": "rich",
+       "label": "Odsek 9",
+       "value": "Spotrebiteľ môže požadovať primeranú zľavu alebo odstúpiť najmä ak sa vada neodstráni riadne, predávajúci nápravu odmietne, rovnaká vada pretrváva, je závažná alebo je zrejmé, že nebude odstránená včas a bez závažných ťažkostí. Odstúpiť nemožno pre zanedbateľnú vadu; jej zanedbateľnosť preukazuje predávajúci. Pri rozhodovaní sa uplatnia presné podmienky § 623 a § 624 Občianskeho zákonníka vrátane informovania o práve voľby medzi opravou a výmenou a o predĺžení doby pri oprave.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__9-rich",
+       "type": "rich",
+       "label": "Odsek 10",
+       "value": "Pri odstúpení pre vadu sa tovar vracia na náklady predávajúceho. Kúpnu cenu predávajúci vráti najneskôr do 14 dní od vrátenia tovaru alebo preukázania jeho odoslania, podľa toho, čo nastane skôr, zákonom určeným spôsobom. Primeranú zľavu vyplatí v zákonnej lehote. Spotrebiteľ má aj právo na náhradu účelne vynaložených nákladov uplatnenia oprávneného nároku podľa zákona. Ak sa zodpovednosť odmietla, zákonom kvalifikovaný znalecký posudok alebo odborné stanovisko môže odôvodniť opätovné vytknutie vady podľa § 622 Občianskeho zákonníka.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__10-text",
+       "type": "text",
+       "label": "Nadpis 11",
+       "value": "3 Digitálny obsah a digitálne služby",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__11-rich",
+       "type": "rich",
+       "label": "Odsek 12",
+       "value": "Pri jednorazovom dodaní alebo súbore jednotlivých plnení predávajúci zodpovedá za vady v čase dodania, ktoré sa prejavia do dvoch rokov. Pri nepretržitom dodávaní zodpovedá za vady počas celej dohodnutej doby. Povinnosti týkajúce sa aktualizácií sa posudzujú samostatne podľa zákona. Pri tomto druhu plnenia sa neuplatňuje všeobecná podmienka vytknutia do dvoch mesiacov, určená pre kúpu tovaru.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__12-rich",
+       "type": "rich",
+       "label": "Odsek 13",
+       "value": "Spotrebiteľ má právo na bezplatné odstránenie vady v primeranej lehote, najviac 30 dní, s výnimkou zákonom prípustného objektívneho dôvodu. Ak náprava nie je možná, je neprimerane nákladná, nebola riadne vykonaná, vada sa opakuje alebo je dostatočne závažná, môže žiadať primeranú zľavu alebo odstúpiť za podmienok § 852l Občianskeho zákonníka. Pri platenom plnení nemožno odstúpiť pre zanedbateľnú vadu; dôkazné bremeno nesie predávajúci.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__13-rich",
+       "type": "rich",
+       "label": "Odsek 14",
+       "value": "Predávajúci vyplatí zľavu do 14 dní od uplatnenia nároku. Pri odstúpení vráti platby do 14 dní od oznámenia; pri nepretržitom plnení sa vyúčtuje čas nesúladu a predplatené obdobie po odstúpení podľa zákona. Pri nedodaní môže zákazník požadovať dodanie a za zákonných podmienok odstúpiť, vrátane prípadov, keď ďalšia výzva nie je potrebná.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__14-text",
+       "type": "text",
+       "label": "Nadpis 15",
+       "value": "4 Konzultácie a ostatné služby",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__15-rich",
+       "type": "rich",
+       "label": "Odsek 16",
+       "value": "Predávajúci zodpovedá za súlad služby s dohodnutým obsahom a rozsahom. Vady možno namietať najmä pri neposkytnutí dohodnutého času, obsahu alebo výstupu. Práva podľa povahy zmluvy zahŕňajú odstránenie vady, riadne doplnenie plnenia, primeranú zľavu alebo odstúpenie pri splnení zákonných podmienok. Pri všeobecnej zodpovednosti za vady sa uplatní vytknutie bez zbytočného odkladu, najneskôr v lehote podľa § 504 Občianskeho zákonníka, spravidla do šiestich mesiacov, ak osobitná úprava neurčuje inak. Na samostatný digitálny výstup sa podľa jeho povahy použije bod 3.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__16-rich",
+       "type": "rich",
+       "label": "Odsek 17",
+       "value": "Nespokojnosť so subjektívnym výsledkom sama osebe nemusí znamenať vadu, ale nebráni preskúmaniu, či služba spĺňala zmluvu a pravdivé sľuby predávajúceho. Tieto pravidlá neobmedzujú náhradu škody ani kogentné práva.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "reklamacie__reklamacie-1__17-rich",
+       "type": "rich",
+       "label": "Odsek 18",
+       "value": "Pri úkone, ktorý je skutočne lekárenskou alebo inou zdravotnou starostlivosťou, sa postup pri námietke voči správnosti starostlivosti riadi príslušnými zdravotníckymi predpismi, najmä postupom žiadosti o nápravu podľa zákona č. 576/2004 Z. z. Tieto obchodné reklamačné pravidlá tento postup ani dohľad príslušných zdravotníckych orgánov nenahrádzajú. Poskytovateľ a konkrétny postup musia byť uvedené pri ponuke takejto služby.",
+       "max_length": 2000,
+       "lang": "sk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "odstupenie",
+   "title": "Odstúpenie od zmluvy",
+   "path": "/odstupenie",
+   "sections": [
+    {
+     "key": "odstupenie-1",
+     "title": "Poučenie a formulár na odstúpenie",
+     "order": 0,
+     "fields": [
+      {
+       "key": "odstupenie__odstupenie-1__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Poučenie a formulár na odstúpenie",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Poučenie pre zákazníka",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "Pri zmluve uzavretej na diaľku môžete spravidla odstúpiť bez dôvodu do 14 dní. Pri tovare lehota plynie od prevzatia, pri službe a digitálnom obsahu bez hmotného nosiča od uzavretia zmluvy; osobitné pravidlá viacerých dodávok sú v článku 9 VOP. Výnimky pre skutočný tovar na mieru, porušený hygienický ochranný obal, úplne poskytnutú službu a skoršie dodanie digitálneho obsahu platia len za podmienok článku 9 VOP a zákona.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__3-rich",
+       "type": "rich",
+       "label": "Odsek 4",
+       "value": "Oznámenie pošlite spoločnosti LUCRAT spol. s r.o., Sokolská 1646/88, 960 01 Zvolen, e-mail zdravysvet@anastasiaoz.eu, telefón +421 905 363 778. Môžete použiť aj online funkciu [doplní prevádzkovateľ]. Formulár nižšie nie je povinný. Stačí včas odoslané jednoznačné oznámenie.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__3-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__4-rich",
+       "type": "rich",
+       "label": "Odsek 5",
+       "value": "Tovar odošlite alebo odovzdajte do 14 dní od odstúpenia na adresu LUCRAT spol. s r.o., Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná. Priame náklady vrátenia znášate vy, ak ste boli riadne poučení. Zodpovedáte len za zníženie hodnoty spôsobené zaobchádzaním nad rámec potrebného zistenia vlastností a funkčnosti.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__5-rich",
+       "type": "rich",
+       "label": "Odsek 6",
+       "value": "Platby vrátane nákladov najlacnejšieho bežného ponúkaného dodania vrátime do 14 dní od doručenia odstúpenia rovnakým spôsobom, ak sa výslovne nedohodneme inak bez nákladov pre vás. Pri tovare môžeme čakať na jeho vrátenie alebo dôkaz o odoslaní, podľa toho, čo nastane skôr, pokiaľ sme neponúkli vyzdvihnutie. Ak ste riadne požiadali o skoršie začatie služby a odstúpite pred jej dokončením, hradíte iba zákonnú pomernú časť skutočne poskytnutého plnenia. Podrobnosti sú v článku 10 VOP.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__6-text",
+       "type": "text",
+       "label": "Nadpis 7",
+       "value": "Vzorový formulár",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__7-rich",
+       "type": "rich",
+       "label": "Odsek 8",
+       "value": "Adresát: LUCRAT spol. s r.o., Sokolská 1646/88, 960 01 Zvolen; zdravysvet@anastasiaoz.eu.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__7-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__8-rich",
+       "type": "rich",
+       "label": "Odsek 9",
+       "value": "Týmto oznamujem/oznamujeme, že odstupujem/odstupujeme od zmluvy o dodaní alebo poskytnutí tohto produktu:",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__9-rich",
+       "type": "rich",
+       "label": "Odsek 10",
+       "value": "........................................................................................................................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__10-rich",
+       "type": "rich",
+       "label": "Odsek 11",
+       "value": "Dátum objednania/dátum prevzatia: ...................................................................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__11-rich",
+       "type": "rich",
+       "label": "Odsek 12",
+       "value": "Číslo objednávky, ak je k dispozícii: ...................................................................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__12-rich",
+       "type": "rich",
+       "label": "Odsek 13",
+       "value": "Meno a priezvisko spotrebiteľa/spotrebiteľov: ...................................................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__13-rich",
+       "type": "rich",
+       "label": "Odsek 14",
+       "value": "Adresa spotrebiteľa/spotrebiteľov: ....................................................................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__14-rich",
+       "type": "rich",
+       "label": "Odsek 15",
+       "value": "E-mail na potvrdenie prijatia: ...........................................................................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__15-rich",
+       "type": "rich",
+       "label": "Odsek 16",
+       "value": "Dátum: .............................................................................................................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__16-rich",
+       "type": "rich",
+       "label": "Odsek 17",
+       "value": "Podpis spotrebiteľa/spotrebiteľov iba pri listinnom podaní: ..............................",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "odstupenie__odstupenie-1__17-rich",
+       "type": "rich",
+       "label": "Odsek 18",
+       "value": "Nehodiace sa prečiarknite. Dôvod odstúpenia sa nevyžaduje. IBAN uveďte iba pri dohodnutom vrátení bankovým prevodom, ak je potrebný; nie je povinným údajom na uplatnenie odstúpenia.",
+       "max_length": 2000,
        "lang": "sk"
       }
      ]
@@ -12960,126 +13051,408 @@
    "sections": [
     {
      "key": "gdpr-1",
-     "title": "Zásady o ochrane osobných údajov",
+     "title": "Ochrana osobných údajov",
      "order": 0,
      "fields": [
       {
        "key": "gdpr__gdpr-1__0-text",
        "type": "text",
        "label": "Nadpis 1",
-       "value": "Zásady o ochrane osobných údajov",
+       "value": "Ochrana osobných údajov",
        "max_length": 160,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__1-rich",
-       "type": "rich",
-       "label": "Odsek 2",
-       "value": "Predávajúci týmto oznamuje kupujúcemu, že v zmysle čl. 6 ods.1 písm. b) Nariadenia Európskeho parlamentu a Rady (EÚ) 2016/679 z 27.apríla 2016 o ochrane fyzických osôb pri spracúvaní osobných údajov a o voľnom pohybe takýchto údajov, ktorým sa zrušuje smernica 95/46/ES (všeobecné nariadenie o ochrane údajov), (ďalej len „Nariadenie\"), predávajúci ako prevádzkovateľ' informačného systému bude v procese uzatvárania kúpnej zmluvy spracúvať osobné údaje kupujúceho bez jeho súhlasu ako dotknutej osoby, keďže spracúvanie osobných údajov kupujúceho bude vykonávané predávajúcim v rámci predzmluvných vzťahov s kupujúcim a spracúvanie osobných údajov kupujúceho je nevyhnutné na plnenie z kúpnej zmluvy, v ktorej vystupuje kupujúci ako jedna zo zmluvných strán.",
-       "max_length": 2000,
+       "key": "gdpr__gdpr-1__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "1 Prevádzkovateľ a rozsah",
+       "max_length": 160,
        "lang": "sk"
       },
       {
        "key": "gdpr__gdpr-1__2-rich",
        "type": "rich",
        "label": "Odsek 3",
-       "value": "V zmysle čl. 6 ods. 1 písm. f) Nariadenia keďže predávajúci po doručení objednaného tovaru, resp. služby kupujúcemu, na základe oprávneného záujmu spracúvať osobné údaje kupujúceho aj na účely priameho marketingu a zasielať na e-mailovú adresu kupujúceho informácie o nových produktoch, zľavách a akciách na ponúkaných tovaroch, resp. službách.",
+       "value": "Prevádzkovateľom je LUCRAT spol. s r.o., Sokolská 1646/88, 960 01 Zvolen, IČO 36652164. Kontakt pre ochranu údajov: zdravysvet@anastasiaoz.eu, +421 905 363 778; kontaktná a zodpovedná osoba Mgr. Lucia Rogožanová, MBA.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__3-text",
-       "type": "text",
-       "label": "Nadpis 4",
-       "value": "1. Totožnosť a kontaktné údaje prevádzkovateľa",
-       "max_length": 160,
+       "key": "gdpr__gdpr-1__2-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__4-rich",
+       "key": "gdpr__gdpr-1__3-rich",
        "type": "rich",
-       "label": "Odsek 5",
-       "value": "a. Prevádzkovateľom správy Vašich osobných údajov je obchodná spoločnosť Lucrat spol. s.r.o., so sídlom : Sokolská 88, 960 01 Zvolen identifikačné číslo: 36652164, zapísaná v obchodnom registri vedenom Okresným súdom v Banskej Bystrici (ďalej len „prevádzkovateľ“. b. Kontaktné údaje prevádzkovateľa sú nasledujúce: adresa pre doručovanie: ............... adresa elektronickej pošty ........... mm, telefón +421 905 363 778 c. Prevádzkovateľ' nemenoval zodpovednú osobu pre ochranu osobných údajov.",
+       "label": "Odsek 4",
+       "value": "Táto informácia vysvetľuje spracúvanie údajov návštevníkov, zákazníkov a záujemcov e-shopu www.anastasiaoz.eu podľa nariadenia (EÚ) 2016/679 a zákona č. 18/2018 Z. z. Nákup ani vybavenie otázky nevyžadujú všeobecný súhlas so všetkým spracúvaním. Každý účel má vlastný právny základ.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__5-text",
+       "key": "gdpr__gdpr-1__4-text",
        "type": "text",
-       "label": "Nadpis 6",
-       "value": "2. Právny základ spracovania osobných údajov",
+       "label": "Nadpis 5",
+       "value": "2 Účely údaje a právne základy",
        "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__5-rich",
+       "type": "rich",
+       "label": "Odsek 6",
+       "value": "Objednávky a dodanie: spracúvame meno, kontakty, fakturačnú a doručovaciu adresu, objednávku, platobný stav a nevyhnutnú komunikáciu na prípravu a plnenie zmluvy podľa článku 6 ods. 1 písm. b) GDPR. Bez potrebných údajov nemôžeme príslušné plnenie dodať. Pri čisto digitálnom produkte nevyžadujeme doručovaciu adresu, ak nie je potrebná na iný konkrétny zákonný účel.",
+       "max_length": 2000,
        "lang": "sk"
       },
       {
        "key": "gdpr__gdpr-1__6-rich",
        "type": "rich",
        "label": "Odsek 7",
-       "value": "a. Právnym základom spracovania Vašich osobných údajov je Váš súhlas dávaný týmto prevádzkovateľovi v zmysle čl. 6 odst. 1 písm. a) Nariadenie Európskeho parlamentu a Rady (EÚ) 2016/679 z 27. apríla 2016 o ochrane fyzických osôb pri spracúvaní osobných údajov a o voľnom pohybe takýchto údajov, ktorým sa zrušuje smernica 95/46/ES (všeobecné nariadenie o ochrane údajov) (ďalej len „nariadenie\").",
+       "value": "Dohodnutie konzultácie a účet: spracúvame kontakty, písomne dohodnuté termíny, údaje o platbe, prístupové a bezpečnostné údaje a rozsah zakúpeného oprávnenia podľa článku 6 ods. 1 písm. b) GDPR. Interný rezervačný systém nie je zavedený. Údaje o postupe v kurze spracúvame len v rozsahu potrebnom pre objednanú funkciu; nepotrebné sledovanie aktivity sa nezakladá automaticky na zmluve.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__7-text",
-       "type": "text",
-       "label": "Nadpis 8",
-       "value": "3. Účel spracovania osobných údajov",
-       "max_length": 160,
+       "key": "gdpr__gdpr-1__7-rich",
+       "type": "rich",
+       "label": "Odsek 8",
+       "value": "Individuálne výstupy: spracúvame podklady nevyhnutné pre objednaný výstup. Pri astrologickom profile môže ísť o dátum, čas a miesto narodenia. Právnym základom je článok 6 ods. 1 písm. b). Nepožadujeme rodné číslo. Údaje ďalších osôb neposielajte bez primeraného oprávnenia; predávajúci musí posúdiť vlastný právny základ a prípadnú informačnú povinnosť podľa článku 14 GDPR.",
+       "max_length": 2000,
        "lang": "sk"
       },
       {
        "key": "gdpr__gdpr-1__8-rich",
        "type": "rich",
        "label": "Odsek 9",
-       "value": "a. Účelom spracovania Vašich osobných údajov je zasielanie obchodných oznámení a činenie iných marketingových aktivít prevádzkovateľa voči Vašej osobe. b. Zo strany prevádzkovateľa nedochádza k automatickému individuálnemu rozhodovaniu v zmysle čl. 22 nariadenia.",
+       "value": "Účtovníctvo a dane: zákonom požadované údaje objednávok, faktúr a platieb spracúvame na základe článku 6 ods. 1 písm. c) GDPR v spojení s účtovnými a daňovými predpismi. Pri reklamáciách a spotrebiteľských žiadostiach plníme zákonné povinnosti podľa rovnakého právneho základu; potrebné zmluvné úkony môžu mať základ v písmene b).",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__9-text",
-       "type": "text",
-       "label": "Nadpis 10",
-       "value": "4. Doba uloženia osobných údajov",
-       "max_length": 160,
+       "key": "gdpr__gdpr-1__9-rich",
+       "type": "rich",
+       "label": "Odsek 10",
+       "value": "Ochrana práv a bezpečnosť: primerané dôkazné záznamy, záznamy súhlasov a technické bezpečnostné údaje spracúvame podľa článku 6 ods. 1 písm. f) na ochranu účtov, prevenciu podvodov a uplatňovanie alebo obhajobu nárokov. Oprávnené záujmy posudzujeme voči právam dotknutých osôb a rozsah obmedzujeme na nevyhnutné údaje.",
+       "max_length": 2000,
        "lang": "sk"
       },
       {
        "key": "gdpr__gdpr-1__10-rich",
        "type": "rich",
        "label": "Odsek 11",
-       "value": "a. Doba, po ktorú budú Vaše osobné údaje prevádzkovateľom uložené, je 3 roky od udelenia súhlasu, najdlhšie však do odvolania Vášho súhlasu so spracovaním osobných údajov (pre tento účel spracovania).",
+       "value": "Newsletter a propagácia prebehia prostredníctvom internetu , sociálnych sietí a mailu .Navrhovaný režim je samostatný dobrovoľný súhlas podľa článku 6 ods. 1 písm. a) GDPR a pravidiel elektronických komunikácií. Odber možno kedykoľvek bezplatne odvolať odkazom v správe alebo e-mailom. Súhlas nie je podmienkou nákupu. Prípadné využitie zákonnej výnimky pre vlastné podobné produkty existujúcim zákazníkom musí byť osobitne posúdené a transparentne opísané pred aktivovaním.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__11-text",
-       "type": "text",
-       "label": "Nadpis 12",
-       "value": "5. Ďalší príjemcovia osobných údajov",
-       "max_length": 160,
-       "lang": "sk"
-      },
-      {
-       "key": "gdpr__gdpr-1__12-rich",
+       "key": "gdpr__gdpr-1__11-rich",
        "type": "rich",
-       "label": "Odsek 13",
-       "value": "a. Ďalšími príjemcami Vašich osobných údajov budú osoby zaisťujúce marketingové služby pre prevádzkovateľa. b. Prevádzkovateľ nemá v úmysle predať Vaše osobné údaje do tretej zeme (do zeme mimo EÚ) alebo medzinárodnej organizácii.",
+       "label": "Odsek 12",
+       "value": "Cookies a podobné technológie: technicky nevyhnutné funkcie a voliteľné meranie alebo reklamu opisuje časť E. Voliteľné technológie sa aktivujú až po príslušnom súhlase. Bezpečnostný účel sa nesmie používať ako všeobecné odôvodnenie analytiky či marketingu.",
        "max_length": 2000,
        "lang": "sk"
       },
       {
-       "key": "gdpr__gdpr-1__13-text",
+       "key": "gdpr__gdpr-1__12-text",
        "type": "text",
-       "label": "Nadpis 14",
-       "value": "6. Práva subjektov údajov",
+       "label": "Nadpis 13",
+       "value": "3 Zdravotné údaje a dôvernosť",
        "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__13-rich",
+       "type": "rich",
+       "label": "Odsek 14",
+       "value": "Mgr. Lucia Rogožanová, MBA je farmaceut a v rámci oprávnene poskytovanej lekárenskej starostlivosti môže prijímať a spracúvať zdravotné informácie nevyhnutné na konkrétny odborný úkon. Môže ísť o údaje o užívaných liekoch, alergiách, relevantných diagnózach alebo iné podklady potrebné na bezpečné odborné posúdenie. Rozsah sa obmedzuje na potrebné údaje; zdravotné informácie nie sú podmienkou kúpy všeobecného kurzu, astrologického profilu ani bežného marketingu.",
+       "max_length": 2000,
        "lang": "sk"
       },
       {
        "key": "gdpr__gdpr-1__14-rich",
        "type": "rich",
        "label": "Odsek 15",
-       "value": "a. Za podmienok stanovených v nariadení máte právo požadovať od prevádzkovateľa prístup k Vašim osobným údajom, právo na opravu alebo výmaz Vašich osobných údajov, poprípade obmedzenie ich spracovania, právo vzniesť námietku proti spracovaniu Vašich osobných údajov a ďalej právo na prenositeľnosť Vašich osobných údajov. b. Máte právo kedykoľvek odvolať súhlas so spracovaním Vašich osobných údajov daných prevádzkovateľovi. Týmto však nie je dotknutá zákonnosť spracovania Vašich osobných údajov pred takýmto odvolaním súhlasu. Váš súhlas so spracovaním osobných údajov môžete odvolať nasledujúcim spôsobom: Kontaktujte nás na............... alebo +421 905 363 778. c. Keby ste sa domnievali, že spracovaním Vašich osobných údajov bolo porušené či je porušované nariadenie, máte okrem iného právo podať sťažnosť dozornému úradu. d. Nemáte povinnosť osobné údaje poskytnúť. Poskytnutie Vašich osobných údajov nie je zákonnou či zmluvnou požiadavkou a ani nie je požiadavkou, ktorá je nutná k uzavretiu zmluvy. e. Máte kedykoľvek právo vzniesť námietku proti spracovaniu Vašich osobných údajov pre účely priameho marketingu, vrátane profilovania, keď sa profilovanie týka tohto priameho marketingu. Ak vznesiete námietku proti spracovaniu Vašich osobných údajov pre účely priameho marketingu, nebudú už Vaše osobné údaje pre tieto účely ďalej spracovávané.",
+       "value": "Poskytovateľom zdravotnej starostlivosti je spoločnosť LUCRAT spol. s..o. , povolenie na poskytovanie lekárenskej starostlivosti pre lekáreň ANASTASIA vydal  VÚC Košice pod číslom 08446/2025/ODDZ-36996 dňa 18.08.2025. So zdravotnými údajmi sa v lekárni nakladá  v súlade s platnou legislatívou a podľa schváleného prevádzkového poriadku .",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__15-rich",
+       "type": "rich",
+       "label": "Odsek 16",
+       "value": "Zdravotné podklady posielajte iba spôsobom určeným po dohode s farmaceutom pre konkrétnu službu; nevkladajte ich do všeobecnej poznámky k objednávke. Zdravotné údaje sa bez preukázanej nevyhnutnosti a zákonného nastavenia neposielajú do nástrojov na tvorbu videí, predajných stránok ani marketingových automatizácií. Pri automatizovanom doručovaní osobného PDF sa preverí aj obsah prílohy, prístupové odkazy, história úloh, zálohy a príjemca. Prístup majú len oprávnené osoby viazané potrebnou mlčanlivosťou. Konzultácie sa nenahrávajú ani neprepisujú bez osobitného právneho a technického nastavenia.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__16-text",
+       "type": "text",
+       "label": "Nadpis 17",
+       "value": "4 Príjemcovia a dodávatelia",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__17-rich",
+       "type": "rich",
+       "label": "Odsek 18",
+       "value": "Údaje sú dostupné len povereným osobám a dodávateľom v potrebnom rozsahu. Používame Slovenskú poštu a Packetu na doručenie, Stripe na platby, Websupport a ACTIVE 24 pre webovú infraštruktúru a Cloudflare na súvisiace technické funkcie. Tally slúži na dotazníky; Zapier a Formspree na formulárové a doručovacie automatizácie vrátane PDF. Atoms používame na tvorbu predajných stránok a funnelov, HyGen na tvorbu videí. Nástroj na tvorbu obsahu nie je automaticky príjemcom zákazníckych údajov a osobné údaje sa mu neposkytujú . Osobné údaje môžu dostať aj účtovník, oprávnený právny poradca a orgány verejnej moci podľa zákona.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__18-rich",
+       "type": "rich",
+       "label": "Odsek 19",
+       "value": "Pri kartovej platbe údaje karty spracúva platobná infraštruktúra. LUCRAT nemá prístup k úplnému číslu karty ani k bezpečnostnému kódu; môže mať token a obmedzené identifikačné údaje platby. Do poľa určeného na správu nikdy nezadávajte údaje karty.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__19-text",
+       "type": "text",
+       "label": "Nadpis 20",
+       "value": "5 Prenosy mimo EHP",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__20-rich",
+       "type": "rich",
+       "label": "Odsek 21",
+       "value": "Pri niektorých globálnych dodávateľoch môžu vzniknúť prenosy alebo vzdialený prístup mimo Európskeho hospodárskeho priestoru.  Prenos musí mať podmienky podľa kapitoly V GDPR, napríklad platné rozhodnutie o primeranosti alebo štandardné zmluvné doložky s potrebným posúdením a doplnkovými opatreniami. Nie je možné bez overenia tvrdiť, že všetky údaje zostávajú v EÚ, ani že každý dodávateľ využíva rovnaký mechanizmus. Informácie o konkrétnych zárukách a ich kópiu možno žiadať na kontaktnom e-maile po doplnení tejto časti.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__21-text",
+       "type": "text",
+       "label": "Nadpis 22",
+       "value": "6 Uchovávanie údajov",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__22-rich",
+       "type": "rich",
+       "label": "Odsek 23",
+       "value": "Účtovné doklady sa uchovávajú 10 rokov nasledujúcich po roku, ktorého sa týkajú, podľa príslušných povinností. Osobitné daňové evidencie vrátane prípadného OSS sa uchovávajú podľa príslušných pravidiel; nejde o dôvod uchovávať celý obsah konzultácií.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__23-rich",
+       "type": "rich",
+       "label": "Odsek 24",
+       "value": "Údaje potrebné na účet a neobmedzený prístup sa uchovávajú počas trvania príslušného záväzku, s pravidelným posúdením nevyhnutnosti. Zrušenie účtu nesmie bez dohody odňať zaplatený prístup. Po zániku zmluvy sa nevyhnutné dôkazy uchovávajú spravidla 3 roky na ochranu nárokov, dlhšie len pri konkrétnom spore, zákonnej lehote alebo inom doloženom dôvode.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__24-rich",
+       "type": "rich",
+       "label": "Odsek 25",
+       "value": "Bežné neúspešné dopyty navrhujeme odstrániť do 12 mesiacov od uzavretia komunikácie. Pracovné podklady k nezdravotníckemu individuálnemu výstupu do 90 dní po riadnom odovzdaní, ak nie sú potrebné na oprávnený nárok. Na zdravotnú alebo lekárenskú dokumentáciu sa tento 90-dňový návrh nevzťahuje: použije sa zákonný režim pre konkrétny typ dokumentácie a poskytovateľa.Bezpečnostné logy navrhujeme 90 dní, pri incidente po nevyhnutnú dobu riešenia. Zálohy sa mažú v cykle 24 mesiacov.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__25-rich",
+       "type": "rich",
+       "label": "Odsek 26",
+       "value": "Údaje newslettera sa používajú do odvolania súhlasu, s pravidelnou kontrolou aktuálnosti. Obmedzený dôkaz súhlasu a odvolania sa uchová iba po odôvodnenú dobu na preukázanie zákonnosti a rešpektovanie zákazu ďalšieho kontaktovania. Konkrétne lehoty cookies sú v overenom zozname podľa časti E. Ak údaje slúžia viacerým účelom, po skončení jedného účelu sa ich použitie obmedzí na zostávajúci oprávnený účel.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__26-text",
+       "type": "text",
+       "label": "Nadpis 27",
+       "value": "7 Práva dotknutých osôb",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__27-rich",
+       "type": "rich",
+       "label": "Odsek 28",
+       "value": "Podľa podmienok GDPR máte právo na prístup a kópiu údajov, opravu, vymazanie, obmedzenie spracúvania a prenosnosť údajov pri automatizovanom spracúvaní založenom na súhlase alebo zmluve. Máte právo namietať spracúvanie na základe oprávneného záujmu z dôvodov vašej situácie. Proti priamemu marketingu môžete namietať kedykoľvek; na tento účel sa údaje ďalej nespracúvajú.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__28-rich",
+       "type": "rich",
+       "label": "Odsek 29",
+       "value": "Súhlas možno kedykoľvek odvolať bez vplyvu na zákonnosť spracúvania pred odvolaním. Vymazanie nie je absolútne, napríklad pri zákonných archivačných povinnostiach. Žiadosť adresujte na zdravysvet@anastasiaoz.eu. Totožnosť overujeme iba primeraným spôsobom; kópiu dokladu nepožadujeme automaticky.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__28-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__29-rich",
+       "type": "rich",
+       "label": "Odsek 30",
+       "value": "O vybavení žiadosti informujeme spravidla do jedného mesiaca; pri zákonných dôvodoch možno lehotu predĺžiť o ďalšie dva mesiace, o čom a o dôvodoch informujeme v prvom mesiaci. Žiadosti sú zásadne bezplatné, s výnimkami podľa GDPR.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__30-rich",
+       "type": "rich",
+       "label": "Odsek 31",
+       "value": "Môžete podať sťažnosť dozornému orgánu, najmä Úradu na ochranu osobných údajov SR, https://dataprotection.gov.sk, alebo príslušnému úradu v štáte obvyklého pobytu, pracoviska či údajného porušenia. LUCRAT nevykonáva rozhodovanie založené výlučne na automatizovanom spracúvaní s právnymi alebo obdobne významnými účinkami. Osobitne posúdiť prípadné automatické zamietanie objednávok a platobné kontroly.]",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__30-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – https://dataprotection.gov.sk",
+       "value": "https://dataprotection.gov.sk",
+       "label_text": "https://dataprotection.gov.sk",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__31-text",
+       "type": "text",
+       "label": "Nadpis 32",
+       "value": "8 Zdroje údajov a zmeny",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__32-rich",
+       "type": "rich",
+       "label": "Odsek 33",
+       "value": "Údaje získavame najmä od vás, z používania webu, od platobných a doručovacích partnerov a prípadne od objednávateľa darčeka. Ak získame údaje z iného zdroja, splníme informačnú povinnosť podľa článku 14 GDPR, ak neplatí zákonná výnimka. Informácie nepredstavujú paušálny súhlas so zmenou účelu; pri novom účele vopred posúdime právny základ a informujeme dotknuté osoby.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "gdpr__gdpr-1__33-rich",
+       "type": "rich",
+       "label": "Odsek 34",
+       "value": "Účinnosť: 21.10.2026",
+       "max_length": 2000,
+       "lang": "sk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "cookies",
+   "title": "Cookies",
+   "path": "/cookies",
+   "sections": [
+    {
+     "key": "cookies-1",
+     "title": "Cookies a podobné technológie",
+     "order": 0,
+     "fields": [
+      {
+       "key": "cookies__cookies-1__0-text",
+       "type": "text",
+       "label": "Nadpis 1",
+       "value": "Cookies a podobné technológie",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__1-text",
+       "type": "text",
+       "label": "Nadpis 2",
+       "value": "Informácia pre návštevníkov",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__2-rich",
+       "type": "rich",
+       "label": "Odsek 3",
+       "value": "Web www.anastasiaoz.eu prevádzkuje LUCRAT spol. s r.o., Sokolská 1646/88, 960 01 Zvolen, IČO 36652164; kontakt zdravysvet@anastasiaoz.eu. Cookies a podobné technológie môžu uchovávať informácie v zariadení alebo k nim pristupovať. Pravidlá sa týkajú aj obdobných identifikátorov a úložísk, nielen súborov nazvaných cookies.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__2-link-0",
+       "type": "link",
+       "label": "Odkaz 1 – zdravysvet@anastasiaoz.eu",
+       "value": "mailto:zdravysvet@anastasiaoz.eu",
+       "label_text": "zdravysvet@anastasiaoz.eu",
+       "max_length": 500,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__3-rich",
+       "type": "rich",
+       "label": "Odsek 4",
+       "value": "Nevyhnutné technológie sa používajú len v rozsahu potrebnom na prenos komunikácie alebo na službu, ktorú si výslovne vyžiadate, napríklad zachovanie košíka, prihlásenie a uloženie voľby súhlasu. Konkrétny bezpečnostný alebo platobný prvok treba posúdiť podľa jeho reálnej funkcie. Ostatné technológie, najmä analytické a reklamné, sa používajú až po príslušnom súhlase.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__4-rich",
+       "type": "rich",
+       "label": "Odsek 5",
+       "value": "Voliteľné kategórie môžete odmietnuť alebo si ich vybrať samostatne. Ich odmietnutie nebráni základnému nákupu. Voľbu môžete kedykoľvek zmeniť cez trvalo dostupný odkaz „Nastavenia cookies“ v pätičke. Odvolanie súhlasu je rovnako jednoduché ako jeho udelenie; neovplyvňuje zákonnosť predchádzajúceho použitia. Prehliadač umožňuje cookies vymazať; vymazanie môže odstrániť aj prihlásenie a uloženú voľbu.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__5-rich",
+       "type": "rich",
+       "label": "Odsek 6",
+       "value": "[doplní prevádzkovateľ]",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__6-text",
+       "type": "text",
+       "label": "Nadpis 7",
+       "value": "Text prvej vrstvy lišty",
+       "max_length": 160,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__7-rich",
+       "type": "rich",
+       "label": "Odsek 8",
+       "value": "„Nevyhnutné cookies používame na fungovanie webu a nákupu. Voliteľné cookies na [doplní prevádzkovateľ] použijeme iba s vaším súhlasom. Voľbu môžete kedykoľvek zmeniť v Nastaveniach cookies. Podrobnosti nájdete v informáciách o cookies a ochrane osobných údajov.“",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__8-rich",
+       "type": "rich",
+       "label": "Odsek 9",
+       "value": "Tlačidlá: „Odmietnuť voliteľné“ | „Nastaviť“ | „Prijať všetky“.",
+       "max_length": 2000,
+       "lang": "sk"
+      },
+      {
+       "key": "cookies__cookies-1__9-rich",
+       "type": "rich",
+       "label": "Odsek 10",
+       "value": "Kategórie nesmú byť predvolene zapnuté s výnimkou skutočne nevyhnutných. Ak web používa výlučne nevyhnutné technológie, lišta nesmie predstierať súhlas s neexistujúcou analytikou; zostáva informačná povinnosť. Súhlas sa nezískava pokračovaním v prehliadaní alebo zatvorením lišty.",
        "max_length": 2000,
        "lang": "sk"
       }

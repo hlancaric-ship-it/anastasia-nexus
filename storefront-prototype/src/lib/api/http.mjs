@@ -9,6 +9,37 @@ const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov
 const PRODUCT_FIELDS =
   'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
 
+// --- Prihlásenie: token musí byť viazaný na zákazníka (actor_id) ------------------
+// Medusa v2 vydáva pri registrácii token identity BEZ actor_id (zákazník ešte nie je
+// naviazaný). Správny poriadok je: register → POST /store/customers (naviaže zákazníka
+// na identitu) → NOVÝ prihlasovací token. Token bez actor_id je na chránené volania
+// nepoužiteľný (401), preto ho v klienti nikdy neukladáme ako prihlásenie.
+const ACTOR_RETRY_DELAYS = [300, 800]; // ms medzi pokusmi, keď server vráti token bez actor_id
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Dekóduje payload JWT (base64url) BEZ overenia podpisu – podpis už overil server,
+ * ktorý token vydal. Zámer je zistiť, či je token viazaný na zákazníka (actor_id).
+ */
+export function decodeJwtPayload(token) {
+  if (typeof token !== 'string' || !token) return null;
+  const part = token.split('.')[1];
+  if (!part) return null;
+  try {
+    const base64 = part.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const bytes = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+    const payload = JSON.parse(new TextDecoder().decode(bytes));
+    return payload && typeof payload === 'object' ? payload : null;
+  } catch { return null; }
+}
+
+/** Token je použiteľný pre chránené volania len vtedy, keď je naviazaný na zákazníka. */
+export const tokenHasActor = token => {
+  const payload = decodeJwtPayload(token);
+  return Boolean(payload && typeof payload.actor_id === 'string' && payload.actor_id.trim() !== '');
+};
+
 // Klub, konzultácie a darčekový poukaz majú vlastný nákupný tok (súhlas, termín, príjemca); bežný košík ich backend odmietne.
 const isShopProduct = p => { const m = p?.metadata || {}; return !m.membership && !m.booking && m.gift_voucher !== true && m.gift_voucher !== 'true'; };
 
@@ -37,27 +68,61 @@ function mapProduct(p,apiBase='') {
   };
 }
 
+// Kľúč tokenu zákazníka v prehliadači. Používa ho aj skript stráže účtu (src/account-guard.mjs).
+export const JWT_KEY = 'anastasia.jwt';
+
 export function createHttpApi(storage, config) {
   const base = config.apiBaseUrl.replace(/\/+$/, '');
-  const JWT = 'anastasia.jwt', CART = 'anastasia.cart', COUPON = 'anastasia.coupon', QRKEYS = 'anastasia.qrkeys', GIFT = 'anastasia.gift';
+  const JWT = JWT_KEY, CART = 'anastasia.cart', COUPON = 'anastasia.coupon', QRKEYS = 'anastasia.qrkeys', GIFT = 'anastasia.gift';
   const get = k => { try { return storage.getItem(k); } catch { return null; } };
   const set = (k, v) => { try { storage.setItem(k, v); } catch { /* preview bez storage */ } };
   const del = k => { try { storage.removeItem(k); } catch { /* noop */ } };
-  const headers = (json = true) => {
+  const headers = (json = true, token) => {
     const h = { 'x-publishable-api-key': config.publishableKey };
     if (json) h['content-type'] = 'application/json';
-    const t = get(JWT); if (t) h.authorization = `Bearer ${t}`;
+    // `token` prepíše uložený token – používa sa pre registračný token, ktorý sa nikdy neukladá.
+    const t = token || get(JWT); if (t) h.authorization = `Bearer ${t}`;
     return h;
   };
-  async function call(path, { method = 'GET', body, auth = false } = {}) {
+  async function call(path, { method = 'GET', body, token } = {}) {
     const res = await fetch(base + path, {
-      method, headers: headers(body !== undefined),
+      method, headers: headers(body !== undefined, token),
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     let data = null; try { data = await res.json(); } catch { /* prázdné tělo */ }
     return { status: res.status, ok: res.ok, data };
   }
   const loggedIn = () => Boolean(get(JWT));
+
+  /**
+   * Získa prihlasovací token naviazaný na zákazníka (payload obsahuje actor_id).
+   * Ak server vráti token bez actor_id (zákazník ešte nie je naviazaný), pokus
+   * zopakuje max 2× s krátkou pauzou (300 ms, 800 ms) – backend doviaže väzbu
+   * identita → zákazník oneskor a ďalší login už token s actor_id vráti.
+   */
+  async function boundToken(attempt) {
+    for (let i = 0; i <= ACTOR_RETRY_DELAYS.length; i++) {
+      let r = null;
+      try { r = await attempt(); } catch { r = null; } // výpadok siete nepretrží celý retry
+      const token = r?.data?.token;
+      if (r?.ok && token && tokenHasActor(token)) return { ok: true, token, attempts: i + 1 };
+      if (i < ACTOR_RETRY_DELAYS.length) await sleep(ACTOR_RETRY_DELAYS[i]);
+    }
+    return { ok: false, attempts: ACTOR_RETRY_DELAYS.length + 1 };
+  }
+  // RESET 40+ (členská zóna): štruktúra programu a Zrkadielko. Endpointy sú len pre
+  // prihláseného zákazníka s aktívnym prístupom – 401 = neprihlásený, 403 = bez prístupu.
+  const RESET_MSG = {
+    400: 'Údaje záznamu nie sú platné.',
+    401: 'Pre prístup k Zrkadielku sa prihláste.',
+    403: 'Zrkadielko je dostupné len zákazníkom s programom RESET 40+.',
+    404: 'Tento záznam už neexistuje.',
+    429: 'Denný limit záznamov je dosiahnutý.',
+  };
+  async function resetCall(path, { method = 'GET', body } = {}) {
+    try { return await call(path, { method, body }); } catch { return { status: 503, ok: false, data: null }; }
+  }
+  const resetFail = r => ({ ok: false, status: r.status, error: r.data?.error || r.data?.type || 'RESET_ERROR', message: r.data?.message || RESET_MSG[r.status] || 'Údaje sa nepodarilo načítať.' });
   // Klub: výpadok siete sa vracia ako 503, nie ako výnimka do UI.
   const MCART = 'anastasia.membership.cart', MCHECKOUT = 'anastasia.membership.checkout', MOFFER = 'anastasia.membership.offer';
   const MEMBERSHIP_MSG = {
@@ -178,6 +243,52 @@ export function createHttpApi(storage, config) {
     };
   }
 
+  // Pokladňa: server je jediný zdroj pravdy. Vracia, či treba adresu (requires_delivery),
+  // možnosti dopravy (courier/pickup) a platby (card/cod/bank_transfer) a sám nastaví dopravu,
+  // prepočíta ceny a založí platobnú session. Klient posiela len kódy, nikdy sumy.
+  const CHECKOUT_MSG = {
+    UNAUTHORIZED: 'Pre dokončenie objednávky sa prihláste.',
+    CART_ACCESS_DENIED: 'Košík patrí inému zákazníkovi. Prihláste sa správnym účtom.',
+    CART_NOT_FOUND: 'Košík sa nenašiel. Vytvorte si nový.',
+    CART_EMPTY: 'Košík je prázdny.',
+    CART_COMPLETED: 'Táto objednávka už bola vykonaná.',
+    UNSUPPORTED_CURRENCY: 'Objednávku nie je možné potvrdiť v tejto meny.',
+    // Fyzický tovar bez zvolenej dopravy: zákazník musí zvoliť doručenie na adresu.
+    INVALID_DELIVERY: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    DELIVERY_REQUIRED: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    SHIPPING_OPTION_UNAVAILABLE: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    SHIPPING_REQUIRED: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    ADDRESS_REQUIRED: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.',
+    SHIPPING_PROFILE_UNKNOWN: 'Niektorý tovar v košíku sa nedá doručiť. Skúste iný spôsob platby.',
+    INVALID_PAYMENT_METHOD: 'Zvoľte spôsob platby.',
+    PAYMENT_METHOD_UNAVAILABLE: 'Tento spôsob platby momentálne nie je dostupný. Zvoľte iný.',
+    COD_NOT_AVAILABLE: 'Dobierka je dostupná len pri doručení kuriérom.',
+    PAYMENT_COLLECTION_FAILED: 'Platbu sa nepodarilo pripraviť. Skúste to znova.',
+    PAYMENT_PROVIDER_UNAVAILABLE: 'Platobná brána je momentálne nedostupná. Skúste to neskôr.',
+    CART_TOTAL_INVALID: 'Cenu objednávky sa nepodarilo vypočítať. Skúste to znova.',
+  };
+  const checkoutFail = (res, fallback) => {
+    const code = res?.data?.error;
+    if (typeof code === 'string' && code.startsWith('NEXUS_PRICING')) return 'Ceny sa nepodarilo vypočítať. Skúste to o chvíľu.';
+    if (code && CHECKOUT_MSG[code]) return CHECKOUT_MSG[code];
+    if (res?.status === 401) return CHECKOUT_MSG.UNAUTHORIZED;
+    if (res?.status === 403) return CHECKOUT_MSG.CART_ACCESS_DENIED;
+    if (res?.status === 503) return 'Služba je dočasne nedostupná. Skúste to o chvíľu.';
+    return fallback;
+  };
+  const feeLabel = (value, free) => {
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return '';
+    if (amount === 0) return free ? 'Zadarmo' : '';
+    return money(amount);
+  };
+
+  // Údaje viazané na zákazníka: token, košík, kupón, darček, konzultácia, členstvo, QR kľúče.
+  // Po odhlásení nesmú v prehliadači prežiť – inak by zostali prístupné ďalšiemu používateľovi.
+  // 'anastasia.return' drží app shell v localStorage (návrat po prihlásení), vymažeme ho z oboch úložísk.
+  const RETURN_KEY = 'anastasia.return';
+  const CUSTOMER_KEYS = [JWT, CART, COUPON, QRKEYS, GIFT, MCART, MCHECKOUT, MOFFER, BOOKING, RETURN_KEY];
+
   // createApi volá metódy bez `this`, vnútorné volania preto idú cez `self`.
   const self = {
     mode: 'http',
@@ -261,38 +372,71 @@ export function createHttpApi(storage, config) {
       return r.ok ? { ok: true, ...r.data } : { ok: false, message: r.status === 403 ? 'K tomuto obsahu nemáte aktívny prístup.' : r.status === 401 ? 'Prihlásenie vypršalo. Prihláste sa znova.' : 'Obsah je dočasne nedostupný. Skúste to neskôr.' };
     },
 
-    // Pokladňa krok 2→3: košík priradí prihlásenej zákazníkov, uloží kontakt a adresu a zvolí dopravu
-    // pre každý prepravný profil v košíku (ceny a DPH počíta server; klient len vyberá zo serverových možností).
-    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = 'digital', street = '', city = '', postalCode = '' } = {}) {
-      const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
-      if (!loggedIn()) return { ok: false, message: 'Pre dokončenie objednávky sa prihláste.' };
+    // Pokladňa krok 2→3: možnosti dopravy a platby berie zo servera (GET /store/nexus-checkout/options).
+    // Server rozhodne, či treba adresu, a vracia len kódy – žiadne „Digitálny produkt“ ani vlastné ceny.
+    async getCheckoutOptions() {
+      const id = get(CART); if (!id) return { ok: false, error: 'CART_EMPTY', message: CHECKOUT_MSG.CART_EMPTY };
+      if (!loggedIn()) return { ok: false, status: 401, error: 'UNAUTHORIZED', message: CHECKOUT_MSG.UNAUTHORIZED };
+      const fail = 'Možnosti dopravy sa nepodarilo načítať. Skúste to znova.';
+      // Server overí vlastníka košíka, preto ho najprv priradíme prihlásenému zákazníkovi.
+      const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
+      if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
+      let r = await call(`/store/nexus-checkout/options?cart_id=${encodeURIComponent(id)}`);
+      // Ceny dopravy vie server určiť až podľa krajiny – doplníme ju a spýtame sa znova.
+      if (r.status === 409 && r.data?.error === 'ADDRESS_REQUIRED') {
+        const up = await call(`/store/carts/${id}`, { method: 'POST', body: { shipping_address: { country_code: 'sk' } } });
+        if (up.ok) r = await call(`/store/nexus-checkout/options?cart_id=${encodeURIComponent(id)}`);
+      }
+      if (!r.ok) return { ok: false, status: r.status, error: r.data?.error, message: checkoutFail(r, fail) };
+      const data = r.data || {};
+      return {
+        ok: true,
+        requires_delivery: data.requires_delivery === true,
+        delivery: (data.delivery || []).filter(o => o?.code).map(o => ({
+          code: o.code, label: o.label || o.name || o.code,
+          fee: Number.isFinite(Number(o.fee ?? o.amount)) ? Number(o.fee ?? o.amount) : null,
+          feeLabel: feeLabel(o.fee ?? o.amount, true), freeFrom: o.free_from ?? null, address: o.address || '',
+        })),
+        payment: (data.payment || []).filter(p => p?.code).map(p => ({
+          code: p.code, label: p.label || p.code, available: p.available !== false,
+          fee: Number.isFinite(Number(p.fee)) ? Number(p.fee) : 0, feeLabel: feeLabel(p.fee, false), reason: p.reason || null,
+        })),
+      };
+    },
+    // Pokladňa krok 2→3: košík priradí prihlásenému zákazníkovi, uloží kontakt a adresu a
+    // odovzdá výber dopravy a platby serveru. Server nastaví dopravu (fyzickú aj digitálnu),
+    // prepočíta ceny a založí platobnú session – klient použije len client_secret z odpovede.
+    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = null, street = '', city = '', postalCode = '', payment = 'card' } = {}) {
+      const id = get(CART); if (!id) return { ok: false, error: 'CART_EMPTY', message: CHECKOUT_MSG.CART_EMPTY };
+      if (!loggedIn()) return { ok: false, status: 401, error: 'UNAUTHORIZED', message: CHECKOUT_MSG.UNAUTHORIZED };
       const fail = 'Objednávku sa nepodarilo pripraviť. Skúste to znova.';
       const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
-      if (!owner.ok) return { ok: false, message: fail };
+      if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
       const term = await checkCartBooking(id);
       if (!term.ok) return term;
-      const shipping = delivery === 'shipping';
+      // Doprava je voliteľná len pre čisto digitálny košík; fyzický tovar vyžaduje courier/pickup.
+      const wanted = delivery === 'courier' || delivery === 'pickup' ? delivery : null;
+      // Adresa na doručenie patrí ku kuriérovi; pri osobnom odbere a digitálnom tovare stačí krajina.
       const address = { first_name: String(firstName).trim(), last_name: String(lastName).trim(), country_code: 'sk',
-        ...(shipping ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
-      const up = await call(`/store/carts/${id}`, { method: 'POST', body: { email: String(email).trim(), shipping_address: address, billing_address: address } });
-      if (!up.ok) return { ok: false, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
-      const so = await call(`/store/shipping-options?cart_id=${encodeURIComponent(id)}&fields=id,name,shipping_profile_id,*type`);
-      // Medusa vracia možnosti aj pre profily, ktoré v košíku nie sú (napr. kuriér pri čisto digitálnom košíku).
-      const items = await call(`/store/carts/${id}?fields=id,items.product.shipping_profile.id`);
-      const profiles = new Set((items.data?.cart?.items || []).map(i => i?.product?.shipping_profile?.id).filter(Boolean));
-      if (!items.ok || !profiles.size) return { ok: false, message: fail };
-      const options = (so.data?.shipping_options || []).filter(o => profiles.has(o.shipping_profile_id));
-      if (!so.ok || [...profiles].some(p => !options.some(o => o.shipping_profile_id === p))) return { ok: false, message: 'Pre tento košík teraz nie je dostupné doručenie. Kontaktujte nás, prosím.' };
-      const perProfile = new Map();
-      for (const o of options) if (!perProfile.has(o.shipping_profile_id)) perProfile.set(o.shipping_profile_id, o);
-      const chosen = [...perProfile.values()];
-      if (chosen.some(o => o.type?.code !== 'digital') && !shipping) return { ok: false, message: 'Košík obsahuje tovar na doručenie. Zvoľte doručenie na adresu.' };
-      for (const o of chosen) {
-        const sm = await call(`/store/carts/${id}/shipping-methods`, { method: 'POST', body: { option_id: o.id } });
-        if (!sm.ok) return { ok: false, message: fail };
-      }
-      await reprice();
-      return { ok: true, cart: await cartShape() };
+        ...(wanted === 'courier' ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
+      const body = { shipping_address: address, billing_address: address };
+      const mail = String(email).trim(); if (mail) body.email = mail;
+      const up = await call(`/store/carts/${id}`, { method: 'POST', body });
+      if (!up.ok) return { ok: false, status: up.status, error: up.data?.error, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
+      // Jediný serverový krok výberu: doprava + platba + prepocet + platobná session.
+      const so = await call('/store/nexus-checkout/options', { method: 'POST', body: { cart_id: id, delivery: wanted, payment } });
+      if (!so.ok) return { ok: false, status: so.status, error: so.data?.error, message: checkoutFail(so, fail) };
+      const data = so.data || {};
+      return {
+        ok: true,
+        clientSecret: data.client_secret || '',
+        paymentRequired: data.payment_required === true,
+        delivery: data.delivery ?? null,
+        payment: data.payment ?? null,
+        shipping: data.shipping || [],
+        totals: data.totals || null,
+        cart: await cartShape(),
+      };
     },
     // Súhlas s obchodnými podmienkami a GDPR pre konkrétny košík (verzie dodá server, autoritou je legal modul).
     async acceptCheckoutTerms({ terms_accepted = false, privacy_acknowledged = false } = {}) {
@@ -302,18 +446,6 @@ export function createHttpApi(storage, config) {
       if (!v.ok || !v.data?.terms_version) return { ok: false, message: 'Podmienky sa nepodarilo načítať. Skúste to znova.' };
       const cs = await call(`/store/carts/${id}/consents`, { method: 'POST', body: { terms_accepted: true, privacy_acknowledged: true, terms_version: v.data.terms_version, privacy_version: v.data.privacy_version } });
       return cs.ok ? { ok: true } : { ok: false, message: 'Súhlas sa nepodarilo uložiť. Skúste to znova.' };
-    },
-    // Stripe: platobná session proti pp_stripe_stripe, vráti clientSecret pre Payment Element.
-    async createPaymentSession() {
-      const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
-      const col = await call('/store/payment-collections', { method: 'POST', body: { cart_id: id } });
-      const collectionId = col.data?.payment_collection?.id;
-      if (!collectionId) return { ok: false, message: 'Platbu sa nepodarilo pripraviť.' };
-      const sess = await call(`/store/payment-collections/${collectionId}/payment-sessions`, { method: 'POST', body: { provider_id: 'pp_stripe_stripe' } });
-      const session = (sess.data?.payment_collection?.payment_sessions || []).find(s => s.provider_id === 'pp_stripe_stripe');
-      const clientSecret = session?.data?.client_secret;
-      if (!clientSecret) return { ok: false, message: 'Platobná brána nie je dostupná.' };
-      return { ok: true, clientSecret };
     },
     // Dokončenie po úspešnej platbe (alebo pre 0 € objednávku): NEXUS prepočet + Medusa completion.
     async checkout() {
@@ -474,22 +606,52 @@ export function createHttpApi(storage, config) {
       catch { return { ok: false, message: 'Služba je dočasne nedostupná. Skúste to znova o chvíľu.' }; }
       return { ok: true, message: 'Ak účet existuje, poslali sme vám prihlasovací odkaz na e-mail.' };
     },
+    // Prihlásenie/registrácia e-mailom (magic link).
+    // Poradie (Medusa v2): 1) potvrdenie odkazu → token identity, 2) POST /store/customers
+    // (založí zákazníka a naviaže ho na identitu), 3) NOVÝ prihlasovací token s actor_id.
+    // Odkaz je jednorazový, preto sa nový token získa znovu vydaním pre tú istú identitu
+    // (POST /auth/token/refresh) – po naviazaní zákazníka už obsahuje actor_id.
+    // Registračný token sa NIKDY neukladá ako prihlásenie a nesmie sa použiť na chránené volania.
     async confirmMagicLink() {
       const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
       const email = params.get('email'), token = params.get('token');
       if (!email || !token) return { ok: false, message: 'Odkaz je neúplný. Vyžiadajte si nový.' };
-      const r = await call('/auth/customer/magic-link', { method: 'POST', body: { email, token } });
-      if (!r.ok || !r.data?.token) return { ok: false, message: 'Odkaz je neplatný alebo vypršal. Vyžiadajte si nový.' };
-      set(JWT, r.data.token);
-      // Nový zákazník: overený e-mail ešte nemá Customer. Token identity ho založí a refresh vydá token so zákazníkom.
-      if ((await call('/store/customers/me')).status === 401) {
-        const created = await call('/store/customers', { method: 'POST', body: { email } });
-        const refreshed = created.ok ? await call('/auth/token/refresh', { method: 'POST', body: {} }) : null;
-        if (!refreshed?.ok || !refreshed.data?.token) { del(JWT); return { ok: false, message: 'Účet sa nepodarilo založiť. Vyžiadajte si nový odkaz.' }; }
-        set(JWT, refreshed.data.token);
-        return { ok: true, message: 'Účet je založený. Vitajte.' };
+      try {
+        const r = await call('/auth/customer/magic-link', { method: 'POST', body: { email, token } });
+        if (!r.ok || !r.data?.token) return { ok: false, message: 'Odkaz je neplatný alebo vypršal. Vyžiadajte si nový.' };
+        const identityToken = r.data.token;
+        const me = await call('/store/customers/me', { token: identityToken });
+        if (me.status === 401) {
+          // Nový zákazník: najprv ho založíme (registračným tokenom), až potom žiadame nový token.
+          const created = await call('/store/customers', { method: 'POST', body: { email }, token: identityToken });
+          if (!created.ok) return { ok: false, message: 'Účet sa nepodarilo založiť. Vyžiadajte si nový odkaz.' };
+          const bound = await boundToken(() => call('/auth/token/refresh', { method: 'POST', body: {}, token: identityToken }));
+          if (!bound.ok) return { ok: false, message: 'Registrácia prebehla, prihláste sa prosím.' };
+          set(JWT, bound.token);
+          return { ok: true, message: 'Účet je založený. Vitajte.' };
+        }
+        // Bežné prihlásenie: token musí byť naviazaný na zákazníka (actor_id), inak by
+        // každé chránené volanie skončilo 401. Chýbajúci actor_id trieskame opraviť.
+        if (!tokenHasActor(identityToken)) {
+          const bound = await boundToken(() => call('/auth/token/refresh', { method: 'POST', body: {}, token: identityToken }));
+          if (!bound.ok) return { ok: false, message: 'Prihlásenie prebehlo, ale účet ešte nie je naviazaný. Skúste to prosím znova.' };
+          set(JWT, bound.token);
+          return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
+        }
+        set(JWT, identityToken);
+        return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
+      } catch {
+        return { ok: false, message: 'Prihlásenie sa nepodarilo. Skúste to prosím znova o chvíľu.' };
       }
-      return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
+    },
+
+    // Odhlásenie: zruší serverovú reláciu a vymaže token aj údaje zákazníka z prehliadača.
+    // Serverová chyba odhlásenie neblokuje – lokálne údaje sa vymažú vždy, inak by účet zostal dostupný.
+    async signOut() {
+      try { await call('/store/nexus-auth/logout', { method: 'POST' }); } catch { /* server token zneplatní; pri chybe aspoň zmizne z prehliadača */ }
+      for (const key of CUSTOMER_KEYS) del(key);
+      try { globalThis.localStorage?.removeItem(RETURN_KEY); } catch { /* prehliadač bez localStorage */ }
+      return { ok: true };
     },
 
     // QR odkaz → košík: produkt + množstvo + voliteľný kupón. Idempotentné cez uložený kľúč (max 50).
@@ -627,6 +789,41 @@ export function createHttpApi(storage, config) {
       const r = await call('/store/contact', { method: 'POST', body: { name, email, subject, message, consent: consent === true || consent === 'on', website: website || '' } });
       if (r.ok && r.data?.ok) return { ok: true, message: r.data.message };
       return { ok: false, status: r.status, message: r.data?.message || 'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.' };
+    },
+
+    // Online odstúpenie od zmluvy (časť C právnych textov): záznam pre správcu + potvrdenie e-mailom.
+    async sendContractWithdrawal({ order_number, email, items, order_date, name, reason, consent, website }) {
+      const r = await call('/store/contract-withdrawal', { method: 'POST', body: { order_number, email, items, order_date, name, reason, consent: consent === true || consent === 'on', website: website || '' } });
+      if (r.ok && r.data?.ok) return { ok: true, message: r.data.message };
+      return { ok: false, status: r.status, message: r.data?.message || 'Odstúpenie sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.' };
+    },
+
+    // Štruktúra programu: 16 týždňov, pracovné listy po dňoch, záverečné zhrnutie, dotazník.
+    async getResetProgram() {
+      const r = await resetCall('/store/reset-program');
+      if (r.ok && r.data) return { ok: true, ...r.data };
+      return resetFail(r);
+    },
+    // Zrkadielko: vlastné záznamy + konfigurácia metrík.
+    async getResetJournal({ limit = 50, offset = 0 } = {}) {
+      const r = await resetCall(`/store/reset-journal?limit=${limit}&offset=${offset}`);
+      if (r.ok && r.data) return { ok: true, program: r.data.program, metrics: r.data.metrics || [], entries: r.data.entries || [], count: r.data.count ?? 0 };
+      return resetFail(r);
+    },
+    async createResetJournalEntry({ date, week = null, metrics = {} }) {
+      const r = await resetCall('/store/reset-journal', { method: 'POST', body: { date, week, metrics } });
+      if (r.ok && r.data) return { ok: true, entry: r.data.entry || null, message: r.data.message };
+      return resetFail(r);
+    },
+    async updateResetJournalEntry(id, patch = {}) {
+      const r = await resetCall(`/store/reset-journal/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch });
+      if (r.ok && r.data) return { ok: true, entry: r.data.entry || null, message: r.data.message };
+      return resetFail(r);
+    },
+    async deleteResetJournalEntry(id) {
+      const r = await resetCall(`/store/reset-journal/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (r.ok) return { ok: true, message: r.data?.message };
+      return resetFail(r);
     },
 
     isLoggedIn: loggedIn,

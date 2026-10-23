@@ -12,6 +12,9 @@
 let gsap = window.gsap;
 let ScrollTrigger = window.ScrollTrigger;
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Telefon/dotyk: žádné scrubované filtry, paralaxy ani zmenšování karet – na mobilu trhaly skrol
+// a karty zůstávaly ztmavené (brightness .55) přesně ve chvíli, kdy je člověk četl.
+const lite = window.matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -27,9 +30,8 @@ const heroMode = (() => {
     const query = params.toString();
     history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
   }
-  let seen = false;
-  try { seen = sessionStorage.getItem('ana-intro-seen') === '1'; } catch {}
-  return asked || seen;
+  // Úvod je vždy krémový preloader s tlačidlom Vstúpte (rozhodnutie 22. 10.).
+  return false;
 })();
 if (heroMode) document.documentElement.classList.add('lh-hero-mode');
 const markIntroSeen = () => { try { sessionStorage.setItem('ana-intro-seen', '1'); } catch {} };
@@ -53,6 +55,18 @@ if (gsap && ScrollTrigger) {
 
   const intro = $('#lh-intro');
   const top = $('#lh-top');
+  // r12/2a: mobilný úvod – bez scrollovania, iba tlačidlo Vstúpte.
+  // 22. 10.: aj na desktope bez skrolu – len Vstúpte, potom sa úvod prehrá sám.
+  const mobileIntro = Boolean(intro);
+  if (mobileIntro) {
+    document.documentElement.classList.add('lh-locked');
+    document.documentElement.classList.add('lh-mobile-intro');
+    // r15/4: na mobile sa hero video načíta až pri ťuknutí na Vstúpte – predtým
+    // je LCP text (krémová plocha s tmavými písmenami), nie frame videa.
+    const introVideo=$('#lh-intro-video');
+    if(introVideo){for(const source of introVideo.querySelectorAll('source[data-lh-src]'))source.removeAttribute('src');}
+    if (window.__anaLenis) window.__anaLenis.stop();
+  }
   const introP = {value: 0};
   // Úvod je přes celou šířku. Padding je inline v ROOT_STYLE, proto ho tady
   // zrušíme; s lištou se pak vrátí.
@@ -115,7 +129,7 @@ if (gsap && ScrollTrigger) {
       if (!svg || !measure) return;
       // Na úzké obrazovce tři řádky ANA / STA / SIA – písmeno T zůstane uprostřed.
       if (window.innerWidth < 700) {
-        ['#lh-word-t', '#lh-word-m'].forEach(id => {
+        ['#lh-word-t', '#lh-word-m', '#lh-word-inv-t'].forEach(id => {
           const el = $(id);
           if (!el) return;
           el.textContent = '';
@@ -141,6 +155,21 @@ if (gsap && ScrollTrigger) {
       // Na mobilu je slovo o kus výš, aby se pod ním vešla kategorie a tlačítko.
       const lift = window.innerWidth < 700 ? 20 : 0;
       svg.setAttribute('viewBox', [b.x - padX, b.y - padY + lift, b.width + 2 * padX, b.height + 2 * padY].join(' '));
+      // r12/2b: na mobile maska len na ploche viewBoxu – obrie plochy
+      // (13440×12900) prekročila limit GPU pri DPR 3 a slovo sa nevykreslilo.
+      if (mobileIntro) {
+        const maskEl = $('#lhWord');
+        const bgEl = $('#lh-word-bg');
+        const vb = svg.getAttribute('viewBox').split(' ').map(Number);
+        if (maskEl && bgEl && vb.length === 4) {
+          const invEl = $('#lhWordInv');
+          const invText = $('#lh-word-inv-t');
+          for (const el of [maskEl, bgEl, invEl, invText].filter(Boolean)) {
+            el.setAttribute('x', String(vb[0])); el.setAttribute('y', String(vb[1]));
+            el.setAttribute('width', String(vb[2])); el.setAttribute('height', String(vb[3]));
+          }
+        }
+      }
       // Rozměr písmena T se musí měřit na skrytém textu, ne na textu v <mask>.
       const extent = measure.getExtentOfChar(4);
       const fs = 236;
@@ -174,7 +203,7 @@ if (gsap && ScrollTrigger) {
       }
 
       // V hero režimu je úvod statická hero sekce – zoom se nepřehrává.
-      const timeline = heroMode ? gsap.timeline() : gsap.timeline({
+      const timeline = heroMode || mobileIntro ? gsap.timeline() : gsap.timeline({
         scrollTrigger: {
           trigger: intro, start: 'top top', end: 'bottom bottom', scrub: 1,
           onUpdate: s => { introP.value = s.progress; head(); },
@@ -184,6 +213,10 @@ if (gsap && ScrollTrigger) {
         .to('.lh-intro__meta', {opacity: 0, y: -30, duration: 0.12, ease: 'none'}, 0)
         .to('.lh-intro__brands', {opacity: 0, y: -30, duration: 0.12, ease: 'none'}, 0)
         .fromTo('#lh-intro-video', {scale: 1.35}, {scale: 1, duration: 0.62, ease: 'none'}, 0)
+        // Pod maskou ztmavené video (průhledná vrstva, ne filtr – levnější na mobilu), aby slovo ANASTASIA bylo čitelné i u světlých záběrů.
+        .to('.lh-intro__tint', {opacity: 0, duration: 0.4, ease: 'none'}, 0.12)
+        // Tmavá výplň písmen je mimo zväčšovanej skupiny: pri zoome musí zmiznúť, inak je slovo ANASTASIA dvakrát cez seba.
+        .to('#lh-word-tint', {opacity: 0, duration: 0.05, ease: 'none'}, 0.04)
         .to('#lh-word-g', {scale: 110, svgOrigin: ox + ' ' + oy, duration: 0.5, ease: 'power3.in'}, 0.04)
         .to('.lh-intro__mask', {opacity: 0, duration: 0.08, ease: 'none'}, 0.46)
         .to('.lh-intro__veil,.lh-vid-btn', {opacity: 1, duration: 0.1, ease: 'none'}, 0.46)
@@ -196,6 +229,17 @@ if (gsap && ScrollTrigger) {
       // Texty zůstávají skryté, dokud maska neodstoupí. Nastavíme to až po
       // vytvoření timeline, aby je scrub přepsal jen v okamžiku, kdy mají přijít.
       gsap.set(['.lh-say--one', '.lh-say--two'], {opacity: 0, y: 80});
+      if (mobileIntro) {
+        // r12/2a: na mobilu sa úvod prehrá sám po Vstúpte (3–4 s).
+        timeline.pause(0);
+        timeline.timeScale(0.25);
+        window.__anaIntroTimeline = timeline;
+        const unlock = () => {
+          document.documentElement.classList.remove('lh-locked');
+          if (window.__anaLenis) window.__anaLenis.start();
+        };
+        timeline.eventCallback('onComplete', () => { unlock(); markIntroSeen(); showChrome(); });
+      }
     };
     (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
       buildIntro();
@@ -214,7 +258,7 @@ if (gsap && ScrollTrigger) {
     }
 
     // --- Vrstvy různou rychlostí (text, menší fotka) ------------------------
-    $$('[data-speed]').forEach(el => {
+    if (!lite) $$('[data-speed]').forEach(el => {
       const speed = Number(el.dataset.speed) || 0;
       gsap.fromTo(el, {y: -speed}, {y: speed, ease: 'none', scrollTrigger: {
         trigger: el.closest('section') || el, start: 'top bottom', end: 'bottom top', scrub: true,
@@ -222,7 +266,7 @@ if (gsap && ScrollTrigger) {
     });
 
     // --- Svět ANASTASIA: karty se vrství, předchozí se zmenší a ztmaví -----
-    const cards = $$('.lh-card');
+    const cards = lite ? [] : $$('.lh-card');
     cards.forEach((card, i) => {
       const bg = $('.lh-card__bg', card);
       if (bg) gsap.fromTo(bg, {scale: 1.12, yPercent: -8}, {scale: 1, yPercent: 0, ease: 'none', scrollTrigger: {
@@ -275,9 +319,15 @@ if (gsap && ScrollTrigger) {
     const sync = () => {
       const on = window.anaSoundState ? window.anaSoundState() : false;
       sound.setAttribute('aria-pressed', String(on));
+      sound.setAttribute('aria-label', on ? 'Vypnúť zvuk' : 'Zapnúť zvuk');
+      sound.setAttribute('title', on ? 'Vypnúť zvuk' : 'Zapnúť zvuk');
+      sound.classList.toggle('is-on', on);
       const label = sound.querySelector('.media-label');
       if (label) label.textContent = on ? 'Zvuk zapnutý' : 'Zvuk vypnutý';
     };
+    document.addEventListener('ana:sound', sync);
+    // Stav zvuku je jednotný pre všetky tlačidlá – kontrolujeme ho aj priamo.
+    setInterval(sync, 600);
     sound.addEventListener('click', async () => {
       if (window.anaToggleAmbient) await window.anaToggleAmbient();
       sync();
@@ -295,6 +345,19 @@ if (gsap && ScrollTrigger) {
   };
   const cue = $('#lh-scroll-cue');
   if (cue) cue.addEventListener('click', scrollIntro);
+  if (cue) cue.addEventListener('click', () => {
+    if (!mobileIntro) return;
+    const t = window.__anaIntroTimeline;
+    if (!t) { document.documentElement.classList.remove('lh-locked'); if (window.__anaLenis) window.__anaLenis.start(); return; }
+    // video sa pri ťuknutí naštartuje (gestum) a prehrá intro
+    const iv=$('#lh-intro-video');
+    if(iv){for(const source of iv.querySelectorAll('source[data-lh-src]')){if(!source.getAttribute('src'))source.setAttribute('src',source.dataset.lhSrc);}iv.load();iv.play().catch(()=>{});}
+    if (!t.isActive()) t.play(0);
+  });
+  // r12/2: klik na VSTÚPTE je gestum – hudba sa spustí pri ňom (iOS/Android).
+  if (cue) cue.addEventListener('click', ()=>{
+    try{ if(window.anaSoundState&&!window.anaSoundState()&&window.anaToggleAmbient) window.anaToggleAmbient(); }catch{}
+  });
   addEventListener('keydown', event => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     const key = event.key;
@@ -308,7 +371,18 @@ if (gsap && ScrollTrigger) {
 
   // --- Videa: hrají jen na obrazovce, hlavní se dá zastavit ----------------
   const videos = [$('#lh-intro-video'), $('#lh-sky-video')].filter(Boolean);
-  // Video má fetchpriority=low – kým sa sťahujú CSS a skripty, je to priorita nižšia.
+  // Úvodné video sa načíta až po prvej kresbe (LCP) a pri slabom pripojení
+  // alebo úspore dát vôbec – ostane krémová plocha so slovom.
+  const connection=navigator.connection||{};
+  const heavy=Boolean(connection.saveData)||/^(slow-2g|2g)$/.test(String(connection.effectiveType||''));
+  const loadIntroVideo=()=>{
+    const video=$('#lh-intro-video');if(!video||heavy)return;
+    for(const source of video.querySelectorAll('source[data-lh-src]')){
+      if(!source.src)source.setAttribute('src',source.dataset.lhSrc);
+    }
+    video.load();video.play().catch(()=>{});
+  };
+  if('requestIdleCallback' in window)requestIdleCallback(loadIntroVideo,{timeout:2500});else setTimeout(loadIntroVideo,600);
   // Rozměry po nabití videa se přepočítají, ale ne během skrolu.
   let refreshed = false;
   // Bez souboru (media/ je zatím prázdná) video kreslí černou a poster se

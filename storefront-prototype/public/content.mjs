@@ -12,6 +12,20 @@ export function pageKeyOf(pathname) {
   return raw.replace(/\//g, '-').replace(/[^a-z0-9-]+/gi, '-').toLowerCase() || 'home';
 }
 
+// Predpony klúčov, ktoré stránka naozaj používa ('global', 'eshop', 'kontakt', …).
+// Stránka, ktorá nemá žiadny vlastný kľúč, sa na server neopýta – žiadny 404
+// v konzole a zabudovaný obsah stránky ostáva v platnosti.
+export function contentPageKeys(root) {
+  if (!root || typeof root.querySelectorAll !== 'function') return [];
+  const keys = [];
+  for (const el of root.querySelectorAll('[data-content]')) {
+    const key = String((el.dataset && el.dataset.content) || '');
+    const prefix = key.split('__')[0];
+    if (prefix && !keys.includes(prefix)) keys.push(prefix);
+  }
+  return keys;
+}
+
 export async function loadContent(pageKey, {timeout = 5000} = {}) {
   const base = config().apiBaseUrl;
   if (!base || !pageKey) return null;
@@ -20,7 +34,8 @@ export async function loadContent(pageKey, {timeout = 5000} = {}) {
   try {
     const response = await fetch(`${base}/store/content/${encodeURIComponent(pageKey)}`, {
       signal: controller ? controller.signal : undefined,
-      headers: {accept: 'application/json'},
+      // Store API Medusy bez publishable key odpovedá 400 – texty z administrácie by sa nikdy nenačítali.
+      headers: {accept: 'application/json', ...(config().publishableKey ? {'x-publishable-api-key': config().publishableKey} : {})},
     });
     if (!response.ok) return null;
     const data = await response.json();

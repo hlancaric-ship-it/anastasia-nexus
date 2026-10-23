@@ -2,10 +2,15 @@ import {isMediaUrl} from '/lib/media-url.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import {createApi} from '/lib/api/index.mjs';
-import {loadContent,applyContent,pageKeyOf} from '/content.mjs';
+import {loadContent,applyContent,contentPageKeys} from '/content.mjs';
+import {availablePaymentMethods,defaultPaymentMethod,nextButtonState} from '/checkout-ui.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit} from '/i18n.mjs';
+import {initWithdrawalForm} from '/withdrawal-form.mjs';
+import {initResetZone} from '/reset-zone.mjs';
+import {setAccountLink,setAccountVisibility} from '/account-links.mjs';
+import {JWT_KEY} from '/lib/api/http.mjs';
 let storage;try{storage=window.sessionStorage;}catch{}
 const api=createApi(storage);
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
@@ -13,9 +18,13 @@ let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
 updateCount().catch(()=>{});
-for(const link of $$('[data-global-account]')) {
-  Promise.resolve().then(()=>typeof api.isLoggedIn==='function'&&api.isLoggedIn()).then(logged=>{if(logged){link.href='/ucet';link.querySelector('span').textContent='Môj účet';}}).catch(()=>{});
-}
+window.addEventListener('unhandledrejection',event=>{const reason=String(event.reason||'');if(/Failed to fetch|NetworkError|Load failed/i.test(reason))event.preventDefault();});
+// Prihlásenie zákazníka: token v prehliadači (kľúč je JWT_KEY z API adaptéra, src/lib/api/http.mjs).
+const customerLogged=()=>{try{return Boolean(storage&&storage.getItem(JWT_KEY));}catch{return false;}};
+// Ikona účtu v hlavičke aj položka účtu v menu idú podľa prihlásenia (účet / prihlásenie).
+for(const link of $$('[data-global-account],[data-menu-account]'))setAccountLink(link,customerLogged());
+// Odkaz na účet na prihlásení vidí len prihlásený zákazník.
+for(const link of $$('[data-my-account]'))setAccountVisibility(link,customerLogged());
 // Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
 const kolTrack=$('.kol-track');
 if(kolTrack)(async()=>{
@@ -38,6 +47,18 @@ if(kolTrack)(async()=>{
   kolTrack.dataset.ready='';
 })();
 
+// Odhlásenie: zruší reláciu a vymaže token aj údaje zákazníka, potom prejde na prihlásenie.
+// Odkaz zostáva odkazom (bez JS sa zákazník dostane na /prihlasenie), prerušíme len predchádzajúcu navigáciu.
+for(const link of $$('[data-sign-out]')){
+  let signingOut=false;
+  link.addEventListener('click',async event=>{
+    event.preventDefault();
+    if(signingOut)return;signingOut=true;link.setAttribute('aria-busy','true');
+    try{if(typeof api.signOut==='function')await api.signOut();}catch{/* odhlásenie musí prejsť aj pri chybe servera */}
+    location.assign('/prihlasenie');
+  });
+}
+
 const customerCenter=$('.customer-center');
 if(customerCenter){
   // Barva účtu: platné id přijdou z vyrenderovaných swatchů, první je výchozí (bez atributu). Uloženo jen v prohlížeči.
@@ -46,19 +67,22 @@ if(customerCenter){
   const setTheme=id=>{if(!themeIds.includes(id))id=themeIds[0];if(id===themeIds[0])delete document.documentElement.dataset.centerTheme;else document.documentElement.dataset.centerTheme=id;markTheme(id);try{if(id===themeIds[0])localStorage.removeItem('ana-center-theme');else localStorage.setItem('ana-center-theme',id);}catch{}};
   markTheme(document.documentElement.dataset.centerTheme||themeIds[0]);
   $$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.centerThemePick)));
-  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',klub:'Klub ANASTASIA.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
+  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',reset:'RESET 40+.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',klub:'Klub ANASTASIA.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
   const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];requestAnimationFrame(()=>{const active=$('.center-sidebar [aria-current=page]',customerCenter),nav=active?.parentElement;if(active&&nav&&nav.scrollWidth>nav.clientWidth){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect(),style=getComputedStyle(nav),left=n.left+parseFloat(style.paddingLeft),right=n.right-parseFloat(style.paddingRight);if(a.left<left)nav.scrollLeft+=a.left-left;else if(a.right>right)nav.scrollLeft+=a.right-right;}});return id;};
   show(location.hash.slice(1));
   $$('[data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);$('#account-title').focus({preventScroll:true});}));
   addEventListener('popstate',()=>show(location.hash.slice(1)));
   addEventListener('hashchange',()=>show(location.hash.slice(1)));
   $$('[data-material-filter]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const filter=btn.dataset.materialFilter;$$('[data-material-filter]',customerCenter).forEach(item=>item.setAttribute('aria-pressed',String(item===btn)));$$('[data-material-category]',customerCenter).forEach(row=>{row.hidden=!!filter&&row.dataset.materialCategory!==filter;});}));
+  // Členská zóna RESET 40+ a Zrkadielko: načíta sa len pri prístupe, inak nič nevymýšľame.
+  initResetZone(api, customerCenter);
   $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{$('.form-status',form).textContent=(await api.saveCustomerProfile(Object.fromEntries(new FormData(form)))).message;}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
   // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.
   (async()=>{
     const put=(sel,html)=>$$(sel,customerCenter).forEach(el=>{el.innerHTML=html;});
     const note=text=>`<p class="form-status">${e(text)}</p>`;
-    if(!(typeof api.isLoggedIn==='function'&&await api.isLoggedIn())){put('#center-next-booking,#center-last-order,#center-bookings,#center-orders',note('Pre zobrazenie účtu sa prihláste.'));$('.center-content',customerCenter).insertAdjacentHTML('afterbegin',`<div class="empty-state"><h2>Pre zobrazenie účtu sa prihláste.</h2>${button('/prihlasenie','Prihlásiť sa')}</div>`);return;}
+    // Stráž účtu: bez tokenu účet neexistí, zákazník pokračuje na prihlásenie.
+    if(!(typeof api.isLoggedIn==='function'&&await api.isLoggedIn())){location.replace('/prihlasenie');return;}
     let account,data;
     try{[account,data]=await Promise.all([api.getAccount(),api.getCustomerCenter()]);}catch{account={ok:false,orders:[]};data={ok:false,bookings:[],reorder:[]};}
     const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');
@@ -124,16 +148,28 @@ const root=document.documentElement,shell=$('#page-shell'),reducedMotion=window.
 // DOM je připravený – teprve teď se smí ukázat lišta a hlavička (do té doby je
 // chrome skrytý CSS, aby při načítání neprobleskla zelená plocha).
 root.classList.add('ana-booted');
-const MENU={side:{o:'--side-o',p:'--side-p',t:'--side-t',open:'translate(0,-50%)',closed:'translate(-24px,-50%)'},top:{o:'--top-o',p:'--top-p',t:'--top-t',open:'translateY(0)',closed:'translateY(-16px)'}};
+const MENU={side:{o:'--side-o',p:'--side-p',t:'--side-t',v:'--side-v',open:'translate(0,-50%)',closed:'translate(-24px,-50%)'},top:{o:'--top-o',p:'--top-p',t:'--top-t',v:'--top-v',open:'translateY(0)',closed:'translateY(-16px)'}};
 let lenis=null,menuOpen=null,previousFocus=null;
+// Na telefonu se menu musí vejít na jeden displej i se zvětšeným písmem: obsah se úměrně zmenší.
+function fitMenu(panel){
+  if(!panel)return;const kids=[...panel.children];kids.forEach(k=>{k.style.zoom='';});
+  if(!matchMedia('(max-width: 760px)').matches)return;
+  const fits=f=>{kids.forEach(k=>{k.style.zoom=f===1?'':String(f);});return panel.scrollHeight<=panel.clientHeight+1;};
+  if(fits(1))return;
+  // Půlení intervalu: zalamování textu dělá závislost nelineární, prostý poměr přestřeluje.
+  let lo=.4,hi=1;if(fits(lo)){for(let i=0;i<7;i++){const mid=(lo+hi)/2;if(fits(mid))lo=mid;else hi=mid;}}
+  fits(lo);
+}
+addEventListener('resize',()=>{if(menuOpen)fitMenu($(`#dc-${menuOpen}-menu`));});
 function setMenu(kind){
   const prev=menuOpen;if(prev===kind)return;
-  for(const [name,m] of Object.entries(MENU)){const on=name===kind;root.style.setProperty(m.o,on?'1':'0');root.style.setProperty(m.p,on?'auto':'none');root.style.setProperty(m.t,on?m.open:m.closed);const panel=$(`#dc-${name}-menu`);if(panel){panel.inert=!on;panel.setAttribute('aria-hidden',String(!on));}}
+  for(const [name,m] of Object.entries(MENU)){const on=name===kind;root.style.setProperty(m.o,on?'1':'0');root.style.setProperty(m.p,on?'auto':'none');root.style.setProperty(m.t,on?m.open:m.closed);root.style.setProperty(m.v,on?'visible':'hidden');const panel=$(`#dc-${name}-menu`);if(panel){panel.inert=!on;panel.setAttribute('aria-hidden',String(!on));}}
   root.style.setProperty('--ov-o',kind?'1':'0');root.style.setProperty('--ov-p',kind?'auto':'none');
   $$('[data-menu-open]').forEach(t=>t.setAttribute('aria-expanded',String(t.dataset.menuOpen===kind)));
   shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
   menuOpen=kind;
-  if(kind){if(!prev)previousFocus=document.activeElement;lenis?lenis.stop():root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>$('[data-menu-close],a[href]',panel)?.focus({preventScroll:true}));}
+  if(kind)fitMenu($(`#dc-${kind}-menu`));
+  if(kind){if(!prev)previousFocus=document.activeElement;lenis?lenis.stop():root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
   else{lenis?lenis.start():root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
 }
 document.addEventListener('click',event=>{
@@ -190,7 +226,7 @@ let ambOff=false;try{ambOff=localStorage.getItem(AMB_OFF)==='1';}catch{}
 const amb=createAmbient({createAudio:()=>new Audio(),raf:f=>requestAnimationFrame(f),caf:id=>cancelAnimationFrame(id),now:()=>performance.now(),storage,onChange:()=>soundLabel()});
 const videoLabel=()=>{if(!playBtn)return;const paused=heroVideo?heroVideo.paused:amb.paused,label=paused?(heroVideo?'Prehrať video':'Spustiť zvuk'):(heroVideo?'Pozastaviť video':'Pozastaviť zvuk');playBtn.setAttribute('aria-pressed',String(paused));playBtn.setAttribute('aria-label',label);playBtn.title=label;setLabel(playBtn,label);};
 const nextBtn=$('[data-sound-next]');
-const soundLabel=()=>{if(nextBtn)nextBtn.hidden=amb.paused;if(!soundBtn)return;const on=!amb.paused,label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
+const soundLabel=()=>{if(nextBtn)nextBtn.hidden=amb.paused;const on=!amb.paused;document.dispatchEvent(new CustomEvent('ana:sound',{detail:{on}}));if(!soundBtn)return;const label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};
 const ambUnlockEvents=['pointerdown','keydown','touchend'];
 function ambUnlock(event){
   if(event.target.closest?.('[data-sound-toggle],[data-video-toggle]'))return;
@@ -200,8 +236,21 @@ function ambUnlock(event){
 const toggleAmbient=async()=>{
   if(!amb.paused){ambOff=true;try{localStorage.setItem(AMB_OFF,'1');}catch{}await amb.stop();return;}
   ambOff=false;try{localStorage.removeItem(AMB_OFF);}catch{}
-  try{await amb.play();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}
+  try{await amb.play();soundLabel();}catch(error){if(error.name!=='AbortError')toast('Zvuk sa nepodarilo spustiť. Skúste to znova.');}
 };
+const stopAmbientForLibrary=()=>{if(!amb.paused)amb.stop();};
+document.addEventListener('ana:media-play',stopAmbientForLibrary);
+const footer=document.querySelector('.site-footer');
+if(footer){
+  const floatingChrome=[...document.querySelectorAll('#lh-top,header')].filter(el=>el.id==='lh-top'||el.querySelector('[data-menu-open]'));
+  if(floatingChrome.length){
+    const footerObserver=new IntersectionObserver(entries=>{
+      const visible=entries.some(entry=>entry.isIntersecting);
+      floatingChrome.forEach(el=>el.classList.toggle('ana-footer-obscured',visible));
+    },{threshold:0});
+    footerObserver.observe(footer);
+  }
+}
 heroVideo?.addEventListener('play',videoLabel);heroVideo?.addEventListener('pause',videoLabel);videoLabel();soundLabel();
 let userPaused=false;
 const vio=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.isIntersecting&&!(v===heroVideo&&userPaused)&&!reducedMotion.matches)v.play?.().catch(()=>{});else if(!en.isIntersecting)v.pause?.();}));
@@ -219,7 +268,9 @@ if(!ambOff)amb.play().catch(()=>ambUnlockEvents.forEach(t=>document.addEventList
 $$('form[data-newsletter]').forEach(form=>form.addEventListener('submit',async event=>{event.preventDefault();const button=$('button',form),status=form.parentElement?.querySelector('.newsletter-status');if(button.disabled)return;button.disabled=true;let r;try{r=await api.subscribeNewsletter({email:form.elements.email.value.trim()});}catch{r={ok:false,message:'Prihlásenie sa nepodarilo. Skúste to prosím znova.'};}if(status)status.textContent=r.message;if(r.ok){setLabel(button,'Ďakujeme');form.reset();}else button.disabled=false;}));
 
 // Reveal, parallax, hero fade, tón lišty (initFx) + O Lucii linky (initTrust).
-const motion=!reducedMotion.matches;
+// Telefon a dotyk: bez paralaxy a plynulého skrolu (Lenis) – na mobilu to sekalo.
+const lite=matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
+const motion=!reducedMotion.matches&&!lite;
 if(motion&&$('.dc-root')){
   const ease='cubic-bezier(.16,1,.3,1)';
   const els=$$('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form').filter(el=>!el.closest('aside')&&!el.closest('article p')&&!el.closest('.lh-intro'));
@@ -311,7 +362,8 @@ if(filterForm){
   };
   filterForm.addEventListener('input',render);filterForm.addEventListener('submit',ev=>{ev.preventDefault();render();});render();
 }
-$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code)return;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount();});
+// Jeden handler na formulár: druhý (v bloku živého detailu) posielal 2× POST a do košíka pridal dvojnásobok.
+$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code||form.dataset.busy)return;form.dataset.busy='1';const button=form.querySelector('[type=submit]');if(button)button.disabled=true;try{const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});}finally{delete form.dataset.busy;if(button)button.disabled=false;}});
 // Živý detail produktu: názov, cena, obrázok a popis vždy z jadra (aj pre produkty založené v administrácii).
 const detail=$('[data-product-slug]');
 if(detail&&api.mode==='http'){
@@ -368,7 +420,6 @@ if(productDetail){
   }).catch(()=>{});
 }
 
-$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});});
 
 const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
 async function renderCart(){
@@ -393,30 +444,96 @@ if(checkoutForm){
   if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
   else{
     const step=n=>{$$('fieldset[data-step]',checkoutForm).forEach(el=>{el.hidden=Number(el.dataset.step)!==n;el.disabled=el.hidden;});$$('[data-step-label]').forEach(el=>el.classList.toggle('current',Number(el.dataset.stepLabel)===n));const first=$(`fieldset[data-step="${n}"] input`,checkoutForm);first?.focus();};
-    // Stripe Payment Element: reálná karetní platba (Apple/Google Pay přes Payment Element). Jen v http režimu.
+    // Tlačidlá „Pokračovať“ naskočia až po načítaní košíka a možností platby.
+    // Kým sa načítavajú, sú neaktívne a vedľa nich je viditeľný stav – klik sa
+    // nikdy neignoruje potichu.
+    const setNextState=({disabled,loading})=>{
+      for(const btn of $$('[data-next]',checkoutForm))btn.disabled=disabled;
+      const status=$('#checkout-loading',checkoutForm);
+      if(status){status.textContent=loading;status.hidden=!loading;}
+      checkoutForm.setAttribute('aria-busy',String(!!disabled));
+    };
+    const retry=$('#checkout-retry',checkoutForm);
+    if(retry)retry.addEventListener('click',async()=>{
+      retry.hidden=true;setNextState(nextButtonState({cartReady:true,optionsReady:false}));
+      const again=await loadOptions();
+      if(again.ok)setNextState(nextButtonState({cartReady:true,optionsReady:true}));
+      else{setNextState({disabled:true,loading:again.message});retry.hidden=again.status===401;}
+    });
+    // Stripe Payment Element: reálna karetní platba (Apple/Google Pay přes Payment Element). Jen v http režimu.
     const cfg=(()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}})();
-    let stripe,elements,paymentReady=false,paymentRequired=true;
+    let stripe,elements,paymentReady=false,paymentRequired=true,paymentMethod='card';
     const loadStripe=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
+    // Doprava a platba: možnosti aj ich cenu berie server (GET /store/nexus-checkout/options).
+    // Digitálny košík nemá výber dopravy, fyzický len kurýr/osobný odběr – žiadny „Digitálny produkt“.
+    let options={requires_delivery:false,delivery:[],payment:[]};
+    const deliveryNote=()=>$('#delivery-note',checkoutForm);
+    // Adresa je povinná len pri kuriérovi; pri osobnom odbere a digitálnom košíku nie je potrebná.
+    const applyAddress=()=>{
+      const addr=$('#address-fields',checkoutForm);if(!addr)return;
+      const chosen=checkoutForm.elements.delivery?.value||'';
+      const needed=chosen==='courier';
+      $$('#address-fields input',checkoutForm).forEach(input=>{input.required=needed;input.disabled=!needed;});
+    };
+    const renderDelivery=()=>{
+      const box=$('#delivery-options',checkoutForm);if(!box)return;
+      const list=options.delivery||[];
+      box.innerHTML=list.map((o,i)=>`<label class="radio-label"><input type="radio" name="delivery" value="${e(o.code)}"${i===0?' checked':''}> ${e(o.label)}${o.feeLabel?` · ${e(o.feeLabel)}`:''}${o.address?`<span class="fine-print">${e(o.address)}</span>`:''}</label>`).join('');
+      const physical=options.requires_delivery===true;
+      const note=deliveryNote();if(note){note.hidden=physical;note.textContent='Digitálny obsah dostanete e-mailom po zaplatení.';}
+      const addr=$('#address-fields',checkoutForm);if(addr)addr.hidden=!physical;
+      applyAddress();
+    };
+    const renderPayment=()=>{
+      const box=$('#payment-options',checkoutForm);if(!box)return;
+      // Predvolene je „Kartou online“ (karta), ak je dostupná; poradie ostatných
+      // spôsobov ostáva také, ako ho poslal server.
+      const list=availablePaymentMethods(options.payment||[]);
+      const chosen=defaultPaymentMethod(list);
+      box.innerHTML=list.map(p=>`<label class="radio-label"><input type="radio" name="payment" value="${e(p.code)}"${p.code===chosen?' checked':''}> ${e(p.label)}${p.feeLabel?` · ${e(p.feeLabel)}`:''}</label>`).join('');
+    };
+    const loadOptions=async()=>{
+      if(typeof api.getCheckoutOptions!=='function')return{ok:false,status:0,message:'Možnosti dopravy a platby nie sú dostupné.'};
+      const r=await api.getCheckoutOptions();
+      if(!r.ok){const note=deliveryNote();if(note){note.hidden=false;note.textContent=r.message||'Možnosti dopravy sa nepodarilo načítať.';}return{ok:false,status:r.status||0,message:r.message||'Možnosti dopravy a platby sa nepodarilo načítať.'};}
+      options=r;renderDelivery();renderPayment();
+      return{ok:true,status:0,message:''};
+    };
+    // Košík je načítaný: kým prúdia možnosti dopravy a platby, tlačidlá zostávajú neaktívne.
+    setNextState(nextButtonState({cartReady:true,optionsReady:false}));
+    const loaded=await loadOptions();
+    if(loaded.ok)setNextState(nextButtonState({cartReady:true,optionsReady:true}));
+    else{setNextState({disabled:true,loading:loaded.message});if(retry&&loaded.status!==401)retry.hidden=false;}
     const initPayment=async()=>{
-      if(typeof api.createPaymentSession!=='function')return;
       paymentReady=false;
       const fs=$('fieldset[data-step="3"]',checkoutForm);if(!fs)return;
       let host=$('#stripe-payment-element',checkoutForm);
       if(!host){host=document.createElement('div');host.id='stripe-payment-element';host.style.cssText='margin:16px 0;width:100%;max-width:560px;grid-column:1/-1';const anchor=fs.querySelector('[name=terms]')?.closest('label')||fs.querySelector('.actions');if(anchor)anchor.before(host);else fs.append(host);}
       host.textContent='Pripravujem objednávku…';
-      if(typeof api.prepareCheckout==='function'){const el=checkoutForm.elements,f=Object.fromEntries(['firstName','lastName','email','street','city','postalCode'].map(k=>[k,el[k]?.value||'']));const prep=await api.prepareCheckout({firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:checkoutForm.elements.delivery.value,street:f.street,city:f.city,postalCode:f.postalCode});
-        if(!prep.ok){host.textContent=prep.message;return;}$('#checkout-summary').innerHTML=summary(prep.cart);paymentRequired=prep.cart.paymentRequired!==false;}
+      if(typeof api.prepareCheckout!=='function'){host.textContent='Platbu sa nepodarilo pripraviť.';return;}
+      const el=checkoutForm.elements,f=Object.fromEntries(['firstName','lastName','email','street','city','postalCode'].map(k=>[k,el[k]?.value||'']));
+      paymentMethod=el.payment?.value||'card';
+      // Server pripraví dopravu, prepočíta ceny a založí platobnú session (client_secret).
+      const prep=await api.prepareCheckout({firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:el.delivery?.value||null,street:f.street,city:f.city,postalCode:f.postalCode,payment:paymentMethod});
+      if(!prep.ok){host.textContent=prep.message;return;}
+      $('#checkout-summary').innerHTML=summary(prep.cart);
+      paymentRequired=prep.paymentRequired===true;
       if(!paymentRequired){host.textContent='Objednávka je pokrytá. Platobné údaje nie sú potrebné.';paymentReady=true;return;}
+      if(paymentMethod!=='card'){host.textContent=paymentMethod==='cod'?'Dobierku platíte pri prevzatí tovaru.':'Platbu prevodom na účet potvrdíme e-mailom s pokynmi.';paymentReady=true;return;}
       if(!cfg?.stripePublishableKey){host.textContent='Platobná brána nie je nakonfigurovaná.';return;}
+      if(!prep.clientSecret){host.textContent='Platobná brána nie je dostupná.';return;}
       host.textContent='Načítavam platbu…';
-      const session=await api.createPaymentSession();
-      if(!session.ok){host.textContent=session.message||'Platba nie je dostupná.';return;}
-      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:session.clientSecret});host.textContent='';elements.create('payment',{defaultValues:{billingDetails:{email:checkoutForm.elements.email?.value||undefined,address:{country:'SK'}}}}).mount(host);paymentReady=true;}
+      try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey);elements=stripe.elements({clientSecret:prep.clientSecret});host.textContent='';elements.create('payment',{defaultValues:{billingDetails:{email:checkoutForm.elements.email?.value||undefined,address:{country:'SK'}}}}).mount(host);paymentReady=true;}
       catch{host.textContent='Platobnú bránu sa nepodarilo načítať.';}
     };
     $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity()){const n=Number(btn.dataset.next);step(n);if(n===3)initPayment();}}));
     $$('[data-back]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>step(Number(btn.dataset.back))));
-    $$('[name=delivery]',checkoutForm).forEach(el=>el.addEventListener('change',()=>{const shipping=checkoutForm.elements.delivery.value==='shipping';$('#address-fields').hidden=!shipping;$$('#address-fields input').forEach(input=>{input.required=shipping;input.disabled=!shipping;});}));
+    // Zmena dopravy (adresa) alebo platby znovu pripraví objednávku na serveri.
+    checkoutForm.addEventListener('change',event=>{
+      const name=event.target?.name;
+      if(name==='delivery'){applyAddress();if(!$('fieldset[data-step="3"]',checkoutForm)?.hidden)initPayment();}
+      if(name==='payment'&&!$('fieldset[data-step="3"]',checkoutForm)?.hidden)initPayment();
+    });
     let checkoutBusy=false;
     checkoutForm.addEventListener('submit',async event=>{event.preventDefault();if(checkoutBusy)return;const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity()){step(Number(current.dataset.step)+1);if(Number(current.dataset.step)+1===3)initPayment();}return;}
       const output=$('#checkout-result'),submit=checkoutForm.querySelector('[type=submit]');checkoutBusy=true;if(submit)submit.disabled=true;
@@ -424,7 +541,7 @@ if(checkoutForm){
       if(typeof api.acceptCheckoutTerms==='function'){if(!paymentReady){output.dataset.state='ERROR';output.textContent='Platba ešte nie je pripravená. Skontrolujte údaje v predchádzajúcich krokoch.';output.focus();return;}
         const ok=await api.acceptCheckoutTerms({terms_accepted:checkoutForm.elements.terms.checked,privacy_acknowledged:checkoutForm.elements.privacy.checked});if(!ok.ok){output.dataset.state='ERROR';output.textContent=ok.message;output.focus();return;}}
       if(typeof api.verifyCartBooking==='function'){const term=await api.verifyCartBooking();if(!term.ok){output.dataset.state='ERROR';output.innerHTML=`${e(term.message)}${term.expired?` <a class="text-link" href="/konzultacie/rezervacia">Vybrať termín</a>`:''}`;output.focus();return;}}
-      if(paymentRequired&&stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
+      if(paymentRequired&&paymentMethod==='card'&&stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}
       const result=await api.checkout();output.dataset.state=result.status;output.textContent=result.messages;output.focus();
       }catch{output.dataset.state='ERROR';output.textContent='Objednávku sa nepodarilo dokončiť. Skontrolujte jej stav v účte pred ďalším pokusom.';output.focus();}finally{checkoutBusy=false;if(submit)submit.disabled=false;}
     });
@@ -438,6 +555,8 @@ if($('#magic-confirm')){
   if(r.ok&&/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%]*)?$/.test(back))$('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button(back,'Pokračovať v rezervácii')}</div>`);
 }
 $('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=$('button[type=submit]',form),status=$('.form-status',form);if(button.disabled)return;button.disabled=true;status.textContent='Odosielam…';let r;try{r=await api.sendContact(Object.fromEntries(new FormData(form)));}catch{r={ok:false,message:'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.'};}status.textContent=r.message;if(r.ok)form.reset();button.disabled=false;});
+// Online odstúpenie od zmluvy: prihlásenému zákazníkovi predvyplníme e-mail a meno z účtu.
+initWithdrawalForm(api);
 // Klub ANASTASIA: ponuka a cena len zo servera; Payment Element iba autorizuje, zachytenie robí backend po SafeOrder.
 const runtimeConfig=()=>{try{return globalThis.__ANASTASIA_CONFIG__||null;}catch{return null;}};
 const loadStripeJs=()=>new Promise((res,rej)=>{if(window.Stripe)return res(window.Stripe);const s=document.createElement('script');s.src='https://js.stripe.com/v3';s.onload=()=>res(window.Stripe);s.onerror=()=>rej(new Error('STRIPE_LOAD'));document.head.appendChild(s);});
@@ -545,7 +664,8 @@ if($('#booking-view')){
     const r=typeof api.getBookingTypes==='function'?await api.getBookingTypes():{ok:false,types:[]};
     types=r.types||[];
     if(!r.ok){view.innerHTML=status('Ponuku konzultácií sa nepodarilo načítať. Skúste to znova o chvíľu.','ERROR');return;}
-    if(!types.length){view.innerHTML=`<div class="empty-state"><h2>Termíny konzultácií pripravujeme.</h2><p>Napíšte nám a dohodneme termín spolu.</p>${button('/kontakt','Kontakt')}</div>`;return;}
+    // Bez nastaveného kalendára sa konzultácia kupuje ako produkt a termín sa dohodne po objednávke.
+    if(!types.length){const typ=new URLSearchParams(location.search).get('typ')||'';if(/^[a-z0-9-]{1,120}$/.test(typ)){location.replace(`/eshop/produkt/${typ}/`);return;}view.innerHTML=`<div class="empty-state"><h2>Vyberte si konzultáciu.</h2><p>Po objednávke vás kontaktujeme a termín dohodneme spolu.</p>${button('/konzultacie','Ponuka konzultácií')}</div>`;return;}
     const wanted=new URLSearchParams(location.search).get('typ');
     type=types.find(t=>t.handle===wanted)||(types.length===1?types[0]:null);
     if(type)renderSlots();else renderTypes();
@@ -637,11 +757,13 @@ async function syncCategories(){
 // Jazyky SK/EN/RU: zapojí přepínače a aplikuje uloženou volbu (EN/RU zatím náhled, viz i18n.mjs).
 syncCategories().finally(()=>i18nInit());
 
-// Obsah z administrácie (Medusa). Ak backend nevráti dáta, stránka si ponechá
-// zabudovaný obsah – nikdy neprázdno.
+// Obsah z administrácie (Medusa). Načítame len stránky, ktoré naozaj používajú
+// vlastné kľúče – stránka bez nich (napr. pokladňa) sa na server neopýta, takže
+// v konzole nie je 404. Ak backend nevráti dáta, stránka si ponechá zabudovaný
+// obsah – nikdy neprázdno.
 (async()=>{
   try{
-    for(const key of ['global',pageKeyOf(location.pathname)]){
+    for(const key of contentPageKeys(document)){
       const payload=await loadContent(key);
       if(payload)applyContent(document,payload);
     }
