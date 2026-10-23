@@ -277,6 +277,13 @@ export const DICT = {
   'Zdravý svet nie je ideál, ku ktorému sa treba dopracovať.': ['The healthy world is not an ideal to work towards.', 'Здоровый мир — не идеал, к которому нужно стремиться.'],
   'Vstúpte do zdravého sveta': ['Enter the healthy world', 'Войдите в здоровый мир'],
   'Zvuk vypnutý': ['Sound off', 'Звук выключен'],
+  'Spustiť zvuk': ['Play sound', 'Включить звук'],
+  'Klub a kontakt': ['Club and contact', 'Клуб и контакты'],
+  'Lucia Rogožanová · Light for the Future': ['Lucia Rogozanova · Light for the Future', 'Луция Рогожанова · Light for the Future'],
+  'Lucia Rogožanová ·': ['Lucia Rogozanova ·', 'Луция Рогожанова ·'],
+  'Prehrať video': ['Play video', 'Воспроизвести видео'],
+  'Pozastaviť zvuk': ['Pause sound', 'Приостановить звук'],
+  'Vypnúť zvuk': ['Mute sound', 'Выключить звук'],
   'Zvuk zapnutý': ['Sound on', 'Звук включён'],
   'Zapnúť zvuk': ['Turn on sound', 'Включить звук'],
   'Pozastaviť video': ['Pause video', 'Пауза видео'],
@@ -446,17 +453,48 @@ function translateValue(value, target) {
 }
 
 // Přeloží jen přesné shody (po trimu), zachová okolní mezery. SK = obnoví zdroj.
+// Text uzlu nastavený překladem — odliší naši změnu od změny skriptem stránky.
+const lastSet = new WeakMap();
+let currentLang = 'sk';
+
+function translateNode(node, target) {
+  if (!original.has(node) || (lastSet.has(node) && lastSet.get(node) !== node.nodeValue)) original.set(node, node.nodeValue);
+  const src = original.get(node);
+  const trimmed = src.trim();
+  let next = src;
+  if (target !== 'sk') {
+    const entry = DICT[trimmed];
+    if (entry && entry[idx[target]]) next = src.replace(trimmed, entry[idx[target]]); // nenalezené zůstává slovensky (patří do data-sk-only)
+  }
+  if (node.nodeValue !== next) node.nodeValue = next;
+  lastSet.set(node, next);
+}
+
+// Texty, které skripty mění až po načtení (zvuk, video, animace), se přeloží hned po změně.
+let observer = null;
+function watchDynamicText() {
+  if (observer || typeof MutationObserver === 'undefined') return;
+  observer = new MutationObserver((mutations) => {
+    if (currentLang === 'sk') return;
+    for (const m of mutations) {
+      if (m.type === 'characterData') {
+        const node = m.target;
+        if (lastSet.get(node) !== node.nodeValue && node.nodeValue.trim()) translateNode(node, currentLang);
+      } else {
+        for (const added of m.addedNodes) {
+          if (added.nodeType === 3) { if (added.nodeValue.trim()) translateNode(added, currentLang); }
+          else if (added.nodeType === 1) walkTextNodes(added, (n) => translateNode(n, currentLang));
+        }
+      }
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+}
+
 export function apply(lang) {
   const target = normalizeLang(lang);
-  walkTextNodes(document.body, (node) => {
-    if (!original.has(node)) original.set(node, node.nodeValue);
-    const src = original.get(node);
-    const trimmed = src.trim();
-    if (target === 'sk') { node.nodeValue = src; return; }
-    const entry = DICT[trimmed];
-    if (entry && entry[idx[target]]) node.nodeValue = src.replace(trimmed, entry[idx[target]]);
-    else node.nodeValue = src; // nenalezené zůstává slovensky (patří do data-sk-only)
-  });
+  currentLang = target;
+  walkTextNodes(document.body, (node) => translateNode(node, target));
   for (const el of document.querySelectorAll('[alt],[aria-label],[title],[placeholder]')) {
     if (!originalAttr.has(el)) {
       const values = {};
@@ -539,6 +577,7 @@ export function init() {
       el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') go(e); });
     }
     apply(detectLang());
+    watchDynamicText();
   } catch {}
   try { window.anaSetLang = setLang; } catch {}
 }
