@@ -1,6 +1,7 @@
 import {isMediaUrl} from '/lib/media-url.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
+import '/cms-preview.mjs';
 import {createApi} from '/lib/api/index.mjs';
 import {loadContent,applyContent,contentPageKeys} from '/content.mjs';
 import {availablePaymentMethods,defaultPaymentMethod,nextButtonState} from '/checkout-ui.mjs';

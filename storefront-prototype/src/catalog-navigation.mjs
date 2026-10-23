@@ -29,7 +29,7 @@ const symbolFor=category=>{
   return `<img class="catalog-nav-symbol" src="/assets/symbols/${file}" alt="" width="56" height="56" loading="lazy" decoding="async">`;
 };
 
-const TILES=[['AI ANASTASIA ACADEMY','AI ANASTASIA Academy','/eshop?category=sebarozvoj'],['BIOKOZMETIKA','Biokozmetika','/eshop?category=bio-kozmetika-bez-chemie'],['Zdravé doplnky výživy','Zdravé doplnky výživy','/eshop?category=zdrave-doplnky-vyzivy'],['Darčekový poukaz','Darčekový poukaz','/darcekovy-poukaz']];
+const TILES=[['AI ANASTASIA ACADEMY','Programy a služby','/eshop?category=sebarozvoj'],['BIOKOZMETIKA','Biokozmetika','/eshop?category=bio-kozmetika-bez-chemie'],['Zdravé doplnky výživy','Zdravé doplnky výživy','/eshop?category=zdrave-doplnky-vyzivy'],['Darčekový poukaz','Darčekový poukaz','/darcekovy-poukaz']];
 
 export function catalogNavigation(categories,current=''){
   const known=TILES.filter(([key])=>key==='Darčekový poukaz'||categories.includes(key));
