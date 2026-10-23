@@ -739,11 +739,17 @@ async function vDashboard(view) {
   // --- bannery (reálne čísla) ---
   const prodCount = Number(prodRes?.count) || products.length;
   const catCount = Number(catRes?.count) || categories.length;
-  const catThumb = new Map();
-  for (const p of products) for (const c of (p.categories || [])) if (p.thumbnail && !catThumb.has(c.id || c)) catThumb.set(c.id || c, { thumb: p.thumbnail, name: catName.get(c.id || c) || '' });
-  const catList = [...catThumb.entries()].slice(0, 4);
-  const catThumbs = catList.map(x => x[1].thumb);
-  const catNames = catList.map(x => x[1].name);
+  const catProducts = new Map(categories.map(c => [c.id, []]));
+  for (const p of products) for (const c of (p.categories || [])) {
+    const id = c.id || c;
+    if (!catProducts.has(id)) catProducts.set(id, []);
+    if (p.thumbnail && !catProducts.get(id).includes(p.thumbnail)) catProducts.get(id).push(p.thumbnail);
+  }
+  const catList = categories.slice(0, 4).map(c => ({
+    id: c.id,
+    name: c.name || '',
+    images: catProducts.get(c.id) || [],
+  }));
 
   view.innerHTML = `<div class="dash">
     <div class="dash-main">
@@ -829,13 +835,24 @@ async function vDashboard(view) {
     </a>
     <a class="banner banner-plain" href="#/kategorie">
       <span class="banner-txt"><b>${catCount} <span class="bn">${catCount === 1 ? 'kategória' : catCount < 5 ? 'kategórie' : 'kategórií'}</span></b><small>Spravovať kategórie →</small></span>
-      <span class="banner-cats">${catThumbs.map((t, i) => `<span class="cat-chip" title="${esc(catNames[i] || '')}"><img src="${esc(t)}" alt="" loading="lazy"><span>${esc(catNames[i] || '')}</span></span>`).join('')}</span>
+      <span class="banner-cats">${catList.map(c => `<span class="cat-chip" title="${esc(c.name)}"><span class="cat-thumb">${c.images.length ? `<img src="${esc(c.images[0])}" alt="" loading="lazy" data-fallback-images="${esc(JSON.stringify(c.images.slice(1)))}">` : ''}<span class="cat-initial" ${c.images.length ? 'hidden' : ''}>${esc([...c.name][0] || '?')}</span></span><span>${esc(c.name)}</span></span>`).join('')}</span>
     </a>
     <a class="banner banner-sage" href="#/produkty" data-open-reset>
       <span class="banner-txt"><b>Členská zóna RESET 40+</b><small>Správa obsahu, lekcie, pracovné listy</small><span class="bn-link">Prejsť do členskej zóny →</span></span>
       <span class="banner-art">${BOTANIC_OLIVE}</span>
     </a>
   </div>`;
+
+  view.querySelectorAll('.banner-cats .cat-thumb img[data-fallback-images]').forEach(img => {
+    let candidates;
+    try { candidates = JSON.parse(img.dataset.fallbackImages || '[]'); } catch { candidates = []; }
+    img.addEventListener('error', () => {
+      const next = candidates.shift();
+      if (next) { img.src = next; return; }
+      img.hidden = true;
+      img.nextElementSibling.hidden = false;
+    });
+  });
 
   // --- ovládanie obdobia, metriky a granularity ---
   syncRangeUI();

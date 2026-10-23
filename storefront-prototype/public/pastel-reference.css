@@ -302,3 +302,26 @@ html,body{overflow-x:clip!important}
  .site-footer .sf-links{grid-template-columns:1fr 1fr!important}
  .lh-reset__head{padding-inline:20px!important}
 }
+.legacy-main>.section.shop-page{margin-left:auto!important;margin-right:auto!important}
+.shop-mini-panel{overflow-x:hidden}
+.shop-mini-panel footer{display:grid!important;gap:10px!important;background:transparent!important;padding:16px 0 0!important}
+.shop-mini-panel footer p{margin:0 0 6px;color:#403f62}
+.shop-mini-panel footer .button{display:flex!important;width:100%!important;min-height:48px;justify-content:center;align-items:center;white-space:nowrap;margin:0!important}
+.shop-mini-panel footer .button:not(.shop-mini-checkout){background:transparent!important;color:#403f62!important;border:1px solid #a7a5cf!important}
+.shop-catalog .product-card .product-info{visibility:visible!important;opacity:1!important;transform:none!important}
+.shop-catalog .product-card .product-info p{color:#403f62!important}
+.shop-catalog .product-card .product-info{display:none!important}
+.shop-catalog .catalog-controls{box-sizing:border-box!important;padding-right:clamp(0px,5vw,76px)!important}
+.shop-checkout .header-register{position:static!important;float:none!important;margin:8px 0 16px!important;white-space:normal!important}
+.shop-checkout .checkout-steps{box-sizing:border-box!important;width:min(56%,740px)!important;max-width:740px!important;margin:0 0 22px!important;justify-content:space-between!important}
+.shop-checkout .checkout-steps li{flex:0 1 auto!important}
+.shop-checkout .checkout-steps li:last-child{margin-right:auto!important}
+.banner-cats .cat-thumb{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;overflow:hidden;background:#eeeaf5;border:1px solid #d8d7e6;color:#73729c;font:300 18px Fraunces,serif}
+.banner-cats .cat-thumb img{position:absolute;inset:0;width:100%;height:100%;border:0}
+.banner-cats .cat-thumb .cat-initial{display:grid;place-items:center;width:100%;height:100%}
+.banner-cats .cat-thumb .cat-initial[hidden]{display:none}
+#dc-top-menu,#dc-side-menu{background:linear-gradient(145deg,#fbfaff 0%,#f0edf8 100%)!important;color:#403f62!important;border-color:#a7a5cf88!important;box-shadow:0 22px 64px #403f6233!important}
+#dc-top-menu a,#dc-side-menu a{font-family:Figtree,sans-serif!important;color:#403f62!important;line-height:1.45}
+#dc-top-menu>div:nth-child(4) a[style*="font-size:25px"],#dc-side-menu a[style*="font-size:19px"]{font-family:Fraunces,Georgia,serif!important;font-weight:300!important;color:#73729c!important}
+#dc-top-menu a:hover,#dc-side-menu a:hover{color:#73729c!important}
+@media(max-width:760px){.shop-catalog .catalog-controls{padding-right:0!important}.shop-checkout .checkout-steps{width:100%!important;max-width:none!important;margin:0 0 20px!important}.shop-checkout .checkout-steps li:last-child{margin-right:0!important}}

@@ -37,7 +37,7 @@ const pharmacyStory=`${luciaImages}<section class="lucia-real-photos"><h2>Zdrav�
 const aboutPhotos=`${luciaImages}<section class="lucia-real-photos"><h2>Osobne a vo Vyšnej Slanej</h2>${luciaPhoto('lucia-portret','Lucia Rogožanová v priestoroch ANASTASIA')}${luciaPhoto('lekaren','Svetlý interiér lekárne ANASTASIA')}</section>`;
 const stationPhotos=`${luciaImages}<section class="section photo-gallery photo-gallery--lucia"><h2>Denný stacionár Vyšná Slaná</h2><div class="photo-gallery-grid">${luciaPhoto('stacionar-priestor','Spoločenský priestor denného stacionára vo Vyšnej Slanej')}${luciaPhoto('stacionar-poradna','Poradenská miestnosť denného stacionára')}${luciaPhoto('stacionar-kresla','Oddychová časť denného stacionára')}</div></section>`;
 // Denný stacionár: fotografie z dodaných souborů (public/media/ds).
-const dsPhotos=(dir,files)=>`<section class="section photo-gallery">${files.map(f=>`<figure><img src="/media/ds/${f}" alt="Denný stacionár Vyšná Slaná – ${f.replace(/\.[a-z]+$/,'').replace(/[_-]/g,' ')}" loading="lazy" width="1200" height="800"></figure>`).join('')}</section>`;
+const dsPhotos=(dir,files)=>`<section class="section photo-gallery">${files.map(f=>`<figure><img src="/img/${f.replace(/\.(?:jpe?g|png)$/i,'.webp')}" alt="Denný stacionár Vyšná Slaná – ${f.replace(/\.[a-z]+$/,'').replace(/[_-]/g,' ')}" loading="lazy" width="1200" height="800"></figure>`).join('')}</section>`;
 // Jedno písmo: Outfit sa nahrádza Figtree (22. 10.).
 const unifyFont=html=>html.replaceAll('Outfit,sans-serif','Figtree,"Helvetica Neue",sans-serif')
   // Bez zdvojených odkazov: Zdravá lekáreň = Obchod, Programy a služby = AI ANASTASIA Academy.
