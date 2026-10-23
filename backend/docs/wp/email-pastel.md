@@ -8,7 +8,7 @@ Logo šablon ZeptoMail je přepojeno na `https://anastasia-test.l-code-dynamics.
 
 ## Paleta e-mailů (2026-10-23)
 
-Transakční šablony i newsletter používají společnou paletu: bílý povrch, `#e9e9f2` pozadí, `#a7a5cf` dekorativní levandulové linky, `#73729c` nadpisy a tlačítka a `#2b2a3a` text. `#73729c` na bílé má kontrast přibližně 4.7:1 (WCAG AA pro běžný text); `#55546b` se používá pro drobnější sekundární text. Tmavě zelená se pro ovládací prvky nepoužívá. Náhled uvítacího e-mailu používá neutrální „Vitajte“ bez jména.
+Transakční šablony i newsletter používají společnou paletu: bílý povrch, `#e9e9f2` pozadí, `#a7a5cf` dekorativní levandulové linky, `#73729c` nadpisy a tlačítka a `#2b2a3a` text. `#73729c` na bílé má kontrast 4.55:1 (WCAG AA pro běžný text); `#55546b` se používá pro drobnější sekundární text. Tmavě zelená se pro ovládací prvky nepoužívá. Náhled uvítacího e-mailu používá neutrální „Vitajte“ bez jména.
 
 Aktualizovány jsou testy obou renderovacích cest v `notification-zeptomail` a `newsletter`. Nasazení vyžaduje zálohu testovací DB a rebuild služby `backend` přes existující Compose projekt `anastasia-test` v `~/anastasia-test/src/ops/test-server`; záložní cesta: `~/db-backups/pre-backend-deploy-20261023.dump`.
 
