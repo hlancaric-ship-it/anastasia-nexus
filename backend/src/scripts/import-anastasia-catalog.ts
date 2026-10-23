@@ -203,6 +203,16 @@ export function buildImageUrl(base: string | null, imagePath: string | null): st
   return `${base}${encodeURI(p)}`
 }
 
+function stableJson(value: unknown): string {
+  const normalize = (v: any): any => Array.isArray(v) ? v.map(normalize)
+    : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, normalize(v[k])])) : v
+  return JSON.stringify(normalize(value ?? null))
+}
+
+function sameValue(a: unknown, b: unknown): boolean {
+  return stableJson(a) === stableJson(b)
+}
+
 export interface StockPlan {
   manage_inventory: boolean
   allow_backorder: boolean
@@ -256,6 +266,8 @@ export function buildProductMetadata(p: LegacyProduct, ctx: Pick<ProductContext,
     seo_title: p.meta_title,
     seo_description: p.meta_description,
     description_text: p.description_text,
+    ...((p as LegacyProduct & { anastasia_catalog_media?: { source_urls: string[]; urls: string[] } }).anastasia_catalog_media
+      ? { anastasia_catalog_media: (p as any).anastasia_catalog_media } : {}),
   }
   if (p.kind !== "physical") metadata.legacy_stock_quantity = p.stock_quantity
   if (p.electronic_product_path) {
@@ -269,13 +281,99 @@ export function buildProductMetadata(p: LegacyProduct, ctx: Pick<ProductContext,
   return metadata
 }
 
+const MEDIA_REQUEST_INTERVAL_MS = 500
+const MAX_CATALOG_IMAGE_BYTES = 20 * 1024 * 1024
+const CATALOG_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"])
+let lastCatalogImageRequestAt = 0
+
+async function catalogImageResponse(sourceUrl: string, mediaBaseUrl: string): Promise<Response> {
+  const allowedHost = new URL(mediaBaseUrl).hostname
+  let current = sourceUrl
+  for (let redirects = 0; redirects <= 3; redirects++) {
+    const url = new URL(current)
+    if (url.protocol !== "https:" || url.hostname !== allowedHost || url.hostname !== "anastasiaoz.eu") {
+      throw new Error("CATALOG_IMAGE_ORIGIN_NOT_ALLOWED")
+    }
+    const wait = MEDIA_REQUEST_INTERVAL_MS - (Date.now() - lastCatalogImageRequestAt)
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait))
+    lastCatalogImageRequestAt = Date.now()
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(20000) })
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location")
+      if (!location || redirects === 3) throw new Error("CATALOG_IMAGE_REDIRECT_INVALID")
+      current = new URL(location, url).toString()
+      continue
+    }
+    if (!response.ok) throw new Error(`CATALOG_IMAGE_HTTP_${response.status}`)
+    const size = Number(response.headers.get("content-length") ?? 0)
+    if (size > MAX_CATALOG_IMAGE_BYTES) throw new Error("CATALOG_IMAGE_TOO_LARGE")
+    return response
+  }
+  throw new Error("CATALOG_IMAGE_REDIRECT_LIMIT")
+}
+
+async function resolveCatalogMedia(
+  container: MedusaContainer,
+  product: LegacyProduct,
+  existing: { images?: Array<{ url?: string | null }>; metadata?: Record<string, unknown> | null } | undefined,
+  mediaBaseUrl: string | null,
+  dryRun: boolean,
+): Promise<LegacyProduct> {
+  const sourcePaths = (product as LegacyProduct & { image_paths?: string[] }).image_paths
+  const sourceUrls = [...new Set((sourcePaths?.length ? sourcePaths : [product.image_path])
+    .map((p) => buildImageUrl(mediaBaseUrl, p)).filter((u): u is string => Boolean(u)))]
+  if (!sourceUrls.length) return product
+  const stored = existing?.metadata?.anastasia_catalog_media as { source_urls?: unknown; urls?: unknown } | undefined
+  let urls: string[] | null = Array.isArray(stored?.source_urls) && Array.isArray(stored?.urls)
+    && sameValue(stored!.source_urls, sourceUrls) && stored!.urls.every((url) => typeof url === "string")
+    ? stored!.urls as string[] : null
+  if (!urls && sameValue((existing?.images ?? []).map((x) => x.url).filter(Boolean).sort(), sourceUrls.slice().sort())) {
+    urls = sourceUrls
+  }
+  if (!urls && !dryRun) {
+    const files = container.resolve(Modules.FILE) as any
+    const downloads: Array<{ filename: string; mimeType: string; content: string }> = []
+    let totalBytes = 0
+    for (let index = 0; index < sourceUrls.length; index++) {
+      const sourceUrl = sourceUrls[index]
+      let response: Response
+      try { response = await catalogImageResponse(sourceUrl, mediaBaseUrl ?? "") }
+      catch (error) {
+        const reason = error instanceof Error ? error.message : "CATALOG_IMAGE_FETCH_FAILED"
+        throw new Error(`${reason}_INDEX_${index + 1}`)
+      }
+      const contentType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase()
+      if (!CATALOG_IMAGE_TYPES.has(contentType)) throw new Error("CATALOG_IMAGE_TYPE_NOT_ALLOWED")
+      const bytes = Buffer.from(await response.arrayBuffer())
+      if (bytes.byteLength > MAX_CATALOG_IMAGE_BYTES) throw new Error("CATALOG_IMAGE_TOO_LARGE")
+      totalBytes += bytes.byteLength
+      if (totalBytes > 50 * 1024 * 1024) throw new Error("CATALOG_GALLERY_TOO_LARGE")
+      const originalName = decodeURIComponent(new URL(sourceUrl).pathname.split("/").pop() || `image-${index + 1}`)
+      downloads.push({ filename: `anastasia/${product.handle}/${index + 1}-${originalName}`, mimeType: contentType, content: bytes.toString("base64") })
+    }
+    const uploaded: string[] = []
+    for (const download of downloads) {
+      const file = await files.createFiles({ ...download, access: "public" })
+      if (!file?.url || file.url === sourceUrls[uploaded.length]) throw new Error("CATALOG_IMAGE_UPLOAD_FAILED")
+      uploaded.push(file.url)
+    }
+    urls = uploaded
+  }
+  const resolved = { ...product, image_path: urls?.[0] ?? sourceUrls[0], image_paths: urls ?? sourceUrls } as LegacyProduct & { image_paths: string[]; anastasia_catalog_media?: { source_urls: string[]; urls: string[] } }
+  if (urls && !sameValue(urls, sourceUrls)) resolved.anastasia_catalog_media = { source_urls: sourceUrls, urls }
+  return resolved
+}
+
 export function selectProfileId(p: LegacyProduct, ctx: Pick<ProductContext, "physicalProfileId" | "digitalProfileId">): string {
   return p.kind === "physical" ? ctx.physicalProfileId : ctx.digitalProfileId
 }
 
 export function buildProductCreateInput(p: LegacyProduct, ctx: ProductContext) {
   const stock = planStock(p)
-  const image = buildImageUrl(ctx.options.mediaBaseUrl, p.image_path)
+  const sourceImages = (p as LegacyProduct & { image_paths?: string[] }).image_paths
+  const images = [...new Set((sourceImages?.length ? sourceImages : [p.image_path])
+    .map((imagePath) => buildImageUrl(ctx.options.mediaBaseUrl, imagePath)).filter((url): url is string => Boolean(url)))]
+  const image = images[0] ?? null
   const description = ctx.options.descriptionFormat === "html" ? p.description_html : p.description_text
   const prices = p.price ? [{ amount: p.price.amount_with_vat, currency_code: CURRENCY_CODE }] : []
   const collectionId = p.brand_legacy_id ? ctx.brandCollectionIds.get(p.brand_legacy_id) : undefined
@@ -289,7 +387,7 @@ export function buildProductCreateInput(p: LegacyProduct, ctx: ProductContext) {
     status: p.is_visible && p.price ? ("published" as const) : ("draft" as const),
     external_id: p.legacy_id,
     thumbnail: image ?? undefined,
-    images: image ? [{ url: image }] : undefined,
+    images: images.length ? images.map((url) => ({ url })) : undefined,
     collection_id: collectionId,
     category_ids: categoryIds,
     shipping_profile_id: selectProfileId(p, ctx),
@@ -313,7 +411,7 @@ export function buildProductCreateInput(p: LegacyProduct, ctx: ProductContext) {
 /** Aktualizace existujícího produktu: jen pole povolená přepínači, metadata se slučují (cizí klíče zůstanou). */
 export function buildProductUpdateInput(
   p: LegacyProduct,
-  existing: { id: string; metadata?: Record<string, unknown> | null; variants?: Array<{ id: string; sku?: string | null }> },
+  existing: { id: string; title?: string | null; description?: string | null; external_id?: string | null; collection_id?: string | null; category_ids?: string[] | null; categories?: Array<{ id: string }>; shipping_profile_id?: string | null; shipping_profile?: { id?: string | null } | null; status?: string; thumbnail?: string | null; images?: Array<{ url?: string | null }>; metadata?: Record<string, unknown> | null; variants?: Array<{ id: string; sku?: string | null; prices?: Array<{ amount: number; currency_code: string }> }> },
   ctx: ProductContext,
   opts: Pick<ImportOptions, "update" | "updatePrices" | "updateStatus">
 ): Record<string, unknown> | null {
@@ -321,28 +419,42 @@ export function buildProductUpdateInput(
   const update: Record<string, unknown> = { id: existing.id }
   let changed = false
   if (opts.update) {
-    Object.assign(update, {
+    const mergedMetadata = { ...(existing.metadata ?? {}), ...create.metadata }
+    const categoryIds = create.category_ids.slice().sort()
+    const existingCategoryIds = (existing.categories ?? []).map((c) => c.id).sort()
+    const fields: Record<string, unknown> = {
       title: create.title,
       description: create.description ?? null,
       external_id: create.external_id,
       collection_id: create.collection_id ?? null,
-      category_ids: create.category_ids,
+      category_ids: categoryIds,
       shipping_profile_id: create.shipping_profile_id,
-      metadata: { ...(existing.metadata ?? {}), ...create.metadata },
-    })
-    if (create.thumbnail) {
-      update.thumbnail = create.thumbnail
-      update.images = create.images
+      metadata: mergedMetadata,
     }
-    changed = true
+    const current: Record<string, unknown> = {
+      title: existing.title ?? null,
+      description: existing.description ?? null,
+      external_id: existing.external_id ?? null,
+      collection_id: existing.collection_id ?? null,
+      category_ids: existingCategoryIds,
+      shipping_profile_id: existing.shipping_profile?.id ?? existing.shipping_profile_id ?? null,
+      metadata: existing.metadata ?? {},
+    }
+    for (const [key, value] of Object.entries(fields)) if (!sameValue(value, current[key])) {
+      update[key] = value; changed = true
+    }
+    const desiredImages = (create.images ?? []).map((image: any) => image.url).filter(Boolean).sort()
+    const currentImages = (existing.images ?? []).map((image) => image.url).filter(Boolean).sort()
+    if (create.thumbnail && !sameValue(create.thumbnail, existing.thumbnail ?? null)) { update.thumbnail = create.thumbnail; changed = true }
+    if (desiredImages.length && !sameValue(desiredImages, currentImages)) { update.images = create.images; changed = true }
   }
   if (opts.updateStatus) {
-    update.status = create.status
-    changed = true
+    if (create.status !== existing.status) { update.status = create.status; changed = true }
   }
   if (opts.updatePrices && p.price) {
     const variant = existing.variants?.find((v) => v.sku === p.sku)
-    if (variant) {
+    const currentPrices = (variant?.prices ?? []).filter((price) => price.currency_code === CURRENCY_CODE).map((price) => price.amount)
+    if (variant && !sameValue(currentPrices, [p.price.amount_with_vat])) {
       update.variants = [{ id: variant.id, prices: create.variants[0].prices }]
       changed = true
     }
@@ -479,10 +591,14 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
       const metadata = { legacy_id: b.legacy_id, legacy_web: b.web, legacy_description_html: b.description_html }
       if (existing) {
         brandCollectionIds.set(b.legacy_id, existing.id)
-        if (opts.update && !opts.dryRun) {
+        const mergedMetadata = { ...(existing.metadata ?? {}), ...metadata }
+        if (opts.update && (!sameValue(existing.title, b.name) || !sameValue(existing.metadata ?? {}, mergedMetadata)) && !opts.dryRun) {
           await updateCollectionsWorkflow(container).run({
-            input: { selector: { id: existing.id }, update: { title: b.name, metadata: { ...(existing.metadata ?? {}), ...metadata } } },
+            input: { selector: { id: existing.id }, update: { title: b.name, metadata: mergedMetadata } },
           } as any)
+          collStats.updated++
+        } else if (opts.update && (!sameValue(existing.title, b.name) || !sameValue(existing.metadata ?? {}, mergedMetadata)) && opts.dryRun) {
+          log(`aktualizoval bych kolekci '${b.handle}'`)
           collStats.updated++
         } else collStats.skipped++
         return
@@ -506,7 +622,7 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
   const categoriesByLegacyId = new Map(catalog.categories.map((c) => [c.legacy_id, c]))
   for (const c of orderCategories(catalog.categories)) {
     await guard(catStats, `kategorie ${c.handle}`, async () => {
-      const [existing] = await findAll("product_category", ["id", "handle", "metadata", "parent_category_id"], { handle: c.handle })
+      const [existing] = await findAll("product_category", ["id", "name", "handle", "description", "is_active", "metadata", "parent_category_id"], { handle: c.handle })
       const parentId = c.parent_legacy_id ? categoryIds.get(c.parent_legacy_id) : undefined
       const description = c.description_html ? htmlToText(c.description_html) ?? undefined : undefined
       const metadata = {
@@ -522,19 +638,25 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
       }
       if (existing) {
         categoryIds.set(c.legacy_id, existing.id)
-        if (opts.update && !opts.dryRun) {
+        const mergedMetadata = { ...(existing.metadata ?? {}), ...metadata }
+        const categoryUpdate: Record<string, unknown> = {}
+        if (!sameValue(existing.name, c.name)) categoryUpdate.name = c.name
+        // Some existing category records do not expose a direct description field. Their full
+        // legacy HTML remains in metadata.description_html; do not retry an unpersistable null field.
+        if (description && existing.description != null && !sameValue(existing.description, description)) categoryUpdate.description = description
+        if (!sameValue(existing.is_active, c.is_active)) categoryUpdate.is_active = c.is_active
+        if (!sameValue(existing.metadata ?? {}, mergedMetadata)) categoryUpdate.metadata = mergedMetadata
+        if (parentId && existing.parent_category_id !== parentId) categoryUpdate.parent_category_id = parentId
+        if (opts.update && Object.keys(categoryUpdate).length && !opts.dryRun) {
           await updateProductCategoriesWorkflow(container).run({
             input: {
               selector: { id: existing.id },
-              update: {
-                name: c.name,
-                description,
-                is_active: c.is_active,
-                metadata: { ...(existing.metadata ?? {}), ...metadata },
-                ...(parentId ? { parent_category_id: parentId } : {}),
-              },
+              update: categoryUpdate,
             },
           } as any)
+          catStats.updated++
+        } else if (opts.update && Object.keys(categoryUpdate).length && opts.dryRun) {
+          log(`aktualizoval bych kategorii '${c.handle}': ${Object.keys(categoryUpdate).join(", ")}`)
           catStats.updated++
         } else catStats.skipped++
         return
@@ -596,7 +718,7 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
     await guard(prodStats, `produkt ${p.sku} (${p.handle})`, async () => {
       const [byHandle] = await findAll(
         "product",
-        ["id", "handle", "metadata", "variants.id", "variants.sku"],
+        ["id", "title", "description", "external_id", "collection_id", "categories.id", "shipping_profile.id", "status", "thumbnail", "images.url", "handle", "metadata", "variants.id", "variants.sku", "variants.prices.amount", "variants.prices.currency_code"],
         { handle: p.handle }
       )
       const skuOwner = existingVariantsBySku.get(p.sku)
@@ -610,7 +732,7 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
       if (!existing && skuOwner) {
         const [skuProduct] = await findAll(
           "product",
-          ["id", "handle", "metadata", "variants.id", "variants.sku"],
+          ["id", "title", "description", "external_id", "collection_id", "categories.id", "shipping_profile.id", "status", "thumbnail", "images.url", "handle", "metadata", "variants.id", "variants.sku", "variants.prices.amount", "variants.prices.currency_code"],
           { id: skuOwner.product_id }
         )
         if (skuProduct?.metadata?.legacy_id === p.legacy_id) existing = skuProduct
@@ -618,8 +740,10 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
       }
       if (!p.price) logger.warn(`${tag} ${p.sku}: bez ceny, zakládá se jako draft`)
 
+      const importProduct = await resolveCatalogMedia(container, p, existing, opts.mediaBaseUrl, opts.dryRun)
+
       if (existing) {
-        const upd = buildProductUpdateInput(p, existing, ctx, opts)
+        const upd = buildProductUpdateInput(importProduct, existing, ctx, opts)
         const variantId = existing.variants?.find((v: any) => v.sku === p.sku)?.id
         if (variantId) inventoryTargets.push({ sku: p.sku, variantId, quantity: planStock(p).quantity, allowWrite: opts.updateStock })
         if (!upd) {
@@ -636,7 +760,7 @@ export default async function importAnastasiaCatalog({ container, args }: { cont
         return
       }
 
-      const input = buildProductCreateInput(p, ctx)
+      const input = buildProductCreateInput(importProduct, ctx)
       if (opts.dryRun) {
         log(`vytvořil bych produkt ${p.sku} '${p.title}' (${input.status}, ${p.kind}, cena ${p.price?.amount_with_vat ?? "-"} EUR)`)
         prodStats.created++

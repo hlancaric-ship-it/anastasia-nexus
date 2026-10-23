@@ -113,6 +113,23 @@ describe("catalog import planning", () => {
     expect(update?.metadata).toMatchObject({ preserved: true, legacy_id: "legacy-1" })
   })
 
+  it("updates every gallery image and remains a no-op on the second update run", () => {
+    const galleryProduct = { ...product, image_path: "/one.png", image_paths: ["/one.png", "/two.png"] } as any
+    const galleryContext = { ...context, options: { mediaBaseUrl: "https://anastasiaoz.eu", descriptionFormat: "html" as const } }
+    const create = buildProductCreateInput(galleryProduct, galleryContext)
+    expect(create.images).toEqual([
+      { url: "https://anastasiaoz.eu/one.png" },
+      { url: "https://anastasiaoz.eu/two.png" },
+    ])
+    const existing = {
+      id: "prod_1", title: create.title, description: create.description, external_id: create.external_id,
+      collection_id: null, categories: [], shipping_profile_id: create.shipping_profile_id,
+      status: create.status, thumbnail: create.thumbnail, images: create.images,
+      metadata: create.metadata, variants: [{ id: "var_1", sku: "SKU-1", prices: [{ amount: 12.3, currency_code: "eur" }] }],
+    }
+    expect(buildProductUpdateInput(galleryProduct, existing, galleryContext, { update: true, updatePrices: true, updateStatus: true })).toBeNull()
+  })
+
   it("rejects duplicate SKUs and malformed catalog records", () => {
     expect(() => validateCatalog({ currency: "eur", brands: [], categories: [], products: [product, product], coupons: [] })).toThrow(/Duplicitní SKU/)
   })
