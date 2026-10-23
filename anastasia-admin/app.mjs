@@ -12,7 +12,7 @@ const custCode = (id) => { const s = String(id ?? ''); return s.length > 12 ? `$
 
 import { qrAgenda, qrOtpSvg } from './qr.mjs';
 
-import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, SUPPORT_EMAIL } from './guide.mjs';
+import { TOUR, GUIDES, GUIDE_GROUPS, PAGE_HELP, PRODUCT_TAB_GUIDES, ORDER_TAB_GUIDES, SUPPORT_EMAIL } from './guide.mjs';
 import { mountLibraryEditor } from './library-editor.mjs';
 import { openPrintWindow, fillPrintWindow, openPrintHtml, PRINT_FIELDS } from './print.mjs';
 import { voucherHtml, voucherListHtml, VOUCHER_CSS } from './voucher.mjs';
@@ -3666,7 +3666,7 @@ function ctxHelpHtml(key) {
     <p>${esc(h.text)}</p>
     ${h.points && h.points.length ? `<ul>${h.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>` : ''}
     <div class="ctx-links">${links.map(g => `<a class="subtle-link" href="#/pomoc/${esc(g.id)}">${esc(g.title)} →</a>`).join('')}</div>
-    ${h.tour ? `<button type="button" class="btn ghost" id="ctx-tour">${navIcon('arrow')}Spustiť prehliadku administrácie</button>` : ''}
+    <button type="button" class="btn ghost" id="ctx-tour">${navIcon('arrow')}Spustiť sprievodcu tejto časti</button>
   </section>`;
 }
 function wireCtxHelp() {
@@ -3678,7 +3678,7 @@ function wireCtxHelp() {
   const cl = panel.querySelector('#ctx-help-close'); if (cl) cl.onclick = () => { set(false); btn.focus(); };
   const onEsc = (e) => { if (e.key === 'Escape' && !panel.hidden) { set(false); btn.focus(); } };
   panel.addEventListener('keydown', onEsc); btn.addEventListener('keydown', onEsc);
-  const t = panel.querySelector('#ctx-tour'); if (t) t.onclick = () => { set(false); restartTour(); };
+  const t = panel.querySelector('#ctx-tour'); if (t) t.onclick = () => { set(false); startTourForCurrentSection(); };
 }
 
 function vPomoc(view) {
@@ -3729,10 +3729,8 @@ function guideDetail(view, g) {
     </div></article>`;
 }
 
-// Úvodná prehliadka. „Videné“ sa pamätá pre každý účet zvlášť; keď je úložisko prehliadača nedostupné, aspoň do obnovenia stránky.
+// Úvodná prehliadka. Stav dokončenia sa číta a zapisuje cez serverový endpoint.
 let TOUR_PENDING = false, TOUR_OPEN = null;
-const TOUR_SEEN_MEM = new Set();
-const tourKey = () => 'ana_tour_seen:' + (ME?.id || ME?.email || 'anon');
 let TOUR_SERVER_SEEN = null, TOUR_STATE_LOADING = null;
 async function loadTourState() {
   if (TOUR_SERVER_SEEN !== null) return TOUR_SERVER_SEEN;
@@ -3741,9 +3739,9 @@ async function loadTourState() {
   }).catch(() => false).finally(() => { TOUR_STATE_LOADING = null; });
   return TOUR_STATE_LOADING;
 }
-function tourSeen() { return TOUR_SERVER_SEEN === true || TOUR_SEEN_MEM.has(tourKey()); }
+function tourSeen() { return TOUR_SERVER_SEEN === true; }
 function markTourSeen() {
-  const k = tourKey(); TOUR_SEEN_MEM.add(k); TOUR_SERVER_SEEN = true;
+  TOUR_SERVER_SEEN = true;
   api('/admin/nexus/tour-state', { method: 'POST', body: { completed: true } }).catch(() => { TOUR_SERVER_SEEN = null; });
 }
 function restartTour() {
@@ -3760,23 +3758,42 @@ async function maybeStartTour() {
   TOUR_PENDING = false;
   startTour();
 }
-function startTour() {
-  if (TOUR_OPEN || !TOUR.length) return;
+let TOUR_NAVIGATING = false;
+function startTourForCurrentSection() {
+  const parts = location.hash.replace(/^#\/?/, '').split('/');
+  const routeKey = parts[0] || '';
+  const section = TOUR.find(x => x.route === routeKey && (x.subtab == null || Number(parts[1] || 0) === x.subtab));
+  if (!section) return startTour(TOUR);
+  const productTab = root.querySelector('.pe-tabs [aria-selected="true"]')?.dataset.tab;
+  const orderTab = root.querySelector('.tabs .tab.active')?.dataset.tab;
+  const tabGuide = routeKey === 'produkty' && productTab ? PRODUCT_TAB_GUIDES[productTab]
+    : routeKey === 'objednavky' && orderTab ? ORDER_TAB_GUIDES[orderTab] : null;
+  startTour([tabGuide ? { ...section, title: tabGuide.title, steps: tabGuide.steps, skipIntro: true } : section]);
+}
+function startTour(sections = TOUR) {
+  if (TOUR_OPEN || !sections.length) return;
   const mq = window.matchMedia('(max-width: 800px)');
   const prevFocus = document.activeElement;
   const block = $('<div class="tour-block" aria-hidden="true"></div>');
   const spot = $('<div class="tour-spot" aria-hidden="true" hidden></div>');
   const card = $(`<div class="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-t" aria-describedby="tour-d">
-    <div class="tour-top"><span class="tour-count" id="tour-c"></span><button type="button" class="tour-skip" data-a="skip">Preskočiť prehliadku</button></div>
+    <div class="tour-top"><span class="tour-count" id="tour-c"></span><button type="button" class="tour-skip" data-a="skip">Preskočiť sekciu</button><button type="button" class="tour-end" data-a="end">Ukončiť</button></div>
     <div class="tour-bar" aria-hidden="true"><span></span></div>
     <h2 id="tour-t" tabindex="-1"></h2>
     <div class="tour-body" id="tour-d"></div>
     <div class="tour-nav"><button type="button" class="btn ghost" data-a="prev">Späť</button><button type="button" class="btn primary" data-a="next">Ďalej</button></div>
   </div>`);
   document.body.append(block, spot, card);
-  root.inert = true;
   const prevBtn = card.querySelector('[data-a="prev"]'), nextBtn = card.querySelector('[data-a="next"]'), titleEl = card.querySelector('#tour-t');
-  let i = 0, target = null, step = TOUR[0], showSeq = 0, raf = 0;
+  let seq = [], i = 0, target = null, step = null, showSeq = 0, raf = 0, closed = false;
+  const rebuild = () => {
+    seq = [];
+    for (const section of sections) {
+      if (!section.skipIntro) seq.push({ ...section, kind: 'intro', target: section.nav, what: section.what, sidebar: section.route !== '' });
+      for (const item of section.steps) seq.push({ ...item, kind: 'step', route: section.route, subtab: section.subtab, sectionId: section.id, sectionTitle: section.title });
+    }
+  };
+  rebuild();
   const sidebar = (open) => {
     const sb = root.querySelector('#sidebar'), tg = root.querySelector('#nav-toggle');
     if (!sb) return false;
@@ -3819,43 +3836,93 @@ function startTour() {
     card.style.top = Math.round(Math.min(Math.max(m, top), vh - m - ch)) + 'px';
   };
   const onMove = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(place); };
-  const show = async (n) => {
-    const my = ++showSeq;
-    i = Math.max(0, Math.min(TOUR.length - 1, n)); step = TOUR[i];
-    if (mq.matches && sidebar(!!step.sidebar)) await new Promise(r => setTimeout(r, 240));
-    if (my !== showSeq || !card.isConnected) return;
-    const el = step.target ? document.querySelector(step.target) : null;
-    target = el && el.getClientRects().length ? el : null;
-    card.querySelector('#tour-c').textContent = `Krok ${i + 1} z ${TOUR.length}`;
-    card.querySelector('.tour-bar span').style.width = `${Math.round((i + 1) / TOUR.length * 100)}%`;
-    titleEl.textContent = step.title;
-    const body = card.querySelector('#tour-d');
-    const description = document.createElement('p');
-    description.textContent = step.what;
-    body.replaceChildren(description);
-    prevBtn.disabled = i === 0;
-    nextBtn.textContent = i === TOUR.length - 1 ? 'Dokončiť' : 'Ďalej';
-    card.scrollTop = 0;
-    if (target) target.scrollIntoView({ block: step.sidebar ? 'nearest' : (target.offsetHeight > window.innerHeight * 0.55 ? 'start' : 'center') });
-    place();
-    titleEl.focus({ preventScroll: true });
-  };
-  const close = () => {
-    if (!card.isConnected) return;
-    showSeq++; cancelAnimationFrame(raf);
-    markTourSeen();
+  const close = (complete = true) => {
+    if (!card.isConnected || closed) return;
+    closed = true; showSeq++; cancelAnimationFrame(raf);
+    if (complete) markTourSeen();
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('resize', onMove); window.removeEventListener('scroll', onMove, true);
     block.remove(); spot.remove(); card.remove();
-    root.inert = false;
     if (mq.matches) sidebar(false);
     TOUR_OPEN = null;
     if (prevFocus && prevFocus.isConnected && typeof prevFocus.focus === 'function') prevFocus.focus({ preventScroll: true });
   };
+  const navigate = async (routeKey, subtab) => {
+    if (routeKey == null) return;
+    const hash = `#/${routeKey}${subtab == null ? '' : `/${subtab}`}`;
+    if (location.hash === hash) {
+      if (subtab != null) document.querySelectorAll('#actions .pills button')[subtab]?.click();
+      return;
+    }
+    TOUR_NAVIGATING = true;
+    try {
+      history.pushState(null, '', hash);
+      await route();
+      if (subtab != null) document.querySelectorAll('#actions .pills button')[subtab]?.click();
+    }
+    finally { TOUR_NAVIGATING = false; }
+  };
+  const waitForPage = async (my) => {
+    const started = Date.now();
+    while (Date.now() - started < 8000 && [...document.querySelectorAll('#view .muted, #view .empty')].some(el => /^Načítavam/i.test(el.textContent.trim()))) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      if (my !== showSeq || !card.isConnected) return false;
+    }
+    return my === showSeq && card.isConnected;
+  };
+  const show = async (n) => {
+    const my = ++showSeq;
+    card.querySelectorAll('[data-a]').forEach(button => { button.disabled = true; });
+    i = Math.max(0, Math.min(seq.length - 1, n)); step = seq[i];
+    if (step.kind === 'step') {
+      await navigate(step.route, step.subtab);
+      if (my !== showSeq || !card.isConnected || !await waitForPage(my)) return;
+      if (step.tab != null) {
+        if (typeof step.tab === 'string') document.querySelector(step.tab)?.click();
+        else {
+          const tabs = document.querySelectorAll('.pe-tabs [role="tab"], #view .tabs .tab, #actions .pills button');
+          tabs[step.tab]?.click();
+        }
+      }
+      if (step.activate) {
+        document.querySelector(step.activate)?.click();
+        const expected = step.route === 'produkty' ? '.pe-tabs' : step.route === 'objednavky' ? '#view .tabs' : null;
+        if (expected) await new Promise(resolve => {
+          const started = Date.now();
+          const poll = () => document.querySelector(expected) || Date.now() - started > 3000 ? resolve() : setTimeout(poll, 80);
+          poll();
+        });
+        if (!await waitForPage(my)) return;
+      }
+    }
+    if (step.kind === 'intro') {
+      await navigate(step.route, step.subtab);
+      if (my !== showSeq || !card.isConnected || !await waitForPage(my)) return;
+    }
+    if (mq.matches && sidebar(!!step.sidebar)) await new Promise(r => setTimeout(r, 240));
+    if (my !== showSeq || !card.isConnected) return;
+    const el = step.target ? document.querySelector(step.target) : null;
+    target = el && el.getClientRects().length ? el : null;
+    card.querySelector('#tour-c').textContent = `${step.sectionTitle ? `${step.sectionTitle} · ` : ''}Krok ${i + 1} z ${seq.length}`;
+    card.querySelector('.tour-bar span').style.width = `${Math.round((i + 1) / seq.length * 100)}%`;
+    titleEl.textContent = step.kind === 'intro' ? step.title : step.title;
+    const body = card.querySelector('#tour-d');
+    const description = document.createElement('p');
+    description.textContent = step.what + (!target ? ' Tento prvok tu teraz nie je zobrazený, preto pokračujte podľa vysvetlenia.' : '');
+    body.replaceChildren(description);
+    prevBtn.disabled = i === 0;
+    nextBtn.textContent = i === seq.length - 1 ? 'Dokončiť' : 'Ďalej';
+    card.scrollTop = 0;
+    if (target) target.scrollIntoView({ block: step.sidebar ? 'nearest' : (target.offsetHeight > window.innerHeight * 0.55 ? 'start' : 'center') });
+    place();
+    card.querySelectorAll('[data-a]').forEach(button => { button.disabled = false; });
+    prevBtn.disabled = i === 0;
+    titleEl.focus({ preventScroll: true });
+  };
   const onKey = (e) => {
-    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
-    if (e.key === 'ArrowRight') { e.preventDefault(); if (i < TOUR.length - 1) show(i + 1); return; }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); if (i > 0) show(i - 1); return; }
+    if (e.key === 'Escape') { e.preventDefault(); close(false); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); if (nextBtn.disabled) return; if (i < seq.length - 1) show(i + 1); else close(true); return; }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); if (prevBtn.disabled) return; if (i > 0) show(i - 1); return; }
     if (e.key === 'Tab') {
       const f = [...card.querySelectorAll('button:not(:disabled)')];
       if (!f.length) return;
@@ -3866,9 +3933,14 @@ function startTour() {
   };
   card.addEventListener('click', (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a;
-    if (a === 'skip') close();
+    if (a === 'skip') {
+      const current = seq[i]?.sectionId || seq[i]?.id;
+      while (i < seq.length - 1 && (seq[i + 1]?.sectionId || seq[i + 1]?.id) === current) i++;
+      if (i < seq.length - 1) show(i + 1); else close(true);
+    }
+    else if (a === 'end') close(false);
     else if (a === 'prev' && i > 0) show(i - 1);
-    else if (a === 'next') { if (i < TOUR.length - 1) show(i + 1); else close(); }
+    else if (a === 'next') { if (i < seq.length - 1) show(i + 1); else close(true); }
   });
   document.addEventListener('keydown', onKey, true);
   window.addEventListener('resize', onMove); window.addEventListener('scroll', onMove, true);
@@ -4004,7 +4076,7 @@ function freshView(view) {
 let ROUTE_SEQ = 0;
 async function route() {
   const seq = ++ROUTE_SEQ;
-  if (TOUR_OPEN) TOUR_OPEN.close();
+  if (TOUR_OPEN && !TOUR_NAVIGATING) TOUR_OPEN.close(false);
   const parts = (location.hash.replace(/^#\/?/, '') || '').split('/');
   if (parts[0] === 'pozvanka' && parts[1]) return renderInviteAccept(decodeURIComponent(parts[1]));
   if (!token) return renderLogin();

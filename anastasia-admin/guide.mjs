@@ -4,21 +4,145 @@
 
 export const SUPPORT_EMAIL = 'ceo@l-code-dynamics.com';
 
-// Úvodná prehliadka. target = CSS selektor zvýrazneného prvku (null = krok bez zvýraznenia),
-// sidebar = prvok je v bočnom paneli (na mobile ho prehliadka vysunie).
+// Každá položka najprv ukáže navigáciu a potom prejde na skutočnú stránku.
+// target môže chýbať pri prázdnom zozname; vtedy sa vysvetlenie zobrazí bez výrezu.
+const steps = (items) => items.map(([title, what, target = null, tab = null, activate = null]) => ({ title, what, target, tab, activate }));
 export const TOUR = [
-  { id: 'prehľad', target: '[data-tour="stats"]', sidebar: false, title: 'Prehľad', what: 'Na Prehľade nájdete dnešné objednávky, správy a konzultácie aj úlohy, ktoré čakajú na vybavenie.' },
-  { id: 'objednavky', target: '.sidebar .nav-item[href="#/objednavky"]', sidebar: true, title: 'Objednávky', what: 'Tu skontrolujete platbu a stav objednávky, pripravíte balík, označíte odoslanie alebo vybavíte vrátenie.' },
-  { id: 'produkty', target: '.sidebar .nav-item[href="#/produkty"]', sidebar: true, title: 'Produkty', what: 'Tu upravíte názvy, ceny, fotografie, varianty, sklad a viditeľnosť produktov v obchode.' },
-  { id: 'kategorie', target: '.sidebar .nav-item[href="#/kategorie"]', sidebar: true, title: 'Kategórie', what: 'Tu usporiadate kategórie a podkategórie, ktoré zákazníci používajú pri prehliadaní obchodu.' },
-  { id: 'zakaznici', target: '.sidebar .nav-item[href="#/zakaznicky"]', sidebar: true, title: 'Zákazníci', what: 'Tu nájdete zákazníkov, ich objednávky a prístupy k zakúpenému digitálnemu obsahu.' },
-  { id: 'poukazy', target: '.sidebar .nav-item[href="#/poukazy"]', sidebar: true, title: 'Poukazy', what: 'Tu vytvoríte zľavové kupóny a nastavíte darčekové poukazy.' },
-  { id: 'konzultacie', target: '.sidebar .nav-item[href="#/konzultacie"]', sidebar: true, title: 'Konzultácie', what: 'Tu spravujete typy konzultácií, voľné termíny a rezervácie.' },
-  { id: 'obsah', target: '.sidebar .nav-item[href="#/obsah/2"]', sidebar: true, title: 'Obsah webu', what: 'Tu upravíte stránky a texty webu a skontrolujete živý náhľad pred uložením.' },
-  { id: 'spravy', target: '.sidebar .nav-item[href="#/spravy"]', sidebar: true, title: 'Správy', what: 'Tu odpovedáte zákazníkom a sledujete ich konverzácie.' },
-  { id: 'nastavenia', target: '.sidebar .nav-item[href="#/nastavenia"]', sidebar: true, title: 'Nastavenia', what: 'Tu nájdete nastavenia obchodu, dopravu a platby aj pozvánky pre ďalších správcov.' },
-  { id: 'pomoc', target: '.sidebar .nav-item[href="#/pomoc"]', sidebar: true, title: 'Pomoc', what: 'Tu nájdete návody krok za krokom a môžete túto prehliadku kedykoľvek spustiť znova.' },
+  { id: 'prehľad', route: '', nav: '[data-tour="stats"]', title: 'Prehľad', what: 'Tu Lucia začne deň. Skontroluje nové objednávky, správy a úlohy.', steps: steps([
+    ['Dnešné čísla', 'Počty objednávok, správ a konzultácií ukazujú, čo čaká na vybavenie.', '[data-tour="stats"]'],
+    ['Úlohy na dnes', 'Tu Lucia otvorí konkrétnu úlohu a pokračuje priamo na jej vybavenie.', '[data-tour="tasks"]'],
+    ['Prehľad obchodu', 'Graf a pripravenosť pomáhajú skontrolovať predaj a chýbajúce údaje.', '.dash']
+  ]) },
+  { id: 'objednavky', route: 'objednavky', nav: '.sidebar .nav-item[href="#/objednavky"]', title: 'Objednávky', what: 'Tu Lucia kontroluje stav nákupu a pripravuje jeho vybavenie.', steps: steps([
+    ['Zoznam objednávok', 'Lucia skontroluje nové nákupy a otvorí objednávku zo zoznamu.', '.ot-head h2'],
+    ['Filter stavu', 'Záložky hore zúžia zoznam podľa stavu vybavenia.', '.ot-filters [role="tab"]'],
+    ['Detail objednávky', 'V detaile Lucia skontroluje platbu, dopravu a fakturačné údaje.', '.tabs [data-tab="p"]', null, '.ot-orders tr[data-id]'],
+    ['Platba a vrátenie', 'V záložke Platby prijme potvrdenú úhradu alebo zaznamená vrátenie.', '.tabs [data-tab="pl"]', '.tabs [data-tab="pl"]'],
+    ['Doprava a faktúra', 'V detaile skontroluje doručenie a fakturačné údaje.', '.tabs [data-tab="o"]', '.tabs [data-tab="o"]'],
+    ['Storno', 'Nevybavenú objednávku môže zrušiť v jej detaile.', '#o-cancel']
+  ]) },
+  { id: 'produkty', route: 'produkty', nav: '.sidebar .nav-item[href="#/produkty"]', title: 'Produkty', what: 'Tu Lucia spravuje katalóg, ceny, fotografie a zakúpený obsah.', steps: steps([
+    ['Zoznam a nový produkt', 'Lucia skontroluje katalóg alebo cez + Pridať produkt založí nový koncept.', '#p-new'],
+    ['Základné údaje', 'Lucia otvorí kartu produktu a doplní názov a stav produktu.', '#p-title', '.pe-tabs [data-tab="zaklad"]', '#p-body tr[data-id]'],
+    ['Popis', 'Tu upraví text, ktorý zákazník uvidí na stránke produktu.', '.pe-panel[data-panel="popis"]', '.pe-tabs [data-tab="popis"]'],
+    ['Fotografie', 'Tu pridá fotografie a vyberie hlavnú.', '.pe-panel[data-panel="foto"]', '.pe-tabs [data-tab="foto"]'],
+    ['Kategórie a predaj', 'Tu zaradí produkt a skontroluje spôsob predaja.', '.pe-panel[data-panel="predaj"]', '.pe-tabs [data-tab="predaj"]'],
+    ['Sklad', 'Lucia skontroluje počet kusov, ktoré sú dostupné na predaj.', '.pe-panel[data-panel="sklad"]', '.pe-tabs [data-tab="sklad"]'],
+    ['Zakúpený obsah', 'Tu upraví digitálny obsah sprístupnený zákazníkovi po nákupe.', '.pe-panel[data-panel="obsah"]', '.pe-tabs [data-tab="obsah"]']
+  ]) },
+  { id: 'kategorie', route: 'kategorie', nav: '.sidebar .nav-item[href="#/kategorie"]', title: 'Kategórie', what: 'Tu Lucia usporiada produkty do kategórií pre obchod.', steps: steps([
+    ['Zoznam kategórií', 'Lucia skontroluje názvy a zaradenie kategórií.', '#view .ot-head h2'],
+    ['Nová kategória', 'Tlačidlom pridá kategóriu alebo podkategóriu.', '#cat-new'],
+    ['Detail kategórie', 'Tu upraví názov, adresu a nadradenú kategóriu.', '.ot-card tr[data-id]']
+  ]) },
+  { id: 'zlavy', route: 'poukazy', subtab: 0, nav: '.sidebar .nav-item[href="#/poukazy"]', title: 'Zľavy a kupóny', what: 'Tu Lucia kontroluje kupóny, ktoré zákazníci uplatnia pri nákupe.', steps: steps([
+    ['Zoznam kupónov', 'Lucia skontroluje vytvorené zľavové kódy.', '#view .ot-card'],
+    ['Nový kupón', 'Tlačidlom založí nový kupón a nastaví jeho pravidlá.', '#promo-new'],
+    ['QR kódy', 'Záložka QR kódy otvorí odkazy na kampane.', '#actions .pills button', 1]
+  ]) },
+  { id: 'poukazy', route: 'poukazy', subtab: 2, nav: '.sidebar .nav-item[href="#/poukazy"]', title: 'Darčekové vouchery', what: 'Tu Lucia skontroluje a nastaví darčekové poukazy.', steps: steps([
+    ['Vouchery', 'Lucia vyhľadá vystavený poukaz a skontroluje jeho stav.', '.tabs .tab'],
+    ['Nastavenie poukazov', 'Tu nastaví ponuku hodnôt a pravidlá použitia.', '#actions .pills button', 3],
+    ['Použitie', 'Detail poukazu ukáže jeho platnosť a zostávajúcu hodnotu.', '#view .ot-card']
+  ]) },
+  { id: 'zakaznici', route: 'zakaznicky', subtab: 0, nav: '.sidebar .nav-item[href="#/zakaznicky"]', title: 'Zákazníci', what: 'Tu Lucia vyhľadá zákazníkov a ich nákupy.', steps: steps([
+    ['Zoznam zákazníkov', 'Lucia nájde zákazníka podľa mena alebo e-mailu.', '.customer-grid'],
+    ['Detail zákazníka', 'Tu skontroluje kontaktné údaje a históriu.', '.customer-grid tr[data-id]'],
+    ['Filter zákazníkov', 'Vyhľadávanie zúži zoznam podľa mena alebo e-mailu.', 'input[type="search"]']
+  ]) },
+  { id: 'kniznica', route: 'zakaznicky', subtab: 1, nav: '.sidebar .nav-item[href="#/zakaznicky"]', title: 'Prístupy a knižnica', what: 'Tu Lucia skontroluje digitálny obsah sprístupnený zákazníkom po nákupe.', steps: steps([
+    ['Zoznam prístupov', 'Lucia skontroluje priradené prístupy k obsahu.', '#view .ot-head h2'],
+    ['Detail prístupu', 'Tu overí, komu a ku ktorému produktu prístup patrí.', '.ot-card tr[data-id]'],
+    ['Stav prístupu', 'Prístup sa po zaplatení pridelí automaticky.', '.pill']
+  ]) },
+  { id: 'konzultacie', route: 'konzultacie', subtab: 0, nav: '.sidebar .nav-item[href="#/konzultacie"]', title: 'Rezervácie', what: 'Tu Lucia vybavuje termíny objednaných konzultácií.', steps: steps([
+    ['Rezervácie', 'Lucia skontroluje nové a potvrdené termíny.', '#actions .pills button', 0],
+    ['Filter termínov', 'Záložky zúžia zoznam podľa stavu rezervácie.', '.tabs .tab'],
+    ['Detail termínu', 'V detaile skontroluje čas a objednanú službu.', '.rc[data-id]']
+  ]) },
+  { id: 'typy_konzultacii', route: 'konzultacie', subtab: 1, nav: '.sidebar .nav-item[href="#/konzultacie"]', title: 'Typy konzultácií', what: 'Tu Lucia upraví ponuku konzultácií.', steps: steps([
+    ['Zoznam typov', 'Lucia skontroluje názvy a trvanie konzultácií.', '.rc-grid .rc'],
+    ['Nový typ', 'Tlačidlom pridá ďalší typ konzultácie.', '#bt-new'],
+    ['Cena a trvanie', 'V detaile upraví údaje ponuky.', '#bt-price']
+  ]) },
+  { id: 'dostupnost', route: 'konzultacie', subtab: 2, nav: '.sidebar .nav-item[href="#/konzultacie"]', title: 'Dostupnosť', what: 'Tu Lucia nastaví časy na rezervácie konzultácií.', steps: steps([
+    ['Týždenný rozvrh', 'Lucia skontroluje dostupné dni a hodiny.', '.av-card h3'],
+    ['Pridať čas', 'Tlačidlom pridá čas, ktorý možno rezervovať.', '[data-add]'],
+    ['Uložiť dostupnosť', 'Zmeny potvrdí tlačidlom Uložiť.', '#av-save']
+  ]) },
+  { id: 'spravy', route: 'spravy', subtab: 0, nav: '.sidebar .nav-item[href="#/spravy"]', title: 'Konverzácie', what: 'Tu Lucia odpovedá zákazníkom a sleduje ich správy.', steps: steps([
+    ['Konverzácie', 'Lucia otvorí správu zákazníka a odpovie mu.', '#actions .pills button', 0],
+    ['Stav správ', 'Záložkami prepne otvorené, uzavreté alebo všetky konverzácie.', '.tabs .tab'],
+    ['Odpoveď', 'Tu napíše odpoveď alebo uzavrie vybavenú konverzáciu.', '.rc[data-id]']
+  ]) },
+  { id: 'sablony_odpovedi', route: 'spravy', subtab: 1, nav: '.sidebar .nav-item[href="#/spravy"]', title: 'Šablóny odpovedí', what: 'Tu Lucia spravuje pripravené texty pre odpovede zákazníkom.', steps: steps([
+    ['Zoznam šablón', 'Lucia skontroluje pripravené odpovede.', '.card'],
+    ['Upraviť šablónu', 'V editore upraví text odpovede.', '#ct-text'],
+    ['Uložiť šablónu', 'Uložený text môže použiť v konverzácii.', '#ct-save']
+  ]) },
+  { id: 'stranky', route: 'obsah', subtab: 2, nav: '.sidebar .nav-item[href="#/obsah/2"]', title: 'Stránky a texty', what: 'Tu Lucia upravuje obsah webu a kontroluje živý náhľad.', steps: steps([
+    ['Zoznam stránok', 'Lucia vyberie stránku, ktorú chce upraviť.', 'button[data-page]'],
+    ['Živý náhľad', 'Po otvorení stránky náhľad ukáže zmeny v kontexte webu.', '.cp-live-h', null, 'button[data-page]'],
+    ['Sekcie a polia', 'Lucia rozbalí sekciu, upraví text a uloží ho pri poli.', 'details.content-section summary']
+  ]) },
+  { id: 'media', route: 'obsah', subtab: 3, nav: '.sidebar .nav-item[href="#/obsah/3"]', title: 'Médiá', what: 'Tu Lucia vyhľadáva a pridáva obrázky používané na webe.', steps: steps([
+    ['Knižnica médií', 'Lucia prehliada nahraté súbory.', '#md-upload'],
+    ['Vyhľadávanie', 'Pole pomôže nájsť obrázok podľa názvu.', 'input[type="search"]'],
+    ['Pridať médium', 'Tlačidlom nahrá ďalší obrázok.', 'input[type="file"]']
+  ]) },
+  { id: 'emaily', route: 'obsah', subtab: 0, nav: '.sidebar .nav-item[href="#/obsah"]', title: 'E-maily', what: 'Tu Lucia skontroluje automatické e-maily odosielané zákazníkom.', steps: steps([
+    ['Zoznam e-mailov', 'Lucia vyberie správu, ktorú chce skontrolovať.', '#view .ot-head h2'],
+    ['Náhľad správy', 'Tu skontroluje predmet a text e-mailu.', '#e-subj', null, '#rc-wrap tr[data-id]'],
+    ['Doručenie', 'Stav ukazuje, či je šablóna pripravená na odoslanie.', '#e-enabled, #e-save']
+  ]) },
+  { id: 'newsletter', route: 'obsah', subtab: 1, nav: '.sidebar .nav-item[href="#/obsah/1"]', title: 'Newsletter', what: 'Tu Lucia spravuje odberateľov a rozosielanie noviniek.', steps: steps([
+    ['Kampaň', 'Lucia skontroluje editor noviniek a ich stav.', '#nl-editor-h'],
+    ['Predmet', 'Tu upraví predmet a úvodný text e-mailu.', '#nl-subject'],
+    ['Odberatelia', 'V záložke Odberatelia skontroluje udelené súhlasy.', '.nl-tabs [data-tab="consents"]', '.nl-tabs [data-tab="consents"]']
+  ]) },
+  { id: 'ambasadori', route: 'ambasadori', nav: '.sidebar .nav-item[href="#/ambasadori"]', title: 'Ambasádori', what: 'Ambasádori sú vo Fáze 2 a zatiaľ tu netreba nič nastavovať.', steps: [] },
+  { id: 'doprava', route: 'nastavenia', subtab: 2, nav: '.sidebar .nav-item[href="#/nastavenia/2"]', title: 'Doprava a platby', what: 'Tu Lucia skontroluje dostupné spôsoby doručenia a platby.', steps: steps([
+    ['Dostupné možnosti', 'Lucia skontroluje dopravu a platobné metódy.', '#view .card-h'],
+    ['Stav nastavenia', 'Prehľad ukazuje, či je spôsob dostupný v obchode.', '.pill, .notice'],
+    ['Potrebujete zmenu?', 'Zmeny technického nastavenia pomôže vybaviť podpora.', '.card']
+  ]) },
+  { id: 'nastavenia', route: 'nastavenia', subtab: 0, nav: '.sidebar .nav-item[href="#/nastavenia"]', title: 'Vzhľad a nastavenia', what: 'Tu Lucia upraví vzhľad administrácie a skontroluje nastavenia.', steps: steps([
+    ['Vzhľad', 'Lucia si vyberie vzhľad pracovného priestoru.', '#view .card-h'],
+    ['Pripojenia', 'Tu skontroluje prepojené služby.', '#actions .pills button', 1],
+    ['Používatelia', 'Tu spravuje pozvánky a prístupy kolegov.', '#actions .pills button', 4]
+  ]) },
+  { id: 'integracie', route: 'nastavenia', subtab: 1, nav: '.sidebar .nav-item[href="#/nastavenia/1"]', title: 'Integrácie', what: 'Tu Lucia skontroluje napojenia služieb obchodu.', steps: steps([
+    ['Prepojené služby', 'Zoznam ukazuje dostupné prepojenia.', '#view .card-h'],
+    ['Stav', 'Lucia skontroluje, ktoré prepojenie je aktívne.', '.pill, .notice'],
+    ['Zmena prepojenia', 'Pri technickej zmene kontaktuje podporu.', '.card']
+  ]) },
+  { id: 'pouzivatelia', route: 'nastavenia', subtab: 4, nav: '.sidebar .nav-item[href="#/nastavenia/4"]', title: 'Používatelia', what: 'Tu Lucia pozýva kolegov a upravuje ich prístup.', steps: steps([
+    ['Zoznam používateľov', 'Lucia skontroluje účty s prístupom do administrácie.', '#view .card-h'],
+    ['Pozvať používateľa', 'Tlačidlom pripraví pozvánku pre kolegu.', '#u-email'],
+    ['Roly a prístup', 'Pred odoslaním skontroluje, čo môže pozvaný používateľ spravovať.', '.card']
+  ]) },
+  { id: 'pomoc', route: 'pomoc', nav: '.sidebar .nav-item[href="#/pomoc"]', title: 'Pomoc', what: 'Tu Lucia nájde návody a môže spustiť prehliadku znova.', steps: steps([
+    ['Návody', 'Lucia vyhľadá postup podľa témy.', 'input[type="search"]'],
+    ['Spustiť znova', 'Tlačidlo znovu otvorí celú prehliadku administrácie.', '#help-tour'],
+    ['Kontakt', 'Pri otázke sa môže obrátiť na podporu.', 'a[href^="mailto:"]']
+  ]) }
 ];
+
+// Podrobnejšie, samostatné prehliadky aktívnej záložky produktu a objednávky.
+export const PRODUCT_TAB_GUIDES = {
+  zaklad: { title: 'Základné údaje', steps: steps([['Názov', 'Tu Lucia upraví názov, ktorý sa zobrazí v obchode.', '#p-title'], ['Stav', 'Koncept zostane skrytý, zverejnený produkt je viditeľný v obchode.', '#p-status'], ['Cena', 'Lucia skontroluje bežnú cenu a prípadnú akciovú cenu.', '#p-price']]) },
+  popis: { title: 'Popis', steps: steps([['Text produktu', 'Lucia upraví popis produktu v editore.', '#p-desc'], ['Formátovanie', 'Text môže rozdeliť na odseky, nadpisy a zoznamy.', '#p-desc'], ['Uloženie', 'Zmeny sa uložia tlačidlom Uložiť zmeny.', '#p-save']]) },
+  foto: { title: 'Fotografie', steps: steps([['Fotografie produktu', 'Tu Lucia skontroluje pridané obrázky.', '#p-imgs'], ['Nahrať obrázky', 'Vyberie JPG, PNG alebo WebP do 5 MB.', '#p-file'], ['Uložiť zmeny', 'Nahraté fotografie sa uložia spolu s produktom.', '#p-save']]) },
+  predaj: { title: 'Kategórie a predaj', steps: steps([['Kategória', 'Lucia zaradí produkt do kategórie.', '#p-category'], ['Kód a doprava', 'Tu skontroluje SKU, hmotnosť a typ doručenia.', '#p-sku'], ['Predajný kanál', 'Produkt sa v obchode zobrazí v označených kanáloch.', '[data-ch]']]) },
+  sklad: { title: 'Sklad', steps: steps([['Sledovanie zásob', 'Pri fyzickom tovare Lucia zapne sledovanie skladu.', '#p-inv'], ['Počet kusov', 'Tu upraví množstvo dostupné na predaj.', '[data-loc]'], ['Rezervované kusy', 'Rezervácie vznikajú z objednávok, ktoré ešte nie sú vybavené.', '.rc-fields']]) },
+  obsah: { title: 'Zakúpený obsah', steps: steps([['Knižnica obsahu', 'Tu Lucia spravuje súbory sprístupnené po nákupe.', '#p-library'], ['Položky', 'V zozname vyberie lekciu alebo pracovný list.', '#p-library'], ['Uložiť zmeny', 'Zmeny potvrdí tlačidlom Uložiť zmeny.', '#p-save']]) }
+};
+export const ORDER_TAB_GUIDES = {
+  p: { title: 'Prehľad objednávky', steps: steps([['Stav platby', 'Tu Lucia skontroluje, či zákazník zaplatil.', '.tabpane[data-pane="p"] .pill'], ['Doručenie', 'Skontroluje adresu a zvolený spôsob dopravy.', '.tabpane[data-pane="p"] .row'], ['Poznámka', 'Internú poznámku vidí len tím administrácie.', '#o-note']]) },
+  i: { title: 'Položky objednávky', steps: steps([['Zoznam položiek', 'Tu sú produkty a služby z objednávky.', '.tabpane[data-pane="i"] .rc'], ['Počet kusov', 'Lucia skontroluje objednané množstvo.', '.tabpane[data-pane="i"] .rc-fields'], ['Doručený obsah', 'Stav ukazuje pripravené a odoslané kusy.', '.tabpane[data-pane="i"] .rc-fields']]) },
+  o: { title: 'Odoslanie objednávky', steps: steps([['Pripraviť zásielku', 'Pri fyzickom tovare Lucia pripraví zásielku.', '#o-ful'], ['Číslo zásielky', 'Po odovzdaní dopravcovi doplní sledovacie údaje.', '[data-trk]'], ['Označiť odoslanú', 'Po odovzdaní zásielky označí ju ako odoslanú.', '[data-ship]']]) },
+  pl: { title: 'Platby objednávky', steps: steps([['Stav úhrady', 'Tu Lucia skontroluje prijaté a vrátené sumy.', '.tabpane[data-pane="pl"] .task'], ['Prijať platbu', 'Platbu potvrdí až po overení úhrady.', '[data-cap]'], ['Vrátiť peniaze', 'Pred potvrdením skontroluje sumu a dôvod vrátenia.', '[data-ref]']]) }
+};
 
 export const GUIDE_GROUPS = [
   { id: 'start', label: 'Začíname' },
