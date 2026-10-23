@@ -405,7 +405,9 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 /* Odlesk textu: barva zůstává, přes ni přejede úzký zlatý pruh. */
 .motion .lh-shimmer-text,.motion .lh-cat{background-image:linear-gradient(100deg,var(--lh-shim-base,#1E281C) 0 46%,#D8C598 48%,#F3E3B0 50%,var(--lh-shim-base,#1E281C) 52% 100%);background-size:250% 100%;background-position:150% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
 .motion .lh-cat{--lh-shim-base:var(--lh-ink,#1E281C)}
-.motion .lh-cat{background:none!important;-webkit-text-fill-color:#EFE5C7!important;color:#EFE5C7!important;text-shadow:0 1px 10px rgba(14,20,13,.28)!important}
+.motion .lh-cat{background:none!important;-webkit-text-fill-color:#313C2B!important;color:#313C2B!important;text-shadow:0 1px 14px rgba(245,242,232,.92),0 0 4px rgba(245,242,232,.85)!important}
+/* Úvod bez log, jen nápis a tlačítko Vstúpte (Lucky 23. 10.). */
+.lh-intro__brands{display:none!important}
 @media (max-width:699.98px){
   .lh-intro__brands{top:clamp(16px,2.6vh,34px);gap:12px 22px}
   .lh-brand--main{flex:0 0 auto;height:58px}
