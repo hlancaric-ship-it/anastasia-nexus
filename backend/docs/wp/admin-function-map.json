@@ -486,7 +486,8 @@
       "new_admin_status": "NOT_IMPLEMENTED",
       "request": "Změnit vlastní heslo, odhlásit se, ztracené heslo a bezpečný přístup obsluhy.",
       "sources": [
-        "backend/medusa-config.ts"
+        "backend/medusa-config.ts",
+        "backend/src/api/admin/nexus/tour-state/route.ts"
       ],
       "remaining": "Native emailpass reset/update existuje; chybí doložené vlastní UI a doručení reset-password události.",
       "acceptance": "Původní přístup nelze převzít; reset je časově omezený; ověření backendu a skutečného doručení v testu."
@@ -2090,6 +2091,16 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/admin/nexus/tour-state",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/tour-state/route.ts",
+      "feature": "admin-account",
+      "sha256": "a555dc28f4a932b4e6a8386f93779e2755cba4de4996daca895f309e0893e5d7"
     }
   ],
   "native_medusa_version": "2.19.0",

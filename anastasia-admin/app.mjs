@@ -399,7 +399,7 @@ async function loadBellMenu() {
 
 // --- aktuálne prihlásená obsluha (pre pozdrav + avatar) ---
 let ME = null;
-async function loadMe() { if (ME) return ME; try { ME = (await api('/admin/users/me?fields=id,first_name,last_name,email')).user || null; } catch { ME = null; } return ME; }
+async function loadMe() { if (ME) return ME; try { ME = (await api('/admin/users/me?fields=id,first_name,last_name,email,metadata')).user || null; } catch { ME = null; } return ME; }
 // Všeobecné prezývky, ktoré nie sú krstné meno – pozdrav bez mena („Dobrý deň.“).
 const GENERIC_NAMES = new Set(['ceo', 'admin', 'administrator', 'root', 'test', 'user', 'lcode', 'l-code', 'anastasia']);
 function meName() {
@@ -417,7 +417,14 @@ function meInitials() {
 function setUserChip() {
   const name = meName(); const nm = document.querySelector('#uname'); const av = document.querySelector('#uava'); const gr = document.querySelector('#greet');
   if (nm) nm.textContent = name || 'Váš účet';
-  if (av) av.textContent = meInitials();
+  if (av) {
+    const avatar = ME?.metadata?.avatar_url === '/assets/lucia.webp'
+      || (location.hostname === 'anastasia-test-admin.l-code-dynamics.com' && ADMIN_ROLE === 'owner')
+      ? '/assets/lucia.webp' : '';
+    av.textContent = avatar ? '' : meInitials();
+    av.style.backgroundImage = avatar ? `url("${avatar.replace(/["\\\\]/g, '')}")` : '';
+    av.classList.toggle('has-photo', !!avatar);
+  }
   if (gr) gr.textContent = name ? `Dobrý deň, ${name}.` : 'Dobrý deň.';
 }
 
@@ -3726,15 +3733,29 @@ function guideDetail(view, g) {
 let TOUR_PENDING = false, TOUR_OPEN = null;
 const TOUR_SEEN_MEM = new Set();
 const tourKey = () => 'ana_tour_seen:' + (ME?.id || ME?.email || 'anon');
-function tourSeen() { const k = tourKey(); if (TOUR_SEEN_MEM.has(k)) return true; try { return localStorage.getItem(k) === '1'; } catch { return false; } }
-function markTourSeen() { const k = tourKey(); TOUR_SEEN_MEM.add(k); try { localStorage.setItem(k, '1'); } catch { /* súkromné okno: stačí pamäť */ } }
+let TOUR_SERVER_SEEN = null, TOUR_STATE_LOADING = null;
+async function loadTourState() {
+  if (TOUR_SERVER_SEEN !== null) return TOUR_SERVER_SEEN;
+  if (!TOUR_STATE_LOADING) TOUR_STATE_LOADING = api('/admin/nexus/tour-state').then(x => {
+    TOUR_SERVER_SEEN = x.completed === true; return TOUR_SERVER_SEEN;
+  }).catch(() => false).finally(() => { TOUR_STATE_LOADING = null; });
+  return TOUR_STATE_LOADING;
+}
+function tourSeen() { return TOUR_SERVER_SEEN === true || TOUR_SEEN_MEM.has(tourKey()); }
+function markTourSeen() {
+  const k = tourKey(); TOUR_SEEN_MEM.add(k); TOUR_SERVER_SEEN = true;
+  api('/admin/nexus/tour-state', { method: 'POST', body: { completed: true } }).catch(() => { TOUR_SERVER_SEEN = null; });
+}
 function restartTour() {
   TOUR_PENDING = true;
+  TOUR_SERVER_SEEN = false;
+  api('/admin/nexus/tour-state', { method: 'POST', body: { completed: false } }).catch(() => {});
   const key = location.hash.replace(/^#\/?/, '').split('/')[0];
   if (key === '' || !(key in ROUTES)) route(); else location.hash = '#/';
 }
-function maybeStartTour() {
+async function maybeStartTour() {
   if (TOUR_OPEN) return;
+  if (!TOUR_PENDING) await loadTourState();
   if (!TOUR_PENDING && tourSeen()) return;
   TOUR_PENDING = false;
   startTour();
@@ -3808,7 +3829,10 @@ function startTour() {
     card.querySelector('#tour-c').textContent = `Krok ${i + 1} z ${TOUR.length}`;
     card.querySelector('.tour-bar span').style.width = `${Math.round((i + 1) / TOUR.length * 100)}%`;
     titleEl.textContent = step.title;
-    card.querySelector('#tour-d').innerHTML = `<p>${esc(step.what)}</p><h3>Prečo je to dôležité</h3><p>${esc(step.why)}</p><h3>Ako to funguje</h3><p>${esc(step.how)}</p>`;
+    const body = card.querySelector('#tour-d');
+    const description = document.createElement('p');
+    description.textContent = step.what;
+    body.replaceChildren(description);
     prevBtn.disabled = i === 0;
     nextBtn.textContent = i === TOUR.length - 1 ? 'Dokončiť' : 'Ďalej';
     card.scrollTop = 0;
