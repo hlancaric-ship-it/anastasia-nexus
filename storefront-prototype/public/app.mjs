@@ -7,7 +7,7 @@ import {loadContent,applyContent,contentPageKeys} from '/content.mjs';
 import {availablePaymentMethods,defaultPaymentMethod,nextButtonState} from '/checkout-ui.mjs';
 import {escape as e,card,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
-import {init as i18nInit} from '/i18n.mjs';
+import {init as i18nInit,DICT} from '/i18n.mjs';
 import {initWithdrawalForm} from '/withdrawal-form.mjs';
 import {initResetZone} from '/reset-zone.mjs';
 import {setAccountLink,setAccountVisibility} from '/account-links.mjs';
@@ -18,6 +18,15 @@ const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root
 let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
+let miniCart;
+const shopText=value=>{const item=DICT[value];const lang=document.documentElement.lang;return lang==='en'?(item?.[0]||value):lang==='ru'?(item?.[1]||value):value;};
+async function showMiniCart(){
+  if(!miniCart){miniCart=document.createElement('div');miniCart.className='shop-mini-cart';miniCart.innerHTML=`<button class="shop-mini-scrim" data-mini-close aria-label="${e(shopText('Zavrieť'))}"></button><aside class="shop-mini-panel" role="dialog" aria-modal="true" aria-label="${e(shopText('Košík'))}"><header><h2>${e(shopText('Košík'))}</h2><button type="button" data-mini-close aria-label="${e(shopText('Zavrieť'))}">×</button></header><div class="shop-mini-lines"></div><footer><p><span>${e(shopText('Spolu'))}</span><strong></strong></p><a class="button" href="/kosik">${e(shopText('Zobraziť košík'))}</a><a class="button shop-mini-checkout" href="/pokladna">${e(shopText('Pokračovať k pokladni'))}</a></footer></aside>`;document.body.append(miniCart);miniCart.addEventListener('click',ev=>{if(ev.target.closest('[data-mini-close]'))miniCart.classList.remove('is-open');});}
+  const cart=await api.getCart(),list=$('.shop-mini-lines',miniCart);list.innerHTML=cart.lines.map(l=>`<article><img src="${e(l.image)}" alt=""><div><h3>${e(l.name)}</h3><p>${e(l.priceLabel)}${l.quantity>1?` × ${l.quantity}`:''}</p><div class="shop-mini-qty"><button type="button" data-mini-qty="${l.quantity-1}" data-mini-slug="${e(l.slug)}" aria-label="${e(shopText('Znížiť množstvo'))}">−</button><span>${l.quantity}</span><button type="button" data-mini-qty="${l.quantity+1}" data-mini-slug="${e(l.slug)}" aria-label="${e(shopText('Zvýšiť množstvo'))}">+</button></div></div><button type="button" class="shop-mini-remove" data-mini-qty="0" data-mini-slug="${e(l.slug)}" aria-label="${e(shopText('Odstrániť'))}">×</button></article>`).join('')||`<p>${e(shopText('Košík je prázdny.'))}</p>`;
+  $('.shop-mini-panel footer strong',miniCart).textContent=cart.totalLabel||'';miniCart.classList.add('is-open');
+  $$('[data-mini-qty]',miniCart).forEach(btn=>btn.onclick=async()=>{const result=await api.setQuantity(btn.dataset.miniSlug,Number(btn.dataset.miniQty));if(result.ok){await updateCount();await showMiniCart();}});
+  $('[data-mini-close]',miniCart)?.focus();
+}
 updateCount().catch(()=>{});
 window.addEventListener('unhandledrejection',event=>{const reason=String(event.reason||'');if(/Failed to fetch|NetworkError|Load failed/i.test(reason))event.preventDefault();});
 // Prihlásenie zákazníka: token v prehliadači (kľúč je JWT_KEY z API adaptéra, src/lib/api/http.mjs).
@@ -337,7 +346,7 @@ if(motion&&$('.dc-root')){
 
 document.addEventListener('click',async event=>{
   const add=event.target.closest('[data-add]');
-  if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='var(--site-accent)';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
+  if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(result.ok!==false){showMiniCart().catch(()=>{});}if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='var(--site-accent)';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
   const a=event.target.closest('a[href]');
   if(a&&a.dataset&&a.dataset.i18nSwitch)return;
   if(!a||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
@@ -364,7 +373,7 @@ if(filterForm){
   filterForm.addEventListener('input',render);filterForm.addEventListener('submit',ev=>{ev.preventDefault();render();});render();
 }
 // Jeden handler na formulár: druhý (v bloku živého detailu) posielal 2× POST a do košíka pridal dvojnásobok.
-$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code||form.dataset.busy)return;form.dataset.busy='1';const button=form.querySelector('[type=submit]');if(button)button.disabled=true;try{const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});}finally{delete form.dataset.busy;if(button)button.disabled=false;}});
+$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code||form.dataset.busy)return;form.dataset.busy='1';const button=form.querySelector('[type=submit]');if(button)button.disabled=true;try{const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});if(result.ok!==false)showMiniCart().catch(()=>{});}finally{delete form.dataset.busy;if(button)button.disabled=false;}});
 // Živý detail produktu: názov, cena, obrázok a popis vždy z jadra (aj pre produkty založené v administrácii).
 const detail=$('[data-product-slug]');
 if(detail&&api.mode==='http'){
@@ -766,7 +775,7 @@ syncCategories().finally(()=>i18nInit());
   try{
     for(const key of contentPageKeys(document)){
       const payload=await loadContent(key);
-      if(payload)applyContent(document,payload);
+      if(payload)applyContent(document,payload,{pageKey:key});
     }
   }catch{}
 })();

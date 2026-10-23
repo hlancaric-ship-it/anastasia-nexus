@@ -74,7 +74,7 @@ const setValue = (el, field, value) => {
 };
 
 // Vloží hodnoty do existujúcich miest. Prázdna hodnota nič nemení (fallback).
-export function applyContent(root, payload) {
+export function applyContent(root, payload, {pageKey = ''} = {}) {
   if (!payload || !root) return 0;
   const targets = new Map();
   for (const el of root.querySelectorAll('[data-content]')) targets.set(el.dataset.content, el);
@@ -85,6 +85,9 @@ export function applyContent(root, payload) {
       if (!el) continue;
       const value = String(field.value ?? field.fallback ?? '').trim();
       if (!value) continue; // nikdy neprázdno – zostane pôvodný obsah
+      // Obrázky na úvodnej stránke nesmí CMS zaměnit za blogové ilustrace.
+      // Produktové fotografie se načítají z katalogu a Luciiny fotografie zůstávají v HTML.
+      if (pageKey === 'home' && field.type === 'image') continue;
       if (setValue(el, field, value)) applied++;
     }
   }

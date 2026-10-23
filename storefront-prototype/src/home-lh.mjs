@@ -21,8 +21,10 @@ const IMG = {
   tree: '/assets/tree.jpg',
   longevity: '/assets/lucia-longevity.png',
   // Veľké fotky z public/media/ (min. 1600px šírka)
-  kozmetika: '/media/legacy-4b8bf0b4e9f0.png',
-  vyziva: '/media/legacy-75110b14202a.png',
+  // Kategórie nikdy neberú ilustrácie z blogu. Používajú len čisté
+  // produktové/lifestylové vizuály; ich obsah sa nemení z CMS.
+  kozmetika: '/assets/hero-forest.jpg',
+  vyziva: '/assets/tree.jpg',
   program: '/media/learning.jpg',
   zdravy: '/media/legacy-483537f470c4.jpg',
 };
@@ -40,12 +42,12 @@ const worlds = [
   {
     n: '01', title: 'Kozmetika', from: 'od 11 €',
     text: 'Krém, pleťová voda, sprchový gél a telové maslo – vždy namiešané až po rozhovore s vami.',
-    href: '/eshop/kategoria/bio-kozmetika-bez-chemie', img: IMG.kozmetika, tone: 'light',
+    href: '/eshop/kategoria/bio-kozmetika-bez-chemie', img: '', icon: '<path d="M7 14h10v7H7zM10 14V8h4v6M10 8V4h4v4M19 5c0 3-3 4-3 4s-3-1-3-4"/>', tone: 'light',
   },
   {
     n: '02', title: 'Bylinky a výživa', from: 'od 9 €',
     text: 'Chrípkový prášok, Jančova zmes a zdravá káva z koreňa púpavy. Receptúry so stáročnou históriou.',
-    href: '/eshop/kategoria/bylinky-a-vyziva', img: IMG.vyziva, tone: 'dark',
+    href: '/eshop/kategoria/bylinky-a-vyziva', img: '', icon: '<path d="M12 22V3M12 8C7 8 5 5 5 3c4 0 7 2 7 5Zm0 6c-5 0-7-3-7-5 5 0 7 3 7 5Zm0-6c5 0 7-3 7-5-4 0-7 2-7 5Zm0 6c5 0 7-3 7-5-5 0-7 2-7 5Z"/>', tone: 'dark',
   },
   {
     n: '03', title: 'Konzultácie', from: 'od 59 €',
@@ -313,8 +315,9 @@ export function homeSections(products = []) {
   </div>
   <div class="lh-stack__items">
     ${worlds.map(w => `
-    <article class="lh-card lh-card--${w.tone}">
-      <div class="lh-card__bg" style="background-image:url(${w.img})"></div>
+    <article class="lh-card lh-card--${w.tone}"${w.icon?' data-category-symbol':''}>
+      <div class="lh-card__bg"${w.img?` style="background-image:url(${w.img})"`:''}></div>
+      ${w.icon?`<div class="lh-card__symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round">${w.icon}</svg></div>`:''}
       <div class="lh-card__shade"></div>
       <div class="lh-card__txt">
         <h3><small>${w.n} · ${e(w.from)}</small>${e(w.title)}</h3>

@@ -70,6 +70,8 @@ export const DICT = {
   'Obchod': ['Shop', 'Магазин'],
   'Všetky produkty': ['All products', 'Все товары'],
   'Kategórie': ['Categories', 'Категории'],
+  'Vyhľadať': ['Search', 'Поиск'],
+  'Navigácia obchodu': ['Shop navigation', 'Навигация магазина'],
   'Darčekový poukaz': ['Gift voucher', 'Подарочный сертификат'],
   'Novinky': ['New', 'Новинки'],
   'Bestsellery': ['Bestsellers', 'Хиты продаж'],

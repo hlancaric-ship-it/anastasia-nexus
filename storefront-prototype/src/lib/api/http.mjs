@@ -9,6 +9,11 @@ const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov
 const PRODUCT_FIELDS =
   'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
 
+// Tieto dve médiá sú infografiky článkov, nie produktové fotografie. Starý
+// katalóg ich mal omylom nastavené ako náhľady, preto ich e-shop nesmie zobraziť.
+const EDITORIAL_ONLY_ASSETS = /(?:legacy[-_/])?(?:4b8bf0b4e9f0|75110b14202a)(?:\.[a-z0-9]+)?(?:$|[?#])/i;
+const isEditorialOnlyAsset=value=>EDITORIAL_ONLY_ASSETS.test(String(value||''));
+
 // --- Prihlásenie: token musí byť viazaný na zákazníka (actor_id) ------------------
 // Medusa v2 vydáva pri registrácii token identity BEZ actor_id (zákazník ešte nie je
 // naviazaný). Správny poriadok je: register → POST /store/customers (naviaže zákazníka
@@ -59,11 +64,11 @@ function mapProduct(p,apiBase='') {
     description: p.subtitle || p.metadata?.description_text || '',
     descriptionHtml: p.description || '',
     longDescription: p.metadata?.description_text || '',
-    images: (p.images || []).map(image => media(image.url)).filter(Boolean),
+    images: (p.images || []).map(image => image.url).filter(url=>!isEditorialOnlyAsset(url)).map(media).filter(Boolean),
     availability: 'Dostupné',
     isNew: false,
     isBestseller: false,
-    image: media(p.thumbnail) || `/assets/product-${ART[category] || 'jar'}.svg`,
+    image: isEditorialOnlyAsset(p.thumbnail) ? '/assets/product-placeholder.svg' : media(p.thumbnail) || '/assets/product-placeholder.svg',
     _variantId: variant.id,
   };
 }
