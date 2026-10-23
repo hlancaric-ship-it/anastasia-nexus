@@ -143,7 +143,9 @@ if (gsap && ScrollTrigger) {
         });
       }
       // ViewBox obepíná všechny řádky slova (ANA / STA / SIA) s rezervou 6 %,
-      // jinak se první písmeno na úzké obrazovce usekne.
+      // jinak se první písmeno na úzké obrazovce usekne. Měří se znovu po
+      // dotažení kurzívy Fraunces, jinak je slovo na mobilu useknuté vpravo.
+      const fitWord = () => {
       const boxes = [...measure.querySelectorAll('tspan')].map(t => t.getBBox());
       const b = boxes.length ? boxes.reduce((acc, box) => {
         const x = Math.min(acc.x, box.x), y = Math.min(acc.y, box.y);
@@ -169,6 +171,12 @@ if (gsap && ScrollTrigger) {
             el.setAttribute('width', String(vb[2])); el.setAttribute('height', String(vb[3]));
           }
         }
+      }
+      };
+      fitWord();
+      if (document.fonts) {
+        document.fonts.addEventListener('loadingdone', fitWord);
+        document.fonts.load('italic 400 236px "Fraunces"', 'ANASTASIA').then(fitWord, () => {});
       }
       // Rozměr písmena T se musí měřit na skrytém textu, ne na textu v <mask>.
       const extent = measure.getExtentOfChar(4);
