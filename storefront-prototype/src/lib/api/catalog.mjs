@@ -18,12 +18,12 @@ const LEGACY_RANK={
   'reset-40-plus':12,'supervizia':13,'astrologia-zdravie-predispozicia':14,
 };
 const BEST_HANDLES=new Set(['vyuka-vedomeho-vnimania','bio-plet-krem','reset-40-plus','supervizia','chripka-prasok']);
-export const SHOP_CATEGORIES=Object.freeze(['AI ANASTASIA ACADEMY','BIOKOZMETIKA','Zdravé doplnky výživy']);
+export const SHOP_CATEGORIES=Object.freeze(['AI ANASTASIA ACADEMY','BIOKOZMETIKA','Zdravé doplnky výživy','Konzultácie']);
 export const SHOP_CATEGORY_HANDLES=Object.freeze({
   'AI ANASTASIA ACADEMY':'sebarozvoj',
   'BIOKOZMETIKA':'bio-kozmetika-bez-chemie',
   'Zdravé doplnky výživy':'zdrave-doplnky-vyzivy',
-  'Konzultácie a podpora':'konzultacie-pomoc-podpora',
+  'Konzultácie':'konzultacie',
 });
 export const FEATURED_SLUGS=Object.freeze(['osviezit-plet','pletova-voda','chripka-prasok','online-zdravotna-konzultacia']);
 export const SHOP_CATALOG=Object.freeze([

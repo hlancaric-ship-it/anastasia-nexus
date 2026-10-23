@@ -148,6 +148,8 @@ const ICONS = {
 };
 const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 const LOGO = './assets/lucia-logo.png';
+// Web k administrácii: anastasia-test-admin.X → anastasia-test.X, admin.X → X.
+const SITE_ORIGIN = `${location.protocol}//${location.hostname.replace(/-admin\./, '.').replace(/^admin\./, '')}`;
 const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><span class="brand-symbol" aria-hidden="true"></span><div><div class="brand-name">ANASTASIA</div><small>Light for the future</small></div></${tag}>`;
 
 // --- dekor: jemné botanické kresby (olivová a levandulová vetvička) ako inline SVG ---
@@ -235,9 +237,9 @@ function shell(active, title, sub) {
         <div class="nav-top">${top}</div>
         ${groups}
       </nav>
-      <a class="side-promo" href="#/">
+      <a class="side-promo" href="${SITE_ORIGIN}/" target="_blank" rel="noopener" title="Otvoriť web v novom okne">
         <span class="side-promo-art">${LAVENDER_ART}</span>
-        <span class="side-promo-txt"><b>ANASTASIA</b><small>Light for the future</small></span>
+        <span class="side-promo-txt"><b>ANASTASIA</b><small>Zobraziť web</small></span>
         <span class="side-promo-arrow">${navIcon('arrow')}</span>
       </a>
     </aside>
@@ -829,7 +831,7 @@ async function vDashboard(view) {
       <span class="banner-txt"><b>${catCount} <span class="bn">${catCount === 1 ? 'kategória' : catCount < 5 ? 'kategórie' : 'kategórií'}</span></b><small>Spravovať kategórie →</small></span>
       <span class="banner-cats">${catThumbs.map((t, i) => `<span class="cat-chip" title="${esc(catNames[i] || '')}"><img src="${esc(t)}" alt="" loading="lazy"><span>${esc(catNames[i] || '')}</span></span>`).join('')}</span>
     </a>
-    <a class="banner banner-sage" href="#/obsah">
+    <a class="banner banner-sage" href="#/produkty" data-open-reset>
       <span class="banner-txt"><b>Členská zóna RESET 40+</b><small>Správa obsahu, lekcie, pracovné listy</small><span class="bn-link">Prejsť do členskej zóny →</span></span>
       <span class="banner-art">${BOTANIC_OLIVE}</span>
     </a>
@@ -962,13 +964,13 @@ function listView(view, { cols, rows, title, onRow, empty, card, search = true }
   const labels = []; parsed.forEach(x => x.fields.forEach(f => { if (f.label && !labels.includes(f.label)) labels.push(f.label); }));
   const hasMedia = parsed.some(x => x.media);
   const titleHead = (cols && (cols.find(c => c.h) || {}).h) || 'Názov';
-  const rowHtml = (x) => `<tr data-id="${esc(x.r.id ?? '')}"${onRow ? ' tabindex="0" role="link"' : ''}>${hasMedia ? `<td class="ot-img lv-media">${x.media}</td>` : ''}<td class="lv-title">${x.title}</td>${labels.map(l => `<td>${x.fields.find(f => f.label === l)?.html ?? '<span class="muted">—</span>'}</td>`).join('')}${onRow ? `<td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td>` : ''}</tr>`;
+  const rowHtml = (x) => `<tr data-id="${esc(x.r.id ?? '')}"${onRow ? ' tabindex="0" role="link"' : ''}>${hasMedia ? `<td class="ot-img lv-media">${x.media}</td>` : ''}<td class="lv-title">${x.title}</td>${labels.map(l => `<td data-label="${esc(l)}">${x.fields.find(f => f.label === l)?.html ?? '<span class="muted">—</span>'}</td>`).join('')}${onRow ? `<td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td>` : ''}</tr>`;
   const colCount = (hasMedia ? 1 : 0) + 1 + labels.length + (onRow ? 1 : 0);
   const render = (list) => list.length ? list.map(rowHtml).join('') : `<tr><td colspan="${colCount}" class="empty">${esc(empty || 'Zatiaľ tu nič nie je.')}</td></tr>`;
   view.innerHTML = `<section class="card ot-card"><div class="ot-head"><h2>${esc(title)} <span class="muted">(${rows.length})</span></h2>
     ${search && rows.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať…" aria-label="Hľadať">' : ''}</div>
-    <div class="ot-wrap"><table class="ot lv"><thead><tr>${hasMedia ? '<th class="ot-img"><span class="sr-only">Obrázok</span></th>' : ''}<th>${esc(titleHead)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}${onRow ? '<th class="ot-act"><span class="sr-only">Akcia</span></th>' : ''}</tr></thead><tbody id="rc-wrap">${render(parsed)}</tbody></table></div></section>`;
-  const wire = () => { if (onRow) view.querySelectorAll('#rc-wrap tr[data-id]').forEach(tr => { const open = () => onRow(rows.find(x => String(x.id) === tr.dataset.id) || rows[0]); tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }; }); };
+    <div class="ot-wrap"><table class="ot lv agenda-grid"><thead><tr>${hasMedia ? '<th class="ot-img"><span class="sr-only">Obrázok</span></th>' : ''}<th>${esc(titleHead)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}${onRow ? '<th class="ot-act"><span class="sr-only">Akcia</span></th>' : ''}</tr></thead><tbody id="rc-wrap">${render(parsed)}</tbody></table></div></section>`;
+  const wire = () => { if (onRow) view.querySelectorAll('#rc-wrap tr[data-id]').forEach(tr => { const open = () => onRow(rows.find(x => String(x.id) === tr.dataset.id) || rows[0]); tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }; }); };
   wire();
   const s = view.querySelector('.rc-search');
   if (s) s.oninput = () => { const q = s.value.toLowerCase().trim(); const f = q ? parsed.filter(x => JSON.stringify(x.r).toLowerCase().includes(q)) : parsed; view.querySelector('#rc-wrap').innerHTML = render(f); wire(); };
@@ -999,7 +1001,8 @@ function wireTabs(scope) {
 // Ukladá len bezpečný podmnožinový HTML: odseky, nadpisy, zoznamy, odkazy, citát, čiara, farba textu a zarovnanie.
 // Vložený text z Wordu/webu sa vyčistí (mso štýly, triedy, fonty) rovnakou funkciou ako pri uložení.
 const RT_TAGS = new Set(['P', 'H2', 'H3', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'UL', 'OL', 'LI', 'A', 'BLOCKQUOTE', 'BR', 'HR', 'SPAN']);
-const RT_COLORS = ['#20271f', '#203b32', '#6f1d33', '#8a6a2b', '#657065'];
+// Paleta webu ANASTASIA: tmavý text, levanduľa, zlatá, olivová (všetky čitateľné na bielej).
+const RT_COLORS = [['#2e2b38', 'tmavá'], ['#73729c', 'levanduľová'], ['#8b89bd', 'svetlá levanduľová'], ['#a8853a', 'zlatá'], ['#4f5a3f', 'olivová']];
 const RT_ALIGN = new Set(['left', 'center', 'right', 'justify']);
 function cleanRichText(html) {
   const tpl = document.createElement('template'); tpl.innerHTML = String(html || '');
@@ -1033,7 +1036,7 @@ function wysiwygHtml(id, html) {
     ${b('undo', 'Späť (Ctrl+Z)', ic('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>'))}${b('redo', 'Znova (Ctrl+Y)', ic('<path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>'))}${sep}
     <select class="rt-block" aria-label="Štýl odseku"><option value="p">Normálny text</option><option value="h2">Nadpis 1</option><option value="h3">Nadpis 2</option><option value="blockquote">Citát</option></select>${sep}
     ${b('bold', 'Tučné (Ctrl+B)', '<b>B</b>')}${b('italic', 'Kurzíva (Ctrl+I)', '<i>I</i>')}${b('underline', 'Podčiarknuté (Ctrl+U)', '<u>U</u>')}${b('strikeThrough', 'Prečiarknuté', '<s>S</s>')}
-    <span class="rt-colors" role="group" aria-label="Farba textu">${RT_COLORS.map(c => `<button type="button" data-cmd="foreColor" data-val="${c}" title="Farba textu" aria-label="Farba textu ${c}"><span style="background:${c}"></span></button>`).join('')}</span>${sep}
+    <span class="rt-colors" role="group" aria-label="Farba textu">${RT_COLORS.map(([c, n]) => `<button type="button" data-cmd="foreColor" data-val="${c}" title="Farba textu: ${n}" aria-label="Farba textu ${n}"><span style="background:${c}"></span></button>`).join('')}</span>${sep}
     ${b('justifyLeft', 'Zarovnať vľavo', ic('<path d="M4 6h16M4 12h10M4 18h14"/>'))}${b('justifyCenter', 'Na stred', ic('<path d="M4 6h16M7 12h10M5 18h14"/>'))}${b('justifyRight', 'Zarovnať vpravo', ic('<path d="M4 6h16M10 12h10M6 18h14"/>'))}${b('justifyFull', 'Do bloku', ic('<path d="M4 6h16M4 12h16M4 18h16"/>'))}${sep}
     ${b('insertUnorderedList', 'Odrážky', ic('<circle cx="5" cy="7" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="5" cy="17" r="1"/><path d="M9 7h11M9 12h11M9 17h11"/>'))}${b('insertOrderedList', 'Číslovanie', ic('<path d="M10 7h10M10 12h10M10 17h10M4 6h1v4M4 10h2M4 15h2l-2 3h2"/>'))}${b('outdent', 'Zmenšiť odsadenie', ic('<path d="M20 6H10M20 12H10M20 18H10M7 9l-3 3 3 3"/>'))}${b('indent', 'Zväčšiť odsadenie', ic('<path d="M20 6H10M20 12H10M20 18H10M4 9l3 3-3 3"/>'))}${sep}
     ${b('createLink', 'Vložiť odkaz (Ctrl+K)', ic('<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>'))}${b('unlink', 'Odstrániť odkaz', ic('<path d="M10 14a4 4 0 0 0 5.66 0l1-1M14 10a4 4 0 0 0-5.66 0l-1 1M4 4l16 16"/>'))}${b('insertHorizontalRule', 'Vodorovná čiara', ic('<path d="M4 12h16"/>'))}${b('removeFormat', 'Vymazať formátovanie', ic('<path d="M6 4h12M12 4l-4 16M4 20l16-16"/>'))}
@@ -1098,7 +1101,7 @@ async function clearVariantSale(ref) {
 // Základná EUR cena bez cenníka a pravidiel (akciový cenník má vlastnú cenu na tom istom variante).
 const basePrice = (v) => (v?.prices || []).find(x => x.currency_code === 'eur' && !x.price_list_id && !(x.rules_count > 0));
 // --- Produkty: serverové stránkovanie, vyhľadávanie a filter stavu (jadro filtruje aj počíta) ---
-const PRODUCT_PAGE_SIZE = 50;
+const PRODUCT_PAGE_SIZE = 12;
 const PRODUCT_STATUS = { published: ['zverejnený', 'ok'], draft: ['koncept', 'warn'] };
 async function vProducts(view) {
   view = freshView(view);
@@ -1123,11 +1126,11 @@ async function vProducts(view) {
       <td class="ot-check"><input type="checkbox" data-pick="${esc(p.id)}" aria-label="Označiť produkt ${esc(p.title)}"></td>
       <td class="ot-img lv-media">${p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>'}</td>
       <td class="lv-title">${esc(p.title)}</td>
-      <td><span class="pill ${PRODUCT_STATUS[p.status]?.[1] || 'warn'}">${esc(PRODUCT_STATUS[p.status]?.[0] || p.status || '—')}</span></td>
-      <td>${fallback ? '<span class="muted">—</span>' : p.digital ? '<span class="pill ok">digitálny</span>' : '<span class="muted">fyzický</span>'}</td>
-      <td>${fmtEur(basePrice(p.variants?.[0])?.amount)}</td>
-      <td>${stock === null ? '<span class="muted">—</span>' : stock <= 0 ? '<span class="pill off">vypredané</span>' : stock <= 5 ? `<span class="pill warn">${stock} ks</span>` : `<span>${stock} ks</span>`}</td>
-      <td>${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
+      <td data-label="Stav"><span class="pill ${PRODUCT_STATUS[p.status]?.[1] || 'warn'}">${esc(PRODUCT_STATUS[p.status]?.[0] || p.status || '—')}</span></td>
+      <td data-label="Typ">${fallback ? '<span class="muted">—</span>' : p.digital ? '<span class="pill ok">digitálny</span>' : '<span class="muted">fyzický</span>'}</td>
+      <td data-label="Cena">${fmtEur(basePrice(p.variants?.[0])?.amount)}</td>
+      <td data-label="Sklad">${stock === null ? '<span class="muted">—</span>' : stock <= 0 ? '<span class="pill off">vypredané</span>' : stock <= 5 ? `<span class="pill warn">${stock} ks</span>` : `<span>${stock} ks</span>`}</td>
+      <td data-label="Akcia">${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
       <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
   };
   view.innerHTML = `<section class="card ot-card"><div class="ot-head">
@@ -1152,7 +1155,7 @@ async function vProducts(view) {
         <button type="button" class="btn ghost sm" id="p-bulk-draft">Uložiť ako koncept</button>
         <button type="button" class="btn ghost sm" id="p-bulk-clear">Zrušiť označenie</button>
       </div></div>
-    <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena s DPH</th><th>Sklad</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
+    <div class="ot-wrap"><table class="ot lv agenda-grid product-grid"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena s DPH</th><th>Sklad</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="p-range"></span><span class="muted" id="p-note" hidden></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('#p-body');
@@ -1190,7 +1193,7 @@ async function vProducts(view) {
       body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="9" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
       body.querySelectorAll('tr[data-id]').forEach(tr => {
         const open = () => vProductDetail(view, tr.dataset.id);
-        tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+        tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
         const box = tr.querySelector('[data-pick]');
         if (box) {
           box.checked = selected.has(tr.dataset.id);
@@ -1528,11 +1531,14 @@ async function vCategories(view) {
   const { product_categories } = await api('/admin/product-categories?limit=200&fields=id,name,handle,is_active,parent_category_id,products.id');
   setActions('<button class="btn gold" id="cat-new">+ Nová kategória</button>');
   const nb = document.querySelector('#cat-new'); if (nb) nb.onclick = () => vCategoryDetail(view, null);
-  listView(view, { title: 'Kategórie', rows: product_categories, onRow: c => vCategoryDetail(view, c.id), cols: [
-    { h: 'Názov', v: c => esc(c.name) }, { h: 'Adresa kategórie', v: c => `<span class="muted">${esc(c.handle)}</span>` },
+  // Rovnaké názvy ako na webe, aktívne kategórie navrchu.
+  const CAT_LABEL = { 'AI ANASTASIA ACADEMY': 'Programy a služby', 'BIOKOZMETIKA': 'Biokozmetika', 'TVOJ ODEV NOVÝ': 'Tvoj odev nový', 'VETERINA': 'Veterina' };
+  const rows = [...product_categories].sort((a, b) => (b.is_active ? 1 : 0) - (a.is_active ? 1 : 0));
+  listView(view, { title: 'Kategórie', rows, onRow: c => vCategoryDetail(view, c.id), cols: [
+    { h: 'Názov', v: c => esc(CAT_LABEL[c.name] || c.name) }, { h: 'Adresa kategórie', v: c => `<span class="muted">${esc(c.handle)}</span>` },
     { h: 'Nadradená kategória', v: c => esc(product_categories.find(p => p.id === c.parent_category_id)?.name || 'Hlavná kategória') },
     { h: 'Produkty', v: c => (c.products || []).length ? `<b>${(c.products || []).length}</b>` : '<span class="muted">0</span>' },
-    { h: 'Aktívna', v: c => c.is_active ? '<span class="pill ok">áno</span>' : '<span class="pill off">nie</span>' }] });
+    { h: 'Na webe', v: c => c.is_active ? '<span class="pill ok">zobrazená</span>' : '<span class="pill off">skrytá</span>' }] });
 }
 async function vCategoryDetail(view, id) {
   view = freshView(view);
@@ -1576,7 +1582,7 @@ const ORDER_LOAD_PAGE = 100;
 /** Poistka proti ťažkému načítaniu; nad tento počet sa zobrazí upozornenie (staršie hľadaj cez vyhľadávanie). */
 const ORDER_LOAD_CAP = 1000;
 /** Koľko objednávok sa zobrazí na jednu stranu v prehľade. */
-const ORDER_PAGE_SIZE = 50;
+const ORDER_PAGE_SIZE = 6;
 /** Stiahnutie súboru v prehliadači (CSV export). */
 function downloadText(filename, text, type = 'text/csv;charset=utf-8') {
   const blob = new Blob([text], { type });
@@ -1688,7 +1694,7 @@ async function vOrders(view) {
     body.innerHTML = slice.length ? slice.map(row).join('') : `<tr><td colspan="10" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
     body.querySelectorAll('tr[data-id]').forEach(tr => {
       const open = () => vOrderDetail(view, tr.dataset.id);
-      tr.onclick = open; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+      tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
       tr.querySelectorAll('[data-print]').forEach(b => b.onclick = (e) => { e.stopPropagation(); printOrders([tr.dataset.id], b.dataset.print); });
       const box = tr.querySelector('[data-pick]');
       if (box) {
@@ -2058,10 +2064,10 @@ async function vCustomers(view) {
         <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákazníka" ${selected.has(c.id) ? 'checked' : ''}></td>
         <td class="ot-img lv-media"><span class="thumb" style="display:grid;place-items:center;font-weight:600;color:var(--forest)">${esc(av)}</span></td>
         <td class="lv-title">${esc(nm || c.email)}</td>
-        <td>${esc(c.email)}</td>
-        <td>${tierCell}</td>
-        <td><code class="rc-code">${esc(custCode(c.id))}</code></td>
-        <td>${fmtDate(c.created_at)}</td>
+        <td data-label="E-mail">${esc(c.email)}</td>
+        <td data-label="Úroveň">${tierCell}</td>
+        <td data-label="ID"><code class="rc-code">${esc(custCode(c.id))}</code></td>
+        <td data-label="Od">${fmtDate(c.created_at)}</td>
         <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
     }).join('');
     const from = count ? offset + 1 : 0, to = Math.min(offset + customers.length, count);
@@ -2069,13 +2075,13 @@ async function vCustomers(view) {
         ${isOwner() ? `<select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(tierLabel(t))}</option>`).join('')}</select>
         <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>` : ''}
         <button type="button" class="btn ghost sm" id="cu-pick-clear">Zrušiť označenie</button></div></div>` : ''}
-      <div class="ot-wrap"><table class="ot lv"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Zatiaľ žiadni zákazníci.</td></tr>'}</tbody></table></div>
+      <div class="ot-wrap"><table class="ot lv agenda-grid customer-grid"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Zatiaľ žiadni zákazníci.</td></tr>'}</tbody></table></div>
       <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadni zákazníci'}</span>
       <div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev" ${offset <= 0 ? 'disabled' : ''}>← Predchádzajúce</button><button class="btn ghost" data-pg="next" ${offset + PAGE >= count ? 'disabled' : ''}>Ďalšie →</button></div></div>`;
     body.querySelectorAll('tr[data-id]').forEach((tr) => {
       const open = () => vCustomerDetail(view, tr.dataset.id);
       tr.onclick = open;
-      tr.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+      tr.onkeydown = (e) => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
       const box = tr.querySelector('[data-pick]');
       if (box) { box.onclick = (e) => e.stopPropagation(); box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); load(); }; }
     });
@@ -2391,7 +2397,8 @@ function subnav(view, items, idx = null) {
   const a = document.querySelector('#actions');
   if (a) a.innerHTML = `<div class="pills">${items.map((it, i) => `<button class="pill ${i === idx ? 'on' : ''}" data-i="${i}">${esc(it.label)}</button>`).join('')}</div>`;
   if (a) a.querySelectorAll('.pill').forEach(b => b.onclick = () => { if (+b.dataset.i !== idx) subnav(view, items, +b.dataset.i); });
-  items[idx].run(liveView(view));
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  Promise.resolve(items[idx].run(liveView(view))).catch(e => { if (e.message !== '401') liveView(view).innerHTML = `<div class="err">${esc(e.message)}</div>`; });
 }
 // --- spoločné: stránkovaný zoznam kariet so záložkami stavu ---
 const PAGE_LIMIT = 12;
@@ -3186,10 +3193,12 @@ async function vMediaLibrary(view) {
     <div id="md-msg"></div>
     <p class="muted" style="margin-top:0">Obrázky, ktoré tu nahráte, sa uložia na server a môžete ich použiť na webe aj v e-mailoch.
     Kliknutím na „Kopírovať URL“ skopírujete priamu adresu obrázka.</p>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
-      <input type="file" id="md-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple>
-      <button type="button" class="btn gold" id="md-upload">Nahrať obrázky</button>
-    </div>
+    <label class="md-drop" id="md-drop">
+      <input type="file" id="md-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple class="sr-only">
+      <b>Pretiahnite obrázky sem</b><span>alebo <u>vyberte z počítača</u> · JPG, PNG, WebP</span>
+    </label>
+    <button type="button" class="btn gold" id="md-upload" hidden>Nahrať obrázky</button>
+    <style>.md-drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 16px;margin-bottom:16px;border:1.5px dashed #c9bfe0;border-radius:12px;background:rgba(255,255,255,.6);cursor:pointer;text-align:center}.md-drop b{font-weight:500}.md-drop span{color:var(--muted);font-size:13px}.md-drop.over,.md-drop:hover{border-color:#73729c;background:#f4f2fa}</style>
     <div class="media-grid" id="md-grid">${files.map(f => `<figure class="media-item">
         <img src="${esc(f.url)}" alt="${esc(f.name)}" loading="lazy">
         <figcaption><b title="${esc(f.name)}">${esc(f.name)}</b><small>${kb(f.size)} · ${fmtDate(f.uploaded_at)}</small>
@@ -3219,6 +3228,12 @@ async function vMediaLibrary(view) {
     }
   });
   const upload = view.querySelector('#md-upload');
+  // Výber alebo pretiahnutie súborov hneď spustí nahrávanie.
+  const drop = view.querySelector('#md-drop'), fileInput = view.querySelector('#md-file');
+  fileInput.onchange = () => { if (fileInput.files.length) upload.click(); };
+  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer?.files?.length) { fileInput.files = e.dataTransfer.files; upload.click(); } };
   upload.onclick = async () => {
     const input = view.querySelector('#md-file');
     const chosen = [...input.files];
@@ -3285,7 +3300,7 @@ const vObsah = (view) => subnav(view, [
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
-const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (+2 €)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta (Stripe)', pp_membership_stripe_membership: 'Platobná karta', manual_manual: 'Vlastná doprava' };
+const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (+2 €)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta', pp_membership_stripe_membership: 'Platobná karta – predplatné Klubu', manual_manual: 'Vlastná doprava' };
 const provLabel = (id) => PROVIDER_LABEL[id] || id || '—';
 async function vDopravaPlatby(view) {
   view = freshView(view);
@@ -3315,14 +3330,12 @@ async function vDopravaPlatby(view) {
     const levels = levelsOf(o);
     return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(o.name)}</div><div class="rc-fields">
       <span class="rc-f"><em>Cena</em>${o.price_type === 'calculated' ? 'počíta dopravca' : pr ? (Number(pr.amount) === 0 ? 'zadarmo' : fmtEur(pr.amount)) : '<span class="pill warn">bez ceny v EUR</span>'}</span>
-      ${levels.length > 1 ? `<span class="rc-f"><em>Cenové hladiny</em>${levels.map(l => `${esc(l.where)}: ${fmtEur(l.amount)}`).join(' · ')}</span>` : ''}
       <span class="rc-f"><em>Dopravca</em>${esc(provLabel(o.provider_id))}</span>
       <span class="rc-f"><em>Oblasť</em>${esc(o.service_zone?.name || '—')}</span>
       ${ret ? '<span class="pill off">len pre vrátenie</span>' : ''}</div></div></div>`; }).join('') || '<div class="empty">Žiadny spôsob dopravy. Fyzický tovar sa nedá odoslať.</div>'}</div>`;
   const locsHtml = !sl ? unread : `<div class="rc-grid">${locs.map(l => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(l.name)}</div><div class="rc-fields">
-      <span class="rc-f"><em>Adresa</em>${esc([l.address?.address_1, l.address?.city, (l.address?.country_code || '').toUpperCase()].filter(Boolean).join(', ') || '—')}</span></div></div></div>`).join('') || '<div class="empty">Žiadny sklad.</div>'}</div>`;
-  view.innerHTML = blk('Predajné regióny a platby', regionsHtml) + blk('Spôsoby dopravy', optionsHtml) + blk('Sklady', locsHtml)
-    + `<p class="muted" style="font-size:12px">Prehľad je len na čítanie. Platobné brány a dopravcov s prístupovými kľúčmi zapája náš tím bezpečne na serveri — kľúče sa v administrácii nikdy nezobrazujú. Ak potrebujete zmenu, napíšte na <a href="mailto:ceo@l-code-dynamics.com">ceo@l-code-dynamics.com</a>.</p>`;
+      <span class="rc-f"><em>Adresa</em>${esc([l.address?.address_1, [l.address?.postal_code, l.address?.city].filter(Boolean).join(' '), (l.address?.country_code || '').toUpperCase()].filter(Boolean).join(', ') || '—')}</span></div></div></div>`).join('') || '<div class="empty">Žiadny sklad.</div>'}</div>`;
+  view.innerHTML = blk('Predajné regióny a platby', regionsHtml) + blk('Spôsoby dopravy', optionsHtml) + blk('Sklady', locsHtml);
 }
 // --- Používatelia a pozvánky (natívne /admin/users, /admin/invites). Roly (RBAC) zatiaľ nie sú zapnuté: každý správca má plný prístup. ---
 const inviteLink = (t) => `${location.origin}${location.pathname}#/pozvanka/${encodeURIComponent(t)}`;
@@ -3509,11 +3522,32 @@ const AUDIT_LABEL = {
   'chat.conversation.start': 'Nová správa zákazníkovi',
   'chat_customer.block': 'Zablokovanie chatu zákazníka',
   'chat_customer.unblock': 'Odblokovanie chatu zákazníka',
+  'entitlement.grant': 'Sprístupnenie obsahu zákazníkovi',
+  'entitlement.revoke': 'Odobratie prístupu k obsahu',
+  'admin.loyalty.customer.tier.update': 'Zmena vernostnej úrovne zákazníka',
+  'admin.loyalty.tier.update': 'Úprava vernostných úrovní',
+  'qr.created': 'Vytvorenie QR kódu ku kupónu',
 };
+// Neznáma akcia sa nikdy neukáže ako technický kód.
+const auditTitle = (en) => AUDIT_LABEL[en.action] || (AUDIT_ENTITY[en.entity_type] ? `Zmena: ${AUDIT_ENTITY[en.entity_type]}` : 'Zmena v administrácii');
+const HEX_RE = /^#[0-9a-f]{3,8}$/i;
+const swatch = (c) => (HEX_RE.test(c || '') ? `<span class="au-sw" style="background:${c}"></span>` : '');
+// Detail pre človeka: pri farbách vzorky, inak nič technické.
+function auditDetail(en) {
+  const t = en.changes?.theme;
+  if (!t || typeof t !== 'object') return '';
+  const to = t.to || {}, from = t.from || {}, bits = [];
+  if (to.navigation && to.navigation !== from.navigation) bits.push(`Bočný panel ${swatch(from.navigation)} → ${swatch(to.navigation)}`);
+  if (to.accent && to.accent !== from.accent) bits.push(`Akcent ${swatch(from.accent)} → ${swatch(to.accent)}`);
+  if (to.scheme && to.scheme !== from.scheme) bits.push(to.scheme === 'custom' ? 'Vlastné farby' : 'Návrat k motívu ANASTASIA')
+  return bits.join('<span class="au-dot">·</span>');
+}
+let auditOffset = 0;
 async function vAuditLog(view) {
   view = freshView(view);
-  view.innerHTML = '<div class="muted">Načítavam historianiu…</div>';
-  let entries = [], count = 0, offset = 0;
+  view.innerHTML = '<div class="muted">Načítavam históriu…</div>';
+  const offset = auditOffset;
+  let entries = [], count = 0;
   try {
     const data = await api(`/admin/ops/audit?limit=50&offset=${offset}`);
     entries = data.entries || []; count = Number(data.count) || 0;
@@ -3521,50 +3555,27 @@ async function vAuditLog(view) {
     if (e.message === '401') throw e;
     view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return;
   }
-  // Zmena pre človeka: čo sa zmenilo, bez surového JSON.
-  const changed = (c) => {
-    if (!c || typeof c !== 'object') return '';
-    const parts = Object.entries(c).map(([key, value]) => {
-      if (value && typeof value === 'object' && 'to' in value && 'from' in value) {
-        const to = value.to || {}, from = value.from || {};
-        if (key === 'theme') {
-          const bits = [];
-          if (to.navigation && to.navigation !== from.navigation) bits.push(`bočný panel ${from.navigation || 'výchozí'} → ${to.navigation}`);
-          if (to.accent && to.accent !== from.accent) bits.push(`akcent ${from.accent || 'výchozí'} → ${to.accent}`);
-          if (to.scheme && to.scheme !== from.scheme) {
-            const schemeName = (v) => (v === 'custom' ? 'vlastné farby' : v === 'forest' ? 'výchozí motív ANASTASIA' : v || 'výchozí');
-            bits.push(`motív ${schemeName(from.scheme)} → ${schemeName(to.scheme)}`);
-          }
-          return bits.length ? `farby: ${bits.join(', ')}` : 'farby administrácie';
-        }
-        if (key === 'revision') return 'revízia záznamu';
-        return key;
-      }
-      if (value === null || value === undefined) return `${key}: odstránené`;
-      if (typeof value === 'object') return `${key}: ${Object.entries(value).map(([k2, v2]) => `${k2} = ${v2}`).join(', ')}`;
-      return `${key}: ${value}`;
-    });
-    return parts.join(' · ');
-  };
-  const actorName = (en) => (en.actor_type === 'system' ? 'systém' : 'správca');
-  view.innerHTML = `<div class="card"><div class="card-h">História zmien<span class="muted">(${count})</span></div><div class="card-b">
-    <p class="muted" style="margin-top:0">Záznamy o tom, čo kto zmenil v administrácii. Píše sa to automaticky pri každej uloženej zmene.</p>
-    ${entries.length ? `<div class="rc-grid">${entries.map(en => `<div class="rc"><div class="rc-body">
-        <div class="rc-title">${esc(AUDIT_LABEL[en.action] || en.action)}</div>
-        <div class="rc-fields">
-          <span class="rc-f"><em>Kedy</em>${fmtDate(en.created_at)}</span>
-          <span class="rc-f"><em>Kto</em>${esc(actorName(en))}</span>
-          <span class="rc-f"><em>Čo</em>${esc(AUDIT_ENTITY[en.entity_type] || en.entity_type || '—')}</span>
-        </div>
-        ${changed(en.changes) ? `<p class="muted" style="font-size:12px;margin:8px 0 0;overflow-wrap:anywhere">${esc(changed(en.changes).slice(0, 300))}</p>` : ''}
-      </div></div>`).join('')}</div>` : '<div class="empty">Zatiaľ nie je zaznamenaná žiadna zmena.</div>'}
-    <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
-      <span class="muted">${count ? `${offset + 1}–${offset + entries.length} z ${count}` : 'Žiadne záznamy'}</span>
-      <div style="display:flex;gap:8px"><button class="btn ghost" id="au-prev" ${offset <= 0 ? 'disabled' : ''}>← Predchádzajúce</button><button class="btn ghost" id="au-next" ${offset + entries.length >= count ? 'disabled' : ''}>Ďalšie →</button></div>
-    </div>
+  const actorName = (en) => (en.actor_type === 'system' ? 'Automaticky' : 'Správca');
+  const day = (d) => { try { return new Date(d).toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' }); } catch { return ''; } };
+  const time = (d) => { try { return new Date(d).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' }); } catch { return ''; } };
+  let lastDay = '';
+  const rows = entries.map((en) => {
+    const d = day(en.created_at), head = d !== lastDay ? `<li class="au-day">${esc(d)}</li>` : '';
+    lastDay = d;
+    const det = auditDetail(en);
+    return `${head}<li class="au-row"><span class="au-time">${esc(time(en.created_at))}</span><span class="au-main"><b>${esc(auditTitle(en))}</b>${det ? `<span class="au-det">${det}</span>` : ''}</span><span class="au-who">${esc(actorName(en))}</span></li>`;
+  }).join('');
+  view.innerHTML = `<style>.au-list{list-style:none;margin:0;padding:0}.au-day{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:18px 0 6px;border-bottom:1px solid var(--line)}.au-day:first-child{padding-top:4px}.au-row{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}.au-time{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}.au-main b{font-weight:500}.au-det{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin-top:4px}.au-sw{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.12);vertical-align:-2px}.au-dot{margin:0 4px}.au-who{color:var(--muted);font-size:12.5px}@media(max-width:600px){.au-row{grid-template-columns:44px 1fr}.au-who{grid-column:2}}</style>
+  <div class="card"><div class="card-h">História zmien<span class="muted">(${count})</span></div><div class="card-b">
+    ${entries.length ? `<ul class="au-list">${rows}</ul>` : '<div class="empty">Zatiaľ nie je zaznamenaná žiadna zmena.</div>'}
+    ${count > 50 ? `<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
+      <span class="muted">${offset + 1}–${offset + entries.length} z ${count}</span>
+      <div style="display:flex;gap:8px"><button class="btn ghost" id="au-prev" ${offset <= 0 ? 'disabled' : ''}>← Novšie</button><button class="btn ghost" id="au-next" ${offset + entries.length >= count ? 'disabled' : ''}>Staršie →</button></div>
+    </div>` : ''}
   </div></div>`;
-  view.querySelector('#au-prev').onclick = () => { if (offset > 0) { offset = Math.max(0, offset - 50); vAuditLog(view); } };
-  view.querySelector('#au-next').onclick = () => { if (offset + entries.length < count) { offset += 50; vAuditLog(view); } };
+  const prev = view.querySelector('#au-prev'), next = view.querySelector('#au-next');
+  if (prev) prev.onclick = () => { if (auditOffset > 0) { auditOffset = Math.max(0, auditOffset - 50); vAuditLog(view); } };
+  if (next) next.onclick = () => { if (auditOffset + entries.length < count) { auditOffset += 50; vAuditLog(view); } };
 }
 // --- Vernostné úrovne (loyalty): UI nad hotovým backendom ---
 // Percentá a prahy posiela server; klient nič nedopočítava.
@@ -4084,6 +4095,7 @@ async function route() {
   const r = ROUTES[key] || ROUTES[''];
   await loadAdminRole();
   root.innerHTML = shell(key in ROUTES ? key : '', r[0], r[1]);
+  window.scrollTo({ top: 0, behavior: 'instant' });
   loadTheme().then(applyTheme);
   root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); ADMIN_ROLE_LOADED = false; ADMIN_ROLE = 'owner'; renderLogin(); };
   wireMobileNav();
@@ -4171,5 +4183,19 @@ new MutationObserver(() => {
   gridFormsQueued = true;
   requestAnimationFrame(() => { gridFormsQueued = false; try { gridForms(document.body); } catch { /* rozloženie je len kozmetika */ } });
 }).observe(document.body, { childList: true, subtree: true });
+// Dlaždica RESET 40+ na prehľade otvorí rovno Zakúpený obsah programu.
+document.addEventListener('click', async (e) => {
+  const link = e.target.closest('[data-open-reset]');
+  if (!link) return;
+  e.preventDefault();
+  try {
+    const d = await api('/admin/products?handle=reset-40-plus&fields=id');
+    const id = d?.products?.[0]?.id;
+    history.pushState(null, '', '#/produkty');
+    root.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.getAttribute('href') === '#/produkty'));
+    if (id) vProductDetail(root.querySelector('#view'), id, { tab: 'obsah' });
+    else route();
+  } catch { location.hash = '#/produkty'; }
+});
 window.addEventListener('hashchange', route);
 route();

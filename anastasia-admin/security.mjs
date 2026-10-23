@@ -183,7 +183,7 @@ export function securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isO
         const isMe = a.id === roles?.current_user_id;
         const label = ROLE_LABEL[a.role] || a.role;
         return `<tr data-user="${esc(a.id)}">
-          <td>${esc([a.first_name, a.last_name].filter(Boolean).join(' ') || a.email || '—')}${isMe ? ' <span class="muted">(vy)</span>' : ''}<div class="muted" style="font-size:12px">${esc(a.email || '')}</div></td>
+          <td>${esc([a.first_name, a.last_name].filter(Boolean).join(' ') || a.email || '—')}${isMe ? ' <span class="muted">(vy)</span>' : ''}${(a.first_name || a.last_name) && a.email ? `<div class="muted" style="font-size:12px">${esc(a.email)}</div>` : ''}</td>
           <td>${owner() ? `<label class="sr-only" for="role-${esc(a.id)}">Rola ${esc(a.email || '')}</label><select id="role-${esc(a.id)}" data-role-for="${esc(a.id)}"><option value="owner"${a.role === 'owner' ? ' selected' : ''}>Vlastník</option><option value="assistant"${a.role === 'assistant' ? ' selected' : ''}>Asistent</option></select>`
             : `<span class="pill">${esc(label)}</span>`}</td>
           <td>${owner() ? `<button type="button" class="btn ghost sm" data-save-role="${esc(a.id)}">Uložiť rolu</button>` : ''}</td></tr>`;

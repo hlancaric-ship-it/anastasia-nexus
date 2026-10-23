@@ -25,7 +25,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;overflow-x:hidden}
 body{font-family:'Figtree',system-ui,-apple-system,Arial,sans-serif;background:var(--canvas);color:var(--ink);font-size:14px;line-height:1.55;font-synthesis:none;-webkit-font-smoothing:antialiased}
-h1,h2,h3{margin:0;font-family:'Fraunces',Georgia,'Times New Roman',serif;font-weight:500;letter-spacing:-.01em}
+h1,h2,h3{margin:0;font-family:'Fraunces',Georgia,'Times New Roman',serif;font-weight:300;letter-spacing:-.01em}
 p{margin:0}
 a{color:inherit}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -570,7 +570,7 @@ input[readonly]{background:var(--surface-3);color:var(--muted)}
 .tour-body h3{font-size:12.5px;font-weight:600;color:var(--primary);margin-top:14px;letter-spacing:.02em}
 .tour-body h3+p{margin-top:3px}
 .tour-nav{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
-.tour-nav .btn{min-width:96pxmin-height:44px}
+.tour-nav .btn{min-width:96px;min-height:44px}
 [data-tour],#ctx-help-btn{scroll-margin-top:90px;scroll-margin-bottom:24px}
 
 /* Objednávky – prehľadná tabuľka (miniatúra, stĺpce, stavy, filtre) */
@@ -949,7 +949,6 @@ input[readonly]{background:var(--surface-3);color:var(--muted)}
 .vs-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
 .vs-preview .voucher{max-width:100%;margin:0 auto}
 @media (max-width:1100px){.vs-layout{grid-template-columns:1fr}}
-
 h1,h2,h3{font-weight:300}
 
 /* Sprievodca: levanduľové ovládanie a pohodlné dotykové ciele. */

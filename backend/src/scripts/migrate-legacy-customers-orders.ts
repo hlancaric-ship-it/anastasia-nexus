@@ -270,7 +270,7 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
   const catalogProducts = unique(catalog.products, p => p.legacy_id)
   const customers = await all(skip => services.customer.listCustomers({}, { take: 200, skip, order: { id: "ASC" } }))
   const addresses = await all(skip => services.customer.listCustomerAddresses({}, { take: 200, skip, order: { id: "ASC" } }))
-  const orders = await all(skip => services.order.listOrders({}, { take: 200, skip, order: { id: "ASC" }, select: ["id", "customer_id", "currency_code", "total", "metadata"], relations: ["billing_address", "shipping_address", "items", "items.tax_lines", "items.adjustments", "shipping_methods", "shipping_methods.tax_lines", "shipping_methods.adjustments", "credit_lines"] }))
+  const orders = await all(skip => services.order.listOrders({}, { take: 200, skip, order: { id: "ASC" }, select: ["id", "version", "customer_id", "currency_code", "total", "metadata"], relations: ["billing_address", "shipping_address", "items", "items.tax_lines", "items.adjustments", "shipping_methods", "shipping_methods.tax_lines", "shipping_methods.adjustments", "credit_lines"] }))
   const products = await all(skip => services.product.listProducts({}, { take: 200, skip, order: { id: "ASC" }, select: ["id", "metadata"] }))
   const productMap = new Map<string, string>()
   for (const p of products) {
@@ -375,7 +375,7 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
   const afterCustomers = await all(skip => services.customer.listCustomers({}, { take: 200, skip, order: { id: "ASC" } }))
   const afterAddresses = await all(skip => services.customer.listCustomerAddresses({}, { take: 200, skip, order: { id: "ASC" } }))
   const afterOrders = await all(skip => services.order.listOrders({ id: [...orderTargets.values()].filter(o => data.orders.some(s => s.legacy_id === meta(o).legacy_id)).map(o => o.id) },
-    { take: 200, skip, order: { id: "ASC" }, select: ["id", "customer_id", "currency_code", "total", "metadata"], relations: ["billing_address", "shipping_address", "items", "items.tax_lines", "items.adjustments", "shipping_methods", "shipping_methods.tax_lines", "shipping_methods.adjustments", "credit_lines"] }))
+    { take: 200, skip, order: { id: "ASC" }, select: ["id", "version", "customer_id", "currency_code", "total", "metadata"], relations: ["billing_address", "shipping_address", "items", "items.tax_lines", "items.adjustments", "shipping_methods", "shipping_methods.tax_lines", "shipping_methods.adjustments", "credit_lines"] }))
   const targetAfter = { customers: 0, addresses: 0, orders: 0, order_items: 0, entitlements: 0, total_eur: "0.00" }
   for (const [mail, group] of groups) {
     const found = afterCustomers.filter(c => c.id === customerTargets.get(mail)!.id && c.email?.trim().toLowerCase() === mail && group.every(g => meta(c).legacy_ids?.includes(g.legacy_id)))
@@ -413,8 +413,10 @@ export async function migrateCustomers(value: unknown, catalog: Pick<LegacyCatal
 export function assertLocalDatabase(databaseUrl: unknown) {
   try {
     const url = new URL(String(databaseUrl))
+    // Testovací server: jen přes SSH tunel 127.0.0.1:15432 a jen s výslovným opt-in.
+    const testServer = process.env.ANASTASIA_IMPORT_TEST_SERVER === "1" && url.port === "15432" && url.pathname === "/anastasia"
     if (!["postgres:", "postgresql:"].includes(url.protocol) || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) ||
-        !["/anastasia_dev_wave1", "/anastasia_catalog_local_20261019"].includes(url.pathname) || url.search || url.hash || process.env.NODE_ENV === "production") fail("LOCAL_DATABASE_REQUIRED")
+        (!testServer && !["/anastasia_dev_wave1", "/anastasia_catalog_local_20261019"].includes(url.pathname)) || url.search || url.hash || process.env.NODE_ENV === "production") fail("LOCAL_DATABASE_REQUIRED")
   } catch { fail("LOCAL_DATABASE_REQUIRED") }
 }
 export function parseOptions(args: string[]) {

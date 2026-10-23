@@ -52,40 +52,19 @@ test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', asy
     'HTML obsahuje pravidlo .lh-intro-page:not(.lh-chrome-in) .lh-top s opacity:0'
   );
   
-  // --- Test 2: #lh-word-tint zhasne při zoomu (opacity 0 v GSAP timeline) ---
-  const wordTint = await page.$('#lh-word-tint');
-  assert.ok(wordTint, '#lh-word-tint prvek existuje');
-  
-  // Kontrolujeme CSS - třída motion by měla být přidána
-  const hasMotionClass = await page.evaluate(() => 
-    document.body.classList.contains('motion')
-  );
-  assert.ok(hasMotionClass, 'body má třídu motion (GSAP inicializován)');
-  
-  // Kontrolujeme, že CSS pravidlo pro #lh-word-tint obsahuje GSAP animaci
-  // V motion.mjs je .to('#lh-word-tint', {opacity: 0, duration: 0.05, ease: 'none'}, 0.04)
-  // To znamená, že po zoomu (scrollu) bude opacity 0
-  // Zkontrolujeme, že prvek existuje a má CSS masku
-  const wordTintHasMask = await page.evaluate(() => {
-    const el = document.querySelector('#lh-word-tint');
-    return el ? el.getAttribute('mask') === 'url(#lhWordInv)' : false;
+  // --- Test 2: paper mask leaves the word transparent so the video shows through. ---
+  const paperMask = await page.evaluate(() => {
+    const paper = document.querySelector('#lh-paper');
+    return {mask: paper?.getAttribute('mask'), tint: document.querySelector('#lh-word-tint')};
   });
-  assert.ok(wordTintHasMask, '#lh-word-tint má správnou masku pro animaci');
+  assert.equal(paperMask.mask, 'url(#lhWord)', 'paper uses the text cutout mask');
+  assert.equal(paperMask.tint, null, 'there is no solid tint layer over the video letters');
 
-  // --- Test 2b: v motion.mjs je #lh-word-tint animován PŘED #lh-word-g (pořadí v timeline)
-  const motionContent = await page.evaluate(() => {
-    const scripts = [...document.querySelectorAll('script[src]')];
-    return scripts.map(s => s.src);
-  });
-  // Načteme zdroj motion.mjs a ověříme pořadí animací v timeline
+  const hasMotionClass = await page.evaluate(() => document.body.classList.contains('motion'));
+  assert.ok(hasMotionClass, 'body má třídu motion (GSAP inicializován)');
   const motionSource = await fetch(base + '/motion.mjs').then(r => r.text());
-  assert.ok(motionSource.includes('.to(\'#lh-word-tint\', {opacity: 0'), 'motion.mjs obsahuje animaci #lh-word-tint na opacity 0');
-  // Kontrola pořadí: #lh-word-tint musí být v timeline před #lh-word-g
-  const tintIndex = motionSource.indexOf('.to(\'#lh-word-tint\', {opacity: 0');
-  const gIndex = motionSource.indexOf('.to(\'#lh-word-g\', {scale: 110');
-  assert.ok(tintIndex > 0 && gIndex > 0 && tintIndex < gIndex, 
-    '#lh-word-tint je v motion.mjs animován PŘED #lh-word-g v timeline');
-  
+  assert.ok(!motionSource.includes(".to('#lh-word-tint'"), 'motion does not animate a missing solid tint layer');
+
   // --- Test 3: .lh-cat na desktopu má top vypočítaný přes calc(50% + …) ---
   const cat1 = await page.$('.lh-cat--1');
   assert.ok(cat1, '.lh-cat--1 prvek existuje');

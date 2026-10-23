@@ -15,6 +15,8 @@ const origin = (name, required) => {
 };
 const api = origin('ANASTASIA_API_ORIGIN', true);
 const media = origin('ANASTASIA_MEDIA_ORIGIN', false);
+// Web pre živý náhľad v editore textov (iframe).
+const web = process.env.ANASTASIA_WEB_ORIGIN || api.replace('-api.', '.');
 
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
@@ -30,7 +32,7 @@ await writeFile(join(out, '_headers'), `/*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Strict-Transport-Security: max-age=31536000
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: ${api}${media ? ' ' + media : ''}; connect-src 'self' ${api}; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: ${api}${media ? ' ' + media : ''}; connect-src 'self' ${api}; frame-src ${web}; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
 `);
 await writeFile(join(out, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 console.log(`Admin build: dist/ → jadro ${api}${media ? `, médiá ${media}` : ''}`);

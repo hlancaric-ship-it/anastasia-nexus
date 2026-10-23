@@ -264,10 +264,9 @@ export function chrome(page) {
   };
 }
 
-export function homeSections(products) {
-  // Nové rozvrženie úvodu (split sekce, dvojí typografie) — viz src/home-lh.mjs.
-  // Hlavička se vkládá před hero, proto je na začátku.
-  return '%%HEADER%%\n'+homeLhSections(products);
+export function homeSections(products, categories) {
+  // Hlavička se vkládá před hero, kategorie přicházejí z aktivního Store API.
+  return '%%HEADER%%\n'+homeLhSections(products, categories);
 }
 
 export function aboutSections() {

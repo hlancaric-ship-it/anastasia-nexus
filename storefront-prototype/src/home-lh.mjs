@@ -11,7 +11,7 @@ import {escape as e, arrow} from './components.mjs';
 import {picture} from './webp.mjs';
 
 const CREAM = '#EFE5C7';
-const PAPER = '#F4F1EB';
+const PAPER = '#e9e9f2';
 const INK = '#1E281C';
 
 const IMG = {
@@ -106,7 +106,7 @@ const listRow = (n, title, sub, href) => `
     <span class="lh-row__arrow">↗</span>
   </a>`;
 
-export function homeSections(products = []) {
+export function homeSections(products = [], activeCategories = []) {
   // Vyber 4 produkty z roznych kategorii (nie z rovnakej)
   const categories = {};
   const selected = [];
@@ -122,6 +122,7 @@ export function homeSections(products = []) {
     n: `N° ${String(i + 1).padStart(2, '0')}`,
     // build.mjs posílá cenu jako `price`; starší mock ji měl jako `priceLabel`.
     price: p.price ?? p.priceLabel ?? '',
+    image: p.image || p.images?.[0] || '',
   }));
 
   // --- Úvod: video prosvítá jen písmeny, skrol se zavrtí do písmena T -------
@@ -157,7 +158,6 @@ export function homeSections(products = []) {
           </linearGradient>
         </defs>
         <rect id="lh-paper" x="-6000" y="-6000" width="13440" height="12900" fill="${PAPER}" opacity="0.94" mask="url(#lhWord)"/>
-        <rect id="lh-word-tint" x="-6000" y="-6000" width="13440" height="12900" fill="#1E2A1A" opacity="0.45" mask="url(#lhWordInv)"/>
         <rect id="lh-word-shine" x="-6000" y="-6000" width="13440" height="12900" fill="url(#lhShine)" mask="url(#lhWord)" opacity="0"/>
         <text id="lh-word-m" x="720" y="520" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-style="italic" font-weight="400" font-size="236" letter-spacing="4" visibility="hidden">ANASTASIA</text>
       </svg>
@@ -210,8 +210,8 @@ export function homeSections(products = []) {
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
     <div class="lh-post-entry" aria-live="polite">
       <img src="/assets/brand-mark.svg" alt="" width="62" height="62">
-      <p class="lh-post-entry__brand">ANASTASIA</p><p class="lh-post-entry__tag">Light for the future</p>
-      <p class="lh-post-entry__claim">Kozmetika na mieru a programy pre zdravie</p>
+      <p class="lh-post-entry__brand">ANASTASIA</p>
+      <p class="lh-post-entry__claim">Light for the Future</p>
       <nav aria-label="Ponuka"><a href="/eshop">Obchod</a><a href="/eshop/produkt/reset-40-plus">RESET 40+</a></nav>
     </div>
     <button class="lh-intro__sound" type="button" data-lh-sound aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk">
@@ -222,117 +222,34 @@ export function homeSections(products = []) {
   </div>
 </section>`;
 
-  const manifesto = `
-<section class="lh-split lh-split--paper lh-split--wide-text" id="manifest" data-sk-only data-screen-label="02 Manifest">
-  <div class="lh-split__text">
-    <p class="lh-eyebrow" data-content="home__manifest__1-text">Vitajte</p>
-    <h2 class="lh-display" data-content="home__manifest__0-text">Priestor pre zdravie, poznanie a vedomý život.</h2>
-    <p class="lh-lead" data-content="home__manifest__2-rich">Kde veci nemusia byť urýchľované, vysvetľované ani riadené.</p>
-    <a class="lh-cta" href="/zdravy-svet" data-content="home__manifest__3-text">Zdravý svet ${arrow}</a>
-  </div>
-  <div class="lh-split__media">${picture(IMG.sky,"Nočná obloha nad tmavou krajinou",'data-par="8" loading="lazy"')}</div>
+  const bySlug = slug => products.find(p => p.slug === slug);
+  const price = p => p?.price ?? p?.priceLabel ?? '';
+  const priced = p => Boolean(price(p) && !/cena sa doplní|price unavailable/i.test(String(price(p))) && /\d/.test(String(price(p))));
+  const media = p => p?.image && !/placeholder|\.svg(?:\?|$)|\/blog\//i.test(p.image) ? p.image : p?.images?.find(src => !/placeholder|\.svg(?:\?|$)|\/blog\//i.test(src)) || '';
+  const realProducts = products.filter(p => media(p) && p.slug && priced(p));
+  const categoryLinks = activeCategories.slice(0, 4).map((name, i) => {
+    const p = products.find(item => item.category === name && media(item) && priced(item));
+    if (!p) return '';
+    const href = name === 'Konzultácie' ? '/konzultacie' : `/eshop?category=${encodeURIComponent(name)}`;
+    return `<a class="lh-world" href="${href}"><img src="${e(media(p))}" alt="${e(p.name)}" loading="lazy"><span class="lh-world__n">0${i + 1}</span><span class="lh-world__copy"><small>${e(name)}</small><strong>${e(name)}</strong><span><small>od</small> ${e(price(p))}</span></span></a>`;
+  }).filter(Boolean).join('');
+  const featured = realProducts.slice(0, 6).map((p, i) => `<article class="lh-product"><a href="/eshop/produkt/${encodeURIComponent(p.slug)}"><img src="${e(media(p))}" alt="${e(p.name)}" loading="lazy"><span class="lh-product__n">0${i + 1}</span><h3>${e(p.name)}</h3></a><p>${e(price(p))}</p><button class="lh-cta" type="button" data-add-to-cart="${e(p.slug)}">Do košíka ${arrow}</button></article>`).join('');
+  const resetProduct = bySlug('reset-40-plus');
+  const nic = bySlug('nic-nemusis');
+  const online = bySlug('online-zdravotna-konzultacia');
+  const lucia = `
+<section class="lh-about" id="o-mne" aria-labelledby="lh-about-title">
+ <div class="lh-about__photo"><img src="/img/lucia/lucia-portret-hero-1600.webp" srcset="/img/lucia/lucia-portret-hero-800.webp 800w, /img/lucia/lucia-portret-hero-1600.webp 1600w" sizes="(max-width:760px) 100vw, 55vw" alt="Lucia Rogožanová" loading="lazy"></div>
+ <div class="lh-about__text"><p class="lh-eyebrow">Kto je Lucia</p><h2 id="lh-about-title">Mgr. Lucia Rogožanová, MBA</h2><p class="lh-about__role">Farmaceutka a zakladateľka ANASTASIA</p><p>Som farmaceutka, podnikateľka, tvorca projektu AI ANASTASIA a predovšetkým človek, ktorý verí, že zdravie sa nedá oddeliť od života ako celku.</p><p>Viac ako tridsať rokov pracujem s ľuďmi, ich príbehmi, obavami, nádejami a každodennými zdravotnými otázkami. Mnohí ľudia nehľadajú ďalší liek. Hľadajú porozumenie.</p><p class="lh-signature">Lucia</p><a class="lh-cta" href="/o-lucii">O mne ${arrow}</a></div>
 </section>`;
-
-  const collection = `
-<section class="lh-split lh-split--flip lh-split--dark lh-split--narrow-text lh-split--tall" id="kolekcia" data-sk-only data-screen-label="03 Kolekcia">
-  <div class="lh-split__media">${picture(IMG.vyziva,"Strom v krajine",'data-par="9" loading="lazy"')}</div>
-  <div class="lh-split__text">
-    <p class="lh-eyebrow" data-content="home__kolekcia__1-text">Kolekcia</p>
-    <h2 class="lh-display" data-content="home__kolekcia__0-text">Kolekcia</h2>
-    <div class="lh-list">${items.map(p => listRow(p.n, p.name, p.price, `/eshop/produkt/${p.slug}`)).join('')}</div>
-    <a class="lh-cta" href="/eshop" data-content="home__kolekcia__2-text">Celý obchod ${arrow}</a>
-  </div>
-</section>`;
-
-  const programme = `
-<section class="lh-split lh-split--paper lh-split--wide-media" id="program" data-sk-only data-screen-label="04 Program">
-  <div class="lh-split__text">
-    <p class="lh-eyebrow" data-content="home__program__1-text">Program RESET 40+</p>
-    <h2 class="lh-display" data-content="home__program__0-text">RESET 40+</h2>
-    <p class="lh-lead" data-content="home__program__2-rich">16 týždňov, ktoré môžu zmeniť váš pohľad na zdravie, energiu a starnutie.</p>
-    <a class="lh-cta" href="/eshop/produkt/reset-40-plus" data-content="home__program__3-text">Objaviť RESET 40+ ${arrow}</a>
-  </div>
-  <div class="lh-split__media">${picture(IMG.program,"Světlo v lese",'data-par="10" loading="lazy"')}</div>
-  <div class="lh-stats">
-    <div><strong>16</strong><span>týždňov</span></div>
-    <div><strong>∞</strong><span>vlastné tempo</span></div>
-    <div><strong>1×</strong><span>jednorazový prístup</span></div>
-  </div>
-</section>`;
-
-  // --- RESET: vodorovný pás tém (bod 5) -----------------------------------
-  const reset = `
-<section class="lh-reset" id="lh-reset" data-sk-only aria-labelledby="lh-rh">
-  <div class="lh-reset__pin">
-    <div class="lh-reset__head">
-      <h2 id="lh-rh" class="lh-display" data-content="home__reset__0-text">AI ANASTASIA RESET 40+</h2>
-      <div class="lh-reset__buy">
-        <span class="lh-reset__price">168 €</span>
-        <a class="lh-cta lh-cta--gold" href="/eshop/produkt/reset-40-plus">Začať RESET 40+ ${arrow}</a>
-      </div>
-    </div>
-    <div class="lh-track" id="lh-track">
-      ${topics.map(([n, title, text]) => `<article class="lh-topic"><b>${n}</b><div><h3>${e(title)}</h3><p data-content="home__reset__1-text">${e(text)}</p></div></article>`).join('')}
-      <article class="lh-topic lh-topic--more"><b>+8</b><div><h3>Ďalšie témy</h3><p>Týždne 9 až 16 nájdete v plnom popise programu.</p></div></article>
-    </div>
-  </div>
-</section>`;
-
-  // --- Obloha: kruhové okno do noci (bod 2) --------------------------------
-  const sky = `
-<section class="lh-sky" id="lh-obloha" data-sk-only aria-labelledby="lh-skh">
-  <div class="lh-sky__stage">
-    <p class="lh-sky__pre" aria-hidden="true">Pozrite sa hore</p>
-    <div class="lh-sky__win">
-      <img loading="lazy" decoding="async" class="lh-sky__poster" src="${IMG.sky}" alt="Nočná obloha nad tmavou krajinou">
-      <video id="lh-sky-video" muted loop playsinline preload="none" fetchpriority="low" aria-hidden="true">
-        <source src="/media/night-sky.mp4" type="video/mp4">
-      </video>
-    </div>
-    <div class="lh-sky__txt">
-      <p class="lh-eyebrow" data-content="home__obloha__1-text">Pod hviezdami · Konzultácia</p>
-      <h2 id="lh-skh" class="lh-display" data-content="home__obloha__0-text">Čo môžeme spolu riešiť?</h2>
-      <p>Astrologický profil zdravia a vitality – jedna zo štyroch Luciiných konzultácií.</p>
-      <a class="lh-cta lh-cta--gold" href="/eshop/produkt/astrologia-zdravie-predispozicia">Objaviť profil ${arrow}</a>
-    </div>
-  </div>
-</section>`;
-
-  const consultations = `
-<section class="lh-split lh-split--flip lh-split--wide-text lh-split--low" id="konzultacie" data-sk-only data-screen-label="06 Konzultácie">
-  <div class="lh-lucia">
-    <div class="lh-lucia__frame">${picture(IMG.lucia,"Mgr. Lucia Rogožanová, zakladateľka ANASTASIA",'data-par="8" loading="lazy"')}</div>
-    <div class="lh-lucia__float" data-speed="-90">${picture(IMG.vyziva,"",'data-par="10" loading="lazy"')}</div>
-  </div>
-  <div class="lh-split__text" data-speed="50">
-    <p class="lh-eyebrow" data-content="home__sluzby__1-text">Sprevádzanie</p>
-    <h2 class="lh-display" data-content="home__sluzby__0-text">Čo získate?</h2>
-    <div class="lh-list">${consults.map(c => listRow(c.n, c.title, c.sub, c.href)).join('')}</div>
-    <a class="lh-cta" href="/konzultacie" data-content="home__sluzby__2-text">Všetky konzultácie ${arrow}</a>
-  </div>
-</section>`;
-
-  // --- Svět ANASTASIA: vrstvené karty (bod 4) ------------------------------
-  const stack = `
-<section class="lh-stack" id="lh-stack" data-sk-only data-screen-label="07 Svet ANASTASIA">
-  <div class="lh-stack__head">
-    <h2 class="lh-display" data-content="home__svet__0-text">Nájdete tu audio záznamy, texty, priestory bez vysvetlenia.</h2>
-    <p>Jedna filozofia, štyri podoby. Od krému miešaného na mieru po šestnásťtýždňový program.</p>
-  </div>
-  <div class="lh-stack__items">
-    ${worlds.map(w => `
-    <article class="lh-card lh-card--${w.tone}"${w.icon?' data-category-symbol':''}>
-      <div class="lh-card__bg"${w.img?` style="background-image:url(${w.img})"`:''}></div>
-      ${w.icon?`<div class="lh-card__symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round">${w.icon}</svg></div>`:''}
-      <div class="lh-card__shade"></div>
-      <div class="lh-card__txt">
-        <h3><small>${w.n} · ${e(w.from)}</small>${e(w.title)}</h3>
-        <p>${e(w.text)}</p>
-        <a class="lh-cta lh-cta--gold" href="${w.href}">Objaviť ${arrow}</a>
-      </div>
-    </article>`).join('')}
-  </div>
-</section>`;
+  const benefits = `<section class="lh-benefits" aria-labelledby="lh-benefits-title"><p class="lh-eyebrow">ANASTASIA · LEKÁREŇ</p><h2 id="lh-benefits-title">Čo vzniká z rozhovoru</h2><p class="lh-benefits__sub">Lekárenské poznatky a kozmetika namiešaná podľa vašej pleti.</p><div class="lh-benefits__row"><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 27V8m0 7c-6 0-9-3-9-8 6 0 9 3 9 8Zm0 4c6 0 9-3 9-8-6 0-9 3-9 8Z"/></svg></i>Kozmetika namiešaná na mieru po rozhovore</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/><path d="m10 17 4 4 8-10"/></svg></i>Bez syntetickej parfumácie</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 25V12l9-6 9 6v13M12 25v-8h8v8"/></svg></i>Odborné farmaceutické poznatky</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 9h18v14H7zM12 14h8m-8 4h5"/><circle cx="23" cy="23" r="4"/></svg></i>Individuálna konzultácia</span></div><a class="lh-cta" href="/eshop/kategoria/bio-kozmetika-bez-chemie">Pozrieť bio kozmetiku ${arrow}</a></section>`;
+  const worldsSection = categoryLinks ? `<section class="lh-worlds" aria-labelledby="lh-worlds-title"><div class="lh-worlds__intro"><p class="lh-eyebrow">ANASTASIA · V PONUKE</p><h2 id="lh-worlds-title">Štyri oblasti práce</h2><p>Aktívne kategórie a ich produkty z obchodu ANASTASIA.</p><a class="lh-cta" href="/eshop">Celý obchod ${arrow}</a></div><div class="lh-worlds__grid">${categoryLinks}</div></section>` : '';
+  const productsSection = featured ? `<section class="lh-featured" aria-labelledby="lh-featured-title"><div class="lh-featured__head"><p class="lh-eyebrow">VYBRANÉ Z PONUKY</p><h2 id="lh-featured-title">Produkty z ANASTASIA</h2><p>Aktuálne produkty a ceny z obchodu.</p><a class="lh-cta" href="/eshop">Všetky produkty ${arrow}</a></div><div class="lh-featured__items">${featured}</div></section>` : '';
+  const reset = resetProduct && priced(resetProduct) ? `<section class="lh-program lh-program--reset"><img src="${e(media(resetProduct))}" alt="${e(resetProduct.name)}" loading="lazy"><div><p class="lh-eyebrow">AI ANASTASIA · PROGRAM</p><h2>RESET 40+</h2><p>Šestnásť týždňov v členskej zóne, pracovné listy a Zrkadielko na vlastné pozorovania a sebareflexiu. Súčasťou je 117 PDF materiálov.</p><p class="lh-program__price">${e(price(resetProduct))}</p><a class="lh-cta" href="/eshop/produkt/${e(resetProduct.slug)}">Spoznajte program ${arrow}</a></div></section>` : '';
+  const nicSection = nic && priced(nic) ? `<section class="lh-nic"><p class="lh-eyebrow">AI ANASTASIA · PROGRAM</p><h2>Nič nemusíš</h2><p>Program Nič nemusíš nájdete v aktuálnej ponuke ANASTASIA.</p><p class="lh-program__price">${e(price(nic))}</p><a class="lh-cta" href="/eshop/produkt/${e(nic.slug)}">Pozrieť program ${arrow}</a></section>` : '';
+  const pharmacy = `<section class="lh-pharmacy"><div class="lh-pharmacy__main"><img src="/img/lucia/lekaren-1600.webp" alt="Lekáreň ANASTASIA vo Vyšnej Slanej" loading="lazy"></div><div class="lh-pharmacy__copy"><p class="lh-eyebrow">VYŠNÁ SLANÁ</p><h2>Lekáreň ANASTASIA<br>a denný stacionár</h2><p>Denný stacionár vo Vyšnej Slanej · plánované otvorenie jeseň 2026.</p><p>Vyšná Slaná 259<br>049 26 Vyšná Slaná</p><p>Osobný odber sa uskutočňuje po potvrdení pripravenosti a v oznámenom čase.</p><a class="lh-cta" href="https://maps.google.com/?q=Lek%C3%A1re%C5%88+ANASTASIA%2C+Vy%C5%A1n%C3%A1+Slan%C3%A1+259" target="_blank" rel="noopener">Otvoriť mapu ${arrow}</a></div><figure class="lh-pharmacy__room"><img src="/img/lucia/stacionar-priestor-1600.webp" alt="Spoločenský priestor denného stacionára vo Vyšnej Slanej" loading="lazy"><figcaption>Priestor denného stacionára</figcaption></figure><figure class="lh-pharmacy__room"><img src="/img/lucia/stacionar-kresla-1600.webp" alt="Oddychová časť denného stacionára" loading="lazy"><figcaption>Oddychová časť</figcaption></figure><figure class="lh-pharmacy__room"><img src="/img/lucia/stacionar-poradna-1600.webp" alt="Poradenská miestnosť denného stacionára" loading="lazy"><figcaption>Poradenská miestnosť</figcaption></figure></section>`;
+  const consult = online && priced(online) ? `<section class="lh-consult"><div><p class="lh-eyebrow">ONLINE · 60 MINÚT</p><h2>Online zdravotná konzultácia</h2><p>Konzultáciu vedie farmaceutka s dlhoročnou praxou, ktorá prepája odborné farmaceutické poznatky s celostným pohľadom na človeka.</p><p class="lh-program__price">${e(price(online))}</p><a class="lh-cta" href="/konzultacie/rezervacia">Rezervovať konzultáciu ${arrow}</a></div><img src="/img/lucia/lucia-portret-800.webp" alt="Lucia Rogožanová, farmaceutka" loading="lazy"></section>` : '';
+  const registration = `<section class="lh-register"><p class="lh-eyebrow">VÁŠ ÚČET ANASTASIA</p><h2>Registrácia a novinky</h2><p>V účte nájdete svoje objednávky a zakúpené programy. Novinky posielame iba po samostatnom súhlase.</p><a class="lh-cta" href="/prihlasenie">Registrácia ${arrow}</a><form data-newsletter><label for="lh-newsletter-email">Váš e-mail</label><input id="lh-newsletter-email" name="email" type="email" autocomplete="email" required><label class="lh-newsletter-consent"><input name="newsletter_consent" type="checkbox" required> Súhlasím so zasielaním noviniek e-mailom.</label><button class="lh-cta" type="submit">Odoberať ${arrow}</button></form><p class="newsletter-status" role="status" aria-live="polite"></p></section>`;
 
   const contact = `
 <section class="lh-contact" data-sk-only data-screen-label="08 Kontakt">
@@ -342,7 +259,7 @@ export function homeSections(products = []) {
   <a class="lh-cta" href="/kontakt" data-content="home__kontakt__3-text">Napíšte nám ${arrow}</a>
 </section>`;
 
-  return [hero, manifesto, collection, programme, reset, sky, consultations, stack, contact].join('\n');
+  return [hero, lucia, benefits, worldsSection, productsSection, reset, nicSection, pharmacy, consult, registration, contact].join('\n');
 }
 
 // CSS homepage. Drží se v jednom bloku, aby se design dal přehledně měnit.
@@ -572,7 +489,7 @@ html.lh-mobile-intro .lh-or{display:none!important}
 /* r12/2b: ak maska nejde vykresliť, ostane čitateľný tmavý nápis. */
 .lh-intro__fallback{display:none;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:300;font-size:clamp(38px,11vw,72px);letter-spacing:.04em;color:#283020}
 @supports (mask:url(#lhWord)){.lh-intro__fallback{display:none!important}}
-@media (max-width:768px),(pointer:coarse){.motion .lh-intro__mask #lh-word-tint{opacity:.88!important}}
+
 .lh-intro__sound{position:absolute;right:calc(var(--lh-gut,16px) + 8px);bottom:24px;z-index:4;width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.7);color:var(--lh-ink,#1E281C);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .5s;pointer-events:auto}
 .lh-post-entry{position:absolute;z-index:3;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff;text-shadow:0 2px 18px #201e2c;opacity:0;pointer-events:none;transition:opacity .8s;padding:24px;background:linear-gradient(90deg,transparent,#211f2c66 18%,#211f2c66 82%,transparent)}
 html.lh-entered .lh-post-entry{opacity:1}
@@ -583,8 +500,8 @@ html.lh-entered .lh-post-entry{opacity:1}
 .lh-post-entry nav{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .lh-post-entry nav a{display:inline-flex;align-items:center;min-height:46px;padding:0 24px;border:1px solid #d8d5ef;border-radius:30px;background:#73729c;color:white;text-decoration:none;text-shadow:none;letter-spacing:.12em;pointer-events:auto}
 html.lh-mobile-intro .lh-intro__stage{background:#e9e9f2}
+html.lh-mobile-intro .lh-intro__mask svg{inset:0;width:100%}
 html.lh-mobile-intro #lh-paper{opacity:.88}
-html.lh-mobile-intro #lh-word-tint{opacity:0!important}
 html.lh-mobile-intro .lh-intro__meta .k{color:#403f62;text-shadow:0 1px 0 white}
 html.lh-mobile-intro .lh-cat{color:#403f62!important;-webkit-text-fill-color:#403f62!important;text-shadow:0 1px 0 #fff,0 0 3px #fff!important}
 html.lh-mobile-intro .lh-enter,html.lh-mobile-intro .lh-vid-btn,html.lh-mobile-intro .lh-intro__sound{background:#73729c!important;border-color:#a7a5cf!important;color:#fff!important}
@@ -595,6 +512,22 @@ html.lh-mobile-intro .lh-enter,html.lh-mobile-intro .lh-vid-btn,html.lh-mobile-i
 .lh-intro__sound .media-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .lh-chrome-in .lh-intro__sound{opacity:0;pointer-events:none}
 html.lh-entered .lh-intro__sound{opacity:1;pointer-events:auto}
+
+/* Homepage rebuilt from Lucia's text and the live Store API catalog. */
+.lh-about,.lh-benefits,.lh-worlds,.lh-featured,.lh-program,.lh-nic,.lh-pharmacy,.lh-consult,.lh-register,.lh-manifest,.lh-contact{color:#42424b;background:#fff}
+.lh-about h2,.lh-benefits h2,.lh-worlds h2,.lh-featured h2,.lh-program h2,.lh-nic h2,.lh-pharmacy h2,.lh-consult h2,.lh-register h2,.lh-manifest h2,.lh-contact h2{font:300 clamp(38px,5.2vw,76px)/1.04 'Fraunces',Georgia,serif;letter-spacing:-.025em;margin:16px 0 22px;color:#42424b}
+.lh-about p,.lh-benefits p,.lh-worlds p,.lh-featured p,.lh-program p,.lh-nic p,.lh-pharmacy p,.lh-consult p,.lh-register p,.lh-manifest p,.lh-contact p{font-size:16px;line-height:1.75;max-width:56ch}
+.lh-about{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.8fr);align-items:center;gap:clamp(36px,7vw,120px);padding:clamp(72px,10vw,150px) 0}
+.lh-about__photo{height:min(74vw,820px);margin-left:-4vw;overflow:hidden}.lh-about__photo img{width:100%;height:100%;object-fit:cover;object-position:center 38%}
+.lh-about__text{max-width:570px;padding:36px 32px 36px 0}.lh-about__text h2{font-size:clamp(38px,4.6vw,66px)}.lh-about__text .lh-signature{font:italic 400 42px 'Fraunces',Georgia,serif;color:#73729c;margin:14px 0 28px}
+.lh-benefits{background:#e9e9f2;padding:clamp(76px,9vw,128px) max(24px,calc((100vw - 1320px)/2));text-align:center}.lh-benefits h2{max-width:800px;margin-inline:auto}.lh-benefits__sub{margin:0 auto 36px}.lh-benefits__row{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #a7a5cf;border-bottom:1px solid #a7a5cf;margin:0 auto 34px;max-width:1240px}.lh-benefits__row span{padding:24px 18px;font-size:14px;line-height:1.45}.lh-benefits__row span+span{border-left:1px solid #a7a5cf}
+.lh-worlds{display:grid;grid-template-columns:minmax(220px,.6fr) 1.4fr;gap:clamp(36px,7vw,100px);padding:clamp(84px,11vw,160px) max(24px,calc((100vw - 1320px)/2))}.lh-worlds__intro{align-self:center}.lh-worlds__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 32px}.lh-world{position:relative;min-height:320px;color:#42424b;overflow:visible;background:none;display:flex;flex-direction:column;text-decoration:none}.lh-world img{position:static;width:100%;height:100%;min-height:220px;max-height:380px;aspect-ratio:4/3;object-fit:contain;background:#f5f3f8;transition:transform .7s}.lh-world:hover img{transform:scale(1.015)}.lh-world:after{display:none}.lh-world__n{position:absolute;z-index:1;top:12px;left:12px;color:#73729c;font:300 14px 'Fraunces',serif}.lh-world__copy{position:static;display:grid;gap:6px;padding:14px 0}.lh-world__copy small{letter-spacing:.16em;text-transform:uppercase;color:#73729c}.lh-world__copy strong{font:300 30px 'Fraunces',Georgia,serif}.lh-world__copy>span{font-size:14px;color:#73729c}
+.lh-featured{background:#f7f6fa;padding:clamp(76px,10vw,140px) max(24px,calc((100vw - 1320px)/2))}.lh-featured__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:4px 28px;margin-bottom:46px}.lh-featured__head>*{margin:0}.lh-featured__head .lh-eyebrow,.lh-featured__head h2,.lh-featured__head p{grid-column:1}.lh-featured__head .lh-cta{grid-column:2;grid-row:2/4}.lh-featured__items{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px}.lh-product img{width:100%;height:clamp(220px,27vw,360px);object-fit:cover;background:#e9e9f2}.lh-product a{color:inherit;text-decoration:none}.lh-product h3{font:300 23px/1.2 'Fraunces',Georgia,serif;margin:13px 0 4px}.lh-product p{margin:0 0 14px}.lh-product__n{font-size:11px;letter-spacing:.16em;color:#73729c}
+.lh-program{display:grid;grid-template-columns:1.15fr .85fr;min-height:620px;background:#e9e9f2}.lh-program>img{width:100%;height:100%;min-height:620px;object-fit:cover}.lh-program>div{align-self:center;padding:clamp(40px,7vw,100px)}.lh-program--reset h2{font-size:clamp(52px,7vw,96px)}.lh-program__price{font:300 32px 'Fraunces',Georgia,serif;color:#73729c}.lh-nic{display:grid;grid-template-columns:.7fr 1.3fr auto;align-items:center;gap:24px;background:#f7f6fa;padding:64px max(24px,calc((100vw - 1320px)/2))}.lh-nic h2{margin:0}.lh-nic p{margin:0}.lh-nic .lh-eyebrow{grid-column:1/-1}
+.lh-pharmacy{display:grid;grid-template-columns:1.1fr .8fr;align-items:center;gap:clamp(40px,8vw,120px);padding:clamp(80px,10vw,145px) max(24px,calc((100vw - 1320px)/2));background:#fff}.lh-pharmacy__collage{display:grid;grid-template-columns:1.2fr .8fr;grid-template-rows:repeat(2,240px);gap:12px;margin-left:-5vw}.lh-pharmacy__collage img{width:100%;height:100%;object-fit:cover}.lh-pharmacy__collage img:first-child{grid-row:span 2}.lh-consult{display:grid;grid-template-columns:1fr .7fr;align-items:center;gap:60px;padding:clamp(76px,10vw,140px) max(24px,calc((100vw - 1120px)/2));background:#e9e9f2}.lh-consult>img{width:100%;max-height:520px;object-fit:cover;object-position:center 30%}.lh-register{display:grid;grid-template-columns:1fr 1fr;gap:12px 40px;padding:84px max(24px,calc((100vw - 1120px)/2));background:#f7f6fa}.lh-register>*{margin:0}.lh-register .lh-eyebrow,.lh-register h2,.lh-register>p{grid-column:1}.lh-register>a{grid-column:1;justify-self:start}.lh-register form{grid-column:2;grid-row:1/4;align-self:center;display:grid;gap:12px}.lh-register input:not([type=checkbox]){height:52px;padding:0 14px;border:1px solid #a7a5cf;background:#fff;color:#42424b}.lh-newsletter-consent{display:flex;align-items:flex-start;gap:10px;line-height:1.5}.lh-newsletter-consent input{width:18px;height:18px;flex:0 0 18px;margin:2px 0 0;accent-color:#73729c}.lh-manifest{padding:clamp(84px,12vw,170px) 24px;text-align:center;background:#fff}.lh-manifest h2,.lh-manifest p{margin-inline:auto}.lh-manifest h2{max-width:900px}.lh-contact{padding:100px 24px;text-align:center}.lh-contact>*{margin-inline:auto}
+.lh-cta{background:#73729c;border-color:#73729c;color:#fff}.lh-cta:hover{background:#5d5c88;border-color:#5d5c88;color:#fff}
+html.lh-mobile-intro .lh-post-entry nav a{background:#73729c;color:#fff}.lh-post-entry__claim{color:#fff}
+@media(max-width:760px){.lh-about,.lh-worlds,.lh-program,.lh-pharmacy,.lh-consult,.lh-register,.lh-nic{grid-template-columns:1fr}.lh-about{padding-top:0;gap:18px}.lh-about__photo{height:112vw;margin:0}.lh-about__text{padding:28px 24px 48px}.lh-benefits__row{grid-template-columns:1fr 1fr}.lh-benefits__row span:nth-child(3){border-left:0}.lh-benefits__row span:nth-child(n+3){border-top:1px solid #a7a5cf}.lh-worlds__grid{gap:12px}.lh-world{min-height:240px}.lh-world__copy strong{font-size:23px}.lh-featured__head{grid-template-columns:1fr}.lh-featured__head .lh-cta{grid-column:1;grid-row:auto;justify-self:start;margin-top:18px}.lh-featured__items{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 14px}.lh-program>img{min-height:320px;max-height:440px}.lh-program>div{padding:42px 24px 60px}.lh-nic{padding:52px 24px}.lh-nic .lh-eyebrow{grid-column:auto}.lh-pharmacy__collage{grid-template-rows:repeat(2,32vw);margin:0}.lh-register>*{grid-column:1!important;grid-row:auto!important}.lh-register form{margin-top:22px}}
 
 
 .lh-scroll-cue__wheel{width:20px;height:32px;border:1px solid currentColor;border-radius:12px;display:grid;place-items:start center;padding-top:6px}
@@ -718,4 +651,84 @@ html.lh-entered .lh-intro__sound{opacity:1;pointer-events:auto}
   .lh-stack__items{display:flex;flex-direction:column}
   .lh-reset__head{flex-direction:column;align-items:flex-start}
 }
+/* Editorial homepage details: distinct image and text rhythms, no composite photos. */
+.lh-intro__fallback{display:none!important}
+html.lh-mobile-intro .lh-intro__stage{background:#e9e9f2}
+html.lh-mobile-intro #lh-paper{opacity:1}
+.lh-post-entry{background:none;padding:24px 22px;text-shadow:none}
+.lh-post-entry img{width:46px;height:46px;margin-bottom:14px}
+.lh-post-entry__brand{font-size:12px;letter-spacing:.34em;padding-left:.34em;color:#fff}
+.lh-post-entry__claim{max-width:none;margin:12px 0 28px;font:300 clamp(40px,7vw,82px)/1.05 Fraunces,Georgia,serif;letter-spacing:-.025em;color:#fff}
+.lh-post-entry nav{align-items:center;gap:24px}
+.lh-post-entry nav a:first-child{min-height:48px;border-color:#73729c;border-radius:0;background:#73729c;color:#fff;padding:0 24px;font-size:13px;letter-spacing:.12em}
+.lh-post-entry nav a:last-child{min-height:44px;border:0;border-radius:0;background:transparent;color:#fff;padding:0;text-decoration:underline;text-underline-offset:5px;font-size:14px;letter-spacing:.08em}
+.lh-benefits{position:relative;text-align:left;padding-inline:max(24px,calc((100vw - 1320px)/2));background:#e9e9f2}
+.lh-benefits h2{margin-inline:0;max-width:740px}
+.lh-benefits__sub{margin:0 0 34px}
+.lh-benefits__row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:0;margin:0 0 34px;gap:18px}
+.lh-benefits__row span{display:grid;grid-template-columns:48px 1fr;align-items:center;gap:13px;padding:0;font-size:14px}
+.lh-benefits__row span+span{border:0}
+.lh-benefits__row i{width:46px;height:46px;border:1px solid #73729c;border-radius:50%;display:grid;place-items:center;color:#73729c}
+.lh-benefits__row svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round}
+.lh-worlds{grid-template-columns:minmax(230px,.55fr) 1.45fr}
+.lh-worlds__grid{grid-template-columns:1.15fr .85fr;grid-template-rows:repeat(2,minmax(220px,1fr));gap:14px 18px}
+.lh-world:first-child{grid-row:span 2;min-height:520px}.lh-world:first-child img{max-height:500px}
+.lh-world{min-height:250px}
+.lh-world__copy{background:#fff;left:0;right:0;bottom:0;padding:14px 0 18px}
+.lh-world__copy strong{font-size:clamp(22px,2.3vw,34px)}
+.lh-about__photo{height:auto}.lh-about__photo img{display:block;width:100%;height:auto;object-fit:contain;object-position:center;background:#e9e9f2}
+.lh-about__role{color:#73729c;letter-spacing:.12em;text-transform:uppercase;font-size:12px!important}
+.lh-about__text .lh-signature{font-family:'Segoe Script','Bradley Hand',cursive;font-style:normal;font-weight:400}
+.lh-featured__items{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
+.lh-product:nth-child(even){margin-top:42px}
+.lh-product img{object-fit:contain;padding:8px;background:#fff}
+.lh-world__copy>span{color:#403f62;font-weight:500}
+.lh-product__price{color:#403f62}
+.lh-product img:not([src]),.lh-product img[src=""]{display:none}
+.lh-program{min-height:0;grid-template-columns:1fr .8fr}
+.lh-program>img{min-height:0;max-height:720px;object-fit:contain;background:#f8f7fb}
+.lh-program>div{padding:clamp(36px,6vw,84px)}
+.lh-pharmacy{grid-template-columns:minmax(0,1.2fr) minmax(280px,.7fr);gap:28px 7vw}
+.lh-pharmacy__main img{display:block;width:100%;height:auto;max-height:680px;object-fit:contain}
+.lh-pharmacy__room{margin:50px 0 0;grid-row:2;grid-column:1/-1;max-width:100%}
+.lh-pharmacy__room img{display:block;width:100%;height:auto;max-height:600px;object-fit:contain}
+.lh-pharmacy__room:nth-of-type(4){max-width:76%;margin-left:auto}
+.lh-pharmacy__room figcaption{padding:12px 0;color:#73729c;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.lh-consult{grid-template-columns:1.1fr .65fr}
+.lh-consult>img{height:auto;max-height:620px;object-fit:contain}
+.lh-contact h2{font-size:clamp(44px,7vw,82px)}
+@media(max-width:760px){
+ .lh-post-entry__claim{font-size:clamp(36px,11vw,52px);margin:10px 0 20px}
+ .lh-post-entry nav{gap:18px}
+ .lh-post-entry nav a:first-child{min-height:46px}
+ .lh-benefits__row{grid-template-columns:1fr 1fr;gap:22px 14px}
+ .lh-benefits__row span{grid-template-columns:42px 1fr;font-size:13px}
+ .lh-benefits__row i{width:40px;height:40px}
+ .lh-worlds__grid{grid-template-columns:1fr 1fr;grid-template-rows:auto}
+ .lh-world:first-child{grid-row:auto;min-height:0}.lh-world__copy strong{font-size:22px}
+ .lh-world{min-height:220px}
+ .lh-product:nth-child(even){margin-top:0}
+ .lh-pharmacy__room{grid-column:1;grid-row:auto;margin:18px 0 0}
+ .lh-pharmacy__room:nth-of-type(4){max-width:100%;margin-left:0}
+ .lh-program{grid-template-columns:1fr}
+ .lh-program>img{max-height:72vh}
+}
+@media(max-width:760px){
+ .lh-worlds{grid-template-columns:minmax(0,1fr);gap:26px;padding-inline:24px}
+ .lh-worlds__grid{grid-template-columns:minmax(0,1fr);gap:22px}
+ .lh-world{display:grid;grid-template-columns:minmax(108px,.78fr) 1fr;align-items:center;min-height:0;gap:0 16px}
+ .lh-world img{grid-column:1;grid-row:1/3;min-height:0;max-height:none;aspect-ratio:1}
+ .lh-world__n{top:8px;left:8px}
+ .lh-world__copy{grid-column:2;gap:5px;padding:8px 0}
+ .lh-world__copy strong{font-size:23px;overflow-wrap:anywhere}
+ .lh-featured__items{grid-template-columns:minmax(0,1fr);gap:24px}
+ .lh-product{display:grid;grid-template-columns:minmax(108px,.72fr) 1fr;align-items:center;gap:0 16px;min-width:0}
+ .lh-product>a{display:contents}
+ .lh-product img{grid-column:1;grid-row:1/5;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+ .lh-product__n,.lh-product h3,.lh-product p,.lh-product .lh-cta{grid-column:2;min-width:0;overflow-wrap:anywhere}
+ .lh-product:nth-child(even){margin-top:0}
+ .lh-product .lh-cta{justify-self:start;max-width:100%;white-space:normal}
+}
+@media(prefers-reduced-motion:reduce){.lh-world img,.lh-product img{transition:none!important}}
+
 `;

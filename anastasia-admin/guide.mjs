@@ -193,7 +193,7 @@ export const GUIDES = [
     after: ['Keď je všetko v poriadku, uvidíte „Obchod je pripravený na predaj“.'],
     careful: [
       '„Nedá sa overiť“ znamená, že kontrolu sa práve nepodarilo vykonať, nie že je všetko v poriadku. Skúste stránku obnoviť.',
-      `Platobné metódy, dopravu a obchodné podmienky nastavuje náš tím. Ak sa tu objaví takýto bod, napíšte na ${SUPPORT_EMAIL}.`,
+      `Ak sa tu objaví bod k platbám alebo doprave, napíšte na ${SUPPORT_EMAIL}.`,
     ],
   },
   {
@@ -632,7 +632,7 @@ export const GUIDES = [
     ],
     after: [],
     careful: [
-      'Stránka je len na prezeranie. Platobné brány a dopravcov zapája náš tím bezpečne na serveri, prístupové kľúče sa v administrácii nikdy nezobrazujú.',
+      'Tu vidíte predajné krajiny, platobné metódy, spôsoby dopravy s cenami a sklad.',
       `Ak potrebujete zmenu, napíšte na ${SUPPORT_EMAIL}.`,
     ],
   },
@@ -699,7 +699,7 @@ export const PAGE_HELP = {
   nastavenia: {
     title: 'Ako fungujú Nastavenia',
     text: 'Vzhľad administrácie, prehľad dopravy, platieb a skladov, správa používateľov s pozvánkami a zabezpečenie prístupu.',
-    points: ['Doprava a platby sú na prezeranie, zmeny nastaví náš tím.', 'V časti Zabezpečenie zapnete dvojfaktorové overenie a spravujete role správcov (vlastník a asistent).', 'Asistent nevidí ceny, zľavy, vernostné úrovne, pridávanie prístupov ani role.'],
+    points: ['V časti Doprava a platby vidíte platobné metódy a spôsoby dopravy s cenami.', 'V časti Zabezpečenie zapnete dvojfaktorové overenie a spravujete role správcov (vlastník a asistent).', 'Asistent nevidí ceny, zľavy, vernostné úrovne, pridávanie prístupov ani role.'],
     guides: ['pouzivatelia', 'zabezpecenie', 'vzhlad', 'doprava-platby'],
   },
 };

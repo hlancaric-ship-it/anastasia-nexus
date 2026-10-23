@@ -47,6 +47,12 @@ const fieldHtml = (f) => `<div class="content-field${f.changed ? ' changed' : ''
   </div>
   ${(f.history || []).length ? `<details class="content-history"><summary>${f.history.length} predchádzajúcich verzií</summary>${f.history.map((h, i) => `<div class="content-version"><span>${esc(fmtDate(h.updated_at))} · ${esc(h.updated_by || '—')}</span><button type="button" class="btn ghost sm" data-version="${esc(f.key)}" data-index="${i}">Obnoviť túto verziu</button></div>`).join('')}</details>` : ''}
 </div>`;
+const fieldCount = (p) => (p.sections || []).reduce((b, s) => b + (s.fields || []).length, 0);
+const fieldWord = (n) => (n === 1 ? 'položka' : n >= 2 && n <= 4 ? 'položky' : 'položiek');
+// Nadpis písaný verzálkami zobrazíme normálne, URL adresy ponecháme.
+const niceTitle = (t = '') => (t === t.toUpperCase() && /[A-ZÁ-Ž]{4}/.test(t) ? t.charAt(0) + t.slice(1).toLowerCase().replace(/www\.[a-z.]+/g, (m) => m) : t);
+const siteHost = () => location.hostname.replace(/-admin\./, '.').replace(/^admin\./, '');
+const siteOrigin = () => `${location.protocol}//${siteHost()}`;
 /**
  * Zoznam stránok obsahu webu.
  * @param {(path: string, options?: any) => Promise<any>} api
@@ -57,14 +63,14 @@ export async function contentPages(api, escHtml = esc) {
   try { extra = (await api('/admin/pages')).pages || []; } catch { extra = []; }
   const changed = pages.filter((p) => p.changed).length;
   return `<div class="card" style="margin-bottom:16px"><div class="card-h">Obsah webu<div class="card-h-act">${changed ? `<span class="pill warn">${changed} upravených stránok</span>` : '<span class="pill">bez zmien</span>'}</div></div><div class="card-b">
-    <p class="muted" style="margin-top:0">Každá stránka webu je rozdelená na sekcie a polia (text, rich text, obrázok, video, odkaz). Zmeníte čokoľvek priamo tu – pôvodné znenie zostáva v zálohe a dá sa obnoviť. Dizajn (layout, farby, písmo) sa nemení.</p>
-    <div class="rc-grid">${pages.map((p) => `<div class="rc"><div class="rc-body"><div class="rc-title">${escHtml(p.title)}</div>
-      <div class="rc-fields"><span class="rc-f"><em>Adresa</em>${escHtml(p.path)}</span>
-        <span class="rc-f"><em>Sekcie</em>${p.sections.length}</span>
-        <span class="rc-f"><em>Polia</em>${p.sections.reduce((b, s) => b + s.fields.length, 0)}</span>
-        ${p.changed ? '<span class="rc-f"><em>Stav</em><span class="pill warn">upravené</span></span>' : ''}</div>
-      <div style="margin-top:10px"><button type="button" class="btn ghost sm" data-page="${escHtml(p.key)}">Upraviť obsah</button></div></div></div>`).join('')}</div>
+    <p class="muted" style="margin-top:0">Vyberte stránku a upravte jej texty, obrázky a odkazy. Pôvodné znenie zostáva v zálohe a dá sa kedykoľvek obnoviť. Vzhľad stránky sa nemení.</p>
+    <ul class="cp-list">${pages.filter((p) => fieldCount(p) > 0).map((p) => `<li class="cp-row">
+      <span class="cp-main"><b>${escHtml(niceTitle(p.title))}</b>${p.changed ? ' <span class="pill warn">upravené</span>' : ''}
+        <a class="cp-link" href="${escHtml(siteOrigin() + p.path)}" target="_blank" rel="noopener">${escHtml(siteHost() + (p.path === '/' ? '' : p.path))} ↗</a></span>
+      <span class="cp-count">${fieldCount(p)} ${fieldWord(fieldCount(p))}</span>
+      <button type="button" class="btn ghost sm" data-page="${escHtml(p.key)}">Upraviť</button></li>`).join('')}</ul>
   </div></div>
+  <style>.cp-list{list-style:none;margin:0;padding:0}.cp-row{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.cp-main b{font-weight:500}.cp-link{display:block;font-size:12px;color:var(--muted);text-decoration:none;margin-top:3px;overflow-wrap:anywhere}.cp-link:hover{text-decoration:underline}.cp-count{color:var(--muted);font-size:12.5px;white-space:nowrap}@media(max-width:600px){.cp-row{grid-template-columns:1fr auto}.cp-count{display:none}}</style>
   ${extra.length ? `<div class="card"><div class="card-h">Ďalšie texty (právne a informačné)</div><div class="card-b">
     <p class="muted" style="margin-top:0">Celé znenie jednej stránky v rich texte – vhodné na právne a informačné texty.</p>
     <div class="rc-grid">${extra.map((p) => `<div class="rc"><div class="rc-body"><div class="rc-title">${escHtml(p.label)}</div>
@@ -73,12 +79,43 @@ export async function contentPages(api, escHtml = esc) {
   </div></div>` : ''}`;
 }
 
+// Web k adminu: anastasia-test-admin.… → anastasia-test.…
+const webOrigin = () => (/-admin\./.test(location.hostname) ? location.origin.replace('-admin.', '.') : '');
+
+/** Živý náhľad vpravo: pole v editore → zvýraznené miesto na webe. */
+function wireLivePreview(root) {
+  const frame = root.querySelector('[data-cp-live]');
+  const web = webOrigin();
+  if (!frame || !web) return;
+  const note = root.querySelector('[data-cp-live-note]');
+  const send = (msg) => { try { frame.contentWindow?.postMessage({ type: 'ana-cms-field', ...msg }, web); } catch {} };
+  let current = null;
+  window.addEventListener('message', (ev) => {
+    if (ev.origin !== web || ev.data?.type !== 'ana-cms-found' || !note) return;
+    note.textContent = ev.data.found ? 'Zvýraznené miesto na webe upravuje vybrané pole.' : 'Toto pole sa na tejto stránke nenašlo (môže byť skryté alebo v inom jazyku).';
+  });
+  root.addEventListener('focusin', (ev) => {
+    const input = ev.target.closest?.('[data-field]');
+    if (!input || input === current) return;
+    if (current) send({ action: 'reset' });
+    current = input;
+    send({ action: 'focus', text: input.defaultValue });
+  });
+  root.addEventListener('input', (ev) => {
+    const input = ev.target.closest?.('[data-field]');
+    if (input && input === current) send({ action: 'input', value: input.value, rich: input.tagName === 'TEXTAREA' });
+  });
+}
+
 /** Editor jednej stránky: sekcie a polia (+ náhľad a verzie). */
 export async function contentPage(api, key, escHtml = esc) {
   const page = ((await api('/admin/content')).pages || []).find((p) => p.key === key) || null;
   if (!page) return '<div class="err">Stránka sa nenašla.</div>';
   const fieldByKey = (k) => page.sections.flatMap((s) => s.fields).find((f) => f.key === k);
-  return `<div class="card" style="margin-bottom:16px"><div class="card-h">${escHtml(page.title)}<div class="card-h-act">
+  const web = webOrigin();
+  const frame = web ? `<aside class="cp-live"><div class="cp-live-h"><b>Náhľad na webe</b><span class="muted" data-cp-live-note>Kliknite do poľa a tu uvidíte, ktoré miesto na webe upravuje.</span></div>
+    <iframe src="${escHtml(web + page.path)}" title="Náhľad stránky ${escHtml(page.title)}" data-cp-live loading="lazy"></iframe></aside>` : '';
+  return `<div class="cp-layout${web ? ' has-live' : ''}"><div class="cp-edit"><div class="card" style="margin-bottom:16px"><div class="card-h">${escHtml(page.title)}<div class="card-h-act">
       <span class="muted" style="font-size:12px">${escHtml(page.path)}</span>
       <button type="button" class="btn ghost" data-cp-back>Späť</button></div></div><div class="card-b">
     <div id="cp-msg"></div>
@@ -86,11 +123,12 @@ export async function contentPage(api, key, escHtml = esc) {
     ${page.sections.map((section) => `<details class="content-section"${section.changed ? ' open' : ''}><summary><b>${escHtml(section.title)}</b><span class="muted"> – ${section.fields.length} polí${section.changed ? ' · upravené' : ''}</span></summary>
       <div class="content-fields">${section.fields.map(fieldHtml).join('')}</div></details>`).join('')}
   </div></div>
-  <div class="card"><div class="card-h">Náhľad</div><div class="card-b">${page.sections.map((s) => `<div class="content-preview-sec"><h3>${escHtml(s.title)}</h3>${preview(s)}</div>`).join('')}</div></div>`;
+  <div class="card"><div class="card-h">Náhľad</div><div class="card-b">${page.sections.map((s) => `<div class="content-preview-sec"><h3>${escHtml(s.title)}</h3>${preview(s)}</div>`).join('')}</div></div></div>${frame}</div>`;
 }
 
 /** Obsluha udalostí v editore stránky (uloženie, obnovenie, verzie, počítadlo znakov). */
 export function wireContentPage(root, api, key, onBack) {
+  wireLivePreview(root);
   const fieldByKey = (k) => root.querySelector('[data-field="' + CSS.escape(k) + '"]');
   const say = (html) => { const box = root.querySelector('#cp-msg'); if (box) box.innerHTML = html; };
   // Konflikt (obsah medzitým zmenil niekto iný) – ukážeme hlášku a ponúkneme obnovenie.

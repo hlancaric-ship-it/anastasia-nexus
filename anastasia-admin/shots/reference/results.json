@@ -1,5 +1,36 @@
 {
-  "errors": [],
+  "errors": [
+    {
+      "message": "Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+      "stack": "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.\n    at <anonymous>:2:126\n    at <anonymous>:3:7",
+      "url": "http://127.0.0.1:4182/#/obsah/1"
+    },
+    {
+      "message": "Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+      "stack": "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.\n    at <anonymous>:2:126\n    at <anonymous>:3:7",
+      "url": "http://127.0.0.1:4182/#/obsah/1"
+    },
+    {
+      "message": "Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+      "stack": "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.\n    at <anonymous>:2:126\n    at <anonymous>:3:7",
+      "url": "http://127.0.0.1:4182/#/obsah/1"
+    },
+    {
+      "message": "Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+      "stack": "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.\n    at <anonymous>:2:126\n    at <anonymous>:3:7",
+      "url": "http://127.0.0.1:4182/#/obsah/1"
+    },
+    {
+      "message": "Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+      "stack": "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.\n    at <anonymous>:2:126\n    at <anonymous>:3:7",
+      "url": "http://127.0.0.1:4182/#/obsah/1"
+    },
+    {
+      "message": "Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+      "stack": "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.\n    at <anonymous>:2:126\n    at <anonymous>:3:7",
+      "url": "http://127.0.0.1:4182/#/obsah/1"
+    }
+  ],
   "findings": [
     {
       "route": "dashboard",
@@ -258,6 +289,240 @@
       "offenders": []
     },
     {
+      "route": "ambasadori",
+      "tab": 0,
+      "width": 1536,
+      "scroll": 1536,
+      "offenders": []
+    },
+    {
+      "route": "objednavky",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "offenders": []
+    },
+    {
+      "route": "produkty",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "offenders": []
+    },
+    {
+      "route": "kategorie",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "offenders": []
+    },
+    {
+      "route": "zakaznicky",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Zákazníci",
+      "offenders": []
+    },
+    {
+      "route": "zakaznicky",
+      "tab": 1,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Prístupy a knižnica",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Rezervácie",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 1,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Typy konzultácií",
+      "offenders": []
+    },
+    {
+      "route": "konzultacie",
+      "tab": 2,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Dostupnosť",
+      "offenders": []
+    },
+    {
+      "route": "spravy",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Konverzácie",
+      "offenders": []
+    },
+    {
+      "route": "spravy",
+      "tab": 1,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Šablóny odpovedí",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "E-maily",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 1,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Newsletter",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 2,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Stránky a texty",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 3,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Médiá",
+      "offenders": []
+    },
+    {
+      "route": "obsah",
+      "tab": 4,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Preklady",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Kupóny a zľavy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 1,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "QR kódy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 2,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Darčekové poukazy",
+      "offenders": []
+    },
+    {
+      "route": "poukazy",
+      "tab": 3,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Nastavenie poukazov",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Vzhľad",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 1,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Pripojenia",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 2,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Doprava a platby",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 3,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Vernostné úrovne",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 4,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Používatelia",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 5,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Zabezpečenie",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 6,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "História zmien",
+      "offenders": []
+    },
+    {
+      "route": "nastavenia",
+      "tab": 7,
+      "width": 1280,
+      "scroll": 1280,
+      "title": "Účtovníctvo",
+      "offenders": []
+    },
+    {
+      "route": "pomoc",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "offenders": []
+    },
+    {
+      "route": "ambasadori",
+      "tab": 0,
+      "width": 1280,
+      "scroll": 1280,
+      "offenders": []
+    },
+    {
       "route": "objednavky",
       "tab": 0,
       "width": 390,
@@ -472,6 +737,13 @@
     },
     {
       "route": "pomoc",
+      "tab": 0,
+      "width": 390,
+      "scroll": 390,
+      "offenders": []
+    },
+    {
+      "route": "ambasadori",
       "tab": 0,
       "width": 390,
       "scroll": 390,

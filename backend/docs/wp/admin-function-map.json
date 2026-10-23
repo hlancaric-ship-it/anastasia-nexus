@@ -992,6 +992,72 @@
       "sha256": "f6920a3ca428c2d379910f1f7b154237520b12d4b0de6c1307acd70f2cfaac84"
     },
     {
+      "path": "/admin/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/route.ts",
+      "sha256": "6b619b11dce6dc57fee2af1b4ae194505919394ad2c04ee5f2041d4012347345"
+    },
+    {
+      "path": "/admin/chat/conversations/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
+      "sha256": "2bb21a27aa9cbc29414a54823b9d47c174f8e8464d39c875b612d2b9740b306e"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
+      "sha256": "41410f9a4b3058d7dfa3a84a252e818cefb3f54f9d4b5ac22843b6d6a567ff92"
+    },
+    {
+      "path": "/admin/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
+      "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
+    },
+    {
+      "path": "/admin/chat/customers/:id/block",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
+      "sha256": "dfd606b696477809bc1760ac88812f04f88c0d55a747fe42bd38c504b08f1388"
+    },
+    {
+      "path": "/admin/chat/templates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat-templates",
+      "source": "backend/src/api/admin/chat/templates/route.ts",
+      "sha256": "502d647b6bca62c9eb6350e47e623ac6847a07ac915ddffc87d6510fb28b19c4"
+    },
+    {
+      "path": "/admin/chat/templates/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "feature": "chat-templates",
+      "source": "backend/src/api/admin/chat/templates/[id]/route.ts",
+      "sha256": "f562f9257cc4aa766006a586ce276db8c593cd8ced12a7f02c893e017980a65c"
+    },
+    {
       "path": "/admin/content",
       "methods": [
         "GET",
@@ -1178,72 +1244,6 @@
       "feature": "product-feeds",
       "source": "backend/src/api/admin/feeds/route.ts",
       "sha256": "f9bb2b30b7f790dfc4c19eda0d2bbf458dd19a4ea47abd571ce2a03cb9198562"
-    },
-    {
-      "path": "/admin/chat/conversations",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/route.ts",
-      "sha256": "6b619b11dce6dc57fee2af1b4ae194505919394ad2c04ee5f2041d4012347345"
-    },
-    {
-      "path": "/admin/chat/conversations/:id",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
-      "sha256": "2bb21a27aa9cbc29414a54823b9d47c174f8e8464d39c875b612d2b9740b306e"
-    },
-    {
-      "path": "/admin/chat/conversations/:id/messages",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/messages/route.ts",
-      "sha256": "41410f9a4b3058d7dfa3a84a252e818cefb3f54f9d4b5ac22843b6d6a567ff92"
-    },
-    {
-      "path": "/admin/chat/conversations/:id/read",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/conversations/[id]/read/route.ts",
-      "sha256": "fd08f5caf4273898b577cba7f42b18ffb5795b4c7fd28c5c70b4996f7893d69a"
-    },
-    {
-      "path": "/admin/chat/customers/:id/block",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/admin/chat/customers/[id]/block/route.ts",
-      "sha256": "dfd606b696477809bc1760ac88812f04f88c0d55a747fe42bd38c504b08f1388"
-    },
-    {
-      "path": "/admin/chat/templates",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat-templates",
-      "source": "backend/src/api/admin/chat/templates/route.ts",
-      "sha256": "502d647b6bca62c9eb6350e47e623ac6847a07ac915ddffc87d6510fb28b19c4"
-    },
-    {
-      "path": "/admin/chat/templates/:id",
-      "methods": [
-        "DELETE"
-      ],
-      "feature": "chat-templates",
-      "source": "backend/src/api/admin/chat/templates/[id]/route.ts",
-      "sha256": "f562f9257cc4aa766006a586ce276db8c593cd8ced12a7f02c893e017980a65c"
     },
     {
       "path": "/admin/media",
@@ -1470,6 +1470,16 @@
       "feature": "orders",
       "source": "backend/src/api/admin/nexus/orders/[id]/refund/route.ts",
       "sha256": "14a8a5cace03889e9a47178735688045d409a5d2fb61a2b4f4efd89deeac09d1"
+    },
+    {
+      "path": "/admin/nexus/tour-state",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "backend/src/api/admin/nexus/tour-state/route.ts",
+      "feature": "admin-account",
+      "sha256": "a555dc28f4a932b4e6a8386f93779e2755cba4de4996daca895f309e0893e5d7"
     },
     {
       "path": "/admin/ops/audit",
@@ -1737,6 +1747,52 @@
       "sha256": "e536a23436c98486ac5dc2bb35f5d650ff88ef39e86577120ec0fa6d5fffcc06"
     },
     {
+      "path": "/store/chat/conversations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/route.ts",
+      "sha256": "1ca69dc788935214dcda88f533e874e9b9037ea53033e41d17d154ff844f13d6"
+    },
+    {
+      "path": "/store/chat/conversations/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
+      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
+    },
+    {
+      "path": "/store/chat/conversations/:id/messages",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
+      "sha256": "a936d7eac0f5613c19f303a93c7881ae72428324bc9df4b74e68fbe851b2bb5c"
+    },
+    {
+      "path": "/store/chat/conversations/:id/read",
+      "methods": [
+        "POST"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
+      "sha256": "a18f82c0e40e861d24a210b0e88ba582ac7cd5168fa79edd7f94ece3b45cdb37"
+    },
+    {
+      "path": "/store/chat/status",
+      "methods": [
+        "GET"
+      ],
+      "feature": "chat",
+      "source": "backend/src/api/store/chat/status/route.ts",
+      "sha256": "8a1d34caedb2916f2c6abf57ed3b851554ef164859a4700f48032bbc08c30ca6"
+    },
+    {
       "path": "/store/contact",
       "methods": [
         "POST"
@@ -1834,52 +1890,6 @@
       "feature": "vouchers",
       "source": "backend/src/api/store/gift-vouchers/remove/route.ts",
       "sha256": "e706b9e53f5d6c20c9bbd0d2dc70df9a5b586c83a5690c48f36036beb80e32ce"
-    },
-    {
-      "path": "/store/chat/conversations",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/route.ts",
-      "sha256": "1ca69dc788935214dcda88f533e874e9b9037ea53033e41d17d154ff844f13d6"
-    },
-    {
-      "path": "/store/chat/conversations/:id",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/route.ts",
-      "sha256": "8e43ab5bf5f0afcbc23a72422fee3cb9a5843911bbbae901a56b9daabcb24132"
-    },
-    {
-      "path": "/store/chat/conversations/:id/messages",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/messages/route.ts",
-      "sha256": "a936d7eac0f5613c19f303a93c7881ae72428324bc9df4b74e68fbe851b2bb5c"
-    },
-    {
-      "path": "/store/chat/conversations/:id/read",
-      "methods": [
-        "POST"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/conversations/[id]/read/route.ts",
-      "sha256": "a18f82c0e40e861d24a210b0e88ba582ac7cd5168fa79edd7f94ece3b45cdb37"
-    },
-    {
-      "path": "/store/chat/status",
-      "methods": [
-        "GET"
-      ],
-      "feature": "chat",
-      "source": "backend/src/api/store/chat/status/route.ts",
-      "sha256": "8a1d34caedb2916f2c6abf57ed3b851554ef164859a4700f48032bbc08c30ca6"
     },
     {
       "path": "/store/legal/versions",
@@ -2091,16 +2101,6 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
-    },
-    {
-      "path": "/admin/nexus/tour-state",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "source": "backend/src/api/admin/nexus/tour-state/route.ts",
-      "feature": "admin-account",
-      "sha256": "a555dc28f4a932b4e6a8386f93779e2755cba4de4996daca895f309e0893e5d7"
     }
   ],
   "native_medusa_version": "2.19.0",

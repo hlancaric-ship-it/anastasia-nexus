@@ -150,22 +150,38 @@ if (gsap && ScrollTrigger) {
         const bottom = Math.max(acc.y + acc.height, box.y + box.height);
         return {x, y, width: right - x, height: bottom - y};
       }, boxes[0]) : measure.getBBox();
-      const padX = b.width * 0.06, padY = b.height * 0.06;
-      // Na mobilu je slovo o kus výš, aby se pod ním vešla kategorie a tlačítko.
-      const lift = window.innerWidth < 700 ? 20 : 0;
-      svg.setAttribute('viewBox', [b.x - padX, b.y - padY + lift, b.width + 2 * padX, b.height + 2 * padY].join(' '));
-      // r12/2b: na mobile maska len na ploche viewBoxu – obrie plochy
-      // (13440×12900) prekročila limit GPU pri DPR 3 a slovo sa nevykreslilo.
+      const padX = b.width * 0.06;
+      const viewWidth = b.width + 2 * padX;
+      const viewport = svg.getBoundingClientRect();
+      // Keep the viewBox ratio equal to the stage. The word cutout then spans
+      // the full lavender paper, instead of leaving video visible above/below
+      // a word-sized rectangle on tall phones.
+      const viewHeight = viewWidth * viewport.height / viewport.width;
+      const viewX = b.x + b.width / 2 - viewWidth / 2;
+      const viewY = b.y + b.height / 2 - viewHeight / 2;
+      svg.setAttribute('viewBox', [viewX, viewY, viewWidth, viewHeight].join(' '));
+      // Mobile gets a word-sized viewBox. Bound the actual masks and paper
+      // rectangles to it; the old guard depended on a nonexistent #lh-word-bg,
+      // leaving a 13440×12900 user-space mask for the GPU to rasterize.
       if (mobileIntro) {
-        const maskEl = $('#lhWord');
-        const bgEl = $('#lh-word-bg');
         const vb = svg.getAttribute('viewBox').split(' ').map(Number);
-        if (maskEl && bgEl && vb.length === 4) {
-          const invEl = $('#lhWordInv');
-          const invText = $('#lh-word-inv-t');
-          for (const el of [maskEl, bgEl, invEl, invText].filter(Boolean)) {
-            el.setAttribute('x', String(vb[0])); el.setAttribute('y', String(vb[1]));
-            el.setAttribute('width', String(vb[2])); el.setAttribute('height', String(vb[3]));
+        if (vb.length === 4 && vb.every(Number.isFinite)) {
+          const [x, y, width, height] = vb.map(String);
+          for (const id of ['lhWord', 'lhWordInv']) {
+            const mask = document.getElementById(id);
+            if (!mask) continue;
+            for (const attr of ['x', 'y', 'width', 'height']) mask.setAttribute(attr, ({x, y, width, height})[attr]);
+            const rect = mask.querySelector('rect');
+            if (rect) {
+              rect.setAttribute('x', x); rect.setAttribute('y', y);
+              rect.setAttribute('width', width); rect.setAttribute('height', height);
+            }
+          }
+          for (const id of ['lh-paper', 'lh-word-shine']) {
+            const rect = document.getElementById(id);
+            if (!rect) continue;
+            rect.setAttribute('x', x); rect.setAttribute('y', y);
+            rect.setAttribute('width', width); rect.setAttribute('height', height);
           }
         }
       }
@@ -220,8 +236,6 @@ if (gsap && ScrollTrigger) {
         .fromTo('#lh-intro-video', {scale: 1.35}, {scale: 1, duration: 0.62, ease: 'none'}, 0)
         // Pod maskou ztmavené video (průhledná vrstva, ne filtr – levnější na mobilu), aby slovo ANASTASIA bylo čitelné i u světlých záběrů.
         .to('.lh-intro__tint', {opacity: 0, duration: 0.4, ease: 'none'}, 0.12)
-        // Tmavá výplň písmen je mimo zväčšovanej skupiny: pri zoome musí zmiznúť, inak je slovo ANASTASIA dvakrát cez seba.
-        .to('#lh-word-tint', {opacity: 0, duration: 0.05, ease: 'none'}, 0.04)
         .to('#lh-word-g', {scale: 110, svgOrigin: ox + ' ' + oy, duration: 0.5, ease: 'power3.in'}, 0.04)
         .to('.lh-intro__mask', {opacity: 0, duration: 0.08, ease: 'none'}, 0.46)
         .to('.lh-intro__veil,.lh-vid-btn', {opacity: 1, duration: 0.1, ease: 'none'}, 0.46)

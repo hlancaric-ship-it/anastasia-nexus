@@ -7,7 +7,7 @@ html,body{overflow-x:visible}
 .sidebar>.brand{position:fixed;top:0;left:20px;width:285px;height:78px;padding:8px 20px;gap:15px;background:var(--cream);border-bottom:1px solid var(--line)}
 .brand img{width:60px;height:60px}.brand-name{font-size:23px;letter-spacing:.24em;font-weight:400}.brand small{font-size:8px;letter-spacing:.27em}
 .nav{display:block;flex:none}.nav-top{margin-bottom:9px}.nav-group{margin-bottom:15px}.nav-title{font-size:9px;color:#343631;padding:5px 12px 8px;letter-spacing:.16em}.nav-item{font-size:12px;min-height:33px;padding:6px 12px;gap:14px;border-radius:17px}.nav-item svg.i{stroke:var(--ink);width:18px;height:18px}.nav-item.active{background:#eeede2;font-weight:500;min-height:38px}.counter{font-size:10px;padding:1px 5px;min-width:21px;border-radius:4px;background:#eee3c7}.nav-phase{font-size:8px;padding:1px 4px}
-.side-promo{margin-top:auto;min-height:78px;border-radius:8px;overflow:visible;background:transparent}.side-promo-txt b{font-family:inherit;font-size:12px;color:var(--ink);letter-spacing:0}.side-promo-art{width:56px;height:78px;background:none}.side-promo-art:after{display:none}.lavender-photo{position:absolute;bottom:0;left:-10px;display:block;width:78px;height:95px;background:url('./assets/design-reference.png') -25px -912px /1536px 1024px;mask-image:linear-gradient(to right,#000 65%,transparent)}
+.side-promo{margin-top:auto;min-height:78px;border-radius:8px;overflow:hidden;background:transparent}.side-promo-txt b{font-family:inherit;font-size:12px;color:var(--ink);letter-spacing:0}.side-promo-art{width:56px;height:78px;background:none}.side-promo-art:after{display:none}.lavender-photo{position:absolute;bottom:0;left:-10px;display:block;width:66px;height:95px;mix-blend-mode:multiply;background:url('./assets/design-reference.png') -25px -912px /1536px 1024px;mask-image:linear-gradient(to right,#000 45%,transparent 88%);-webkit-mask-image:linear-gradient(to right,#000 45%,transparent 88%)}
 .workspace{padding-top:78px}.topbar{position:absolute;top:0;left:305px;right:0;height:78px;min-height:78px;padding:14px 25px 14px 12px;background:var(--cream);gap:24px}.top-search{height:46px;max-width:642px;border-radius:9px;background:transparent;padding:0 16px;min-width:0}.top-search input{font-size:13px;min-width:0}.top-btn{height:38px;border-radius:10px;border:0;background:var(--surface)}.top-btn.icon{width:38px}.top-actions{gap:16px}.avatar{width:44px;height:44px}.user-btn{gap:12px}.user-txt{min-width:70px}.user-txt strong{font-size:14px}
 .botanic-olive{background:url('./assets/design-reference.png') -1000px 0 /1536px 1024px;width:184px;height:157px;top:0;right:350px;opacity:1;mask-image:linear-gradient(#000 80%,transparent);z-index:0}.top-search,.top-actions{z-index:1}.content>.botanic-lav{display:none}
 .content{max-width:1700px;padding:22px 20px 18px;min-width:0}.eyebrow{font-size:10px;letter-spacing:.16em;color:#8b7b5b;margin-bottom:8px}.heading h1{font-size:44px;color:var(--ink);font-weight:400}.intro{font-weight:300;color:#625e55}
@@ -163,6 +163,90 @@ html,body{overflow-x:visible}
 .ctx-help{top:78px;bottom:0;height:calc(100dvh - 78px);max-height:calc(100dvh - 78px);z-index:45;border-radius:0;padding:22px;background:rgba(251,247,254,.96);overflow:auto}
 .ctx-help .ctx-close{flex:none;position:relative;z-index:1}
 @media(max-width:800px){.app:before{top:116px;width:100vw;height:calc(100dvh - 116px);background-size:auto 100%}.ctx-help{top:116px;height:calc(100dvh - 116px);max-height:calc(100dvh - 116px);padding:18px}}
-
+/* Release layout: compact, consistent cards for catalogues and administrative lists. */
+.ot-wrap:has(.agenda-grid){padding:16px;overflow:visible;contain:none}
+.agenda-grid,.agenda-grid tbody{display:block;width:100%}
+.agenda-grid thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.agenda-grid:has(#p-pick-all) thead{position:static;width:auto;height:auto;clip-path:none;margin-bottom:12px}
+.agenda-grid:has(#p-pick-all) thead tr{display:block}.agenda-grid:has(#p-pick-all) th{display:none}.agenda-grid:has(#p-pick-all) th.ot-check{display:flex;gap:9px;align-items:center;width:auto;background:none;border:0;padding:0!important}.agenda-grid:has(#p-pick-all) th.ot-check:after{content:'Označiť všetky';font:500 12px 'Figtree',sans-serif;text-transform:none;letter-spacing:0}
+.agenda-grid tbody{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;align-items:stretch}
+.agenda-grid tbody tr[data-id]{display:flex;flex-direction:column;gap:10px;position:relative;padding:18px;border:1px solid #d8c5e5;border-radius:10px;background:rgba(255,252,255,.65);box-shadow:0 4px 14px #76548a0b;min-width:0}
+.agenda-grid tbody tr[data-id]:hover{background:rgba(249,243,253,.94);border-color:#ae90c3}
+.agenda-grid tbody td{display:block;padding:0;border:0;width:auto;min-width:0;max-width:100%;background:transparent!important;font-size:13px;overflow-wrap:anywhere;white-space:normal}
+.agenda-grid tbody .lv-title{font-size:16px;font-weight:500;line-height:1.4;white-space:normal;padding-right:20px;overflow:visible;max-width:none}
+.agenda-grid tbody td[data-label]{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:baseline}
+.agenda-grid tbody td[data-label]:before{content:attr(data-label);color:var(--muted);font-size:11px;font-weight:400}
+.agenda-grid tbody .ot-check{position:absolute;right:16px;top:18px;width:16px;z-index:1}
+.agenda-grid tbody .ot-img{padding:0}.agenda-grid .ot-img .thumb{width:54px;height:54px;object-fit:contain}
+.agenda-grid tbody .ot-act{margin-top:auto;padding-top:12px;border-top:1px solid var(--line-soft);text-align:right;display:flex;justify-content:flex-end}
+.agenda-grid tbody .ot-act .btn{min-width:104px;justify-content:center}
+.agenda-grid tbody>tr:not([data-id]){grid-column:1/-1}.agenda-grid td.empty{padding:24px}
+.agenda-grid .rc-code{padding:0;background:none;border:0;font-size:11px;word-break:break-all}
+.product-editor,.detail-layout{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.product-editor>.editor-section,.product-editor>div>.editor-section{height:100%}
+.pe-tabs{display:flex;flex-wrap:wrap;gap:8px 22px;overflow:visible}.pe-tabs button{padding:9px 0;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;font-weight:600;color:#776284}.pe-tabs button[aria-selected=true]{background:none;color:#31563d;border-bottom-color:#31563d}
+.card-h-act{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-left:auto}
+.card-b>.row{max-width:1100px}.editor-section .row{max-width:none}.editor-section p,.guide p{max-width:80ch}
+@media(min-width:1700px){.agenda-grid tbody{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1100px){.product-editor,.detail-layout{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.agenda-grid tbody{grid-template-columns:minmax(0,1fr)}.ot-wrap:has(.agenda-grid){padding:12px}.agenda-grid tbody tr[data-id]{padding:16px}.card-h-act{margin-left:0;max-width:100%}.ot-foot{padding:12px;gap:12px}.ot-foot>div{flex-wrap:wrap}.pe-tabs{gap:4px 16px}}
+/* Neutralize inherited table cell sizing inside the card layouts. */
+.agenda-grid tbody .ot-act{width:100%;max-width:none;align-self:stretch}
+.agenda-grid tbody tr[data-id]{gap:7px;padding:16px}
+.agenda-grid tbody td[data-label]{grid-template-columns:76px minmax(0,1fr);line-height:1.4}
+.agenda-grid tbody .ot-act{padding-top:10px}
+.ot-orders tbody tr[data-id]{gap:7px 12px;padding:15px}
+.ot-orders tbody td:nth-child(n){background:transparent!important}
+.ot-orders tbody .ot-items{min-height:30px;padding:6px 0}
+.ot-orders tbody .ot-num{font-size:18px}
+.ot-orders tbody .ot-act{padding-top:9px}
+.tabs{flex-wrap:wrap;overflow:visible;gap:4px 22px}.tab{white-space:normal;padding:8px 0;min-height:36px}
+@media(max-width:600px){.tabs{gap:4px 16px}.tab{font-size:12px}}
+/* Existing optional dark mode keeps the same hierarchy and readable surfaces. */
+html[data-theme=dark]{--glass:rgba(39,31,47,.9);--ink:#f0e9f5;--muted:#bcb0c7;--line:#544060;--line-soft:#493950;--field:#302738;--field-line:#665071;--cream:#302439}
+html[data-theme=dark] .app{background:#241c2c}
+html[data-theme=dark] .app:before{opacity:.12}
+html[data-theme=dark] .topbar,html[data-theme=dark] .sidebar,html[data-theme=dark] .sidebar>.brand{background:#352740;border-color:#5a416b}
+html[data-theme=dark] .brand-name,html[data-theme=dark] .brand small,html[data-theme=dark] .nav-title,html[data-theme=dark] .nav-item{color:#ded0eb}
+html[data-theme=dark] .brand-symbol{filter:brightness(0) invert(.85)}
+html[data-theme=dark] .nav-item svg.i{stroke:#d3bde1}
+html[data-theme=dark] .nav-item.active{background:#513961;color:#fff;box-shadow:none}
+html[data-theme=dark] .agenda-grid tbody tr[data-id],html[data-theme=dark] .ot-orders tbody tr[data-id],html[data-theme=dark] .ctx-help,html[data-theme=dark] .dd-menu{background:#302638;color:var(--ink);border-color:#5b4269}
+html[data-theme=dark] .agenda-grid tbody tr[data-id]:hover,html[data-theme=dark] .ot-orders tbody tr[data-id]:hover{background:#3c2e46}
+html[data-theme=dark] .card-h,html[data-theme=dark] .editor-section,html[data-theme=dark] .help-search,html[data-theme=dark] .help-tour,html[data-theme=dark] .guide-card{background:var(--glass)}
+html[data-theme=dark] .pills .pill,html[data-theme=dark] .pe-tabs button,html[data-theme=dark] .tab{color:#c8b1db}
+html[data-theme=dark] .pills .pill.on,html[data-theme=dark] .pe-tabs button[aria-selected=true],html[data-theme=dark] .tab.active,html[data-theme=dark] .pill.ok{color:#b9d7b6}
+html[data-theme=dark] .kpi-label,html[data-theme=dark] .dash-title h1,html[data-theme=dark] .heading h1{color:var(--ink)}
+/* 23. 10.: logo od okraja bez bieleho pásu, pravý stĺpec zarovnaný s obsahom */
+@media(min-width:801px){.sidebar>.brand{left:0;width:305px;padding-left:40px}.dash-side,.is-dashboard .dash-side{margin-top:0}}
+/* 23. 10.: knižnica produktu – nižšie tlačidlá, farba podľa významu */
+.library-move .btn,.library-pagination .btn,[data-library-reload]{height:32px!important;min-height:32px!important;min-width:0!important;padding:0 14px!important;font-size:12px;border-radius:8px;margin-top:0}
+[data-library-move],[data-library-page]{background:#f3edf8!important;color:#49305e!important;border:1px solid #cfb7df!important}
+[data-library-move]:hover:not(:disabled),[data-library-page]:hover:not(:disabled){background:#e8ddf1!important}
+[data-library-remove]{background:transparent!important;color:#a3423a!important;border:1px solid #e3b9b3!important}
+[data-library-remove]:hover{background:#fbeeec!important}
+[data-library-reload]{background:transparent!important;color:#313c2b!important;border:1px solid #b9c4b2!important;margin-top:12px}
+[data-library-move]:disabled,[data-library-page]:disabled{opacity:.45;cursor:default}
+.library-move{gap:8px;align-items:center}
+/* 23. 10.: editor textov – živý náhľad webu vpravo */
+.cp-layout.has-live{display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,44%);gap:18px;align-items:start}
+.cp-live{position:sticky;top:94px;height:calc(100dvh - 112px);display:flex;flex-direction:column;background:#fdfaff;border:1px solid #ccb5df;border-radius:12px;overflow:hidden}
+.cp-live-h{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border-bottom:1px solid #e3d6ec;font-size:13px}
+.cp-live-h .muted{font-size:12px}
+.cp-live iframe{flex:1;width:100%;border:0;background:#fff}
+@media(max-width:1150px){.cp-layout.has-live{grid-template-columns:minmax(0,1fr)}.cp-live{position:static;height:70vh}}
 .avatar.has-photo{background-position:center;background-size:cover;background-repeat:no-repeat;color:transparent}
-h1,h2,h3{font-weight:300}
+/* Jednotná tlačidlá podľa schváleného štýlu (Zakúpený obsah) */
+.btn,.btn.ghost,.btn.gold,.btn.wine,.btn.primary,.side-card .btn,.side-card .btn.ghost,.side-card .btn.primary{background:#f3edf8;color:#49305e;border:1px solid #cfb7df;box-shadow:none;font-weight:500}
+.btn:hover:not(:disabled),.btn.ghost:hover:not(:disabled),.btn.gold:hover:not(:disabled),.btn.wine:hover:not(:disabled),.btn.primary:hover:not(:disabled),.side-card .btn:hover{background:#e8ddf1;border-color:#b9a3cf;color:#3b2550}
+.btn.primary,.btn.gold,.side-card .btn.primary{border-color:#a993c4;font-weight:600}
+.btn.danger,.btn.danger:hover:not(:disabled){background:transparent;color:#a3423a;border-color:#e3b9b3}
+.btn:disabled{opacity:.45;cursor:default}
+/* Zakúpený obsah: tri položky vedľa seba */
+.library-files{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding-left:0;list-style:none;counter-reset:none}
+.library-files>li{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid #e4d9ee;border-radius:10px;background:rgba(255,252,255,.7);margin:0}
+.library-files .library-move{display:flex;flex-wrap:wrap;gap:6px}
+@media (max-width:1100px){.library-files{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.library-files{grid-template-columns:1fr}}
+
+#s-verify{display:block!important;max-width:440px}#s-verify input{width:100%;margin:4px 0 12px}#s-verify .row{display:flex!important;gap:10px;flex-wrap:wrap}#s-verify .row .btn{width:auto!important;flex:0 0 auto}.ot-act{width:1%}[data-save-role]{white-space:nowrap;width:auto!important;min-width:max-content;writing-mode:horizontal-tb}

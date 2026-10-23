@@ -10,7 +10,7 @@ import {HOME_CSS} from './src/home-lh.mjs';
 import {cookieConsent} from './src/cookie-consent.mjs';
 import {api} from './src/lib/api/index.mjs';
 import {createHttpApi,JWT_KEY} from './src/lib/api/http.mjs';
-import {FEATURED_SLUGS} from './src/lib/api/catalog.mjs';
+import {FEATURED_SLUGS,SHOP_CATEGORIES} from './src/lib/api/catalog.mjs';
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
 import {libraryPage} from './src/library-page.mjs';
@@ -22,9 +22,13 @@ const siteTheme=process.env.SITE_THEME||siteThemes[0].id;
 if(!siteThemes.some(t=>t.id===siteTheme))throw new Error(`Unknown SITE_THEME ${siteTheme}`);
 const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'dist');
 let catalogProducts=api.getProducts();
+let homepageProducts=[];
+let homepageCategories=[];
 if(process.env.ANASTASIA_PUBLISHABLE_KEY&&process.env.ANASTASIA_REGION_ID){
  const store=createHttpApi({getItem:()=>null,setItem:()=>{}},{apiBaseUrl:process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100',publishableKey:process.env.ANASTASIA_PUBLISHABLE_KEY,regionId:process.env.ANASTASIA_REGION_ID});
  catalogProducts=await store.getProducts();if(!catalogProducts.length)throw new Error('Real catalog build returned no products');
+ homepageProducts=catalogProducts;
+ homepageCategories=[...new Set([...await store.getCategories(),...homepageProducts.map(product=>product.category).filter(Boolean)])].filter(name=>SHOP_CATEGORIES.includes(name)).slice(0,4);
 }
 const catalog=category=>views.catalog(category,catalogProducts);
 const luciaImages=`<style>.lucia-real-photos{max-width:1320px;margin:0 auto;padding:clamp(48px,7vw,96px) clamp(20px,4vw,64px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,3vw,40px);color:var(--ana-forest)}.lucia-real-photos figure{margin:0;overflow:hidden;border-radius:24px;background:var(--ana-surface-lavender)}.lucia-real-photos img{display:block;width:100%;height:min(70vh,620px);min-height:280px;max-height:70vh;object-fit:cover}.lucia-real-photos figcaption{padding:14px 18px;font:300 15px/1.5 Figtree,sans-serif;overflow-wrap:anywhere;text-indent:0}.lucia-real-photos h2{grid-column:1/-1;margin:0;font:300 clamp(32px,4vw,52px)/1.12 Fraunces,serif;color:var(--ana-forest)}.photo-gallery.photo-gallery--lucia{background:var(--ana-paper)}.photo-gallery--lucia figure{overflow:hidden;border-radius:24px;background:var(--ana-surface-lavender)}.photo-gallery--lucia img{width:100%;height:min(70vh,720px);max-height:70vh;object-fit:cover}.photo-gallery--lucia figcaption{padding:14px 18px;overflow-wrap:anywhere;text-indent:0}@media(max-width:680px){.lucia-real-photos{grid-template-columns:1fr}.lucia-real-photos h2{grid-column:auto}.lucia-real-photos img{min-height:220px;max-height:70vh}}</style>`;
@@ -67,9 +71,8 @@ const DUPLICATE_REDIRECTS=[
 const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
-const dcProducts=catalogProducts.slice(0,4).map((p,i)=>({n:`N° ${String(i+1).padStart(2,'0')}`,slug:e(p.slug),name:e(p.name),cat:e(p.category),price:e(p.priceLabel),priceLabel:e(p.priceLabel),img:p.image,add:e(p.code)}));
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
-add2('/','Light for the Future',homeSections(dcProducts),'home');
+add2('/','Light for the Future',homeSections(homepageProducts,homepageCategories),'home');
 add('/eshop','Obchod',catalog()+pharmacyStory);add('/eshop/kategorie','Kategórie',views.categories());
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmetika'));
 for(const [slug,cat] of [['kozmetika','Kozmetika'],['bylinky-a-vyziva','Bylinky a výživa'],['programy-a-sluzby','Programy a služby']])add(`/eshop/kategoria/${slug}`,cat,catalog(cat));

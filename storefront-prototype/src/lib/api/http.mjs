@@ -48,9 +48,9 @@ export const tokenHasActor = token => {
 // Klub, konzultácie a darčekový poukaz majú vlastný nákupný tok (súhlas, termín, príjemca); bežný košík ich backend odmietne.
 const isShopProduct = p => { const m = p?.metadata || {}; return !m.membership && !m.booking && m.gift_voucher !== true && m.gift_voucher !== 'true'; };
 
-const publicMedia=(value,base)=>{try{const u=new URL(value);if(u.origin===new URL(base).origin&&u.pathname.startsWith('/static/'))return '/backend-media'+u.pathname;}catch{}return value;};
+const publicMedia=(value,base)=>{try{const u=new URL(value),origin=new URL(base).origin;const localStatic=['http://localhost:9000','http://127.0.0.1:9000'].includes(u.origin);if((u.origin===origin||localStatic)&&u.pathname.startsWith('/static/'))return '/backend-media'+decodeURIComponent(decodeURIComponent(u.pathname))+u.search;}catch{}return value;};
 function mapProduct(p,apiBase='') {
-  const media=value=>{if(typeof value!=='string')return value;try{const u=new URL(value),base=new URL(apiBase);if(u.origin===base.origin&&u.pathname.startsWith('/static/'))return '/backend-media'+u.pathname;}catch{}return value;};
+  const media=value=>{if(typeof value!=='string')return value;try{const u=new URL(value),base=new URL(apiBase);const localStatic=['http://localhost:9000','http://127.0.0.1:9000'].includes(u.origin);if((u.origin===base.origin||localStatic)&&u.pathname.startsWith('/static/'))return '/backend-media'+decodeURIComponent(decodeURIComponent(u.pathname))+u.search;}catch{}return value;};
   const variant = (p.variants || [])[0] || {};
   const cp = variant.calculated_price || {};
   const category = (p.categories||[]).map(c=>c.name).find(n=>SHOP_CATEGORIES.includes(n)) || (p.categories||[])[0]?.name || '';
