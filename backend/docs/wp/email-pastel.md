@@ -21,4 +21,4 @@ Všechny transakční texty a newsletterové texty jsou stále slovenské. Jazyk
 
 Repo obsahuje také odeslání `set-password-sk` v `scripts/migrate-legacy-customers-orders.ts`, které není součástí katalogu ZeptoMail. Při tomto úkolu jsem soubor záměrně neupravoval, protože leží mimo vlastní oblast šablon. V prohledané části backendu jsem nenašel samostatné šablony pro newsletter double opt-in potvrzení, pozvánku do adminu ani digitální knihovnu; jejich existenci a runtime cestu je třeba potvrdit, než lze tvrdit pokrytí všech e-mailů.
 
-Náhledy vytvořené 2026-10-23 v `~/Desktop/ANASTASIA-K-ODESLANI/2026-10-23/emaily-nahled/`: `index.html`, 18 HTML souborů a screenshoty šířky 390/600 px vytvořené systémovým Google Chrome.
+Náhledy vytvořené 2026-10-23 v `~/Desktop/ANASTASIA-K-ODESLANI/2026-10-23/emaily-nahled/`: `index.html`, 18 transakčních šablon, 1 newsletterová kampaň, 5 stavů odhlášení a systémové screenshoty Google Chrome v šířkách 390 a 600 px (50 souborů včetně indexu).
