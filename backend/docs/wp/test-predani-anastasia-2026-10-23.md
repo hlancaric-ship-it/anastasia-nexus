@@ -1,38 +1,44 @@
 # Testovacie predanie ANASTASIA – 23. 10. 2026
 
-**Stav:** PARTIAL  
-**Větev:** `codex/admin-pastel-reference`
+**Stav:** PARTIAL – zadané zmeny sú implementované a testovacie prostredie nasadené; úplná zhoda nie je potvrdená pre nedostupnú produktovú stránku a nepreložené dlhé texty z DB/CMS.  
+**Vetva:** `codex/admin-pastel-reference`  
+**Commity tejto práce:** `49e36c5`, `76842c0`, `4252e47`
 
-## Overené a nasadené
+## Katalóg (bod 1)
 
-- Testovací storefront aj admin boli nasadené cez `ops/test-predani/deploy.sh --deploy`. Verzie: storefront `c2566b78-977d-4238-8a2c-e1826aec2064`, admin `bbe45c9a-37f1-4a93-973a-5e7a5ac4d6ef`.
-- `ops/test-predani/deploy.sh --smoke`: `SMOKE_OK` (HTTP 200, noindex, CSP, testovací Stripe kľúč).
-- Hlavné stránky `/`, `/eshop/`, `/o-lucii/`, `/denny-stacionar-vysna-slana/`, `/kontakt/`, `/vop/`, `/gdpr/`, `/reklamacie/`, `/zdravy-svet/`, `/konzultacie/` a `/reset-40/` vracajú 200.
-- Médiá `/media/legacy-75110b14202a.png`, `/media/legacy-4b8bf0b4e9f0.png`, `/media/learning.jpg`, `/media/ambient/07.mp3` a `/media/ambient/08.mp3` vracajú 200. V `public/media` aj `dist/media` je 39 súborov.
-- Vytvorené screenshoty úvodnej obrazovky pre SK/EN/RU v rozmeroch 390×844 a 1440×900 sú v `/tmp/anastasia-test-{sk,en,ru}-{390,1440}.png`. Zobrazujú úvod/preloader, preto nepotvrdzujú preklady obsahu po vstupe na web.
-- Vytvorené screenshoty katalógovej stránky po vstupe na web v SK/EN/RU pri 390 a 1440 px sú v `/tmp/anastasia-test-content-{sk,en,ru}-{390,1440}.png`. Vizuálne potvrdené: EN/RU preklad nadpisu a úvodu funguje, nepreložený katalógový obsah je označený poznámkou v zvolenom jazyku. Toto nie je úplný audit ďalších stránok ani ich dynamických stavov.
+- Verejný web bol prehľadaný výhradne cez GET na `anastasiaoz.eu`, s odstupom 0,5 s. Bez sitemap sa inventár zostavil z 51 nájdených stránok, navigácie, kategórií, stránkovania a odkazov na produkty. Inventár a importný vstup sú v `backend/data-private/` (gitignored).
+- Z 14 nájdených produktových odkazov bolo 13 detailov čitateľných. Detail `Mineralny-ochranny-krem-pre-citlivu-pokozku` vracal stránku `Server Error in '/' Application.`; cenu, popis ani galériu sa preto nedalo potvrdiť. Jeden obrázok produktu KO.001 vracal 404 a bol z importu vynechaný.
+- Pred importom: 30 produktov a 7 kategórií v test DB. Po importe/read-back: 30 produktov a 9 kategórií. Všetkých 13 dostupných produktov z verejného webu je v test DB s rovnakou cenou s DPH; popis, dostupnosť, stav a dostupné obrázky boli zosúladené. Verejný web neukazuje presné skladové množstvo, preto množstvá neboli vymýšľané ani prepisované.
+- Dve chýbajúce podkategórie pribudli. Štyri nezhodné kategórie z test DB (`Rituálna práca`, `TVOJ ODEV NOVÝ`, `VETERINA` a ich zachovaný stav) ani produkty bez potvrdeného verejného detailu neboli zmazané. V DB zostalo 17 produktov mimo 13 dostupných detailov; medzi nimi je aj produkt z nedostupnej stránky. Zoznam je v súkromnom exporte `backend/data-private/test-catalog-before.json`.
+- `import-anastasia-catalog.ts`: dry-run pred apply, apply dokončený, následný apply bez zmien: kolekcie `+0 ~0 =1`, kategórie `+0 ~0 =6`, produkty `+0 ~0 =13`, sklad `+0 ~0 =6`, chyby 0. Obrázky sa načítavajú len z povolenej host domény, preflight validuje celú galériu; ukladanie medií je idempotentné.
 
-## Testy a buildy
+## Sprievodca a účet (body 3 a 4)
 
-- `cd storefront-prototype && npm test && node build.mjs` – PASS; NEXUS 1268/1268, backend 1513/1513, storefront 43 stránok pred deployom.
-- Deploy build storefrontu – PASS; 44 statických stránok, 34 legacy cieľových ciest pokrytých, katalóg načítaný z testovacieho Medusa API.
-- `source /Users/lucky/.claude/jobs/8ebf6c40/tmp/build.env && export ANASTASIA_MEDIA_ORIGIN=${ANASTASIA_MEDIA_ORIGIN:-$ANASTASIA_API_ORIGIN} && node build.mjs >/dev/null` v `anastasia-admin` – PASS.
+- Admin sprievodca má požadovaných 11 slovenských krokov v poradí: Prehľad, Objednávky, Produkty, Kategórie, Zákazníci, Poukazy, Konzultácie, Obsah webu, Správy, Nastavenia, Pomoc. Vyká, používa neutrálny rod, zvýrazňuje navigáciu a má Ďalej/Späť/Preskočiť s minimálnou dotykovou výškou 44 px. Pomoc ponúka opätovné spustenie.
+- Stav dokončenia sa ukladá do metadata prihláseného Medusa admin používateľa cez `GET/POST /admin/nexus/tour-state`; ostatné metadata sa zachovajú a zmena sa audituje. Nie je zdrojom stavu `localStorage`.
+- Profilový obrázok vlastníka je spracovaný do štvorcového WebP 256×256 a zobrazuje sa v hlavičke adminu. Pozvánka na testovacom serveri už existuje a je aktívna; e-mail nebol odoslaný. V adminu ju možno otvoriť v **Nastavenia → Používatelia**, skopírovať pozvánkový odkaz a odoslať ho ručne. Heslo sa nevytvorilo.
 
-## Katalóg – rozdiely pred/po
+## Preklady (bod 5)
 
-Porovnanie 1:1 nebolo dokončené. Ostrý web na povolené GET požiadavky odpovedá, ale `/robots.txt` aj `/sitemap.xml` vracajú 404 a úvodná HTML odpoveď neobsahuje úplný katalóg ani kategórie. Testovací deploy build potvrdzuje načítanie katalógu z testovacieho API, nie však zhodu s ostrým webom. Nebol vykonaný žiadny import ani zápis do testovacej DB, pretože požadovaná záloha testovacej DB pred zápisom nebola vytvorená. Chýbajúci inventár a rozdiely je nutné doplniť až po bezpečnom exporte kategórií/produktov z oboch prostredí.
+- Prekladový audit teraz kontroluje slovníkové pokrytie a viditeľné textové uzly všetkých vygenerovaných stránok. Opravené/rozšírené sú EN/RU klíče pre cookie lištu a nastavenia, vyhľadávanie a názvy 13 dostupných produktov; známe chyby „Online zdravotná konzultácia“, „ZISTIŤ VIAC“ a ruský názov denného stacionára sú pokryté.
+- Cookie lišta už nie je označená ako iba slovenský obsah a test kontroluje jej jazyk. Obsah mimo slovníka sa označuje poznámkou o slovenčine.
+- Audit nepokrýva úplné preklady dlhých popisov produktov, všetkých CMS textov ani e-mailových šablón; tieto texty vyžadujú samostatnú jazykovú revíziu.
 
-## Ďalšie požiadavky
+## Build, testy a nasadenie
 
-- Existujúce `i18n.mjs` už obsahuje opravy „Online zdravotná konzultácia“, „ZISTIŤ VIAC“ a „Дневной стационар Вышна Слана“. V tomto behu sa nevykonal úplný audit prekladov, CMS textov ani názvov produktov/kategórií z DB. Prísny test pokrytia všetkých jazykov nebol doplnený.
-- Prehliadka administrácie existuje, ale jej stav sa aktuálne ukladá do `localStorage` (`ana_tour_seen:*`). Serverové uloženie pri používateľovi a požadovaný obsah krokov po jednotlivých záložkách neboli implementované.
-- Profil Lucie, jej fotografia ani pozvánka neboli vytvorené. Pozvánka mení testovaciu DB a pred týmto zápisom je potrebná jej záloha. Následné odoslanie e-mailu musí urobiť Lucia/Lucky ručne v sekcii **Nastavenia → Používatelia**: otvoriť alebo vytvoriť pozvánku, skopírovať odkaz a poslať ho Lucii vlastným kanálom. E-mail sa v tejto práci neposielal.
-- Produkčná doména ani DNS neboli menené. Hero video, úvod ani preloader neboli upravované. Existujúce necommitnuté zmeny zostali nedotknuté.
+- `npx tsc --noEmit` v `backend/`: PASS.
+- Cielené Jest testy importu katalógu a tour-state: 2 suites, 10/10 PASS.
+- `node --test test/i18n.test.mjs test/cookie-consent.test.mjs` v `storefront-prototype/`: 11/11 PASS. Build vytvoril 43 stránok; deploy build 44 stránok.
+- `npm test` v storefront prototype spustil NEXUS aj backend: NEXUS 97/97 súborov, 1268/1268 testov PASS; backend 153/155 suites, 1514/1517 testov PASS. Zlyhali dva existujúce ZeptoMail testy (chýbajúce testovacie URL a zastarané očakávanie hostu loga) a kontrola mapy API, ktorá po doplnení tour endpointu narazila na odlišný zoznam subscriber zdrojov v rozpracovanom strome. Tieto nesúvisiace moduly neboli menené.
+- Testovací storefront aj admin boli nasadené. Posledné verzie: web `13a7e24f-e2c6-4440-9640-e1420fc5d37e`, admin `241fe5c7-b303-4880-89b4-c42099dc08af`.
+- `ops/test-predani/deploy.sh --smoke`: `SMOKE_OK` po poslednom deployi (HTTP 200, noindex, CSP, robots.txt, testovací Stripe config). Produkčná doména, DNS a ostrý backend neboli menené.
+- Finálne screenshoty storefrontu EN/RU/SK 390×844 a 1440×900 sú v `/tmp/anastasia-test-content-{sk,en,ru}-{390,1440}.png`; admin 390×844 a 1440×900 v `/tmp/anastasia-test-admin-{390,1440}.png`.
 
-## Zostáva
+## Zmenené súbory
 
-1. Získať zálohu testovacej DB do `~/db-backups/` na testovacom serveri a overiť ju.
-2. Inventarizovať verejný katalóg vrátane stránkovania/dynamických endpointov, bezpečne načítať testovací katalóg a pripraviť rozdielový report. Potom spustiť najprv dry-run a až po kontrole apply.
-3. Dokončiť audit stránok/CMS a SK/EN/RU vrátane produktov, e-mailov, checkoutu, účtu a knižnice; doplniť test pokrytí.
-4. Uložiť stav administrátorského sprievodcu do metadata používateľa a dokončiť jednotlivé kroky.
-5. Po zálohe pripraviť účet a neodoslanú pozvánku. Profilovú fotografiu spracovať až spôsobom, ktorý nevyžaduje zobrazenie pôvodného obrázka.
+- `backend/src/scripts/import-anastasia-catalog.ts`, `backend/src/scripts/export-test-catalog-state.ts`, `backend/src/scripts/prepare-lucia-admin-invite.ts`
+- `backend/src/api/admin/nexus/tour-state/route.ts` a jeho unit test; `backend/docs/wp/admin-function-map.json`
+- `anastasia-admin/app.mjs`, `guide.mjs`, `index.html`, `reference.css`, `styles.css`, `assets/lucia.webp`
+- `storefront-prototype/public/i18n.mjs`, `src/cookie-consent.mjs`, `test/i18n.test.mjs`
+
+**Riziko / ďalší krok:** z verejného zdroja získať funkčný detail nedostupného produktu a potvrdiť skladové množstvá; vykonať jazykovú revíziu dlhých DB/CMS/e-mailových textov; opraviť vyššie uvedené regresné testy v ich vlastných moduloch. Zmena API mapy je zahrnutá, ale jej plošná kontrola v tomto rozpracovanom strome zostáva blokovaná zmenou zoznamu subscriber zdrojov.
