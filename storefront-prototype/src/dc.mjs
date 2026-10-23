@@ -29,6 +29,7 @@ const ROUTES = {
   'Astrologický profil': '/konzultacie/astrologicky-profil-zdravia-a-vitality', 'Astrológia': '/konzultacie/astrologicky-profil-zdravia-a-vitality',
   'AI ANASTASIA': '/ai-anastasia',
   'Zdravý svet': '/zdravy-svet', 'O Lucii': '/o-lucii', 'Príbeh Lucie': '/o-lucii', 'Kontakt': '/kontakt',
+  'Recenzie zákazníkov': '/ai-anastasia/recenzie-zakaznikov',
   'Pharmanews': '/ai-anastasia/pharmanews-novinky-zo-sveta-farmacie-zdravia-mediciny', 'Zdravé lekárne': '/zdrava-lekaren',
   'Obchodné podmienky': '/vop', 'Súkromie a GDPR': '/gdpr', 'Reklamácie': '/reklamacie',
   'Môj účet': '/ucet', 'Košík': '/kosik', 'Napíšte nám': '/kontakt',
@@ -229,8 +230,7 @@ export function chrome(page) {
     // Položka účtu v menu (aj ikona) je označená pre runtime: text a cesta podľa prihlásenia.
     html=html.replace(/(<a\b[^>]*?)(>)\s*Zdravý svet\s*<\/a>/g, '$1 data-menu-account$2Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, '$1Klub</a>').replace(/(<a\b[^>]*aria-label="Môj účet")/g, '$1 data-menu-account');
     let index=0;
-    // Poradie polí menu je v semene spoločné pre všetky skupiny (nie resetované).
-    let menuField=0;
+    const groupOffsets=[0,5,9];
     html=html.replace(/<div style="display:flex;flex-direction:column;gap:(?:2|4)px;[^"]*">[\s\S]*?<\/div>/g,whole=>{
       if(index>=menuGroups.length)return whole;
       const group=menuGroups[index++];
@@ -239,14 +239,16 @@ export function chrome(page) {
       // Kľúče polí menu z administrácie (rovnaké poradie ako v semene).
       const slug=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'');
       const base=`global__menu-${slug(group.title)}`;
-      const link=(label,href,heading=false)=>{const field=menuField++;const content=group.title==='Svet ANASTASIA'&&href.startsWith('https://')?'':` data-content="${base}__${field}-text"`;return `<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355"${content}>${escape(label)}</a>`;};
-      const title=group.title==='Obchod'?link(group.title,group.href,true):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px" data-content="${base}__${menuField++}-text">${escape(group.title)}</span>`;
-      return wrapper+title+group.links.map(item=>{if(!item){menuField++;return '';}const [label,href]=item;return link(label,href);}).join('')+'</div>';
+      let field=groupOffsets[index-1];
+      const link=(label,href,heading=false,keyIndex=field++)=>{const content=group.title==='Svet ANASTASIA'&&href.startsWith('https://')?'':` data-content="${base}__${keyIndex}-text"`;return `<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355"${content}>${escape(label)}</a>`;};
+      const title=group.title==='Obchod'?link(group.title,group.href,true,field++):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px" data-content="${base}__${field++}-text">${escape(group.title)}</span>`;
+      return wrapper+title+group.links.map(item=>{if(!item){field++;return '';}const [label,href]=item;return link(label,href);}).join('')+'</div>';
     });
     return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark)
       .replaceAll('background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.04) 30%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.08) 100%),rgba(26,34,22,0.42)', 'background:#F5F2E8')
       .replaceAll('color:#EFE5C7','color:#283020')
-      .replaceAll('color:#C9A355','color:#735218')
+      .replaceAll('color:#C9A355','color:#313C2B')
+      .replaceAll('style-hover="color:#C9A355"','style-hover="color:#62527F"')
       .replaceAll('backdrop-filter:blur(40px) saturate(170%) brightness(0.52);-webkit-backdrop-filter:blur(40px) saturate(170%) brightness(0.52);text-shadow:0 1px 14px rgba(0,0,0,0.35);','');
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
@@ -301,14 +303,16 @@ ${HOME_CSS}
 .site-footer .sf-news>p:not(:first-child){color:#C4C7B6!important}
 .site-footer .sf-news input{color:var(--site-cream,#EFE5C7)!important;border-color:rgba(239,229,199,.6)!important}
 .site-footer .sf-news input::placeholder{color:#C4C7B6!important;opacity:1}
-.site-footer .sf-links a:hover,.site-footer .sf-bottom a:hover{color:var(--site-accent-light,#D8C598)!important}
+.site-footer .sf-links>div>span{color:var(--site-accent-light,#C9BCE0)!important}
+.site-footer .sf-news button,.site-footer .sf-news input[type=submit]{background:var(--site-accent-deep,#62527F)!important;color:#fff!important;border-color:var(--site-accent-deep,#62527F)!important;min-height:44px}
+.site-footer .sf-links a:hover,.site-footer .sf-bottom a:hover{color:var(--site-accent-light,#C9BCE0)!important}
 .site-footer .sf-brands>*>span,.site-footer .sf-brands>*>div span{color:var(--site-cream,#EFE5C7)!important}
 .site-footer .sf-brands>*>img,.site-footer .sf-brands>*>div img{filter:brightness(0) invert(.9)!important}
 .site-footer .sf-links{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px clamp(18px,3vw,44px)!important;width:100%}
 .site-footer .sf-links>div{display:flex!important;flex-direction:column!important;gap:10px!important;min-width:0!important}
 .site-footer .sf-links>div>span{margin-bottom:4px!important}
 .site-footer .sf-links a{line-height:1.35;overflow-wrap:anywhere}
-.site-footer .sf-brands{gap:clamp(12px,4vw,64px)!important;padding:26px 0 30px!important;border-top:1px solid rgba(201,163,85,.18);border-bottom:1px solid rgba(201,163,85,.18)}
+.site-footer .sf-brands{gap:clamp(12px,4vw,64px)!important;padding:26px 0 30px!important;border-top:1px solid color-mix(in srgb,var(--site-accent-light,#C9BCE0) 22%,transparent);border-bottom:1px solid color-mix(in srgb,var(--site-accent-light,#C9BCE0) 22%,transparent)}
 .site-footer .sf-brands>*{grid-template-rows:clamp(92px,8vw,118px) auto!important;row-gap:12px!important}
 .site-footer .sf-brands>*>img{height:clamp(88px,7.6vw,112px)!important;width:auto!important}
 .site-footer .sf-brands>*>div>img{height:clamp(54px,4.8vw,72px)!important;width:auto!important}
@@ -319,9 +323,7 @@ ${HOME_CSS}
 @media(max-width:999.98px){.site-footer .sf-top{grid-template-columns:1fr}}
 @media(max-width:699.98px){
 .site-footer .sf-links{grid-template-columns:1fr 1fr;gap:26px 18px!important}
-.site-footer .sf-links>div:nth-child(3){grid-column:1/-1;display:block!important;columns:2;column-gap:18px}
-.site-footer .sf-links>div:nth-child(3)>span{display:block;column-span:all;margin-bottom:14px!important}
-.site-footer .sf-links>div:nth-child(3)>a{display:block;margin-bottom:10px;break-inside:avoid}
+.site-footer .sf-links>div:nth-child(3){grid-column:auto;display:flex!important;columns:auto}
 .site-footer .sf-brands>*{grid-template-rows:70px auto!important;row-gap:10px!important}
 .site-footer .sf-brands>*>img{height:66px!important}
 .site-footer .sf-brands>*>div>img{height:40px!important}
@@ -468,6 +470,35 @@ html:has(body.dc-page),body.dc-page{margin:0;background:#F5F2E8}
 .wisdom blockquote{margin:0;font-weight:100;font-size:clamp(34px,4.6vw,72px);line-height:1.08;letter-spacing:-0.035em}
 .wisdom figcaption{display:flex;align-items:center;gap:16px;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--site-accent-deep)}
 .wisdom figcaption::before,.wisdom figcaption::after{content:"";width:48px;height:1px;background:currentColor;opacity:.6}
+.site-footer{background:var(--ana-forest)!important;color:var(--ana-paper)!important}
+.dc-root footer{background:var(--ana-forest)!important}
+.site-footer .sf-news>p:not(:first-child){color:#E4E8DD!important}
+.site-footer .sf-news input::placeholder{color:#E4E8DD!important}
+.site-footer .sf-brands>*>img,.site-footer .sf-brands>*>div img{filter:brightness(0) saturate(100%) invert(87%) sepia(13%) saturate(406%) hue-rotate(211deg) brightness(97%) contrast(89%)!important}
+.site-footer .sf-brands>*>span,.site-footer .sf-brands>*>div span{color:var(--site-accent-light,#C9BCE0)!important}
+.site-footer a{min-height:44px;display:inline-flex;align-items:center}
+.site-footer .sf-links>div{align-items:flex-start}
+.site-footer .sf-links a{min-height:40px}
+.button:not(.light){background:var(--site-main,var(--ana-forest))!important;border-color:var(--site-main,var(--ana-forest))!important;color:var(--ana-paper)!important}
+.button.outline{background:transparent!important;color:var(--site-main,#313C2B)!important;border-color:var(--site-accent,#9C86C2)!important}
+.button.outline:hover,.text-link:hover,.consultation-composition a:hover{color:var(--site-accent-deep,#62527F)!important}
+.tone-0,.statement,.program-feature{background:var(--ana-surface-lavender)!important;color:var(--ana-forest)!important}
+.tone-0 .story-copy,.program-feature .program-copy,.statement h2{color:var(--ana-forest)!important}
+.tone-0 .story-copy p,.program-feature .program-copy p{color:var(--ana-forest)!important}
+.tone-1{background:var(--ana-sage)!important;color:var(--ana-forest)!important}
+.consultation-secondary>a{border-color:color-mix(in srgb,var(--site-accent,#9C86C2) 35%,transparent)!important}
+.lh-eyebrow,.eyebrow,.kol-status{color:var(--site-accent-deep,#62527F)!important}
+.text-link,.category-list>a:hover,.site-header a:hover{color:var(--site-accent-deep,#62527F)}
+.dc-chrome #dc-top-menu a:hover,.dc-chrome #dc-side-menu a:hover{color:var(--site-accent-deep,#62527F)!important}
+.photo-gallery--lucia img{height:min(70vh,720px);object-fit:cover}
+.photo-gallery--lucia figure{min-width:0;overflow:hidden;border-radius:var(--product-card-radius,32px)}
+.photo-gallery--lucia figcaption{padding:14px 18px 18px;overflow-wrap:anywhere;text-indent:0}
+.lh-cat{color:var(--site-main,var(--ana-forest))!important;-webkit-text-fill-color:var(--site-main,var(--ana-forest))!important;text-shadow:0 1px 12px color-mix(in srgb,var(--ana-paper) 96%,transparent),0 0 3px color-mix(in srgb,var(--ana-paper) 85%,transparent)!important}
+.header-brands small{color:var(--site-main,var(--ana-forest))!important;text-shadow:0 1px 5px color-mix(in srgb,var(--ana-paper) 90%,transparent)}
+.header-brands img{filter:drop-shadow(0 1px 3px rgba(245,242,232,.95))}
+#dc-top-menu{background:var(--ana-paper)!important;color:var(--ana-forest)!important;max-height:calc(100dvh - 24px)!important;overflow:auto!important}
+@media(max-width:999.98px){#dc-top-menu{padding:14px 18px!important;gap:10px!important}#dc-top-menu>div:nth-child(4){row-gap:9px!important}#dc-top-menu>div:nth-child(4) a[style*="font-size:14px"]{min-height:40px!important;padding:4px 0!important}#dc-top-menu>div:nth-child(5){padding-top:6px!important}}
+@media(max-width:760px){.photo-gallery--lucia img{height:clamp(250px,56vh,560px)}.site-footer .sf-links{grid-template-columns:repeat(2,minmax(0,1fr))!important}.site-footer .sf-links>div:nth-child(3){grid-column:1/-1;display:flex!important}}
 #program>div[style^="position:absolute;inset:0;background:linear-gradient(90deg"]{background:linear-gradient(180deg,${ease(CREAM,0,1,'56%','100%')}),linear-gradient(90deg,rgba(16,24,15,0.82) 0%,rgba(16,24,15,0.35) 55%,rgba(16,24,15,0.6) 100%)!important}
 /* patička na mobilu: tři loga zmenšená v jednom řádku, ne natažená pod sebou */@media(max-width:699.98px){footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]{gap:10px!important;padding:28px 0 32px!important;align-items:start!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a){grid-template-rows:auto auto!important;row-gap:12px!important;align-items:center!important;align-content:start}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>img{height:92px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>div{gap:8px!important;padding-bottom:0!important;min-height:92px;justify-content:center}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>div>span:first-child[style*="width:1px"]{display:none!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>div>img{width:58px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a) span[style*="white-space:nowrap"]{font-size:11px!important;letter-spacing:.22em!important;padding-left:.22em!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a) span[style*="letter-spacing:0.6em"]{font-size:7.5px!important;letter-spacing:.38em!important;gap:5px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a) span[style*="letter-spacing:0.6em"]>span{width:8px!important}footer div[style*="grid-template-columns:repeat(3,minmax(0,1fr));align-items:end"]>:is(div,a)>span:last-child{font-size:7.5px!important;letter-spacing:1.4px!important;text-align:center}footer div[style*="justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px"]{padding-bottom:88px}}
 /* menu: dekorativní obrázek lesa v menu nechceme */[style*="hero-forest.jpg"][style*="min-height:190px"]{display:none!important}

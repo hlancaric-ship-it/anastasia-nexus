@@ -2,12 +2,11 @@
 // Návrhy (design/*.dc.html) i styles.css zůstávají beze změny: barvy značky se při buildu
 // převedou na CSS proměnné (tokenizeColors), takže přepnutí motivu je jen atribut na <html>
 // (preset) nebo inline --site-* proměnné (vlastní barvy). Přebarvení je okamžité, bez rebuildu.
-// main = pozadí hlavičky/sekcí; deep/dark = tmavší odstíny (stíny, přechody); accent = zlatý akcent;
-// accentDeep/accentLight = tmavší/světlejší zlatá; cream = krémový text na tmavém pozadí.
+// main = lesná zelená; accent = levanduľový akcent; cream = krémový text na tmavom pozadí.
 export const SITE_THEME_PREVIEW_KEY='ana-site-theme-preview'; // náhled z adminu (?vzhlad=), jen tato záložka
 export const SITE_THEME_STORE_KEY='ana-site-theme';           // trvalá volba Lucie (localStorage)
 export const siteThemes=[
-  {id:'zelena',label:'Lesná zelená',main:'#283020',deep:'#26321E',dark:'#14200F',accent:'#C9A355',accentDeep:'#796236'},
+  {id:'zelena',label:'Lesná zelená',main:'#313C2B',deep:'#26321E',dark:'#14200F',accent:'#9C86C2',accentDeep:'#62527F'},
   {id:'bordo',label:'Bordová',main:'#4A1A26',deep:'#3D1520',dark:'#1E0A10',accent:'#C9A355',accentDeep:'#7A5A2E'},
   {id:'modra',label:'Nočná modrá',main:'#1F2A4A',deep:'#1A233E',dark:'#0C1224',accent:'#C9A355',accentDeep:'#796236'},
   {id:'terakota',label:'Terakota',main:'#6E3418',deep:'#5E2C14',dark:'#2A1309',accent:'#E2BC78',accentDeep:'#8A6A34'},
@@ -16,7 +15,7 @@ export const siteThemes=[
   {id:'slivka',label:'Slivková',main:'#3E2448',deep:'#341E3D',dark:'#170D1C',accent:'#D2B07A',accentDeep:'#7C6236'},
 ];
 // Konstanty sdílené všemi presety (krémový text a světlá zlatá). V custom motivu je lze přepsat.
-export const SITE_BASE={cream:'#EFE5C7',accentLight:'#D8C598'};
+export const SITE_BASE={cream:'#F5F2E8',accentLight:'#C9BCE0'};
 
 // Pořadí a názvy CSS proměnných (suffix za --site-). Používá boot, picker i ukládání.
 export const THEME_VARS=['main','deep','dark','accent','accent-deep','accent-light','cream'];
@@ -50,15 +49,15 @@ export const themeToVars=t=>({main:t.main,deep:t.deep,dark:t.dark,accent:t.accen
 export const applySiteVars=(el,v)=>{el.dataset.siteTheme='custom';THEME_VARS.forEach(k=>{if(v[k])el.style.setProperty('--site-'+k,v[k]);});};
 export const clearSiteVars=el=>{THEME_VARS.forEach(k=>el.style.removeProperty('--site-'+k));};
 
-const TOKENS={'283020':'main','2a3222':'main','26321e':'deep','14200f':'dark','c9a355':'accent','796236':'accent-deep','efe5c7':'cream','d8c598':'accent-light'};
+const TOKENS={'283020':'main','2a3222':'main','26321e':'deep','14200f':'dark','c9a355':'accent','796236':'accent-deep','efe5c7':'cream','d8c598':'accent-light','313c2b':'main','9c86c2':'accent','62527f':'accent-deep','f5f2e8':'cream','c9bce0':'accent-light'};
 // Tmavé odstíny značky v rgba() zápisu — veškeré tmavé scrimy a přechody mají sledovat motiv.
 const RGB={'26,34,22':'dark','30,38,25':'dark','16,24,15':'dark','40,48,32':'main','12,18,10':'dark','15,23,14':'dark','28,36,22':'dark','42,50,34':'deep'};
 // rgba(16, 24, 15, .62) i bez mezer — stavitelné z klíčů RGB, ať se mapa rozšiřuje na jednom místě.
 const rgbPattern=Object.keys(RGB).map(k=>k.split(',').map(p=>p.trim().replace(/\s+/g,'\\s*')).join(',\\s*')).join('|');
-const vars=t=>`--site-main:${t.main};--site-deep:${t.deep};--site-dark:${t.dark};--site-accent:${t.accent};--site-accent-deep:${t.accentDeep}`;
+const vars=t=>`--site-main:${t.main};--site-deep:${t.deep};--site-dark:${t.dark};--site-accent:${t.accent};--site-accent-deep:${t.accentDeep};--site-accent-light:${t.accentLight||SITE_BASE.accentLight};--site-cream:${t.cream||SITE_BASE.cream}`;
 // První motiv je výchozí :root (+ sdílené konstanty cream/accent-light), ostatní jen přepisují barvy přes atribut.
 export const siteThemeCss=()=>{
-  const head=`:root{${vars(siteThemes[0])};--site-cream:${SITE_BASE.cream};--site-accent-light:${SITE_BASE.accentLight}}`;
+  const head=`:root{${vars(siteThemes[0])}}`;
   const rest=siteThemes.slice(1).map(t=>`:root[data-site-theme="${t.id}"]{${vars(t)}}`).join('');
   return head+rest;
 };

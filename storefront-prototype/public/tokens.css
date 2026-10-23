@@ -64,21 +64,25 @@ h1,h2,h3,h4,.lh-display,.lh-caps,.display{font-family:'Fraunces',Georgia,'Times 
 :root{
   /* --- Surfaces of the new homepage layout -------------------------------- */
   --lh-paper:#F5F2E8;
-  --lh-ink:#283020;
+  --lh-ink:#313C2B;
   --lh-muted:#69705E;
   --lh-serif:'Fraunces',Georgia,'Times New Roman',serif;
   --lh-sans:'Figtree','Helvetica Neue',sans-serif;
 
   /* --- Brand palette ------------------------------------------------------ */
-  --ana-ink:var(--site-main,#283020);         /* text, dark background      */
+  --ana-ink:var(--site-main,#313C2B);         /* text, dark background      */
   --ana-deep:var(--site-deep,#26321E);         /* deeper shade               */
   --ana-dark:var(--site-dark,#14200F);         /* deepest shade              */
-  --ana-accent:var(--site-accent,#C9A355);     /* gold accent                */
-  --ana-accent-deep:var(--site-accent-deep,#796236);
-  --ana-accent-light:var(--site-accent-light,#D8C598);
-  --ana-cream:var(--site-cream,#EFE5C7);       /* cream text on dark         */
+  --ana-accent:var(--site-accent,#9C86C2);     /* lavender accent             */
+  --ana-accent-deep:var(--site-accent-deep,#62527F);
+  --ana-accent-light:var(--site-accent-light,#C9BCE0);
+  --ana-cream:var(--site-cream,#F5F2E8);       /* cream text on dark         */
   --ana-paper:#F5F2E8;                        /* light surface              */
-  --ana-sage:#D5D6BD;
+  --ana-forest:#313C2B;
+  --ana-lavender:#9C86C2;
+  --ana-lavender-light:#C9BCE0;
+  --ana-surface-lavender:#E8E1F1;
+  --ana-sage:#DCE7D9;
   --ana-olive:#748054;
   --ana-mint:#ECF3E7;
   --ana-muted:#69705E;                        /* muted on light             */
@@ -86,8 +90,8 @@ h1,h2,h3,h4,.lh-display,.lh-caps,.display{font-family:'Fraunces',Georgia,'Times 
   --ana-outline:#A3A894;
   --ana-divider:#BFC4B3;
   --ana-hairline:#D9D9C8;
-  --ana-footer-top:#17332F;
-  --ana-footer-bottom:#112724;
+  --ana-footer-top:#313C2B;
+  --ana-footer-bottom:#313C2B;
   --ana-field-surface:#F7F5ED;
 
   /* --- Typography --------------------------------------------------------- */

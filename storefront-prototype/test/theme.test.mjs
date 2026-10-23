@@ -39,8 +39,8 @@ test('themeToVars mapuje na CSS suffixy', () => {
 
 test('siteThemeCss definuje :root i presety včetně sdílených konstant', () => {
   const css = siteThemeCss();
-  assert.match(css, /:root\{[^}]*--site-main:#283020/);
-  assert.match(css, /--site-cream:#EFE5C7/i);
-  assert.match(css, /--site-accent-light:#D8C598/i);
+  assert.match(css, /:root\{[^}]*--site-main:#313C2B/);
+  assert.match(css, /--site-cream:#F5F2E8/i);
+  assert.match(css, /--site-accent-light:#C9BCE0/i);
   siteThemes.slice(1).forEach(t => assert.ok(css.includes(`[data-site-theme="${t.id}"]`), `chybí preset ${t.id}`));
 });

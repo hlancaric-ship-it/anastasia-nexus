@@ -45,4 +45,4 @@ export const consultations = () => {
   `;
 };
 
-const pageIntro = (eyebrow, title, description) => `<div class="page-intro"><p class="eyebrow">${e(eyebrow)}</p><h1>${e(title)}</h1><p class="lead">${e(description)}</p></div>`;
+const pageIntro = (eyebrow, title, description) => `<div class="page-intro"><p class="eyebrow" data-content="konzultacie__konzultacie-1__0-text">${e(eyebrow)}</p><h1>${e(title)}</h1><p class="lead">${e(description)}</p></div>`;

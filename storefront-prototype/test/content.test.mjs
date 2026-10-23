@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,readdir} from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
 import {pageKeyOf} from '../public/content.mjs';
 
 // Seed z backendu (backend/src/lib/content/seed.json) – kopia pre test, aby sa dal
@@ -8,18 +8,12 @@ import {pageKeyOf} from '../public/content.mjs';
 const seed = JSON.parse(await readFile(new URL('fixtures/content-seed.json', import.meta.url), 'utf8'));
 const seedKeys = new Set(seed.pages.flatMap(p => p.sections.flatMap(s => s.fields.map(f => f.key))));
 const dist = new URL('../dist/', import.meta.url);
+const routes = JSON.parse(await readFile(new URL('routes.json', dist), 'utf8'));
 
-const htmlFiles = async () => {
-  const out = [];
-  const walk = async (dir, prefix) => {
-    for (const entry of await readdir(dir, {withFileTypes: true})) {
-      if (entry.isDirectory()) await walk(new URL(entry.name + '/', dir), prefix + entry.name + '/');
-      else if (entry.name === 'index.html') out.push({prefix, url: new URL(entry.name, dir)});
-    }
-  };
-  await walk(dist, '');
-  return out;
-};
+const htmlFiles = async () => routes.map(path => ({
+  prefix: path === '/' ? '' : path.slice(1) + '/',
+  url: new URL((path === '/' ? '' : path.slice(1) + '/') + 'index.html', dist),
+}));
 
 test('the page key follows the backend slug', () => {
   assert.equal(pageKeyOf('/'), 'home');
