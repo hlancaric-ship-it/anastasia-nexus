@@ -26,7 +26,7 @@
 
 ## Build, testy a nasadenie
 
-- `npx tsc --noEmit` v `backend/`: PASS.
+- `npx tsc --noEmit` v `backend/`: PASS v predchádzajúcom overovacom behu. Záverečné opakovanie po presune údajov pozvánky do premenných prostredia nedobehlo ani po 3 minútach a bolo prerušené; aktualizovaný skript sa následne úspešne vykonal cez `medusa exec`.
 - Cielené Jest testy importu katalógu a tour-state: 2 suites, 10/10 PASS.
 - `node --test test/i18n.test.mjs test/cookie-consent.test.mjs` v `storefront-prototype/`: 11/11 PASS. Build vytvoril 43 stránok; deploy build 44 stránok.
 - `npm test` v storefront prototype spustil NEXUS aj backend: NEXUS 97/97 súborov, 1268/1268 testov PASS; backend 153/155 suites, 1514/1517 testov PASS. Zlyhali dva existujúce ZeptoMail testy (chýbajúce testovacie URL a zastarané očakávanie hostu loga) a kontrola mapy API, ktorá po doplnení tour endpointu narazila na odlišný zoznam subscriber zdrojov v rozpracovanom strome. Tieto nesúvisiace moduly neboli menené.
