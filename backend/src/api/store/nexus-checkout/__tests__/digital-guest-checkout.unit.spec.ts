@@ -2,13 +2,14 @@ import { grantEntitlementsForOrder } from "../../../../modules/entitlement/order
 import { isEntitlementProduct } from "../../../../modules/entitlement/policy"
 
 /**
- * Digitálny produkt smie kúpiť len prihlásený zákazník.
- * Tieto testy overujú existujúce správanie jadra (bez zásahu do kódu modulu entitlement):
- *  - host (objednávka bez customer_id) nedostane žiadny prístup,
+ * Digitálny produkt sa dá kúpiť aj bez registrácie (Medusa priradí hosťovského zákazníka z e-mailu).
+ *  - objednávka úplne bez zákazníka nedostane žiadny prístup,
+ *  - hosťovský nákup dostane prístup, pri existujúcom účte s rovnakým e-mailom ho dostane účet,
  *  - prístup sa udeľuje len produktu s dopravným profilom typu „digital“.
  */
 
-const paidOrder = (customer_id: string | null) => ({
+const paidOrder = (customer_id: string | null, extra: Record<string, unknown> = {}) => ({
+  ...extra,
   id: "order_1",
   status: "completed",
   total: 168,
@@ -17,10 +18,11 @@ const paidOrder = (customer_id: string | null) => ({
   payment_collections: [{ captured_amount: 168, refunded_amount: 0, payments: [{ captured_at: "2026-10-20T10:00:00.000Z" }] }],
 })
 
-const makeContainer = (order: unknown) => {
+const makeContainer = (order: unknown, accounts: unknown[] = []) => {
   const query = {
     graph: jest.fn(async ({ entity }: any) => {
       if (entity === "order") return { data: [order] }
+      if (entity === "customer") return { data: accounts }
       if (entity === "product") {
         return { data: [{ id: "prod_digital", metadata: {}, shipping_profile: { type: "digital" } }] }
       }
@@ -35,8 +37,8 @@ const makeContainer = (order: unknown) => {
 
 beforeEach(() => jest.clearAllMocks())
 
-describe("Digitálny produkt smie kúpiť len prihlásený zákazník", () => {
-  it("host nezíska prístup k digitálnemu produktu", async () => {
+describe("Digitálny produkt a nákup bez registrácie", () => {
+  it("objednávka bez zákazníka nezíska prístup", async () => {
     const { container, entitlements, logger } = makeContainer(paidOrder(null))
     const summary = await grantEntitlementsForOrder(container, "order_1")
     expect(summary.granted).toEqual([])
@@ -54,6 +56,21 @@ describe("Digitálny produkt smie kúpiť len prihlásený zákazník", () => {
       product_id: "prod_digital",
       source: "order",
     }))
+  })
+
+  it("hosťovský nákup dostane prístup na hosťovského zákazníka", async () => {
+    const { container, entitlements } = makeContainer(paidOrder("cust_guest", { email: "host@example.test", customer: { has_account: false } }))
+    await grantEntitlementsForOrder(container, "order_1")
+    expect(entitlements.grant).toHaveBeenCalledWith(expect.objectContaining({ customer_id: "cust_guest" }))
+  })
+
+  it("hosťovský nákup s e-mailom existujúceho účtu pripíše prístup účtu", async () => {
+    const { container, entitlements } = makeContainer(
+      paidOrder("cust_guest", { email: "Ucet@Example.test", customer: { has_account: false } }),
+      [{ id: "cust_account", email: "ucet@example.test", has_account: true }],
+    )
+    await grantEntitlementsForOrder(container, "order_1")
+    expect(entitlements.grant).toHaveBeenCalledWith(expect.objectContaining({ customer_id: "cust_account" }))
   })
 
   it("prístup sa udeľuje len digitálnemu produktu", () => {

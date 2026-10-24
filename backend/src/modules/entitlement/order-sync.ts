@@ -17,6 +17,8 @@ type Container = Pick<MedusaContainer, "resolve">
 type OrderView = OrderPaymentView & {
   id: string
   customer_id?: string | null
+  email?: string | null
+  customer?: { has_account?: boolean | null } | null
   items?: Array<{ id: string; product_id?: string | null; variant_id?: string | null }> | null
 }
 
@@ -25,6 +27,8 @@ const ORDER_FIELDS = [
   "status",
   "total",
   "customer_id",
+  "email",
+  "customer.has_account",
   "items.id",
   "items.product_id",
   "items.variant_id",
@@ -64,6 +68,24 @@ export async function resolveOrderIdByPayment(container: Container, paymentId: s
   return links?.[0]?.order_id ?? null
 }
 
+/**
+ * Nákup bez prihlásenia: Medusa priradí objednávke hosťovského zákazníka z e-mailu.
+ * Ak už existuje práve jeden registrovaný účet s rovnakým e-mailom, prístup patrí jemu,
+ * aby ho zákazník videl v Mojej knižnici. Inak hosťovský zákazník – magic link ho neskôr aktivuje.
+ */
+async function entitlementOwner(query: any, order: OrderView): Promise<string> {
+  const guestId = order.customer_id as string
+  const email = order.email?.trim().toLowerCase()
+  if (order.customer?.has_account !== false || !email) return guestId
+  try {
+    const { data } = await query.graph({ entity: "customer", fields: ["id", "email", "has_account"], filters: { email, has_account: true } })
+    const accounts = (data ?? []).filter((c: any) => c?.has_account === true && String(c.email || "").toLowerCase() === email)
+    return accounts.length === 1 ? accounts[0].id : guestId
+  } catch {
+    return guestId
+  }
+}
+
 export type GrantSummary = { orderId: string; skipped?: string; granted: string[]; existing: string[] }
 
 /**
@@ -82,6 +104,8 @@ export async function grantEntitlementsForOrder(container: Container, orderId: s
     return { ...summary, skipped: "NO_CUSTOMER" }
   }
 
+  const customerId = await entitlementOwner(query, order)
+
   const productIds = [...new Set((order.items ?? []).map((i) => i.product_id).filter((v): v is string => Boolean(v)))]
   if (!productIds.length) return { ...summary, skipped: "NO_PRODUCTS" }
 
@@ -98,7 +122,7 @@ export async function grantEntitlementsForOrder(container: Container, orderId: s
     if (!product || !isEntitlementProduct(product)) continue
     const variantId = order.items?.find((i) => i.product_id === productId)?.variant_id ?? null
     const { entitlement, created } = await entitlements.grant({
-      customer_id: order.customer_id,
+      customer_id: customerId,
       product_id: productId,
       variant_id: variantId,
       order_id: orderId,

@@ -8,6 +8,7 @@ import {
 } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../../nexus-cart/route"
 import { recordEvent } from "../../../../lib/observability/events"
+import { canAccessCart, customerActor } from "../../../../lib/checkout/cart-access"
 import {
   PAYMENT_METHODS, PICKUP_ADDRESS, CheckoutChoiceError, amountValue, assertCartShippingReady, freeShippingThreshold, loadCartShape, resolvePhysicalShippingType,
   type CartShape, type DeliveryCode, type PaymentMethodCode, type ShippingTypeCode,
@@ -20,7 +21,7 @@ import {
  */
 
 const CART_FIELDS = [
-  "id", "customer_id", "completed_at", "currency_code", "region_id",
+  "id", "customer_id", "customer.has_account", "completed_at", "currency_code", "region_id",
   "shipping_address.country_code",
   "items.id", "items.product.shipping_profile.id",
   "shipping_methods.id", "shipping_methods.shipping_option_id",
@@ -37,13 +38,13 @@ const SUMMARY_FIELDS = [
 
 type PricedOption = { id: string; name: string; shipping_profile_id: string; type?: { code?: string } | null; amount?: unknown; calculated_price?: { calculated_amount?: unknown } | null; prices?: any[] }
 
-async function loadOwnedCart(req: AuthenticatedMedusaRequest, cartId: unknown, actorId: string) {
+async function loadOwnedCart(req: AuthenticatedMedusaRequest, cartId: unknown, actorId?: string) {
   if (typeof cartId !== "string" || !/^cart_[A-Za-z0-9]+$/.test(cartId)) throw new CheckoutChoiceError("INVALID_CART_ID")
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
   const { data } = await query.graph({ entity: "cart", fields: CART_FIELDS, filters: { id: cartId } })
   const cart = data?.[0]
   if (!cart) throw new CheckoutChoiceError("CART_NOT_FOUND", 404)
-  if (cart.customer_id !== actorId) throw new CheckoutChoiceError("CART_ACCESS_DENIED", 403)
+  if (!canAccessCart(cart, actorId)) throw new CheckoutChoiceError("CART_ACCESS_DENIED", 403)
   if (cart.completed_at) throw new CheckoutChoiceError("CART_COMPLETED", 409)
   if (cart.currency_code !== "eur") throw new CheckoutChoiceError("UNSUPPORTED_CURRENCY")
   if (!cart.items?.length) throw new CheckoutChoiceError("CART_EMPTY")
@@ -86,8 +87,7 @@ function sendError(res: MedusaResponse, error: unknown) {
 
 /** Možnosti dopravy a platby pre aktuálny košík (ceny podľa aktuálnej hodnoty tovaru). */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
-  const actorId = req.auth_context?.actor_type === "customer" ? req.auth_context.actor_id : undefined
-  if (!actorId) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" })
+  const actorId = customerActor(req)
   try {
     const cart = await loadOwnedCart(req, (req.query as Record<string, unknown>)?.cart_id, actorId)
     const shape = await shapeOf(req, cart)
@@ -117,8 +117,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 
 /** Uloží výber dopravy a platby a pripraví platbu (pri karte vráti client_secret pre Stripe). */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
-  const actorId = req.auth_context?.actor_type === "customer" ? req.auth_context.actor_id : undefined
-  if (!actorId) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" })
+  const actorId = customerActor(req)
   const body = (req.body || {}) as { cart_id?: unknown; delivery?: unknown; payment?: unknown }
   try {
     const payment = PAYMENT_METHODS.find((method) => method.code === body.payment)
@@ -162,7 +161,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     // Bez platnej dopravy pre všetky profily sa platba vôbec nepripraví (inak by zákazník zaplatil bez objednávky).
     await assertCartShippingReady(req.scope, cart.id)
     // Ceny položiek (NEXUS) a suma platby sa prepočítajú až po zmene dopravy.
-    await repriceCart(cart.id, req.scope, true, undefined, actorId)
+    await repriceCart(cart.id, req.scope, true, undefined, actorId, !actorId)
     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
     let summary = (await query.graph({ entity: "cart", fields: SUMMARY_FIELDS, filters: { id: cart.id } })).data?.[0]
     const total = amountValue(summary?.total)

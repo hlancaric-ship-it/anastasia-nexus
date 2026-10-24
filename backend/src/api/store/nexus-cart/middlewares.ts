@@ -1,5 +1,6 @@
 import { authenticate, type MedusaNextFunction, type MedusaRequest, type MedusaResponse, type MiddlewareRoute } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { guestRate } from "../../../lib/checkout/cart-access"
 import { assertCartShippingReady, CheckoutChoiceError } from "../../../lib/checkout/delivery-payment"
 
 /**
@@ -24,6 +25,9 @@ export async function requireShippingBeforePayment(req: MedusaRequest, res: Medu
 /**
  * Autentizace zákazníka pro /store/nexus-cart a /store/nexus-checkout.
  *
+ * Nákup bez registrácie (24. 10. 2026): prihlásenie je voliteľné. Host smie len košík
+ * bez účtu (viz lib/checkout/cart-access) a je obmedzený podľa IP (kupóny nejde skúšať).
+ *
  * SECURITY FIX (C1/C3/F3): tyto endpointy přijímají cart_id z klienta a
  * manipulují ceny / dokončují objednávky. Bez auth middleware může kdokoliv:
  *   - bruteforce kupónových kódů (C1),
@@ -33,21 +37,23 @@ export async function requireShippingBeforePayment(req: MedusaRequest, res: Medu
  * Ownership validace (cart.customer_id === auth.actor_id) se dělá uvnitř
  * route handleru po načtení košíku -- middleware ověří jen přihlášení.
  */
+const optionalCustomer = authenticate("customer", ["session", "bearer"], { allowUnauthenticated: true })
+
 export const nexusCartMiddlewares: MiddlewareRoute[] = [
   {
     matcher: "/store/nexus-cart",
     method: ["POST"],
-    middlewares: [authenticate("customer", ["session", "bearer"])],
+    middlewares: [optionalCustomer, guestRate("nexus-cart-guest")],
   },
   {
     matcher: "/store/nexus-checkout",
     method: ["POST"],
-    middlewares: [authenticate("customer", ["session", "bearer"])],
+    middlewares: [optionalCustomer, guestRate("nexus-checkout-guest", 10, 60)],
   },
   {
     matcher: "/store/nexus-checkout/options",
     method: ["GET", "POST"],
-    middlewares: [authenticate("customer", ["session", "bearer"])],
+    middlewares: [optionalCustomer, guestRate("nexus-options-guest", 60, 60)],
   },
   {
     matcher: "/store/payment-collections/:id/payment-sessions",

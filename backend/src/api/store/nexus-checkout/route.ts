@@ -5,6 +5,7 @@ import { repriceCart } from "../nexus-cart/route"
 import { SafeOrderError } from "./safeorder"
 import { giftVoucherHttpError } from "../gift-vouchers/errors"
 import { recordEvent } from "../../../lib/observability/events"
+import { assertCartAccess, customerActor } from "../../../lib/checkout/cart-access"
 
 import { assertCartConsent, loadConsentCart } from "../../../lib/legal/checkout"
 import { LegalError } from "../../../modules/legal/policy"
@@ -23,24 +24,23 @@ async function compensate(scope: AuthenticatedMedusaRequest["scope"], cartId: st
 
 /** Revalidate with NEXUS, then let Medusa's normal workflow create the order. */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
-  const actorId = req.auth_context?.actor_type === "customer" ? req.auth_context.actor_id : undefined
-  if (!actorId) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" })
+  const actorId = customerActor(req)
 
   const { cart_id: cartId } = req.body as { cart_id?: string }
   if (!cartId || typeof cartId !== "string") {
     return res.status(400).json({ ok: false, error: "INVALID_CART_ID" })
   }
 
-  // Kompenzovať platbu smie len vlastníčka košíka (nikdy cudzí cart_id).
+  // Kompenzovať platbu smie len vlastník košíka (nikdy cudzí cart_id). Host len košík bez účtu.
   let ownerVerified = false
   let knownIntents: string[] = []
   try {
     const cart = await loadConsentCart(req.scope, cartId)
-    if (cart.customer_id !== actorId) throw new Error("CART_ACCESS_DENIED")
+    assertCartAccess(cart, actorId)
     ownerVerified = true
     knownIntents = await stripeIntentsOfCart(req.scope, cartId).catch(() => [])
     await assertCartConsent(req.scope, cart)
-    const pricing = await repriceCart(cartId, req.scope, true, undefined, actorId)
+    const pricing = await repriceCart(cartId, req.scope, true, undefined, actorId, !actorId)
     if (pricing.pricesChanged) {
       await recordEvent(req.scope, "warn", "checkout", "price_changed", { cart_id: cartId })
       const paymentCompensation = await compensate(req.scope, cartId, "PRICE_CHANGED", knownIntents)

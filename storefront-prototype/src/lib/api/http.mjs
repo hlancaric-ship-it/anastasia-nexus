@@ -205,8 +205,7 @@ export function createHttpApi(storage, config) {
   }
 
   async function reprice() {
-    // Přepočet ceny/kupónu dělá server; vyžaduje prihlásenie. Host vidí základní ceny Medusy.
-    if (!loggedIn()) return;
+    // Prepočet ceny/kupónu robí server, aj pre hosťa (nákup bez registrácie).
     const id = get(CART); if (!id) return;
     const coupon = get(COUPON) || undefined;
     await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: coupon } });
@@ -352,7 +351,6 @@ export function createHttpApi(storage, config) {
     },
     async applyCoupon(code) {
       const id = await ensureCart();
-      if (!loggedIn()) return { ok: false, message: 'Pre uplatnenie kupónu sa prihláste.' };
       const r = await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: String(code || '').trim() } });
       if (r.ok && r.data?.coupon) { set(COUPON, r.data.coupon.code); return { ok: true, message: 'Kupón prijatý.' }; }
       return { ok: false, message: 'Kupón nie je dostupný.' };
@@ -381,11 +379,12 @@ export function createHttpApi(storage, config) {
     // Server rozhodne, či treba adresu, a vracia len kódy – žiadne „Digitálny produkt“ ani vlastné ceny.
     async getCheckoutOptions() {
       const id = get(CART); if (!id) return { ok: false, error: 'CART_EMPTY', message: CHECKOUT_MSG.CART_EMPTY };
-      if (!loggedIn()) return { ok: false, status: 401, error: 'UNAUTHORIZED', message: CHECKOUT_MSG.UNAUTHORIZED };
       const fail = 'Možnosti dopravy sa nepodarilo načítať. Skúste to znova.';
-      // Server overí vlastníka košíka, preto ho najprv priradíme prihlásenému zákazníkovi.
-      const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
-      if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
+      // Prihlásený zákazník: košík sa mu priradí. Host nakupuje bez registrácie (košík bez účtu).
+      if (loggedIn()) {
+        const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
+        if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
+      }
       let r = await call(`/store/nexus-checkout/options?cart_id=${encodeURIComponent(id)}`);
       // Ceny dopravy vie server určiť až podľa krajiny – doplníme ju a spýtame sa znova.
       if (r.status === 409 && r.data?.error === 'ADDRESS_REQUIRED') {
@@ -413,10 +412,12 @@ export function createHttpApi(storage, config) {
     // prepočíta ceny a založí platobnú session – klient použije len client_secret z odpovede.
     async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = null, street = '', city = '', postalCode = '', payment = 'card' } = {}) {
       const id = get(CART); if (!id) return { ok: false, error: 'CART_EMPTY', message: CHECKOUT_MSG.CART_EMPTY };
-      if (!loggedIn()) return { ok: false, status: 401, error: 'UNAUTHORIZED', message: CHECKOUT_MSG.UNAUTHORIZED };
       const fail = 'Objednávku sa nepodarilo pripraviť. Skúste to znova.';
-      const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
-      if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
+      // Prihlásený zákazník: košík sa mu priradí. Host nakupuje bez registrácie (košík bez účtu).
+      if (loggedIn()) {
+        const owner = await call(`/store/carts/${id}/customer`, { method: 'POST', body: {} });
+        if (!owner.ok) return { ok: false, status: owner.status, error: owner.data?.error, message: fail };
+      }
       const term = await checkCartBooking(id);
       if (!term.ok) return term;
       // Doprava je voliteľná len pre čisto digitálny košík; fyzický tovar vyžaduje courier/pickup.
@@ -456,7 +457,6 @@ export function createHttpApi(storage, config) {
     async checkout() {
       const id = get(CART);
       if (!id) return { mode: 'http', status: 'ERROR', messages: 'Košík je prázdny.' };
-      if (!loggedIn()) return { mode: 'http', status: 'ERROR', messages: 'Pre dokončenie objednávky sa prihláste.' };
       const r = await call('/store/nexus-checkout', { method: 'POST', body: { cart_id: id } });
       const M = {
         ALLOW: 'Objednávka bola vytvorená. Ďakujeme.',

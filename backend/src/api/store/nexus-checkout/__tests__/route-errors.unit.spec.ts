@@ -23,12 +23,20 @@ const makeScope = () => {
 beforeEach(() => jest.clearAllMocks())
 
 describe("checkout auth gate", () => {
-  it("vrátí 401 bez přihlášeného zákazníka a nezavolá reprice ani workflow", async () => {
+  it.each([
+    ["registrovaný účet", "cust_owner", true],
+    ["bez zákazníka", null, null],
+  ])("host (bez prihlásenia): %s", async (_label, customer_id, has_account) => {
+    jest.mocked(loadConsentCart).mockResolvedValueOnce({ id: "cart_test", customer_id, customer: customer_id ? { has_account } : null })
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
-    await POST({ body: { cart_id: "synthetic-cart" }, scope: { resolve: jest.fn() }, auth_context: undefined } as any, res)
-    expect(res.status).toHaveBeenCalledWith(401)
-    expect(res.json).toHaveBeenCalledWith({ ok: false, error: "UNAUTHORIZED" })
-    expect(repriceCart).not.toHaveBeenCalled()
+    await POST({ body: { cart_id: "cart_test" }, scope: makeScope().scope, auth_context: undefined } as any, res)
+    if (customer_id) {
+      expect(res.status).toHaveBeenCalledWith(403)
+      expect(repriceCart).not.toHaveBeenCalled()
+    } else {
+      expect(res.status).not.toHaveBeenCalledWith(401)
+      expect(assertCartConsent).toHaveBeenCalled()
+    }
   })
 
   it.each(["cust_foreign", null])("rejects foreign and guest carts before consent or mutation (%s)", async (customer_id) => {
@@ -55,7 +63,7 @@ describe("checkout auth gate", () => {
     jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: true, tenantId: "anastasia", items: [] } as any)
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
     await POST({ body: { cart_id: "synthetic-cart" }, scope: { resolve: () => ({ warn: jest.fn(), error: jest.fn() }) }, auth_context: AUTH } as any, res)
-    expect(repriceCart).toHaveBeenCalledWith("synthetic-cart", expect.anything(), true, undefined, "cust_owner")
+    expect(repriceCart).toHaveBeenCalledWith("synthetic-cart", expect.anything(), true, undefined, "cust_owner", false)
   })
 
   it("vrátí 403 na CART_ACCESS_DENIED z repriceCart a nespustí completeCartWorkflow", async () => {

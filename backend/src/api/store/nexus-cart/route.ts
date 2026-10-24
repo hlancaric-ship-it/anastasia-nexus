@@ -1,4 +1,5 @@
 import { MedusaRequest, MedusaResponse, AuthenticatedMedusaRequest } from "@medusajs/framework/http"
+import { assertCartAccess, customerActor } from "../../../lib/checkout/cart-access"
 import { ContainerRegistrationKeys, Modules, QueryContext } from "@medusajs/framework/utils"
 import type { IPromotionModuleService, PromotionDTO } from "@medusajs/framework/types"
 import { updateLineItemInCartWorkflow, updateCartWorkflow } from "@medusajs/medusa/core-flows"
@@ -140,14 +141,17 @@ async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  * parametru ownership kontrolu přeskakuje a je určené JEN pro důvěryhodné
  * interní volající (hooks.ts), NIKDY pro HTTP handlery, kde se vlastník bere
  * z auth_context.
+ *
+ * `guest`: nákup bez registrácie (HTTP handler bez prihláseného zákazníka). Host smie
+ * len košík bez účtu, viz `canAccessCart`.
  */
-export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null, expectedCustomerId?: string) {
+export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null, expectedCustomerId?: string, guest = false) {
   if (!cartId || typeof cartId !== "string") throw new Error("INVALID_CART_ID")
   const query: any = scope.resolve(ContainerRegistrationKeys.QUERY)
   const { data } = await query.graph({
     entity: "cart",
     fields: [
-      "id", "currency_code", "region_id", "metadata", "customer_id", "customer.metadata", "customer.groups.name", "customer.groups.metadata",
+      "id", "currency_code", "region_id", "metadata", "customer_id", "customer.has_account", "customer.metadata", "customer.groups.name", "customer.groups.metadata",
       "items.id", "items.quantity", "items.variant_id", "items.unit_price",
       "credit_lines.id", "credit_lines.reference",
     ],
@@ -155,9 +159,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   })
   const cart = data?.[0]
   if (!cart) throw new Error("CART_NOT_FOUND")
-  if (expectedCustomerId && cart.customer_id !== expectedCustomerId) {
-    throw new Error("CART_ACCESS_DENIED")
-  }
+  if (guest || expectedCustomerId) assertCartAccess(cart, expectedCustomerId)
   const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput)
   const tenantId = process.env.NEXUS_TENANT_ID
   const pricingUrl = process.env.NEXUS_PRICING_URL
@@ -303,14 +305,13 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
 }
 
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
-  const actorId = req.auth_context?.actor_type === "customer" ? req.auth_context.actor_id : undefined
-  if (!actorId) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" })
+  const actorId = customerActor(req)
   try {
     const { cart_id: cartId, couponCode } = req.body as { cart_id?: string; couponCode?: string | null }
     if (couponCode !== undefined && couponCode !== null && typeof couponCode !== "string") {
       return res.status(400).json({ ok: false, error: "VALIDATION_ERROR" })
     }
-    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode, actorId)
+    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode, actorId, !actorId)
     await recordEvent(req.scope, "info", "pricing", "repriced", {
       cart_id: cartId, tenant_id: pricing.tenantId, lines: pricing.items.length, prices_changed: pricing.pricesChanged,
       coupon_applied: Boolean(pricing.coupon), gift_voucher_applied: Boolean(pricing.gift_voucher),
