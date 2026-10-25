@@ -929,6 +929,10 @@ html.lh-mobile-intro .lh-intro :is(.lh-vid-btn,.lh-intro__sound){background:rgba
 .dc-root .lh-flow .lh-register>:not(form):not(.newsletter-status){grid-column:1}
 .dc-root .lh-flow .lh-register>form{grid-column:2;grid-row:1/span 4;align-self:center;display:grid;gap:14px}
 .dc-root .lh-flow .lh-register input[type=email]{border-radius:0;height:54px;background:#fff;border:0;border-bottom:1px solid var(--fl-ink)}
+/* Registrácia na Home: krátke tlačidlo podľa textu a viditeľné políčko súhlasu */
+.dc-root .lh-flow .lh-register>form .lh-cta{justify-self:start;width:auto!important}
+.dc-root .lh-flow .lh-register .lh-newsletter-consent{display:flex;align-items:center;gap:10px;cursor:pointer}
+.dc-root .lh-flow .lh-register .lh-newsletter-consent input{appearance:auto!important;-webkit-appearance:checkbox!important;position:static!important;opacity:1!important;width:18px!important;height:18px!important;margin:0!important;flex:none;accent-color:var(--site-accent,#716f9e)}
 .dc-root .lh-flow .lh-contact{background:#fff!important;padding:clamp(100px,11vw,180px) 24px!important}
 .dc-root .lh-flow .lh-contact .lh-display{text-transform:uppercase;color:var(--fl-ink);font-weight:300}
 
