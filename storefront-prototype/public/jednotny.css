@@ -572,4 +572,14 @@
 @media (max-width:640px){#page-shell.kc-unified.kc-shop .legacy-main .shop-cart>:is(.page-intro,.cart-guest-note,.qr-status,#cart-view,.shop-shortcuts){padding-inline:16px!important}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-line{grid-template-columns:92px minmax(0,1fr)!important;gap:14px!important;padding:14px!important}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-line-img{width:92px!important;height:115px!important;padding:4px}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-line-price{grid-column:2;justify-items:start;text-align:left}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-lines .cart-upsell-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-lines .cart-upsell-item:nth-child(3){display:none!important}}
 #page-shell.kc-unified.kc-shop .legacy-main .shop-cart{padding-inline:0!important}
 #page-shell.kc-unified.kc-shop .legacy-main .shop-cart>:is(.page-intro,.cart-guest-note,.qr-status,#cart-view,.shop-shortcuts){width:100%!important}
+
+/* Patička 25. 10. – centrální symetrie: pečetě, pod nimi platby, pod nimi právní řádek */
+html body .site-footer .sf-brands{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:clamp(28px,5vw,72px)!important;text-align:center!important}
+html body .site-footer .sf-brands>*{align-items:center!important;text-align:center!important;margin:0!important}
+html body .site-footer .sf-pay{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:12px!important;padding:24px 0 6px!important;margin:8px auto 0!important;width:100%!important}
+html body .site-footer .sf-pay__badge{border-radius:10px!important;background:rgba(239,229,199,.94)!important;border:1px solid rgba(201,165,92,.28)!important;box-shadow:0 1px 6px rgba(0,0,0,.08)!important}
+html body .site-footer .sf-bottom{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;text-align:center!important;gap:12px!important;white-space:normal!important;color:rgba(255,255,255,.5)!important}
+html body .site-footer .sf-bottom>div{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:10px 22px!important;margin:0!important}
+html body .site-footer .sf-bottom :is(a,span,p){color:rgba(255,255,255,.5)!important}
+html body .site-footer .sf-bottom a:hover{color:rgba(255,255,255,.85)!important}
 }
