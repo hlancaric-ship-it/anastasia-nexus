@@ -447,7 +447,7 @@ if(motion&&$('.dc-root')){
     setTone(toneAt(innerHeight/2));
     // Lišta může současně překrývat světlou i tmavou sekci.
     // Každá ikona a popisek proto čte pozadí ve své vlastní výšce.
-    $$('a,button',rail).forEach(control=>{const r=control.getBoundingClientRect(),t=toneAt(r.top+r.height/2);if(control.dataset.railTone===t)return;control.dataset.railTone=t;control.style.color=t==='light'?'#283020':'#EFE5C7';$$('img',control).forEach(img=>{img.style.filter=t==='light'?'brightness(0.22) sepia(0.4)':'none';});});
+    $$('a,button,span:not(a span,button span)',rail).forEach(control=>{const r=control.getBoundingClientRect(),t=toneAt(r.top+r.height/2);if(control.dataset.railTone===t)return;control.dataset.railTone=t;control.style.color=t==='light'?'#283020':'#EFE5C7';$$('img',control).forEach(img=>{img.style.filter=t==='light'?'brightness(0.22) sepia(0.4)':'none';});});
   };
   let frameTick=0;
   const fxFrame=()=>{

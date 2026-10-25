@@ -92,3 +92,5 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Ľavá lišta už nemá vlastnú krémovú plochu. Má len jemný závoj (8–16 %) a rozmazanie 18 px, takže presvitá farba toho, čo je pod ňou.
 - Tón sa číta aj z prechodov (patička), každá ikona podľa svojej výšky. Nad patičkou svetlé ikony, nad krémom tmavá olivová.
 - Lišta obchodu (Kategórie, Vyhľadať, Košík, Môj účet) je sklo a nad patičkou sa plynulo skryje spolu s Menu.
+- Audit všetkých stránok 1440 a 390: lišta všade priehľadná, bez vodorovného posunu, nič plávajúce nad patičkou.
+- Dnes v stacionári: text v olivovej kapitole bol tmavý na tmavom, teraz svetlý. Jazyky SK/EN/RU v lište majú vlastný tón podľa podkladu.

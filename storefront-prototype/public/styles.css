@@ -646,4 +646,7 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 #ana-rail#ana-rail:not([data-tone="dark"]) :is(a,button,span,svg){color:#1E261D!important}
 #ana-rail#ana-rail:not([data-tone="dark"]) [style*="opacity: 0.5"]{opacity:.62!important}
 #ana-rail#ana-rail:not([data-tone="dark"]) :is([style*="border-top"],[style*="border-bottom"]){border-color:rgba(30,38,29,.14)!important}
+/* Každá ikona a jazyk má tón podľa podkladu vo svojej výške, má prednosť pred tónom celej lišty. */
+#ana-rail#ana-rail#ana-rail [data-rail-tone="light"],#ana-rail#ana-rail#ana-rail [data-rail-tone="light"] :is(span,svg){color:#1E261D!important}
+#ana-rail#ana-rail#ana-rail [data-rail-tone="dark"],#ana-rail#ana-rail#ana-rail [data-rail-tone="dark"] :is(span,svg){color:#EFE5C7!important}
 #ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible),#ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible) :is(span,svg){color:#B08D57!important}
