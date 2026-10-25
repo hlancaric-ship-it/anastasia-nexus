@@ -11,6 +11,8 @@ const expected=new Map(Object.entries({
  'Klub':'/klub','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik','Darčekový poukaz':'/darcekovy-poukaz',
 }));
 const optional=new Set(['Zdravá lekáreň']);
+// Riadok značiek s logami (data-menu-brand) vedie len na úvod a weby značiek.
+const brandTargets=new Set(['/','https://www.anastasia.academy/','https://www.aianastasia.com/']);
 const htmlFor=path=>readFile(new URL((path==='/'?'':path.slice(1)+'/')+'index.html',dist),'utf8');
 const attribute=(text,name)=>text.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
 const textOf=html=>html.replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim().replace(/\s*Už čoskoro$/,'');
@@ -21,6 +23,7 @@ test('both menus on every route link to the page promised by their labels',async
    const menu=html.match(new RegExp(`<aside\\b[^>]*id="${id}"[^>]*>([\\s\\S]*?)<\\/aside>`))?.[1];assert.ok(menu,`${path}: ${id} exists`);
    const labels=new Set();const occurrences=new Map();
    for(const [,attrs,inner] of menu.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)){
+    if(/\bdata-menu-brand\b/.test(attrs)){assert.ok(brandTargets.has(attribute(attrs,'href')),`${path} ${id}: brand link`);continue;}
     const label=attribute(attrs,'aria-label')||textOf(inner),href=attribute(attrs,'href');
     assert.ok(expected.has(label),`${path} ${id}: unmapped menu label ${label}`);
     assert.equal(href,expected.get(label),`${path} ${id}: ${label} destination`);

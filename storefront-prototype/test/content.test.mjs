@@ -41,7 +41,7 @@ test('every content key in the built pages exists in the admin seed', async () =
 test('the seed keys for the shop and the menu are present in the pages', async () => {
   const html = await readFile(new URL('konzultacie/index.html', dist), 'utf8');
   assert.match(html, /data-content="konzultacie__konzultacie-1__0-text"/);
-  const home = await readFile(new URL('index.html', dist), 'utf8');
+  // Video z administrácie je na pôvodnom úvode, položky menu idú zo zoznamu kategórií.
+  const home = await readFile(new URL('povodny-uvod/index.html', dist), 'utf8');
   assert.match(home, /data-content="global__video__0-video"/);
-  assert.match(home, /data-content="global__menu-obchod__0-text"/);
 });

@@ -173,17 +173,13 @@ test('chyby platby a prihlásenia sa preložia na slovenské hlášky',async()=>
   assert.equal(deniedCalls.length>0,true);
 });
 
-test('bez prihlásenia pokladňa nič na serveri nevolá',async()=>{
+test('hosť nakupuje bez registrácie: košík sa k účtu nepriraďuje, možnosti prídu zo servera',async()=>{
   const calls=fakeFetch(cartRoutes(optionsFor(true)));
   const api=createHttpApi(memoryStorage({'anastasia.cart':'cart_d'}),config);
   const options=await api.getCheckoutOptions();
-  assert.equal(options.ok,false);
-  assert.equal(options.status,401);
-  assert.equal(options.message,'Pre dokončenie objednávky sa prihláste.');
-  const prepared=await api.prepareCheckout({email:'eva@example.com',delivery:'courier'});
-  assert.equal(prepared.ok,false);
-  assert.equal(prepared.status,401);
-  assert.equal(calls.length,0,'bez prihlásenia sa server nedotýka');
+  assert.equal(options.ok,true,options.message);
+  assert.equal(paths(calls).some(p=>p.endsWith('/customer')),false,'hosťovi sa košík k účtu nepriraďuje');
+  assert.equal(paths(calls).some(p=>p.startsWith('GET /store/nexus-checkout/options')),true);
 });
 
 test('checkout adaptér nevytvára vlastnú platobnú session',async()=>{

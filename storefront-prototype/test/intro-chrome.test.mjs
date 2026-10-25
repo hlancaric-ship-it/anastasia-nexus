@@ -29,7 +29,7 @@ test.after(async () => {
 
 test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', async () => {
   // Otevřeme homepage
-  await page.goto(base + '/', {waitUntil: 'load'});
+  await page.goto(base + '/povodny-uvod', {waitUntil: 'load'}); // pôvodný úvod s introm
   
   // Čekáme na načtení fontů a animací
   await page.evaluate(() => document.fonts.ready);
@@ -93,7 +93,7 @@ test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', asy
 
 test('intro-chrome: kontrola CSS ve zdrojovém kódu', async () => {
   // Otevřeme homepage
-  await page.goto(base + '/', {waitUntil: 'load'});
+  await page.goto(base + '/povodny-uvod', {waitUntil: 'load'}); // pôvodný úvod s introm
   
   const cssContent = await page.evaluate(() => document.documentElement.outerHTML);
   

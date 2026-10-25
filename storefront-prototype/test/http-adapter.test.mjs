@@ -57,10 +57,15 @@ test('booking types come only from products with metadata.booking',async()=>{
   assert.deepEqual(r.types.map(t=>[t.id,t.variantId,t.durationMinutes]),[['p1','v1',60]]);
 });
 
-test('reserveBooking requires login and never calls the server anonymously',async()=>{
-  const log=router([]);
-  const r=await createHttpApi(memoryStorage(),config).reserveBooking({productId:'p1',variantId:'v1',startsAt:'2026-10-20T08:00:00.000Z'});
-  assert.equal(r.status,401);assert.equal(log.length,0);
+test('guest reserveBooking holds the slot through booking-guest, never the account endpoint',async()=>{
+  const log=router([
+    ['GET',/^\/store\/carts\/cart_1/,()=>respond(200,{cart:{id:'cart_1',items:[],metadata:{}}})],
+    ['POST',/^\/store\/carts\/cart_1\/line-items$/,()=>respond(200,{cart:{id:'cart_1',items:[]}})],
+    ['POST',/^\/store\/booking-guest$/,()=>respond(201,{booking:{id:'b1',starts_at:'2026-10-20T08:00:00.000Z',ends_at:'2026-10-20T09:00:00.000Z',held_until:'2026-10-20T07:15:00.000Z'}})],
+  ]);
+  const r=await createHttpApi(memoryStorage({'anastasia.cart':'cart_1'}),config).reserveBooking({productId:'p1',variantId:'v1',startsAt:'2026-10-20T08:00:00.000Z'});
+  assert.equal(r.ok,true,r.message);assert.equal(r.booking.id,'b1');
+  assert.ok(log.includes('POST /store/booking-guest'));assert.ok(!log.includes('POST /store/bookings'),'guest never uses the account booking endpoint');
 });
 
 test('slot taken by someone else returns 409 with a clear message and nothing is added to the cart',async()=>{

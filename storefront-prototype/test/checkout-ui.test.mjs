@@ -81,9 +81,8 @@ test('runtime pokladne používa poradie platieb a stav tlačidiel z checkout-ui
 
 test('pokladňa si nežiada obsah stránky, ktorý nemá – žiadny 404 v konzole',async()=>{
   const html=await read('pokladna/index.html');
-  const keys=keysOf(html);
-  assert.ok(keys.length>0,'pokladňa má vlastné kľúče v hlavičke');
-  assert.deepEqual(contentPageKeys(rootWith(keys)),['global'],'pokladňa nemá vlastný obsah – server sa neopýta');
+  // Hlavička a menu už nemajú texty z administrácie, pokladňa sa teda na obsah nepýta vôbec.
+  assert.deepEqual(contentPageKeys(rootWith(keysOf(html))),[],'pokladňa nemá vlastný obsah – server sa neopýta');
   const app=await read('app.mjs');
   assert.match(app,/contentPageKeys\(document\)/,'runtime načíta len stránky, ktoré sa používajú');
   assert.doesNotMatch(app,/pageKeyOf\(location\.pathname\)/,'runtime už neháda stránku z adresy');
@@ -91,5 +90,5 @@ test('pokladňa si nežiada obsah stránky, ktorý nemá – žiadny 404 v konzo
 
 test('stránka s vlastným obsahom si ho z administrácie načíta',async()=>{
   const html=await read('eshop/index.html');
-  assert.deepEqual([...contentPageKeys(rootWith(keysOf(html)))].sort(),['eshop','global']);
+  assert.deepEqual([...contentPageKeys(rootWith(keysOf(html)))].sort(),['eshop']);
 });

@@ -75,7 +75,8 @@ test('asynchrónne rozhranie api odhlásenie podporuje',async()=>{
 test('stráž účtu beží v hlave stránky účtu a presmeruje bez tokenu',async()=>{
   const script=accountGuardBoot(JWT_KEY);
   assert.match(script,new RegExp(`sessionStorage\\.getItem\\("${JWT_KEY}"\\)`),'stráž hľadá token zákazníka');
-  assert.match(script,/location\.replace\('\/prihlasenie'\)/);
+  assert.match(script,/location\.replace\(.*'\/prihlasenie'\)/);
+  assert.match(script,/'\/prihlasenie\?mode=register'/,'registrácia z účtu otvorí formulár registrácie');
   const account=await readFile(new URL('../dist/ucet/index.html',import.meta.url),'utf8');
   assert.match(account,/<script src="\/account-guard\.js"><\/script>/,'účet má v hlave stráž účtu');
   const login=await readFile(new URL('../dist/prihlasenie/index.html',import.meta.url),'utf8');
