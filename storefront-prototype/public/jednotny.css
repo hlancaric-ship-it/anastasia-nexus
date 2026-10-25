@@ -820,4 +820,46 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 #page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card__image{aspect-ratio:4/5!important;display:flex!important;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#fffdf8 0,#f4efe4 75%)!important}
 #page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card__image img{width:100%!important;height:100%!important;object-fit:contain!important;padding:16px!important;box-sizing:border-box}
 #page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card:hover .shop-card__image img{transform:scale(1.03)!important}
+
+/* Nákupný riadok: variant, množstvo a tlačidlo v jednej rovine, výška 44 px. */
+#page-shell.kc-unified .legacy-main .pdm-buy-row{display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:nowrap!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-selects{display:flex!important;gap:8px!important;flex:0 1 auto;min-width:0;margin:0!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-select{display:block!important;margin:0!important;min-width:0}
+#page-shell.kc-unified .legacy-main :is(.pdm-buy-row .pdm-select,.pdm-voucher-buy .pdm-select) select{height:44px!important;min-height:44px!important;max-width:200px;padding:0 38px 0 18px!important;border:1px solid rgba(30,38,29,.16)!important;border-radius:999px!important;background:rgba(255,255,255,.75) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B08D57' stroke-width='1.6'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 14px center/14px no-repeat!important;font:400 14px/1 var(--sans)!important;letter-spacing:0!important;color:#1E261D!important;box-shadow:none!important}
+#page-shell.kc-unified .legacy-main :is(.pdm-buy-row .pdm-select,.pdm-voucher-buy .pdm-select) select:is(:hover,:focus-visible){border-color:rgba(176,141,87,.6)!important;outline:none}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-stepper{flex:none!important;width:auto!important;height:44px!important;min-height:44px!important;padding:0 4px!important;gap:0!important;border:1px solid rgba(30,38,29,.16)!important;border-radius:999px!important;background:rgba(255,255,255,.75)!important;box-shadow:none!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-stepper button{width:32px!important;height:32px!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;font-size:16px!important;color:#1E261D!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-stepper button:hover{background:rgba(176,141,87,.12)!important;color:#B08D57!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row #pd-qty{width:30px!important;height:32px!important;line-height:32px!important;font:500 14px var(--sans)!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-buy{flex:1 1 auto!important;height:44px!important;min-height:44px!important;padding:0 22px!important;gap:10px!important;font-size:14px!important;white-space:nowrap;justify-content:center!important;align-items:center!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-buy svg{width:16px;height:16px}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-buy:disabled{opacity:.45;cursor:not-allowed}
+#page-shell.kc-unified .legacy-main .pdm-voucher-buy{display:flex!important;align-items:center!important;gap:12px!important}
+#page-shell.kc-unified .legacy-main .pdm-voucher-buy .pdm-select{display:block!important;margin:0!important;flex:0 1 auto}
+#page-shell.kc-unified .legacy-main .pdm-voucher-buy .pdm-select>span{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
+#page-shell.kc-unified .legacy-main .pdm-voucher-buy .pd-purchase{flex:1 1 auto;min-width:0}
+#page-shell.kc-unified .legacy-main .pdm .pd-availability:has(.is-out),#page-shell.kc-unified .legacy-main .pdm .pd-availability.is-out{color:#9A4B3C}
+#page-shell.kc-unified .legacy-main .pdm .pd-availability.is-out .status-dot{background:#B5654F;box-shadow:0 0 0 4px rgba(181,101,79,.15)}
+@media(max-width:560px){
+#page-shell.kc-unified .legacy-main .pdm-buy-row{flex-wrap:wrap!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-selects{flex:1 1 100%}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-selects .pdm-select{flex:1 1 0}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-select select{max-width:none;width:100%}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-buy{flex:1 1 0!important;flex-basis:0!important;padding:0 16px!important}
+#page-shell.kc-unified .legacy-main .pdm-voucher-buy{flex-wrap:wrap!important}
+#page-shell.kc-unified .legacy-main .pdm-voucher-buy .pdm-select{flex:1 1 100%}
+#page-shell.kc-unified .legacy-main .pdm-voucher-buy .pdm-select select{max-width:none;width:100%}
+}
+/* Hlavná fotka produktu: štvorec so zaoblením 24 px, fotka vypĺňa celý rám bez deformácie. */
+#page-shell.kc-unified .legacy-main .pdm .pd-main-image{aspect-ratio:1/1!important;max-height:none!important;width:100%;border-radius:24px!important;overflow:hidden!important;background:#FDFBF7!important;box-shadow:0 24px 50px -36px rgba(30,38,29,.45)!important}
+#page-shell.kc-unified .legacy-main .pdm .pd-main-image::after{display:none!important}
+#page-shell.kc-unified .legacy-main .pdm .pd-main-image>img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:0!important;max-height:none!important}
+#page-shell.kc-unified .legacy-main .pdm:not(.pdm--physical) .pd-main-image>img{object-fit:contain!important;padding:12px}
+
+/* Nákupný riadok: select presne 44px, na mobile stepper a tlačidlo v jednom riadku. */
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-selects{display:flex;gap:12px;align-items:center;margin:0!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-select{display:block!important;height:44px;line-height:0;margin:0!important;position:relative}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-select>span{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important}
+#page-shell.kc-unified .legacy-main .pdm-buy-row .pdm-select select{margin:0!important;line-height:normal}
+@media (max-width:560px){#page-shell.kc-unified .legacy-main .pdm-buy-row .pd-buy{min-width:0!important;flex:1 1 0!important}}
 }

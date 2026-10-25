@@ -639,3 +639,9 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 .center-voucher__actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px}
 .center-voucher--depleted,.center-voucher--expired,.center-voucher--void{opacity:.62}
 @media (max-width:700px){.center-voucher{grid-template-columns:1fr}.center-voucher .center-chip{justify-self:start}}
+/* Lišta vľavo nad svetlým podkladom: tmavá olivová značky, ostré jazyky, Menu a ikony, hover do matného zlata. */
+#ana-rail#ana-rail:not([data-tone="dark"]){background:rgba(253,251,247,.72)!important;border-color:rgba(30,38,29,.12)!important}
+#ana-rail#ana-rail:not([data-tone="dark"]) :is(a,button,span,svg){color:#1E261D!important}
+#ana-rail#ana-rail:not([data-tone="dark"]) [style*="opacity: 0.5"]{opacity:.62!important}
+#ana-rail#ana-rail:not([data-tone="dark"]) :is([style*="border-top"],[style*="border-bottom"]){border-color:rgba(30,38,29,.14)!important}
+#ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible),#ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible) :is(span,svg){color:#B08D57!important}

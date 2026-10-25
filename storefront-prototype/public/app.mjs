@@ -557,15 +557,22 @@ if(productDetail){
       const box=document.createElement('div');box.className='pdm-selects';
       const chosen=Object.fromEntries(product.options.map(o=>[o.title,(product.variants.find(v=>!v.soldOut)||product.variants[0]).options?.[o.title]||'']));
       const fits=test=>product.variants.filter(v=>product.options.every(o=>v.options?.[o.title]===test[o.title]));
-      box.innerHTML=product.options.map((o,i)=>`<label class="pdm-select"><span>${e(o.title)}</span><select data-opt="${e(o.title)}" id="pdm-opt-${i}">${o.values.map(v=>`<option value="${e(v)}">${e(v)}</option>`).join('')}</select></label>`).join('');
+      box.innerHTML=product.options.map((o,i)=>`<label class="pdm-select"><span class="pd-sr">${e(o.title)}</span><select data-opt="${e(o.title)}" id="pdm-opt-${i}" aria-label="${e(o.title)}">${o.values.map(v=>`<option value="${e(v)}">${e(v)}</option>`).join('')}</select></label>`).join('');
       const paint=()=>{
         box.querySelectorAll('select[data-opt]').forEach(sel=>{sel.value=chosen[sel.dataset.opt];[...sel.options].forEach(opt=>{const hits=fits({...chosen,[sel.dataset.opt]:opt.value});const out=!hits.length||hits.every(v=>v.soldOut);opt.disabled=out&&opt.value!==chosen[sel.dataset.opt];opt.textContent=opt.value+(hits.length&&hits.every(v=>v.soldOut)?' '+shopText('(Vypredané)'):'');});});
         const match=fits(chosen)[0];
-        if(match&&!match.soldOut){buy.dataset.variant=match.id;delete buy.dataset.variantMissing;const price=productDetail.querySelector('[data-product-price]');if(price)price.textContent=match.priceLabel;}
+        // Sklad vybraného variantu: vypredaný variant vypne tlačidlo a zmení stav na Vypredané.
+        const btn=buy.querySelector('.pd-buy'),avail=productDetail.querySelector('[data-product-availability]'),dot=productDetail.querySelector('.pd-availability');
+        if(avail&&!avail.dataset.inStock)avail.dataset.inStock=avail.textContent;
+        const out=!match||match.soldOut;
+        if(btn)btn.disabled=out;
+        if(avail)avail.textContent=out?shopText('Vypredané'):avail.dataset.inStock;
+        dot?.classList.toggle('is-out',out);
+        if(!out){buy.dataset.variant=match.id;delete buy.dataset.variantMissing;const price=productDetail.querySelector('[data-product-price]');if(price)price.textContent=match.priceLabel;}
         else{delete buy.dataset.variant;buy.dataset.variantMissing='1';}
       };
       box.addEventListener('change',ev=>{const sel=ev.target.closest('select[data-opt]');if(!sel)return;chosen[sel.dataset.opt]=sel.value;paint();});
-      buy.prepend(box);paint();
+      (buy.querySelector('.pdm-buy-row')||buy).prepend(box);paint();
     }
     put('[data-product-category]',product.category);
     const purchase=productDetail.querySelector('.add-product');if(purchase)purchase.dataset.code=product.code;

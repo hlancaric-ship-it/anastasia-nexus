@@ -1352,9 +1352,6 @@ async function vProductDetail(view, id, opts = {}) {
   const profiles = spR?.shipping_profiles || [], curProfile = p.shipping_profile?.id || '';
   const cats = catsR?.product_categories || [], channels = chR?.sales_channels || [], locations = locR?.stock_locations || [];
   const inC = new Set((p.categories || []).map(c => c.id)), inCh = new Set((p.sales_channels || []).map(c => c.id));
-  const invItemId = variant?.inventory_items?.[0]?.inventory_item_id || null;
-  let levels = [];
-  if (variant?.manage_inventory && invItemId) { try { levels = (await api(`/admin/inventory-items/${invItemId}/location-levels?limit=50`)).inventory_levels || []; } catch (e) { soft(e); } }
   let images = (p.images || []).map(i => i.url).filter(Boolean), thumb = p.thumbnail || images[0] || null;
   const sale = (p.metadata && p.metadata.vyprodej) || {};
   const saleOn = !!sale.active;
@@ -1379,13 +1376,7 @@ async function vProductDetail(view, id, opts = {}) {
     <label>Typ produktu (doprava)</label><select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select>
     <p class="muted" style="margin-top:14px">Produkt sa v obchode zobrazí len v označených predajných kanáloch.</p>
     <div>${channels.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}</label>`).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`;
-  const sklad = !variant ? '<p class="muted">Produkt nemá variant.</p>' : `<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="p-inv" ${variant.manage_inventory ? 'checked' : ''} style="width:auto"> Sledovať počet kusov na sklade</label>
-    <p class="muted" style="font-size:12px">Digitálne produkty, konzultácie a členstvo sklad nesledujú. Pri fyzickom tovare jadro nepustí predať viac kusov, než je na sklade.</p>
-    ${!variant.manage_inventory ? '<p class="muted" style="font-size:12px">Po zapnutí a uložení sa tu zobrazia počty kusov po skladoch.</p>' : ''}
-    ${variant.manage_inventory ? (!locations.length ? '<div class="notice">Najprv v Nastaveniach založte sklad.</div>' : `<div class="rc-grid">${locations.map(l => { const lv = levels.find(x => x.location_id === l.id);
-      return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(l.name)}</div><div class="rc-fields">
-        <span class="rc-f"><em>Na sklade</em><input type="number" min="0" step="1" data-loc="${esc(l.id)}" data-has="${lv ? 1 : 0}" value="${lv ? lv.stocked_quantity : ''}" placeholder="0" style="max-width:110px"></span>
-        ${lv ? `<span class="rc-f"><em>Rezervované</em>${lv.reserved_quantity ?? 0}</span>` : ''}</div></div></div>`; }).join('')}</div>`) : ''}`;
+  const sklad = '<p class="muted" style="margin:0">Počet kusov nastavíte pri každom variante v sekcii <b>07 Voľby a varianty</b>, stĺpec <b>Skladom (ks)</b>. Digitálne produkty a služby majú zaškrtnuté Neobmedzené.</p>';
   const completeness = () => {
     const np = Number(view.querySelector('#p-price')?.value ?? price?.amount);
     const chosenCh = [...view.querySelectorAll('[data-ch]')].some(cb => cb.checked), chosenCat = inC.size > 0;
@@ -1509,7 +1500,6 @@ async function vProductDetail(view, id, opts = {}) {
     if (wantStatus === 'published' && isDigital && hasFiles === false) {
       msg.innerHTML = '<div class="err">Digitálny produkt nemá žiadny súbor. Najprv v sekcii 08 Zakúpený obsah nahrajte video, nahrávku alebo dokument, ktorý zákazník dostane. Bez súboru produkt nezverejňujte.</div>'; return;
     }
-    if ([...view.querySelectorAll('[data-loc]')].some(i => i.value !== '' && !(Number.isInteger(Number(i.value)) && Number(i.value) >= 0))) { msg.innerHTML = '<div class="err">Počet kusov na sklade musí byť celé číslo 0 alebo viac.</div>'; return; }
     const skuIn = (view.querySelector('#p-sku')?.value || '').trim().toUpperCase();
     const newSku = variant && skuIn && skuIn !== String(variant.sku || '').toUpperCase() ? skuIn : '';
     if (newSku && variant.sku && !confirm(`Zmeniť kód produktu z ${variant.sku} na ${newSku}?\n\nQR kódy a odkazy vytvorené pre starý kód prestanú fungovať.`)) return;
@@ -1549,34 +1539,12 @@ async function vProductDetail(view, id, opts = {}) {
       const ship = view.querySelector('#p-ship').value; if (ship && ship !== curProfile) body.shipping_profile_id = ship;
       if (channels.length) body.sales_channels = [...view.querySelectorAll('[data-ch]')].filter(cb => cb.checked).map(cb => ({ id: cb.dataset.ch }));
       await api(`/admin/products/${id}`, { method: 'POST', body });
-      if (variant) await saveStock();
       await libraryEditor.save();
       msg.innerHTML = '<div class="notice">Uložené.</div>';
       setTimeout(() => vProductDetail(view, id), 700);
     } catch (e) { if (e.message === '401') return; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
     finally { btn.disabled = false; }
   };
-  // Sklad cez natívne inventory API: zapnutie sledovania, prepojenie skladovej položky, počty po skladoch.
-  async function saveStock() {
-    const want = !!view.querySelector('#p-inv')?.checked;
-    if (want !== !!variant.manage_inventory) await api(`/admin/products/${id}/variants/${variant.id}`, { method: 'POST', body: { manage_inventory: want } });
-    if (!want) return;
-    let itemId = invItemId;
-    if (!itemId) {
-      const { inventory_item } = await api('/admin/inventory-items', { method: 'POST', body: { title: p.title, ...(variant.sku ? { sku: variant.sku } : {}) } });
-      itemId = inventory_item.id;
-      await api(`/admin/products/${id}/variants/inventory-items/batch`, { method: 'POST', body: { create: [{ variant_id: variant.id, inventory_item_id: itemId, required_quantity: 1 }] } });
-    }
-    for (const inp of view.querySelectorAll('[data-loc]')) {
-      if (inp.value === '') continue;
-      const q = Number(inp.value);
-      if (!Number.isInteger(q) || q < 0) throw new Error('Počet kusov musí byť celé číslo 0 alebo viac.');
-      const lv = levels.find(x => x.location_id === inp.dataset.loc);
-      if (lv && Number(lv.stocked_quantity) === q) continue;
-      if (lv && itemId === invItemId) await api(`/admin/inventory-items/${itemId}/location-levels/${inp.dataset.loc}`, { method: 'POST', body: { stocked_quantity: q } });
-      else await api(`/admin/inventory-items/${itemId}/location-levels`, { method: 'POST', body: { location_id: inp.dataset.loc, stocked_quantity: q } });
-    }
-  }
 }
 async function vCategories(view) {
   view = freshView(view);

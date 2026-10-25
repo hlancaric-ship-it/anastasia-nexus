@@ -1093,3 +1093,10 @@ dialog.mp::backdrop{background:rgba(47,59,42,.35);backdrop-filter:blur(3px)}
 .p-img-actions .btn{min-height:44px;padding:0 18px;margin:0}
 .mp-tools .mp-filter{flex:0 0 220px;width:220px}
 @media (max-width:640px){#p-imgs{grid-template-columns:repeat(2,1fr)}.mp-tools .mp-filter{flex:1 1 100%;width:100%}}
+.ve-row{grid-template-columns:minmax(150px,1.3fr) 120px minmax(130px,1fr) minmax(190px,1.1fr) auto}
+.ve-stock{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.ve-stock input[type=number]{max-width:96px;font-weight:600}
+.ve-stock input[type=number]:disabled{background:var(--surface-3);color:var(--muted)}
+.ve-unl{display:inline-flex;align-items:center;gap:6px;margin:0;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer}
+.ve-unl input{width:auto;margin:0}
+@media(max-width:720px){.ve-row{grid-template-columns:1fr 1fr}.ve-stock{grid-column:1/-1}}
