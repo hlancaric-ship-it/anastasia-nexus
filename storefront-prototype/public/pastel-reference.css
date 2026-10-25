@@ -583,3 +583,12 @@ html,body{overflow-x:clip!important}
 .lan-chap--lone .lan-chap__body{margin:0 auto;font:300 clamp(22px,2.2vw,34px)/1.4 'Fraunces',Georgia,serif;color:#3d3c5c}
 .lan-gallery:has(figure:nth-child(2):last-child){grid-template-columns:1fr 1fr}
 @media (max-width:760px){.lan-hero .page-intro--long h1{font-size:clamp(28px,8vw,40px)!important}.lan-gallery:has(figure:nth-child(2):last-child){grid-template-columns:1fr}}
+.lan-chap__body[data-lead-in]>p:first-child::before{content:var(--lead-in);font-weight:600;color:#3d3c5c}
+.lan-chap__body .source-structure{margin:0 0 1.2em;max-width:none!important;text-align:left}
+.lan-chap__body ul{list-style:none;padding:0!important;margin:0}
+.lan-chap__body ul ul,.lan-chap__body li:has(>ul){margin:0!important;padding:0!important}
+.lan-chap__body li:has(>ul)::before{display:none}
+.lan-chap__body li:not(:has(>ul)){position:relative;padding:12px 0 12px 30px!important;margin:0!important;border-bottom:1px solid rgba(168,141,79,.25);break-inside:avoid}
+.lan-chap__body li:not(:has(>ul))::before{content:"";position:absolute;left:4px;top:24px;width:14px;height:1px;background:#a88d4f}
+.lan-chap__body ul:not(:has(ul)):has(li:nth-child(5)){columns:2;column-gap:44px}
+@media (max-width:760px){.lan-chap__body ul:not(:has(ul)):has(li:nth-child(5)){columns:1}}

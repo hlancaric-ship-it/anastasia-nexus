@@ -54,7 +54,7 @@ function legalPage(page,render){
 const L='/img/lucia/';
 const LAN={
   '/konzultacie/online-zdravotna-konzultacia':{eyebrow:'Konzultácie',img:L+'lucia-portret-hero-1600.webp',tone:'lavender',book:'online-zdravotna-konzultacia',photos:{'O mne':L+'lucia-portret-1600.webp'}},
-  '/konzultacie/supervizia':{eyebrow:'Konzultácie',img:L+'stacionar-priestor-1600.webp',tone:'sage',book:'supervizia'},
+  '/konzultacie/supervizia':{eyebrow:'Konzultácie',img:L+'stacionar-poradna-1600.webp',tone:'sage',book:'supervizia',lead:'Odborná podpora pre každého, kto pracuje s klientom. Na živo alebo online, 50 až 60 minút.',intro:'Čo je supervízia?'},
   '/konzultacie/astrologicky-profil-zdravia-a-vitality':{eyebrow:'Konzultácie',img:'/media/night-sky.jpg',video:'/media/night-sky.mp4',tone:'night',book:'astrologia-zdravie-predispozicia',cta:'Objednať výklad'},
   '/denny-stacionar-vysna-slana':{eyebrow:'Vyšná Slaná',img:L+'stacionar-kresla-1600.webp',tone:'sage',link:['/denny-stacionar-vysna-slana/ds-dnes','Aktuálne dianie v stacionári'],gallery:true},
   '/denny-stacionar-vysna-slana/ds-dnes':{eyebrow:'Denný stacionár',img:L+'stacionar-priestor-1600.webp',tone:'cream',link:['/kontakt','Kontaktovať nás'],gallery:true},
@@ -71,6 +71,13 @@ function lanStory(page,render,keyOf,o){
     if(b.type==='p'&&/Kapacita:.*Plánované otvorenie:/.test(t))return false;
     if(b.type==='p'&&PRICE_RE.test(t)){price=t.match(PRICE_RE)[1];return false;}
     return true;
+  }).map((b,i)=>{
+    // Starý web mal nadpisy ako bežné odseky. Otázka je nadpis kapitoly, názov stránky na začiatku je hlavný nadpis.
+    const t=(b.text||'').trim();let type=null;
+    if(b.type==='p'&&i<2&&t===page.title.trim())type='h1';
+    else if(b.type==='p'&&t.length<90&&/\?$/.test(t))type='h2';
+    if(!type)return b;
+    const c={...b,type};if(keyOf.get(b))keyOf.set(c,keyOf.get(b));return c;
   });
   const hi=blocks.findIndex(b=>/^h[12]$/.test(b.type));
   const head=hi>=0&&hi<3?blocks[hi]:null;
@@ -78,7 +85,7 @@ function lanStory(page,render,keyOf,o){
   const leadIdx=head?rest.findIndex((b,i)=>i>=hi&&b.type==='p'&&b.text.length<200):rest.findIndex(b=>b.type==='p');
   const lead=leadIdx>=0?rest.splice(leadIdx,1)[0]:null;
   const keyAttr=b=>keyOf.get(b)?` data-content="${e(keyOf.get(b))}"`:'';
-  const intro=`<div class="page-intro${(head?.text||page.title).length>40?' page-intro--long':''}"><p class="eyebrow">${e(o.eyebrow)}</p><h1${head?keyAttr(head):''}>${e(head?.text||page.title)}</h1>${lead?`<p class="lead"${keyAttr(lead)}>${e(lead.text)}</p>`:''}</div>`;
+  const intro=`<div class="page-intro${(head?.text||page.title).length>40?' page-intro--long':''}"><p class="eyebrow">${e(o.eyebrow)}</p><h1${head?keyAttr(head):''}>${e(head?.text||page.title)}</h1>${lead?`<p class="lead"${keyAttr(lead)}>${e(lead.text)}</p>`:o.lead?`<p class="lead">${e(o.lead)}</p>`:''}</div>`;
   const extra=o.link?button(o.link[0],o.link[1]):o.book?button(`/konzultacie/rezervacia?typ=${encodeURIComponent(o.book)}`,o.cta||'Rezervovať termín'):'';
   const hero=o.video
     ?`<div class="lan-hero lan-hero--night"><div class="lan-hero__text">${intro}${extra}</div><figure class="lan-hero__photo"><video autoplay muted loop playsinline preload="metadata" poster="${e(o.img)}" aria-hidden="true"><source src="${e(o.video)}" type="video/mp4"></video></figure></div>`
@@ -98,8 +105,11 @@ function lanStory(page,render,keyOf,o){
     const photo=c.title&&o.photos?.[c.title.text];
     const {pre,out}=cards(c.body);
     const inner=out.length>=2?`${body(pre)}<div class="lan-cards">${out.map(x=>`<div class="lan-card"><h3${keyAttr(x.h)}>${e(x.h.text)}</h3>${body(x.body)}</div>`).join('')}</div>`:body(c.body);
-    const headHtml=c.title?`<div class="lan-chap__head"><span class="lan-chap__no">${no}</span><h2${keyAttr(c.title)}>${e(c.title.text)}</h2></div>`:'<div class="lan-chap__head"></div>';
-    return `<section class="lan-chap lan-chap--${tone}${photo?' lan-chap--photo':''}${!c.title&&chapters.length===1?' lan-chap--lone':''}">${photo?`<figure class="lan-chap__photo"><img src="${e(photo)}" alt="" width="900" height="1100" loading="lazy" decoding="async"></figure>`:headHtml}<div class="lan-chap__body">${photo?headHtml:''}${inner}</div></section>`;
+    const prologue=!c.title&&o.intro;
+    const headHtml=c.title?`<div class="lan-chap__head"><span class="lan-chap__no">${no}</span><h2${keyAttr(c.title)}>${e(c.title.text)}</h2></div>`:prologue?`<div class="lan-chap__head"><h2>${e(o.intro)}</h2></div>`:'<div class="lan-chap__head"></div>';
+    // Odsek začínajúci malým písmenom nadväzuje na názov stránky, doplní sa len vizuálne, aby texty z adminu ostali nedotknuté.
+    const leadIn=prologue&&/^\p{Ll}/u.test(c.body[0]?.text||'')?` data-lead-in style="--lead-in:'${e((head?.text||page.title).replace(/'/g,''))} '"`:'';
+    return `<section class="lan-chap lan-chap--${tone}${photo?' lan-chap--photo':''}${!c.title&&chapters.length===1&&c.body.reduce((a,b)=>a+(b.text||'').length,0)<240?' lan-chap--lone':''}">${photo?`<figure class="lan-chap__photo"><img src="${e(photo)}" alt="" width="900" height="1100" loading="lazy" decoding="async"></figure>`:headHtml}<div class="lan-chap__body"${prologue?leadIn:''}>${photo?headHtml:''}${inner}</div></section>`;
   });
   // Krátke fakty (otvorenie, kapacita, hodiny) v jednom páse vedľa seba.
   if(short.length){const facts=`<section class="lan-chap lan-chap--lavender lan-facts">${short.map(c=>`<div class="lan-fact"><h3${keyAttr(c.title)}>${e(c.title.text)}</h3>${body(c.body)}</div>`).join('')}</section>`;chapterHtml.splice(Math.min(1,chapterHtml.length),0,facts);}
