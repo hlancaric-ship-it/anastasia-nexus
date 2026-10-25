@@ -262,3 +262,5 @@ body:has(.cookie-banner:not([hidden])) .ana-mobile-dock{display:none!important}
 .shop-cart .cart-upsell h2,.cart-upsell h2{font-size:clamp(24px,2.4vw,32px)!important;line-height:1.15!important;letter-spacing:0!important;margin:0 0 18px!important}.cart-upsell .cart-upsell-item h3{font-family:inherit!important;font-size:15px!important;line-height:1.3!important;letter-spacing:0!important}.cart-upsell .cart-upsell-btn{display:inline-flex!important;width:auto!important;min-height:36px!important;padding:0 18px!important;border:1px solid var(--site-accent,#716f9e)!important;border-radius:999px!important;background:transparent!important;color:var(--site-accent,#716f9e)!important;font-size:13px!important;letter-spacing:.02em!important}.cart-upsell .cart-upsell-btn:hover{background:var(--site-accent,#716f9e)!important;color:#fff!important}
 /* Klub je v menu skrytý v oboch variantách (Lucky 25. 10.), stránka /klub ostáva */
 #dc-top-menu a[href="/klub"],#dc-side-menu a[href="/klub"]{display:none!important}
+/* O Lucii: fotky bez oblúkov (Lucky 25. 10.) */
+.dc-page .photo-gallery--lucia figure,.dc-page .lucia-real-photos figure{border-radius:0!important}

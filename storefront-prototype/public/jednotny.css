@@ -1,0 +1,49 @@
+/* Jednotný dizajn podstránok podľa nového úvodu (koncept), okrem obchodu. Lucky 25. 10.
+   Farby, písmo, tlačidlá a tvary fotiek sú tie isté ako na úvode, aby web pôsobil ako jeden celok. */
+/* vrstva jednotny je v base.css deklarovaná prvá, takže jej !important má prednosť pred legacy aj polish */
+@layer jednotny{
+#page-shell.kc-unified{
+  --paper:#F7F4EC;--cream:#EFEADD;--olive:#2F3424;--gold:#C9A55C;
+  --lav:#73729C;--lav-2:#A7A5CF;--lav-3:#E9E9F2;--mist:#E4E6D6;
+  --ink:#2A2F21;--muted:#6B705F;
+  --serif:'Fraunces',Georgia,serif;--sans:'Figtree','Helvetica Neue',sans-serif;
+  --drop:28px 28px 28px 0;
+}
+#page-shell.kc-unified .legacy-main{background:var(--paper)!important;color:var(--ink)}
+
+/* nadpisy: tenký Fraunces, bez verzálok, olivová, zvýraznenie kurzívou v levanduli */
+#page-shell.kc-unified .legacy-main h1,#page-shell.kc-unified .legacy-main h2,#page-shell.kc-unified .legacy-main h3{text-transform:none!important;font-family:var(--serif)!important;font-weight:300!important}
+#page-shell.kc-unified .legacy-main :is(h1,h2,h3):not(.reset-hero *,[class*="--dark"] *,[class*="--olive"]:not(.lan-hero) *){color:var(--olive)!important}
+#page-shell.kc-unified .legacy-main h1{font-size:clamp(48px,6.2vw,104px)!important;line-height:.95!important;letter-spacing:-.035em!important}
+#page-shell.kc-unified .legacy-main h2{letter-spacing:-.025em!important;line-height:1.02!important}
+#page-shell.kc-unified .legacy-main h1 em,#page-shell.kc-unified .legacy-main h2 em{font-style:italic;color:var(--lav)!important}
+#page-shell.kc-unified .legacy-main :is(.eyebrow,.legal-eyebrow):not(.reset-hero *){font:italic 400 clamp(20px,1.8vw,26px)/1.1 var(--serif)!important;letter-spacing:0!important;text-transform:none!important;color:var(--lav)!important}
+#page-shell.kc-unified .legacy-main .eyebrow::first-letter{text-transform:uppercase}
+#page-shell.kc-unified .legacy-main .lead,#page-shell.kc-unified .legacy-main .zs-lead{font:400 17px/1.7 var(--sans)!important;color:var(--muted)!important}
+
+/* úvod podstránky: papier ako na úvode, fotka ostáva obdĺžnik bez oblúkov (Lucky 25. 10.) */
+#page-shell.kc-unified .lan-hero,#page-shell.kc-unified .lan-hero--sage,#page-shell.kc-unified .lan-hero--olive,#page-shell.kc-unified .lan-hero--lavender,#page-shell.kc-unified .lan-hero--cream{background:var(--paper)!important}
+
+/* pásy pod úvodom: striedanie papier, krém, levanduľa ako na úvode */
+#page-shell.kc-unified [class*="--cream"]:not(.lan-hero){background:var(--cream)!important}
+#page-shell.kc-unified [class*="--sage"]:not(.lan-hero){background:var(--mist)!important}
+#page-shell.kc-unified [class*="--lavender"]:not(.lan-hero){background:var(--lav-3)!important}
+
+/* tlačidlá: olivová pilulka, pri prechode levanduľa (ako kc-pill) */
+#page-shell.kc-unified .legacy-main .button,#page-shell.kc-unified .legacy-main a.button,#page-shell.kc-unified .legacy-main button.button{border-radius:999px!important;background:var(--olive)!important;border:1px solid var(--olive)!important;color:var(--paper)!important;font:500 14px/1 var(--sans)!important;letter-spacing:.04em!important;text-transform:none!important;transition:background .4s,border-color .4s,gap .4s}
+#page-shell.kc-unified .legacy-main .button:hover{background:var(--lav)!important;border-color:var(--lav)!important}
+#page-shell.kc-unified .legacy-main .button.outline,#page-shell.kc-unified .legacy-main .button.secondary,#page-shell.kc-unified .legacy-main .button.ghost{background:transparent!important;color:var(--olive)!important;border-color:rgba(47,52,36,.35)!important}
+#page-shell.kc-unified .legacy-main .button.outline:hover,#page-shell.kc-unified .legacy-main .button.secondary:hover,#page-shell.kc-unified .legacy-main .button.ghost:hover{background:var(--olive)!important;color:var(--paper)!important;border-color:var(--olive)!important}
+#page-shell.kc-unified .legacy-main .button.light{background:var(--paper)!important;color:var(--olive)!important;border-color:var(--paper)!important}
+
+/* karty a panely: podpisový tvar kvapky */
+#page-shell.kc-unified .legacy-main .card,#page-shell.kc-unified .legacy-main .panel,#page-shell.kc-unified .legacy-main .lan-card,#page-shell.kc-unified .legacy-main .contact-card{border-radius:var(--drop)!important}
+#page-shell.kc-unified .legacy-main input:not([type=checkbox]):not([type=radio]),#page-shell.kc-unified .legacy-main select,#page-shell.kc-unified .legacy-main textarea{border-radius:14px!important;border-color:rgba(47,52,36,.18)!important;background:#fff!important}
+
+@media(max-width:760px){
+  #page-shell.kc-unified .legacy-main h1{font-size:clamp(44px,12vw,64px)!important}
+}
+
+/* bez oblúkov na fotkách podstránok (Lucky 25. 10.) */
+#page-shell.kc-unified .legal-figure,#page-shell.kc-unified .legal-figure img,#page-shell.kc-unified .legal-hero{border-radius:0!important}
+}

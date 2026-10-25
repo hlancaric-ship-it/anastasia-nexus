@@ -79,6 +79,7 @@ Pozadí pod sklem na světlých pásech: krytí max 30 %.
 - Boční skleněná lišta se objeví plynule až po scrollu, obsah jde pod ní přes celou šířku.
 - Preloader jen „Vstúpte“, bez horní lišty.
 - **Klub v menu skrytý v obou variantách** (boční i horní menu, desktop i mobil, Lucky 25. 10.). Stránka /klub a záložka v účtu zůstávají.
+- **Podstránky mají stejný design jako nový úvod** (barvy, písma, olivové pilulky), kromě obchodu. **Žádné oblouky na fotkách v podstránkách**, fotky zůstávají obdélník (Lucky 25. 10.).
 - Hero video, intro a preloader neměnit bez výslovného pokynu.
 - QA vždy na 1440 a 390 px, bez přetékání do strany.
 - Admin: tlačítka světlá levandule, tenký levandulový okraj, tmavý text.
