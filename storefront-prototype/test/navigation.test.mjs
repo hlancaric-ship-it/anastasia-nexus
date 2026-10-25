@@ -8,7 +8,7 @@ const expected=new Map(Object.entries({
  'Konzultácie':'/konzultacie','Zdravá lekáreň':'/zdrava-lekaren','Denný stacionár Vyšná Slaná':'/denny-stacionar-vysna-slana',
  'Zdravý svet':'/zdravy-svet','O Lucii':'/o-lucii','Recenzie zákazníkov':'/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com/',
  'AI ANASTASIA':'https://www.aianastasia.com/','ANASTASIA Academy':'https://www.anastasia.academy/',
- 'Klub':'/klub','Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik','Darčekové poukazy':'/eshop?category=darcekove-poukazy',
+ 'Kontakt':'/kontakt','Môj účet':'/ucet','Košík':'/kosik','Darčekové poukazy':'/eshop?category=darcekove-poukazy',
 }));
 const optional=new Set(['Zdravá lekáreň']);
 // Riadok značiek s logami (data-menu-brand) vedie len na úvod a weby značiek.

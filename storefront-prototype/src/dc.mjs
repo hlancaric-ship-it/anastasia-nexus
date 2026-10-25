@@ -173,7 +173,7 @@ const ids = html => html
 
 // Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
 const FOOTER_GROUPS = {
-  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Klub', '/klub'], ['Zdravý svet', '/zdravy-svet']],
+  'Svet': [['Obchod', '/eshop'], ['RESET 40+', '/reset-40'], ['Zdravý svet', '/zdravy-svet']],
   'Sprevádzanie': [['Konzultácie', '/konzultacie'], ['Supervízia', '/konzultacie/supervizia'], ['Astrológia', '/konzultacie/astrologicky-profil-zdravia-a-vitality']],
   'Informácie': [['O Lucii', '/o-lucii'], ['Zdravá lekáreň', '/zdrava-lekaren'], ['Denný stacionár Vyšná Slaná', '/denny-stacionar-vysna-slana'], ['Môj účet', '/ucet'], ['Kontakt', '/kontakt']],
 };
@@ -234,7 +234,7 @@ export function chrome(page) {
   // Obě menu čtou stejný seznam; původní návrhové duplicity se nepřenášejí.
   const menuBrand=html=>{
     // Položka účtu v menu (aj ikona) je označená pre runtime: text a cesta podľa prihlásenia.
-    html=html.replace(/(<a\b[^>]*?)(>)\s*Zdravý svet\s*<\/a>/g, '$1 data-menu-account$2Môj účet</a>').replace(/(<a\b[^>]*>)\s*O Lucii\s*<\/a>/g, '$1Klub</a>').replace(/(<a\b[^>]*aria-label="Môj účet")/g, '$1 data-menu-account');
+    html=html.replace(/(<a\b[^>]*?)(>)\s*Zdravý svet\s*<\/a>/g, '$1 data-menu-account$2Môj účet</a>').replace(/<a\b[^>]*>\s*O Lucii\s*<\/a>/g, '').replace(/(<a\b[^>]*aria-label="Môj účet")/g, '$1 data-menu-account');
     let index=0;
     const groupOffsets=[0,5,9];
     html=html.replace(/<div style="display:flex;flex-direction:column;gap:(?:2|4)px;[^"]*">[\s\S]*?<\/div>/g,whole=>{
@@ -260,14 +260,14 @@ export function chrome(page) {
       .replaceAll('style-hover="color:#C9A355"','style-hover="color:#62527F"')
       .replaceAll('backdrop-filter:blur(40px) saturate(170%) brightness(0.52);-webkit-backdrop-filter:blur(40px) saturate(170%) brightness(0.52);text-shadow:0 1px 14px rgba(0,0,0,0.35);','');
   };
-  // Horné menu: štyri sekcie vedľa seba (Môj účet, Klub a Kontakt sú štvrtý
+  // Horné menu: štyri sekcie vedľa seba (Môj účet a Kontakt sú štvrtý
   // stĺpec), dole jazyky vľavo a tri logá vpravo.
   const topLayout=html=>{
     const block=html.match(/<div style="display:flex;flex-direction:column">\s*(<a class="dch6"[^>]*font-size:30px[\s\S]*?)<\/div>/);
     const bottom='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;padding-top:20px;';
     if(!block||!html.includes(bottom))return html;
     const links=block[1].replace(/style="font-weight:300;font-size:30px;line-height:1\.35;letter-spacing:-0\.6px"/g,'style="font-size:14px;color:var(--site-main);padding:4px 0;"').trim();
-    const column='<div style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><span style="font-size:25px;color:#313C2B;margin-bottom:6px">Klub a kontakt</span>'+links+'</div>';
+    const column='<div style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><span style="font-size:25px;color:#313C2B;margin-bottom:6px">Kontakt</span>'+links+'</div>';
     html=html.replace(block[0],'');
     const at=html.lastIndexOf('</div>',html.indexOf(bottom));
     html=html.slice(0,at)+column+html.slice(at);

@@ -94,3 +94,4 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Lišta obchodu (Kategórie, Vyhľadať, Košík, Môj účet) je sklo a nad patičkou sa plynulo skryje spolu s Menu.
 - Audit všetkých stránok 1440 a 390: lišta všade priehľadná, bez vodorovného posunu, nič plávajúce nad patičkou.
 - Dnes v stacionári: text v olivovej kapitole bol tmavý na tmavom, teraz svetlý. Jazyky SK/EN/RU v lište majú vlastný tón podľa podkladu.
+- Klub skrytý: preč z menu (aj stĺpec „Kontakt“) a z patičky, stránka /klub zostáva bez odkazov.
