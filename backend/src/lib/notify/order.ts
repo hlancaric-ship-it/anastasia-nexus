@@ -47,14 +47,14 @@ type OrderRow = OrderPaymentView & {
   customer?: { first_name?: string | null } | null
   shipping_address?: { first_name?: string | null } | null
   billing_address?: { first_name?: string | null } | null
-  items?: Array<{ title?: string | null; product_title?: string | null; quantity?: unknown; total?: unknown }> | null
+  items?: Array<{ title?: string | null; product_title?: string | null; quantity?: unknown; total?: unknown; requires_shipping?: boolean | null }> | null
   shipping_methods?: Array<{ name?: string | null; amount?: unknown }> | null
 }
 
 const ORDER_FIELDS = [
   "id", "display_id", "email", "no_notification", "currency_code", "status", "total", "item_total", "shipping_total", "discount_total",
   "customer.first_name", "shipping_address.first_name", "billing_address.first_name",
-  "items.title", "items.product_title", "items.quantity", "items.total",
+  "items.title", "items.product_title", "items.quantity", "items.total", "items.requires_shipping",
   "payment_collections.captured_amount", "payment_collections.refunded_amount", "payment_collections.payments.captured_at",
   "payment_collections.payments.provider_id", "shipping_methods.name", "shipping_methods.amount",
 ]
@@ -76,7 +76,11 @@ export function formatMoney(amount: unknown, currency: string | null | undefined
 /** Odkaz do účtu na detail objednávky (`ACCOUNT_ORDERS_URL/<order_id>`); bez nastavení bez tlačítka. */
 export function orderUrl(orderId: string): string | null {
   const base = env("ACCOUNT_ORDERS_URL")
-  return base ? `${base.replace(/\/$/, "")}/${encodeURIComponent(orderId)}` : null
+  if (!base) return null
+  // Účet na webe je jedna stránka so záložkami (`/ucet#objednavky`): ID ide do query, záložka ostáva v hashi.
+  const [path, hash] = base.split("#", 2)
+  if (hash) return `${path}?objednavka=${encodeURIComponent(orderId)}#${hash}`
+  return `${base.replace(/\/$/, "")}/${encodeURIComponent(orderId)}`
 }
 
 const firstName = (order: OrderRow) =>
@@ -195,6 +199,8 @@ export async function notifyShipment(container: Container, fulfillmentId: string
     if (!orderId) return skip("ORDER_NOT_FOUND")
     const order = await loadOrder(container, orderId)
     if (!order) return skip("ORDER_NOT_FOUND")
+    // Digitálny obsah sa neposiela dopravcom: bez fyzickej položky žiadny e-mail „odovzdali dopravcovi“.
+    if (!(order.items ?? []).some(item => item?.requires_shipping === true)) return skip("DIGITAL_ONLY")
     const to = clean(order.email)
     if (!to) return skip("NO_EMAIL")
     const { data: fulfillments } = await query(container).graph({ entity: "fulfillment", fields: ["id", "labels.tracking_number", "labels.tracking_url"], filters: { id: fulfillmentId } })

@@ -90,7 +90,7 @@ if(customerCenter){
   $$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.centerThemePick)));
   const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moja knižnica.',reset:'RESET 40+.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',profil:'Môj profil.'};
   const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];requestAnimationFrame(()=>{const active=$('.center-sidebar [aria-current=page]',customerCenter),nav=active?.parentElement;if(active&&nav&&nav.scrollWidth>nav.clientWidth){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect(),style=getComputedStyle(nav),left=n.left+parseFloat(style.paddingLeft),right=n.right-parseFloat(style.paddingRight);if(a.left<left)nav.scrollLeft+=a.left-left;else if(a.right>right)nav.scrollLeft+=a.right-right;}});return id;};
-  show(location.hash.slice(1));
+  show(location.hash.slice(1)||(new URLSearchParams(location.search).has('objednavka')?'objednavky':''));
   $$('[data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);$('#account-title').focus({preventScroll:true});}));
   addEventListener('popstate',()=>show(location.hash.slice(1)));
   addEventListener('hashchange',()=>show(location.hash.slice(1)));
@@ -251,6 +251,8 @@ const mediaControls=$('[data-media-controls]'),mobileMedia=$('[data-mobile-media
 const mobileDock=document.createElement('div');mobileDock.className='ana-mobile-dock';
 // Při posouvání dolů se dock schová, aby nepřekrýval tlačítka, nahoru se vrátí.
 {let lastY=scrollY,ticking=false;addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{const y=scrollY,end=y+innerHeight>=document.documentElement.scrollHeight-80;if(y<lastY-4||end||y<120)mobileDock.classList.remove('is-hidden');else if(y>lastY+4)mobileDock.classList.add('is-hidden');if(Math.abs(y-lastY)>4)lastY=y;ticking=false;});},{passive:true});}
+// Odkaz z e-mailu na objednávku (/ucet/order_… alebo /ucet/objednavky/…) otvorí záložku Objednávky v účte.
+{const m=location.pathname.match(/^\/ucet\/(?:objednavky\/)?(order_[A-Za-z0-9]+)\/?$/)||(location.pathname.replace(/\/$/,'')==='/ucet/objednavky'?[0,'']:null);if(m)location.replace('/ucet'+(m[1]?'?objednavka='+encodeURIComponent(m[1]):'')+'#objednavky');}
 if(location.pathname!=='/'){const back=document.createElement('button');back.type='button';back.className='ana-back';back.setAttribute('aria-label',shopText('Späť'));back.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';back.addEventListener('click',()=>{let same=false;try{same=!!document.referrer&&new URL(document.referrer).origin===location.origin;}catch{}if(same&&history.length>1){history.back();return;}const parts=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean);parts.pop();location.href='/'+parts.join('/');});mobileDock.append(back);}
 // Mobilné menu: hore výrazné Zaregistrovať sa, Prihlásiť sa, Kontakt, pod nimi košík a jazyk s vlajkami.
 // Spúšťa sa po i18n, ktoré prepínače jazyka vytvára.
@@ -683,7 +685,7 @@ if($('#magic-confirm')){
   const r=await api.confirmMagicLink();$('#magic-confirm').textContent=r.message;history.replaceState(null,'',location.pathname);
   // Návrat len na vlastnú stránku (cesta začínajúca jedným „/“), uložený pred prihlásením.
   let back='';try{back=localStorage.getItem('anastasia.return')||'';localStorage.removeItem('anastasia.return');}catch{}
-  if(r.ok&&/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%]*)?$/.test(back))$('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button(back,'Pokračovať v rezervácii')}</div>`);
+  if(r.ok&&/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%]*)?$/.test(back))$('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button(back,back.startsWith('/ucet')?'Zobraziť objednávku':'Pokračovať v rezervácii')}</div>`);
 }
 $('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=$('button[type=submit]',form),status=$('.form-status',form);if(button.disabled)return;button.disabled=true;status.textContent='Odosielam…';let r;try{r=await api.sendContact(Object.fromEntries(new FormData(form)));}catch{r={ok:false,message:'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.'};}status.textContent=r.message;if(r.ok)form.reset();button.disabled=false;});
 // Online odstúpenie od zmluvy: prihlásenému zákazníkovi predvyplníme e-mail a meno z účtu.

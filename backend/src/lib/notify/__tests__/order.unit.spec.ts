@@ -1,4 +1,4 @@
-import { formatMoney, notifyCustomerWelcome, notifyOrderCanceled, notifyOrderPlaced, notifyPaymentCaptured, notifyRefunds, notifyShipment, orderPlacedData, welcomeEligibility } from "../order"
+import { formatMoney, notifyCustomerWelcome, notifyOrderCanceled, notifyOrderPlaced, notifyPaymentCaptured, notifyRefunds, notifyShipment, orderPlacedData, orderUrl, welcomeEligibility } from "../order"
 
 const EMAIL = "synthetic.customer@example.test"
 const NOW = new Date("2026-10-15T10:00:00Z")
@@ -86,9 +86,21 @@ describe("e-maily k objednávke", () => {
     const muted = makeContainer()
     expect(await notifyShipment(muted.container, "ful_1", true)).toEqual({ status: "skipped", reason: "NO_NOTIFICATION" })
     expect(muted.notifications.createNotifications).not.toHaveBeenCalled()
-    const { container, notifications } = makeContainer({ labels: [{ tracking_number: "SK1", tracking_url: "https://track.example.test/SK1" }] })
+    const physical = baseOrder({ items: [{ title: "Default", product_title: "Bylinný čaj", quantity: 1, total: 12, requires_shipping: true }] })
+    const { container, notifications } = makeContainer({ order: physical, labels: [{ tracking_number: "SK1", tracking_url: "https://track.example.test/SK1" }] })
     expect(await notifyShipment(container, "ful_1")).toEqual({ status: "sent" })
     expect(sent(notifications)).toMatchObject({ template: "order-shipped-sk", idempotency_key: "order.shipped:ful_1", data: { tracking_number: "SK1", tracking_url: "https://track.example.test/SK1" } })
+  })
+
+  it("zásielka: digitálna objednávka nedostane e-mail o odovzdaní dopravcovi", async () => {
+    const { container, notifications } = makeContainer()
+    expect(await notifyShipment(container, "ful_1")).toEqual({ status: "skipped", reason: "DIGITAL_ONLY" })
+    expect(notifications.createNotifications).not.toHaveBeenCalled()
+  })
+
+  it("odkaz na objednávku: účet so záložkou v hashi dostane ID v query", () => {
+    process.env.ACCOUNT_ORDERS_URL = "https://anastasia-test.l-code-dynamics.com/ucet#objednavky"
+    expect(orderUrl("order_1")).toBe("https://anastasia-test.l-code-dynamics.com/ucet?objednavka=order_1#objednavky")
   })
 
   it("refund: jeden e-mail na každý refund, opakovanie neposiela znova", async () => {
