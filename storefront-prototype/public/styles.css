@@ -626,3 +626,5 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 @media(max-width:999.98px){#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div>a:not(:first-child){padding:6px 0!important}}
 #dc-top-menu div[style*="flex-direction:column"]>a.dch6[data-menu-close]:first-child,#dc-top-menu div[style*="flex-direction:column"]>a.dch6[data-menu-close]:first-child[aria-current]{font:300 22px/1.2 Fraunces,Georgia,serif!important;color:#403f62!important;padding:0!important;margin:0 0 14px!important;min-height:0!important}
 @media(max-width:999.98px){#dc-top-menu div[style*="flex-direction:column"]>:first-child{font-size:21px!important}}
+/* Mobilní účet: záložky v toku stránky pod plovoucím Menu, nepřekrývají nadpis a nezabírají obrazovku */@media(max-width:999.98px){.center-sidebar{position:relative;top:auto;padding-top:76px}}
+.center-astro .eyebrow{color:#EFE5C7;text-shadow:0 1px 10px #000c}

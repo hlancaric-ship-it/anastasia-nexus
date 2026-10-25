@@ -32,7 +32,9 @@ export function groupLibraryItems(entitlements = []) {
         else if (item.kind === 'audio') getWeek(weekNum).audios.push(item)
       }
     } else if (product.handle === 'nic-nemusis') {
-      const week = getWeek(1)
+      // Vlastní skupina na konci, ne pod Týždňom 1 RESETu.
+      const week = getWeek(100)
+      week.title = product.title || 'Nič nemusíš'
       week.audios.push({
         key: 'nic-nemusis/A0_nic-nemusis.mp3', title: 'Audio 0 · Ukážka', kind: 'audio',
         productId: product.id, previewUrl: '/media/a0_nic-nemusis.mp3',

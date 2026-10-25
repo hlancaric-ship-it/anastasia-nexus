@@ -87,15 +87,17 @@ export async function mountLibrary(target, api) {
   // Akordeon
   const accordion = node('div', null, 'library-accordion')
 
+  if (!grouped.length) {
+    const empty = node('div', null, 'library-empty')
+    empty.append(node('p', 'Zatiaľ nemáte zakúpený žiadny program ani nahrávku.', 'form-status'))
+    target.replaceChildren(empty)
+    return stopPlayer
+  }
+
   navSection.append(filterBox, accordion)
   playerSection.append(playerBox, playerTitle, playerControls)
   container.append(playerSection, navSection)
   target.replaceChildren(container)
-
-  if (!grouped.length) {
-    accordion.append(node('p', 'Zatiaľ nemáte zakúpený žiadny program ani nahrávku.', 'form-status'))
-    return stopPlayer
-  }
 
   // Vytvoření akordeonu
   let activeWeekPanel = null

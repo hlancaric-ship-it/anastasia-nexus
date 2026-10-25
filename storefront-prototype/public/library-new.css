@@ -38,6 +38,7 @@
 }
 
 .library-player-box {
+  position: relative;
   width: 100%;
   aspect-ratio: 16/9;
   background: #000;
@@ -55,7 +56,7 @@
   font-size: clamp(18px, 2.5vw, 24px);
   font-weight: 300;
   margin: 0 0 16px 0;
-  color: #283020;
+  color: var(--center-ink,#283020);
 }
 
 .library-player-controls {
@@ -83,9 +84,10 @@
 .library-search-input {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(40, 48, 32, 0.2);
+  max-width: 420px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb,var(--center-ink,#283020) 20%,transparent);
   font-size: 14px;
   font-family: Figtree, sans-serif;
 }
@@ -99,7 +101,7 @@
 .library-filter-btn {
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(40, 48, 32, 0.2);
+  border: 1px solid color-mix(in srgb,var(--center-ink,#283020) 20%,transparent);
   background: #fff;
   font-size: 13px;
   font-family: Figtree, sans-serif;
@@ -108,9 +110,9 @@
 }
 
 .library-filter-btn.active {
-  background: #283020;
+  background: var(--center-ink,#283020);
   color: #EFE5C7;
-  border-color: #283020;
+  border-color: var(--center-ink,#283020);
 }
 
 /* Akordeon */
@@ -154,12 +156,12 @@
   font-size: clamp(16px, 2vw, 18px);
   font-weight: 300;
   margin: 0;
-  color: #283020;
+  color: var(--center-ink,#283020);
 }
 
 .library-week-count {
   font-size: 12px;
-  color: rgba(40, 48, 32, 0.6);
+  color: color-mix(in srgb,var(--center-ink,#283020) 60%,transparent);
 }
 
 .library-week-content {
@@ -180,7 +182,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  color: rgba(40, 48, 32, 0.7);
+  color: color-mix(in srgb,var(--center-ink,#283020) 70%,transparent);
   margin: 16px 0 8px 0;
 }
 
@@ -206,12 +208,12 @@
 .library-item-title {
   flex: 1;
   font-size: 14px;
-  color: #283020;
+  color: var(--center-ink,#283020);
 }
 
 .library-item-btn {
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 13px;
   min-width: auto;
 }
@@ -219,7 +221,7 @@
 .library-item-check {
   display: none;
   font-size: 14px;
-  color: #283020;
+  color: var(--center-ink,#283020);
 }
 
 /* Vodoznak */
@@ -244,4 +246,13 @@
 /* Tlačítka přehrávače */
 .library-prev-btn, .library-next-btn {
   min-width: 120px;
+}
+
+/* Prázdná knižnica: jen jedna věta, bez přehrávače a filtrů */
+.library-empty { padding: 22px 26px; border-radius: 22px; background: var(--center-card, #fff); border: 1px solid var(--center-line, #e6e3ef); max-width: 640px; }
+.library-empty p { margin: 0; }
+
+/* Desktop: přehrávač zůstává vidět při procházení týdnů */
+@media (min-width: 768px) {
+  .library-player-section.desktop { position: sticky; top: 96px; }
 }

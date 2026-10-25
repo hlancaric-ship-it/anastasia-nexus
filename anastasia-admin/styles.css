@@ -1049,6 +1049,7 @@ html[data-theme=dark] .pe-nav{background:rgba(30,30,40,.8)}
 .ve-opts{display:grid;gap:12px;margin-bottom:14px}
 .ve-opt{display:grid;gap:8px;padding:14px 16px;border:1px solid var(--line,#e6e3ef);border-radius:18px}
 .ve-vals{display:flex;flex-wrap:wrap;gap:6px}
+.ve-vals .pill{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;background:var(--soft,#f1eef8);border:1px solid var(--line,#e6e3ef);font-size:13px;font-weight:600}
 .ve-add,.ve-new{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 .ve-add input{max-width:220px}
 .ve-new{padding:14px 16px;border:1px dashed var(--line,#d9d6e6);border-radius:18px;margin-bottom:14px}
