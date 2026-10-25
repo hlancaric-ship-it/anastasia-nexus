@@ -152,9 +152,10 @@ const notificationProviders: Array<Record<string, unknown>> = resendEnabled
   : [{ resolve: "./src/modules/notification-log", id: "local", options: { channels: ["email", "feed"] } }]
 
 const modules: Array<Record<string, unknown>> = [
-  // Na Medusa Cloud skládá file modul defineConfig sám (S3 Cloudu přes IAM roli a Cloudem vložené S3_*);
-  // vlastní registrace by ho přepsala. Média webu jsou mimo Medusu (R2 přes NEXUS Worker).
-  ...(deploy.onCloud ? [] : [{
+  // Na Medusa Cloud skládá file modul defineConfig sám (S3 Cloudu přes IAM roli a Cloudem vložené S3_*).
+  // Když máme vlastné R2 (S3_ENDPOINT + kľúče), registrujeme ho sami: Cloud by inak poslal svoj
+  // 20-znakový AWS kľúč na R2 endpoint a každé nahranie obrázka v administrácii by padlo (500).
+  ...(deploy.onCloud && !(s3Configured && env("S3_ENDPOINT")) ? [] : [{
     key: Modules.FILE,
     resolve: "@medusajs/medusa/file",
     options: { providers: [fileProvider] },

@@ -205,8 +205,8 @@ export function createHttpApi(storage, config) {
       return {
         slug: voucherSlug(amount), code: voucherSlug(amount), name: `Darčekový poukaz ${money(amount).replace(',00', '')}`,
         category: VOUCHER_CATEGORY, categoryHandle: VOUCHER_CATEGORY_HANDLE, priceLabel, art: 'gift',
-        description: 'Darujte priestor pre vlastný výber. Poukaz vám príde e-mailom ako PDF hneď po zaplatení a odovzdáte ho, komu chcete.',
-        descriptionHtml: '', longDescription: '', images: [VOUCHER_IMAGE], availability: 'Ihneď e-mailom', isNew: false, isBestseller: false,
+        description: 'Darujte priestor pre vlastný výber. Poukaz odovzdáte, komu chcete, a obdarovaný si vyberie produkty, programy alebo konzultáciu.',
+        descriptionHtml: '', longDescription: '', images: [VOUCHER_IMAGE], availability: 'Ihneď v účte', isNew: false, isBestseller: false,
         image: VOUCHER_IMAGE, giftVoucher: true, voucherAmount: amount, _variantId: v.id, options: [],
         variants: [{ id: v.id, title: v.title, priceLabel, options: {} }],
       };
@@ -807,6 +807,24 @@ export function createHttpApi(storage, config) {
       if (!loggedIn()) return '';
       const r = await call('/store/customers/me?fields=email');
       return r.data?.customer?.email || '';
+    },
+    // Darčekové poukazy zákazníka (z jeho objednávok), s celým kódom na uplatnenie alebo vytlačenie.
+    async getVouchers() {
+      if (!loggedIn()) return { ok: false, vouchers: [] };
+      const r = await call('/store/gift-vouchers/mine');
+      if (!r.ok) return { ok: false, vouchers: [] };
+      const day = d => d ? new Intl.DateTimeFormat('sk-SK', { timeZone: 'Europe/Bratislava', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(d)) : '';
+      const STATUS = { active: 'Aktívny', depleted: 'Vyčerpaný', expired: 'Platnosť vypršala', void: 'Zrušený' };
+      return { ok: true, vouchers: (r.data?.vouchers || []).map(v => ({ id: v.id, code: v.code, amountLabel: money(v.initial_amount), balanceLabel: money(v.balance), status: v.status, statusLabel: STATUS[v.status] || v.status, expires: day(v.expires_at), issued: day(v.issued_at), recipient: v.recipient_name || '' })) };
+    },
+    // PDF poukazu na tlač: stiahne sa s prihlasovacím tokenom, nie cez verejný odkaz.
+    async downloadVoucherPdf(id) {
+      if (!loggedIn()) return { ok: false };
+      try {
+        const res = await fetch(base + '/store/gift-vouchers/mine/' + encodeURIComponent(id) + '/pdf', { headers: headers(false) });
+        if (!res.ok) return { ok: false };
+        return { ok: true, blob: await res.blob() };
+      } catch { return { ok: false }; }
     },
     async getCustomerCenter() {
       if (!loggedIn()) return { ok: false, bookings: [], materials: [], reorder: [], profile: null };

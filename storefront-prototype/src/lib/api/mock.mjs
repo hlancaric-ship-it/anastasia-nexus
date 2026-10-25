@@ -116,6 +116,8 @@ export function createMockApi(storage=memoryStorage()) {
     confirmMagicLink:()=>({ok:false,message:'Ukážkový režim: odkaz sa neoveruje a neprihlasuje vás. Môžete si otvoriť náhľad účtu.'}),
     // Odhlásenie: v náhľade zmizne košík aj údaje zákazníka, účet ostáva odhlásený.
     signOut:()=>{state={lines:[],coupon:'',qrKeys:[]};credit=null;sent=0;signedOut=true;forget(KEY);for(const key of CUSTOMER_KEYS)forget(key);return{ok:true};},
+    getVouchers:()=>({ok:true,vouchers:[]}),
+    downloadVoucherPdf:()=>({ok:false}),
     getCustomerCenter:()=>({
       ok:true,bookingsOk:true,mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
       materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · 2026-0142',category:'faktury',type:'PDF'}],

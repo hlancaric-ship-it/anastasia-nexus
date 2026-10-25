@@ -388,3 +388,10 @@ main>.lh-top+.kc{margin-top:-64px}
 .kc-gift__copy .kc-pill{position:relative;z-index:3;overflow:visible}
 .dc-chrome .site-footer,body .site-footer{border-top:1px solid rgba(253,230,138,.15)}
 @media (max-width:760px){.kc-who__stage{min-height:0}.kc-gift{padding-bottom:120px}}
+
+/* Hero mikro-polish 25. 10.: champagne logo, karty text white/75, indexy a šipky amber-200/90 */
+.kc-open__seal img{filter:brightness(0) invert(93%) sepia(18%) saturate(420%) hue-rotate(2deg) brightness(102%) contrast(92%) drop-shadow(0 0 14px rgba(212,175,55,.3))}
+.kc-open__seal span{color:#F3E5C0;filter:drop-shadow(0 0 14px rgba(212,175,55,.3))}
+.kc-open__more small{color:rgba(255,255,255,.75)}
+.kc-open__more .kc-more__idx,.kc-open__more i{color:rgba(253,230,138,.9)}
+.kc-open__more a:hover i,.kc-open__more a:focus-visible i{color:#FDE68A}

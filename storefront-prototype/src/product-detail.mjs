@@ -52,7 +52,9 @@ const buyForm = (p, {quantity=true}={}) => `<form class="add-product pd-purchase
 const head = (p, {eyebrow=p.category, badge=''}={}) => `<p class="pd-eyebrow" data-product-category>${txt(eyebrow)}</p><h1 data-product-title>${txt(p.name)}</h1><div class="pdm-price-row"><p class="pd-price" data-product-price>${txt(p.priceLabel)}</p>${badge}</div>`;
 const shell = (p, kind, crumbs, media, panel, extra='', attrs='') => `<section class="pd-page pdm pdm--${kind} kc-motif" data-product-detail${attrs} data-product-handle="${txt(p.slug)}" data-product-kind="${kind}">${shopShortcuts()}${crumbs}<div class="pdm-grid"><div class="pdm-media">${media}</div><div class="pdm-panel kc-glass">${panel}</div></div>${extra}</section>`;
 const related = (p, products) => {
-  const kind=kindOf(p);const options=products.filter(x=>x.slug!==p.slug&&kindOf(x)===kind&&x.priceLabel!=='Cena sa doplní').slice(0,4);
+  const kind=kindOf(p);const ok=x=>x.slug!==p.slug&&x.priceLabel!=='Cena sa doplní';
+  // Pri poukaze sú ostatné hodnoty v rolovacej ponuke, preto ukážeme produkty z obchodu.
+  const options=(kind==='voucher'?products.filter(x=>ok(x)&&kindOf(x)!=='voucher'):products.filter(x=>ok(x)&&kindOf(x)===kind)).slice(0,4);
   return options.length?`<section class="pdm-related" aria-labelledby="pdm-related-h"><div class="pdm-related-head"><h2 id="pdm-related-h">Objavte aj</h2><a class="pdm-link" href="/eshop">Všetky produkty ${arrow}</a></div><div class="pdm-related-grid">${options.map(x=>`<a class="pdm-related-card" href="/eshop/produkt/${txt(x.slug)}/"><span class="pdm-related-img"><img src="${url(x.image)}" alt="" width="400" height="400" loading="lazy"></span><small>${txt(x.category)}</small><b>${txt(x.name)}</b><em>${txt(x.priceLabel)}</em></a>`).join('')}</div></section>`:'';
 };
 
@@ -115,15 +117,22 @@ function digitalPage(p, products) {
 // Darčekový poukaz: každá hodnota je samostatný produkt, hodnota sa vyberá v rolovacej ponuke.
 const amountText = n => new Intl.NumberFormat('sk-SK',{maximumFractionDigits:2}).format(n);
 const voucherCard = amount => `<div class="gv pd-gv" data-voucher-preview><div class="gv-card"><img class="gv-mark" src="/assets/brand-mark.svg" alt="" aria-hidden="true"><div class="gv-main"><span class="gv-kick">ANASTASIA · Light for the Future</span><p class="gv-title">Darčekový <em>poukaz</em></p><div class="gv-value"><span>${txt(amountText(amount))}</span><small>€</small></div><p class="gv-to">pre <b>vašich blízkych</b></p></div><div class="gv-stub"><span>Kód poukazu</span><b>•••••-•••••</b><small>Platnosť a hodnotu potvrdzuje obchod.</small></div><i class="gv-foil" aria-hidden="true"></i></div></div>`;
+// Názvy úrovní poukazu podľa hodnoty, ostatné hodnoty ostanú len so sumou.
+const VOUCHER_TIERS = {50:'Základný darčekový poukaz',100:'Rozšírený darčekový poukaz',200:'Exkluzívny darčekový poukaz'};
+const voucherOption = v => {const n=v.voucherAmount??voucherAmountFromSlug(v.slug);const tier=VOUCHER_TIERS[n];return `${amountText(n)} €${tier?` (${tier})`:''}`;};
+// Z popisu vypadnú vety o e-maile a PDF, poukaz je po zaplatení v zákazníckej zóne.
+const voucherPerex = p => String(p.description||'').split(/(?<=[.!?])\s+/).filter(t=>t&&!/e-?mail|pdf/i.test(t)).join(' ');
+const voucherBadge = `<div class="pdm-status"><p class="pdm-badge">${icon('bolt')}<span>Okamžitá automatická aktivácia v zákazníckej zóne po zaplatení</span></p><p class="pdm-status-sub">Poukaz s unikátnym kódom nájdete ihneď po platbe vo svojom účte pripravený na uplatnenie alebo vytlačenie.</p></div>`;
 function voucherPage(p, products) {
   const amount = voucherAmountFromSlug(p.slug);
-  const values = products.filter(x => x.category === VOUCHER_CATEGORY);
-  const select = values.length>1 ? `<label class="pdm-select"><span>Hodnota poukazu</span><select data-voucher-value>${values.map(v=>`<option value="/eshop/produkt/${txt(v.slug)}/"${v.slug===p.slug?' selected':''}>${txt(v.priceLabel)}</option>`).join('')}</select></label>` : '';
-  const panel = head(p,{eyebrow:VOUCHER_CATEGORY}) + `<p class="pdm-badge">${icon('mail')}<span>PDF poukaz príde e-mailom hneď po zaplatení</span></p><p class="pdm-perex">${txt(p.description)}</p>`
-    + select + buyForm(p)
-    + features([['mail','Ihneď e-mailom','PDF poukaz po zaplatení'],['calendar','Platnosť 12 mesiacov','od dátumu nákupu'],['gift','Na celý obchod','produkty, programy aj konzultácie'],['card','Čerpanie po častiach','zostatok ostáva na poukaze']])
-    + accordions([['Ako poukaz funguje','<ul class="pdm-list"><li>Po zaplatení vám príde e-mail s PDF poukazom a jedinečným kódom.</li><li>Poukaz odovzdáte, komu chcete. Obdarovaný zadá kód v košíku do poľa Darčekový poukaz.</li><li>Ak nákup nevyčerpá celú hodnotu, zostatok ostáva na poukaze.</li></ul>'],['Podmienky','<p>Platnosť poukazu je 12 mesiacov od nákupu. Podrobnosti nájdete v <a href="/vop">obchodných podmienkach</a>.</p>']],-1);
-  return shell(p,'voucher',crumb(VOUCHER_CATEGORY,'/eshop/?category='+VOUCHER_CATEGORY_HANDLE+'#nase-produkty',p.name),`<div class="pdm-voucher-stage">${voucherCard(amount)}</div>`,panel,related(p,products));
+  const values = products.filter(x => x.category === VOUCHER_CATEGORY && voucherAmountFromSlug(x.slug)!=null);
+  const select = values.length ? `<label class="pdm-select pdm-select--voucher"><span>Hodnota poukazu</span><select data-voucher-value aria-label="Hodnota poukazu">${values.map(v=>`<option value="/eshop/produkt/${txt(v.slug)}/" data-code="${txt(v.code)}" data-name="${txt(v.name)}" data-price="${txt(v.priceLabel)}" data-amount="${txt(amountText(voucherAmountFromSlug(v.slug)))}"${v.slug===p.slug?' selected':''}>${txt(voucherOption(v))}</option>`).join('')}</select></label>` : '';
+  const perexText = voucherPerex(p);
+  const panel = head(p,{eyebrow:VOUCHER_CATEGORY}) + voucherBadge + (perexText?`<p class="pdm-perex">${txt(perexText)}</p>`:'')
+    + `<div class="pdm-voucher-buy">${select}${buyForm(p,{quantity:false})}</div>`
+    + features([['bolt','Ihneď v účte','aktivácia po zaplatení'],['calendar','Platnosť 12 mesiacov','od dátumu nákupu'],['gift','Na celý obchod','produkty, programy aj konzultácie'],['card','Čerpanie po častiach','zostatok ostáva na poukaze']])
+    + accordions([['Ako poukaz funguje','<ul class="pdm-list"><li>Po zaplatení nájdete poukaz s jedinečným kódom vo svojom účte v sekcii <a href="/ucet#poukazy">Poukazy</a>, pripravený na uplatnenie alebo vytlačenie.</li><li>Poukaz odovzdáte, komu chcete. Obdarovaný zadá kód v košíku do poľa Darčekový poukaz.</li><li>Ak nákup nevyčerpá celú hodnotu, zostatok ostáva na poukaze.</li></ul>'],['Podmienky','<p>Platnosť poukazu je 12 mesiacov od nákupu. Podrobnosti nájdete v <a href="/vop">obchodných podmienkach</a>.</p>']],-1);
+  return shell(p,'voucher',crumb(VOUCHER_CATEGORY,'/eshop/?category='+VOUCHER_CATEGORY_HANDLE+'#nase-produkty',p.name),`<div class="pdm-voucher-stage"><div class="pdm-voucher-frame">${voucherCard(amount)}</div></div>`,panel,related(p,products));
 }
 
 // Konzultácia sa nekupuje s množstvom: vedie na výber termínu, ktorý potvrdí Lucia.

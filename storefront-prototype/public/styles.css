@@ -629,3 +629,13 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 /* Mobilní účet: záložky v toku stránky pod plovoucím Menu, nepřekrývají nadpis a nezabírají obrazovku */@media(max-width:999.98px){.center-sidebar{position:relative;top:auto;padding-top:76px}}
 .center-astro .eyebrow{color:#EFE5C7;text-shadow:0 1px 10px #000c}
 /* Přihlášení: formulář v rozumné šířce, na mobilu vizuál pod plovoucím Menu */.customer-login .auth-copy form,.customer-login .auth-copy .auth-tabs+*{max-width:460px}.customer-login .auth-copy input{max-width:460px}@media(max-width:999.98px){.customer-login .auth-section{padding-top:84px}}
+/* Darčekové poukazy v zákazníckej zóne */
+.center-vouchers-head{margin-bottom:22px}.center-vouchers-head h2{margin:0 0 8px}.center-vouchers-head p{margin:0;color:var(--center-muted);max-width:60ch}
+#center-vouchers{display:grid;gap:16px}
+.center-voucher{display:grid;grid-template-columns:minmax(150px,auto) 1fr auto;gap:18px 26px;align-items:center;padding:22px 24px;border-radius:20px;background:linear-gradient(160deg,#FFFDF8,#F7F1E3);border:1px solid rgba(201,165,92,.32);box-shadow:0 18px 40px -26px rgba(70,58,30,.35)}
+.center-voucher small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--center-muted);margin-bottom:6px}
+.center-voucher__value strong{font:400 34px/1 var(--serif,Georgia,serif);color:#4A4122}.center-voucher__value span{display:block;margin-top:6px;font-size:13px;color:var(--center-muted)}
+.center-voucher__code code{display:block;font:500 18px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.08em;color:var(--center-ink);word-break:break-all}.center-voucher__code span{display:block;margin-top:6px;font-size:13px;color:var(--center-muted)}
+.center-voucher__actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px}
+.center-voucher--depleted,.center-voucher--expired,.center-voucher--void{opacity:.62}
+@media (max-width:700px){.center-voucher{grid-template-columns:1fr}.center-voucher .center-chip{justify-self:start}}
