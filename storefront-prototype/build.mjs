@@ -93,10 +93,7 @@ for(const [path,page] of Object.entries(legacyContent)){
   if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
-    const dsGallery=path==='/denny-stacionar-vysna-slana/ds-dnes'
-      ? dsPhotos('ds',['img_1.jpg','img_2.jpg','img_3.jpg','img_4.jpg','img_5.jpg','propagacia.jpg'])
-      : '';
-    add(path,page.title,legacyPage(page,{contactForm,path})+(path==='/denny-stacionar-vysna-slana'?`<section class="section photo-gallery photo-gallery--lucia"><figure><img src="/img/vonkajsi-vchod.webp" alt="Denný stacionár Vyšná Slaná – vonkajší vchod" loading="lazy" width="1200" height="800"></figure></section>`+'<section class="section"><a class="button" href="/denny-stacionar-vysna-slana/ds-dnes">Aktuálne dianie v stacionári ↗</a></section>'+stationPhotos:'')+dsGallery);
+    add(path,page.title,legacyPage(page,{contactForm,path}));
   }else if(path==='/zdrava-lekaren'){add('/zdrava-lekaren',page.title,catalog());add('/eshop/kategoria/-vsetko-','Zdravá lekáreň',catalog());}
   else if(!existing)add(path,page.title,views.pagePlaceholder?views.pagePlaceholder(page):`<section class="section">${views.content({kind:'future',title:page.title,headline:page.title,intro:''})}</section>`);
 }

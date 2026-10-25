@@ -1,4 +1,4 @@
-import {escape as e,arrow,button} from './components.mjs';
+import {escape as e,arrow,button,pageIntro,splitHero} from './components.mjs';
 import {picture} from './webp.mjs';
 import content from './legacy-content.json' with {type:'json'};
 import {withdrawalForm} from './withdrawal.mjs';
@@ -50,6 +50,63 @@ function legalPage(page,render){
   const slug=page.source.split('/').filter(Boolean).pop();const img=LEGAL_IMG[slug]?`<figure class="legal-figure"><img src="/legal/${slug}.jpg" alt="${e(LEGAL_IMG[slug])}" width="960" height="1200" loading="eager" decoding="async"></figure>`:'';
   return `<section class="legal-hero${img?' has-figure':''}" data-sk-only><div class="legal-hero-text"><p class="legal-eyebrow">ANASTASIA · Právne informácie</p><h1>${e(head?.text||page.title)}</h1>${toc}</div>${img}</section><article class="legal-doc" data-sk-only>${arts.filter(a=>a.title||a.body.length).map(art).join('')}${isClaims?`<a class="legal-more reveal" href="/vop"><span>Úplné znenie</span><strong>Všeobecné obchodné podmienky</strong>${arrow}</a>`:''}</article>${page.source.endsWith('/odstupenie')?withdrawalForm():''}${button('/','Na úvod','legacy-back')}`;
 }
+// Lanserhof rozloženie starších podstránok: veľký úvod s fotkou, kapitoly v striedavých pásoch, karty, rezervácia na konci.
+const L='/img/lucia/';
+const LAN={
+  '/konzultacie/online-zdravotna-konzultacia':{eyebrow:'Konzultácie',img:L+'lucia-portret-hero-1600.webp',tone:'lavender',book:'online-zdravotna-konzultacia',photos:{'O mne':L+'lucia-portret-1600.webp'}},
+  '/konzultacie/supervizia':{eyebrow:'Konzultácie',img:L+'stacionar-priestor-1600.webp',tone:'sage',book:'supervizia'},
+  '/konzultacie/astrologicky-profil-zdravia-a-vitality':{eyebrow:'Konzultácie',img:'/media/night-sky.jpg',video:'/media/night-sky.mp4',tone:'night',book:'astrologia-zdravie-predispozicia',cta:'Objednať výklad'},
+  '/denny-stacionar-vysna-slana':{eyebrow:'Vyšná Slaná',img:L+'stacionar-kresla-1600.webp',tone:'sage',link:['/denny-stacionar-vysna-slana/ds-dnes','Aktuálne dianie v stacionári'],gallery:true},
+  '/denny-stacionar-vysna-slana/ds-dnes':{eyebrow:'Denný stacionár',img:L+'stacionar-priestor-1600.webp',tone:'cream',link:['/kontakt','Kontaktovať nás'],gallery:true},
+};
+const BOOK_RE=/^(VÝKLAD\s+)?OBJ?EDNA[ŤT](\s.{0,40})?$/i, PRICE_RE=/^Cena:\s*(.+)$/i;
+const GALLERY=[['stacionar-priestor','Spoločenský priestor denného stacionára'],['stacionar-poradna','Poradenská miestnosť'],['stacionar-kresla','Oddychová časť']];
+function lanStory(page,render,keyOf,o){
+  const tones=['cream','lavender','sage'];
+  let price='';
+  const blocks=page.blocks.filter(b=>{
+    if(b.type==='image')return false;
+    const t=(b.text||'').trim();
+    if(b.type==='p'&&BOOK_RE.test(t))return false;
+    if(b.type==='p'&&/Kapacita:.*Plánované otvorenie:/.test(t))return false;
+    if(b.type==='p'&&PRICE_RE.test(t)){price=t.match(PRICE_RE)[1];return false;}
+    return true;
+  });
+  const hi=blocks.findIndex(b=>/^h[12]$/.test(b.type));
+  const head=hi>=0&&hi<3?blocks[hi]:null;
+  const rest=head?[...blocks.slice(0,hi),...blocks.slice(hi+1)]:blocks;
+  const leadIdx=head?rest.findIndex((b,i)=>i>=hi&&b.type==='p'&&b.text.length<200):rest.findIndex(b=>b.type==='p');
+  const lead=leadIdx>=0?rest.splice(leadIdx,1)[0]:null;
+  const keyAttr=b=>keyOf.get(b)?` data-content="${e(keyOf.get(b))}"`:'';
+  const intro=`<div class="page-intro${(head?.text||page.title).length>40?' page-intro--long':''}"><p class="eyebrow">${e(o.eyebrow)}</p><h1${head?keyAttr(head):''}>${e(head?.text||page.title)}</h1>${lead?`<p class="lead"${keyAttr(lead)}>${e(lead.text)}</p>`:''}</div>`;
+  const extra=o.link?button(o.link[0],o.link[1]):o.book?button(`/konzultacie/rezervacia?typ=${encodeURIComponent(o.book)}`,o.cta||'Rezervovať termín'):'';
+  const hero=o.video
+    ?`<div class="lan-hero lan-hero--night"><div class="lan-hero__text">${intro}${extra}</div><figure class="lan-hero__photo"><video autoplay muted loop playsinline preload="metadata" poster="${e(o.img)}" aria-hidden="true"><source src="${e(o.video)}" type="video/mp4"></video></figure></div>`
+    :splitHero(intro,o.img,head?.text||page.title,{tone:o.tone,extra});
+  // Kapitoly podľa h2. Stránka bez h2 sa delí podľa h3.
+  const lvl=rest.some(b=>b.type==='h2')?'h2':'h3';
+  const chapters=[];let cur={title:null,body:[]};
+  for(const b of rest){if(b.type===lvl){if(cur.title||cur.body.length)chapters.push(cur);cur={title:b,body:[]};}else cur.body.push(b);}
+  if(cur.title||cur.body.length)chapters.push(cur);
+  const body=list=>list.map(b=>/^h[3-6]$/.test(b.type)?`<h3${keyAttr(b)}>${e(b.text)}</h3>`:render(b)).join('');
+  // Pri kapitole s podnadpismi h3 vznikne mriežka kariet.
+  const cards=list=>{const out=[];let c=null;const pre=[];for(const b of list){if(b.type==='h3'){c={h:b,body:[]};out.push(c);}else if(c)c.body.push(b);else pre.push(b);}return {pre,out};};
+  let n=0;
+  const short=lvl==='h3'?chapters.filter(c=>c.title&&c.body.reduce((a,b)=>a+(b.text||'').length,0)<260):[];
+  const chapterHtml=chapters.filter(c=>!short.includes(c)).map(c=>{
+    const tone=tones[n%3];const no=c.title?String(++n).padStart(2,'0'):'';
+    const photo=c.title&&o.photos?.[c.title.text];
+    const {pre,out}=cards(c.body);
+    const inner=out.length>=2?`${body(pre)}<div class="lan-cards">${out.map(x=>`<div class="lan-card"><h3${keyAttr(x.h)}>${e(x.h.text)}</h3>${body(x.body)}</div>`).join('')}</div>`:body(c.body);
+    const headHtml=c.title?`<div class="lan-chap__head"><span class="lan-chap__no">${no}</span><h2${keyAttr(c.title)}>${e(c.title.text)}</h2></div>`:'<div class="lan-chap__head"></div>';
+    return `<section class="lan-chap lan-chap--${tone}${photo?' lan-chap--photo':''}${!c.title&&chapters.length===1?' lan-chap--lone':''}">${photo?`<figure class="lan-chap__photo"><img src="${e(photo)}" alt="" width="900" height="1100" loading="lazy" decoding="async"></figure>`:headHtml}<div class="lan-chap__body">${photo?headHtml:''}${inner}</div></section>`;
+  });
+  // Krátke fakty (otvorenie, kapacita, hodiny) v jednom páse vedľa seba.
+  if(short.length){const facts=`<section class="lan-chap lan-chap--lavender lan-facts">${short.map(c=>`<div class="lan-fact"><h3${keyAttr(c.title)}>${e(c.title.text)}</h3>${body(c.body)}</div>`).join('')}</section>`;chapterHtml.splice(Math.min(1,chapterHtml.length),0,facts);}
+  const gallery=o.gallery?`<section class="lan-gallery">${GALLERY.filter(([f])=>!o.img.includes(f)).map(([f,alt])=>`<figure>${picture(L+f+'-1600.webp',alt,'loading="lazy" decoding="async" width="900" height="1100"')}</figure>`).join('')}</section>`:'';
+  const cta=o.book?`<section class="lan-cta"><p class="eyebrow">Rezervácia</p><h2>${e(head?.text||page.title)}</h2>${price?`<p class="lan-cta__price">${e(price)}</p>`:''}${button(`/konzultacie/rezervacia?typ=${encodeURIComponent(o.book)}`,o.cta||'Vybrať termín')}</section>`:'';
+  return `<div class="lan-story">${hero}${chapterHtml.join('')}${gallery}${cta}</div>`;
+}
 // Malé alebo rozmazané obrázky zo starého webu nahrádzajú ostré fotky priestorov ANASTASIA.
 const SHARP={'/media/hucpcycx/supervizia-2.jpg':'/img/lucia/stacionar-priestor-1600.webp'};
 export function legacyPage(page,{about=false,contactForm='',path=''}={}){
@@ -70,6 +127,8 @@ export function legacyPage(page,{about=false,contactForm='',path=''}={}){
     return b.chunks.map(part=>{let html=e(part);for(const [li,link] of (b.links||[]).entries()){if(!link.text||!link.href||!(/^(https?:|mailto:|tel:|\/)/.test(link.href)))continue;const href=link.href.startsWith('/eshop/produkt/')?(consult?`/konzultacie/rezervacia?typ=${encodeURIComponent(link.href.split('#')[0].split('/').pop())}`:link.href.split('#')[0]):link.href.startsWith('/')?(content[link.href.replace(/\/$/,'')]?link.href:'https://anastasiaoz.eu'+link.href):link.href;const linkKey=key?`${key.replace(/-(text|rich|image)$/,'')}-link-${li}`:'';html=html.replace(e(link.text),`<a class="source-link" href="${e(href)}"${linkKey?` data-content="${e(linkKey)}"`:''}>${e(link.text)}</a>`);}return `<p class="source-text"${key?` data-content="${e(key)}"`:''}>${html}</p>`;}).join('');
   };
   if(LEGAL.some(x=>page.source.endsWith(x)))return legalPage(page,render);
+  const lanKey=Object.keys(LAN).find(x=>page.source.replace(/\/$/,'').endsWith(x));
+  if(lanKey&&!about)return lanStory(page,render,blockKey,LAN[lanKey]);
   const groups=[];let group=[];
   for(const block of page.blocks){
     if(group.length&&/^h[12]$/.test(block.type)){groups.push(group);group=[];}
