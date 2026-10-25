@@ -249,6 +249,8 @@ const heroVideo=$('video[data-video="hero"]'),playBtn=$('[data-video-toggle]'),s
 const mediaControls=$('[data-media-controls]'),mobileMedia=$('[data-mobile-media]'),wideMedia=matchMedia('(min-width:1000px)');
 // Mobil: mimo úvodu chýba miesto pod videom, preto zvuk a cesta späť sedia v malom doku vľavo dole.
 const mobileDock=document.createElement('div');mobileDock.className='ana-mobile-dock';
+// Při posouvání dolů se dock schová, aby nepřekrýval tlačítka, nahoru se vrátí.
+{let lastY=scrollY,ticking=false;addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{const y=scrollY,end=y+innerHeight>=document.documentElement.scrollHeight-80;if(y<lastY-4||end||y<120)mobileDock.classList.remove('is-hidden');else if(y>lastY+4)mobileDock.classList.add('is-hidden');if(Math.abs(y-lastY)>4)lastY=y;ticking=false;});},{passive:true});}
 if(location.pathname!=='/'){const back=document.createElement('button');back.type='button';back.className='ana-back';back.setAttribute('aria-label',shopText('Späť'));back.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';back.addEventListener('click',()=>{let same=false;try{same=!!document.referrer&&new URL(document.referrer).origin===location.origin;}catch{}if(same&&history.length>1){history.back();return;}const parts=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean);parts.pop();location.href='/'+parts.join('/');});mobileDock.append(back);}
 // Mobilné menu: hore výrazné Zaregistrovať sa, Prihlásiť sa, Kontakt, pod nimi košík a jazyk s vlajkami.
 // Spúšťa sa po i18n, ktoré prepínače jazyka vytvára.
