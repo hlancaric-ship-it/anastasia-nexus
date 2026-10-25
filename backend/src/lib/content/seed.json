@@ -4,13 +4,13 @@
  "stats": {
   "pages": 22,
   "sections": 82,
-  "fields": 1572,
+  "fields": 1571,
   "byType": {
    "text": 324,
    "image": 20,
    "link": 122,
    "video": 1,
-   "rich": 1105
+   "rich": 1104
   }
  },
  "pages": [
@@ -1777,14 +1777,6 @@
        "type": "rich",
        "label": "Odsek 52",
        "value": "AI je nástroj. Odbornosť zostáva ľudská.",
-       "max_length": 2000,
-       "lang": "sk"
-      },
-      {
-       "key": "konzultacie-online-zdravotna-konzultacia__konzultacie-online-zdravotna-konzultacia-1__52-rich",
-       "type": "rich",
-       "label": "Odsek 53",
-       "value": "Táto verzia je podľa mňa oveľa bližšie tomu, čo skutočne reprezentuješ Ty aj AI ANASTASIA. Nie je to životopis. Je to príbeh a vízia, ku ktorej sa ľudia môžu pripojiť. A práve to býva na predajných stránkach často silnejšie než zoznam diplomov.",
        "max_length": 2000,
        "lang": "sk"
       }
