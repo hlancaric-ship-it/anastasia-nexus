@@ -2,6 +2,7 @@ import { InjectTransactionManager, MedusaContext, MedusaError, MedusaService } f
 import type { Context } from "@medusajs/framework/types"
 import Booking from "./models/booking"
 import BookingAvailability from "./models/booking-availability"
+import BookingRequest from "./models/booking-request"
 import { BOOKING_TIMEZONE, CALENDAR_ID, weekDates, weekWindows, type WeekInput } from "./availability"
 import { clampHoldMinutes, isHoldExpired, UNIQUE_VIOLATION } from "./policy"
 import { addDays, isWithinWindows, utcToLocalDate, zonedToUtc, type AvailabilityWindow, type BusyInterval } from "./slots"
@@ -43,6 +44,11 @@ export class AvailabilityConflictError extends Error {
 const ACTIVE = ["held", "confirmed"] as const
 /** Hold hosťa nemá zákazníka, vlastníkom je košík; pri objednávke sa prepíše na zákazníka objednávky. */
 export const guestOwner = (cartId: string) => `guest:${cartId}`
+/** Schválený termín zo žiadosti patrí žiadosti, kým si ho klient z odkazu v e-maile nevezme do košíka. */
+export const requestOwner = (requestId: string) => `request:${requestId}`
+export class RequestStateError extends Error {
+  constructor(readonly code: string) { super(code); this.name = "RequestStateError" }
+}
 const ownedBy = (booking: { customer_id: string }, customerId: string, cartId: string) =>
   booking.customer_id === customerId || booking.customer_id === guestOwner(cartId)
 const bufferOf = (metadata: unknown): number => {
@@ -50,7 +56,7 @@ const bufferOf = (metadata: unknown): number => {
   return Number.isInteger(n) && n >= 0 ? n : 0
 }
 
-class BookingModuleService extends MedusaService({ Booking, BookingAvailability }) {
+class BookingModuleService extends MedusaService({ Booking, BookingAvailability, BookingRequest }) {
   private transactionKnex(context: Context) {
     const knex = (context.transactionManager as any)?.getTransactionContext()
     if (!knex) throw new Error("BOOKING_TRANSACTION_REQUIRED")
@@ -114,7 +120,7 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
     const knex = this.transactionKnex(context)
     const now = new Date()
     await knex("booking").where({ customer_id: owner, status: "held" }).whereNull("deleted_at")
-      .whereRaw("metadata->>'checkout_cart_id' IS NULL")
+      .whereRaw("metadata->>'checkout_cart_id' IS NULL").whereRaw("metadata->>'request_id' IS NULL")
       .update({ status: "canceled", canceled_at: now, cancel_reason: "replaced", updated_at: now })
     const booking = await this.holdSlot({ ...input, customer_id: owner }, context)
     return (await this.updateBookings({ id: booking.id, metadata: { ...booking.metadata, authorized_cart_id: input.cart_id } }, context)) as unknown as BookingDTO
@@ -187,6 +193,84 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
       if (UNIQUE_VIOLATION.test(message)) throw new SlotTakenError()
       throw error
     }
+  }
+
+  private async lockedRequest(id: string, context: Context) {
+    const knex = this.transactionKnex(context)
+    await knex.raw("SET LOCAL lock_timeout = '3s'")
+    const request = await knex("booking_request").where({ id }).whereNull("deleted_at").forUpdate().first()
+    if (!request) throw new MedusaError(MedusaError.Types.NOT_FOUND, "BOOKING_REQUEST_NOT_FOUND")
+    return request
+  }
+
+  /**
+   * Lucia schváli žiadosť: termín sa podrží na `holdHours` (mimo bežných okien dostupnosti, rozhodla o ňom ona),
+   * kontroluje sa len prekryv s inými aktívnymi termínmi pod zámkom kalendára.
+   */
+  @InjectTransactionManager()
+  async approveRequest(input: { id: string; token_hash: string; bufferMinutes: number; holdHours?: number }, @MedusaContext() context: Context = {}) {
+    const request = await this.lockedRequest(input.id, context)
+    if (request.status !== "pending") throw new RequestStateError("REQUEST_NOT_PENDING")
+    const knex = this.transactionKnex(context)
+    await this.lockCalendar(knex, request.calendar_id)
+    const now = new Date()
+    await knex("booking").where({ calendar_id: request.calendar_id, status: "held" }).whereNull("deleted_at")
+      .where("held_until", "<=", now).whereRaw("metadata->>'checkout_cart_id' IS NULL")
+      .update({ status: "canceled", canceled_at: now, cancel_reason: "hold_expired", updated_at: now })
+    const startsAt = new Date(request.starts_at)
+    const endsAt = new Date(request.ends_at)
+    const busy = await knex("booking").where({ calendar_id: request.calendar_id }).whereNull("deleted_at")
+      .whereIn("status", ["held", "confirmed"])
+      .where("starts_at", "<", new Date(endsAt.getTime() + input.bufferMinutes * 60000))
+      .whereRaw("ends_at + COALESCE((metadata->>'buffer_minutes')::integer, 0) * interval '1 minute' > ?", [startsAt])
+      .first("id")
+    if (busy) throw new SlotTakenError()
+    const hours = Math.min(Math.max(Math.trunc(input.holdHours ?? 72), 1), 24 * 14)
+    let booking: BookingDTO
+    try {
+      booking = (await this.createBookings({
+        customer_id: requestOwner(request.id), product_id: request.product_id, calendar_id: request.calendar_id,
+        status: "held", starts_at: startsAt, ends_at: endsAt, held_until: new Date(now.getTime() + hours * 3_600_000),
+        tenant_id: "default", metadata: { buffer_minutes: input.bufferMinutes, request_id: request.id },
+      }, context)) as unknown as BookingDTO
+    } catch (error) {
+      if (UNIQUE_VIOLATION.test(error instanceof Error ? error.message : String(error))) throw new SlotTakenError()
+      throw error
+    }
+    await this.updateBookingRequests({ id: request.id, status: "approved", booking_id: booking.id, token_hash: input.token_hash, decided_at: now }, context)
+    return { request: { ...request, status: "approved", booking_id: booking.id, decided_at: now }, booking }
+  }
+
+  @InjectTransactionManager()
+  async declineRequest(input: { id: string; reason?: string | null }, @MedusaContext() context: Context = {}) {
+    const request = await this.lockedRequest(input.id, context)
+    if (request.status !== "pending") throw new RequestStateError("REQUEST_NOT_PENDING")
+    const now = new Date()
+    await this.updateBookingRequests({ id: request.id, status: "declined", decline_reason: input.reason ?? null, decided_at: now }, context)
+    return { ...request, status: "declined", decline_reason: input.reason ?? null, decided_at: now }
+  }
+
+  /**
+   * Klient z odkazu v e-maile si schválený termín vezme do košíka. Vlastníkom sa stane prihlásený zákazník
+   * alebo hosťovský košík. Opakované otvorenie odkazu (iné zariadenie) termín presunie, kým nie je v pokladni.
+   */
+  @InjectTransactionManager()
+  async claimApprovedRequest(input: { id: string; token_hash: string; cart_id: string; owner: string }, @MedusaContext() context: Context = {}) {
+    const request = await this.lockedRequest(input.id, context)
+    if (request.status !== "approved" || !request.booking_id || !request.token_hash || request.token_hash !== input.token_hash) throw new RequestStateError("REQUEST_NOT_APPROVED")
+    const booking = await this.lockedBooking(request.booking_id, context)
+    if (booking.status !== "held" || isHoldExpired(booking)) throw new RequestStateError("REQUEST_EXPIRED")
+    if (booking.metadata?.checkout_cart_id && booking.metadata.checkout_cart_id !== input.cart_id) throw new RequestStateError("REQUEST_IN_CHECKOUT")
+    return (await this.updateBookings({ id: booking.id, customer_id: input.owner, metadata: { ...booking.metadata, authorized_cart_id: input.cart_id } }, context)) as unknown as BookingDTO
+  }
+
+  /** Hosť uvoľní termín zo žiadosti: nevracia sa do ponuky, len späť žiadosti (odkaz v e-maile ostáva platný). */
+  @InjectTransactionManager()
+  async releaseRequestBooking(id: string, @MedusaContext() context: Context = {}) {
+    const booking = await this.lockedBooking(id, context)
+    if (!booking.metadata?.request_id || booking.metadata?.checkout_cart_id) return false
+    await this.updateBookings({ id, customer_id: requestOwner(String(booking.metadata.request_id)), metadata: { ...booking.metadata, authorized_cart_id: null } }, context)
+    return true
   }
 
   /** Potvrzení po zaplacení objednávky. Idempotentní: již potvrzená stejná objednávka se vrátí beze změny. */

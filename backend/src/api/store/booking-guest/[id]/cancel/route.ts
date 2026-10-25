@@ -12,7 +12,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const service = req.scope.resolve(BOOKING_MODULE) as BookingModuleService
     const [booking] = cart ? await service.listBookings({ id: req.params.id, customer_id: guestOwner(cart.id), status: "held" }, { take: 1 }) : []
     if (!booking) return res.status(404).json({ type: "not_found" })
-    await service.cancel(booking.id, "customer_request")
+    // Termín schválený zo žiadosti sa nezruší, len sa vráti žiadosti (odkaz z e-mailu funguje ďalej).
+    if (booking.metadata?.request_id) await service.releaseRequestBooking(booking.id)
+    else await service.cancel(booking.id, "customer_request")
     return res.status(200).json({ canceled: true })
   } catch (error) {
     if (error instanceof MedusaError && error.type === MedusaError.Types.NOT_ALLOWED) return res.status(409).json({ type: "not_allowed" })

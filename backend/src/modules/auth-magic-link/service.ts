@@ -150,8 +150,21 @@ class MagicLinkAuthService extends AbstractAuthModuleProvider {
          returning id`,
         [existingCustomerId, email]
       )
-      if (rows.length !== 1) throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "Customer account link is invalid")
-      return authIdentity
+      if (rows.length === 1) return authIdentity
+      // Zákazník, na ktorého identita ukazuje, už neexistuje (zmazaný/anonymizovaný): starú väzbu uvoľníme
+      // a identitu napojíme nižšie na jediného aktuálneho zákazníka s týmto e-mailom. Existujúci zákazník
+      // s iným e-mailom sa nikdy neprepíše – to ostáva chyba.
+      const { rows: stale } = await this.pg_.raw(
+        `update auth_identity as ai
+         set app_metadata = ai.app_metadata - 'customer_id', updated_at = now()
+         where ai.id = ? and ai.deleted_at is null and ai.app_metadata->>'customer_id' = ?
+           and not exists (select 1 from customer c where c.id = ? and c.deleted_at is null)
+         returning ai.id`,
+        [authIdentity.id, existingCustomerId, existingCustomerId]
+      )
+      if (stale.length !== 1) throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "Customer account link is invalid")
+      const { customer_id: _stale, ...rest } = authIdentity.app_metadata ?? {}
+      authIdentity = { ...authIdentity, app_metadata: rest }
     }
 
     const { rows: linked } = await this.pg_.raw(

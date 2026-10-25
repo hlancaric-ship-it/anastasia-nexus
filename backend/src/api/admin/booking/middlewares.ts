@@ -10,4 +10,7 @@ export const bookingAdminMiddlewares: MiddlewareRoute[] = [
   { matcher: "/admin/booking/types/:id", method: ["POST"], middlewares: admin, bodyParser: { sizeLimit: "16kb" } },
   { matcher: "/admin/booking/availability", method: ["GET"], middlewares: admin },
   { matcher: "/admin/booking/availability", method: ["POST"], middlewares: admin, bodyParser: { sizeLimit: "32kb" } },
+  { matcher: "/admin/booking-requests", method: ["GET"], middlewares: admin },
+  { matcher: "/admin/booking-requests/:id/approve", method: ["POST"], middlewares: admin, bodyParser: { sizeLimit: "4kb" } },
+  { matcher: "/admin/booking-requests/:id/decline", method: ["POST"], middlewares: admin, bodyParser: { sizeLimit: "4kb" } },
 ]

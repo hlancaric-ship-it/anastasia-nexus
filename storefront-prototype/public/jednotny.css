@@ -180,4 +180,103 @@
 #page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps{gap:14px!important}
 #page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps li{font-size:15px!important}
 }
+
+/* ===== Podstránky (konzultácie, supervízia, stacionár, Zdravý svet, e-shop úvod): redizajn podľa úvodu (Lucky 25. 10.) =====
+   Hero ako na úvode: veľký nadpis cez celú šírku, fotka pod ním ako široký pás. Ponuky ako farebné karty z úvodu,
+   kapitoly v rytme pásov papier, olivová, hmla a levanduľa, výzva ako tmavý pás poukazu. */
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split){display:grid!important;grid-template-columns:1fr!important;grid-template-rows:auto auto;min-height:0!important;background:var(--paper)!important;padding:0 0 clamp(56px,7vw,120px)!important;margin-bottom:0!important}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__text{order:0!important;display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);column-gap:clamp(32px,6vw,120px);row-gap:22px;align-items:end;padding:clamp(72px,9vw,150px) clamp(24px,5vw,96px) clamp(40px,5vw,80px)!important;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .page-intro{display:contents!important}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .page-intro .eyebrow{grid-column:1/-1;font:italic 400 clamp(20px,1.8vw,26px)/1 var(--serif)!important;color:var(--lav)!important;margin:0!important}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .page-intro h1{grid-column:1;grid-row:2/span 2;align-self:end;font:300 clamp(58px,8.6vw,148px)/.92 var(--serif)!important;letter-spacing:-.045em!important;text-transform:none!important;color:var(--ink)!important;margin:0!important;text-wrap:balance}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) :is(.page-intro .lead,.zs-lead){grid-column:2;grid-row:2;font:300 clamp(17px,1.3vw,20px)/1.55 var(--sans)!important;color:var(--muted)!important;max-width:36ch!important;margin:0!important;padding-left:20px;border-left:1px solid var(--gold)}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__text>:not(.page-intro){grid-column:2;justify-self:start;margin:0!important}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__photo{order:1!important;width:calc(100% - 2*clamp(16px,5vw,96px));max-width:1560px;margin:0 auto!important;height:clamp(320px,62vh,720px);min-height:0!important;border-radius:var(--drop)!important;overflow:hidden;animation:kcReveal 1.4s cubic-bezier(.2,.7,.2,1) both}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__photo>img{animation:kcZoom 2.4s cubic-bezier(.2,.7,.2,1) both}
+@keyframes kcReveal{from{clip-path:inset(18% 8% 0 8% round 28px)}to{clip-path:inset(0 0 0 0 round 0)}}
+@keyframes kcZoom{from{transform:scale(1.12)}to{transform:scale(1)}}
+
+/* ponuky konzultácií: karty ako Obchod / RESET 40+ / Konzultácie na úvode */
+#page-shell.kc-unified .legacy-main .consult-page{background:var(--cream)!important;padding-bottom:clamp(56px,7vw,120px)!important}
+#page-shell.kc-unified .legacy-main .consult-page>.lan-hero{margin-bottom:clamp(40px,5vw,80px)!important}
+#page-shell.kc-unified .legacy-main .lan-row{display:grid!important;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)!important;gap:clamp(24px,4vw,72px)!important;align-items:center!important;width:calc(100% - 2*clamp(16px,5vw,96px))!important;max-width:1320px!important;margin:0 auto clamp(24px,3vw,44px)!important;padding:clamp(28px,3.6vw,56px)!important;border-radius:32px!important;min-height:0!important;box-shadow:0 30px 60px -40px rgba(47,52,36,.35)!important;overflow:hidden;position:relative;animation:kcRise linear both;animation-timeline:view();animation-range:entry 0% entry 45%}
+@keyframes kcRise{from{transform:translateY(60px)}to{opacity:1;transform:none}}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+1){background:var(--lav-3)!important}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2){background:var(--olive)!important}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+3){background:var(--mist)!important}
+#page-shell.kc-unified .legacy-main .lan-row>*{background:transparent!important}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__text{order:0!important;padding:0!important;display:flex;flex-direction:column;align-items:flex-start;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__photo{order:1!important;display:block;aspect-ratio:4/5;max-height:560px;width:100%;justify-self:end;border-radius:var(--drop)!important;overflow:hidden;min-height:0!important}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__photo img{width:100%!important;height:100%!important;object-fit:cover;border-radius:0!important;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+#page-shell.kc-unified .legacy-main .lan-row:hover .lan-row__photo img{transform:scale(1.05)}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__index{font:500 11px/1 var(--sans)!important;letter-spacing:.32em!important;color:var(--gold)!important;font-style:normal!important;margin:0 0 clamp(18px,2vw,28px)!important}
+#page-shell.kc-unified .legacy-main .lan-row h2{font:300 clamp(40px,5vw,80px)/.95 var(--serif)!important;letter-spacing:-.04em!important;color:var(--ink)!important;margin:0 0 clamp(16px,1.8vw,24px)!important;text-wrap:balance}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__price{font:300 clamp(24px,2vw,32px)/1 var(--serif)!important;font-style:italic!important;color:var(--lav)!important;margin:0 0 14px!important}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__desc{font:400 15px/1.6 var(--sans)!important;color:var(--muted)!important;max-width:40ch;margin:0 0 clamp(22px,2.4vw,32px)!important}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__actions{display:flex;flex-wrap:wrap;gap:10px}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__actions .button{border-radius:999px!important}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) :is(h2,.lan-row__desc){color:var(--paper)!important}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) .lan-row__desc{color:rgba(247,244,236,.72)!important}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) .lan-row__price{color:var(--lav-2)!important}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) .lan-row__actions .button:not(.outline){background:var(--paper)!important;color:var(--olive)!important;border-color:var(--paper)!important}
+#page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) .lan-row__actions .button.outline{background:transparent!important;color:var(--paper)!important;border-color:rgba(247,244,236,.5)!important}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky{display:grid!important;grid-template-columns:minmax(0,1fr)!important;min-height:clamp(420px,56vh,620px)!important;align-content:end;background:#0b0d1c!important}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__photo{display:none!important}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__sky{border-radius:32px}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__text{background:transparent!important;max-width:620px}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky h2{color:#f4f1fb!important}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__desc{color:rgba(244,241,251,.8)!important}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__price{color:#cfcbe8!important}
+
+/* kapitoly: rytmus pásov ako na úvode */
+#page-shell.kc-unified .legacy-main .lan-chap{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)!important;gap:clamp(32px,6vw,120px)!important;padding:clamp(72px,9vw,150px) max(clamp(24px,5vw,96px),calc((100% - 1400px)/2))!important;margin:0!important;border:0!important}
+#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+1){background:var(--paper)!important}
+#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+2){background:var(--olive)!important}
+#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+3){background:var(--mist)!important}
+#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n){background:var(--lav-3)!important}
+#page-shell.kc-unified .legacy-main .lan-chap__head{position:sticky;top:110px;align-self:start}
+#page-shell.kc-unified .legacy-main .lan-chap__no{display:block;font:500 11px/1 var(--sans)!important;letter-spacing:.32em!important;color:var(--gold)!important;font-style:normal!important;margin:0 0 clamp(18px,2vw,28px)!important}
+#page-shell.kc-unified .legacy-main .lan-chap__head h2{font:300 clamp(40px,4.8vw,78px)/.98 var(--serif)!important;letter-spacing:-.04em!important;color:var(--ink)!important;margin:0!important;text-wrap:balance}
+#page-shell.kc-unified .legacy-main .lan-chap__body{font:400 clamp(16px,1.2vw,18px)/1.75 var(--sans)!important;color:var(--ink)!important;max-width:62ch}
+#page-shell.kc-unified .legacy-main .lan-chap__body>p:first-child,#page-shell.kc-unified .legacy-main .lan-chap__body>p.source-text:first-of-type{font:300 clamp(22px,1.9vw,30px)/1.4 var(--serif)!important;letter-spacing:-.01em;color:var(--ink)!important}
+#page-shell.kc-unified .legacy-main .lan-chap__body ul{list-style:none!important;margin:0!important;padding:0!important;columns:auto!important}
+#page-shell.kc-unified .legacy-main .lan-chap__body li{border:0!important;padding:0!important;margin:0!important}
+#page-shell.kc-unified .legacy-main .lan-chap__body li:not(:has(ul)){counter-increment:kci;display:grid!important;grid-template-columns:56px 1fr;gap:12px;align-items:baseline;padding:18px 0!important;border-top:1px solid rgba(47,52,36,.16)!important;font:300 clamp(19px,1.6vw,24px)/1.35 var(--serif)!important;color:var(--ink)!important}
+#page-shell.kc-unified .legacy-main .lan-chap__body li:not(:has(ul))::before{content:counter(kci,decimal-leading-zero)!important;font:500 11px/1 var(--sans);letter-spacing:.24em;color:var(--gold);background:none!important;width:auto!important;height:auto!important;position:static!important;border:0!important}
+#page-shell.kc-unified .legacy-main .lan-chap__body .source-structure{counter-reset:kci}
+#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+2) :is(h2,.lan-chap__body,.lan-chap__body p,.lan-chap__body li){color:var(--paper)!important}
+#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+2) .lan-chap__body li{border-top-color:rgba(247,244,236,.18)!important}
+#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+2) .lan-chap__head h2{color:var(--paper)!important}
+/* samostatná veta: veľké vyznanie ako „Zdravý svet nie je ideál“ */
+#page-shell.kc-unified .legacy-main .lan-chap.lan-chap--lone{display:block!important;background:var(--paper)!important;padding:clamp(80px,11vw,180px) max(clamp(24px,5vw,96px),calc((100% - 1400px)/2))!important}
+#page-shell.kc-unified .legacy-main .lan-chap--lone .lan-chap__head{display:none}
+#page-shell.kc-unified .legacy-main .lan-chap--lone .lan-chap__body{max-width:none}
+#page-shell.kc-unified .legacy-main .lan-chap--lone .lan-chap__body p{font:300 clamp(40px,6.4vw,104px)/1.02 var(--serif)!important;letter-spacing:-.045em!important;text-align:left!important;color:var(--ink)!important;margin:0!important;text-wrap:balance;background:linear-gradient(90deg,var(--ink) 0%,var(--ink) 40%,var(--lav) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* galéria: dve fotky posunuté ako na úvode */
+#page-shell.kc-unified .legacy-main .lan-gallery{display:grid!important;grid-template-columns:1.3fr 1fr!important;gap:clamp(16px,2.4vw,40px)!important;align-items:start;padding:0 max(clamp(16px,5vw,96px),calc((100% - 1400px)/2)) clamp(72px,9vw,150px)!important;background:var(--paper)!important}
+#page-shell.kc-unified .legacy-main .lan-gallery figure{margin:0!important;border-radius:var(--drop)!important;overflow:hidden;aspect-ratio:4/5}
+#page-shell.kc-unified .legacy-main .lan-gallery figure:nth-child(2){margin-top:clamp(60px,10vw,180px)!important;aspect-ratio:3/4}
+#page-shell.kc-unified .legacy-main .lan-gallery img{width:100%!important;height:100%!important;object-fit:cover;border-radius:0!important}
+
+/* výzva: tmavý pás ako darčekový poukaz na úvode */
+#page-shell.kc-unified .legacy-main .lan-cta{background:radial-gradient(ellipse at 75% 40%,#4a4f36 0%,#2a2e20 45%,#1a1d14 100%)!important;color:var(--paper)!important;text-align:left!important;padding:clamp(80px,10vw,170px) max(clamp(24px,5vw,96px),calc((100% - 1400px)/2))!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:28px 48px;margin:0!important;border-radius:0!important}
+#page-shell.kc-unified .legacy-main .lan-cta .eyebrow{grid-column:1/-1;font:italic 400 clamp(20px,1.8vw,26px)/1 var(--serif)!important;color:var(--lav-2)!important;letter-spacing:0!important;text-transform:lowercase!important;margin:0!important}
+#page-shell.kc-unified .legacy-main .lan-cta h2{font:300 clamp(56px,8vw,140px)/.92 var(--serif)!important;letter-spacing:-.045em!important;color:var(--paper)!important;-webkit-text-fill-color:var(--paper)!important;background:none!important;margin:0!important}
+#page-shell.kc-unified .legacy-main .lan-cta .button{background:var(--paper)!important;color:var(--olive)!important;border-color:var(--paper)!important;border-radius:999px!important}
+#page-shell.kc-unified .legacy-main .lan-cta .button:hover{background:var(--lav)!important;border-color:var(--lav)!important;color:var(--paper)!important}
+
+@media (max-width:900px){
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__text{grid-template-columns:1fr;padding-top:clamp(96px,22vw,140px)!important}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .page-intro h1{grid-row:auto}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) :is(.page-intro .lead,.zs-lead),#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__text>:not(.page-intro){grid-column:1;grid-row:auto}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__photo{height:min(110vw,62svh);order:1!important}
+#page-shell.kc-unified .legacy-main .lan-row{grid-template-columns:1fr!important;border-radius:26px!important}
+#page-shell.kc-unified .legacy-main .lan-row .lan-row__photo{order:-1!important;aspect-ratio:5/4;justify-self:stretch}
+#page-shell.kc-unified .legacy-main .lan-chap{grid-template-columns:1fr!important}
+#page-shell.kc-unified .legacy-main .lan-chap__head{position:static}
+#page-shell.kc-unified .legacy-main .lan-cta{grid-template-columns:1fr}
+#page-shell.kc-unified .legacy-main .lan-cta .button{justify-self:start}
+}
+@media (prefers-reduced-motion:reduce){#page-shell.kc-unified .legacy-main :is(.lan-row,.lan-hero__photo,.lan-hero__photo>img){animation:none!important}}
 }

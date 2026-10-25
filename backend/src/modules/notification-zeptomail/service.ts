@@ -178,7 +178,7 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
       from: { address: from, ...(this.options_.fromName ? { name: this.options_.fromName } : {}) },
       to: [{ email_address: { address: to } }],
       // Kontaktný formulár: odpoveď ide odosielateľke (overená adresa z dát), inak globálne ZEPTOMAIL_REPLY_TO.
-      ...(notification.template === "contact-form-admin" && isEmail(notification.data?.email)
+      ...(["contact-form-admin", "booking-request-admin"].includes(notification.template) && isEmail(notification.data?.email)
         ? { reply_to: [{ address: String(notification.data!.email).trim() }] }
         : this.options_.replyTo ? { reply_to: [{ address: this.options_.replyTo }] } : {}),
       subject: rendered.subject,
