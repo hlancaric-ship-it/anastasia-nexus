@@ -41,6 +41,10 @@ export class AvailabilityConflictError extends Error {
 }
 
 const ACTIVE = ["held", "confirmed"] as const
+/** Hold hosťa nemá zákazníka, vlastníkom je košík; pri objednávke sa prepíše na zákazníka objednávky. */
+export const guestOwner = (cartId: string) => `guest:${cartId}`
+const ownedBy = (booking: { customer_id: string }, customerId: string, cartId: string) =>
+  booking.customer_id === customerId || booking.customer_id === guestOwner(cartId)
 const bufferOf = (metadata: unknown): number => {
   const n = Number((metadata as Record<string, unknown> | null)?.buffer_minutes ?? 0)
   return Number.isInteger(n) && n >= 0 ? n : 0
@@ -102,11 +106,25 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
     await this.updateBookings({ id: booking.id, metadata: { ...booking.metadata, authorized_cart_id: input.cart_id } }, context)
   }
 
+  /** Hosť: nový hold rovno patrí košíku, predchádzajúci nezaplatený hold toho istého košíka sa uvoľní. */
+  @InjectTransactionManager()
+  async holdGuestSlot(input: HoldSlotInput & { cart_id: string }, @MedusaContext() context: Context = {}): Promise<BookingDTO> {
+    if (!input.cart_id) throw new MedusaError(MedusaError.Types.INVALID_DATA, "cart_id je povinné")
+    const owner = guestOwner(input.cart_id)
+    const knex = this.transactionKnex(context)
+    const now = new Date()
+    await knex("booking").where({ customer_id: owner, status: "held" }).whereNull("deleted_at")
+      .whereRaw("metadata->>'checkout_cart_id' IS NULL")
+      .update({ status: "canceled", canceled_at: now, cancel_reason: "replaced", updated_at: now })
+    const booking = await this.holdSlot({ ...input, customer_id: owner }, context)
+    return (await this.updateBookings({ id: booking.id, metadata: { ...booking.metadata, authorized_cart_id: input.cart_id } }, context)) as unknown as BookingDTO
+  }
+
   /** Persist a claim under a row lock, so different carts cannot buy the same hold. */
   @InjectTransactionManager()
   async claimForCheckout(input: { id: string; cart_id: string; customer_id: string; product_id: string }, @MedusaContext() context: Context = {}) {
     const booking = await this.lockedBooking(input.id, context)
-    if (booking.customer_id !== input.customer_id || booking.product_id !== input.product_id) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_OWNER_OR_PRODUCT_MISMATCH")
+    if (!ownedBy(booking, input.customer_id, input.cart_id) || booking.product_id !== input.product_id) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_OWNER_OR_PRODUCT_MISMATCH")
     if (booking.status !== "held" || isHoldExpired(booking)) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_NOT_AVAILABLE")
     if (booking.metadata?.authorized_cart_id !== input.cart_id) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_CART_NOT_AUTHORIZED")
     if (booking.metadata?.checkout_cart_id) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_ALREADY_IN_CHECKOUT")
@@ -127,11 +145,11 @@ class BookingModuleService extends MedusaService({ Booking, BookingAvailability 
   @InjectTransactionManager()
   async attachCheckoutOrder(input: { id: string; cart_id: string; order_id: string; customer_id: string; product_ids: string[]; paid: boolean; canceled?: boolean }, @MedusaContext() context: Context = {}) {
     const booking = await this.lockedBooking(input.id, context)
-    if (booking.metadata?.checkout_cart_id !== input.cart_id || booking.customer_id !== input.customer_id || !input.product_ids.includes(booking.product_id)) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_ORDER_MISMATCH")
+    if (booking.metadata?.checkout_cart_id !== input.cart_id || !ownedBy(booking, input.customer_id, input.cart_id) || !input.product_ids.includes(booking.product_id)) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_ORDER_MISMATCH")
     if (booking.order_id && booking.order_id !== input.order_id) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_ORDER_MISMATCH")
     if (booking.status === "canceled" && booking.order_id === input.order_id) return booking
     if (!["held", "confirmed"].includes(booking.status)) throw new MedusaError(MedusaError.Types.INVALID_DATA, "BOOKING_NOT_AVAILABLE")
-    return await this.updateBookings({ id: booking.id, order_id: input.order_id,
+    return await this.updateBookings({ id: booking.id, order_id: input.order_id, customer_id: input.customer_id,
       status: input.canceled ? "canceled" : input.paid ? "confirmed" : booking.status, held_until: null,
       ...(input.canceled ? { canceled_at: new Date(), cancel_reason: "order_canceled" } : {}) }, context)
   }

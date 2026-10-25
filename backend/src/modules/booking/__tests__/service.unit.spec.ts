@@ -60,6 +60,26 @@ describe("BookingModuleService", () => {
     await expect(svc.attachCheckoutOrder(input)).rejects.toThrow("BOOKING_ORDER_MISMATCH")
     expect(svc.updateBookings).not.toHaveBeenCalled()
   })
+  it("hold hosťa patrí len svojmu košíku a pri objednávke prejde na zákazníka objednávky", async () => {
+    const booking: any = { ...held(), customer_id: "guest:cart1" }
+    const svc: any = makeService({ retrieveBooking: jest.fn(async () => booking) })
+    await expect(svc.claimForCheckout({ ...claimInput, customer_id: "cus_guest", cart_id: "cart2" })).rejects.toThrow("BOOKING_")
+    await svc.claimForCheckout({ ...claimInput, customer_id: "cus_guest" })
+    booking.metadata = { checkout_cart_id: "cart1" }
+    await svc.attachCheckoutOrder({ ...claimInput, customer_id: "cus_guest", order_id: "o1", product_ids: ["p1"], paid: true })
+    expect(svc.updateBookings).toHaveBeenLastCalledWith(expect.objectContaining({ customer_id: "cus_guest", status: "confirmed", order_id: "o1" }), expect.anything())
+  })
+  it("holdGuestSlot uvoľní starý hold košíka a nový rovno autorizuje pre košík", async () => {
+    const update = jest.fn(async () => 1)
+    const knex: any = jest.fn(() => { const q: any = { where: () => q, whereNull: () => q, whereRaw: () => q, update }; return q })
+    const svc: any = makeService({ createBookings: jest.fn(async (i: any) => ({ id: "bkg_g", ...i })), updateBookings: jest.fn(async (i: any) => i) })
+    svc.transactionKnex = () => knex
+    const r: any = await svc.holdGuestSlot({ ...slot, customer_id: "", cart_id: "cart_9" })
+    expect(knex).toHaveBeenCalledWith("booking")
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: "canceled", cancel_reason: "replaced" }))
+    expect(svc.createBookings).toHaveBeenCalledWith(expect.objectContaining({ customer_id: "guest:cart_9" }), expect.anything())
+    expect(r.metadata.authorized_cart_id).toBe("cart_9")
+  })
   it("holdSlot vytvoří held rezervaci s omezeným held_until", async () => {
     const svc: any = makeService({ createBookings: jest.fn(async (i: any) => ({ id: "bkg_1", ...i })) })
     const r: any = await svc.holdSlot(slot)
