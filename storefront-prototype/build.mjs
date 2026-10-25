@@ -83,7 +83,7 @@ for(const p of catalogProducts)add(`/eshop/produkt/${p.slug}`,p.name,views.produ
 // Zachovat původní velikost písmen staré adresy minerálního krému.
 const mineral=catalogProducts.find(p=>p.slug.toLowerCase()==='mineralny-ochranny-krem-pre-citlivu-pokozku');if(mineral)add('/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku',mineral.name,views.product(mineral,catalogProducts));
 for(const p of api.getPages())add(p.path,p.title,views.content(p));
-add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());
+add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());add('/dakujeme','Ďakujeme za objednávku',views.thankYou());
 add('/prihlasenie','Prihlásenie',views.login());
 add('/nova-registracia/vyhody','Výhody registrácie',views.registrationBenefits());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
 add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.reset());add('/reset-40/knihovna','Moje programy',libraryPage());
@@ -120,7 +120,7 @@ const scripts='<div class="toast" role="status" hidden></div><div class="page-tr
 const TOKENS_CSS=readFileSync(join(root,'public','tokens.css'),'utf8');
 // Kritické CSS prvej obrazovky je inline v hlavičke, zvyšok sa doplní neblokujúco (data-late).
 const designCss=()=>`<style>${TOKENS_CSS}${siteThemeCss()}${HELMET_CSS}${HOME_CSS}</style><link rel="stylesheet" href="/base.css${V}" media="print" data-late><link rel="stylesheet" href="/dc.css${V}" media="print" data-late><link rel="stylesheet" href="/product-detail.css${V}" media="print" data-late><noscript><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}"></noscript>`;
-const legacyCss=(path)=>`<link rel="stylesheet" href="/tokens.css${V}"><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}">${path==='/eshop'||path.startsWith('/eshop/')||path==='/kosik'||path==='/pokladna'?`<link rel="stylesheet" href="/shop-reference.css${V}">`:''}<link rel="stylesheet" href="/jednotny.css${V}">`;
+const legacyCss=(path)=>`<link rel="stylesheet" href="/tokens.css${V}"><link rel="stylesheet" href="/base.css${V}"><link rel="stylesheet" href="/dc.css${V}"><link rel="stylesheet" href="/product-detail.css${V}">${path==='/eshop'||path.startsWith('/eshop/')||path==='/kosik'||path==='/pokladna'||path==='/dakujeme'?`<link rel="stylesheet" href="/shop-reference.css${V}">`:''}<link rel="stylesheet" href="/jednotny.css${V}">`;
 const isShopPath=path=>path==='/eshop'||path.startsWith('/eshop/')||path==='/kosik'||path==='/pokladna'||path==='/zdrava-lekaren';
 const document=(...args)=>tokenizeColors(renderDocument(...args));
 const renderDocument=(path,{title,body,design})=>{

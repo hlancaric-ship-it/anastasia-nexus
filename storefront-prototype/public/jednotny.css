@@ -990,4 +990,34 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 /* Olivová kapitola: všetok text svetlý, aby bol čitateľný. */
 #page-shell#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+2) :is(h2,h3,h4,p,li,span,strong,a,dt,dd,small){color:#EFE5C7!important}
 #page-shell#page-shell.kc-unified .legacy-main .lan-chap:nth-of-type(4n+2) .lan-chap__no{color:var(--gold)!important}
+
+/* Ďakovná stránka: sklenená karta na kréme s aurou línií, pečať v matnom zlate. */
+#page-shell#page-shell.kc-unified .legacy-main .ty-page{display:grid;place-items:center;min-height:calc(100svh - 120px);padding:clamp(48px,8vw,104px) 16px clamp(96px,10vw,128px)!important;background:transparent!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-card{position:relative;width:min(640px,100%);padding:clamp(28px,5vw,56px)!important;border-radius:28px!important;background:rgba(253,251,247,.82)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(176,141,87,.28)!important;box-shadow:0 30px 80px -40px rgba(30,38,29,.35)!important;text-align:center}
+#page-shell#page-shell.kc-unified .legacy-main .ty-mark{display:block;margin:0 auto 18px;width:88px;height:88px;filter:drop-shadow(0 0 18px rgba(201,163,85,.35))}
+#page-shell#page-shell.kc-unified .legacy-main .ty-card .eyebrow{color:#9C7B45!important;letter-spacing:.18em}
+#page-shell#page-shell.kc-unified .legacy-main .ty-card h1{margin:6px 0 10px!important;font-family:Fraunces,Georgia,serif!important;font-weight:300!important;font-size:clamp(44px,7vw,72px)!important;line-height:1!important;color:#1E261D!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-card h1:focus{outline:none}
+#page-shell#page-shell.kc-unified .legacy-main .ty-card .lead{color:#3A4234!important;margin:0 auto 8px!important;max-width:44ch}
+#page-shell#page-shell.kc-unified .legacy-main .ty-number{display:inline-block;margin:10px 0 4px!important;padding:6px 16px;border:1px solid rgba(176,141,87,.4);border-radius:999px;font:500 13px Figtree,sans-serif;letter-spacing:.06em;color:#283020!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-lines{list-style:none;margin:26px 0 0!important;padding:0!important;text-align:left;border-top:1px solid rgba(176,141,87,.22)}
+#page-shell#page-shell.kc-unified .legacy-main .ty-lines li{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;padding:14px 0!important;margin:0!important;border-bottom:1px solid rgba(176,141,87,.22)}
+#page-shell#page-shell.kc-unified .legacy-main .ty-lines img{width:56px;height:56px;object-fit:cover;border-radius:14px;background:#F5F2E8}
+#page-shell#page-shell.kc-unified .legacy-main .ty-lines span{display:grid;gap:2px;color:#1E261D!important;font-size:15px}
+#page-shell#page-shell.kc-unified .legacy-main .ty-lines small{color:#6B6F5E!important;font-size:12px}
+#page-shell#page-shell.kc-unified .legacy-main .ty-lines strong{color:#1E261D!important;font-weight:500}
+#page-shell#page-shell.kc-unified .legacy-main .ty-total{margin:14px 0 0!important;display:grid;gap:6px;text-align:left}
+#page-shell#page-shell.kc-unified .legacy-main .ty-total div{display:flex;justify-content:space-between;color:#3A4234!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-total div:last-child{padding-top:8px;font-family:Fraunces,Georgia,serif;font-size:24px;color:#1E261D!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-total dd{margin:0}
+#page-shell#page-shell.kc-unified .legacy-main .ty-next{margin:24px 0 0!important;padding:18px 20px!important;border-radius:18px;background:rgba(40,48,32,.05);text-align:left}
+#page-shell#page-shell.kc-unified .legacy-main .ty-next ul{margin:8px 0 0!important;padding-left:18px!important;display:grid;gap:6px;color:#283020!important;font-size:14px}
+#page-shell#page-shell.kc-unified .legacy-main .ty-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:28px 0 14px!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-actions .button{min-height:48px}
+#page-shell#page-shell.kc-unified .legacy-main .ty-actions .button:not(.outline){background:#283020!important;border-color:#283020!important;color:#EFE5C7!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-actions .button:not(.outline) svg{color:#C9A355!important}
+@media(max-width:480px){#page-shell#page-shell.kc-unified .legacy-main .ty-actions .button{width:100%;justify-content:center}}
+
+#page-shell#page-shell.kc-unified .legacy-main .ty-card h1:focus-visible{outline:none!important;box-shadow:none!important}
+@media(max-width:760px){#page-shell#page-shell.kc-unified .legacy-main .ty-page{padding-top:92px!important;min-height:0}}
 }

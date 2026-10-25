@@ -95,3 +95,9 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Audit všetkých stránok 1440 a 390: lišta všade priehľadná, bez vodorovného posunu, nič plávajúce nad patičkou.
 - Dnes v stacionári: text v olivovej kapitole bol tmavý na tmavom, teraz svetlý. Jazyky SK/EN/RU v lište majú vlastný tón podľa podkladu.
 - Klub skrytý: preč z menu (aj stĺpec „Kontakt“) a z patičky, stránka /klub zostáva bez odkazov.
+
+## 25. 10. noc – platby a ďakovná stránka
+- Platba kartou na teste overená tromi nákupmi (fyzický tovar, digitálny produkt, poukaz) v 1440 aj 390, objednávky 59–61 vznikli.
+- Po úspešnej platbe presmerovanie na /dakujeme: číslo objednávky, položky, celková suma, čo bude ďalej podľa typu (knižnica, PDF poukazu, zásielka, dobierka, prevod), tlačidlá Moje objednávky a Pokračovať v nákupe.
+- Platby s presmerovaním (banky) majú return_url na /dakujeme, objednávka sa dokončí tam, pri neúspechu ponuka zopakovať platbu.
+- Stripe formulár je v slovenčine a vo farbách webu (krém, oliva, matné zlato).
