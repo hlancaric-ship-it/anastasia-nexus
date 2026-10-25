@@ -163,3 +163,15 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - Veškerý dlouhý obsah patří do sekce `.pdm-details` pod nákupním blokem: grid 2 sloupců akordeonů, poslední položka široká, na mobilu 1 sloupec.
 - Akordeony v detailu jsou výchozí zavřené, aby karty měly stejnou výšku.
 - Styl karet: `rgba(255,255,255,.62)` + blur 14px, 1px linka `var(--gold)` na 45 %, radius 16px.
+- Nákupní řádek `.pdm-buy-row` je jeden vodorovný řádek: select varianty (pilulka), stepper a tlačítko Pridať do košíka se šipkou. Všechno je vysoké přesně 44 px. Na mobilu je select na celou šířku a stepper s tlačítkem v řádku pod ním.
+- Vyprodaná varianta má v selectu disabled „(Vypredané)“. Když je vybraná, stav ukáže Vypredané červeně a tlačítko je disabled.
+- Hlavní fotka je čtverec 1:1 s radiusem 24 px a overflow hidden. Fyzické produkty mají cover, ostatní contain s odsazením 12 px.
+
+## Levá lišta (25. 10.)
+- Nad světlým podkladem jsou jazyky, Menu i ikony tmavě olivové #1E261D. Neaktivní jazyky mají opacitu 0,62.
+- Hover a focus jsou v matném zlatu #B08D57. Na tmavém podkladu (`data-tone="dark"`) zůstává světlá varianta.
+- Přebití pastel-reference vyžaduje zdvojené ID `#ana-rail#ana-rail` v nevrstveném `styles.css`.
+
+## Admin – produkt (25. 10.)
+- Fotky se vybírají z mediální banky (vyhledávání, filtr Všetky / Nepriradené / 30 dní, vícenásobný výběr). Pořadí se mění šipkami nebo přetažením. Hlavní fotka má zlatou linku. Odebrání fotku z knihovny nemaže.
+- Sklad se nastavuje u každé varianty ve sloupci Skladom (ks). Zaškrtnutím Neobmedzené / digitálne se sklad nesleduje. Při 0 ks je u varianty štítek vypredané.

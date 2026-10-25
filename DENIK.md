@@ -62,3 +62,11 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Podrobnosti přesunuty pod nákupní blok přes celou šířku: 2 sloupce zavřených akordeonů, poslední (doprava, přístup, podmínky) široký. Platí pro všechny 4 typy (fyzický, digitální, poukaz, konzultace).
 - Karty akordeonů: světlý podklad s blurem, 1px matně zlatá linka, radius 16.
 - Ověřeno na testu v 1440 i 390, bez horizontálního scrollu. Testy 162/162.
+
+## 25. 10. 2026 – mediální banka, sklad po variantách, nákupní řádek a lišta
+- Admin produktu: tlačítko Vybrať z mediálnej banky s modálem (hledání, filtr, vícenásobný výběr, Priradiť vybrané fotografie (X)), pořadí fotek, hlavní fotka, odebrání bez mazání z knihovny.
+- Admin variant: sloupec Skladom (ks) a přepínač Neobmedzené / digitálne u každé varianty. Uložení zakládá a propojuje skladovou položku, pokud chybí. Stará sekce Sklad jen odkazuje na varianty, aby si nastavení nepřepisovala.
+- Detail produktu: select, stepper a tlačítko v jednom řádku, vše 44 px. Vyprodaná varianta vypne tlačítko a ukáže Vypredané. Ověřeno na Tvoj pleťový krém, kde Pánsky má 0 ks.
+- Hlavní fotka je čtverec s radiusem 24 px bez deformace.
+- Levá lišta nad světlým podkladem je tmavě olivová #1E261D se zlatým hoverem.
+- Nasazeno na test, ověřeno v 1440 i 390, bez horizontálního scrollu. Testy 162/162.
