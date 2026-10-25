@@ -40,7 +40,16 @@ const ICON = {
 };
 const icon = name => `<svg class="pdm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]||ICON.check}</svg>`;
 const features = items => `<ul class="pdm-features" aria-label="Kľúčové vlastnosti">${items.map(([name,title,detail,attr=''])=>`<li${attr}>${icon(name)}<span><b>${title}</b>${detail?`<small>${detail}</small>`:''}</span></li>`).join('')}</ul>`;
-const accordions = (items, open=0) => `<div class="pdm-accordions" data-product-accordions>${items.filter(Boolean).map(([title,html],i)=>`<details${i===open?' open':''}><summary>${title}<span class="pdm-plus" aria-hidden="true"></span></summary><div class="pdm-accordion-body">${html}</div></details>`).join('')}</div>`;
+const accordions = (items, open=0, cls='') => `<div class="pdm-accordions${cls}" data-product-accordions>${items.filter(Boolean).map(([title,html],i)=>`<details${i===open?' open':''}><summary>${title}<span class="pdm-plus" aria-hidden="true"></span></summary><div class="pdm-accordion-body">${html}</div></details>`).join('')}</div>`;
+// Podrobnosti pod nákupným blokom cez celú šírku: dva stĺpce zatvorených akordeónov (rovnaká výška kariet), posledný (doprava, prístup, podmienky) široký.
+const details = items => {
+  const list = items.filter(Boolean);
+  if (!list.length) return '';
+  const wide = list.length > 2 ? list.pop() : null;
+  const cols = [[], []];
+  list.forEach((item, i) => cols[i % 2].push(item));
+  return `<section class="pdm-details" aria-label="Podrobnosti o produkte"><div class="pdm-details-grid">${cols.filter(c => c.length).map(c => accordions(c, -1)).join('')}</div>${wide ? accordions([wide], -1, ' pdm-accordions--wide') : ''}</section>`;
+};
 const crumb = (label, href, name) => `<nav class="pd-breadcrumbs" aria-label="Drobečková navigácia"><a href="/eshop">Obchod</a><span aria-hidden="true">/</span>${label?`<a href="${txt(href)}">${txt(label)}</a><span aria-hidden="true">/</span>`:''}<span aria-current="page">${txt(name)}</span></nav>`;
 const photo = p => `<div class="pd-main-image"><img class="product-media" data-product-main-image src="${url(p.image)}" alt="${txt(p.name)}" width="1000" height="1000"><span class="pd-gallery-actions" data-gallery-actions hidden><button type="button" data-gallery-previous aria-label="Predchádzajúci obrázok">←</button><button type="button" data-gallery-next aria-label="Ďalší obrázok">→</button></span></div><div class="pd-thumbnails" data-product-thumbnails hidden aria-label="Fotografie produktu"></div>`;
 const fullDescription = p => `<div class="pd-about-text" data-product-full-description data-structured>${source(p) ? descriptionHtml(source(p)) : '<p>Popis produktu nájdete v obchodných podmienkach alebo nám napíšte.</p>'}</div>`;
@@ -81,9 +90,9 @@ function physicalPage(p, products) {
   const stock = stockLabel(p);
   const panel = head(p,{badge:`<p class="pd-availability"><span class="status-dot" aria-hidden="true"></span><span data-product-availability>${txt(stock)}</span></p>`})
     + perex(p) + buyForm(p)
-    + features([['stock',txt(stock),'odosielame po zaplatení'],['truck','Kuriér alebo osobný odber','cenu uvidíte pred zaplatením'],['gift','Doprava zdarma','<span data-ship-free-detail>pri väčšom nákupe</span>',' data-ship-free hidden'],['return','14 dní na vrátenie','podľa obchodných podmienok']])
-    + accordions([['Špecifikácia a rozmery',specRows(p)],['Zloženie, použitie a starostlivosť',fullDescription(p)],['Doprava a vrátenie',deliveryHtml]]);
-  return shell(p,'physical',crumb(p.category,categoryHref(p),p.name),photo(p),panel,related(p,products),` data-packshots='${txt(JSON.stringify(packshots(p)))}'`);
+    + features([['stock',txt(stock),'odosielame po zaplatení'],['truck','Kuriér alebo osobný odber','cenu uvidíte pred zaplatením'],['gift','Doprava zdarma','<span data-ship-free-detail>pri väčšom nákupe</span>',' data-ship-free hidden'],['return','14 dní na vrátenie','podľa obchodných podmienok']]);
+  const more = details([['Zloženie a účinky',fullDescription(p)],['Špecifikácia a rozmery',specRows(p)],['Doprava, vrátenie a balenie',deliveryHtml]]);
+  return shell(p,'physical',crumb(p.category,categoryHref(p),p.name),photo(p),panel,more+related(p,products),` data-packshots='${txt(JSON.stringify(packshots(p)))}'`);
 }
 
 // Digitálny obsah: prístup sa aktivuje v účte (Moja knižnica) hneď po zaplatení, bez posielania súborov.
@@ -110,8 +119,8 @@ function digitalPage(p, products) {
     ? [['Čo vás čaká',contentHtml],...VVV_PANELS.map((item,index)=>[txt(item.title),`<div class="pd-original-text">${index===4?VVV_INTRO.slice(1).map(t=>'<p>'+t+'</p>').join(''):''}${item.html}</div>`]),['Pôvodný popis produktu',fullDescription(p)],['Prístup a podmienky',terms]]
     : [['Popis programu',fullDescription(p)],contentHtml?['Obsah a formáty',contentHtml+(fmt.length?`<p class="pdm-more">Formáty: ${txt(fmt.join(', '))}.</p>`:'')]:null,['Prístup a podmienky',terms]];
   const perexHtml = isVvv ? `<p class="pdm-perex" data-product-approved-intro>${VVV_INTRO[0]}</p>` : perex(p);
-  const panel = head(p) + digitalBadge + perexHtml + buyForm(p,{quantity:false}) + features(facts) + accessBox + preview(p) + accordions(items);
-  return shell(p,'digital',crumb(p.category,categoryHref(p),p.name),photo(p),panel,related(p,products),isVvv?' data-product-authoritative':'');
+  const panel = head(p) + digitalBadge + perexHtml + buyForm(p,{quantity:false}) + features(facts) + accessBox + preview(p);
+  return shell(p,'digital',crumb(p.category,categoryHref(p),p.name),photo(p),panel,details(items)+related(p,products),isVvv?' data-product-authoritative':'');
 }
 
 // Darčekový poukaz: každá hodnota je samostatný produkt, hodnota sa vyberá v rolovacej ponuke.
@@ -130,18 +139,18 @@ function voucherPage(p, products) {
   const perexText = voucherPerex(p);
   const panel = head(p,{eyebrow:VOUCHER_CATEGORY}) + voucherBadge + (perexText?`<p class="pdm-perex">${txt(perexText)}</p>`:'')
     + `<div class="pdm-voucher-buy">${select}${buyForm(p,{quantity:false})}</div>`
-    + features([['bolt','Ihneď v účte','aktivácia po zaplatení'],['calendar','Platnosť 12 mesiacov','od dátumu nákupu'],['gift','Na celý obchod','produkty, programy aj konzultácie'],['card','Čerpanie po častiach','zostatok ostáva na poukaze']])
-    + accordions([['Ako poukaz funguje','<ul class="pdm-list"><li>Po zaplatení nájdete poukaz s jedinečným kódom vo svojom účte v sekcii <a href="/ucet#poukazy">Poukazy</a>, pripravený na uplatnenie alebo vytlačenie.</li><li>Poukaz odovzdáte, komu chcete. Obdarovaný zadá kód v košíku do poľa Darčekový poukaz.</li><li>Ak nákup nevyčerpá celú hodnotu, zostatok ostáva na poukaze.</li></ul>'],['Podmienky','<p>Platnosť poukazu je 12 mesiacov od nákupu. Podrobnosti nájdete v <a href="/vop">obchodných podmienkach</a>.</p>']],-1);
-  return shell(p,'voucher',crumb(VOUCHER_CATEGORY,'/eshop/?category='+VOUCHER_CATEGORY_HANDLE+'#nase-produkty',p.name),`<div class="pdm-voucher-stage"><div class="pdm-voucher-frame">${voucherCard(amount)}</div></div>`,panel,related(p,products));
+    + features([['bolt','Ihneď v účte','aktivácia po zaplatení'],['calendar','Platnosť 12 mesiacov','od dátumu nákupu'],['gift','Na celý obchod','produkty, programy aj konzultácie'],['card','Čerpanie po častiach','zostatok ostáva na poukaze']]);
+  const more = details([['Ako poukaz funguje','<ul class="pdm-list"><li>Po zaplatení nájdete poukaz s jedinečným kódom vo svojom účte v sekcii <a href="/ucet#poukazy">Poukazy</a>, pripravený na uplatnenie alebo vytlačenie.</li><li>Poukaz odovzdáte, komu chcete. Obdarovaný zadá kód v košíku do poľa Darčekový poukaz.</li><li>Ak nákup nevyčerpá celú hodnotu, zostatok ostáva na poukaze.</li></ul>'],['Podmienky','<p>Platnosť poukazu je 12 mesiacov od nákupu. Podrobnosti nájdete v <a href="/vop">obchodných podmienkach</a>.</p>']]);
+  return shell(p,'voucher',crumb(VOUCHER_CATEGORY,'/eshop/?category='+VOUCHER_CATEGORY_HANDLE+'#nase-produkty',p.name),`<div class="pdm-voucher-stage"><div class="pdm-voucher-frame">${voucherCard(amount)}</div></div>`,panel,more+related(p,products));
 }
 
 // Konzultácia sa nekupuje s množstvom: vedie na výber termínu, ktorý potvrdí Lucia.
 function consultationPage(p, products) {
   const panel = head(p,{eyebrow:'Konzultácie'}) + perex(p)
     + `<a class="button pd-buy pdm-cta" href="/konzultacie/rezervacia?typ=${encodeURIComponent(p.slug)}">Vybrať termín ${arrow}</a>`
-    + features([['calendar','Navrhnete termín','deň a čas si vyberiete v kalendári'],['check','Lucia ho potvrdí','príde vám e-mail s odkazom'],['card','Zaplatíte','až po potvrdení termínu'],['screen','Online stretnutie','odkaz dostanete pri potvrdení']])
-    + accordions([['Popis konzultácie',fullDescription(p)],['Termín a platba','<ul class="pdm-list"><li>Termín navrhnete v rezervácii. Lucia ho potvrdí alebo ponúkne iný.</li><li>Po potvrdení vám príde e-mail s odkazom na platbu. Termín je váš po zaplatení.</li><li>Podmienky nájdete v <a href="/vop">obchodných podmienkach</a>.</li></ul>']]);
-  return shell(p,'consultation',crumb('Konzultácie','/eshop/?category='+encodeURIComponent(SHOP_CATEGORY_HANDLES['Konzultácie']||'konzultacie')+'#nase-produkty',p.name),photo(p),panel,related(p,products));
+    + features([['calendar','Navrhnete termín','deň a čas si vyberiete v kalendári'],['check','Lucia ho potvrdí','príde vám e-mail s odkazom'],['card','Zaplatíte','až po potvrdení termínu'],['screen','Online stretnutie','odkaz dostanete pri potvrdení']]);
+  const more = details([['Popis konzultácie',fullDescription(p)],['Termín a platba','<ul class="pdm-list"><li>Termín navrhnete v rezervácii. Lucia ho potvrdí alebo ponúkne iný.</li><li>Po potvrdení vám príde e-mail s odkazom na platbu. Termín je váš po zaplatení.</li><li>Podmienky nájdete v <a href="/vop">obchodných podmienkach</a>.</li></ul>']]);
+  return shell(p,'consultation',crumb('Konzultácie','/eshop/?category='+encodeURIComponent(SHOP_CATEGORY_HANDLES['Konzultácie']||'konzultacie')+'#nase-produkty',p.name),photo(p),panel,more+related(p,products));
 }
 
 export function productDetail(p, products=[]) {
