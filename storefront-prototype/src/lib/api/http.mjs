@@ -793,13 +793,21 @@ export function createHttpApi(storage, config) {
 
     async getAccount() {
       if (!loggedIn()) return { ok: false, name: '', orders: [] };
-      const r = await call('/store/orders?limit=20&order=-created_at&fields=display_id,created_at,total,status,metadata,*items');
+      const r = await call('/store/orders?limit=20&order=-created_at&fields=id,display_id,created_at,total,subtotal,shipping_total,tax_total,discount_total,status,fulfillment_status,metadata,*items,*fulfillments,*fulfillments.labels');
       if (!r.ok) return { ok: false, name: '', orders: [] };
-      const orders = (r.data?.orders || []).map(o => ({
-        number: String(o.metadata?.legacy_customer_migration?.number || o.display_id || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
-        product: (o.items || [])[0]?.product_title || (o.items || [])[0]?.title || '—',
-        status: ORDER_STATUS[o.status] || 'Prijatá', totalLabel: money(o.total),
-      }));
+      // Stav pre zákazníka: zrušená > odoslaná/doručená > prijatá. Sledovanie zásielky len ak ho dopravca naozaj vrátil.
+      const SHIP = { shipped: 'Odoslaná', partially_shipped: 'Čiastočne odoslaná', delivered: 'Doručená', partially_delivered: 'Čiastočne doručená' };
+      const orders = (r.data?.orders || []).map(o => {
+        const items = (o.items || []).map(i => ({ title: i.product_title || i.title || '', variant: i.variant_title && i.variant_title !== 'Default variant' ? i.variant_title : '', image: i.thumbnail || '', quantity: i.quantity || 1, handle: i.product_handle || '', variantId: i.variant_id || '', totalLabel: money(i.total ?? (i.unit_price || 0) * (i.quantity || 1)) }));
+        const tracking = (o.fulfillments || []).flatMap(f => f.labels || []).filter(l => l && (l.tracking_number || l.tracking_url)).map(l => ({ number: l.tracking_number || '', url: /^https:\/\//.test(l.tracking_url || '') ? l.tracking_url : '' }));
+        const status = o.status === 'canceled' ? ORDER_STATUS.canceled : SHIP[o.fulfillment_status] || ORDER_STATUS[o.status] || 'Prijatá';
+        return {
+          id: o.id, number: String(o.metadata?.legacy_customer_migration?.number || o.display_id || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
+          product: items[0]?.title || '—', items, tracking,
+          status, statusKey: o.status === 'canceled' ? 'canceled' : o.fulfillment_status === 'delivered' ? 'delivered' : SHIP[o.fulfillment_status] ? 'shipped' : 'placed',
+          totalLabel: money(o.total), subtotalLabel: money(o.subtotal), shippingLabel: money(o.shipping_total), taxLabel: money(o.tax_total), discountLabel: o.discount_total ? money(o.discount_total) : '',
+        };
+      });
       return { ok: true, orders };
     },
     // E-mail prihlásenému zákazníkov na predvyplnenie platobného formulára (bez neho Stripe pýta e-mail pre Link).
@@ -852,7 +860,7 @@ export function createHttpApi(storage, config) {
       return {
         ok: true, mode: 'http', bookings, bookingsOk: bk.ok, materials: [], reorder,
         profile: {
-          name: [c.first_name, c.last_name].filter(Boolean).join(' '), email: c.email || '', phone: c.phone || '',
+          name: [c.first_name, c.last_name].filter(Boolean).join(' '), firstName: c.first_name || '', lastName: c.last_name || '', email: c.email || '', phone: c.phone || '',
           birthDate: md.birth_date || '', birthTime: md.birth_time || '', birthPlace: md.birth_place || '',
           street: md.street || '', city: md.city || '', postalCode: md.postal_code || '',
         },
@@ -860,7 +868,9 @@ export function createHttpApi(storage, config) {
     },
     async saveCustomerProfile(profile = {}) {
       if (!loggedIn()) return { ok: false, message: 'Pre uloženie údajov sa prihláste.' };
-      const [first, ...rest] = String(profile.name || '').trim().split(/\s+/);
+      const split = String(profile.name || '').trim().split(/\s+/);
+      const first = String(profile.firstName ?? split[0] ?? '').trim();
+      const rest = profile.lastName !== undefined ? [String(profile.lastName).trim()].filter(Boolean) : split.slice(1);
       const body = {
         ...(first ? { first_name: first } : {}), ...(rest.length ? { last_name: rest.join(' ') } : {}),
         ...(profile.phone ? { phone: profile.phone } : {}),

@@ -54,13 +54,21 @@ export function renderEmptyJournal() {
   return `<div class="reset-empty"><p>Zrkadielko zatiaľ nemá záznamy.</p><p>Pridajte prvý záznam a uvidíte, ako sa vaše dni menia.</p></div>`;
 }
 
-/** Riadok hodnotenia 1–max (ťuknutie) pre každú metriku z API. */
-const metricFields = metrics => (metrics || []).map(m => {
+/** Slovný stav hodnoty: 1–3 Nízka, 4–7 Vyvážená, 8–10 Vysoká. */
+export const metricLevel = value => {
+  const v = Number(value);
+  if (!Number.isFinite(v) || v <= 0) return '';
+  return v <= 3 ? 'Nízka' : v <= 7 ? 'Vyvážená' : 'Vysoká';
+};
+
+/** Rad hodnotenia 1–max (pilulky) pre každú metriku z API, pri úprave predvyplnený. */
+const metricFields = (metrics, current = {}) => (metrics || []).map(m => {
   const max = Number(m.max ?? 10) || 10;
   const min = Number(m.min ?? 1) || 1;
+  const picked = current?.[m.key] ?? '';
   const values = [];
   for (let v = min; v <= max; v += 1) values.push(v);
-  return `<fieldset class="reset-metric" data-metric="${e(m.key)}"><legend>${e(m.label || m.key)}</legend><div class="reset-scale">${values.map(v => `<button type="button" data-reset-value="${v}" aria-pressed="false" aria-label="${e(m.label || m.key)} ${v}">${v}</button>`).join('')}</div><input type="hidden" name="metric-${e(m.key)}" value=""></fieldset>`;
+  return `<fieldset class="reset-metric" data-metric="${e(m.key)}"><legend>${e(m.label || m.key)}<output class="reset-metric__state">${e(metricLevel(picked))}</output></legend><div class="reset-scale">${values.map(v => `<button type="button" data-reset-value="${v}" aria-pressed="${String(String(picked) === String(v))}" aria-label="${e(m.label || m.key)} ${v}" style="--step:${(v - min) / Math.max(1, max - min)}">${v}</button>`).join('')}</div><p class="reset-metric__legend" aria-hidden="true"><span>Nízka</span><span>Vyvážená</span><span>Vysoká</span></p><input type="hidden" name="metric-${e(m.key)}" value="${e(picked)}"></fieldset>`;
 }).join('');
 
 /** Formulár na pridanie / úpravu záznamu. */
@@ -73,7 +81,7 @@ export function renderJournalForm(metrics, { entry = null, weeks = [] } = {}) {
       <label>Dátum<input type="date" name="date" required max="${today()}" value="${e(entry?.date || today())}"></label>
       <label>Týždeň<select name="week">${weekOptions}</select></label>
     </div>
-    ${metricFields(metrics).replace(/aria-pressed="false"/g, (m, key) => '')}
+    ${metricFields(metrics, values)}
     <div class="reset-form-actions"><button class="button" type="submit">${entry?.id ? 'Uložiť zmeny' : 'Pridať záznam'}</button><button class="button outline" type="button" data-reset-cancel${entry?.id ? '' : ' hidden'}>Zavrieť</button></div>
     <p class="form-status" role="status" aria-live="polite"></p>
   </form>`;
@@ -187,6 +195,8 @@ export function initResetZone(api, root = document) {
           const same = input.value === value.dataset.resetValue;
           input.value = same ? '' : value.dataset.resetValue;
           field.querySelectorAll('[data-reset-value]').forEach(b => b.setAttribute('aria-pressed', String(!same && b === value)));
+          const level = field.querySelector('.reset-metric__state');
+          if (level) level.textContent = metricLevel(input.value);
         }
         return;
       }

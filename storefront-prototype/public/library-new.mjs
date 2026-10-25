@@ -183,13 +183,28 @@ export async function mountLibrary(target, api) {
         // Přehrát video
         const week = grouped[lastWeek - 1]
         if (week && week.videos[lastVideo]) {
-          playItem(week.videos[lastVideo], api, products)
-          if (lastTime > 0 && lastTime < activePlayer?.duration) {
-            activePlayer.currentTime = lastTime
-          }
+          // Bez autoplay: len plagát s tlačidlom, prístup k médiu a zvuk až po kliknutí.
+          showPoster(week.videos[lastVideo], lastTime)
         }
       }
     } catch {}
+  }
+
+  const showPoster = (item, resumeAt = 0) => {
+    if (item.kind !== 'video' && item.kind !== 'audio') return
+    playerTitle.textContent = item.title
+    const poster = node('button', null, 'library-poster')
+    poster.type = 'button'
+    poster.setAttribute('aria-label', `Prehrať: ${item.title}`)
+    const icon = node('span', null, 'library-poster__play')
+    icon.setAttribute('aria-hidden', 'true')
+    poster.append(icon, node('span', resumeAt > 0 ? 'Pokračovať v prehrávaní' : 'Prehrať lekciu', 'library-poster__label'), node('strong', item.title, 'library-poster__title'))
+    poster.addEventListener('click', async () => {
+      await playItem(item, api, products)
+      const player = activePlayer
+      if (player && resumeAt > 0) player.addEventListener('loadedmetadata', () => { if (resumeAt < player.duration) player.currentTime = resumeAt }, { once: true })
+    }, { once: true })
+    playerBox.replaceChildren(poster)
   }
 
   // Ovládání přehrávače
