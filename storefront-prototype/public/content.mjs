@@ -76,8 +76,14 @@ const setValue = (el, field, value) => {
 // Vloží hodnoty do existujúcich miest. Prázdna hodnota nič nemení (fallback).
 export function applyContent(root, payload, {pageKey = ''} = {}) {
   if (!payload || !root) return 0;
-  const targets = new Map();
-  for (const el of root.querySelectorAll('[data-content]')) targets.set(el.dataset.content, el);
+  // Odstavec zo starého webu je rozdelený na viac <p> s rovnakým kľúčom – hodnota z administrácie patrí celému bloku.
+  const targets = new Map(), groups = new Map();
+  for (const el of root.querySelectorAll('[data-content]')) {
+    const key = el.dataset.content;
+    if (!groups.has(key)) { groups.set(key, []); targets.set(key, el); }
+    groups.get(key).push(el);
+  }
+  const flat = s => String(s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, '');
   let applied = 0;
   for (const section of payload.sections || []) {
     for (const field of section.fields || []) {
@@ -88,6 +94,12 @@ export function applyContent(root, payload, {pageKey = ''} = {}) {
       // Obrázky na úvodnej stránke nesmí CMS zaměnit za blogové ilustrace.
       // Produktové fotografie se načítají z katalogu a Luciiny fotografie zůstávají v HTML.
       if (pageKey === 'home' && field.type === 'image') continue;
+      const group = groups.get(field.key);
+      if (field.type === 'rich' || field.type === 'text') {
+        // Nezmenený text nechá zabudované HTML (členenie odstavcov, tlačidlo rezervácie).
+        if (flat(value) === flat(group.map(x => x.textContent).join(''))) continue;
+        for (const extra of group.slice(1)) extra.remove();
+      }
       if (setValue(el, field, value)) applied++;
     }
   }

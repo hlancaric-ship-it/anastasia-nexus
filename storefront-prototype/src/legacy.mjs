@@ -50,6 +50,8 @@ function legalPage(page,render){
   const slug=page.source.split('/').filter(Boolean).pop();const img=LEGAL_IMG[slug]?`<figure class="legal-figure"><img src="/legal/${slug}.jpg" alt="${e(LEGAL_IMG[slug])}" width="960" height="1200" loading="eager" decoding="async"></figure>`:'';
   return `<section class="legal-hero${img?' has-figure':''}" data-sk-only><div class="legal-hero-text"><p class="legal-eyebrow">ANASTASIA · Právne informácie</p><h1>${e(head?.text||page.title)}</h1>${toc}</div>${img}</section><article class="legal-doc" data-sk-only>${arts.filter(a=>a.title||a.body.length).map(art).join('')}${isClaims?`<a class="legal-more reveal" href="/vop"><span>Úplné znenie</span><strong>Všeobecné obchodné podmienky</strong>${arrow}</a>`:''}</article>${page.source.endsWith('/odstupenie')?withdrawalForm():''}${button('/','Na úvod','legacy-back')}`;
 }
+// Malé alebo rozmazané obrázky zo starého webu nahrádzajú ostré fotky priestorov ANASTASIA.
+const SHARP={'/media/hucpcycx/supervizia-2.jpg':'/img/lucia/stacionar-priestor-1600.webp'};
 export function legacyPage(page,{about=false,contactForm='',path=''}={}){
   page=withClaims(page);
   // Konzultácie sa objednávajú výberom termínu (rezervácia), nie cez starý e-shop.
@@ -80,7 +82,7 @@ export function legacyPage(page,{about=false,contactForm='',path=''}={}){
   const title=!about&&!page.blocks.some(b=>/^h[1-6]$/.test(b.type))?`<section class="section source-title"><h1>${e(page.title)}</h1></section>`:'';
   const body=groups.map((group,i)=>{
     const images=group.filter(b=>b.type==='image');
-    const visual=images.map(b=>media(b.src,b.alt,false,blockKey.get(b))).join('');
+    const visual=images.map(b=>SHARP[b.originalSrc]?media(SHARP[b.originalSrc],b.alt):media(b.src,b.alt,false,blockKey.get(b))).join('');
     const mode=about?'author-quote':i===0?'source-opening':images.length?'source-gallery':'source-chapter';
     return `<section class="section ${mode} ${images.length?'has-photo':''}"><div class="story-copy">${group.map(render).join('')}</div>${about?'':visual}</section>`;
   }).join('');

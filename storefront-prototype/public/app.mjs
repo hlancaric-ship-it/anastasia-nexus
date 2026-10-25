@@ -676,7 +676,7 @@ if(checkoutForm){
 }
 $('#login-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;$('.form-status',form).textContent=(await api.requestMagicLink(form.elements.email.value)).message;});
 const authTabs=$$('.auth-tabs [role=tab]'),authPanels=$$('.auth-panel');
-authTabs.forEach(tab=>tab.addEventListener('click',()=>{authTabs.forEach(item=>item.setAttribute('aria-selected',String(item===tab)));authPanels.forEach(panel=>{panel.hidden=panel.id!==tab.getAttribute('aria-controls');});}));
+authTabs.forEach(tab=>tab.addEventListener('click',()=>{authTabs.forEach(item=>item.setAttribute('aria-selected',String(item===tab)));authPanels.forEach(panel=>{panel.hidden=panel.id!==tab.getAttribute('aria-controls');});const eb=$('.auth-copy .page-intro .eyebrow');if(eb)eb.textContent=tab.getAttribute('aria-controls')==='registration-form'?'VITAJTE':'VITAJTE SPÄŤ';}));
 if(new URLSearchParams(location.search).get('mode')==='register')$('#tab-register')?.click();
 $('#registration-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,status=$('.form-status',form),button=$('button[type=submit]',form);if(!form.reportValidity())return;button.disabled=true;status.textContent='Odosielame požiadavku…';try{const result=await api.requestRegistrationLink({first_name:form.elements.first_name.value,last_name:form.elements.last_name.value,email:form.elements.email.value,newsletter:form.elements.newsletter.checked});status.textContent=result.message;if(result.ok)form.reset();}catch{status.textContent='Registráciu sa nepodarilo odoslať. Skúste to znova.';}finally{button.disabled=false;}});
 if($('#magic-confirm')){
