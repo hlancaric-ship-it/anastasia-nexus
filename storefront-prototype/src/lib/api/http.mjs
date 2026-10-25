@@ -163,6 +163,7 @@ export function createHttpApi(storage, config) {
     if (!cartId) return;
     const r = await call(`/store/carts/${cartId}?fields=id,metadata,*items,*items.product`).catch(() => null);
     const cart = r?.data?.cart; if (!cart) return;
+    else if (b && cartId) await call(`/store/booking-guest/${encodeURIComponent(b.id)}/cancel`, { method: 'POST', body: { cart_id: cartId } }).catch(() => null);
     for (const it of cart.items || []) if (it.product?.metadata?.booking) await call(`/store/carts/${cartId}/line-items/${it.id}`, { method: 'DELETE' }).catch(() => null);
     if (cart.metadata?.booking_id) await call(`/store/carts/${cartId}`, { method: 'POST', body: { metadata: { booking_id: '' } } }).catch(() => null);
   }
@@ -175,9 +176,10 @@ export function createHttpApi(storage, config) {
     if (!lines.length && !cart.metadata?.booking_id) return { ok: true };
     const expired = { ok: false, expired: true, message: 'Podržanie termínu vypršalo. Vyberte si prosím termín znova.' };
     if (lines.length !== 1 || Number(lines[0].quantity) !== 1 || typeof cart.metadata?.booking_id !== 'string' || !cart.metadata.booking_id) return expired;
-    const bk = await call('/store/bookings');
-    if (!bk.ok) return { ok: false, message: 'Termín sa nepodarilo overiť. Skúste to znova.' };
-    const b = (bk.data?.bookings || []).find(x => x.id === cart.metadata.booking_id);
+    // Hosť bez účtu overuje termín cez košík, prihlásený zákazník cez svoje rezervácie.
+    const bk = loggedIn() ? await call('/store/bookings') : await call(`/store/booking-guest/${encodeURIComponent(cart.metadata.booking_id)}?cart_id=${encodeURIComponent(cartId)}`);
+    if (!bk.ok && !(bk.status === 404 && !loggedIn())) return { ok: false, message: 'Termín sa nepodarilo overiť. Skúste to znova.' };
+    const b = loggedIn() ? (bk.data?.bookings || []).find(x => x.id === cart.metadata.booking_id) : bk.data?.booking;
     if (!b || b.status !== 'held' || (b.held_until && new Date(b.held_until).getTime() <= Date.now())) return expired;
     return { ok: true, booking: b };
   }
@@ -209,6 +211,21 @@ export function createHttpApi(storage, config) {
     const id = get(CART); if (!id) return;
     const coupon = get(COUPON) || undefined;
     await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: coupon } });
+  }
+  // Nákup bez registrácie: najprv konzultácia v košíku, potom server podrží termín priamo pre tento košík.
+  async function reserveGuestBooking({ cartId, productId, variantId, startsAt, title, fail }) {
+    const li = await call(`/store/carts/${cartId}/line-items`, { method: 'POST', body: { variant_id: variantId, quantity: 1 } });
+    if (!li.ok) return { ok: false, status: li.status, message: fail };
+    const hold = await call('/store/booking-guest', { method: 'POST', body: { cart_id: cartId, product_id: productId, starts_at: startsAt } });
+    const booking = hold.data?.booking;
+    if (hold.status !== 201 || !booking?.id) {
+      await releaseBooking(cartId);
+      const message = hold.status === 409 ? (hold.data?.type === 'slot_taken' ? 'Termín si práve rezervoval niekto iný. Zvoľte prosím iný.' : 'Tento termín už nie je voľný. Zvoľte prosím iný.') : fail;
+      return { ok: false, status: hold.status, type: hold.data?.type || 'error', message };
+    }
+    set(BOOKING, JSON.stringify({ id: booking.id, product_id: productId, title, held_until: booking.held_until || '', label: bookingLabel(booking.starts_at, booking.ends_at) }));
+    await reprice();
+    return { ok: true, booking: { id: booking.id, label: bookingLabel(booking.starts_at, booking.ends_at), heldUntil: booking.held_until || '' }, cart: await cartShape() };
   }
 
   // Server vracia čísla v eurách (amount, balance); košík zobrazuje popisky.
@@ -492,7 +509,6 @@ export function createHttpApi(storage, config) {
     // Podrží termín (server overí, že je naozaj ponúkaný a voľný), pridá konzultáciu do košíka a naviaže termín na košík.
     // Predchádzajúci podržaný termín v košíku sa uvoľní; pri chybe sa nový termín hneď uvoľní, nič nezostane visieť.
     async reserveBooking({ productId, variantId, startsAt, title = '' } = {}) {
-      if (!loggedIn()) return { ok: false, status: 401, message: BOOKING_MSG[401] };
       if (typeof productId !== 'string' || !productId || typeof variantId !== 'string' || !variantId || typeof startsAt !== 'string' || !startsAt) return { ok: false, status: 400, message: 'Vyberte termín.' };
       const fail = 'Termín sa nepodarilo rezervovať. Skúste to znova.';
       try {
@@ -506,6 +522,7 @@ export function createHttpApi(storage, config) {
           return { ok: false, status: hold.status, type: hold.data?.type || 'error', message };
         }
         set(BOOKING, JSON.stringify({ id: booking.id, product_id: productId, title, held_until: booking.held_until || '', label: bookingLabel(booking.starts_at, booking.ends_at) }));
+        if (!loggedIn()) return await reserveGuestBooking({ cartId, productId, variantId, startsAt, title, fail });
         const li = await call(`/store/carts/${cartId}/line-items`, { method: 'POST', body: { variant_id: variantId, quantity: 1 } });
         const owner = li.ok ? await call(`/store/carts/${cartId}/customer`, { method: 'POST', body: {} }) : li;
         const attach = owner.ok ? await call(`/store/bookings/${encodeURIComponent(booking.id)}/cart`, { method: 'POST', body: { cart_id: cartId } }) : owner;

@@ -666,10 +666,7 @@ if($('#booking-view')){
     $$('[data-slot]',view).forEach(btn=>btn.addEventListener('click',()=>pick(btn.dataset.slot,btn.dataset.label)));
   };
   const pick=async(slot,label)=>{
-    if(!(await loggedInNow())){
-      rememberReturn(`/konzultacie/rezervacia?typ=${encodeURIComponent(type.handle)}`);
-      view.innerHTML=head()+loginPrompt('Pre rezerváciu termínu sa prihláste.')+'<p class="fine-print">Po prihlásení sa sem vrátite a termín si vyberiete znova.</p>';wireChange();return;
-    }
+    // Rezervácia nevyžaduje účet: hosť zaplatí v pokladni a potvrdenie príde na e-mail z objednávky.
     view.innerHTML=head()+`<article class="center-card booking-confirm"><p class="eyebrow">Vybraný termín</p><h2>${e(label)}</h2><p>${e(type.priceLabel)}</p><div class="actions"><button type="button" class="button" data-booking-reserve>Rezervovať a pokračovať ${arrow}</button><button type="button" class="button outline" data-booking-back>Vybrať iný termín</button></div><p class="form-status" role="status"></p></article>`;wireChange();
     const out=$('.booking-confirm .form-status',view),go=$('[data-booking-reserve]',view);
     $('[data-booking-back]',view).addEventListener('click',()=>renderSlots());
