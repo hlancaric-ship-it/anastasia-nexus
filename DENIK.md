@@ -79,3 +79,11 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Mobil: vedle Menu stálé ikony Košík s počtem a Môj účet. Otevřené menu zamkne scroll stránky.
 - Levá lišta: aura linek se už nepočítá jako fotka, takže nad světlým detailem zůstává tmavě olivová.
 - Ověřeno v Chrome s emulací iPhone 13 a v 1440. Skutečné Safari lokálně nejde (macOS 12 bez WebKitu), ověřit na iPhonu. Testy 162/162.
+
+## 25. 10. noc – konzultácie, Kontakt, prihlásenie
+- Všetky podstránky konzultácií a /konzultacie/rezervacia majú jednu šablónu: úvodná sklenená karta s fotkou, dĺžkou, formou a cenou, vedľa nej kalendár. Pod tým tri karty Pre koho, Ako stretnutie prebieha, Otázky a zrušenie termínu (podľa VOP 6.2 a 6.3).
+- Kalendár: mesiac so zlatou bodkou pri dňoch s voľným termínom, potom časy, potom súhrn s cenou a Pokračovať k platbe. Bez „kontaktujte nás“. Voľné okná zadáva Lucia v admine (Kalendár), test ich zatiaľ nemá. Overené s podvrhnutými termínmi v 1440 aj 390.
+- Výpis /konzultacie: 2×2 sklenené karty s fotkou, meta pilulkami a krátkym popisom pre koho.
+- Kontakt: krémový podklad, karta s fotkou Lucie a kontaktmi so zlatými ikonami, formulár v samostatnej karte, bez vodoznaku. IČO, DIČ a IČ DPH pod sebou.
+- Prihlásenie z e-mailu: bez medzistránky, hneď /ucet#prehlad alebo bezpečný ?redirect=, v účte 3 s toast. Chyba odkazu ponúkne nový odkaz.
+- Testy 162/162, nasadené na test.

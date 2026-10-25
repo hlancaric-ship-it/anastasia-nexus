@@ -181,3 +181,9 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - Výšky obrazovky jen `dvh` (plná výška) nebo `svh`. `vh` jen jako záloha před dvh/svh.
 - Každý `backdrop-filter` má i `-webkit-backdrop-filter`. Mimo obrazovku blur vypíná třída `.ana-bf-off`.
 - Mobil pod 1000 px: vedle Menu kulaté ikony Košík s počtem a Môj účet (`.ana-mquick`), otevřené menu zamyká scroll.
+
+## Konzultácie a Kontakt (25. 10.)
+- Krémový podklad s aurou linek, všetok obsah v sklenených kartách (rgba(253,251,247,.85), blur 12 px, 1 px matne zlatá linka, radius 24 px). Žiadne celoplošné pásy.
+- Šablóna konzultácie: hore úvod (fotka, nadpis, pilulky dĺžka, forma, cena) a kalendár vedľa seba, na mobile pod sebou. Pod tým 3 karty Pre koho, Priebeh 1–3, Otázky a zrušenie.
+- Kalendár: dni s voľným termínom zlatá bodka, časy ako 44 px pilulky, súhrn „Pondelok 26. 10. o 11:30“ s cenou a tmavozeleným CTA #1E261D so zlatou šípkou.
+- Kontakt: ľavá karta s fotkou v jemnom ráme a kontaktmi so zlatými ikonami, pravá karta formulár s krémovými poľami a zlatým focusom, súhlas zarovnaný s textom.

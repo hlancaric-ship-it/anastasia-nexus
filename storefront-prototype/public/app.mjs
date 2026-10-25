@@ -25,7 +25,7 @@ document.addEventListener('error',event=>{
   img.dataset.placeholderApplied='true';img.alt='';img.src='/assets/product-placeholder.svg';
 },true);
 let toastTimeout;
-function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
+function toast(message,ms=4500){const el=$('.toast');if(!el)return;el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},ms);}
 async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>{el.textContent=String(count);el.toggleAttribute('data-zero',!count);});}
 let miniCart;
 const shopText=value=>{const item=DICT[value];const lang=document.documentElement.lang;return lang==='en'?(item?.[0]||value):lang==='ru'?(item?.[1]||value):value;};
@@ -818,12 +818,24 @@ const authTabs=$$('.auth-tabs [role=tab]'),authPanels=$$('.auth-panel');
 authTabs.forEach(tab=>tab.addEventListener('click',()=>{authTabs.forEach(item=>item.setAttribute('aria-selected',String(item===tab)));authPanels.forEach(panel=>{panel.hidden=panel.id!==tab.getAttribute('aria-controls');});const eb=$('.auth-copy .page-intro .eyebrow');if(eb)eb.textContent=tab.getAttribute('aria-controls')==='registration-form'?'VITAJTE':'VITAJTE SPÄŤ';}));
 if(new URLSearchParams(location.search).get('mode')==='register')$('#tab-register')?.click();
 $('#registration-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,status=$('.form-status',form),button=$('button[type=submit]',form);if(!form.reportValidity())return;button.disabled=true;status.textContent='Odosielame požiadavku…';try{const result=await api.requestRegistrationLink({first_name:form.elements.first_name.value,last_name:form.elements.last_name.value,email:form.elements.email.value,newsletter:form.elements.newsletter.checked});status.textContent=result.message;if(result.ok)form.reset();}catch{status.textContent='Registráciu sa nepodarilo odoslať. Skúste to znova.';}finally{button.disabled=false;}});
+// Po overení odkazu z e-mailu žiadna medzistránka: hneď do účtu alebo na uložený cieľ (rezervácia, objednávka).
+const SAFE_PATH=/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%.]*)?(#[\w-]*)?$/;
+{const want=new URLSearchParams(location.search).get('redirect');if(want&&SAFE_PATH.test(want)&&location.pathname.startsWith('/prihlasenie'))try{localStorage.setItem('anastasia.return',want);}catch{}}
 if($('#magic-confirm')){
-  const r=await api.confirmMagicLink();$('#magic-confirm').textContent=r.message;history.replaceState(null,'',location.pathname);
-  // Návrat len na vlastnú stránku (cesta začínajúca jedným „/“), uložený pred prihlásením.
+  const want=new URLSearchParams(location.search).get('redirect')||'';
+  const r=await api.confirmMagicLink();history.replaceState(null,'',location.pathname);
   let back='';try{back=localStorage.getItem('anastasia.return')||'';localStorage.removeItem('anastasia.return');}catch{}
-  if(r.ok&&/^\/(?!\/)[\w\-\/]*(\?[\w\-=&%]*)?$/.test(back))$('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button(back,back.startsWith('/ucet')?'Zobraziť objednávku':'Pokračovať v rezervácii')}</div>`);
+  if(r.ok){
+    const target=[want,back].find(x=>x&&SAFE_PATH.test(x))||'/ucet#prehlad';
+    try{sessionStorage.setItem('anastasia.welcome','1');}catch{}
+    location.replace(target);
+  }else{
+    $('#magic-confirm').textContent=r.message;$('.auth-confirm')?.setAttribute('data-state','error');
+    $('#magic-confirm').insertAdjacentHTML('afterend',`<div class="actions">${button('/prihlasenie','Poslať nový odkaz')}</div>`);
+  }
 }
+// Privítanie po prihlásení len krátkym toastom priamo v cieli.
+try{if(sessionStorage.getItem('anastasia.welcome')){sessionStorage.removeItem('anastasia.welcome');toast('Prihlásenie prebehlo úspešne.',3000);}}catch{}
 $('#contact-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=$('button[type=submit]',form),status=$('.form-status',form);if(button.disabled)return;button.disabled=true;status.textContent='Odosielam…';let r;try{r=await api.sendContact(Object.fromEntries(new FormData(form)));}catch{r={ok:false,message:'Správu sa nepodarilo odoslať. Skúste to prosím znova o chvíľu.'};}status.textContent=r.message;if(r.ok)form.reset();button.disabled=false;});
 // Online odstúpenie od zmluvy: prihlásenému zákazníkovi predvyplníme e-mail a meno z účtu.
 initWithdrawalForm(api);
@@ -881,61 +893,87 @@ if($('#klub-view')){
 const RETURN_KEY='anastasia.return';
 const rememberReturn=path=>{try{localStorage.setItem(RETURN_KEY,path);}catch{}};
 if($('#booking-view')){
-  const view=$('#booking-view'),TZ='Europe/Bratislava',RANGE=28,MAX_RANGES=7;
+  // Kalendár: mesiac → deň s voľnými termínmi → čas → súhrn s cenou → podržanie termínu a pokladňa.
+  const view=$('#booking-view'),TZ='Europe/Bratislava',MAX_AHEAD=12,SEARCH=6;
   const ymd=d=>new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
-  const addDays=(day,n)=>{const d=new Date(`${day}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
   const fmt=(iso,o)=>new Intl.DateTimeFormat('sk-SK',{timeZone:TZ,...o}).format(new Date(iso));
+  const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
   const status=(text,state='')=>`<p class="form-status" role="status"${state?` data-state="${state}"`:''}>${e(text)}</p>`;
-  const today=ymd(new Date());
-  let types=[],type=null,from=today,busy=false;
-  const head=()=>`<div class="booking-head"><div><p class="eyebrow">Konzultácia</p><h2>${e(type.title)}</h2><p>${[type.durationMinutes?`${type.durationMinutes} minút`:'',type.form==='online'?'online':type.form==='in_person'?'osobne':'',type.priceLabel].filter(Boolean).map(e).join(' · ')}</p></div>${types.length>1?'<button type="button" class="text-link" data-booking-change>Iná konzultácia</button>':''}</div>`;
-  const wireChange=()=>$('[data-booking-change]',view)?.addEventListener('click',()=>{type=null;history.replaceState(null,'',location.pathname);renderTypes();});
-  const renderTypes=()=>{
-    view.innerHTML=`<div class="library-grid booking-types">${types.map(t=>`<article class="lesson"><span class="eyebrow">${t.durationMinutes?`${e(String(t.durationMinutes))} MINÚT`:'KONZULTÁCIA'}</span><h2>${e(t.title)}</h2>${t.description?`<p>${e(t.description)}</p>`:''}<p><strong>${e(t.priceLabel)}</strong></p><button type="button" class="button" data-booking-type="${e(t.handle)}">Vybrať termín ${arrow}</button></article>`).join('')}</div>`;
-    $$('[data-booking-type]',view).forEach(btn=>btn.addEventListener('click',()=>{type=types.find(t=>t.handle===btn.dataset.bookingType)||null;if(!type)return;from=today;history.replaceState(null,'',`${location.pathname}?typ=${encodeURIComponent(type.handle)}`);renderSlots();}));
-  };
-  const renderSlots=async(note='',noteState='')=>{
-    view.innerHTML=head()+(note?status(note,noteState):'')+status('Hľadám voľné termíny…');wireChange();
-    // Prvé voľné termíny: posúvame sa po 28 dňoch (limit servera je 31), najviac ~pol roka dopredu.
-    let r,start=from;
-    for(let i=0;i<MAX_RANGES;i++){r=await api.getBookingSlots(type.id,start,addDays(start,RANGE-1));if(!r.ok||r.slots.length)break;start=addDays(start,RANGE);}
-    from=start;
-    const noteHtml=note?status(note,noteState):'';
-    if(!r.ok){view.innerHTML=head()+noteHtml+status(r.message,'ERROR')+'<div class="actions"><button type="button" class="button outline" data-booking-retry>Skúsiť znova</button></div>';wireChange();$('[data-booking-retry]',view).addEventListener('click',()=>renderSlots());return;}
-    if(!r.slots.length){view.innerHTML=head()+noteHtml+`<div class="empty-state"><h2>Momentálne nie sú voľné termíny.</h2><p>Napíšte nám a dohodneme termín spolu.</p>${button('/kontakt','Kontakt')}</div>`;wireChange();return;}
+  const today=ymd(new Date()),thisMonth=today.slice(0,7);
+  const monthAdd=(m,n)=>{const [y,mo]=m.split('-').map(Number);const d=new Date(Date.UTC(y,mo-1+n,1));return d.toISOString().slice(0,7);};
+  const monthEnd=m=>{const [y,mo]=m.split('-').map(Number);return new Date(Date.UTC(y,mo,0)).toISOString().slice(0,10);};
+  const dayLabel=(day,iso)=>`${cap(fmt(`${day}T12:00:00Z`,{weekday:'long'}))} ${Number(day.slice(8))}. ${Number(day.slice(5,7))}.${iso?` o ${fmt(iso,{hour:'2-digit',minute:'2-digit'})}`:''}`;
+  const preset=view.dataset.bookingType||new URLSearchParams(location.search).get('typ')||'';
+  let types=[],type=null,month=thisMonth,day=null,slot=null,busy=false,note='',cache=new Map(),loadError='';
+  const load=async m=>{
+    const key=`${type.id}|${m}`;if(cache.has(key))return cache.get(key);
+    const from=m===thisMonth?today:`${m}-01`;
+    const r=await api.getBookingSlots(type.id,from,monthEnd(m));
+    if(!r.ok)return {ok:false,message:r.message};
     const days=new Map();for(const s of r.slots){const k=ymd(new Date(s.start));if(!days.has(k))days.set(k,[]);days.get(k).push(s);}
-    const until=addDays(from,RANGE-1);
-    view.innerHTML=head()+noteHtml+`<p class="booking-range">${e(fmt(`${from}T12:00:00Z`,{day:'numeric',month:'long'}))} – ${e(fmt(`${until}T12:00:00Z`,{day:'numeric',month:'long',year:'numeric'}))}</p><div class="booking-days">${[...days].map(([day,slots])=>`<section class="booking-day"><h3>${e(fmt(slots[0].start,{weekday:'long',day:'numeric',month:'long'}))}</h3><div class="booking-slots">${slots.map(s=>`<button type="button" class="booking-slot" data-slot="${e(s.start)}" data-label="${e(s.label)}" aria-label="${e(s.label)}">${e(fmt(s.start,{hour:'2-digit',minute:'2-digit'}))}</button>`).join('')}</div></section>`).join('')}</div><div class="actions">${from>today?'<button type="button" class="button outline" data-booking-prev>Skoršie termíny</button>':''}<button type="button" class="button outline" data-booking-next>Ďalšie termíny ${arrow}</button></div>`;
-    wireChange();
-    $('[data-booking-prev]',view)?.addEventListener('click',()=>{const prev=addDays(from,-RANGE);from=prev<today?today:prev;renderSlots();});
-    $('[data-booking-next]',view).addEventListener('click',()=>{from=addDays(from,RANGE);renderSlots();});
-    $$('[data-slot]',view).forEach(btn=>btn.addEventListener('click',()=>pick(btn.dataset.slot,btn.dataset.label)));
+    const out={ok:true,days};cache.set(key,out);return out;
   };
-  const pick=async(slot,label)=>{
-    // Rezervácia nevyžaduje účet: hosť zaplatí v pokladni a potvrdenie príde na e-mail z objednávky.
-    view.innerHTML=head()+`<article class="center-card booking-confirm"><p class="eyebrow">Vybraný termín</p><h2>${e(label)}</h2><p>${e(type.priceLabel)}</p><div class="actions"><button type="button" class="button" data-booking-reserve>Rezervovať a pokračovať ${arrow}</button><button type="button" class="button outline" data-booking-back>Vybrať iný termín</button></div><p class="form-status" role="status"></p></article>`;wireChange();
-    const out=$('.booking-confirm .form-status',view),go=$('[data-booking-reserve]',view);
-    $('[data-booking-back]',view).addEventListener('click',()=>renderSlots());
-    go.addEventListener('click',async()=>{
-      if(busy)return;busy=true;go.disabled=true;out.dataset.state='REVIEW';out.textContent='Rezervujem termín…';
-      try{
-        const r=await api.reserveBooking({productId:type.id,variantId:type.variantId,startsAt:slot,title:type.title});
-        if(r.ok){out.dataset.state='ALLOW';out.textContent='Termín je podržaný. Pokračujeme na objednávku…';await updateCount();location.assign('/pokladna');return;}
-        if(r.status===401){rememberReturn(`/konzultacie/rezervacia?typ=${encodeURIComponent(type.handle)}`);view.innerHTML=head()+loginPrompt('Prihlásenie vypršalo. Prihláste sa znova.');wireChange();return;}
-        if(r.status===409||r.status===404){await renderSlots(r.message,'ERROR');return;}
-        out.dataset.state='ERROR';out.textContent=r.message;
-      }finally{busy=false;if(go.isConnected)go.disabled=false;}
-    });
+  const meta=t=>[t.durationMinutes?`${t.durationMinutes} min`:'',t.form==='online'?'Online':t.form==='in_person'?'Osobne':t.form==='both'?'Online alebo osobne':'',t.priceLabel].filter(Boolean);
+  const syncMeta=()=>{const box=$('[data-consult-meta]');if(!box||!type)return;const m=meta(type);if(m.length)box.innerHTML=m.map(x=>`<span>${e(x)}</span>`).join('');};
+  const typesBar=()=>!view.dataset.bookingType&&types.length>1?`<div class="bk-types" role="tablist" aria-label="Typ konzultácie">${types.map(t=>`<button type="button" role="tab" aria-selected="${t===type}" data-bk-type="${e(t.handle)}"><strong>${e(t.title)}</strong><small>${meta(t).map(e).join(' · ')}</small></button>`).join('')}</div>`:'';
+  const calendar=data=>{
+    const [y,mo]=month.split('-').map(Number);
+    const first=(new Date(Date.UTC(y,mo-1,1)).getUTCDay()+6)%7,last=Number(monthEnd(month).slice(8));
+    const cells=[];for(let i=0;i<first;i++)cells.push('<span class="bk-day bk-day--pad" aria-hidden="true"></span>');
+    for(let d=1;d<=last;d++){const k=`${month}-${String(d).padStart(2,'0')}`,free=data?.days?.get(k);const past=k<today;
+      cells.push(free&&!past?`<button type="button" class="bk-day bk-day--free${k===day?' is-on':''}" data-bk-day="${k}" aria-pressed="${k===day}" aria-label="${e(dayLabel(k))}, voľné termíny: ${free.length}">${d}<i aria-hidden="true"></i></button>`:`<span class="bk-day${past?' bk-day--past':''}${k===today?' bk-day--today':''}" aria-hidden="true">${d}</span>`);}
+    const title=cap(fmt(`${month}-15T12:00:00Z`,{month:'long',year:'numeric'}));
+    return `<div class="bk-cal"><div class="bk-cal__head"><button type="button" class="bk-nav" data-bk-month="-1" aria-label="Predchádzajúci mesiac"${month<=thisMonth?' disabled':''}>‹</button><h3 aria-live="polite">${e(title)}</h3><button type="button" class="bk-nav" data-bk-month="1" aria-label="Nasledujúci mesiac"${month>=monthAdd(thisMonth,MAX_AHEAD)?' disabled':''}>›</button></div><div class="bk-week" aria-hidden="true">${['Po','Ut','St','Št','Pi','So','Ne'].map(x=>`<span>${x}</span>`).join('')}</div><div class="bk-grid">${cells.join('')}</div><p class="bk-legend"><i aria-hidden="true"></i>Deň s voľným termínom</p></div>`;
+  };
+  const side=data=>{
+    if(loadError)return `<div class="bk-side">${status(loadError,'ERROR')}<button type="button" class="button outline" data-bk-retry>Skúsiť znova</button></div>`;
+    const free=day&&data?.days?.get(day);
+    const empty=!data?.days?.size;
+    const step2=free?`<div class="bk-step"><p class="bk-step__no">Krok 2</p><h3>${e(dayLabel(day))}</h3><div class="bk-times" role="group" aria-label="Voľné časy">${free.map(s=>`<button type="button" class="bk-time${slot?.start===s.start?' is-on':''}" data-bk-slot="${e(s.start)}" aria-pressed="${slot?.start===s.start}">${e(fmt(s.start,{hour:'2-digit',minute:'2-digit'}))}</button>`).join('')}</div></div>`
+      :`<div class="bk-step bk-step--hint"><p class="bk-step__no">Krok 1</p><h3>${empty?'Termíny na tento mesiac sú obsadené.':'Vyberte si deň v kalendári.'}</h3><p>${empty?'Pozrite si nasledujúci mesiac, nové termíny pribúdajú priebežne.':'Dni so zlatou bodkou majú voľné termíny.'}</p>${empty&&month<monthAdd(thisMonth,MAX_AHEAD)?`<button type="button" class="button outline" data-bk-month="1">Nasledujúci mesiac ${arrow}</button>`:''}</div>`;
+    const step3=slot?`<article class="bk-summary"><p class="bk-step__no">Krok 3 · Súhrn</p><h3>${e(dayLabel(day,slot.start))}</h3><p class="bk-summary__type">${e(type.title)}${type.durationMinutes?` · ${e(String(type.durationMinutes))} min`:''}</p><p class="bk-summary__price"><span>Cena</span><strong>${e(type.priceLabel||'')}</strong></p><button type="button" class="button bk-go" data-bk-reserve>Pokračovať k platbe ${arrow}</button><p class="fine-print">Termín vám podržíme, kým dokončíte objednávku. Účet nepotrebujete.</p><p class="form-status" role="status" aria-live="polite"></p></article>`:'';
+    return `<div class="bk-side">${note?status(note,'ERROR'):''}${step2}${step3}</div>`;
+  };
+  const render=async()=>{
+    loadError='';
+    view.innerHTML=`<div class="bk">${typesBar()}<div class="bk-body">${calendar(null)}<div class="bk-side">${status('Načítavam voľné termíny…')}</div></div></div>`;wire();
+    const data=await load(month);
+    if(!data.ok)loadError=data.message||'Termíny sa nepodarilo načítať.';
+    view.innerHTML=`<div class="bk">${typesBar()}<div class="bk-body">${calendar(data.ok?data:null)}${side(data.ok?data:null)}</div></div>`;wire();
+  };
+  const wire=()=>{
+    $$('[data-bk-type]',view).forEach(b=>b.addEventListener('click',()=>{const t=types.find(x=>x.handle===b.dataset.bkType);if(!t||t===type)return;type=t;day=null;slot=null;note='';history.replaceState(null,'',`${location.pathname}?typ=${encodeURIComponent(t.handle)}`);syncMeta();start();}));
+    $$('[data-bk-month]',view).forEach(b=>b.addEventListener('click',()=>{month=monthAdd(month,Number(b.dataset.bkMonth));day=null;slot=null;note='';render();}));
+    $$('[data-bk-day]',view).forEach(b=>b.addEventListener('click',async()=>{day=b.dataset.bkDay;slot=null;note='';const data=await load(month);$('.bk-side',view).outerHTML=side(data);wire();if(matchMedia('(max-width:760px)').matches)$('.bk-step',view)?.scrollIntoView({behavior:'smooth',block:'nearest'});}));
+    $$('[data-bk-slot]',view).forEach(b=>b.addEventListener('click',async()=>{const data=await load(month);slot=data.days.get(day).find(s=>s.start===b.dataset.bkSlot)||null;$('.bk-side',view).outerHTML=side(data);wire();$('.bk-summary',view)?.scrollIntoView({behavior:'smooth',block:'nearest'});}));
+    $('[data-bk-retry]',view)?.addEventListener('click',()=>{cache.clear();render();});
+    $('[data-bk-reserve]',view)?.addEventListener('click',reserve);
+  };
+  const reserve=async event=>{
+    const go=event.currentTarget,out=$('.bk-summary .form-status',view);
+    if(busy||!slot)return;busy=true;go.disabled=true;out.dataset.state='REVIEW';out.textContent='Rezervujem termín…';
+    try{
+      const r=await api.reserveBooking({productId:type.id,variantId:type.variantId,startsAt:slot.start,title:type.title});
+      if(r.ok){out.dataset.state='ALLOW';out.textContent='Termín je podržaný. Pokračujeme na objednávku…';await updateCount();location.assign('/pokladna');return;}
+      if(r.status===401){rememberReturn(`${location.pathname}?typ=${encodeURIComponent(type.handle)}`);view.innerHTML=loginPrompt('Prihlásenie vypršalo. Prihláste sa znova.');return;}
+      if(r.status===409||r.status===404){cache.clear();slot=null;note=r.message||'Tento termín si medzitým rezervoval niekto iný. Vyberte si prosím iný.';await render();return;}
+      out.dataset.state='ERROR';out.textContent=r.message;
+    }finally{busy=false;if(go.isConnected)go.disabled=false;}
+  };
+  // Prvý mesiac s voľným termínom (najviac pol roka dopredu), inak ostane aktuálny mesiac.
+  const start=async()=>{
+    month=thisMonth;view.innerHTML=`<div class="bk">${typesBar()}<div class="bk-body">${calendar(null)}<div class="bk-side">${status('Hľadám najbližší voľný termín…')}</div></div></div>`;wire();
+    for(let i=0;i<SEARCH;i++){const d=await load(monthAdd(thisMonth,i));if(!d.ok||d.days.size){month=monthAdd(thisMonth,i);break;}}
+    await render();
   };
   (async()=>{
     const r=typeof api.getBookingTypes==='function'?await api.getBookingTypes():{ok:false,types:[]};
     types=r.types||[];
-    if(!r.ok){view.innerHTML=status('Ponuku konzultácií sa nepodarilo načítať. Skúste to znova o chvíľu.','ERROR');return;}
-    // Bez nastaveného kalendára sa konzultácia kupuje ako produkt a termín sa dohodne po objednávke.
-    if(!types.length){const typ=new URLSearchParams(location.search).get('typ')||'';if(/^[a-z0-9-]{1,120}$/.test(typ)){location.replace(`/eshop/produkt/${typ}/`);return;}view.innerHTML=`<div class="empty-state"><h2>Vyberte si konzultáciu.</h2><p>Po objednávke vás kontaktujeme a termín dohodneme spolu.</p>${button('/konzultacie','Ponuka konzultácií')}</div>`;return;}
-    const wanted=new URLSearchParams(location.search).get('typ');
-    type=types.find(t=>t.handle===wanted)||(types.length===1?types[0]:null);
-    if(type)renderSlots();else renderTypes();
+    if(!r.ok){view.innerHTML=status('Kalendár sa nepodarilo načítať. Skúste to znova o chvíľu.','ERROR');return;}
+    type=types.find(t=>t.handle===preset)||(view.dataset.bookingType?null:types[0])||null;
+    // Konzultácia bez kalendára sa objedná ako produkt, termín sa potvrdí po objednávke.
+    if(!type){const h=view.dataset.bookingType||preset;view.innerHTML=`<div class="bk-side bk-step--hint"><h3>Termín potvrdíme po objednávke.</h3><p>Tento typ konzultácie si objednáte priamo, Lucia vám termín potvrdí e-mailom.</p>${/^[a-z0-9-]{1,120}$/.test(h)?button(`/eshop/produkt/${h}/`,'Objednať konzultáciu'):button('/konzultacie','Ponuka konzultácií')}</div>`;return;}
+    syncMeta();start();
   })();
 }
 if($('#membership-view')){

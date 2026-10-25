@@ -1,3 +1,4 @@
+import {consultCards,consultMeta} from './consult-info.mjs';
 import {escape as e,arrow,button,pageIntro,splitHero} from './components.mjs';
 import {picture} from './webp.mjs';
 import content from './legacy-content.json' with {type:'json'};
@@ -115,6 +116,14 @@ function lanStory(page,render,keyOf,o){
   if(short.length){const facts=`<section class="lan-chap lan-chap--lavender lan-facts">${short.map(c=>`<div class="lan-fact"><h3${keyAttr(c.title)}>${e(c.title.text)}</h3>${body(c.body)}</div>`).join('')}</section>`;chapterHtml.splice(Math.min(1,chapterHtml.length),0,facts);}
   const gallery=o.gallery?`<section class="lan-gallery">${GALLERY.filter(([f])=>!o.img.includes(f)).map(([f,alt])=>`<figure>${picture(L+f+'-1600.webp',alt,'loading="lazy" decoding="async" width="900" height="1100"')}</figure>`).join('')}</section>`:'';
   const cta=o.book?`<section class="lan-cta"><p class="eyebrow">Rezervácia</p><h2>${e(head?.text||page.title)}</h2>${price?`<p class="lan-cta__price">${e(price)}</p>`:''}${button(`/konzultacie/rezervacia?typ=${encodeURIComponent(o.book)}`,o.cta||'Vybrať termín')}</section>`:'';
+  if(o.book){
+    // Konzultácia: úvod s kalendárom hore, karty pod ním, pôvodné kapitoly Lucie ako sklenené karty (žiadne celoplošné pásy).
+    const photo=o.photos?Object.entries(o.photos):[];
+    const chaps=chapters.filter(c=>!short.includes(c)).map(c=>{const p=c.title&&o.photos?.[c.title.text];const {pre,out}=cards(c.body);const inner=out.length>=2?`${body(pre)}<div class="lan-cards">${out.map(x=>`<div class="lan-card"><h3${keyAttr(x.h)}>${e(x.h.text)}</h3>${body(x.body)}</div>`).join('')}</div>`:body(c.body);
+      return `<article class="cv2-card cv2-chap${p?' cv2-chap--photo':''}${out.length>=2?' cv2-chap--wide':''}">${p?`<figure class="cv2-chap__photo"><img src="${e(p)}" alt="" width="900" height="1100" loading="lazy" decoding="async"></figure>`:''}<div>${c.title?`<h2${keyAttr(c.title)}>${e(c.title.text)}</h2>`:o.intro?`<h2>${e(o.intro)}</h2>`:''}${inner}</div></article>`;}).join('');
+    const intro2=`<p class="eyebrow">${e(o.eyebrow)}</p><h1${head?keyAttr(head):''}>${e(head?.text||page.title)}</h1>${lead?`<p class="lead"${keyAttr(lead)}>${e(lead.text)}</p>`:o.lead?`<p class="lead">${e(o.lead)}</p>`:''}<div class="cv2-meta" data-consult-meta>${consultMeta(o.book)}</div>`;
+    return `<div class="cv2"><div class="cv2-hero"><div class="cv2-card cv2-intro"><figure class="cv2-intro__photo"><img src="${e(o.img)}" alt="" width="1600" height="1000" loading="eager" decoding="async"></figure>${intro2}</div><div class="cv2-card cv2-book"><p class="eyebrow">Rezervácia termínu</p><div id="booking-view" data-booking-type="${e(o.book)}" aria-live="polite"><p class="form-status">Načítavam kalendár…</p></div></div></div>${consultCards(o.book)}${chaps?`<div class="cv2-story">${chaps}</div>`:''}</div>`;
+  }
   return `<div class="lan-story">${hero}${chapterHtml.join('')}${gallery}${cta}</div>`;
 }
 // Malé alebo rozmazané obrázky zo starého webu nahrádzajú ostré fotky priestorov ANASTASIA.
