@@ -962,3 +962,99 @@ h1,h2,h3{font-weight:300}
 .tour-card .tour-nav{gap:8px}
 .tour-card .tour-nav .btn{min-width:96px}
 @media(max-width:600px){.tour-card{width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px)!important;padding:16px}.tour-card .tour-skip,.tour-card .tour-end{padding:8px 8px;font-size:11px}.tour-card .tour-nav{display:grid;grid-template-columns:1fr 1fr}.tour-card .tour-nav .btn{width:100%;min-width:0}}
+
+/* prihlásenie a pozvánka v krémovej a levanduli */
+.login-side{background:radial-gradient(120% 90% at 25% 15%,#FBF8F3 0%,var(--lav-soft) 40%,var(--lav-light) 75%,var(--lav) 100%);color:#403f62}
+.login-side:after{border-color:rgba(126,99,168,.25);box-shadow:0 0 0 30px rgba(126,99,168,.06),0 0 0 70px rgba(126,99,168,.05)}
+.login-side .brand-name,.login-side .brand small{color:#403f62}
+.login-side h2{color:#2E2D4A}
+.login-side p{color:#5D5B80}
+.login .box input{background:#fff;border-color:#D9D3E6}
+
+/* Zakúpený obsah: kompaktný zoznam riadkov (poradie, typ, názov, presun, odobratie) namiesto kariet. */
+.library-files{display:block!important;list-style:none;padding:0!important;margin:12px 0!important;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.library-files>li.library-row{display:grid!important;grid-template-columns:28px 92px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:transparent!important}
+.library-files>li.library-row:last-child{border-bottom:0!important}
+.library-files>li.library-row:hover{background:var(--field)!important}
+.library-num{font-variant-numeric:tabular-nums;color:var(--muted,#8a8494);font-size:13px;text-align:right}
+.library-kind{justify-self:start;font-size:12px}
+.library-row input{min-width:0;width:100%;min-height:36px;padding:6px 10px;border:1px solid transparent;background:transparent;border-radius:6px}
+.library-row input:hover{border-color:var(--line)}.library-row input:focus{border-color:var(--gold);background:#fff}
+.library-actions{display:flex;gap:4px}
+.library-icon{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:15px;line-height:1;color:inherit}
+.library-icon:disabled{opacity:.35;cursor:default}
+.library-icon.danger:hover{border-color:#c0504d;color:#c0504d}
+@media (max-width:640px){.library-files>li.library-row{grid-template-columns:22px minmax(0,1fr) auto;row-gap:4px}.library-kind{grid-column:2}.library-row input{grid-column:1/-1;grid-row:2}.library-actions{grid-column:3;grid-row:1}}
+
+/* Kompaktný zoznam (prístupy): jeden riadok na záznam namiesto kariet */
+.ot.lv-compact{width:100%;border-collapse:collapse}
+.ot.lv-compact td{padding:8px 14px;font-size:13px}
+.ot.lv-compact th{padding:9px 14px}
+.ot.lv-compact .lv-title{font-weight:500}
+.ot.lv-compact tbody tr[data-id]{cursor:pointer}
+.ot.lv-compact tbody tr[data-id]:hover td{background:rgba(249,243,253,.94)}
+.ot.lv-compact .ot-act{width:1%;text-align:right;white-space:nowrap}
+.ot.lv-compact .ot-act .btn{padding:4px 8px;min-width:0}
+@media(max-width:640px){
+  .ot.lv-compact,.ot.lv-compact tbody{display:block}
+  .ot.lv-compact thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .ot.lv-compact tbody tr[data-id]{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:2px 10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+  .ot.lv-compact tbody td{padding:0;border:0;min-width:0}
+  .ot.lv-compact .lv-title{grid-column:1;grid-row:1}
+  .ot.lv-compact td[data-label="Zákazník"]{grid-column:1;grid-row:2;color:var(--muted);font-size:12px}
+  .ot.lv-compact td[data-label="Stav"]{grid-column:2;grid-row:1/3}
+  .ot.lv-compact td[data-label="Platí do"]{grid-column:1;grid-row:3;color:var(--muted);font-size:12px}
+  .ot.lv-compact .ot-act{grid-column:3;grid-row:1/3}
+}
+.ot.lv-compact .ot-act .btn{width:28px;height:28px;padding:0;justify-content:center}
+@media(max-width:640px){
+  .ot.lv-compact tbody td{background:transparent!important}
+  .ot.lv-compact td[data-label="Platí do"]:has(.muted){display:none}
+  .ot.lv-compact .ot-act{display:block!important}
+}
+
+/* Editor produktu na jednej stránke (jazyk QR detailu) */
+.pe{display:grid;gap:22px}
+.pe-hero{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);border-radius:28px 28px 28px 0;overflow:hidden;background:var(--surface);border:1px solid rgba(115,114,156,.22);box-shadow:0 30px 60px -38px rgba(47,52,36,.45)}
+.pe-hero-img{position:relative;background:radial-gradient(120% 90% at 20% 10%,#4a5236 0,#2F3424 62%);display:grid;place-items:center;min-height:260px}
+.pe-hero-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.pe-hero-img span{color:#C9A55C;letter-spacing:.18em;text-transform:uppercase;font-size:11px}
+.pe-hero-body{padding:30px 34px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.pe-state{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:6px 12px;border-radius:999px;background:#E9E9F2;color:#73729C;font-size:12px;font-weight:600;letter-spacing:.04em}
+.pe-state i{width:8px;height:8px;border-radius:50%;background:#A7A5CF}
+.pe-state.on{background:#E4E6D6;color:#2F3424}.pe-state.on i{background:#5d7a45;animation:pe-pulse 2s infinite}
+@keyframes pe-pulse{0%{box-shadow:0 0 0 0 rgba(93,122,69,.5)}70%{box-shadow:0 0 0 9px rgba(93,122,69,0)}100%{box-shadow:0 0 0 0 rgba(93,122,69,0)}}
+.pe-title{font-family:Fraunces,serif;font-weight:300;font-size:clamp(30px,3.4vw,48px);line-height:1.05;margin:0;overflow-wrap:anywhere}
+.pe-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pe-price b{font-family:Fraunces,serif;font-weight:300;font-size:clamp(40px,4.6vw,64px);line-height:1;background:linear-gradient(120deg,#2F3424,#73729C 60%,#C9A55C);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pe-price small{color:var(--muted);letter-spacing:.14em;font-size:12px}
+.pe-price em{font-style:normal;padding:5px 11px;border-radius:999px;background:#C9A55C;color:#2F3424;font-size:12px;font-weight:600}
+.pe-checks .pill{border-radius:999px}
+.pe-act{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}.pe-act .btn{border-radius:999px;padding:11px 20px}
+.pe-nav{position:sticky;top:8px;z-index:5;display:flex;gap:6px;flex-wrap:wrap;padding:6px;border-radius:999px;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(115,114,156,.2);justify-self:start;max-width:100%}
+.pe-nav button{border:0;background:none;padding:9px 15px;border-radius:999px;font:inherit;font-size:13px;color:#73729C;cursor:pointer}
+.pe-nav button:hover{background:#E9E9F2;color:#2F3424}
+.pe-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.pe-sec{background:var(--surface);border:1px solid rgba(115,114,156,.18);border-radius:22px;padding:24px 26px;min-width:0;scroll-margin-top:80px}
+.pe-sec.wide{grid-column:1/-1}
+.pe-sec header{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.pe-sec h2{font-family:Fraunces,serif;font-weight:400;font-size:24px;margin:0}
+.pe-n{font-family:Fraunces,serif;font-weight:300;font-size:15px;color:#C9A55C;letter-spacing:.06em}
+html[data-theme=dark] .pe-nav{background:rgba(30,30,40,.8)}
+@media(max-width:1100px){.pe-grid{grid-template-columns:minmax(0,1fr)}.pe-sec.wide{grid-column:auto}}
+@media(max-width:760px){.pe-hero{grid-template-columns:minmax(0,1fr)}.pe-hero-img{min-height:220px}.pe-hero-body{padding:22px 20px}.pe-nav{border-radius:18px;top:120px}.pe-nav button{padding:7px 11px;font-size:12px}.pe-sec{padding:20px 16px}}
+@media(prefers-reduced-motion:reduce){.pe-state.on i{animation:none}}
+/* Voľby a varianty produktu */
+#p-variants.is-busy{opacity:.6;pointer-events:none}
+.ve-opts{display:grid;gap:12px;margin-bottom:14px}
+.ve-opt{display:grid;gap:8px;padding:14px 16px;border:1px solid var(--line,#e6e3ef);border-radius:18px}
+.ve-vals{display:flex;flex-wrap:wrap;gap:6px}
+.ve-add,.ve-new{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.ve-add input{max-width:220px}
+.ve-new{padding:14px 16px;border:1px dashed var(--line,#d9d6e6);border-radius:18px;margin-bottom:14px}
+.ve-new>div{display:grid;gap:4px;min-width:180px;flex:1}
+.ve-table{display:grid;gap:6px}
+.ve-row{display:grid;grid-template-columns:minmax(160px,1.4fr) 130px minmax(140px,1fr) auto;gap:10px;align-items:center;padding:8px 12px;border-radius:14px;background:var(--soft,#f7f6fb)}
+.ve-head{background:none;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#7a7890)}
+.ve-act{display:flex;gap:6px;justify-content:flex-end}
+@media(max-width:720px){.ve-row{grid-template-columns:1fr 1fr}.ve-head{display:none}.ve-row>span:first-child,.ve-act{grid-column:1/-1}}

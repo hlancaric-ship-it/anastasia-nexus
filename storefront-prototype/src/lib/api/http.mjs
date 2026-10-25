@@ -7,7 +7,7 @@ const NAME_BY_HANDLE=Object.fromEntries(Object.entries(SHOP_CATEGORY_HANDLES).ma
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price';
+  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price,*options,*options.values,*variants.options';
 
 // Tieto dve médiá sú infografiky článkov, nie produktové fotografie. Starý
 // katalóg ich mal omylom nastavené ako náhľady, preto ich e-shop nesmie zobraziť.
@@ -70,6 +70,9 @@ function mapProduct(p,apiBase='') {
     isBestseller: false,
     image: isEditorialOnlyAsset(p.thumbnail) ? '/assets/product-placeholder.svg' : media(p.thumbnail) || '/assets/product-placeholder.svg',
     _variantId: variant.id,
+    // Voľby produktu (napr. Pre: Dámsky/Pánsky, Množstvo: 50 ml/100 ml). Technická voľba „Variant: Štandard“ sa nezobrazuje.
+    options: (p.variants || []).length > 1 ? (p.options || []).map(o => ({ id: o.id, title: o.title, values: [...new Set((o.values || []).map(v => v.value))] })).filter(o => o.values.length > 1) : [],
+    variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, priceLabel: v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : 'Cena sa doplní', options: Object.fromEntries((v.options || []).map(o => [(p.options || []).find(x => x.id === (o.option_id || o.option?.id))?.title || o.option?.title || '', o.value])) })),
   };
 }
 
@@ -160,10 +163,10 @@ export function createHttpApi(storage, config) {
   async function releaseBooking(cartId) {
     const b = storedBooking(); del(BOOKING);
     if (b && loggedIn()) await call(`/store/bookings/${encodeURIComponent(b.id)}/cancel`, { method: 'POST', body: {} }).catch(() => null);
+    else if (b && cartId) await call(`/store/booking-guest/${encodeURIComponent(b.id)}/cancel`, { method: 'POST', body: { cart_id: cartId } }).catch(() => null);
     if (!cartId) return;
     const r = await call(`/store/carts/${cartId}?fields=id,metadata,*items,*items.product`).catch(() => null);
     const cart = r?.data?.cart; if (!cart) return;
-    else if (b && cartId) await call(`/store/booking-guest/${encodeURIComponent(b.id)}/cancel`, { method: 'POST', body: { cart_id: cartId } }).catch(() => null);
     for (const it of cart.items || []) if (it.product?.metadata?.booking) await call(`/store/carts/${cartId}/line-items/${it.id}`, { method: 'DELETE' }).catch(() => null);
     if (cart.metadata?.booking_id) await call(`/store/carts/${cartId}`, { method: 'POST', body: { metadata: { booking_id: '' } } }).catch(() => null);
   }
@@ -185,13 +188,16 @@ export function createHttpApi(storage, config) {
   }
 
   const productCache = new Map();
-  async function variantFor(code) {
-    if (productCache.has(code)) return productCache.get(code);
-    const r = await call(`/store/products?handle=${encodeURIComponent(code)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
-    const p = r.data?.products?.[0];
-    const id = p ? mapProduct(p)._variantId : null;
-    if (id) productCache.set(code, id);
-    return id;
+  async function variantFor(code, wanted = '') {
+    let ids = productCache.get(code);
+    if (!ids) {
+      const r = await call(`/store/products?handle=${encodeURIComponent(code)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
+      const p = r.data?.products?.[0];
+      ids = p ? (p.variants || []).map(v => v.id).filter(Boolean) : [];
+      if (ids.length) productCache.set(code, ids);
+    }
+    // Zvolený variant musí patriť tomuto produktu, inak berieme prvý.
+    return wanted ? (ids.includes(wanted) ? wanted : null) : ids[0] || null;
   }
 
   async function ensureCart() {
@@ -206,12 +212,6 @@ export function createHttpApi(storage, config) {
     return id;
   }
 
-  async function reprice() {
-    // Prepočet ceny/kupónu robí server, aj pre hosťa (nákup bez registrácie).
-    const id = get(CART); if (!id) return;
-    const coupon = get(COUPON) || undefined;
-    await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: coupon } });
-  }
   // Nákup bez registrácie: najprv konzultácia v košíku, potom server podrží termín priamo pre tento košík.
   async function reserveGuestBooking({ cartId, productId, variantId, startsAt, title, fail }) {
     const li = await call(`/store/carts/${cartId}/line-items`, { method: 'POST', body: { variant_id: variantId, quantity: 1 } });
@@ -226,6 +226,12 @@ export function createHttpApi(storage, config) {
     set(BOOKING, JSON.stringify({ id: booking.id, product_id: productId, title, held_until: booking.held_until || '', label: bookingLabel(booking.starts_at, booking.ends_at) }));
     await reprice();
     return { ok: true, booking: { id: booking.id, label: bookingLabel(booking.starts_at, booking.ends_at), heldUntil: booking.held_until || '' }, cart: await cartShape() };
+  }
+  async function reprice() {
+    // Prepočet ceny/kupónu robí server, aj pre hosťa (nákup bez registrácie).
+    const id = get(CART); if (!id) return;
+    const coupon = get(COUPON) || undefined;
+    await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: coupon } });
   }
 
   // Server vracia čísla v eurách (amount, balance); košík zobrazuje popisky.
@@ -243,7 +249,8 @@ export function createHttpApi(storage, config) {
     const held = storedBooking();
     const lines = (cart.items || []).map(it => ({
       slug: it.product_handle || it.product?.handle || it.id,
-      name: it.product_title || it.title || it.product?.title || 'Položka',
+      key: it.id,
+      name: (it.product_title || it.title || it.product?.title || 'Položka') + (it.variant_title && !/^(Štandard|Default.*)$/i.test(it.variant_title) && it.variant_title !== it.product_title ? ` · ${it.variant_title}` : ''),
       code: it.product_handle || it.product?.handle,
       priceLabel: money(it.unit_price),
       image: publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
@@ -337,9 +344,9 @@ export function createHttpApi(storage, config) {
     },
 
     getCart: cartShape,
-    async addToCart(code, quantity = 1) {
+    async addToCart(code, quantity = 1, variantId = '') {
       if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) return { ok: false, message: 'Zadajte celé množstvo od 1 do 99.' };
-      const variant = await variantFor(code);
+      const variant = await variantFor(code, typeof variantId === 'string' ? variantId : '');
       if (!variant) return { ok: false, message: 'Produkt sa nenašiel v katalógu.' };
       const id = await ensureCart();
       if (!id) return { ok: false, message: 'Košík sa nepodarilo vytvoriť. Skúste to znova.' };
@@ -352,7 +359,7 @@ export function createHttpApi(storage, config) {
       if (!Number.isInteger(quantity) || quantity < 0 || quantity > 99) return { ok: false, message: 'Množstvo musí byť celé číslo od 0 do 99.' };
       const id = get(CART); if (!id) return { ok: false, message: 'Košík je prázdny.' };
       const current = await cartShape();
-      const line = current.lines.find(l => l.slug === slug);
+      const line = current.lines.find(l => l.key === slug) || current.lines.find(l => l.slug === slug);
       if (!line) return { ok: false, message: 'Položka už nie je v košíku.' };
       if (line.booking) {
         if (quantity !== 0) return { ok: false, message: 'Konzultácia sa rezervuje na jeden termín. Ďalší termín si vyberte samostatne.' };
@@ -515,6 +522,7 @@ export function createHttpApi(storage, config) {
         const cartId = await ensureCart();
         if (!cartId) return { ok: false, message: 'Košík sa nepodarilo vytvoriť. Skúste to znova.' };
         await releaseBooking(cartId);
+        if (!loggedIn()) return await reserveGuestBooking({ cartId, productId, variantId, startsAt, title, fail });
         const hold = await call('/store/bookings', { method: 'POST', body: { product_id: productId, starts_at: startsAt } });
         const booking = hold.data?.booking;
         if (hold.status !== 201 || !booking?.id) {
@@ -522,7 +530,6 @@ export function createHttpApi(storage, config) {
           return { ok: false, status: hold.status, type: hold.data?.type || 'error', message };
         }
         set(BOOKING, JSON.stringify({ id: booking.id, product_id: productId, title, held_until: booking.held_until || '', label: bookingLabel(booking.starts_at, booking.ends_at) }));
-        if (!loggedIn()) return await reserveGuestBooking({ cartId, productId, variantId, startsAt, title, fail });
         const li = await call(`/store/carts/${cartId}/line-items`, { method: 'POST', body: { variant_id: variantId, quantity: 1 } });
         const owner = li.ok ? await call(`/store/carts/${cartId}/customer`, { method: 'POST', body: {} }) : li;
         const attach = owner.ok ? await call(`/store/bookings/${encodeURIComponent(booking.id)}/cart`, { method: 'POST', body: { cart_id: cartId } }) : owner;

@@ -13,6 +13,11 @@ const KIND_LABEL = { video: 'Video', audio: 'Nahrávka', document: 'Dokument' };
 const sizeLabel = bytes => bytes >= 1024 * 1024 * 1024
   ? `${Math.round(bytes / (1024 * 1024 * 1024))} GB`
   : `${Math.max(1, Math.round(bytes / (1024 * 1024)))} MB`;
+// Názov pre zákazníka z názvu súboru: bez prípony, podčiarkovníky a pomlčky ako medzery, prvé písmeno veľké.
+const titleFromFile = name => {
+  const base = String(name ?? '').replace(/\.[a-z0-9]{2,4}$/i, '').replace(/[_]+/g, ' ').replace(/(\S)-(?=\S)/g, '$1 ').replace(/\s+/g, ' ').trim();
+  return (base.charAt(0).toLocaleUpperCase('sk') + base.slice(1)).slice(0, 200) || String(name ?? '').slice(0, 200);
+};
 const extensionOf = name => {
   const clean = String(name ?? '').trim().toLowerCase();
   const dot = clean.lastIndexOf('.');
@@ -22,7 +27,7 @@ const extensionOf = name => {
 export async function mountLibraryEditor(host, {api, productId}) {
   let saved = null, rows = [], page = 0, unavailable = true, purchases = null;
   let uploads = [], message = '';
-  const size = 6, path = `/admin/products/${encodeURIComponent(productId)}/protected-media`;
+  const size = 50, path = `/admin/products/${encodeURIComponent(productId)}/protected-media`;
   const dirty = () => saved && JSON.stringify(rows.map(({key,title}) => ({key,title}))) !== JSON.stringify(saved.media.map(({key,title}) => ({key,title})));
 
   function draw(note = '') {
@@ -38,8 +43,8 @@ export async function mountLibraryEditor(host, {api, productId}) {
     const filesHtml = rows.length ? `<p class="muted">Tieto súbory sa zobrazujú zákazníkom s prístupom k produktu. Názov aj poradie upravíte tu a potvrdíte tlačidlom Uložiť zmeny.</p>
         <ol class="library-files" start="${page * size + 1}">${rows.slice(page * size, (page + 1) * size).map((r, j) => {
         const i = page * size + j, kind = saved.media.find(m => m.key === r.key)?.kind || r.kind;
-        return `<li><div class="library-title"><label for="library-title-${i}">Názov ${kind === 'video' ? 'videa' : kind === 'audio' ? 'nahrávky' : 'dokumentu'} ${i+1}</label><input id="library-title-${i}" data-library-title="${i}" maxlength="200" required value="${escape(r.title)}"></div>
-        <div class="library-move"><span class="pill ok">${escape(KIND_LABEL[kind] || 'Súbor')}</span><button type="button" class="btn ghost" data-library-move="${i}" data-direction="-1" aria-label="Posunúť súbor ${i+1} vyššie" ${i===0?'disabled':''}>Vyššie</button><button type="button" class="btn ghost" data-library-move="${i}" data-direction="1" aria-label="Posunúť súbor ${i+1} nižšie" ${i===rows.length-1?'disabled':''}>Nižšie</button><button type="button" class="btn ghost" data-library-remove="${i}" aria-label="Odobrať súbor ${i+1}">Odobrať</button></div></li>`;
+        return `<li class="library-row"><span class="library-num" aria-hidden="true">${i+1}</span><span class="pill ok library-kind">${escape(KIND_LABEL[kind] || 'Súbor')}</span><input id="library-title-${i}" data-library-title="${i}" maxlength="200" required value="${escape(r.title)}" aria-label="Názov ${kind === 'video' ? 'videa' : kind === 'audio' ? 'nahrávky' : 'dokumentu'} ${i+1}">
+        <span class="library-actions"><button type="button" class="library-icon" data-library-move="${i}" data-direction="-1" aria-label="Posunúť súbor ${i+1} vyššie" title="Vyššie" ${i===0?'disabled':''}>↑</button><button type="button" class="library-icon" data-library-move="${i}" data-direction="1" aria-label="Posunúť súbor ${i+1} nižšie" title="Nižšie" ${i===rows.length-1?'disabled':''}>↓</button><button type="button" class="library-icon danger" data-library-remove="${i}" aria-label="Odobrať súbor ${i+1}" title="Odobrať">×</button></span></li>`;
       }).join('')}</ol>
       ${pages > 1 ? `<div class="library-pagination"><button type="button" class="btn ghost" data-library-page="-1" ${!page?'disabled':''}>Predchádzajúce</button><span aria-live="polite">${page+1} / ${pages}</span><button type="button" class="btn ghost" data-library-page="1" ${page===pages-1?'disabled':''}>Ďalšie</button></div>` : ''}
       <p class="muted">Úprava názvu alebo poradia nemení zakúpené prístupy. Pôvodné súbory zostávajú chránené.</p>`
@@ -104,7 +109,7 @@ export async function mountLibraryEditor(host, {api, productId}) {
     if (!file.size) return { ok: false, error: `${file.name}: súbor je prázdny.` };
     const target = await api(`${path}/upload-url`, { method:'POST', body:{ filename: file.name, size: file.size } });
     await putFile(target.url, target.headers || {}, file, p => { const item = uploads.find(u => u.name === file.name && u.status === 'uploading'); if (item) { item.progress = p; renderUploads(); } });
-    await api(`${path}/attach`, { method:'POST', body:{ key: target.key, title: target.suggested_title || file.name } });
+    await api(`${path}/attach`, { method:'POST', body:{ key: target.key, title: titleFromFile(file.name) } });
     return { ok: true };
   }
 
@@ -124,7 +129,7 @@ export async function mountLibraryEditor(host, {api, productId}) {
     if (!files.length) return;
     if (unavailable) { draw('Obsah sa nepodarilo načítať. Obnovte stránku a skúste nahrať súbor znova.'); return; }
     if (dirty() && !confirm('Súbory nahráte nové názvy a poradie. Pokračovať?')) return;
-    const entries = files.map(file => ({ name: file.name, progress: 0, status: 'queued', file }));
+    const entries = [...files].sort((x, y) => x.name.localeCompare(y.name, 'sk', { numeric: true })).map(file => ({ name: file.name, progress: 0, status: 'queued', file }));
     uploads = uploads.concat(entries);
     draw('Nahrávanie súborov…');
     let failed = 0;

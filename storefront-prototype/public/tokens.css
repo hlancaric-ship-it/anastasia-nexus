@@ -1,3 +1,5 @@
+@layer shopv2;
+/* shopv2 je deklarovaná pred vrstvou legacy (base.css), aby jej !important pravidlá nového obchodu vyhrali. */
 /* ANASTASIA — design tokens.
    Single source of truth for the values that design/HANDOFF-v2.md describes.
    Brand colours are NOT hard-coded here: at build time build.mjs rewrites the
@@ -140,4 +142,15 @@ h1,h2,h3,h4,.lh-display,.lh-caps,.display{font-family:'Fraunces',Georgia,'Times 
 :where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{
   outline:var(--ana-focus-ring);
   outline-offset:var(--ana-focus-offset);
+}
+/* Podstránky: bočná lišta príde plynulo až po zoskrolovaní, Menu je vždy len jedno (najprv v hlavičke, potom v lište). */
+body:not(.lh-intro-page) #ana-rail{opacity:0;transform:translateX(-14px);pointer-events:none;transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1),background-color .45s ease,border-color .45s ease!important}
+body.lh-chrome-in:not(.lh-intro-page) #ana-rail{opacity:1;transform:none;pointer-events:auto}
+@media (min-width:761px) and (pointer:fine){
+  body:not(.lh-intro-page) #lh-top .dch1{transition:opacity .4s ease}
+  body.lh-chrome-in:not(.lh-intro-page) #lh-top .dch1{opacity:0;pointer-events:none}
+}
+/* Obsah podstránky ide vždy cez celú šírku, sklenená lišta sa po zoskrolovaní len vysunie ponad neho (ako na úvode). */
+@media (min-width:1000px){
+  body:not(.lh-intro-page) :is(.legacy-shell,.dc-root){--rail-pad:0px;--rail-neg:0px}
 }

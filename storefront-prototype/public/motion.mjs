@@ -44,7 +44,8 @@ ScrollTrigger = window.ScrollTrigger;
 // Shared storefront atmosphere: only image-free content sections receive a soft
 // glass surface and one distinct, real source image. The hero is never included.
 const atmosphereSources = ['olive-branch', 'lavender', 'pharmacy-glass', 'botanical-light'];
-const atmosphereSections = $$('main section:not(:has(img,video))').filter(el => !el.closest('.lh-intro,.hero'));
+// Vypnuté 24. 10.: zdrojové fotky majú 700–900 px a na plnej šírke pôsobia rozmazane.
+const atmosphereSections = [];
 atmosphereSections.forEach((el, index) => {
   const key = atmosphereSources[index % atmosphereSources.length];
   el.dataset.atmosphere = key;
@@ -116,6 +117,7 @@ if (gsap && ScrollTrigger) {
     }
   };
   if (intro) chromeInteractive(false);
+  else if (window.scrollY <= window.innerHeight * 0.45) { const rail = document.querySelector('#ana-rail'); if (rail) { rail.inert = true; rail.setAttribute('aria-hidden', 'true'); } }
   const showChrome = () => {
     if (document.body.classList.contains('lh-chrome-in')) return;
     document.body.classList.add('lh-chrome-in');
@@ -128,7 +130,7 @@ if (gsap && ScrollTrigger) {
   };
   // Hlavička a boční lišta jsou součástí preloaderu? Ne: na úvodu nejsou vidět
   // vůbec a objeví se až za ním, když už je člověk v obsahu.
-  const chromeAt = () => (intro ? Math.max(0, intro.offsetHeight - window.innerHeight) : 10);
+  const chromeAt = () => (intro ? Math.max(0, intro.offsetHeight - window.innerHeight) : window.innerHeight * 0.45);
   const head = () => {
     if (window.scrollY > chromeAt()) showChrome();
     if (!top || !intro) return;
@@ -415,8 +417,33 @@ if (gsap && ScrollTrigger) {
     catch { video.muted=true; video.play().catch(()=>{}); }
     document.dispatchEvent(new CustomEvent('ana:video-sound'));
   });
+  // Kým je úvod zamknutý, stránka sa nesmie posunúť kolieskom, prstom ani
+  // klávesmi. Medzerník, Enter a šípka nadol fungujú ako Vstúpte.
+  const introLocked = () => document.documentElement.classList.contains('lh-locked');
+  let entered = false;
+  // Posun kolieskom alebo prstom nadol funguje ako Vstúpte (preloader hovorí „alebo posuňte“).
+  let touchY = null;
+  const enterByScroll = () => { if (cue && !entered) { entered = true; cue.click(); } };
+  const blockScroll = event => {
+    if (!introLocked()) return;
+    event.preventDefault();
+    if (event.type === 'wheel' && event.deltaY > 8) enterByScroll();
+    if (event.type === 'touchmove' && touchY !== null && touchY - (event.touches?.[0]?.clientY ?? touchY) > 30) enterByScroll();
+  };
+  addEventListener('touchstart', event => { touchY = event.touches?.[0]?.clientY ?? null; }, {passive: true});
+  addEventListener('wheel', blockScroll, {passive: false});
+  addEventListener('touchmove', blockScroll, {passive: false});
   addEventListener('keydown', event => {
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (!introLocked() || event.metaKey || event.ctrlKey || event.altKey) return;
+    const key = event.key;
+    const enterKeys = [' ', 'Spacebar', 'Enter', 'ArrowDown'];
+    const scrollKeys = ['PageDown', 'PageUp', 'ArrowUp', 'Home', 'End'];
+    if (!enterKeys.includes(key) && !scrollKeys.includes(key)) return;
+    event.preventDefault();
+    if (enterKeys.includes(key) && cue && !entered && !event.repeat) { entered = true; cue.click(); }
+  }, {capture: true});
+  addEventListener('keydown', event => {
+    if (introLocked() || event.metaKey || event.ctrlKey || event.altKey) return;
     const key = event.key;
     if (key !== 'ArrowDown' && key !== ' ' && key !== 'Spacebar') return;
     const tag = (event.target && event.target.tagName) || '';

@@ -10,13 +10,13 @@
 import {escape as e, arrow} from './components.mjs';
 
 const CREAM = '#EFE5C7';
-const PAPER = '#e9e9f2';
+const PAPER = '#F4F1EB';
 const INK = '#1E281C';
 
 const IMG = {
   hero: '/assets/hero-forest.jpg',
   sky: '/assets/night-sky.jpg',
-  lucia: '/img/lucia/lucia-portret-hero-1600.webp',
+  lucia: '/img/lucia/lucia-aktualna-1000.webp',
   tree: '/assets/tree.jpg',
   longevity: '/assets/lucia-longevity.png',
   // Veľké fotky z public/media/ (min. 1600px šírka)
@@ -183,6 +183,7 @@ export function homeSections(products = [], activeCategories = []) {
         <span class="lh-brand__name lh-shimmer-text">ANASTASIA</span>
       </a>
     </div>
+    <p class="lh-intro__kicker" aria-hidden="true">Lucia Rogožanová · Light for the Future</p>
     <div class="lh-intro__meta" aria-hidden="true">
       <div class="lh-intro__cats">
         <a class="lh-cat lh-cat--1" href="/eshop?category=bio-kozmetika-bez-chemie">Kozmetika na mieru</a>
@@ -207,11 +208,17 @@ export function homeSections(products = [], activeCategories = []) {
       <a class="lh-cta lh-cta--gold" href="/zdravy-svet" data-content="home__uvod__2-text">Vstúpte do zdravého sveta ${arrow}</a>
     </div>
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
-    <div class="lh-post-entry" aria-live="polite">
-      <img src="/assets/brand-mark.svg" alt="" width="62" height="62">
-      <p class="lh-post-entry__brand">ANASTASIA</p>
-      <p class="lh-post-entry__claim">Light for the Future</p>
-      <nav aria-label="Ponuka"><a href="/eshop">Obchod</a><a href="/eshop/produkt/reset-40-plus">RESET 40+</a></nav>
+    <div class="lh-post-entry lh-hx" aria-live="polite">
+      <div class="lh-hx__title">
+        <p class="lh-hx__brand"><img src="/assets/brand-mark.svg" alt="" width="34" height="34"><span class="lh-post-entry__brand">ANASTASIA</span></p>
+        <p class="lh-post-entry__claim lh-hx__claim"><span>Light for</span> <em>the Future</em></p>
+      </div>
+      <nav class="lh-hx__index" aria-label="Ponuka">
+        <a href="/eshop?category=bio-kozmetika-bez-chemie"><small>01</small><span>Kozmetika na mieru</span><i aria-hidden="true">→</i></a>
+        <a href="/eshop?category=zdrave-doplnky-vyzivy"><small>02</small><span>Bylinky Hildegardy</span><i aria-hidden="true">→</i></a>
+        <a href="/konzultacie"><small>03</small><span>Konzultácie</span><i aria-hidden="true">→</i></a>
+        <a href="/eshop?category=sebarozvoj"><small>04</small><span>Programy</span><i aria-hidden="true">→</i></a>
+      </nav>
     </div>
     <button class="lh-intro__sound" type="button" data-lh-sound aria-pressed="false" aria-label="Zapnúť zvuk" title="Zapnúť zvuk">
       <svg class="lh-sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v8h4v-8zm16 0h1v8h-4v-8z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg>
@@ -227,9 +234,16 @@ export function homeSections(products = [], activeCategories = []) {
   const amount = p => Number(String(price(p)).replace(/\s/g, '').replace(',', '.').replace(/[^\d.]/g, '')) || Number.POSITIVE_INFINITY;
   const media = p => ['online-zdravotna-konzultacia','supervizia'].includes(p?.slug) ? IMG.lucia : p?.image && !/placeholder|\.svg(?:\?|$)|\/blog\//i.test(p.image) ? p.image : p?.images?.find(src => !/placeholder|\.svg(?:\?|$)|\/blog\//i.test(src)) || '';
   const imageMarkup = (src, alt, attrs = '') => src === IMG.lucia
-    ? `<img src="${src}" srcset="/img/lucia/lucia-portret-hero-800.webp 800w, ${src} 1600w" sizes="(max-width:760px) 82vw, 560px" alt="${e(alt)}" ${attrs}>`
+    ? `<img src="${src}" srcset="/img/lucia/lucia-aktualna-600.webp 600w, ${src} 977w" sizes="(max-width:760px) 82vw, 560px" alt="${e(alt)}" ${attrs}>`
     : `<img src="${e(src)}" alt="${e(alt)}" ${attrs}>`;
   const realProducts = products.filter(p => media(p) && p.slug && priced(p));
+  // Ostré originály z podkladov Lucie (min. 2× šírka zobrazenia), nie malé fotky produktov zo starého webu.
+  const WORLD_SHOTS = {
+    'BIOKOZMETIKA': ['/assets/packshots/sprchovy-gel-kralovna.webp', '/assets/packshots/sprchovy-gel-kralovna.webp', 'center 35%'],
+    'Zdravé doplnky výživy': ['/img/lucia/lekaren-800.webp', '/img/lucia/lekaren-1600.webp', '38% center'],
+    'Konzultácie': ['/img/lucia/stacionar-kresla-800.webp', '/img/lucia/stacionar-kresla-1600.webp', '45% center'],
+    'AI ANASTASIA ACADEMY': ['/img/lucia/lucia-portret-hero-800.webp', '/img/lucia/lucia-portret-hero-1600.webp', '64% center'],
+  };
   const categoryOrder = ['BIOKOZMETIKA', 'Zdravé doplnky výživy', 'Konzultácie', 'AI ANASTASIA ACADEMY'];
   const categoryProducts = {
     'BIOKOZMETIKA': 'bio-sprchovy-gel',
@@ -243,25 +257,26 @@ export function homeSections(products = [], activeCategories = []) {
     const from = categoryItems.reduce((lowest, item) => amount(item) < amount(lowest) ? item : lowest, p);
     if (!p) return '';
     const href = name === 'Konzultácie' ? '/konzultacie' : `/eshop?category=${encodeURIComponent(name)}`;
-    return `<a class="lh-world" href="${href}">${imageMarkup(media(p),p.name,'loading="lazy" decoding="async"')}<span class="lh-world__n">0${i + 1}</span><span class="lh-world__copy"><small>${e(name)}</small><strong>${e(name)}</strong><span><small>od</small> ${e(price(from))}</span></span></a>`;
+    const shot = WORLD_SHOTS[name];
+    return `<a class="lh-world" href="${href}"><span class="lh-frame" data-parallax-speed="7">${shot ? `<img src="${shot[1]}" srcset="${shot[0]} 800w, ${shot[1]} 1600w" sizes="(max-width:560px) 100vw, (max-width:1100px) 50vw, 25vw" alt="${e(name)}" loading="lazy" decoding="async" style="object-position:${shot[2]}">` : imageMarkup(media(p),p.name,'loading="lazy" decoding="async"')}</span><span class="lh-world__n">0${i + 1}</span><span class="lh-world__copy"><small>${e(name)}</small><strong>${e(name)}</strong><span><small>od</small> ${e(price(from))}</span></span></a>`;
   }).filter(Boolean).join('');
   const featuredPriority = ['bio-sprchovy-gel', 'antibioticky-prasok', 'pletova-voda', 'reset-40-plus', 'online-zdravotna-konzultacia'];
-  const featured = featuredPriority.map(slug => realProducts.find(p => p.slug === slug)).filter(Boolean).map((p, i) => `<article class="lh-product"><a href="/eshop/produkt/${encodeURIComponent(p.slug)}">${imageMarkup(media(p),p.name,'loading="lazy" decoding="async"')}<span class="lh-product__n">0${i + 1}</span><h3>${e(p.name)}</h3></a><p>${e(price(p))}</p><button class="lh-cta" type="button" data-add-to-cart="${e(p.slug)}">Do košíka ${arrow}</button></article>`).join('');
+  const featured = featuredPriority.map(slug => realProducts.find(p => p.slug === slug)).filter(Boolean).map((p, i) => `<article class="lh-product"><a href="/eshop/produkt/${encodeURIComponent(p.slug)}"><span class="lh-frame" data-parallax-speed="6">${imageMarkup(media(p),p.name,'loading="lazy" decoding="async"')}</span><span class="lh-product__n">0${i + 1}</span><h3>${e(p.name)}</h3></a><p>${e(price(p))}</p><button class="lh-cta" type="button" data-add-to-cart="${e(p.slug)}">Do košíka ${arrow}</button></article>`).join('');
   const resetProduct = bySlug('reset-40-plus');
   const nic = bySlug('nic-nemusis');
   const online = bySlug('online-zdravotna-konzultacia');
   const lucia = `
 <section class="lh-about" id="o-mne" aria-labelledby="lh-about-title">
- <div class="lh-about__photo"><img src="/img/lucia/lucia-portret-hero-1600.webp" srcset="/img/lucia/lucia-portret-hero-800.webp 800w, /img/lucia/lucia-portret-hero-1600.webp 1600w" sizes="(max-width:760px) 100vw, 55vw" alt="Lucia Rogožanová" loading="lazy"></div>
+ <div class="lh-about__photo" data-parallax-speed="8"><img src="/img/lucia/lucia-aktualna-1000.webp" srcset="/img/lucia/lucia-aktualna-600.webp 600w, /img/lucia/lucia-aktualna-1000.webp 977w" sizes="(max-width:760px) 100vw, 55vw" alt="Lucia Rogožanová" loading="lazy"></div>
  <div class="lh-about__text"><p class="lh-eyebrow">Kto je Lucia</p><h2 id="lh-about-title">Mgr. Lucia Rogožanová, MBA</h2><p class="lh-about__role">Farmaceutka a zakladateľka ANASTASIA</p><p>Som farmaceutka, podnikateľka, tvorca projektu AI ANASTASIA a predovšetkým človek, ktorý verí, že zdravie sa nedá oddeliť od života ako celku.</p><p>Viac ako tridsať rokov pracujem s ľuďmi, ich príbehmi, obavami, nádejami a každodennými zdravotnými otázkami. Mnohí ľudia nehľadajú ďalší liek. Hľadajú porozumenie.</p><p class="lh-signature">Lucia</p><a class="lh-cta" href="/o-lucii">O mne ${arrow}</a></div>
 </section>`;
-  const benefits = `<section class="lh-benefits" aria-labelledby="lh-benefits-title"><p class="lh-eyebrow">ANASTASIA · LEKÁREŇ</p><h2 id="lh-benefits-title">Čo vzniká z rozhovoru</h2><p class="lh-benefits__sub">Lekárenské poznatky a kozmetika namiešaná podľa vašej pleti.</p><div class="lh-benefits__row"><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 27V8m0 7c-6 0-9-3-9-8 6 0 9 3 9 8Zm0 4c6 0 9-3 9-8-6 0-9 3-9 8Z"/></svg></i>Kozmetika namiešaná na mieru po rozhovore</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/><path d="m10 17 4 4 8-10"/></svg></i>Bez syntetickej parfumácie</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 25V12l9-6 9 6v13M12 25v-8h8v8"/></svg></i>Odborné farmaceutické poznatky</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 9h18v14H7zM12 14h8m-8 4h5"/><circle cx="23" cy="23" r="4"/></svg></i>Individuálna konzultácia</span></div><a class="lh-cta" href="/eshop/kategoria/bio-kozmetika-bez-chemie">Pozrieť bio kozmetiku ${arrow}</a></section>`;
+  const benefits = `<section class="lh-benefits" aria-labelledby="lh-benefits-title"><p class="lh-eyebrow">ANASTASIA · LEKÁREŇ</p><h2 id="lh-benefits-title">Čo vzniká z rozhovoru</h2><p class="lh-benefits__sub">Lekárenské poznatky a kozmetika namiešaná podľa vašej pleti.</p><div class="lh-benefits__row"><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 27V8m0 7c-6 0-9-3-9-8 6 0 9 3 9 8Zm0 4c6 0 9-3 9-8-6 0-9 3-9 8Z"/></svg></i>Kozmetika namiešaná na mieru po rozhovore</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/><path d="m10 17 4 4 8-10"/></svg></i>Bez syntetickej parfumácie</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 25V12l9-6 9 6v13M12 25v-8h8v8"/></svg></i>Odborné farmaceutické poznatky</span><span><i aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 9h18v14H7zM12 14h8m-8 4h5"/><circle cx="23" cy="23" r="4"/></svg></i>Individuálna konzultácia</span></div><a class="lh-cta" href="/eshop/kategoria/bio-kozmetika-bez-chemie">Pozrieť bio kozmetiku ${arrow}</a><figure class="lh-frame lh-benefits__photo" data-parallax-speed="8"><img src="/img/lucia/mineral-protect-1200.webp" alt="Mineral Protect z Lekárne ANASTASIA" width="1200" height="1200" loading="lazy" decoding="async"></figure></section>`;
   const worldsSection = categoryLinks ? `<section class="lh-worlds" aria-labelledby="lh-worlds-title"><div class="lh-worlds__intro"><p class="lh-eyebrow">ANASTASIA · V PONUKE</p><h2 id="lh-worlds-title">Štyri oblasti práce</h2><p>Aktívne kategórie a ich produkty z obchodu ANASTASIA.</p><a class="lh-cta" href="/eshop">Celý obchod ${arrow}</a></div><div class="lh-worlds__grid">${categoryLinks}</div></section>` : '';
   const productsSection = featured ? `<section class="lh-featured" aria-labelledby="lh-featured-title"><div class="lh-featured__head"><p class="lh-eyebrow">VYBRANÉ Z PONUKY</p><h2 id="lh-featured-title">Produkty z ANASTASIA</h2><p>Aktuálne produkty a ceny z obchodu.</p><a class="lh-cta" href="/eshop">Všetky produkty ${arrow}</a></div><div class="lh-featured__items">${featured}</div></section>` : '';
-  const reset = resetProduct && priced(resetProduct) ? `<section class="lh-program lh-program--reset"><img src="${e(media(resetProduct))}" alt="${e(resetProduct.name)}" loading="lazy"><div><p class="lh-eyebrow">AI ANASTASIA · PROGRAM</p><h2>RESET 40+</h2><p>Šestnásť týždňov v členskej zóne, pracovné listy a Zrkadielko na vlastné pozorovania a sebareflexiu. Súčasťou je 117 PDF materiálov.</p><p class="lh-program__price">${e(price(resetProduct))}</p><a class="lh-cta" href="/eshop/produkt/${e(resetProduct.slug)}">Spoznajte program ${arrow}</a></div></section>` : '';
+  const reset = resetProduct && priced(resetProduct) ? `<section class="lh-program lh-program--reset"><figure class="lh-frame" data-parallax-speed="10"><img src="/img/lucia/lucia-arabeska-1600.webp" srcset="/img/lucia/lucia-arabeska-800.webp 800w, /img/lucia/lucia-arabeska-1600.webp 1536w" sizes="(max-width:760px) 100vw, 60vw" alt="Lucia Rogožanová" loading="lazy" decoding="async" style="object-position:center 30%"></figure><div><p class="lh-eyebrow">AI ANASTASIA · PROGRAM</p><h2>RESET 40+</h2><p>Šestnásť týždňov v členskej zóne, pracovné listy a Zrkadielko na vlastné pozorovania a sebareflexiu. Súčasťou je 117 PDF materiálov.</p><p class="lh-program__price">${e(price(resetProduct))}</p><a class="lh-cta" href="/eshop/produkt/${e(resetProduct.slug)}">Spoznajte program ${arrow}</a></div></section>` : '';
   const nicSection = nic && priced(nic) ? `<section class="lh-nic"><p class="lh-eyebrow">AI ANASTASIA · PROGRAM</p><h2>Nič nemusíš</h2><p>Program Nič nemusíš nájdete v aktuálnej ponuke ANASTASIA.</p><p class="lh-program__price">${e(price(nic))}</p><a class="lh-cta" href="/eshop/produkt/${e(nic.slug)}">Pozrieť program ${arrow}</a></section>` : '';
-  const pharmacy = `<section class="lh-pharmacy"><div class="lh-pharmacy__main"><img src="/img/lucia/lekaren-1600.webp" alt="Lekáreň ANASTASIA vo Vyšnej Slanej" width="1600" height="1200" loading="lazy" decoding="async"></div><div class="lh-pharmacy__copy"><p class="lh-eyebrow">VYŠNÁ SLANÁ</p><h2>Lekáreň ANASTASIA<br>a denný stacionár</h2><p>Denný stacionár vo Vyšnej Slanej · plánované otvorenie jeseň 2026.</p><p>Vyšná Slaná 259<br>049 26 Vyšná Slaná</p><p>Osobný odber sa uskutočňuje po potvrdení pripravenosti a v oznámenom čase.</p><a class="lh-cta" href="https://maps.google.com/?q=Lek%C3%A1re%C5%88+ANASTASIA%2C+Vy%C5%A1n%C3%A1+Slan%C3%A1+259" target="_blank" rel="noopener">Otvoriť mapu ${arrow}</a></div><div class="lh-pharmacy__gallery" aria-label="Priestory denného stacionára"><figure class="lh-pharmacy__room" data-parallax-speed="10"><div class="lh-pharmacy__room-frame"><img src="/img/lucia/stacionar-priestor-1600.webp" alt="Spoločenský priestor denného stacionára vo Vyšnej Slanej" loading="lazy" decoding="async"></div><figcaption>Priestor denného stacionára</figcaption></figure><figure class="lh-pharmacy__room" data-parallax-speed="8"><div class="lh-pharmacy__room-frame"><img src="/img/lucia/stacionar-kresla-1600.webp" alt="Oddychová časť denného stacionára" loading="lazy" decoding="async"></div><figcaption>Oddychová časť</figcaption></figure><figure class="lh-pharmacy__room" data-parallax-speed="12"><div class="lh-pharmacy__room-frame"><img src="/img/lucia/stacionar-poradna-1600.webp" alt="Poradenská miestnosť denného stacionára" loading="lazy" decoding="async"></div><figcaption>Poradenská miestnosť</figcaption></figure></div></section>`;
-  const consult = online && priced(online) ? `<section class="lh-consult"><div><p class="lh-eyebrow">ONLINE · 60 MINÚT</p><h2>Online zdravotná konzultácia</h2><p>Konzultáciu vedie farmaceutka s dlhoročnou praxou, ktorá prepája odborné farmaceutické poznatky s celostným pohľadom na človeka.</p><p class="lh-program__price">${e(price(online))}</p><a class="lh-cta" href="/konzultacie/rezervacia">Rezervovať konzultáciu ${arrow}</a></div><img src="/img/lucia/lucia-portret-hero-1600.webp" srcset="/img/lucia/lucia-portret-hero-800.webp 800w, /img/lucia/lucia-portret-hero-1600.webp 1600w" sizes="(max-width:760px) 100vw, 55vw" alt="Lucia Rogožanová, farmaceutka" loading="lazy" decoding="async"></section>` : '';
+  const pharmacy = `<section class="lh-pharmacy"><div class="lh-pharmacy__main" data-parallax-speed="9"><img src="/img/lucia/lekaren-1600.webp" alt="Lekáreň ANASTASIA vo Vyšnej Slanej" width="1600" height="1200" loading="lazy" decoding="async"></div><div class="lh-pharmacy__copy"><p class="lh-eyebrow">VYŠNÁ SLANÁ</p><h2>Lekáreň ANASTASIA<br>a denný stacionár</h2><p>Denný stacionár vo Vyšnej Slanej · plánované otvorenie jeseň 2026.</p><p>Vyšná Slaná 259<br>049 26 Vyšná Slaná</p><p>Osobný odber sa uskutočňuje po potvrdení pripravenosti a v oznámenom čase.</p><a class="lh-cta" href="https://maps.google.com/?q=Lek%C3%A1re%C5%88+ANASTASIA%2C+Vy%C5%A1n%C3%A1+Slan%C3%A1+259" target="_blank" rel="noopener">Otvoriť mapu ${arrow}</a></div><div class="lh-pharmacy__gallery" aria-label="Priestory denného stacionára"><figure class="lh-pharmacy__room" data-parallax-speed="10"><div class="lh-pharmacy__room-frame"><img src="/img/lucia/stacionar-priestor-1600.webp" alt="Spoločenský priestor denného stacionára vo Vyšnej Slanej" loading="lazy" decoding="async"></div><figcaption>Priestor denného stacionára</figcaption></figure><figure class="lh-pharmacy__room" data-parallax-speed="8"><div class="lh-pharmacy__room-frame"><img src="/img/lucia/stacionar-kresla-1600.webp" alt="Oddychová časť denného stacionára" loading="lazy" decoding="async"></div><figcaption>Oddychová časť</figcaption></figure><figure class="lh-pharmacy__room" data-parallax-speed="12"><div class="lh-pharmacy__room-frame"><img src="/img/lucia/stacionar-poradna-1600.webp" alt="Poradenská miestnosť denného stacionára" loading="lazy" decoding="async"></div><figcaption>Poradenská miestnosť</figcaption></figure></div></section>`;
+  const consult = online && priced(online) ? `<section class="lh-consult"><div><p class="lh-eyebrow">ONLINE · 60 MINÚT</p><h2>Online zdravotná konzultácia</h2><p>Konzultáciu vedie farmaceutka s dlhoročnou praxou, ktorá prepája odborné farmaceutické poznatky s celostným pohľadom na človeka.</p><p class="lh-program__price">${e(price(online))}</p><a class="lh-cta" href="/konzultacie/rezervacia">Rezervovať konzultáciu ${arrow}</a></div></section>` : '';
   const registration = `<section class="lh-register"><p class="lh-eyebrow">VÁŠ ÚČET ANASTASIA</p><h2>Registrácia a novinky</h2><p>V účte nájdete svoje objednávky a zakúpené programy. Novinky posielame iba po samostatnom súhlase.</p><a class="lh-cta" href="/prihlasenie">Registrácia ${arrow}</a><form data-newsletter><label for="lh-newsletter-email">Váš e-mail</label><input id="lh-newsletter-email" name="email" type="email" autocomplete="email" required><label class="lh-newsletter-consent"><input name="newsletter_consent" type="checkbox" required> Súhlasím so zasielaním noviniek e-mailom.</label><button class="lh-cta" type="submit">Odoberať ${arrow}</button></form><p class="newsletter-status" role="status" aria-live="polite"></p></section>`;
 
   const contact = `
@@ -273,7 +288,7 @@ export function homeSections(products = [], activeCategories = []) {
   <a class="lh-cta" href="/kontakt" data-content="home__kontakt__3-text">Napíšte nám ${arrow}</a>
 </section>`;
 
-  return [hero, lucia, benefits, worldsSection, productsSection, reset, nicSection, pharmacy, consult, registration, contact].join('\n');
+  return [hero, '<div class="lh-flow">', lucia, benefits, worldsSection, productsSection, reset, nicSection, pharmacy, consult, registration, contact, '</div>'].join('\n');
 }
 
 // CSS homepage. Drží se v jednom bloku, aby se design dal přehledně měnit.
@@ -293,6 +308,7 @@ export const HOME_CSS = `
 
 /* --- Úvod: maska se slovem ANASTASIA, video prosvítá jen písmeny ---------- */
 .lh-intro{position:relative;height:100svh;min-height:640px;pointer-events:none}
+.lh-intro{margin-left:var(--rail-neg,0px)}
 .motion .lh-intro{height:380svh}
 /* Po prvním přehrání je úvod hero sekcí: bez zoomu, bez kategorií. */
 html.lh-hero-mode .lh-intro{height:100svh;min-height:640px}
@@ -668,8 +684,8 @@ html.lh-mobile-intro .lh-post-entry nav a{background:#73729c;color:#fff}.lh-post
 }
 /* Editorial homepage details: distinct image and text rhythms, no composite photos. */
 .lh-intro__fallback{display:none!important}
-html.lh-mobile-intro .lh-intro__stage{background:#e9e9f2}
-html.lh-mobile-intro #lh-paper{opacity:1}
+html.lh-mobile-intro .lh-intro__stage{background:#F4F1EB}
+html.lh-mobile-intro #lh-paper{opacity:.86}
 .lh-post-entry{background:none;padding:24px 22px;text-shadow:none}
 .lh-post-entry img{width:46px;height:46px;margin-bottom:14px}
 .lh-post-entry__brand{font-size:12px;letter-spacing:.34em;padding-left:.34em;color:#fff}
@@ -771,4 +787,171 @@ html.lh-mobile-intro .lh-post-entry nav a:last-child{min-height:0!important;padd
 @media(max-width:760px){.dc-root .lh-pharmacy{grid-template-columns:minmax(0,1fr);gap:24px;padding:48px 24px}.dc-root .lh-pharmacy__gallery{grid-column:1/-1;display:flex;gap:18px;margin:16px -24px 0;padding:0 24px 16px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scroll-padding-inline:24px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.dc-root .lh-pharmacy__room{flex:0 0 min(82vw,340px);scroll-snap-align:start}.dc-root .lh-pharmacy__room-frame{height:clamp(300px,105vw,420px)}}
 @media(prefers-reduced-motion:reduce){.lh-pharmacy__room-frame img{transform:none!important;will-change:auto}}
 
+/* Hero po vstupe: veľký claim vľavo dole, vpravo sklenený číslovaný rozcestník. */
+.dc-root .lh-intro .lh-hx{inset:0;top:0;transform:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,400px);align-items:end;gap:40px;padding:0 clamp(28px,4vw,64px) clamp(96px,11vh,120px) calc(var(--rail-pad,0px) + clamp(28px,4vw,64px));text-align:left;align-content:end;background:linear-gradient(0deg,rgba(18,20,26,.62) 0%,rgba(18,20,26,.18) 45%,rgba(18,20,26,0) 70%);text-shadow:none}
+.dc-root .lh-intro .lh-hx__brand{display:flex;align-items:center;gap:14px;margin:0 0 22px;padding-top:20px;border-top:1px solid rgba(216,197,152,.7);width:min(100%,340px)}
+.dc-root .lh-intro .lh-hx__brand img{width:34px;height:34px;max-width:34px;margin:0;filter:brightness(0) invert(1)}
+.dc-root .lh-intro .lh-hx .lh-post-entry__brand{font-size:12px;letter-spacing:.42em;padding:0;color:#fff}
+.dc-root .lh-intro .lh-hx__claim{margin:0;max-width:none;font:300 clamp(58px,8.4vw,140px)/.92 Fraunces,Georgia,serif;letter-spacing:-.035em;color:#fff}
+.dc-root .lh-intro .lh-hx__claim span{display:block}
+.dc-root .lh-intro .lh-hx__claim em{display:block;font-style:italic;font-weight:300;padding-left:clamp(40px,8vw,150px);color:#f3e9d2}
+.dc-root .lh-intro .lh-hx .lh-hx__index{display:flex;flex-direction:column;align-items:stretch!important;justify-content:flex-start;flex-wrap:nowrap;gap:0!important;padding:10px 26px;border-radius:24px 24px 24px 90px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);pointer-events:auto}
+.dc-root .lh-intro .lh-hx .lh-hx__index a{display:grid!important;grid-template-columns:34px 1fr auto;align-items:center;width:100%;text-align:left;min-height:58px!important;padding:0!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.22)!important;border-radius:0!important;background:none!important;color:#fff!important;text-decoration:none!important;letter-spacing:0!important;font:300 clamp(18px,1.4vw,21px)/1.2 Fraunces,Georgia,serif!important;transition:padding .35s}
+.dc-root .lh-intro .lh-hx .lh-hx__index a:last-child{border-bottom:0!important}
+.dc-root .lh-intro .lh-hx__index small{font:400 11px Figtree,sans-serif;letter-spacing:.16em;color:#d8c598}
+.dc-root .lh-intro .lh-hx__index i{font-style:normal;opacity:.7;transition:transform .35s,opacity .35s}
+.dc-root .lh-intro .lh-hx .lh-hx__index a:hover{padding-left:6px!important}
+.dc-root .lh-intro .lh-hx .lh-hx__index a:hover i{transform:translateX(6px);opacity:1}
+@media(min-width:1000px){.lh-vid-btn{left:calc(var(--rail-pad,0px) + 24px)!important}}
+@media(max-width:999.98px){
+  .dc-root .lh-intro .lh-hx{grid-template-columns:1fr;gap:26px;padding:0 20px 96px}
+  .dc-root .lh-intro .lh-hx__claim{font-size:clamp(50px,14.5vw,76px)}
+  .dc-root .lh-intro .lh-hx__claim em{padding-left:44px}
+  .dc-root .lh-intro .lh-hx__brand{margin-bottom:16px;padding-top:14px}
+  .dc-root .lh-intro .lh-hx__index{padding:4px 20px;border-radius:20px 20px 20px 60px}
+  .dc-root .lh-intro .lh-hx .lh-hx__index a{min-height:48px!important;font-size:18px!important}
+}
+
+/* Preloader podľa Luckyho predlohy: krémový papier, nad slovom meno a rotujúce slovo vpravo,
+   biele sklenené Vstúpte a pod ním „alebo posuňte“. */
+.lh-intro__kicker{position:absolute;z-index:3;left:0;right:0;top:20svh;margin:0;text-align:center;font:400 12px/1 Figtree,sans-serif;letter-spacing:.38em;text-transform:uppercase;color:#5f6158;transition:opacity .6s;pointer-events:none}
+html.lh-entered .lh-intro__kicker,html.lh-hero-mode .lh-intro__kicker{opacity:0}
+@media (min-width:761px){
+  html .lh-intro .lh-intro__cats .lh-cat{top:auto!important;bottom:calc(50% + min((100vw - 2*var(--lh-gut,16px))*.075,9svh) + 44px)!important;left:auto!important;right:12%!important;text-align:right!important;font:300 clamp(34px,3.6vw,58px)/1.1 Figtree,sans-serif!important;letter-spacing:-.02em!important;color:#262822!important;-webkit-text-fill-color:#262822!important;text-shadow:none!important}
+}
+html .lh-intro .lh-enter-wrap .lh-enter{background:rgba(255,255,255,.55)!important;border:1px solid rgba(255,255,255,.95)!important;color:#313C2B!important;box-shadow:inset 0 1px 0 #fff,0 6px 24px rgba(40,48,32,.08)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important}
+html .lh-intro .lh-enter-wrap .lh-or{display:flex!important;color:#6E7468}
+html.lh-entered .lh-intro .lh-enter-wrap .lh-or{display:none!important}
+@media (max-width:760px){.lh-intro__kicker{top:13svh;font-size:10px;letter-spacing:.3em;padding:0 20px;line-height:1.6}}
+html.lh-mobile-intro .lh-intro .lh-cat{color:#262822!important;-webkit-text-fill-color:#262822!important}
+html.lh-mobile-intro .lh-intro :is(.lh-vid-btn,.lh-intro__sound){background:rgba(255,255,255,.45)!important;border:1px solid rgba(255,255,255,.9)!important;color:#313C2B!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important}
+
+/* --- Lanserhof / SHA: celoplošné sekcie, text v krémovom paneli, fotka do kraja,
+   bez medzier, bez zaoblených kariet. Nadpis: kurzíva nad veľkým verzálkovým titulkom. --- */
+.lh-flow{--fl-ink:#3d3c5c;--fl-text:#5b5a6e;--fl-gold:#a8884f;--fl-lav:#a7a5cf;--fl-lav-band:#eeecf5;--fl-sage-band:#e9eee4;--fl-cream:#f6f2ea;--fl-line:rgba(61,60,92,.16);position:relative;background:#fff;color:var(--fl-text)}
+.dc-root .lh-flow>section{margin:0!important;border-radius:0!important;box-shadow:none!important;width:auto!important;max-width:none!important;background:transparent;color:var(--fl-text)}
+.dc-root .lh-flow .lh-eyebrow{display:block;font:italic 300 clamp(21px,1.9vw,30px)/1.2 'Fraunces',Georgia,serif;letter-spacing:0;text-transform:none;color:var(--fl-ink);margin:0 0 6px}
+.dc-root .lh-flow .lh-eyebrow:before{display:none}
+.dc-root .lh-flow h2{font:300 clamp(32px,3.5vw,56px)/1.04 'Fraunces',Georgia,serif;letter-spacing:.02em;text-transform:uppercase;color:var(--fl-ink);margin:0 0 26px;max-width:16ch}
+.dc-root .lh-flow p{font-size:16px;line-height:1.7;color:var(--fl-text);max-width:52ch}
+.dc-root .lh-flow .lh-cta{height:52px;padding:0 6px 0 24px;gap:16px;border-radius:40px;background:transparent;border:1px solid var(--fl-ink);color:var(--fl-ink);align-self:flex-start;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.dc-root .lh-flow .lh-cta .arrow{width:40px;height:40px;padding:10px;border-radius:50%;background:var(--fl-ink);color:#fff;box-sizing:border-box}
+.dc-root .lh-flow .lh-cta:hover{background:var(--fl-ink);color:#fff}
+.lh-flow .lh-frame{display:block;position:relative;overflow:hidden;border-radius:0!important}
+.lh-panel,.dc-root .lh-flow .lh-about__text,.dc-root .lh-flow .lh-program>div,.dc-root .lh-flow .lh-pharmacy__copy{background:linear-gradient(160deg,#f3eee5 0%,#fbf9f5 70%)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;margin:0!important;max-width:none!important;display:flex;flex-direction:column;justify-content:center;padding:clamp(48px,6vw,112px) clamp(28px,5vw,96px)!important}
+.lh-flow .lh-fill{position:relative;overflow:hidden;margin:0;min-height:100%}
+.lh-flow .lh-fill>img,.dc-root .lh-flow .lh-about__photo img,.dc-root .lh-flow .lh-benefits__photo img,.dc-root .lh-flow .lh-program>.lh-frame img,.dc-root .lh-flow .lh-pharmacy__main img{position:absolute!important;left:0;top:-8%!important;width:100%!important;height:116%!important;max-height:none!important;object-fit:cover!important}
+
+/* 1 Kto je Lucia: text vľavo, portrét vpravo cez celú výšku. */
+.dc-root .lh-flow .lh-about{display:grid!important;grid-template-columns:5fr 7fr;min-height:100svh;padding:0!important;gap:0!important;align-items:stretch}
+.dc-root .lh-flow .lh-about__text{order:1}
+.dc-root .lh-flow .lh-about__photo{order:2;position:relative;overflow:hidden;height:auto!important;min-height:100svh;margin:0!important;border-radius:0!important}
+.dc-root .lh-flow .lh-about__photo img{object-position:center 25%!important}
+.dc-root .lh-flow .lh-about__text h2{text-transform:uppercase;font-size:clamp(30px,3vw,48px)}
+.dc-root .lh-flow .lh-about__role{font-size:12px!important;letter-spacing:.2em;text-transform:uppercase;color:var(--fl-gold)!important;margin:-12px 0 22px}
+.dc-root .lh-flow .lh-signature{font:italic 300 44px 'Fraunces',Georgia,serif;color:var(--fl-ink)!important;margin:6px 0 26px}
+
+/* 2 Čo vzniká z rozhovoru: fotka vľavo, text vpravo, zoznam tenkými linkami. */
+.dc-root .lh-flow .lh-benefits{display:grid!important;grid-template-columns:7fr 5fr;grid-auto-rows:auto;align-content:center;column-gap:0;min-height:100svh;padding:0!important;background:linear-gradient(160deg,#f3eee5 0%,#fbf9f5 70%)!important;text-align:left;border-radius:0!important}
+.dc-root .lh-flow .lh-benefits>*{grid-column:2;margin-left:clamp(28px,5vw,96px);margin-right:clamp(24px,4vw,80px)}
+.dc-root .lh-flow .lh-benefits>.lh-eyebrow{margin-top:clamp(48px,6vw,110px)}
+.dc-root .lh-flow .lh-benefits>.lh-cta{margin-bottom:clamp(48px,6vw,110px);justify-self:start}
+.dc-root .lh-flow .lh-benefits__photo{grid-column:1!important;grid-row:1/span 6;margin:0!important;min-height:100svh;height:auto;position:relative;overflow:hidden;border-radius:0!important}
+.dc-root .lh-flow .lh-benefits__row{display:block!important;margin-top:18px;margin-bottom:36px;border-top:1px solid var(--fl-line)!important}
+.dc-root .lh-flow .lh-benefits__row span{display:flex!important;flex-direction:row!important;align-items:center;gap:18px!important;min-height:0!important;padding:18px 0!important;border:0!important;border-bottom:1px solid var(--fl-line)!important;border-radius:0!important;background:none!important;transform:none!important;font:300 clamp(18px,1.4vw,22px)/1.3 'Fraunces',Georgia,serif;color:var(--fl-ink)}
+.dc-root .lh-flow .lh-benefits__row i{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:none;border:1px solid var(--fl-lav);color:var(--fl-ink)}
+.dc-root .lh-flow .lh-benefits__row svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4}
+
+/* 3 Oblasti: hlavička v riadku, potom štyri stĺpce fotiek cez celú šírku. */
+.dc-root .lh-flow .lh-worlds{display:block!important;padding:clamp(80px,9vw,140px) 0 0!important;background:#fff;overflow:visible}
+.dc-root .lh-flow .lh-worlds__intro{display:grid;grid-template-columns:1fr 1fr;column-gap:clamp(28px,6vw,120px);align-items:end;padding:0 clamp(24px,5vw,96px) clamp(40px,5vw,72px)}
+.dc-root .lh-flow .lh-worlds__intro>.lh-eyebrow,.dc-root .lh-flow .lh-worlds__intro>h2{grid-column:1}
+.dc-root .lh-flow .lh-worlds__intro>p:not(.lh-eyebrow),.dc-root .lh-flow .lh-worlds__intro>.lh-cta{grid-column:2}
+.dc-root .lh-flow .lh-worlds__intro>p:not(.lh-eyebrow){grid-row:1/span 2;align-self:end;margin:0 0 28px}
+.dc-root .lh-flow .lh-worlds__intro>.lh-cta{grid-row:3;margin-top:-10px}
+.dc-root .lh-flow .lh-worlds__grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:2px;padding:0!important;overflow:visible}
+.dc-root .lh-flow .lh-world{display:block!important;position:relative;height:min(78svh,760px)!important;margin:0!important;border-radius:0!important;overflow:hidden;flex:none}
+.dc-root .lh-flow .lh-worlds__grid{grid-template-rows:none!important}
+.dc-root .lh-flow .lh-world:first-child{grid-row:auto!important}
+.dc-root .lh-flow .lh-world>.lh-frame{position:absolute!important;inset:0;margin:0!important;height:100%!important;border-radius:0!important}
+.dc-root .lh-flow .lh-world img{position:absolute;inset:0;width:100%!important;height:100%!important;max-height:none!important;object-fit:cover;transition:transform 1.2s cubic-bezier(.16,1,.3,1)}
+.dc-root .lh-flow .lh-world__copy{position:absolute;z-index:2;background:none!important;color:#fff;padding:0!important;right:clamp(20px,2vw,32px)!important}
+.dc-root .lh-flow .lh-world__copy small,.dc-root .lh-flow .lh-world__copy>span,.dc-root .lh-flow .lh-world__copy strong{color:#fff!important}
+.dc-root .lh-flow .lh-world:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(30,28,50,0) 50%,rgba(30,28,50,.78))!important}
+.dc-root .lh-flow .lh-world__copy strong{overflow-wrap:anywhere;font-size:clamp(22px,1.8vw,30px)!important}
+.dc-root .lh-flow .lh-world__n{position:absolute;z-index:2;top:22px;left:22px;color:#fff}
+.dc-root .lh-flow .lh-world:hover img{transform:scale(1.04)}
+.dc-root .lh-flow .lh-world:after{background:linear-gradient(180deg,rgba(30,28,50,0) 45%,rgba(30,28,50,.62))}
+.dc-root .lh-flow .lh-world__copy strong{font:italic 300 clamp(24px,2.1vw,34px)/1.1 'Fraunces',Georgia,serif}
+.dc-root .lh-flow .lh-world__copy{left:clamp(20px,2vw,32px);bottom:clamp(22px,2.4vw,36px)}
+
+/* 4 Produkty: čistý biely rad, fotky 3:4, bez rytmických posunov. */
+.dc-root .lh-flow .lh-featured{background:#fff!important;padding:clamp(80px,9vw,140px) clamp(24px,5vw,96px)!important;border-radius:0!important;margin:0!important}
+.dc-root .lh-flow .lh-featured__head{display:grid;grid-template-columns:1fr auto;align-items:end;margin-bottom:clamp(36px,4vw,60px)}
+.dc-root .lh-flow .lh-featured__head>p:not(.lh-eyebrow){display:none}
+.dc-root .lh-flow .lh-featured__items{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:clamp(14px,1.6vw,26px)!important}
+.dc-root .lh-flow .lh-product,.dc-root .lh-flow .lh-product:nth-child(n){margin-top:0!important}
+.dc-root .lh-flow .lh-product .lh-frame,.dc-root .lh-flow .lh-product:nth-child(n) .lh-frame{height:auto!important;aspect-ratio:3/4;border-radius:0!important;background:#f3f0ea}
+.dc-root .lh-flow .lh-product__n{display:none!important}
+.dc-root .lh-flow .lh-product h3{font:300 clamp(18px,1.4vw,21px)/1.25 'Fraunces',Georgia,serif;color:var(--fl-ink);margin:16px 0 4px}
+.dc-root .lh-flow .lh-product p{margin:0 0 14px;font-size:14px;letter-spacing:.04em}
+.dc-root .lh-flow .lh-product .lh-cta{height:44px;font-size:11px}
+.dc-root .lh-flow .lh-product .lh-cta .arrow{width:32px;height:32px;padding:8px}
+
+/* 5 RESET 40+: fotka vľavo, levanduľový panel vpravo. */
+.dc-root .lh-flow .lh-program{display:grid!important;grid-template-columns:7fr 5fr;min-height:100svh;padding:0!important;gap:0;align-items:stretch}
+.dc-root .lh-flow .lh-program>.lh-frame{position:relative;overflow:hidden;margin:0!important;height:auto!important;min-height:100svh;border-radius:0!important}
+.dc-root .lh-flow .lh-program>div{background:linear-gradient(160deg,#e9e6f3 0%,#f7f5fb 75%)!important}
+.dc-root .lh-flow .lh-program h2{font-size:clamp(48px,5.6vw,92px)}
+.dc-root .lh-flow .lh-program__price{font:300 32px 'Fraunces',Georgia,serif!important;color:var(--fl-ink)!important;margin:4px 0 26px}
+
+/* 6 Nič nemusíš: pás cez celú šírku, v strede. */
+.dc-root .lh-flow .lh-nic{display:flex!important;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:72svh;width:auto!important;padding:clamp(70px,8vw,120px) 24px!important;border-radius:0!important;background:var(--fl-sage-band)!important}
+.dc-root .lh-flow .lh-nic h2,.dc-root .lh-flow .lh-nic p{margin-left:auto;margin-right:auto}
+.dc-root .lh-flow .lh-nic h2{max-width:none;font-size:clamp(44px,6vw,96px)}
+.dc-root .lh-flow .lh-nic .lh-cta{align-self:center}
+
+/* 7 Lekáreň: text vľavo, fotka vpravo, pod tým tri miestnosti cez celú šírku. */
+.dc-root .lh-flow .lh-pharmacy{display:grid!important;grid-template-columns:5fr 7fr;padding:0!important;gap:0!important;align-items:stretch}
+.dc-root .lh-flow .lh-pharmacy__copy{order:1;min-height:100svh}
+.dc-root .lh-flow .lh-pharmacy__main{order:2;position:relative;overflow:hidden;height:auto!important;min-height:100svh;border-radius:0!important}
+.dc-root .lh-flow .lh-pharmacy__gallery{order:3;grid-column:1/-1;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin:2px 0 0!important;padding:0!important;overflow:visible}
+.dc-root .lh-flow .lh-pharmacy__room,.dc-root .lh-flow .lh-pharmacy__room:nth-child(n){margin:0!important;border-radius:0!important;flex:none}
+.dc-root .lh-flow .lh-pharmacy__room-frame{height:min(72svh,680px)!important;border-radius:0!important}
+.dc-root .lh-flow .lh-pharmacy__room figcaption{left:clamp(20px,2vw,32px);bottom:clamp(22px,2.4vw,36px)}
+
+/* 8 Konzultácia: krémový pás v strede. 9 Registrácia: šalviový pás v dvoch stĺpcoch. */
+.dc-root .lh-flow .lh-consult{display:flex!important;justify-content:center;text-align:center;width:auto!important;margin:0!important;padding:clamp(90px,10vw,160px) 24px!important;border-radius:0!important;background:linear-gradient(160deg,#f3eee5 0%,#fbf9f5 70%)!important}
+.dc-root .lh-flow .lh-consult>div{display:flex;flex-direction:column;align-items:center;max-width:760px}
+.dc-root .lh-flow .lh-consult h2{max-width:none}
+.dc-root .lh-flow .lh-consult .lh-cta{align-self:center}
+.dc-root .lh-flow .lh-register{display:grid!important;grid-template-columns:1fr 1fr;column-gap:clamp(32px,6vw,120px);align-items:start;width:auto!important;margin:0!important;padding:clamp(80px,9vw,140px) clamp(24px,5vw,96px)!important;border-radius:0!important;background:var(--fl-sage-band)!important}
+.dc-root .lh-flow .lh-register>:not(form):not(.newsletter-status){grid-column:1}
+.dc-root .lh-flow .lh-register>form{grid-column:2;grid-row:1/span 4;align-self:center;display:grid;gap:14px}
+.dc-root .lh-flow .lh-register input[type=email]{border-radius:0;height:54px;background:#fff;border:0;border-bottom:1px solid var(--fl-ink)}
+.dc-root .lh-flow .lh-contact{background:#fff!important;padding:clamp(100px,11vw,180px) 24px!important}
+.dc-root .lh-flow .lh-contact .lh-display{text-transform:uppercase;color:var(--fl-ink);font-weight:300}
+
+@media(max-width:999.98px){
+  .dc-root .lh-flow .lh-about,.dc-root .lh-flow .lh-benefits,.dc-root .lh-flow .lh-program,.dc-root .lh-flow .lh-pharmacy,.dc-root .lh-flow .lh-register{grid-template-columns:1fr!important;min-height:0}
+  .dc-root .lh-flow .lh-about__photo,.dc-root .lh-flow .lh-program>.lh-frame,.dc-root .lh-flow .lh-pharmacy__main,.dc-root .lh-flow .lh-benefits__photo{order:0!important;min-height:0!important;height:min(118vw,72svh)!important}
+  .dc-root .lh-flow .lh-about__text,.dc-root .lh-flow .lh-program>div,.dc-root .lh-flow .lh-pharmacy__copy{order:1!important;min-height:0;padding:48px 24px 56px!important}
+  .dc-root .lh-flow .lh-benefits>*{grid-column:1;margin-left:24px;margin-right:24px}
+  .dc-root .lh-flow .lh-benefits__photo{grid-row:1!important;margin:0!important}
+  .dc-root .lh-flow .lh-benefits>.lh-eyebrow{margin-top:48px}
+  .dc-root .lh-flow .lh-benefits>.lh-cta{margin-bottom:56px}
+  .dc-root .lh-flow .lh-worlds__intro{grid-template-columns:1fr;padding:0 24px 32px}
+  .dc-root .lh-flow .lh-worlds__intro>*{grid-column:1!important;grid-row:auto!important}
+  .dc-root .lh-flow .lh-worlds__intro>.lh-cta{margin-top:0}
+  .dc-root .lh-flow .lh-worlds__grid{grid-template-columns:1fr 1fr!important}
+  .dc-root .lh-flow .lh-world{height:min(96vw,520px)!important}
+  .dc-root .lh-flow .lh-featured{padding:64px 24px!important}
+  .dc-root .lh-flow .lh-featured__head{grid-template-columns:1fr}
+  .dc-root .lh-flow .lh-featured__items{grid-template-columns:1fr 1fr!important;gap:28px 14px!important}
+  .dc-root .lh-flow .lh-pharmacy__gallery{grid-template-columns:1fr!important}
+  .dc-root .lh-flow .lh-pharmacy__room-frame{height:min(100vw,460px)!important}
+  .dc-root .lh-flow .lh-register>form{grid-column:1;grid-row:auto;margin-top:28px}
+  .dc-root .lh-flow .lh-nic{min-height:0}
+}
+@media(max-width:560px){.dc-root .lh-flow .lh-worlds__grid{grid-template-columns:1fr!important}}
 `;

@@ -505,3 +505,28 @@ html,body{overflow-x:clip!important}
 .legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape{margin:0 0 clamp(40px,5vw,80px)!important}
 @media(max-width:999.98px){.legacy-main .section:has(>.page-intro+.content-landscape)>.page-intro{margin:0!important;width:auto!important}.legacy-main .section:has(>.page-intro+.content-landscape)>.content-landscape{width:auto;margin:0 0 clamp(32px,6vw,56px)!important}}
 .legacy-main .section:has(>.page-intro){box-shadow:none!important;border:0!important;border-radius:0!important;background-color:#fff!important}
+
+/* Darčekový poukaz: luxusná karta (olivová, zlatá fólia, levanduľový svit, podpisová kvapka) */
+.voucher-stage.gv-stage,.voucher-stage{background:radial-gradient(90% 70% at 70% 20%,#d9d7ee 0%,#E9E9F2 45%,#f1efe6 100%)!important;overflow:hidden;position:relative}
+.voucher-stage:before{content:"";position:absolute;width:720px;height:720px;left:50%;top:50%;translate:-50% -50%;border-radius:50%;border:1px solid rgba(115,114,156,.18);box-shadow:0 0 0 70px rgba(255,255,255,.12),0 0 0 140px rgba(255,255,255,.08)}
+.gv{position:relative;z-index:1;width:min(580px,100%);perspective:1400px}
+.gv:before{content:"";position:absolute;inset:8% 4% -6% 6%;border-radius:28px 28px 28px 0;background:linear-gradient(135deg,#A7A5CF,#73729C);transform:rotate(-7deg) translateY(10px);opacity:.55;filter:blur(.3px)}
+.gv-card{--rx:0deg;--ry:0deg;--mx:30%;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 150px;aspect-ratio:1.6;border-radius:28px 28px 28px 0;color:#F3EEDC;background:radial-gradient(70% 90% at 85% 0%,rgba(167,165,207,.45),transparent 60%),radial-gradient(80% 80% at 0% 100%,#4a5238 0%,transparent 70%),linear-gradient(150deg,#3a4030 0%,#2F3424 55%,#22261a 100%);box-shadow:0 50px 90px -40px rgba(34,38,26,.85),0 0 0 1px rgba(201,165,92,.35) inset;transform:rotateX(var(--rx)) rotateY(var(--ry));transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.8,.2,1);overflow:hidden;-webkit-mask:radial-gradient(circle at calc(100% - 150px) 0,transparent 15px,#000 16px) top/100% 51% no-repeat,radial-gradient(circle at calc(100% - 150px) 100%,transparent 15px,#000 16px) bottom/100% 51% no-repeat;mask:radial-gradient(circle at calc(100% - 150px) 0,transparent 15px,#000 16px) top/100% 51% no-repeat,radial-gradient(circle at calc(100% - 150px) 100%,transparent 15px,#000 16px) bottom/100% 51% no-repeat}
+.gv-card:after{content:"";position:absolute;inset:14px;border-radius:18px 18px 18px 0;border:1px solid rgba(201,165,92,.4);pointer-events:none}
+.gv-mark{position:absolute;width:420px;height:420px;left:-120px;bottom:-170px;opacity:.13;filter:sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(1.6);animation:gvspin 90s linear infinite;pointer-events:none}
+@keyframes gvspin{to{rotate:360deg}}
+.gv-main{position:relative;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:34px 30px 34px 40px;min-width:0}
+.gv-kick{font:500 9px/1 'Figtree',sans-serif;letter-spacing:.34em;text-transform:uppercase;color:#C9A55C}
+.gv-title{margin:14px 0 0;font:300 26px/1 'Fraunces',Georgia,serif;letter-spacing:-.01em;color:#F3EEDC}.gv-title em{font-style:italic;color:#D9D7EE}
+.gv-value{display:flex;align-items:flex-start;gap:6px;margin:6px 0 2px;font:300 clamp(80px,10vw,124px)/.95 'Fraunces',Georgia,serif;letter-spacing:-.04em;background:linear-gradient(100deg,#8f7238 0%,#E9D6A3 var(--mx,30%),#C9A55C 70%,#8f7238 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.gv-value small{font:italic 300 34px/1 'Fraunces',Georgia,serif;margin-top:14px}
+.gv-to{margin:0;font:300 14px/1.4 'Figtree',sans-serif;color:rgba(243,238,220,.7)}.gv-to b{font:italic 400 19px/1.2 'Fraunces',Georgia,serif;color:#F3EEDC;overflow-wrap:anywhere}
+.gv-msg{margin:6px 0 0;max-width:30ch;font:italic 300 13px/1.45 'Fraunces',Georgia,serif;color:rgba(233,233,242,.75);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.gv-msg:empty{display:none}
+.gv-stub{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px 16px;text-align:center;background:linear-gradient(180deg,rgba(167,165,207,.22),rgba(167,165,207,.08));border-left:2px dashed rgba(233,233,242,.35)}
+.gv-stub span{font:500 9px/1 'Figtree',sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#C9A55C;writing-mode:vertical-rl;rotate:180deg}
+.gv-stub b{font:400 13px/1 'Figtree',sans-serif;letter-spacing:.2em;color:#F3EEDC;writing-mode:vertical-rl;rotate:180deg}
+.gv-stub small{font:300 10px/1.4 'Figtree',sans-serif;color:rgba(243,238,220,.55)}
+.gv-foil{position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,240,200,.16) 45%,rgba(255,255,255,.28) 50%,rgba(255,240,200,.12) 55%,transparent 65%);background-size:250% 100%;animation:gvfoil 7s ease-in-out infinite;mix-blend-mode:screen;pointer-events:none}
+@keyframes gvfoil{0%,60%{background-position:120% 0}100%{background-position:-120% 0}}
+@media (max-width:700px){.voucher-stage:before{width:480px;height:480px}.gv-card{grid-template-columns:1fr;grid-template-rows:auto auto;aspect-ratio:auto;-webkit-mask:none;mask:none}.gv-main{padding:34px 26px 26px}.gv-stub{flex-direction:row;flex-wrap:wrap;border-left:0;border-top:2px dashed rgba(233,233,242,.35);padding:18px 22px 22px}.gv-stub span,.gv-stub b{writing-mode:horizontal-tb;rotate:none}.gv-stub small{flex-basis:100%}.gv-mark{width:320px;height:320px;left:auto;right:-110px;bottom:-110px}}
+@media (prefers-reduced-motion:reduce){.gv-mark,.gv-foil{animation:none}.gv-card{transition:none}}

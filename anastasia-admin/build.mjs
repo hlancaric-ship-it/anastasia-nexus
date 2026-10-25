@@ -20,7 +20,7 @@ const web = process.env.ANASTASIA_WEB_ORIGIN || api.replace('-api.', '.');
 
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-for (const f of ['app.mjs', 'guide.mjs', 'library-editor.mjs', 'qr.mjs', 'qr-encode.mjs', 'print.mjs', 'voucher.mjs', 'content.mjs', 'media-rules.mjs', 'security.mjs', 'newsletter.mjs', 'styles.css', 'reference.css', 'logo-mark.png'])await copyFile(join(root, f), join(out, f));
+for (const f of ['app.mjs', 'guide.mjs', 'library-editor.mjs', 'variants-editor.mjs', 'qr.mjs', 'qr-encode.mjs', 'print.mjs', 'voucher.mjs', 'content.mjs', 'media-rules.mjs', 'security.mjs', 'newsletter.mjs', 'styles.css', 'reference.css', 'logo-mark.png'])await copyFile(join(root, f), join(out, f));
 await cp(join(root, 'assets'), join(out, 'assets'), { recursive: true });
 const html = await readFile(join(root, 'index.html'), 'utf8');
 if (!html.includes('<meta name="robots"')) throw new Error('index.html: chýba meta robots');

@@ -113,3 +113,11 @@
 .pd-programme-body .pd-accordions{margin-top:-52px;border-top:0}.pd-programme-body summary{font-size:14.5px;padding:10px 0;min-height:40px}
 @media(max-width:1000px){.pd-digital .pd-below.pd-programme-body{grid-template-columns:1fr;gap:24px}.pd-programme-body .pd-accordions{margin-top:0}.pd-digital-description{margin:24px 0}}
 @media(max-width:650px){.pd-topics{grid-template-columns:repeat(2,minmax(0,1fr))}.pd-topics article{padding:16px}.pd-topics h3{font-size:17px}}
+.pd-vvv .pd-below{grid-template-columns:minmax(0,1fr)!important;gap:40px!important}
+.pd-vvv .pd-vvv-accordions{margin-top:0!important;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 28px;align-items:start;border-top:1px solid #e4ddcf}
+.pd-vvv .pd-vvv-accordions details[open]{grid-column:1/-1}
+.pd-vvv .pd-vvv-accordions details[open] .pd-original-text{column-count:2;column-gap:56px}
+.pd-vvv .pd-vvv-accordions details[open] .pd-original-text :is(ul,ol,li,h3,h4){break-inside:avoid}
+@media(max-width:760px){.pd-vvv .pd-vvv-accordions details[open] .pd-original-text{column-count:1}}
+.pd-related .product-card .product-info{background:rgba(255,255,255,.96)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;color:#292833!important}
+.pd-related .product-card .product-info p{color:#403f62!important;filter:none!important}

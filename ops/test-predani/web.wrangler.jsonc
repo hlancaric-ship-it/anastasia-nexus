@@ -17,6 +17,6 @@
     "directory": "../../storefront-prototype/dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/backend-media/*", "/media/*"]
+    "run_worker_first": ["/backend-media/*", "/media/*", "/eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku*"]
   }
 }

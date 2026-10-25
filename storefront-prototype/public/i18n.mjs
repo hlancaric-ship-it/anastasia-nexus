@@ -21,6 +21,7 @@ export const LANG_KEY = 'ana-lang-manual';
 
 export const DICT = {
   'Administrácia': ['Administration', 'Администрирование'],
+  'Nakúpiť môžete aj bez registrácie.': ['You can shop without registering.', 'Покупать можно и без регистрации.'],
   'OBCHOD': ['SHOP', 'МАГАЗИН'],
   'ANASTASIA / KONTAKT': ['ANASTASIA / CONTACT', 'ANASTASIA / КОНТАКТЫ'],
   // r17: preklady pre /eshop, /reset-40, /kontakt a záložky účtu (doplnené o chýbajúce texty).
@@ -85,6 +86,11 @@ export const DICT = {
   'Výuka': ['Learning', 'Обучение'],
   'Klub': ['Club', 'Клуб'],
   'Moja knižnica': ['My library', 'Моя библиотека'],
+  'Moja knižnica.': ['My library.', 'Моя библиотека.'],
+  'Údaje o narodení': ['Birth details', 'Данные о рождении'],
+  'Späť': ['Back', 'Назад'],
+  'Hodnota poukazu': ['Voucher value', 'Номинал сертификата'],
+  'Vyberte variant produktu.': ['Choose a product option.', 'Выберите вариант товара.'],
   'Služby': ['Services', 'Услуги'],
   'Služby a miesta': ['Services and places', 'Услуги и места'],
   'Konzultácie': ['Consultations', 'Консультации'],

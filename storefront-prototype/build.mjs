@@ -73,7 +73,7 @@ const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 add2('/','Light for the Future',homeSections(homepageProducts,homepageCategories),'home');
-add('/eshop','Obchod',catalog()+pharmacyStory);add('/eshop/kategorie','Kategórie',views.categories());
+add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmetika'));
 for(const [slug,cat] of [['kozmetika','Kozmetika'],['bylinky-a-vyziva','Bylinky a výživa'],['programy-a-sluzby','Programy a služby']])add(`/eshop/kategoria/${slug}`,cat,catalog(cat));
 for(const p of catalogProducts)add(`/eshop/produkt/${p.slug}`,p.name,views.product(p,catalogProducts));
@@ -84,12 +84,12 @@ add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','
 add('/prihlasenie','Prihlásenie',views.login());
 add('/nova-registracia/vyhody','Výhody registrácie',views.registrationBenefits());add('/prihlasenie/potvrdit','Potvrdenie prihlásenia',views.login(true));add('/nova-registracia','Prihlásenie bez hesla',views.login());
 add('/ucet','Môj účet',views.account());add('/reset-40','RESET 40+',views.reset());add('/reset-40/knihovna','Moje programy',libraryPage());
-add('/klub','Klub ANASTASIA',views.klub());add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());add2('/konzultacie','Konzultácie',views.konzultacie(),true);
+add('/klub','Klub ANASTASIA',views.klub());add('/konzultacie/rezervacia','Rezervácia konzultácie',views.booking());add('/konzultacie','Konzultácie',views.konzultacie());
 add('/kontakt','Kontakt',views.contact());add('/gdpr','Súkromie',views.privacy());
 for(const [alias,target] of Object.entries(api.getAliases())){const source=routes.get(target);if(!source)throw new Error(`Missing alias target ${target}`);routes.set(alias,source);}
 for(const [path,page] of Object.entries(legacyContent)){
   const existing=routes.get(path);
-  if(existing && existing.design)continue;
+  if(existing && (existing.design||path==='/konzultacie'))continue;
   if(path==='/kontakt'){add(path,page.title,views.contact(page.blocks));continue;}
   if(page.blocks.length){
     let contactForm='';
@@ -104,6 +104,8 @@ const reviewsPath='/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com';
 if(routes.has(reviewsPath))routes.set('/ai-anastasia/recenzie-zakaznikov',routes.get(reviewsPath));
 add('/zdravy-svet','Zdravý svet',views.zdravySvet());
 add2('/o-lucii','O Lucii',aboutSections()+aboutPhotos,'about');
+// Koncept nového úvodu na schválenie (noindex ako celý test), so spoločnou lištou a pätičkou webu.
+add2('/koncept','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8'),'about');
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
 // Drafty starého webu (ve výpisu mali stav 404) na novom webe tiež 404 – nie výpis e-shopu.
@@ -127,7 +129,7 @@ const renderDocument=(path,{title,body,design})=>{
   const adminUrl=process.env.ANASTASIA_ADMIN_URL||'';
   if(adminUrl&&!/^https:\/\/[a-zA-Z0-9.-]+(?::\d+)?(?:\/[^\s"']*)?$/.test(adminUrl))throw new Error('Invalid ANASTASIA_ADMIN_URL');
   const adminLink=adminUrl?`<a class="site-admin-link" href="${e(adminUrl)}" rel="noopener">Administrácia</a>`:'';
-  const footer=c.footer.replace('</footer>',`${adminLink}</footer>`);
+  const footer=adminLink&&c.footer.includes('data-cookie-settings>Nastavenia cookies</a>')?c.footer.replace('data-cookie-settings>Nastavenia cookies</a>',`data-cookie-settings>Nastavenia cookies</a>${adminLink}`):c.footer.replace('</footer>',`${adminLink}</footer>`);
   const shell=design
     ?`<div id="page-shell" class="dc-root" lang="sk" style="${ROOT_STYLE}"><main id="main" tabindex="-1">${body.replace('%%HEADER%%',c.header)}</main>${footer}</div>`
     :`<div id="page-shell" class="legacy-shell"><div class="dc-chrome" style="${CTX};background:${path==='/ucet'||customerLogin?'var(--center-main)':'#283020'};margin-left:var(--rail-neg);padding-left:var(--rail-pad)">${c.header}</div><main id="main" class="legacy-main" tabindex="-1"${translatedPages.has(path)?'':' data-sk-only'}>${body}</main><div class="dc-chrome" style="${CTX}">${footer}</div></div>`;
@@ -148,7 +150,7 @@ for(const [from] of DUPLICATE_REDIRECTS)routes.delete(from);
 await writeFile(join(out,'_redirects'),DUPLICATE_REDIRECTS.flatMap(([from,to])=>[`${from} ${to} 301`,`${from}/ ${to} 301`]).join('\n')+'\n');
 for(const [path,page] of routes){const dir=join(out,path);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),unifyFont(document(path,page)));}
 // styles.css ve vrstvě: neoznačená pravidla z dc.css (reset a inline návrh) mají vždy přednost.
-await writeFile(join(out,'base.css'),'@import url("/styles.css") layer(legacy);\n@import url("/pastel-reference.css") layer(legacy);\n');
+await writeFile(join(out,'base.css'),'@layer polish,legacy;\n@import url("/styles.css") layer(legacy);\n@import url("/pastel-reference.css") layer(legacy);\n@import url("/polish.css") layer(polish);\n');
 await writeFile(join(out,'styles.css'),unifyFont(tokenizeColors(await readFile(join(out,'styles.css'),'utf8'))));
 // Detail produktu má vlastní paletu a musí sledovat motiv stejně jako zbytek.
 await writeFile(join(out,'product-detail.css'),tokenizeColors(await readFile(join(out,'product-detail.css'),'utf8')));
@@ -195,6 +197,6 @@ await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
 // Admin ukazuje stránky v náhľade vedľa editora textov.
 const adminOrigin=process.env.ANASTASIA_ADMIN_ORIGIN||apiOrigin.replace('-api.','-admin.');
-await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.stripe.com data:; media-src 'self' ${mediaOrigin}; font-src 'self'; connect-src 'self' ${apiOrigin} ${mediaOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors ${adminOrigin}; base-uri 'none'; form-action 'self'\n`);
+await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' ${mediaOrigin} https://*.stripe.com data:; media-src 'self' ${mediaOrigin}; font-src 'self'; connect-src 'self' ${apiOrigin} ${mediaOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors ${adminOrigin}; base-uri 'none'; form-action 'self'\n`);
 await writeFile(join(out,'routes.json'),JSON.stringify([...routes.keys()],null,2));
 console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). ${process.env.ANASTASIA_PUBLISHABLE_KEY?'Real catalog loaded from Medusa.':'No backend calls.'}`);

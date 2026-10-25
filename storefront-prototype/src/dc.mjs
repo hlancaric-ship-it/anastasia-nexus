@@ -62,6 +62,7 @@ function rewriteLinks(html, {page, region}) {
     else if (href.startsWith('/')) target = href; // už přeložená routa (iterace)
     else if (href.startsWith('https://')) target = href;
     else if (href.startsWith('tel:')) target = PHONE;
+    else if (href.startsWith('mailto:')) target = href;
     else if (label && EXTERNAL[label]) target = EXTERNAL[label];
     else if (label === 'EN' || label === 'RU') target = null; // jazykové mutace zatím nejsou
     else if (/\.dc\.html/.test(href)) {
@@ -115,9 +116,9 @@ function convert(src, {page, region = 'body', data = {}}) {
   // Hodnoty.
   const values = {
     railPad: 'var(--rail-pad)', railNeg: 'var(--rail-neg)', heroHeight: '100vh', captionLeft: 'var(--cap-left)', menuRight: 'var(--menu-right)',
-    overlayOpacity: 'var(--ov-o)', overlayPointer: 'var(--ov-p)',
-    menuOpacity: 'var(--top-o)', menuPointer: 'var(--top-p)', menuTransform: 'var(--top-t)',
-    sideOpacity: 'var(--side-o)', sidePointer: 'var(--side-p)', sideTransform: 'var(--side-t)',
+    overlayOpacity: 'var(--ov-o,0)', overlayPointer: 'var(--ov-p,none)',
+    menuOpacity: 'var(--top-o,0);visibility:var(--top-v,hidden)', menuPointer: 'var(--top-p,none)', menuTransform: 'var(--top-t)',
+    sideOpacity: 'var(--side-o,0);visibility:var(--side-v,hidden)', sidePointer: 'var(--side-p,none)', sideTransform: 'var(--side-t)',
     playIcon: 'II', soundLabel: 'Zvuk vypnutý', subscribeLabel: 'Odoberať',
     cartCount: '0',
   };
@@ -224,6 +225,11 @@ export function chrome(page) {
   const src = page === 'about' ? P.about : P.home;
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
   const side=src.side.replace(/<div style="display:flex;align-items:center;gap:14px"><img src="\.\/assets\/logo-mark\.png"[^>]*><div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div><\/div>/,'');
+  // Tri logá z pätičky v spodnom riadku horného menu vpravo, vedľa jazykov.
+  const MENU_LOGOS='<div class="menu-brand-logos" style="display:flex;justify-content:flex-end;align-items:flex-start;gap:18px;min-width:0;padding-top:6px">'
+    +'<a href="/" data-menu-close style="display:grid;grid-template-rows:96px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future" style="height:92px;width:auto;opacity:.82"><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent);white-space:nowrap">ANASTASIA OZ</span></a>'
+    +'<a href="https://www.anastasia.academy/" target="_blank" rel="noopener" style="display:grid;grid-template-rows:96px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><div style="display:flex;flex-direction:column;align-items:center;gap:7px;padding-bottom:4px"><span style="width:1px;height:26px;background:linear-gradient(180deg,rgba(201,163,85,0),var(--site-accent))"></span><span style="font-weight:200;font-size:12px;letter-spacing:.3em;padding-left:.3em;white-space:nowrap">ANASTASIA</span><span style="display:flex;align-items:center;gap:6px;font-weight:300;font-size:7px;letter-spacing:.5em;padding-left:.5em;color:var(--site-accent);white-space:nowrap"><span style="width:10px;height:1px;background:var(--site-accent)"></span>ACADEMY<span style="width:10px;height:1px;background:var(--site-accent)"></span></span></div><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent);white-space:nowrap">ANASTASIA.ACADEMY</span></a>'
+    +'<a href="https://www.aianastasia.com/" target="_blank" rel="noopener" style="display:grid;grid-template-rows:96px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><img src="/assets/logo-mark.png" alt="" style="width:58px;height:auto"><span style="font-weight:200;font-size:11px;letter-spacing:.3em;padding-left:.3em;white-space:nowrap">ANASTASIA</span></div><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent);white-space:nowrap">AI ANASTASIA</span></a></div>';
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   // Obě menu čtou stejný seznam; původní návrhové duplicity se nepřenášejí.
   const menuBrand=html=>{
@@ -240,16 +246,32 @@ export function chrome(page) {
       const slug=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'');
       const base=`global__menu-${slug(group.title)}`;
       let field=groupOffsets[index-1];
-      const link=(label,href,heading=false,keyIndex=field++)=>{const content=group.title==='Svet ANASTASIA'&&href.startsWith('https://')?'':` data-content="${base}__${keyIndex}-text"`;return `<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355"${content}>${escape(label)}</a>`;};
-      const title=group.title==='Obchod'?link(group.title,group.href,true,field++):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px" data-content="${base}__${field++}-text">${escape(group.title)}</span>`;
+      const link=(label,href,heading=false,keyIndex=field++)=>{// Položky menu idú zo zoznamu kategórií, nie z textov v administrácii (staré texty tam nesedeli na odkazy).
+        const content='';return `<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355"${content}>${escape(label)}</a>`;};
+      const title=group.title==='Obchod'?link(group.title,group.href,true,field++):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px"${(field++,"")}>${escape(group.title)}</span>`;
       return wrapper+title+group.links.map(item=>{if(!item){field++;return '';}const [label,href]=item;return link(label,href);}).join('')+'</div>';
     });
+    // Dekorativní fotka lesa a poznámka „už čoskoro“ v dolní části menu se nevykreslují.
+    html=html.replace(/<div style="grid-column:span 2;min-height:190px;[^"]*hero-forest\.jpg[^"]*"><\/div>/,'').replace(/<span style="font-size:9px;opacity:0\.7">EN \/ RU už čoskoro<\/span>/,'');
     return html.replace(/<img src="\.\/assets\/logo-mark\.png"[^>]*>/,menuMark)
       .replaceAll('background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.04) 30%,rgba(255,255,255,0.02) 60%,rgba(255,255,255,0.08) 100%),rgba(26,34,22,0.42)', 'background:#F5F2E8')
       .replaceAll('color:#EFE5C7','color:#283020')
       .replaceAll('color:#C9A355','color:#313C2B')
       .replaceAll('style-hover="color:#C9A355"','style-hover="color:#62527F"')
       .replaceAll('backdrop-filter:blur(40px) saturate(170%) brightness(0.52);-webkit-backdrop-filter:blur(40px) saturate(170%) brightness(0.52);text-shadow:0 1px 14px rgba(0,0,0,0.35);','');
+  };
+  // Horné menu: štyri sekcie vedľa seba (Môj účet, Klub a Kontakt sú štvrtý
+  // stĺpec), dole jazyky vľavo a tri logá vpravo.
+  const topLayout=html=>{
+    const block=html.match(/<div style="display:flex;flex-direction:column">\s*(<a class="dch6"[^>]*font-size:30px[\s\S]*?)<\/div>/);
+    const bottom='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;padding-top:20px;';
+    if(!block||!html.includes(bottom))return html;
+    const links=block[1].replace(/style="font-weight:300;font-size:30px;line-height:1\.35;letter-spacing:-0\.6px"/g,'style="font-size:14px;color:var(--site-main);padding:4px 0;"').trim();
+    const column='<div style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><span style="font-size:25px;color:#313C2B;margin-bottom:6px">Klub a kontakt</span>'+links+'</div>';
+    html=html.replace(block[0],'');
+    const at=html.lastIndexOf('</div>',html.indexOf(bottom));
+    html=html.slice(0,at)+column+html.slice(at);
+    return html.replace(bottom,'<div class="menu-bottom-row" style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding-top:20px;').replace(/(<div class="menu-bottom-row"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>)/,'$1'+MENU_LOGOS);
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
   const headerHtml=convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">').replace('<header ','<header id="lh-top" class="lh-top" ');
@@ -260,7 +282,7 @@ export function chrome(page) {
     footer: bleed(withCookieSettings(convert(footerClasses(footerLegalLinks(footerLinks(src.footer))), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
-    menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(convert(menuBrand(src.top), {page: linkPage, region: 'menu'})),
+    menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(topLayout(convert(menuBrand(src.top), {page: linkPage, region: 'menu'}))),
   };
 }
 

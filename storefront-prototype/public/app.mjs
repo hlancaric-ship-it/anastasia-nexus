@@ -1,11 +1,12 @@
 import {isMediaUrl} from '/lib/media-url.mjs';
+import {descriptionHtml} from '/lib/description-blocks.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import '/cms-preview.mjs';
 import {createApi} from '/lib/api/index.mjs';
 import {loadContent,applyContent,contentPageKeys} from '/content.mjs';
 import {availablePaymentMethods,defaultPaymentMethod,nextButtonState} from '/checkout-ui.mjs';
-import {escape as e,card,arrow,button} from '/components.mjs';
+import {escape as e,card,shopCard,shopOrder,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit,DICT} from '/i18n.mjs';
 import {initWithdrawalForm} from '/withdrawal-form.mjs';
@@ -30,7 +31,7 @@ let miniCart;
 const shopText=value=>{const item=DICT[value];const lang=document.documentElement.lang;return lang==='en'?(item?.[0]||value):lang==='ru'?(item?.[1]||value):value;};
 async function showMiniCart(){
   if(!miniCart){miniCart=document.createElement('div');miniCart.className='shop-mini-cart';miniCart.innerHTML=`<button class="shop-mini-scrim" data-mini-close aria-label="${e(shopText('Zavrieť'))}"></button><aside class="shop-mini-panel" role="dialog" aria-modal="true" aria-label="${e(shopText('Košík'))}"><header><h2>${e(shopText('Košík'))}</h2><button type="button" data-mini-close aria-label="${e(shopText('Zavrieť'))}">×</button></header><div class="shop-mini-lines"></div><footer><p><span>${e(shopText('Spolu'))}</span><strong></strong></p><a class="button" href="/kosik">${e(shopText('Zobraziť košík'))}</a><a class="button shop-mini-checkout" href="/pokladna">${e(shopText('Pokračovať k pokladni'))}</a></footer></aside>`;document.body.append(miniCart);miniCart.addEventListener('click',ev=>{if(ev.target.closest('[data-mini-close]'))miniCart.classList.remove('is-open');});}
-  const cart=await api.getCart(),list=$('.shop-mini-lines',miniCart);list.innerHTML=cart.lines.map(l=>`<article><img src="${e(l.image)}" alt=""><div><h3>${e(l.name)}</h3><p>${e(l.priceLabel)}${l.quantity>1?` × ${l.quantity}`:''}</p><div class="shop-mini-qty"><button type="button" data-mini-qty="${l.quantity-1}" data-mini-slug="${e(l.slug)}" aria-label="${e(shopText('Znížiť množstvo'))}">−</button><span>${l.quantity}</span><button type="button" data-mini-qty="${l.quantity+1}" data-mini-slug="${e(l.slug)}" aria-label="${e(shopText('Zvýšiť množstvo'))}">+</button></div></div><button type="button" class="shop-mini-remove" data-mini-qty="0" data-mini-slug="${e(l.slug)}" aria-label="${e(shopText('Odstrániť'))}">×</button></article>`).join('')||`<p>${e(shopText('Košík je prázdny.'))}</p>`;
+  const cart=await api.getCart(),list=$('.shop-mini-lines',miniCart);list.innerHTML=cart.lines.map(l=>`<article><img src="${e(l.image)}" alt=""><div><h3>${e(l.name)}</h3><p>${e(l.priceLabel)}${l.quantity>1?` × ${l.quantity}`:''}</p><div class="shop-mini-qty"><button type="button" data-mini-qty="${l.quantity-1}" data-mini-slug="${e(l.key||l.slug)}" aria-label="${e(shopText('Znížiť množstvo'))}">−</button><span>${l.quantity}</span><button type="button" data-mini-qty="${l.quantity+1}" data-mini-slug="${e(l.key||l.slug)}" aria-label="${e(shopText('Zvýšiť množstvo'))}">+</button></div></div><button type="button" class="shop-mini-remove" data-mini-qty="0" data-mini-slug="${e(l.key||l.slug)}" aria-label="${e(shopText('Odstrániť'))}">×</button></article>`).join('')||`<p>${e(shopText('Košík je prázdny.'))}</p>`;
   $('.shop-mini-panel footer strong',miniCart).textContent=cart.totalLabel||'';miniCart.classList.add('is-open');
   $$('[data-mini-qty]',miniCart).forEach(btn=>btn.onclick=async()=>{const result=await api.setQuantity(btn.dataset.miniSlug,Number(btn.dataset.miniQty));if(result.ok){await updateCount();await showMiniCart();}});
   $('[data-mini-close]',miniCart)?.focus();
@@ -41,8 +42,8 @@ window.addEventListener('unhandledrejection',event=>{const reason=String(event.r
 const customerLogged=()=>{try{return Boolean(storage&&storage.getItem(JWT_KEY));}catch{return false;}};
 // Ikona účtu v hlavičke aj položka účtu v menu idú podľa prihlásenia (účet / prihlásenie).
 for(const link of $$('[data-global-account],[data-menu-account]'))setAccountLink(link,customerLogged());
-for(const link of $$('[data-global-account],[data-menu-account]')){if(link.parentElement?.querySelector(':scope > [data-register-link]'))continue;const register=document.createElement('a');register.href='/nova-registracia?mode=register';register.dataset.registerLink='';register.className=link.classList.contains('header-account')?'header-register':'menu-register';register.textContent='Zaregistrovať sa';link.insertAdjacentElement('afterend',register);}
-const checkoutEmail=$('#checkout-form [name="email"]');if(checkoutEmail&&!checkoutEmail.closest('label')?.nextElementSibling?.matches('[data-checkout-register]')){const link=document.createElement('a');link.href='/nova-registracia?mode=register';link.dataset.checkoutRegister='';link.className='text-link';link.textContent='Vytvoriť účet';checkoutEmail.closest('label')?.insertAdjacentElement('afterend',link);}
+for(const link of $$('[data-global-account],[data-menu-account]')){if(link.classList.contains('dch6')||link.parentElement?.querySelector(':scope > [data-register-link]'))continue;const register=document.createElement('a');register.href='/nova-registracia?mode=register';register.dataset.registerLink='';register.className=link.classList.contains('header-account')?'header-register':'menu-register';register.textContent='Zaregistrovať sa';link.insertAdjacentElement('afterend',register);}
+const checkoutEmail=$('#checkout-form [name="email"]');if(checkoutEmail&&!checkoutEmail.closest('label')?.nextElementSibling?.matches('[data-checkout-register]')){const link=document.createElement('p');link.dataset.checkoutRegister='';link.className='checkout-account';const login=document.createElement('a');login.href='/prihlasenie/';login.textContent='Prihlásiť sa';const reg=document.createElement('a');reg.href='/nova-registracia?mode=register';reg.textContent='Vytvoriť účet';link.append(login,' · ',reg);checkoutEmail.closest('label')?.insertAdjacentElement('afterend',link);}
 // Odkaz na účet na prihlásení vidí len prihlásený zákazník.
 for(const link of $$('[data-my-account]'))setAccountVisibility(link,customerLogged());
 // Kolekcia na úvode: karty z buildu sú prázdne, plníme ich produktmi z backendu; čo nemá produkt, skryjeme.
@@ -87,7 +88,7 @@ if(customerCenter){
   const setTheme=id=>{if(!themeIds.includes(id))id=themeIds[0];if(id===themeIds[0])delete document.documentElement.dataset.centerTheme;else document.documentElement.dataset.centerTheme=id;markTheme(id);try{if(id===themeIds[0])localStorage.removeItem('ana-center-theme');else localStorage.setItem('ana-center-theme',id);}catch{}};
   markTheme(document.documentElement.dataset.centerTheme||themeIds[0]);
   $$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.centerThemePick)));
-  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moje programy.',reset:'RESET 40+.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',klub:'Klub ANASTASIA.',objednavky:'Objednávky.',materialy:'Materiály.',profil:'Môj profil.'};
+  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moja knižnica.',reset:'RESET 40+.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',profil:'Môj profil.'};
   const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];requestAnimationFrame(()=>{const active=$('.center-sidebar [aria-current=page]',customerCenter),nav=active?.parentElement;if(active&&nav&&nav.scrollWidth>nav.clientWidth){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect(),style=getComputedStyle(nav),left=n.left+parseFloat(style.paddingLeft),right=n.right-parseFloat(style.paddingRight);if(a.left<left)nav.scrollLeft+=a.left-left;else if(a.right>right)nav.scrollLeft+=a.right-right;}});return id;};
   show(location.hash.slice(1));
   $$('[data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);$('#account-title').focus({preventScroll:true});}));
@@ -157,7 +158,15 @@ if(giftForm){
     preview.querySelector('[data-voucher-currency]').textContent=currency;
   };
   select.addEventListener('change',paintPreview);
-  try{const product=await api.getGiftVoucherProduct();select.replaceChildren(...product.variants.map(v=>new Option(v.title,v.id)));select.disabled=!product.variants.length;send.disabled=select.disabled;if(select.disabled)$('.form-status',giftForm).textContent='Darčekové poukazy momentálne nie sú dostupné.';}
+  const live=(field,target,empty)=>{const el=preview?.querySelector(target);if(!el)return;const paint=()=>{el.textContent=field.value.trim()||empty;};field.addEventListener('input',paint);paint();};
+  live(giftForm.elements.name,'[data-voucher-to]','vašich blízkych');
+  live(giftForm.elements.message,'[data-voucher-msg]','');
+  const card=preview?.querySelector('.gv-card');
+  if(card&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&window.matchMedia('(hover: hover)').matches){
+    preview.addEventListener('pointermove',e=>{const r=preview.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;card.style.setProperty('--rx',`${(-y*10).toFixed(2)}deg`);card.style.setProperty('--ry',`${(x*14).toFixed(2)}deg`);card.style.setProperty('--mx',`${((x+.5)*100).toFixed(1)}%`);});
+    preview.addEventListener('pointerleave',()=>{card.style.setProperty('--rx','0deg');card.style.setProperty('--ry','0deg');});
+  }
+  try{const product=await api.getGiftVoucherProduct();select.replaceChildren(...product.variants.map(v=>new Option(v.title,v.id)));{const pills=document.createElement('div');pills.className='pd-options gv-values';pills.innerHTML=`<fieldset class="pd-option"><legend>${e(shopText('Hodnota poukazu'))}</legend><div>${product.variants.map(v=>`<button type="button" data-gv="${e(v.id)}">${e(v.title)}</button>`).join('')}</div></fieldset>`;const mark=()=>pills.querySelectorAll('[data-gv]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.gv===select.value)));pills.addEventListener('click',ev=>{const b=ev.target.closest('[data-gv]');if(!b)return;select.value=b.dataset.gv;select.dispatchEvent(new Event('change'));mark();});select.addEventListener('change',mark);select.closest('label').classList.add('gv-select');select.closest('label').after(pills);mark();}select.disabled=!product.variants.length;send.disabled=select.disabled;if(select.disabled)$('.form-status',giftForm).textContent='Darčekové poukazy momentálne nie sú dostupné.';}
   catch{$('.form-status',giftForm).textContent='Hodnoty poukazu sa nepodarilo načítať. Skúste to znova.';}
   paintPreview();
   giftForm.addEventListener('submit',async event=>{event.preventDefault();if(send.disabled)return;send.disabled=true;try{const result=await api.addGiftVoucher({variant_id:select.value,recipient:{name:giftForm.elements.name.value,email:giftForm.elements.email.value,message:giftForm.elements.message.value}});$('.form-status',giftForm).textContent=result.ok?'Poukaz bol pridaný do košíka.':result.message;if(result.ok){giftForm.elements.name.value='';giftForm.elements.email.value='';giftForm.elements.message.value='';await updateCount();}}catch{$('.form-status',giftForm).textContent='Poukaz sa nepodarilo pridať. Skúste to znova.';}finally{send.disabled=false;}});
@@ -187,7 +196,7 @@ function setMenu(kind){
   root.style.setProperty('--ov-o',kind?'1':'0');root.style.setProperty('--ov-p',kind?'auto':'none');
   $$('[data-menu-open]').forEach(t=>t.setAttribute('aria-expanded',String(t.dataset.menuOpen===kind)));
   shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
-  menuOpen=kind;
+  menuOpen=kind;root.classList.toggle('ana-menu-open',!!kind);
   if(kind)fitMenu($(`#dc-${kind}-menu`));
   if(kind){if(!prev)previousFocus=document.activeElement;lenis?lenis.stop():root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
   else{lenis?lenis.start():root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
@@ -221,6 +230,7 @@ function initRoll(){
   const targets=$$(scope).map(el=>({el,host:el})).concat($$(':is(.dc-root,.dc-chrome) [data-roll-target]').map(el=>({el,host:el.closest('a, button')||el})));
   for(const {el,host} of targets){
     if(el.dataset.roll)continue;
+    if(el.closest('.kc'))continue; // koncept má vlastný pohyb
     const tn=[...el.childNodes].find(n=>n.nodeType===3&&n.nodeValue.trim().length>1);if(!tn)continue;
     el.dataset.roll='1';
     const wrap=document.createElement('span');wrap.style.cssText='display:inline-block;position:relative;overflow:hidden;vertical-align:middle;line-height:inherit;padding-bottom:0.14em;margin-bottom:-0.14em';
@@ -237,7 +247,49 @@ initRoll();
 // Videa: ztlumená, mimo obrazovku pauza.
 const heroVideo=$('video[data-video="hero"]'),playBtn=$('[data-video-toggle]'),soundBtn=$('[data-sound-toggle]');
 const mediaControls=$('[data-media-controls]'),mobileMedia=$('[data-mobile-media]'),wideMedia=matchMedia('(min-width:1000px)');
-const placeMedia=()=>{if(mediaControls&&mobileMedia)(wideMedia.matches?$('#ana-rail'):mobileMedia).append(mediaControls);};
+// Mobil: mimo úvodu chýba miesto pod videom, preto zvuk a cesta späť sedia v malom doku vľavo dole.
+const mobileDock=document.createElement('div');mobileDock.className='ana-mobile-dock';
+if(location.pathname!=='/'){const back=document.createElement('button');back.type='button';back.className='ana-back';back.setAttribute('aria-label',shopText('Späť'));back.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';back.addEventListener('click',()=>{let same=false;try{same=!!document.referrer&&new URL(document.referrer).origin===location.origin;}catch{}if(same&&history.length>1){history.back();return;}const parts=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean);parts.pop();location.href='/'+parts.join('/');});mobileDock.append(back);}
+// Mobilné menu: hore výrazné Zaregistrovať sa, Prihlásiť sa, Kontakt, pod nimi košík a jazyk s vlajkami.
+// Spúšťa sa po i18n, ktoré prepínače jazyka vytvára.
+function mountMenuQuick(){
+  if(mountMenuQuick.done)return;mountMenuQuick.done=true;
+  const menu=document.getElementById('dc-top-menu');
+  const lang=menu?.querySelector('.menu-bottom-row [data-i18n-switch]')?.parentElement;
+  const head=menu?.querySelector('.menu-brand-mark')?.closest('div')?.parentElement;
+  if(menu&&lang&&head){
+    const home=lang.parentElement,narrow=matchMedia('(max-width:760px)');
+    const quick=document.createElement('div');quick.className='menu-quick';
+    quick.innerHTML=`<nav class="menu-quick__links" aria-label="${e(shopText('Účet'))}"><a href="/nova-registracia?mode=register" data-register-link data-menu-close>${e(shopText('Zaregistrovať sa'))}</a><a href="/prihlasenie" data-menu-account data-menu-close>${e(shopText('Prihlásiť sa'))}</a><a href="/kontakt" data-menu-close>${e(shopText('Kontakt'))}</a></nav><div class="menu-quick__row"><a class="menu-quick__cart" href="/kosik" data-menu-close>${e(shopText('Košík'))} <span class="cart-count">0</span></a></div>`;
+    {const logged=customerLogged();setAccountLink(quick.querySelector('[data-menu-account]'),logged);quick.querySelector('[data-register-link]').hidden=logged;}
+    lang.classList.add('menu-lang');
+    lang.querySelectorAll('[data-i18n-switch]').forEach(el=>el.dataset.flag=el.textContent.trim().toLowerCase());
+    const place=()=>{if(narrow.matches){if(!quick.isConnected)head.append(quick);quick.querySelector('.menu-quick__row').append(lang);}else{home.append(lang);quick.remove();}};
+    place();narrow.addEventListener('change',place);
+    updateCount().catch(()=>{});
+  }
+}
+// Mobil: ovládanie zvuku je schované v malom tlačidle vedľa Menu a vysunie sa dole až po ťuknutí.
+const soundPop=document.createElement('div');soundPop.className='ana-sound-pop';
+soundPop.innerHTML=`<button type="button" class="ana-sound-pop__btn" aria-expanded="false" aria-label="${e(shopText('Ovládanie zvuku'))}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 18V6l10-2v12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16.5" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div class="ana-sound-pop__panel" hidden></div>`;
+const soundPanel=$('.ana-sound-pop__panel',soundPop),soundPopBtn=$('.ana-sound-pop__btn',soundPop);
+// Panel visí v body (fixed), aby ho hlavička s backdrop-filter neorezala.
+soundPanel.classList.add('ana-sound-panel');document.body.append(soundPanel);
+let soundAnchor=soundPopBtn;
+const setSoundPop=open=>{if(open){const r=soundAnchor.getBoundingClientRect();soundPanel.style.top=`${Math.round(r.bottom+10)}px`;soundPanel.style.right=`${Math.max(12,Math.round(innerWidth-r.right-6))}px`;}soundPanel.hidden=!open;$$('.ana-sound-pop__btn').forEach(b=>b.setAttribute('aria-expanded',String(open)));$$('.ana-sound-pop').forEach(p=>p.classList.toggle('is-open',open));};
+// Hlavička môže byť naklonovaná (plávajúca lišta), preto klik cez delegáciu na dokumente.
+document.addEventListener('click',event=>{const btn=event.target.closest?.('.ana-sound-pop__btn');if(btn){soundAnchor=btn;setSoundPop(soundPanel.hidden);return;}if(!soundPanel.hidden&&!soundPanel.contains(event.target))setSoundPop(false);});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!soundPanel.hidden){setSoundPop(false);soundPopBtn.focus();}});
+const headerMenuBtn=()=>$$('header [data-menu-open]').find(b=>!b.closest('#dc-top-menu,#dc-side-menu'));
+const placeMedia=()=>{
+  const menuBtn=headerMenuBtn();
+  if(mediaControls&&wideMedia.matches){$('#ana-rail')?.append(mediaControls);soundPop.remove();setSoundPop(false);}
+  else if(mediaControls&&menuBtn){soundPanel.append(mediaControls);if(!soundPop.isConnected)menuBtn.before(soundPop);}
+  else if(mediaControls&&mobileMedia){mobileMedia.append(mediaControls);}
+  else if(mediaControls){mobileDock.append(mediaControls);}
+  if(!wideMedia.matches&&mobileDock.childElementCount&&!mobileDock.isConnected)document.body.append(mobileDock);
+  if(wideMedia.matches&&mobileDock.isConnected)mobileDock.remove();
+};
 placeMedia();wideMedia.addEventListener('change',placeMedia);
 // Ambient (public/ambient.mjs): části s prolínáním, pozice v sessionStorage, vypnutí v localStorage. Bez gesta prohlížeč
 // zvuk nepustí, proto se rozjede při první interakci se stránkou. Ovládá se tlačítky v boční liště (na mobilu pod hero).
@@ -293,7 +345,7 @@ const lite=matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)')
 const motion=!reducedMotion.matches&&!lite;
 if(motion&&$('.dc-root')){
   const ease='cubic-bezier(.16,1,.3,1)';
-  const els=$$('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form').filter(el=>!el.closest('aside')&&!el.closest('article p')&&!el.closest('.lh-intro'));
+  const els=$$('section h1, section h2, section h3, section p, section article, section li, section form, footer p, footer form').filter(el=>!el.closest('aside')&&!el.closest('article p')&&!el.closest('.lh-intro')&&!el.closest('.kc'));
   const io=new IntersectionObserver(entries=>entries.forEach(en=>{if(!en.isIntersecting)return;const el=en.target;io.unobserve(el);el.style.willChange='opacity, transform';el.style.opacity='1';el.style.transform='translate3d(0,0,0)';setTimeout(()=>{el.style.willChange='auto';},1600);}),{rootMargin:'0px 0px -6% 0px',threshold:0.01});
   els.forEach(el=>{const i=[...el.parentElement.children].indexOf(el)%6;el.style.opacity='0';el.style.transform='translate3d(0,28px,0)';el.style.transition='opacity 1100ms '+ease+', transform 1300ms '+ease;el.style.transitionDelay=(i*80)+'ms';io.observe(el);});
   addEventListener('beforeprint',()=>els.forEach(el=>{el.style.opacity='1';el.style.transform='none';}));
@@ -347,8 +399,11 @@ if(motion&&$('.dc-root')){
   let ticking=false;
   addEventListener('scroll',()=>{if(lenis||ticking)return;ticking=true;requestAnimationFrame(()=>{ticking=false;fxFrame();});},{passive:true});
   if(motion&&window.Lenis){
-    lenis=new window.Lenis({lerp:0.09,smoothWheel:true,wheelMultiplier:1,touchMultiplier:1,syncTouch:false,autoRaf:false,anchors:{duration:1.8,easing:t=>(t<0.5?8*t*t*t*t:1-Math.pow(-2*t+2,4)/2)}});
+    lenis=new window.Lenis({lerp:0.055,smoothWheel:true,wheelMultiplier:0.8,touchMultiplier:1,syncTouch:false,autoRaf:false,anchors:{duration:2.2,easing:t=>(t<0.5?8*t*t*t*t:1-Math.pow(-2*t+2,4)/2)}});
     window.__anaLenis=lenis;lenis.on('scroll',fxFrame);
+    // Luxusný pomalý skrol, rýchlejší len v dlhých pasážach označených data-scroll-fast.
+    const fast=$$('[data-scroll-fast]');
+    if(fast.length){const setMul=()=>{const mid=innerHeight/2,m=fast.some(el=>{const r=el.getBoundingClientRect();return r.top<mid&&r.bottom>mid;})?1.4:0.8;lenis.options.wheelMultiplier=m;if(lenis.virtualScroll?.options)lenis.virtualScroll.options.wheelMultiplier=m;};lenis.on('scroll',setMul);setMul();}
     const raf=time=>{lenis.raf(time);requestAnimationFrame(raf);};requestAnimationFrame(raf);
   }
   fxFrame();
@@ -359,7 +414,7 @@ document.addEventListener('click',async event=>{
   if(add){const result=await api.addToCart(add.dataset.add);updateCount();if(result.ok!==false){showMiniCart().catch(()=>{});}if(!add.closest('.dc-root')||result.ok===false)toast(result.message);else{const fg=add.style.color;setLabel(add,'Pridané');add.style.color='var(--site-accent)';clearTimeout(add._t);add._t=setTimeout(()=>{setLabel(add,'Do košíka');add.style.color=fg;},1600);}return;}
   const a=event.target.closest('a[href]');
   if(a&&a.dataset&&a.dataset.i18nSwitch)return;
-  if(!a||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
+  if(!a||event.defaultPrevented||a.target||a.download||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
   const url=new URL(a.href,location.href);
   if(url.origin!==location.origin||url.pathname===location.pathname&&url.search===location.search&&url.hash||reducedMotion.matches)return;
   // „Domů“ nikdy nepřehrává preloader znovu: otevře hero sekci.
@@ -375,15 +430,33 @@ const filterForm=$('.catalog-controls');
 if(filterForm){
   const params=new URLSearchParams(location.search);
   for(const name of ['category','search','filter'])if(params.has(name))filterForm.elements[name].value=params.get(name);
-  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));const products=await api.getProducts(query);if(sequence!==renderSequence)return;$('#catalog-results').innerHTML=products.length?products.map(card).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;
+  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));const products=await api.getProducts(query);if(sequence!==renderSequence)return;$('#catalog-results').innerHTML=products.length?shopOrder(products).map(shopCard).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;
     $$('[data-catalog-category]').forEach(link=>{if(link.dataset.catalogCategory===query.category)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
     const search=new URLSearchParams(Object.entries(query).filter(([,v])=>v));history.replaceState(null,'',location.pathname+(search.size?'?'+search:''));
     $('#reset-filters')?.addEventListener('click',()=>{for(const name of ['search','category','filter'])filterForm.elements[name].value='';render();});
   };
+  // Kategórie v obchode sa prepínajú na mieste – bez nového načítania stránky.
+  const norm=path=>path.replace(/\/+$/,'')||'/';
+  document.addEventListener('click',event=>{
+    const a=event.target.closest('a[href]');
+    if(!a||a.target||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
+    const url=new URL(a.href,location.href);
+    if(url.origin!==location.origin||norm(url.pathname)!==norm(location.pathname)||!url.searchParams.has('category'))return;
+    event.preventDefault();
+    const value=url.searchParams.get('category')||'';
+    const radio=[...filterForm.querySelectorAll('[name=category]')].find(r=>r.value===value);
+    if(radio)radio.checked=true;else filterForm.elements.category.value=value;
+    if(filterForm.elements.search)filterForm.elements.search.value='';
+    render();
+    if(menuOpen)setMenu(null);
+    const target=$('#nase-produkty')||$('#catalog-results');
+    if(target&&lenis)lenis.scrollTo(target,{offset:-16});else target?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
+  },true);
   filterForm.addEventListener('input',render);filterForm.addEventListener('submit',ev=>{ev.preventDefault();render();});render();
 }
 // Jeden handler na formulár: druhý (v bloku živého detailu) posielal 2× POST a do košíka pridal dvojnásobok.
-$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code||form.dataset.busy)return;form.dataset.busy='1';const button=form.querySelector('[type=submit]');if(button)button.disabled=true;try{const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value));$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});if(result.ok!==false)showMiniCart().catch(()=>{});}finally{delete form.dataset.busy;if(button)button.disabled=false;}});
+$$('[data-qty-step]').forEach(btn=>btn.addEventListener('click',()=>{const input=btn.closest('form')?.elements.quantity;if(!input)return;const next=Math.min(99,Math.max(1,(parseInt(input.value,10)||1)+Number(btn.dataset.qtyStep)));input.value=String(next);}));
+$('.add-product')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.dataset.code||form.dataset.busy)return;form.dataset.busy='1';const button=form.querySelector('[type=submit]');if(button)button.disabled=true;try{if(form.dataset.variantMissing){const msg=shopText('Vyberte variant produktu.');$('.form-status',form.parentElement).textContent=msg;toast(msg);return;}const result=await api.addToCart(form.dataset.code,Number(form.elements.quantity.value),form.dataset.variant||'');$('.form-status',form.parentElement).textContent=result.message;toast(result.message);updateCount().catch(()=>{});if(result.ok!==false)showMiniCart().catch(()=>{});}finally{delete form.dataset.busy;if(button)button.disabled=false;}});
 // Živý detail produktu: názov, cena, obrázok a popis vždy z jadra (aj pre produkty založené v administrácii).
 const detail=$('[data-product-slug]');
 if(detail&&api.mode==='http'){
@@ -415,21 +488,40 @@ if(productDetail){
     const put=(selector,value)=>{const node=productDetail.querySelector(selector);if(node&&value!=null&&String(value).trim())node.textContent=String(value);};
     put('[data-product-title]',product.name);
     put('[data-product-price]',product.priceLabel);
+    const buy=productDetail.querySelector('.add-product');
+    if(buy&&product.options?.length&&product.variants?.length>1){
+      // Voľby ako pri iných e-shopoch: každá voľba je rad tlačidiel, kombinácia určuje variant a cenu.
+      const box=document.createElement('div');box.className='pd-options';
+      const chosen=Object.fromEntries(product.options.map(o=>[o.title,product.variants[0].options[o.title]||'']));
+      box.innerHTML=product.options.map(o=>`<fieldset class="pd-option"><legend>${e(o.title)}</legend><div>${o.values.map(v=>`<button type="button" data-opt="${e(o.title)}" data-val="${e(v)}">${e(v)}</button>`).join('')}</div></fieldset>`).join('');
+      const paint=()=>{
+        const match=product.variants.find(v=>product.options.every(o=>v.options[o.title]===chosen[o.title]));
+        box.querySelectorAll('[data-opt]').forEach(b=>{const on=chosen[b.dataset.opt]===b.dataset.val;b.setAttribute('aria-pressed',String(on));const test={...chosen,[b.dataset.opt]:b.dataset.val};b.classList.toggle('is-off',!product.variants.some(v=>product.options.every(o=>v.options[o.title]===test[o.title])));});
+        if(match){buy.dataset.variant=match.id;delete buy.dataset.variantMissing;const price=productDetail.querySelector('[data-product-price]');if(price)price.textContent=match.priceLabel;}
+        else{delete buy.dataset.variant;buy.dataset.variantMissing='1';}
+      };
+      box.addEventListener('click',ev=>{const b=ev.target.closest('[data-opt]');if(!b)return;chosen[b.dataset.opt]=b.dataset.val;paint();});
+      buy.before(box);paint();
+    }
     put('[data-product-category]',product.category);
     const purchase=productDetail.querySelector('.add-product');if(purchase)purchase.dataset.code=product.code;
     put('[data-product-availability]',product.availability);
     // The original legacy description must stay complete, without unverified marketing copy.
     const html=product.descriptionHtml;const complete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
     if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
-      put('[data-product-full-description]',complete);
+      const full=productDetail.querySelector('[data-product-full-description]');
+      if(full&&full.hasAttribute('data-structured'))full.innerHTML=descriptionHtml(complete);else put('[data-product-full-description]',complete);
       const intro=productDetail.querySelector('[data-product-intro]');
       if(intro){intro.hidden=false;const brief=complete.replace(/\s+/g,' ').trim();intro.textContent=brief.length>220?brief.slice(0,220).replace(/\s+\S*$/,'')+'…':brief;}
     }
     const pic=productDetail.querySelector('[data-product-main-image]');
-    if(pic&&typeof product.image==='string'&&isMediaUrl(product.image))pic.src=product.image;
-    const gallery=(Array.isArray(product.images)?product.images:[]).map(v=>typeof v==='string'?v:v?.url).filter(v=>typeof v==='string'&&isMediaUrl(v));
+    if(pic&&typeof product.image==='string'&&isMediaUrl(product.image)&&!(new URLSearchParams(location.search).get('foto')==='b'&&productDetail.dataset.packshots?.length>2))pic.src=product.image;
+    let packs=[];try{packs=JSON.parse(productDetail.dataset.packshots||'[]');}catch{packs=[];}
+    const variantB=new URLSearchParams(location.search).get('foto')==='b'&&packs.length>0;
+    if(variantB){productDetail.classList.add('pd-variant-b');if(pic)pic.src=packs[0];}
+    const gallery=variantB?packs:(Array.isArray(product.images)?product.images:[]).map(v=>typeof v==='string'?v:v?.url).filter(v=>typeof v==='string'&&isMediaUrl(v));
     if(pic&&gallery.length>1){
-      const urls=[...new Set([product.image,...gallery].filter(Boolean))];let active=0;
+      const urls=variantB?packs:[...new Set([product.image,...gallery].filter(Boolean))];let active=0;
       const bar=productDetail.querySelector('[data-product-thumbnails]');
       const arrows=productDetail.querySelector('[data-gallery-actions]');
       const choose=i=>{active=(i+urls.length)%urls.length;pic.src=urls[active];bar?.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-current',String(j===active)));};
@@ -441,12 +533,12 @@ if(productDetail){
 }
 
 
-const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
+const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
 async function renderCart(){
   const target=$('#cart-view');if(!target)return;
   const cart=await api.getCart();
   if(!cart.lines.length){target.innerHTML=`<div class="empty-state"><p class="eyebrow">PRIESTOR PRE VAŠE RITUÁLY</p><h2>Váš košík je zatiaľ prázdny.</h2><p>Vyberte si niečo, čo vám spraví radosť.</p>${button('/eshop','Objaviť obchod')}</div>`;return;}
-  target.innerHTML=`<div class="cart-layout"><div>${cart.lines.map(l=>`<article class="cart-line"><img src="${l.image}" alt="" width="95" height="116"><div><h2><a href="${l.giftVoucher?'/darcekovy-poukaz':l.booking?'/konzultacie/rezervacia?typ='+encodeURIComponent(l.slug):'/eshop/produkt/'+e(l.slug)}">${e(l.name)}</a></h2>${l.booking?`<p>${l.booking.label?`Termín: ${e(l.booking.label)}`:'Termín vyberiete v rezervácii.'}</p><p>${e(l.priceLabel)}</p>`:`<p>${e(l.priceLabel)} / kus</p><div class="quantity"><button data-quantity="${l.quantity-1}" data-slug="${l.slug}" aria-label="Znížiť množstvo: ${e(l.name)}">−</button><span aria-label="Množstvo">${l.quantity}</span><button data-quantity="${l.quantity+1}" data-slug="${l.slug}" ${l.quantity>=99?'disabled':''} aria-label="Zvýšiť množstvo: ${e(l.name)}">+</button></div>`}</div><button class="remove-line" data-quantity="0" data-slug="${l.slug}" aria-label="Odstrániť ${e(l.name)}">Odstrániť</button></article>`).join('')}<form class="coupon-form"><div class="coupon-input"><label>Zľavový kupón<input name="coupon" value="${e(cart.coupon)}" placeholder="Zadajte kód kupónu" maxlength="100" required></label><button class="button outline" type="submit">Použiť</button></div><p class="form-status" role="status"></p>${cart.coupon?'<button type="button" id="remove-coupon" class="text-link">Odstrániť kupón</button>':''}</form><form id="redeem-voucher-form"><label>Kód darčekového poukazu<input name="code" required maxlength="100" placeholder="Zadajte kód poukazu" autocomplete="off"></label><button class="button outline" type="submit">Uplatniť poukaz</button><p class="form-status" role="status"></p></form>${cart.gift_voucher?'<button type="button" id="remove-voucher" class="text-link">Odstrániť poukaz</button>':''}</div><aside class="order-summary">${summary(cart)}${button('/pokladna','Pokračovať na objednávku')}</aside></div>`;
+  target.innerHTML=`<div class="cart-layout"><div>${cart.lines.map(l=>`<article class="cart-line"><img src="${l.image}" alt="" width="95" height="116"><div><h2><a href="${l.giftVoucher?'/darcekovy-poukaz':l.booking?'/konzultacie/rezervacia?typ='+encodeURIComponent(l.slug):'/eshop/produkt/'+e(l.slug)}">${e(l.name)}</a></h2>${l.booking?`<p>${l.booking.label?`Termín: ${e(l.booking.label)}`:'Termín vyberiete v rezervácii.'}</p><p>${e(l.priceLabel)}</p>`:`<p>${e(l.priceLabel)} / kus</p><div class="quantity"><button data-quantity="${l.quantity-1}" data-slug="${e(l.key||l.slug)}" aria-label="Znížiť množstvo: ${e(l.name)}">−</button><span aria-label="Množstvo">${l.quantity}</span><button data-quantity="${l.quantity+1}" data-slug="${e(l.key||l.slug)}" ${l.quantity>=99?'disabled':''} aria-label="Zvýšiť množstvo: ${e(l.name)}">+</button></div>`}</div><button class="remove-line" data-quantity="0" data-slug="${e(l.key||l.slug)}" aria-label="Odstrániť ${e(l.name)}"><span aria-hidden="true">×</span></button></article>`).join('')}<div class="cart-codes"><form class="coupon-form"><div class="coupon-input"><label>Zľavový kupón<input name="coupon" value="${e(cart.coupon)}" placeholder="Zadajte kód kupónu" maxlength="100" required></label><button class="button outline" type="submit">Použiť</button></div><p class="form-status" role="status"></p>${cart.coupon?'<button type="button" id="remove-coupon" class="text-link">Odstrániť kupón</button>':''}</form><form id="redeem-voucher-form"><label>Kód darčekového poukazu<input name="code" required maxlength="100" placeholder="Zadajte kód poukazu" autocomplete="off"></label><button class="button outline" type="submit">Uplatniť poukaz</button><p class="form-status" role="status"></p></form>${cart.gift_voucher?'<button type="button" id="remove-voucher" class="text-link">Odstrániť poukaz</button>':''}</div></div><aside class="order-summary">${summary(cart)}${button('/pokladna','Pokračovať na objednávku')}</aside></div>`;
   $$('[data-quantity]',target).forEach(btn=>btn.addEventListener('click',async()=>{const slug=btn.dataset.slug,q=Number(btn.dataset.quantity);const result=await api.setQuantity(slug,q);if(!result.ok){toast(result.message);return;}await renderCart();updateCount();const remaining=$$('[data-slug]',target).find(el=>el.dataset.slug===slug);(remaining||$('a',target))?.focus();}));
   $('.coupon-form',target).addEventListener('submit',async event=>{event.preventDefault();const result=await api.applyCoupon(event.currentTarget.elements.coupon.value);if(result.ok)await renderCart();$('.coupon-form .form-status',target).textContent=result.message;});
   $('#redeem-voucher-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(form.dataset.busy)return;form.dataset.busy='1';try{const result=await api.applyGiftVoucher(form.elements.code.value);if(result.ok)await renderCart();$('#redeem-voucher-form .form-status').textContent=result.message;}finally{delete form.dataset.busy;}});
@@ -470,7 +562,7 @@ if(checkoutForm){
     const setNextState=({disabled,loading})=>{
       for(const btn of $$('[data-next]',checkoutForm))btn.disabled=disabled;
       const status=$('#checkout-loading',checkoutForm);
-      if(status){status.textContent=loading;status.hidden=!loading;}
+      if(status){status.textContent=loading;status.hidden=!loading;if(/prihláste/i.test(loading||'')){const a=document.createElement('a');a.href='/prihlasenie/';a.className='text-link';a.textContent='Prihlásiť sa';status.append(' ',a);}}
       checkoutForm.setAttribute('aria-busy',String(!!disabled));
     };
     const retry=$('#checkout-retry',checkoutForm);
@@ -776,7 +868,7 @@ async function syncCategories(){
 }
 
 // Jazyky SK/EN/RU: zapojí přepínače a aplikuje uloženou volbu (EN/RU zatím náhled, viz i18n.mjs).
-syncCategories().finally(()=>i18nInit());
+syncCategories().finally(()=>{i18nInit();mountMenuQuick();});
 
 // Obsah z administrácie (Medusa). Načítame len stránky, ktoré naozaj používajú
 // vlastné kľúče – stránka bez nich (napr. pokladňa) sa na server neopýta, takže
@@ -792,3 +884,53 @@ syncCategories().finally(()=>i18nInit());
 })();
 
 initDigitalProduct();
+
+// Lišta vľavo preberá tón podkladu priamo pod sebou (stred lišty, nie obsah vedľa nej): nad videom/fotkou alebo tmavou plochou svetlé písmo a ikony, inak tmavé.
+{
+  const rail=document.getElementById('ana-rail');
+  if(rail){
+    const lum=c=>{const m=c.match(/[\d.]+/g);if(!m||m.length<3)return null;if(m.length>3&&Number(m[3])<.5)return null;const [r,g,b]=m.slice(0,3).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4;});return .2126*r+.7152*g+.0722*b;};
+    const darkAt=(x,y)=>{
+      // Video úvodu má pointer-events:none, elementsFromPoint by ho preskočil. Kontrolujeme ho cez rozmery,
+      // prepínanie triedy na <html> nútilo prepočítať štýly celej stránky pri každom snímku a scroll sekal.
+      const hits=document.elementsFromPoint(x,y);
+      const stack=hits.filter(el=>!rail.contains(el)&&!el.closest('[data-menu-overlay],#dc-top-menu,#dc-side-menu'));
+      const scope=stack[0]?.closest('section,header,figure,.lh-intro')||null;
+      for(const v of document.querySelectorAll('video,canvas')){if(scope&&!scope.contains(v))continue;const r=v.getBoundingClientRect();if(r.width>200&&r.height>200&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom&&getComputedStyle(v).visibility!=='hidden')return true;}
+      for(let el of stack){
+        for(;el&&el!==document.documentElement;el=el.parentElement){
+          if(/^(VIDEO|IMG|CANVAS|PICTURE)$/.test(el.tagName)){const r=el.getBoundingClientRect();if(r.width>200&&r.height>200)return true;continue;}
+          // Po vstupe hrá v úvode video, krémová farba scény pod ním sa nepočíta.
+          if(el.classList.contains('lh-intro__stage')&&document.documentElement.classList.contains('lh-entered'))return true;
+          const cs=getComputedStyle(el);
+          if(cs.visibility==='hidden'||Number(cs.opacity)<.2)break;
+          if(cs.backgroundImage.includes('url(')&&el.getBoundingClientRect().width>200)return true;
+          const l=lum(cs.backgroundColor);if(l!==null)return l<.35;
+        }
+      }
+      return false;
+    };
+    let queued=false;
+    const update=()=>{queued=false;const rr=rail.getBoundingClientRect(),x=rr.left+rr.width/2,h=innerHeight;const votes=[.2,.5,.8].map(f=>darkAt(x,h*f)).filter(Boolean).length;const tone=votes>=2?'dark':'light';if(rail.dataset.tone!==tone)rail.dataset.tone=tone;};
+    let lastRun=0;const schedule=()=>{if(queued)return;queued=true;const wait=Math.max(0,140-(performance.now()-lastRun));setTimeout(()=>requestAnimationFrame(()=>{lastRun=performance.now();update();}),wait);};
+    addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);addEventListener('load',schedule);
+    setInterval(schedule,1200);schedule();
+  }
+}
+
+
+// Patička: akceptované platobné metódy (karty cez Stripe, Apple Pay, Google Pay).
+{
+  const bottom=$('.site-footer .sf-bottom');
+  if(bottom&&!$('.site-footer .sf-pay')){
+    const pay=document.createElement('div');pay.className='sf-pay';pay.setAttribute('role','list');pay.setAttribute('aria-label',shopText('Platobné metódy'));
+    const badge=(name,svg)=>`<span class="sf-pay__badge" role="listitem" title="${name}"><svg viewBox="0 0 60 38" width="60" height="38" role="img" aria-label="${name}">${svg}</svg></span>`;
+    pay.innerHTML=[
+      badge('Visa','<text x="30" y="25.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="900" font-style="italic" fill="#1a1f71" letter-spacing=".5">VISA</text>'),
+      badge('Mastercard','<circle cx="24" cy="19" r="10" fill="#eb001b"/><circle cx="36" cy="19" r="10" fill="#f79e1b"/><path d="M30 11a10 10 0 0 1 0 16a10 10 0 0 1 0-16z" fill="#ff5f00"/>'),
+      badge('Apple Pay','<path d="M17.6 13.1c.6-.8 1-1.8.9-2.8-.9 0-2 .6-2.6 1.4-.6.6-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3zm.9 1.4c-1.4-.1-2.6.8-3.3.8-.7 0-1.7-.8-2.8-.7-1.4 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7 1.3 0 1.7.7 2.8.7 1.2 0 1.9-1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.5c0-2.2 1.8-3.2 1.9-3.3-1-1.5-2.6-1.7-3.2-1.6z" fill="#000"/><text x="25" y="25" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="13.5" font-weight="500" fill="#000">Pay</text>'),
+      badge('Google Pay','<text x="9" y="24.5" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700"><tspan fill="#4285f4">G</tspan></text><text x="22" y="24.5" font-family="Arial,Helvetica,sans-serif" font-size="13.5" font-weight="500" fill="#5f6368">Pay</text>'),
+    ].join('');
+    bottom.before(pay);
+  }
+}

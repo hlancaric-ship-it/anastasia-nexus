@@ -414,10 +414,11 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 
 /* r12/1 (doplnenie): hlavička má priehľadné pozadie – zlatý pás z návrhu neprekrýva video. */
 .lh-top{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-.lh-top--solid{background:rgba(245,242,232,.9)!important;border-bottom:1px solid rgba(201,163,85,.28)!important}
+/* Horná lišta po scrolle: bezfarebné matné sklo ako bočná lišta. */
+.lh-top--solid{background:rgba(255,255,255,.06)!important;border-bottom:1px solid rgba(64,63,98,.1)!important}
 /* r21/1: pri scrollute je hlavička pevná a priehľadná, takže cez ňu svieti obsah stránky
    (pätička, obrázky). Plocha je nepriehľadná, hĺbka zostáva na rozmazaní. */
-.lh-top--solid{background:#F5F2E8!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.lh-top--solid{backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
 
 /* r12/9: štyri dlaždice kategórií v mriežke 2×2, jednotné pozadie a symbol. */
 .catalog-navigation{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important}
@@ -586,3 +587,42 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 .customer-page .lh-top:not(.lh-top--solid),.customer-page .lh-top:not(.lh-top--solid) a,.customer-page .lh-top:not(.lh-top--solid) button,.customer-page .lh-top:not(.lh-top--solid) small{color:#EFE5C7!important}
 .customer-page .lh-top:not(.lh-top--solid) svg{stroke:currentColor}
 .ana-footer-obscured{opacity:0!important;pointer-events:none!important;transform:translateY(-110%)!important}
+
+.auth-visual.auth-visual-lavender{background:radial-gradient(120% 90% at 30% 20%,#fff 0%,#f1effa 38%,#d9d6ee 72%,#b9b5dc 100%)!important;display:flex;align-items:center;justify-content:center}
+.auth-lavender-brand{display:flex;flex-direction:column;align-items:center;gap:14px;color:#403f62;text-align:center}
+.auth-lavender-brand img{width:clamp(130px,16vw,210px);height:auto;border-radius:50%;box-shadow:0 18px 50px rgba(64,63,98,.18)}
+.auth-lavender-brand span{font-family:Fraunces,serif;font-weight:300;font-size:clamp(26px,2.6vw,38px);letter-spacing:.32em;margin-top:10px}
+.auth-lavender-brand small{font-size:10px;letter-spacing:.42em;color:#73729c}
+/* Horné menu: tri stĺpce odkazov + štvrtý stĺpec s logami vpravo; na mobile pod sebou. */
+@media(min-width:1000px){#dc-top-menu{width:min(1100px,calc(100vw - 110px))!important}#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:999.98px){#dc-top-menu .menu-brand-logos{justify-content:flex-start!important;flex-wrap:wrap}}
+/* Horné menu symetricky: rovnaké nadpisy stĺpcov (písmo, farba, výška na dva riadky), zoznamy začínajú na rovnakej línii. */
+@media(min-width:1000px){
+#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]{gap:28px!important;align-items:start}
+#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div:not(.menu-brand-logos)>:first-child{font:300 22px/1.2 Fraunces,Georgia,serif!important;color:#403f62!important;min-height:2.4em;margin:0 0 10px!important;display:block}
+}
+/* Lišta vľavo nad tmavým podkladom (video, fotka): priesvitné sklo, svetlé písmo, ikony a tlačidlá. */
+#ana-rail{transition:background-color .45s ease,border-color .45s ease}
+#ana-rail :is(a,button,span,svg){transition:color .45s ease}
+#ana-rail[data-tone="dark"]{border-color:rgba(255,255,255,.22)!important;box-shadow:1px 0 0 rgba(255,255,255,.12) inset!important}
+#ana-rail[data-tone="dark"] :is(a,button,span,svg){color:#fff!important}
+#ana-rail[data-tone="dark"] :is(hr,[style*="border-top"],[style*="border-bottom"]){border-color:rgba(255,255,255,.28)!important}
+
+
+#dc-top-menu .menu-bottom-row .menu-brand-logos{padding-top:0;gap:28px}
+@media(max-width:999.98px){#dc-top-menu .menu-bottom-row{flex-direction:column;align-items:flex-start!important}}
+
+@media(min-width:1000px){
+#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div{padding:0 0 0 26px!important;border:0!important;border-left:1px solid rgba(64,63,98,.12)!important}
+#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div:first-child{padding-left:0!important;border-left:0!important}
+#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div>:first-child{padding:0!important;min-height:0!important;margin:0 0 16px!important}
+#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div>a:not(:first-child){font-size:14px!important;line-height:1.45;padding:5px 0!important}
+}
+#dc-top-menu .menu-bottom-row{border-top:1px solid rgba(64,63,98,.14)!important;margin-top:34px;padding-top:26px!important;align-items:center!important}
+#dc-top-menu .menu-bottom-row .menu-brand-logos{gap:44px;align-items:flex-end}
+#dc-top-menu .menu-bottom-row .menu-brand-logos img{opacity:1!important}
+#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div>:first-child{font:300 22px/1.2 Fraunces,Georgia,serif!important;color:#403f62!important;padding:0!important;margin:0 0 14px!important;display:block}
+@media(max-width:600px){#dc-top-menu [data-register-link],#dc-top-menu a[data-global-account] span,#dc-top-menu a[data-menu-account]:not(.dch6) span{display:none!important}#dc-top-menu .menu-brand-mark+div{display:none!important}}
+@media(max-width:999.98px){#dc-top-menu div[style*="minmax(min(100%,180px),1fr)"]>div>a:not(:first-child){padding:6px 0!important}}
+#dc-top-menu div[style*="flex-direction:column"]>a.dch6[data-menu-close]:first-child,#dc-top-menu div[style*="flex-direction:column"]>a.dch6[data-menu-close]:first-child[aria-current]{font:300 22px/1.2 Fraunces,Georgia,serif!important;color:#403f62!important;padding:0!important;margin:0 0 14px!important;min-height:0!important}
+@media(max-width:999.98px){#dc-top-menu div[style*="flex-direction:column"]>:first-child{font-size:21px!important}}

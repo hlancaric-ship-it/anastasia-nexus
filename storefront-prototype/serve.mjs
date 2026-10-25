@@ -11,7 +11,7 @@ const mime={'.html':'text/html; charset=utf-8','.css':'text/css','.mjs':'text/ja
 const server=http.createServer(async(req,res)=>{
   res.setHeader('Cache-Control','no-store');res.setHeader('X-Robots-Tag','noindex, nofollow');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');
   const api=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
-  res.setHeader('Content-Security-Policy',`default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.stripe.com data:; media-src 'self' ${mediaOrigin}; font-src 'self'; connect-src 'self' ${api} ${mediaOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
+  res.setHeader('Content-Security-Policy',`default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' ${mediaOrigin} https://*.stripe.com data:; media-src 'self' ${mediaOrigin}; font-src 'self'; connect-src 'self' ${api} ${mediaOrigin} https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
   if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return;}
   // Same-origin public images keep img-src 'self'. This is a fixed-backend, read-only proxy.
   const mediaPath=new URL(req.url,'http://localhost').pathname;

@@ -23,12 +23,12 @@ export const TOUR = [
   ]) },
   { id: 'produkty', route: 'produkty', nav: '.sidebar .nav-item[href="#/produkty"]', title: 'Produkty', what: 'Tu Lucia spravuje katalóg, ceny, fotografie a zakúpený obsah.', steps: steps([
     ['Zoznam a nový produkt', 'Lucia skontroluje katalóg alebo cez + Pridať produkt založí nový koncept.', '#p-new'],
-    ['Základné údaje', 'Lucia otvorí kartu produktu a doplní názov a stav produktu.', '#p-title', '.pe-tabs [data-tab="zaklad"]', '#p-body tr[data-id]'],
-    ['Popis', 'Tu upraví text, ktorý zákazník uvidí na stránke produktu.', '.pe-panel[data-panel="popis"]', '.pe-tabs [data-tab="popis"]'],
-    ['Fotografie', 'Tu pridá fotografie a vyberie hlavnú.', '.pe-panel[data-panel="foto"]', '.pe-tabs [data-tab="foto"]'],
-    ['Kategórie a predaj', 'Tu zaradí produkt a skontroluje spôsob predaja.', '.pe-panel[data-panel="predaj"]', '.pe-tabs [data-tab="predaj"]'],
-    ['Sklad', 'Lucia skontroluje počet kusov, ktoré sú dostupné na predaj.', '.pe-panel[data-panel="sklad"]', '.pe-tabs [data-tab="sklad"]'],
-    ['Zakúpený obsah', 'Tu upraví digitálny obsah sprístupnený zákazníkovi po nákupe.', '.pe-panel[data-panel="obsah"]', '.pe-tabs [data-tab="obsah"]']
+    ['Základné údaje', 'Lucia otvorí kartu produktu a doplní názov a stav produktu.', '#p-title', '.pe-nav [data-jump="zaklad"]', '#p-body tr[data-id]'],
+    ['Popis', 'Tu upraví text, ktorý zákazník uvidí na stránke produktu.', '#pe-popis', '.pe-nav [data-jump="popis"]'],
+    ['Fotografie', 'Tu pridá fotografie a vyberie hlavnú.', '#pe-foto', '.pe-nav [data-jump="foto"]'],
+    ['Kategórie a predaj', 'Tu zaradí produkt a skontroluje spôsob predaja.', '#pe-predaj', '.pe-nav [data-jump="predaj"]'],
+    ['Sklad', 'Lucia skontroluje počet kusov, ktoré sú dostupné na predaj.', '#pe-sklad', '.pe-nav [data-jump="sklad"]'],
+    ['Zakúpený obsah', 'Tu upraví digitálny obsah sprístupnený zákazníkovi po nákupe.', '#pe-obsah', '.pe-nav [data-jump="obsah"]']
   ]) },
   { id: 'kategorie', route: 'kategorie', nav: '.sidebar .nav-item[href="#/kategorie"]', title: 'Kategórie', what: 'Tu Lucia usporiada produkty do kategórií pre obchod.', steps: steps([
     ['Zoznam kategórií', 'Lucia skontroluje názvy a zaradenie kategórií.', '#view .ot-head h2'],
@@ -372,7 +372,7 @@ export const GUIDES = [
     steps: [
       'V Zákazníkch nájdite zákazníka. Pri dlhom zozname použite pole Hľadať.',
       'Na karte vidíte, či má registrovaný účet, alebo nakúpila ako hosť.',
-      'Kliknite na ňu. V záložke Základné opravíte meno a priezvisko, v záložke Skupiny / tier ju zaradíte do skupiny.',
+      'Kliknite na ňu. V záložke Základné opravíte meno a priezvisko, v záložke Vernosť a skupiny nastavíte vernostnú úroveň a skupiny.',
       'Kliknite na Uložiť.',
       'V prepínači Prístupy a knižnica hore vidíte všetky digitálne prístupy: čo si kto kúpil a dokedy to platí.',
     ],
