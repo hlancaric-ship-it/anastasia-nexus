@@ -20,6 +20,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Kontrola screenshotů 1440 a 390: konzultace, supervízia, stacionár, RESET 40+, kontakt, VOP, Klub, O Lucii, přihlášení, 404.
 - Jednotkové testy po změně: 162/162.
 - Štítky nad nadpisy jsou psané větou, ne verzálkami (Konzultácie, Klub ANASTASIA). Značky ANASTASIA, AI a RESET zůstávají verzálkami. Překlady EN a RU fungují dál.
+- Digitální objednávka už nedostane e-mail „odovzdali sme dopravcovi“. E-mail o odeslání chodí jen tehdy, když objednávka obsahuje fyzickou položku.
+- Odkaz v e-mailu na objednávku už nevede na 404. Otevře účet na záložce Objednávky, a to i u starých e-mailů s adresou /ucet/order_…. Nepřihlášený zákazník jde na přihlášení a po přihlášení má tlačítko Zobraziť objednávku.
 
 ### Rozpracováno
 - Nic.
