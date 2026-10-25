@@ -3,7 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { sendEmail } from "../../lib/email/send"
 import { GIFT_VOUCHER_MODULE } from "./index"
 import { formatEur, isoDateInZone, maskVoucherCode, requiresRecipient } from "./policy"
-import { renderPdf, wrap, type PdfLine } from "./pdf"
+import { renderVoucherPdf } from "./voucher-pdf"
 import type GiftVoucherModuleService from "./service"
 import type { GiftVoucherRow } from "./service"
 
@@ -47,22 +47,9 @@ export function resolveDeliveryChannel(container: Container, env: Record<string,
   }
 }
 
-export function voucherPdf(voucher: GiftVoucherRow): Buffer {
-  const expires = new Intl.DateTimeFormat("sk-SK", { timeZone: "Europe/Bratislava", day: "numeric", month: "numeric", year: "numeric" }).format(new Date(voucher.expires_at))
-  const lines: PdfLine[] = [
-    { text: "ANASTASIA", size: 14 },
-    { text: "Darčekový poukaz", size: 28, gap: 48 },
-    { text: formatEur(voucher.initial_amount), size: 36, gap: 60 },
-  ]
-  if (voucher.recipient_name) lines.push({ text: `Pre: ${voucher.recipient_name}`, size: 14, gap: 36 })
-  if (voucher.message) for (const [index, line] of wrap(voucher.message, 70).entries()) lines.push({ text: line, size: 11, gap: index ? 16 : 28 })
-  lines.push(
-    { text: "Kód poukazu", size: 11, gap: 44 },
-    { text: voucher.code, size: 20, gap: 28 },
-    { text: `Platnosť do ${expires}`, size: 11, gap: 28 },
-    { text: "Kód zadajte v košíku e-shopu. Poukaz nie je možné vymeniť za hotovosť.", size: 9, gap: 36 },
-  )
-  return renderPdf(lines, "Darcekovy poukaz ANASTASIA")
+/** PDF poukazu v tmavej olivovej so zlatými linkami (A4, vložené písma). */
+export function voucherPdf(voucher: GiftVoucherRow): Promise<Buffer> {
+  return renderVoucherPdf(voucher)
 }
 
 function baseData(voucher: GiftVoucherRow) {
@@ -81,10 +68,10 @@ function recipientMessage(voucher: GiftVoucherRow): DeliveryMessage {
     data: baseData(voucher) }
 }
 
-function buyerMessage(voucher: GiftVoucherRow): DeliveryMessage {
+async function buyerMessage(voucher: GiftVoucherRow): Promise<DeliveryMessage> {
   return { kind: "buyer_pdf", to: voucher.purchaser_email!, template: "gift-voucher-buyer-sk",
     data: baseData(voucher),
-    attachments: [{ content: voucherPdf(voucher).toString("base64"), filename: `poukaz-${voucher.code_last4}.pdf`, content_type: "application/pdf" }] }
+    attachments: [{ content: (await voucherPdf(voucher)).toString("base64"), filename: `poukaz-${voucher.code_last4}.pdf`, content_type: "application/pdf" }] }
 }
 
 export type DeliveryResult = { recipient: "sent" | "scheduled" | "skipped" | "failed" | "disabled"; buyer: "sent" | "skipped" | "failed" | "disabled" }
@@ -114,7 +101,7 @@ export async function deliverGiftVoucher(container: Container, voucherId: string
     const claimed = wantsRecipient ? await vouchers.claimBuyerCopy(voucher.id) : await vouchers.claimDelivery(voucher.id, today)
     if (claimed) {
       try {
-        await channel.send(buyerMessage(claimed))
+        await channel.send(await buyerMessage(claimed))
         result.buyer = "sent"
       } catch (error) {
         result.buyer = "failed"

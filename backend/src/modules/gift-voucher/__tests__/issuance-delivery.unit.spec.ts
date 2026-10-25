@@ -5,6 +5,7 @@ import { GIFT_VOUCHER_MODULE } from "../index"
 import { attachRedemptionsToOrder, handleCanceledOrder, issueVouchersForOrder } from "../order-sync"
 import { deliverDueGiftVouchers, deliverGiftVoucher, resolveDeliveryChannel, voucherPdf, type DeliveryMessage, type GiftVoucherDeliveryChannel } from "../delivery"
 import { pdfString, renderPdf, wrap } from "../pdf"
+import { PDFDocument } from "pdf-lib"
 import { planVariantSync, variantSku } from "../product-sync"
 import { DEFAULT_SETTINGS } from "../policy"
 
@@ -186,11 +187,16 @@ describe("doručení", () => {
     const c2 = deliveryContainer(voucher({ delivery_method: "buyer_pdf", delivery_date: null }))
     expect(await deliverDueGiftVouchers(c2, channel(), now)).toBe(1)
   })
-  it("PDF je platný jednostránkový dokument bez externí knihovny", () => {
-    const pdf = voucherPdf(voucher() as any).toString("latin1")
-    expect(pdf.startsWith("%PDF-1.")).toBe(true)
-    expect(pdf.trimEnd().endsWith("%%EOF")).toBe(true)
-    expect(pdf).toContain("GV-AAAA-BBBB-CCCC-DDDD")
+  it("PDF poukazu je platný jednostránkový A4 dokument s vloženými písmami", async () => {
+    const buf = await voucherPdf(voucher({ recipient_name: "Jana Nováková", message: "Všetko najlepšie k narodeninám, nech sa ti darí. ".repeat(12) }) as any)
+    const raw = buf.toString("latin1")
+    expect(raw.startsWith("%PDF-1.")).toBe(true)
+    expect(raw.trimEnd().endsWith("%%EOF")).toBe(true)
+    expect(raw).toContain("/FontFile2")
+    const doc = await PDFDocument.load(buf)
+    expect(doc.getPageCount()).toBe(1)
+    expect(Math.round(doc.getPage(0).getWidth())).toBe(595)
+    expect(doc.getTitle()).toBe("Darčekový poukaz ANASTASIA")
     expect(pdfString("a(b)\\c")).toContain("\\(")
     expect(wrap("slovo ".repeat(30).trim(), 20).every((line) => line.length <= 20)).toBe(true)
     expect(renderPdf([{ text: "x", size: 10 }]).length).toBeGreaterThan(200)

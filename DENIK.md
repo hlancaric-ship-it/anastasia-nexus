@@ -106,3 +106,4 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - /prihlasenie: krémový podklad s aurou zlatých liniek, vľavo organický sklenený tvar s pečaťou a zlatým svitom, vpravo sklenená karta s pill prepínačom, pill vstupmi a olivovým tlačidlom so zlatou šípkou.
 - /konzultacie: zrušené generické karty. Každá konzultácia je sklenená karta s asymetrickým zaoblením, fotka v organickej maske prelínajúca sa do krému, číslo ako zlatý vodoznak (20 %), veľký serifový názov, parametre ako typografická linka s bodkami v šampanskej. Karty sa striedajú vľavo/vpravo, pod sekciou min. 128 px.
 - Skip link už nikdy nepresvitá mimo fokusu.
+- Darčekový poukaz v PDF: tmavá olivová A4, dvojitý zlatý rám, pečať, aura zlatých liniek, Fraunces a Figtree vložené (diakritika aj €), kód v zlatom rámčeku, platnosť podľa Bratislavy. Rovnaké PDF ide kupujúcemu do e-mailu aj na stiahnutie v účte.
