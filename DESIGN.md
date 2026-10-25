@@ -79,7 +79,9 @@ Pozadí pod sklem na světlých pásech: krytí max 30 %.
 - Boční skleněná lišta se objeví plynule až po scrollu, obsah jde pod ní přes celou šířku.
 - Preloader jen „Vstúpte“, bez horní lišty.
 - **Klub v menu skrytý v obou variantách** (boční i horní menu, desktop i mobil, Lucky 25. 10.). Stránka /klub a záložka v účtu zůstávají.
-- **Podstránky mají stejný design jako nový úvod** (barvy, písma, olivové pilulky), kromě obchodu. **Žádné oblouky na fotkách v podstránkách**, fotky zůstávají obdélník (Lucky 25. 10.).
+- **Podstránky mají stejný design jako nový úvod** (barvy, písma, olivové pilulky). Od 25. 10. platí i pro obchod, košík a pokladnu (Lucky: „udělas mi takovejhle košík?“). **Žádné oblouky na fotkách v podstránkách**, fotky zůstávají obdélník (Lucky 25. 10.).
+- **Redesign není přebarvení** (Lucky 25. 10.): nestačí změnit barvy a přidat pruhy. Každá podstránka se předělá sekci po sekci podle úvodu: rozvržení, fotky, typografie, karty, rytmus pásů a pohyb. Kontrola screenshoty 1440 a 390 proti úvodu.
+- **Nákup a platby musí být vždy napojené a funkční** (Lucky 25. 10.): změny vzhledu obchodu jen v CSS a šablonách, logika košíku, pokladny a Stripe se nemění. Před každým nasazením obchodu projde test platby.
 - Hero video, intro a preloader neměnit bez výslovného pokynu.
 - QA vždy na 1440 a 390 px, bez přetékání do strany.
 - Admin: tlačítka světlá levandule, tenký levandulový okraj, tmavý text.

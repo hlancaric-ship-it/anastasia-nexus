@@ -67,4 +67,117 @@
 
 /* bez oblúkov na fotkách podstránok (Lucky 25. 10.) */
 #page-shell.kc-unified .legal-figure,#page-shell.kc-unified .legal-figure img,#page-shell.kc-unified .legal-hero{border-radius:0!important}
+
+/* ===== Košík a pokladňa: skutočný redizajn podľa úvodu (Lucky 25. 10.) =====
+   Editoriálne riadky namiesto bielych krabíc, súhrn ako olivová karta RESET 40+, odporúčania ako karty z úvodu.
+   Len vzhľad, logika košíka a platby sa nemení. */
+#page-shell.kc-unified{--drop-s:22px 22px 22px 0}
+#page-shell.kc-unified.kc-shop .shop-page>.page-intro{display:grid!important;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:end;column-gap:clamp(32px,6vw,120px);border-bottom:0!important;padding-top:clamp(40px,6vw,96px)!important;padding-bottom:clamp(40px,5vw,80px)!important;margin-bottom:0!important}
+#page-shell.kc-unified.kc-shop .shop-page>.page-intro .eyebrow{grid-column:1/-1;font:italic 400 clamp(20px,1.8vw,26px)/1 var(--serif)!important;color:var(--lav)!important;letter-spacing:0!important;text-transform:lowercase!important;margin:0 0 clamp(14px,1.6vw,24px)!important}
+#page-shell.kc-unified.kc-shop .shop-page>.page-intro h1{font:300 clamp(58px,8.4vw,132px)/.92 var(--serif)!important;letter-spacing:-.045em!important;color:var(--ink)!important;margin:0!important}
+#page-shell.kc-unified.kc-shop .shop-page>.page-intro .lead{font:300 clamp(17px,1.3vw,20px)/1.55 var(--sans)!important;color:var(--muted)!important;max-width:34ch;margin:0 0 .6em!important;padding-left:20px;border-left:1px solid var(--gold)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-guest-note{font:400 14px/1.5 var(--sans)!important;color:var(--muted)!important;margin:0 0 clamp(20px,2.4vw,32px)!important}
+
+/* položky */
+#page-shell.kc-unified.kc-shop .shop-cart .cart-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(320px,420px)!important;gap:clamp(32px,5vw,96px)!important;align-items:start!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-layout>div{counter-reset:cl}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line{counter-increment:cl;position:relative;display:grid!important;grid-template-columns:clamp(110px,11vw,160px) minmax(0,1fr) auto!important;gap:clamp(18px,2.4vw,40px)!important;align-items:start!important;background:transparent!important;border:0!important;border-top:1px solid rgba(47,52,36,.16)!important;border-radius:0!important;box-shadow:none!important;padding:clamp(24px,2.6vw,36px) 0!important;margin:0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line:last-of-type{border-bottom:1px solid rgba(47,52,36,.16)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line>img{width:100%!important;height:auto!important;aspect-ratio:4/5;object-fit:cover;border-radius:var(--drop-s)!important;background:var(--cream)!important;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line:hover>img{transform:scale(1.03)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line h2{font:300 clamp(26px,2.6vw,42px)/1.04 var(--serif)!important;letter-spacing:-.025em!important;margin:0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line h2::before{content:counter(cl,decimal-leading-zero);display:block;font:500 11px/1 var(--sans);letter-spacing:.32em;color:var(--gold);margin-bottom:clamp(12px,1.4vw,20px)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line h2 a{color:var(--ink)!important;text-decoration:none!important;background:linear-gradient(var(--lav),var(--lav)) 0 100%/0 1px no-repeat;transition:background-size .5s}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line h2 a:hover{background-size:100% 1px}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line p{font:400 15px/1.5 var(--sans)!important;color:var(--muted)!important;margin:12px 0 0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .quantity{display:inline-flex!important;align-items:center;gap:4px;margin-top:clamp(18px,2vw,28px)!important;background:transparent!important;border:1px solid rgba(47,52,36,.22)!important;border-radius:999px!important;padding:4px!important;box-shadow:none!important}
+#page-shell.kc-unified.kc-shop .shop-cart .quantity button{width:38px!important;height:38px!important;border-radius:50%!important;background:transparent!important;border:0!important;box-shadow:none!important;color:var(--olive)!important;font:300 20px/1 var(--sans)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .quantity button:hover:not(:disabled){background:var(--olive)!important;color:var(--paper)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .quantity span{min-width:28px;text-align:center;font:300 22px/1 var(--serif)!important;color:var(--ink)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .remove-line{width:44px!important;height:44px!important;border-radius:50%!important;background:transparent!important;border:1px solid rgba(47,52,36,.2)!important;box-shadow:none!important;color:var(--olive)!important;transition:background .3s,color .3s,transform .3s}
+#page-shell.kc-unified.kc-shop .shop-cart .remove-line:hover{background:var(--olive)!important;color:var(--paper)!important;transform:rotate(90deg)}
+
+/* kupón a poukaz: jeden pokojný pás v hmle */
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes{display:grid!important;grid-template-columns:1fr 1fr!important;gap:clamp(24px,3vw,48px)!important;margin-top:clamp(28px,3vw,44px)!important;background:var(--mist)!important;border-radius:var(--drop)!important;padding:clamp(24px,2.8vw,40px)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes>form{background:transparent!important;border:0!important;padding:0!important;margin:0!important;box-shadow:none!important;display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes .coupon-input{display:flex!important;flex-wrap:wrap;align-items:flex-end;gap:14px;width:100%}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes label{flex:1 1 100%;display:flex!important;flex-direction:column;gap:10px;font:500 11px/1.3 var(--sans)!important;letter-spacing:.24em!important;text-transform:uppercase!important;color:var(--muted)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes input{background:transparent!important;border:0!important;border-bottom:1px solid rgba(47,52,36,.35)!important;border-radius:0!important;padding:8px 0!important;font:300 22px/1.2 var(--serif)!important;letter-spacing:0!important;text-transform:none!important;color:var(--ink)!important;box-shadow:none!important;min-height:0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes input:focus{outline:0!important;border-bottom-color:var(--lav)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes .button{background:transparent!important;color:var(--olive)!important;border:1px solid rgba(47,52,36,.4)!important;border-radius:999px!important;padding:12px 22px!important;font:500 13px/1 var(--sans)!important;min-height:0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes .button:hover{background:var(--olive)!important;color:var(--paper)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes .form-status{flex-basis:100%;margin:0!important}
+
+/* súhrn: olivová karta ako RESET 40+ na úvode */
+#page-shell.kc-unified.kc-shop .shop-page aside.order-summary,#page-shell.kc-unified.kc-shop .shop-page .checkout-grid>.order-summary{position:sticky!important;top:110px;background:var(--olive)!important;color:var(--paper)!important;border:0!important;border-radius:var(--drop)!important;padding:clamp(28px,3vw,44px)!important;box-shadow:0 40px 80px -40px rgba(47,52,36,.55)!important;overflow:hidden}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary::before{content:"";position:absolute;right:-90px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(167,165,207,.28),transparent 70%);pointer-events:none}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary h2{font:300 clamp(34px,3vw,48px)/1 var(--serif)!important;letter-spacing:-.03em!important;color:var(--paper)!important;margin:0 0 clamp(18px,2vw,28px)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .summary-row{border-color:rgba(247,244,236,.16)!important;color:rgba(247,244,236,.72)!important;font:400 14px/1.4 var(--sans)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .summary-row strong{color:var(--paper)!important;font-weight:400!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .summary-row strong small{color:rgba(247,244,236,.6)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .summary-row:last-of-type{border-bottom:0!important;padding-top:20px!important;align-items:baseline}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .summary-row:last-of-type :is(span,strong){font:300 clamp(28px,2.4vw,38px)/1 var(--serif)!important;letter-spacing:-.02em;color:var(--paper)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .summary-row:last-of-type span{font-style:italic!important;color:var(--lav-2)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .fine-print{color:rgba(247,244,236,.6)!important}
+#page-shell.kc-unified.kc-shop .shop-page aside.order-summary a.button:not(.outline):not(.secondary):not(.ghost):not(.light){width:100%;justify-content:center;margin-top:clamp(20px,2vw,28px)!important;background:var(--paper)!important;color:var(--olive)!important;border:1px solid var(--paper)!important;border-radius:999px!important}
+#page-shell.kc-unified.kc-shop .shop-page aside.order-summary a.button:not(.outline):not(.secondary):not(.ghost):not(.light):hover{background:var(--lav)!important;border-color:var(--lav)!important;color:var(--paper)!important}
+
+/* odporúčania: karty ako produkty na úvode */
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell{margin-top:clamp(72px,9vw,140px)!important;padding:0!important;background:transparent!important;border:0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell h2{font:300 clamp(40px,5.4vw,84px)/.95 var(--serif)!important;letter-spacing:-.04em!important;color:var(--ink)!important;margin:0 0 clamp(28px,3.4vw,52px)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell h2 em{font-style:italic;color:var(--lav)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:clamp(18px,2.4vw,36px)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item{display:flex!important;flex-direction:column!important;gap:18px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item>a{display:block;overflow:hidden;border-radius:var(--drop);background:var(--cream)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item img{width:100%!important;height:auto!important;aspect-ratio:4/5;object-fit:cover;border-radius:0!important;transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item:hover img{transform:scale(1.05)}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item h3{font:300 clamp(22px,1.9vw,30px)/1.1 var(--serif)!important;letter-spacing:-.02em!important;margin:0!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item h3 a{color:var(--ink)!important;text-decoration:none!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item p{font:400 15px var(--sans)!important;color:var(--muted)!important;margin:8px 0 16px!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-btn{display:inline-flex!important;align-items:center;gap:10px;background:transparent!important;color:var(--olive)!important;border:1px solid rgba(47,52,36,.4)!important;border-radius:999px!important;padding:11px 22px!important;font:500 13px/1 var(--sans)!important;text-decoration:none!important;cursor:pointer}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-btn::after{content:"→"}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-btn:hover{background:var(--olive)!important;color:var(--paper)!important}
+
+/* prázdny košík */
+#page-shell.kc-unified.kc-shop .shop-cart .empty-state{background:var(--mist)!important;border:0!important;border-radius:var(--drop)!important;padding:clamp(40px,6vw,96px)!important;text-align:left!important}
+#page-shell.kc-unified.kc-shop .shop-cart .empty-state h2{font:300 clamp(36px,4.6vw,68px)/1 var(--serif)!important;letter-spacing:-.035em!important;color:var(--ink)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .empty-state .eyebrow{font:italic 400 22px/1 var(--serif)!important;color:var(--lav)!important;letter-spacing:0!important;text-transform:lowercase!important}
+
+/* pokladňa: kroky, sekcie, voľby */
+#page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps{display:flex!important;gap:clamp(16px,3vw,48px)!important;border:0!important;border-bottom:1px solid rgba(47,52,36,.14)!important;padding:0 0 18px!important;margin:0 0 clamp(28px,3vw,44px)!important;list-style:none}
+#page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps li{font:300 clamp(17px,1.5vw,22px)/1.2 var(--serif)!important;color:rgba(47,52,36,.42)!important;border:0!important;padding:0!important;position:relative}
+#page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps li.current{color:var(--ink)!important;font-style:italic!important}
+#page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps li.current::after{content:"";position:absolute;left:0;right:0;bottom:-19px;height:2px;background:var(--lav)}
+#page-shell.kc-unified.kc-shop .shop-checkout .checkout-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(320px,420px)!important;gap:clamp(32px,5vw,96px)!important;align-items:start!important}
+#page-shell.kc-unified.kc-shop .shop-checkout fieldset{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important;border-radius:0!important}
+#page-shell.kc-unified.kc-shop .shop-checkout legend{font:300 clamp(36px,4vw,60px)/1 var(--serif)!important;letter-spacing:-.035em!important;color:var(--ink)!important;padding:0!important;margin:0 0 clamp(22px,2.4vw,36px)!important;background:transparent!important}
+#page-shell.kc-unified.kc-shop .shop-checkout label{font:500 11px/1.3 var(--sans)!important;letter-spacing:.2em!important;text-transform:uppercase!important;color:var(--muted)!important}
+#page-shell.kc-unified.kc-shop .shop-checkout :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:transparent!important;border:0!important;border-bottom:1px solid rgba(47,52,36,.32)!important;border-radius:0!important;box-shadow:none!important;padding:10px 0!important;font:300 21px/1.3 var(--serif)!important;letter-spacing:0!important;text-transform:none!important;color:var(--ink)!important}
+#page-shell.kc-unified.kc-shop .shop-checkout :is(input,select,textarea):focus{outline:0!important;border-bottom-color:var(--lav)!important}
+#page-shell.kc-unified.kc-shop .shop-checkout :is(.radio-label,.payment-options label,#delivery-options label){display:flex!important;align-items:center;gap:14px;font:400 16px/1.4 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;color:var(--ink)!important;background:#fff!important;border:1px solid rgba(47,52,36,.14)!important;border-radius:var(--drop-s)!important;padding:18px 22px!important;margin:0 0 10px!important;cursor:pointer;transition:background .3s,border-color .3s}
+#page-shell.kc-unified.kc-shop .shop-checkout :is(.radio-label,.payment-options label,#delivery-options label):has(input:checked){background:var(--mist)!important;border-color:var(--olive)!important}
+#page-shell.kc-unified.kc-shop .shop-checkout label:has(input[type=checkbox]){display:flex!important;align-items:flex-start;gap:12px;font:400 14px/1.5 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;color:var(--ink)!important}
+#page-shell.kc-unified.kc-shop .shop-checkout .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(20px,2.4vw,32px)}
+#page-shell.kc-unified.kc-shop .shop-checkout .button{border-radius:999px!important}
+#page-shell.kc-unified.kc-shop .shop-checkout .button:not(.outline){background:var(--olive)!important;border-color:var(--olive)!important;color:var(--paper)!important}
+#page-shell.kc-unified.kc-shop .shop-checkout .button:not(.outline):hover:not(:disabled){background:var(--lav)!important;border-color:var(--lav)!important}
+#page-shell.kc-unified.kc-shop .shop-checkout .button:disabled{opacity:.42!important;cursor:not-allowed}
+
+/* patička: newsletter písmom úvodu */
+#page-shell.kc-unified .site-footer .sf-news>p:first-child{font-family:var(--serif)!important;font-weight:300!important;letter-spacing:-.035em!important}
+
+@media (max-width:900px){
+#page-shell.kc-unified.kc-shop .shop-page>.page-intro{grid-template-columns:1fr}
+#page-shell.kc-unified.kc-shop .shop-page>.page-intro .lead{margin-top:20px!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-layout,#page-shell.kc-unified.kc-shop .shop-checkout .checkout-grid{grid-template-columns:1fr!important}
+#page-shell.kc-unified.kc-shop .shop-page aside.order-summary,#page-shell.kc-unified.kc-shop .shop-page .checkout-grid>.order-summary{position:relative!important;top:auto}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes{grid-template-columns:1fr!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-grid{grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:72%;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-upsell-item{scroll-snap-align:start}
+}
+@media (max-width:560px){
+#page-shell.kc-unified.kc-shop .shop-cart .cart-line{grid-template-columns:96px minmax(0,1fr) auto!important;gap:16px!important}
+#page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps{gap:14px!important}
+#page-shell.kc-unified.kc-shop .shop-checkout .checkout-steps li{font-size:15px!important}
+}
 }
