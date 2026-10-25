@@ -56,3 +56,9 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Profil má mřížku dva a tři sloupce a barvu prostoru v jednom řádku.
 - Zrkadielko má pilulky 1–10 s popisky Nízka, Vyvážená a Vysoká. Při úpravě záznamu jsou hodnoty předvyplněné.
 - Otevřené: skutečná faktura potřebuje rozhodnutí o fakturačním systému, zatím je to tisknutelný doklad.
+
+## 25. 10. 2026 – detail produktu: akordeony pod nákupním blokem
+- Nahoře 2 sloupce: galerie (vertikálně vycentrovaná, výška = panel) a čistě nákupní panel (název, cena, sklad nebo aktivace, select, stepper, košík, výhody).
+- Podrobnosti přesunuty pod nákupní blok přes celou šířku: 2 sloupce zavřených akordeonů, poslední (doprava, přístup, podmínky) široký. Platí pro všechny 4 typy (fyzický, digitální, poukaz, konzultace).
+- Karty akordeonů: světlý podklad s blurem, 1px matně zlatá linka, radius 16.
+- Ověřeno na testu v 1440 i 390, bez horizontálního scrollu. Testy 162/162.

@@ -157,3 +157,9 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - Levá lišta `#ana-rail` je v účtu skrytá (`body.customer-page`).
 - Kontejner max 1152 px, padding 32/24/80, mřížka `.acc-grid` 65/35, pod 1000 px jeden sloupec.
 - Obsah jen v kartách `.acc-card` (glass). Žádné prázdné plochy, prázdné stavy mají fotku a CTA.
+
+## Detail produktu (25. 10.)
+- Horní blok je jen nákup. Média a panel mají stejnou výšku (grid stretch, média centrovaná).
+- Veškerý dlouhý obsah patří do sekce `.pdm-details` pod nákupním blokem: grid 2 sloupců akordeonů, poslední položka široká, na mobilu 1 sloupec.
+- Akordeony v detailu jsou výchozí zavřené, aby karty měly stejnou výšku.
+- Styl karet: `rgba(255,255,255,.62)` + blur 14px, 1px linka `var(--gold)` na 45 %, radius 16px.
