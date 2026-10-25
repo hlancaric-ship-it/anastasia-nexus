@@ -14,7 +14,8 @@ const origin = (name, required) => {
   return v;
 };
 const api = origin('ANASTASIA_API_ORIGIN', true);
-const media = origin('ANASTASIA_MEDIA_ORIGIN', false);
+// Médiá môžu mať viac originov oddelených čiarkou (doručovanie chránených médií + verejné R2).
+const media = (process.env.ANASTASIA_MEDIA_ORIGIN || '').split(/[\s,]+/).filter(Boolean).map(v => { process.env.ANASTASIA_MEDIA_ORIGIN_ONE = v; return origin('ANASTASIA_MEDIA_ORIGIN_ONE', false); }).join(' ');
 // Web pre živý náhľad v editore textov (iframe).
 const web = process.env.ANASTASIA_WEB_ORIGIN || api.replace('-api.', '.');
 

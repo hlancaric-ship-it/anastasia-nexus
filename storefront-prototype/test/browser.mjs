@@ -13,7 +13,9 @@ const watch=ctx=>{
 const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});watch(context);
 await context.addInitScript(()=>{try{localStorage.setItem('ana-ambient-off','1');window.__ANASTASIA__={useMock:true};}catch{}});
 const page=await context.newPage();
-const check=async(name,fn)=>{await fn();checks.push(name);console.log('PASS '+name);};
+// Skupiny bežia ďalej aj po chybe, aby jeden beh ukázal všetky zlyhania naraz.
+const groupFailures=[];
+const check=async(name,fn)=>{try{await fn();checks.push(name);console.log('PASS '+name);}catch(error){groupFailures.push(name);failures.push(name+'\n'+error.stack);console.log('FAIL '+name+'\n  '+String(error.message).split('\n')[0]);}};
 const goto=async(path,p=page)=>{const response=await p.goto(base+path,{waitUntil:'load'});await p.evaluate(()=>document.fonts.ready);return response;};
 const loadImages=async(p=page)=>{await p.locator('img').evaluateAll(async images=>{await Promise.all(images.map(img=>{img.loading='eager';return img.decode().catch(()=>{});}));});};
 const overflow=async(p=page,label='')=>assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal overflow '+label);
@@ -385,6 +387,7 @@ try{
  await check('touch: menu na úvode sa otvorí ťuknutím a zavrie tlačidlom',async()=>{await tp.goto(base+'/');await headerTrigger(tp).tap();await assertOpen(tp,'top');await tp.locator('#dc-top-menu button[data-menu-close]').tap();await assertClosed(tp,'top');});
  await touch.close();
  assert.deepEqual(apiCalls,[]);assert.deepEqual(errors,[]);await motion.close();
- console.log(`${checks.length}/${checks.length} browser groups PASS`);
+ const total=checks.length+groupFailures.length;console.log(`${checks.length}/${total} browser groups PASS`);
+ if(groupFailures.length)throw new Error('FAIL: '+groupFailures.join(' | '));
 }catch(error){failures.push(error.stack);await page.screenshot({path:root+'failure.png',fullPage:true}).catch(()=>{});throw error;}
 finally{await writeFile(root+'results.json',JSON.stringify({checks,failures,errors,apiCalls},null,2));await browser.close();}

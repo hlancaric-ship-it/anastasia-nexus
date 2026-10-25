@@ -11,7 +11,11 @@
 /projekt-anastasia-i/*  /zdravy-svet  301
 /zdravy-svet/projekt-anastasia-i/*  /zdravy-svet  301
 /blog/projekt-anastasia-i  /blog  301
-/moj-ucet/moje-elektronicke-produkty/*  /ucet/knihovna  301
+/moj-ucet/moje-elektronicke-produkty/*  /ucet#programy  301
+/moj-ucet/moje-elektronicke-produkty  /ucet#programy  301
+/moj-ucet/*  /ucet  301
+/ucet/knihovna  /ucet#programy  301
+/ucet/kniznica  /ucet#programy  301
 
 # --- Neaktivní kategorie Medusa: 404 ne, ale 301 na přehled ---
 /eshop/kategorie/Podkategoria41  /eshop  301

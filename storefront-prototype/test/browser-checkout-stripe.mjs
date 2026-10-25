@@ -95,8 +95,10 @@ window.Stripe=function(key){
 const launchBrowser=async()=>{try{return await chromium.launch({channel:process.env.PLAYWRIGHT_CHANNEL||'chrome',headless:true});}catch{return await chromium.launch({headless:true});}};
 const browser=await launchBrowser();
 const checks=[];const pageErrors=[];
+// Voliteľné snímky pre kontrolu dizajnu (SHOTS=adresár), test tým nemení správanie.
+const shot=async(page,name)=>{if(!process.env.SHOTS)return;await page.addStyleTag({content:'#cookie-banner{display:none!important}'});await page.waitForTimeout(600);await page.screenshot({path:`${process.env.SHOTS}/${process.env.VIEWPORT_W||1440}-${name}.png`,fullPage:true});await page.evaluate(()=>document.querySelectorAll('style').forEach(s=>{if(s.textContent.includes('#cookie-banner{display:none'))s.remove();}));};
 try{
-  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'sk-SK'});
+  const context=await browser.newContext({viewport:{width:Number(process.env.VIEWPORT_W||1440),height:1000},locale:'sk-SK'});
   await context.addInitScript(({api,publishableKey,regionId,stripeKey,cartId})=>{
     window.__ANASTASIA__={apiBaseUrl:api,publishableKey,regionId,stripePublishableKey:stripeKey};
     try{sessionStorage.setItem('anastasia.cart',cartId);sessionStorage.setItem('anastasia.jwt','jwt_test');}catch{}
@@ -115,8 +117,10 @@ try{
   checks.push('domovská stránka: Stripe sa nenačítal, lišta cookies je otvorená');
 
   // Pokladňa: platba kartou v TEST režime bez kliknutia na lištu cookies.
+  if(process.env.SHOTS){await page.goto(`${web}/kosik`,{waitUntil:'load'});await page.waitForTimeout(1500);await shot(page,'kosik');}
   await page.goto(`${web}/pokladna`,{waitUntil:'load'});
   await page.locator('#checkout-form [name=firstName]').waitFor();
+  await shot(page,'pokladna-1');
   await page.fill('#checkout-form [name=firstName]','Kontrola');
   await page.fill('#checkout-form [name=lastName]','Bez kliknutia na lištu');
   await page.fill('#checkout-form [name=email]','kontrola@example.invalid');
@@ -129,6 +133,7 @@ try{
   await page.locator('#checkout-form [data-next="3"]').click();
   await page.waitForSelector('#stripe-payment-element [data-stripe-test-element]',{timeout:15000});
   checks.push('pokladňa: platobný prvok Stripe sa načítal a zobrazil');
+  await shot(page,'pokladna-3');
 
   assert.ok(stripeLoads>=1,'Stripe.js sa musí načítať pri výbere platby kartou');
   assert.equal(await page.evaluate(()=>localStorage.getItem('anastasia.consent')),null,'zákazník nesmie rozhodnúť o cookies, aby mohol zaplatiť');

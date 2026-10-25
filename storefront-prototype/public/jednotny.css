@@ -1,4 +1,4 @@
-/* Jednotný dizajn podstránok podľa nového úvodu (koncept), okrem obchodu. Lucky 25. 10.
+/* Jednotný dizajn podstránok podľa nového úvodu (koncept), od 25. 10. aj obchod, košík a pokladňa.
    Farby, písmo, tlačidlá a tvary fotiek sú tie isté ako na úvode, aby web pôsobil ako jeden celok. */
 /* vrstva jednotny je v base.css deklarovaná prvá, takže jej !important má prednosť pred legacy aj polish */
 @layer jednotny{
@@ -43,6 +43,27 @@
 @media(max-width:760px){
   #page-shell.kc-unified .legacy-main h1{font-size:clamp(44px,12vw,64px)!important}
 }
+
+/* obchod, košík a pokladňa v rovnakom dizajne ako úvod (Lucky 25. 10.), len vzhľad, logika nákupu a platby ostáva */
+#page-shell.kc-unified.kc-shop .legacy-main .section.shop-page,#page-shell.kc-unified.kc-shop .legacy-main .section:has(>.page-intro){background:var(--paper)!important;color:var(--ink)!important}
+#page-shell.kc-unified.kc-shop .legacy-main .section:not(.lan-page)>.page-intro{background:var(--paper)!important;padding-bottom:clamp(24px,3vw,48px)!important;margin-bottom:clamp(20px,2.5vw,40px)!important;border-bottom:1px solid rgba(47,52,36,.12)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary{background:var(--cream)!important;border:1px solid rgba(47,52,36,.1)!important;border-radius:var(--drop)!important;color:var(--ink)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary h2{color:var(--olive)!important;font:300 30px/1.1 var(--serif)!important}
+#page-shell.kc-unified.kc-shop .shop-page .order-summary .summary-row{border-color:rgba(47,52,36,.14)!important}
+#page-shell.kc-unified.kc-shop .shop-page :is(.button:not(.outline):not(.secondary):not(.ghost):not(.light),.order-summary .button,button[type=submit].button){background:var(--olive)!important;border-color:var(--olive)!important;color:var(--paper)!important}
+#page-shell.kc-unified.kc-shop .shop-page :is(.button:not(.outline):not(.secondary):not(.ghost):not(.light),.order-summary .button,button[type=submit].button):hover{background:var(--lav)!important;border-color:var(--lav)!important}
+#page-shell.kc-unified.kc-shop .shop-page .button.outline{color:var(--olive)!important;border-color:rgba(47,52,36,.35)!important;background:transparent!important}
+#page-shell.kc-unified.kc-shop .shop-page .checkout-steps li{color:var(--muted)!important}
+#page-shell.kc-unified.kc-shop .shop-page .checkout-steps li.current{color:var(--olive)!important;border-color:var(--olive)!important}
+#page-shell.kc-unified.kc-shop .shop-page :is(.cart-line,.empty-state,fieldset,.coupon-form,#redeem-voucher-form,.shop-cart form){border-color:rgba(47,52,36,.14)!important}
+#page-shell.kc-unified.kc-shop .shop-page :is(.empty-state,.cart-line){background:#fff!important}
+#page-shell.kc-unified.kc-shop .shop-page legend{font:300 30px/1.1 var(--serif)!important;color:var(--olive)!important}
+#page-shell.kc-unified.kc-shop .shop-page input[type=checkbox],#page-shell.kc-unified.kc-shop .shop-page input[type=radio]{accent-color:var(--olive)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes>form{background:var(--cream)!important}
+#page-shell.kc-unified.kc-shop .shop-cart :is(.cart-line>img,.quantity,.remove-line){background:var(--cream)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .remove-line:hover{background:var(--olive)!important;color:var(--paper)!important}
+#page-shell.kc-unified.kc-shop .shop-cart .cart-codes input{border-color:rgba(47,52,36,.18)!important}
+#page-shell.kc-unified.kc-shop .shop-page a:not(.button){color:var(--olive)}
 
 /* bez oblúkov na fotkách podstránok (Lucky 25. 10.) */
 #page-shell.kc-unified .legal-figure,#page-shell.kc-unified .legal-figure img,#page-shell.kc-unified .legal-hero{border-radius:0!important}
