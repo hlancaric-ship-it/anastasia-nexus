@@ -494,9 +494,13 @@ const isLanguageCode = value => ['SK', 'EN', 'RU'].includes(value.trim().toUpper
 function translateValue(value, target) {
   const trimmed = value.trim();
   if (!trimmed || isLanguageCode(trimmed)) return value;
-  const entry = DICT[trimmed];
+  let entry = DICT[trimmed];
+  let sentence = false;
+  // štítky sa píšu vetou, slovník ich má verzálkami
+  if (!entry && trimmed !== trimmed.toLocaleUpperCase()) { entry = DICT[trimmed.toLocaleUpperCase('sk')]; sentence = Boolean(entry); }
   if (!entry) return value;
-  const translated = entry[idx[target]];
+  let translated = entry[idx[target]];
+  if (translated && sentence) translated = translated.split(/(\s+)/).map((w, i) => /^(ANASTASIA|AI|RESET)$/.test(w) ? w : w.toLocaleLowerCase()).join('').replace(/^\p{Ll}/u, c => c.toLocaleUpperCase());
   return translated ? value.replace(trimmed, translated) : value;
 }
 

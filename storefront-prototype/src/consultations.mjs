@@ -1,5 +1,5 @@
 import {api} from './lib/api/index.mjs';
-import {escape as e, arrow, button, splitHero} from './components.mjs';
+import {escape as e, arrow, button, splitHero, sentenceCase} from './components.mjs';
 
 const CONSULTATION_HANDLES = {
   'online-zdravotna-konzultacia': {name: 'Online zdravotná konzultácia', kind: 'online-zdravotna-konzultacia', page: '/konzultacie/online-zdravotna-konzultacia', img: '/img/lucia/lucia-portret-1600.webp'},
@@ -59,4 +59,4 @@ export const consultations = () => {
   return `<section class="section lan-page consult-page">${SKY_CSS}${splitHero(pageIntro('KONZULTÁCIE', 'Vyberte si termín.', 'Online konzultácie, supervízia, astrologický profil a personifikované protokoly.'), '/img/lucia/stacionar-poradna-1600.webp', 'Poradňa ANASTASIA', {tone: 'lavender'})}<div class="lan-rows">${items}</div></section>`;
 };
 
-const pageIntro = (eyebrow, title, description) => `<div class="page-intro"><p class="eyebrow" data-content="konzultacie__konzultacie-1__0-text">${e(eyebrow)}</p><h1>${e(title)}</h1><p class="lead">${e(description)}</p></div>`;
+const pageIntro = (eyebrow, title, description) => `<div class="page-intro"><p class="eyebrow" data-content="konzultacie__konzultacie-1__0-text">${e(sentenceCase(eyebrow))}</p><h1>${e(title)}</h1><p class="lead">${e(description)}</p></div>`;

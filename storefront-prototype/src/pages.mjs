@@ -46,7 +46,7 @@ export const zdravySvet=()=>`
   ${splitHero(pageIntro('ZDRAVÝ SVET','Zdravý svet','Táto časť webu patrí projektu ANASTASIA.'),'/media/legacy-483537f470c4.jpg','Rodina spolu na slnečnej lúke',{tone:'sage',extra:'<p class="zs-lead">Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené.</p>'})}
 </section>
 <section class="statement zs-statement">
-  <p class="eyebrow">ZDRAVÝ SVET</p>
+  <p class="eyebrow">Zdravý svet</p>
   <h2>Zdravý svet nie je ideál,<br>ku ktorému sa treba dopracovať.</h2>
   <p class="zs-statement-copy">Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.</p>
 </section>
@@ -59,7 +59,7 @@ export const zdravySvet=()=>`
   <p>V Zdravom svete nie je potrebné čítať všetko, rozumieť všetkému ani niečo systematicky prechádzať. Ak niečo osloví, je dostupné. Ak nie, nič sa nedeje. Tento priestor nevytvára záväzok. Neočakáva pozornosť. Nepýta spätnú väzbu.</p>
 </section>
 <section class="section zs-offer">
-  <p class="eyebrow">ZDRAVÝ SVET</p>
+  <p class="eyebrow">Zdravý svet</p>
   <h2>Môžeš tu nájsť audio záznamy, texty, priestory bez vysvetlenia.</h2>
   <p>Nie ako produkty. Skôr ako pozvania, ktoré môžeš, ale nemusíš prijať.</p>
 </section>

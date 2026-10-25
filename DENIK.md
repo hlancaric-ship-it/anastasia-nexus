@@ -19,12 +19,12 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Žádné oblouky na fotkách v podstránkách. Fotky v úvodu podstránek jsou obdélník na celou výšku. Oblouky odstraněny také na VOP a O Lucii (portrét, longevity, galerie).
 - Kontrola screenshotů 1440 a 390: konzultace, supervízia, stacionár, RESET 40+, kontakt, VOP, Klub, O Lucii, přihlášení, 404.
 - Jednotkové testy po změně: 162/162.
+- Štítky nad nadpisy jsou psané větou, ne verzálkami (Konzultácie, Klub ANASTASIA). Značky ANASTASIA, AI a RESET zůstávají verzálkami. Překlady EN a RU fungují dál.
 
 ### Rozpracováno
 - Nic.
 
 ### Chybí
-- Některé nadpisy nad titulkem mají verzálky přímo v textu (KONZULTÁCIE, KLUB ANASTASIA). Text upravit v obsahu, ne v CSS.
 - Obsah knihovny ze starého webu (nic-nemusis, vyuka-vedomeho-vnimania, reset-40-plus). Potřebujeme kompletní ZIP od programátora starého webu.
 - `test/browser.mjs` je stále napsaný na starý úvod a je potřeba ho přepsat.
 - Na Cloud testu zůstal testovací produkt `testovaci-konzultace` bez kategorie.
