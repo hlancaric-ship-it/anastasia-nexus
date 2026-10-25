@@ -187,3 +187,8 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - Šablóna konzultácie: hore úvod (fotka, nadpis, pilulky dĺžka, forma, cena) a kalendár vedľa seba, na mobile pod sebou. Pod tým 3 karty Pre koho, Priebeh 1–3, Otázky a zrušenie.
 - Kalendár: dni s voľným termínom zlatá bodka, časy ako 44 px pilulky, súhrn „Pondelok 26. 10. o 11:30“ s cenou a tmavozeleným CTA #1E261D so zlatou šípkou.
 - Kontakt: ľavá karta s fotkou v jemnom ráme a kontaktmi so zlatými ikonami, pravá karta formulár s krémovými poľami a zlatým focusom, súhlas zarovnaný s textom.
+
+## Bočná lišta (25. 10. noc)
+- Vždy matne priehľadná: pozadie max 16 % + blur 18 px se -webkit-, nikdy plná farba.
+- Farba textu a ikon podľa podkladu pod každou ikonou, vrátane gradientov.
+- Plávajúca lišta obchodu sa nad patičkou skryje, nikdy neprekrýva súhrn ani patičku.

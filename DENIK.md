@@ -87,3 +87,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Kontakt: krémový podklad, karta s fotkou Lucie a kontaktmi so zlatými ikonami, formulár v samostatnej karte, bez vodoznaku. IČO, DIČ a IČ DPH pod sebou.
 - Prihlásenie z e-mailu: bez medzistránky, hneď /ucet#prehlad alebo bezpečný ?redirect=, v účte 3 s toast. Chyba odkazu ponúkne nový odkaz.
 - Testy 162/162, nasadené na test.
+
+## 25. 10. noc – bočná lišta všade matne priehľadná
+- Ľavá lišta už nemá vlastnú krémovú plochu. Má len jemný závoj (8–16 %) a rozmazanie 18 px, takže presvitá farba toho, čo je pod ňou.
+- Tón sa číta aj z prechodov (patička), každá ikona podľa svojej výšky. Nad patičkou svetlé ikony, nad krémom tmavá olivová.
+- Lišta obchodu (Kategórie, Vyhľadať, Košík, Môj účet) je sklo a nad patičkou sa plynulo skryje spolu s Menu.

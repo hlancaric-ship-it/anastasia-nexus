@@ -376,7 +376,7 @@ const stopAmbientForLibrary=()=>{if(!amb.paused)amb.stop();};
 document.addEventListener('ana:media-play',stopAmbientForLibrary);
 const footer=document.querySelector('.site-footer');
 if(footer){
-  const floatingChrome=[...document.querySelectorAll('#lh-top,header')].filter(el=>el.id==='lh-top'||el.querySelector('[data-menu-open]'));
+  const floatingChrome=[...document.querySelectorAll('#lh-top,header,.shop-shortcuts')].filter(el=>el.id==='lh-top'||el.matches('.shop-shortcuts')||el.querySelector('[data-menu-open]'));
   if(floatingChrome.length){
     const footerObserver=new IntersectionObserver(entries=>{
       const visible=entries.some(entry=>entry.isIntersecting);
@@ -1098,6 +1098,8 @@ initDigitalProduct();
           if(cs.visibility==='hidden'||Number(cs.opacity)<.2)break;
           // Vektorová aura liniek (.svg) je svetlý podklad, nie fotka.
           if(/url\((?![^)]*\.svg)/.test(cs.backgroundImage)&&el.getBoundingClientRect().width>200)return true;
+          // Prechod farieb (napr. patička) – rozhoduje prvá farba prechodu.
+          if(/gradient/.test(cs.backgroundImage)){const g=lum(cs.backgroundImage.match(/rgba?\([^)]*\)/)?.[0]||'');if(g!==null)return g<.35;}
           const l=lum(cs.backgroundColor);if(l!==null)return l<.35;
         }
       }
