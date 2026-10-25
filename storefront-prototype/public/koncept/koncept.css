@@ -368,3 +368,23 @@ main>.lh-top+.kc{margin-top:-64px}
  .kc-open__claim{top:clamp(190px,27vh,240px)}
  .kc-open__more a{padding:13px 18px 14px}
 }
+
+/* Oprava 25. 10.: Konzultácie, vrstvenie kariet, Lucia, predel poukaz → pätička */
+.kc .kc-sc--3{background:radial-gradient(120% 90% at 100% 0%,#FBF4E2 0%,transparent 60%),linear-gradient(150deg,#F3E7CB 0%,#EAD9B4 55%,#E2CFA6 100%);color:var(--olive)}
+.kc-sc--3 figure{border-radius:999px 999px 28px 0}
+.kc .kc-sc{box-shadow:0 -20px 40px rgba(0,0,0,.15)}
+.kc .kc-sc--1{box-shadow:0 30px 60px -40px rgba(0,0,0,.25)}
+@media (max-height:820px) and (min-width:761px){.kc .kc-sc{min-height:calc(100vh - 150px);top:calc(76px + var(--i) * 18px);padding-block:clamp(24px,3vw,40px)}.kc .kc-sc figure{width:min(100%,330px)}}
+.kc-who{align-items:center}
+.kc-who__stage{position:relative;top:auto;height:auto;min-height:clamp(560px,48vw,700px)}
+.kc-who__copy{padding-top:0;display:flex;flex-direction:column;align-items:flex-start}
+.kc-who__h{margin-bottom:22px}
+.kc-who__t{margin-bottom:32px}
+.kc-big{width:100%;padding:24px 0;margin-bottom:32px}
+.kc-big__n{font-size:clamp(110px,12vw,190px)}
+.kc-pillars{width:100%;margin-bottom:36px}
+.kc-who__copy .kc-pill{margin:0}
+.kc-gift{padding-bottom:clamp(120px,13vw,200px);border-bottom:1px solid rgba(253,230,138,.15);box-shadow:inset 0 -60px 80px -60px rgba(201,165,92,.12)}
+.kc-gift__copy .kc-pill{position:relative;z-index:3;overflow:visible}
+.dc-chrome .site-footer,body .site-footer{border-top:1px solid rgba(253,230,138,.15)}
+@media (max-width:760px){.kc-who__stage{min-height:0}.kc-gift{padding-bottom:120px}}

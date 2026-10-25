@@ -433,11 +433,11 @@ window.addEventListener('pageshow',()=>{$('.page-transition').classList.remove('
 const filterForm=$('.catalog-controls');
 if(filterForm){
   const params=new URLSearchParams(location.search);
-  for(const name of ['category','search','filter'])if(params.has(name))filterForm.elements[name].value=params.get(name);
-  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));const products=await api.getProducts(query);if(sequence!==renderSequence)return;$('#catalog-results').innerHTML=products.length?shopOrder(products).map(shopCard).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;
+  for(const name of ['category','search','filter','sort'])if(params.has(name)&&filterForm.elements[name])filterForm.elements[name].value=params.get(name);
+  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));const products=await api.getProducts(query);if(sequence!==renderSequence)return;const priceOf=p=>Number(String(p.priceLabel).replace(/[^\d,]/g,'').replace(',','.'))||0;let ordered=shopOrder(products);if(query.sort==='price-asc')ordered=[...ordered].sort((a,b)=>priceOf(a)-priceOf(b));else if(query.sort==='price-desc')ordered=[...ordered].sort((a,b)=>priceOf(b)-priceOf(a));else if(query.sort==='name')ordered=[...ordered].sort((a,b)=>a.name.localeCompare(b.name,'sk'));$('#catalog-results').innerHTML=products.length?ordered.map(shopCard).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;
     $$('[data-catalog-category]').forEach(link=>{if(link.dataset.catalogCategory===query.category)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
     const search=new URLSearchParams(Object.entries(query).filter(([,v])=>v));history.replaceState(null,'',location.pathname+(search.size?'?'+search:''));
-    $('#reset-filters')?.addEventListener('click',()=>{for(const name of ['search','category','filter'])filterForm.elements[name].value='';render();});
+    $('#reset-filters')?.addEventListener('click',()=>{for(const name of ['search','category','filter','sort'])if(filterForm.elements[name])filterForm.elements[name].value='';render();});
   };
   // Kategórie v obchode sa prepínajú na mieste – bez nového načítania stránky.
   const norm=path=>path.replace(/\/+$/,'')||'/';

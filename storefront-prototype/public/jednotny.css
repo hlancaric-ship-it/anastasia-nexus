@@ -513,4 +513,9 @@
 #page-shell.kc-unified .legacy-main .ck-line-price{grid-column:2;justify-items:start;text-align:left;grid-auto-flow:column;align-items:baseline;justify-content:start;gap:12px}
 #page-shell.kc-unified .legacy-main .ck-line h2{font-size:18px!important}
 }
+
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card h3{font:400 17px/1.3 var(--serif)!important;letter-spacing:-.005em!important}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card h3 a{color:#26271f!important}
+#page-shell.kc-unified .legacy-main .shop-toolbar .shop-sort select{background-color:transparent!important;border:0!important;border-bottom:1px solid rgba(48,67,47,.22)!important;border-radius:0!important;box-shadow:none!important}
+@media (max-width:760px){#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card h3{font-size:15px!important}}
 }

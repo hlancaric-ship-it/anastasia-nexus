@@ -140,3 +140,14 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - Levandule `#B9B7DD`: tlačítko Odoberať s tmavým textem `#22223A` a hover odkazů.
 - Pravidla jsou v `public/polish.css` (vrstva polish přebíjí legacy pastel-reference).
 - Detail produktu a košík se řídí master protokolem: select pro varianty a košík 2/3 + 1/3.
+
+## Obchod – výpis produktů (25. 10.)
+- Plocha pod dlaždicemi: krémová `#F6F0E1` s jemnými radiálními nádechy levandule a zlata.
+- Filtry jsou pilulky. Výška 40 px, okraj 1 px olivový s opacitou 16 %. Aktivní pilulka je levandulová (`rgba(185,183,221,.38)`).
+- Řazení je select s podtržením, hledání je pilulka s ikonou lupy.
+- Karta: `#FFFDF8`, radius 18 px, měkký stín, fotka 4:5 s hover zoomem 1.06, zlatý štítek typu velkými písmeny a název v serifu 17 px.
+
+## Home – vrstvené karty a předěly
+- Vrstvené karty mají stín `0 -20px 40px rgba(0,0,0,.15)`.
+- Všechny fotky karet jsou v klenutém rámu `999px 999px 28px 0`.
+- Mezi tmavou sekcí a patičkou je vždy linka 1px `rgba(253,230,138,.15)`.

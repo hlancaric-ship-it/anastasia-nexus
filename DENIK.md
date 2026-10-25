@@ -37,3 +37,10 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Nový veřejný endpoint `/store/nexus-checkout/free-shipping` vrací práh dopravy zdarma a ceny dopravy.
 - Patička je v tmavé olivové `#182218`. Linky jsou zlaté s opacitou 14 %, loga a nadpisy sloupců v matném zlatě. Tlačítko Odoberať je levandulové a hover odkazů přechází do levandule. Texty jsou krémové na 70 %. Ikony výhod v obchodě jsou v matném zlatě.
 - Ověřeno na testu na 1440 a 390: přidání do košíku 200, žádné chyby stránky, 162/162 testů.
+
+## 25. 10. večer – hero, Obchod, opravy Home
+- Hero Home má zlatou pečeť ANASTASIA nahoře uprostřed, čísla 30+/1/16 v jedné skleněné kapsli, směrové overlaye a zlatý eyebrow „Zdravý svet“. Karty 01–03 jsou editorial bez avatarů.
+- Obchod pod dlaždicemi má krémovou plochu `#F6F0E1`. Levý sloupec s radio filtry a boční newsletter jsou pryč. Kategorie jsou pilulky Všetko, Kozmetika, Bylinky a výživa, Programy a služby, Darčekové vouchery. Aktivní pilulka je levandulová. Vpravo je řazení (cena, název) a hledání. Grid má 4 sloupce, na ≤1100 px 3 a na ≤900 px 2. Karty mají fotku 4:5, hover zoom a štítek typu (Fyzický produkt, Online program, Konzultácia, Darčekový poukaz).
+- Home, karta Konzultácie: místo místnosti se stolem je portrét Lucie před zlatým ornamentem. Rám je klenutý jako u Obchodu a RESET 40+ a karta je v champagne gradientu. Vrstvené karty mají stín `0 -20px 40px rgba(0,0,0,.15)` a na nízkých displejích nižší výšku.
+- Sekce Volám sa Lucia je svisle vycentrovaná ke kruhové kompozici a bez prázdného místa pod tlačítkem O Lucii.
+- Poukaz končí vlastním paddingem a mezi poukazem a patičkou je zlatá linka 1px s opacitou 15 %.
