@@ -250,7 +250,7 @@ export function createHttpApi(storage, config) {
     const lines = (cart.items || []).map(it => ({
       slug: it.product_handle || it.product?.handle || it.id,
       key: it.id,
-      name: (it.product_title || it.title || it.product?.title || 'Položka') + (it.variant_title && !/^(Štandard|Default.*)$/i.test(it.variant_title) && it.variant_title !== it.product_title ? ` · ${it.variant_title}` : ''),
+      name: (it.product_title || it.title || it.product?.title || 'Položka') + (it.variant_title && !/^(Štandard|Predvolené|Default.*)$/i.test(it.variant_title) && it.variant_title !== it.product_title ? ` · ${it.variant_title}` : ''),
       code: it.product_handle || it.product?.handle,
       priceLabel: money(it.unit_price),
       image: publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
