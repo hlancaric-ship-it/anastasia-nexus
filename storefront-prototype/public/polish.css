@@ -1,0 +1,258 @@
+/* Dolaďovacia vrstva – košík, odporúčané produkty, newsletter v obchode, pätička.
+   Načítava sa v base.css ako prvá vrstva (@layer polish), takže jej !important prebíja staršie pravidlá. */
+
+/* ---------- Košík ---------- */
+.shop-cart .cart-guest-note{margin:0 0 22px!important;font-size:14px!important;color:#5f5e80!important}
+.shop-cart .cart-guest-note a{color:#73729c!important;text-decoration:underline!important;text-underline-offset:3px;margin-left:4px}
+.shop-cart .cart-layout{display:grid!important;grid-template-columns:minmax(0,1.5fr) minmax(300px,.85fr)!important;gap:32px!important;align-items:start!important}
+.shop-cart .cart-line{display:grid!important;grid-template-columns:96px minmax(0,1fr) auto!important;gap:18px!important;align-items:center!important;padding:16px!important;margin:0 0 14px!important;background:#fff!important;border:1px solid #e6e4f0!important;border-radius:24px!important;box-shadow:0 10px 30px -22px rgba(64,63,98,.45)!important}
+.shop-cart .cart-line>img{width:96px!important;height:112px!important;object-fit:cover!important;border-radius:18px!important;background:#f1f0f7!important}
+.shop-cart .cart-line h2{font:400 20px/1.25 'Fraunces',Georgia,serif!important;margin:0 0 6px!important;color:#2d2c4a!important}
+.shop-cart .cart-line h2 a{color:inherit!important;text-decoration:none!important}
+.shop-cart .cart-line p{font-size:13px!important;color:#6a6988!important;margin:2px 0!important}
+.shop-cart .quantity{display:inline-flex!important;align-items:center!important;gap:4px!important;margin-top:10px!important;padding:4px!important;min-height:0!important;border:0!important;border-radius:999px!important;background:#f3f2f9!important}
+.shop-cart .quantity button{width:34px!important;height:34px!important;border:0!important;border-radius:50%!important;background:#fff!important;color:#403f62!important;font-size:17px!important;line-height:1!important;cursor:pointer!important;box-shadow:0 2px 6px -3px rgba(64,63,98,.35)!important}
+.shop-cart .quantity button:disabled{opacity:.4!important;cursor:default!important}
+.shop-cart .quantity span{min-width:28px!important;text-align:center!important;font-weight:500!important;color:#2d2c4a!important}
+.shop-cart .remove-line{align-self:start!important;width:36px!important;height:36px!important;min-height:0!important;padding:0!important;border:0!important;border-radius:50%!important;background:#f3f2f9!important;color:#73729c!important;font-size:20px!important;line-height:1!important;text-decoration:none!important;cursor:pointer!important;display:grid!important;place-items:center!important;transition:background .2s,color .2s}
+.shop-cart .remove-line:hover{background:#73729c!important;color:#fff!important}
+.shop-cart .cart-codes{display:grid!important;grid-template-columns:1fr 1fr!important;gap:14px!important;margin-top:22px!important}
+.shop-cart .cart-codes>form{margin:0!important;padding:18px!important;border:0!important;border-radius:22px!important;background:#f7f6fb!important}
+.shop-cart .coupon-input,.shop-cart #redeem-voucher-form{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:end!important;gap:8px!important}
+.shop-cart .cart-codes label{display:grid!important;gap:8px!important;font-size:13px!important;font-weight:500!important;color:#403f62!important;margin:0!important}
+.shop-cart .cart-codes input{width:100%!important;min-height:46px!important;padding:0 18px!important;border:1px solid #dcdaea!important;border-radius:999px!important;background:#fff!important;color:#2d2c4a!important;font:inherit!important;font-size:14px!important;box-shadow:none!important}
+.shop-cart .cart-codes input:focus{outline:2px solid #b9b7dc!important;outline-offset:1px!important}
+.shop-cart .cart-codes .button{min-height:46px!important;padding:0 20px!important;border-radius:999px!important;border:1px solid #73729c!important;background:#fff!important;color:#73729c!important;font-size:14px!important;white-space:nowrap!important}
+.shop-cart .cart-codes .button:hover{background:#73729c!important;color:#fff!important}
+.shop-cart .cart-codes .form-status{grid-column:1/-1!important;margin:0!important;font-size:12px!important}
+.shop-cart .cart-codes .form-status:empty{display:none!important}
+.shop-cart .order-summary{position:sticky!important;top:24px!important;padding:28px!important;border:0!important;border-radius:28px!important;background:linear-gradient(165deg,#f1f0f8,#e6e4f2)!important}
+.shop-cart .order-summary h2{font:400 26px/1.2 'Fraunces',Georgia,serif!important;margin:0 0 18px!important;color:#2d2c4a!important}
+.shop-cart .order-summary .summary-row{border-color:#d9d7ea!important}
+.shop-cart .order-summary .summary-row:last-of-type{font-size:18px!important}
+.shop-cart .order-summary .button{border-radius:999px!important;min-height:52px!important}
+.shop-cart .empty-state{padding:48px 28px!important;border-radius:28px!important;background:#f7f6fb!important;text-align:center!important}
+
+@media(max-width:900px){
+  .shop-cart .cart-layout{grid-template-columns:1fr!important;gap:20px!important}
+  .shop-cart .order-summary{position:static!important}
+  .shop-cart .cart-codes{grid-template-columns:1fr!important}
+}
+@media(max-width:520px){
+  .shop-cart .cart-line{grid-template-columns:72px minmax(0,1fr) auto!important;gap:12px!important;padding:12px!important;border-radius:20px!important}
+  .shop-cart .cart-line>img{width:72px!important;height:86px!important;border-radius:14px!important}
+  .shop-cart .cart-line h2{font-size:17px!important}
+  .shop-cart .remove-line{grid-column:auto!important;justify-self:auto!important}
+  .shop-cart .order-summary{padding:22px!important;border-radius:24px!important}
+}
+
+/* ---------- Odporúčané produkty na detaile ---------- */
+.pd-related .product-grid{gap:20px!important;align-items:stretch!important}
+.pd-related .product-card{display:flex!important;flex-direction:column!important;border-radius:24px!important;overflow:hidden!important;background:#fff!important;color:#2d2c4a!important;border:1px solid #e6e4f0!important;box-shadow:0 14px 36px -28px rgba(64,63,98,.5)!important;transition:transform .35s ease,box-shadow .35s ease!important}
+.pd-related .product-card:hover{transform:translateY(-4px)!important;box-shadow:0 22px 44px -26px rgba(64,63,98,.55)!important}
+.pd-related .product-image{aspect-ratio:4/5!important;border-radius:0!important;flex:none!important}
+.pd-related .product-image:after{display:none!important}
+.pd-related .product-image img{transition:transform .6s ease!important}
+.pd-related .product-card:hover .product-image img{transform:scale(1.04)!important}
+.pd-related .product-caption{position:static!important;inset:auto!important;display:block!important;padding:16px 18px 4px!important;background:#fff!important;color:#2d2c4a!important;opacity:1!important;visibility:visible!important;transform:none!important}
+.pd-related .product-caption>.arrow{display:none!important}
+.pd-related .product-caption h3{font:400 19px/1.25 'Fraunces',Georgia,serif!important;margin:0 0 6px!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;min-height:2.5em!important}
+.pd-related .product-caption h3 a{color:inherit!important;text-decoration:none!important}
+.pd-related .product-caption p{margin:0!important;font-size:15px!important;font-weight:500!important;color:#403f62!important}
+.pd-related .product-info{position:static!important;inset:auto!important;display:flex!important;flex-direction:column!important;flex:1!important;gap:14px!important;padding:6px 18px 18px!important;background:#fff!important;opacity:1!important;visibility:visible!important;transform:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.pd-related .product-info p{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;margin:0!important;font-size:13.5px!important;line-height:1.55!important;min-height:3.1em!important;color:#6a6988!important}
+.pd-related .product-info .button{margin-top:auto!important;width:100%!important;min-height:44px!important;border-radius:999px!important;justify-content:center!important}
+@media(max-width:760px){
+  .pd-related .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  .pd-related .product-card{border-radius:18px!important}
+  .pd-related .product-caption{padding:12px 12px 2px!important}
+  .pd-related .product-caption h3{font-size:16px!important}
+  .pd-related .product-caption p{font-size:14px!important}
+  .pd-related .product-info{padding:4px 12px 12px!important;gap:10px!important}
+  .pd-related .product-info p{display:none!important}
+  .pd-related .product-info .button{min-height:40px!important;font-size:13px!important;padding:0 12px!important}
+  .pd-related .product-info .button svg{display:none!important}
+}
+
+/* ---------- Newsletter v obchode ---------- */
+.shop-aside .shop-community{background:linear-gradient(165deg,#f3f2f9 0%,#e4e2f1 100%)!important;color:#2d2c4a!important;border:1px solid #dcdaea!important;border-radius:26px!important;padding:30px 26px!important;gap:20px!important;overflow:hidden!important;position:relative!important}
+.shop-aside .shop-community:before{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#c9bce0 0%,rgba(201,188,224,0) 70%);pointer-events:none}
+.shop-aside .shop-community h2{position:relative!important;font:300 28px/1.15 'Fraunces',Georgia,serif!important;color:#2d2c4a!important;margin:0 0 10px!important}
+.shop-aside .shop-community p{color:#5f5e80!important;font-size:14px!important;line-height:1.6!important}
+.shop-aside .shop-community form{display:grid!important;grid-template-columns:minmax(0,1fr) 48px!important;gap:8px!important;border:0!important;background:none!important}
+.shop-aside .shop-community input[type=email]{min-height:48px!important;padding:0 18px!important;border:1px solid #d6d4ea!important;border-radius:999px!important;background:#fff!important;color:#2d2c4a!important;font-size:14px!important}
+.shop-aside .shop-community input[type=email]::placeholder{color:#8f8eaa!important}
+.shop-aside .shop-community button{width:48px!important;height:48px!important;border:0!important;border-radius:50%!important;background:#73729c!important;color:#fff!important;transition:background .2s!important}
+.shop-aside .shop-community button:hover{background:#5d5c86!important}
+.shop-aside .shop-community button svg{width:18px!important}
+.shop-aside .shop-community__consent{grid-column:1/-1!important;display:flex!important;gap:10px!important;align-items:flex-start!important;padding:6px 4px 0!important;border:0!important;font-size:12px!important;line-height:1.5!important;color:#5f5e80!important}
+.shop-aside .shop-community__consent input{accent-color:#73729c;margin-top:2px!important}
+.shop-aside .shop-community .newsletter-status{color:#403f62!important;margin:0!important}
+.shop-aside .shop-community .newsletter-status:empty{display:none!important}
+
+/* ---------- Pätička: spodný pruh v jednom riadku ---------- */
+.site-footer .sf-bottom .site-admin-link{display:inline!important;min-height:0!important;padding:0!important;border:0!important;border-radius:0!important;font-size:inherit!important;letter-spacing:0!important;color:inherit!important;opacity:.7!important}
+.site-footer .sf-bottom .site-admin-link:hover{opacity:1!important}
+@media(min-width:1180px){
+  .site-footer .sf-bottom{flex-wrap:nowrap!important;justify-content:space-between!important;align-items:center!important;gap:18px!important;font-size:11.5px!important;white-space:nowrap!important}
+  .site-footer .sf-bottom>div{flex-wrap:nowrap!important;gap:18px!important}
+}
+
+.site-footer .sf-bottom>div{align-items:center!important}
+
+/* ---------- Skratky obchodu v hornej lište vpravo, vedľa Menu ---------- */
+.shop-shortcuts{position:fixed!important;top:21px!important;right:166px!important;left:auto!important;z-index:60!important;display:flex!important;align-items:center!important;gap:2px!important;width:auto!important;height:50px!important;margin:0!important;padding:5px!important;border:1px solid #dcdaea!important;border-radius:999px!important;background:rgba(255,255,255,.82)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;box-shadow:0 10px 30px -18px rgba(64,63,98,.45)!important}
+.shop-shortcuts a{display:inline-flex!important;align-items:center!important;gap:6px!important;height:38px!important;padding:0 14px!important;border:0!important;border-radius:999px!important;color:#403f62!important;font-size:13px!important;text-decoration:none!important;white-space:nowrap!important;transition:background .2s!important}
+.shop-shortcuts a:hover{background:#f0eff7!important}
+.shop-shortcuts .cart-count{display:inline-grid!important;place-items:center!important;min-width:20px!important;height:20px!important;padding:0 5px!important;border-radius:999px!important;background:#73729c!important;color:#fff!important;font-size:11px!important}
+@media(max-width:760px){
+  .shop-shortcuts{top:19px!important;right:176px!important;height:50px!important}
+  .shop-shortcuts a:not([href="/kosik"]){display:none!important}
+}
+
+/* ---------- Môj účet ---------- */
+.customer-page footer::before{display:none!important}
+.customer-center .center-program{border-radius:32px!important;overflow:hidden!important}
+.customer-center .center-program .button.outline,.customer-center .center-astro .button.outline{color:#fff!important;border-color:rgba(255,255,255,.6)!important;background:rgba(255,255,255,.08)!important}
+.customer-center .center-program .button.outline:hover,.customer-center .center-astro .button.outline:hover{background:#fff!important;color:#403f62!important}
+.customer-center .center-cards{gap:18px!important}
+.customer-center .center-card{border:0!important;border-radius:28px!important;box-shadow:0 14px 40px -28px rgba(64,63,98,.45)!important;overflow:hidden!important}
+.customer-center .center-card .form-status,.customer-center .form-status:not(:empty){border:0!important;border-radius:16px!important;background:#f3f2f9!important;color:#5f5e80!important;padding:12px 16px!important}
+.customer-center .center-card .button,.customer-center .center-section-heading .button{width:auto!important;align-self:flex-start!important;justify-self:start!important;padding:0 22px!important;gap:10px!important}
+.customer-center .center-reorder{display:grid!important;grid-template-columns:64px minmax(0,1fr) auto!important;align-items:center!important;gap:14px!important;padding:12px 12px 12px 12px!important;margin:0!important;border:0!important;border-radius:22px!important;background:#fff!important;box-shadow:0 10px 30px -24px rgba(64,63,98,.45)!important}
+.customer-center .center-reorder img{width:64px!important;height:76px!important;object-fit:cover!important;border-radius:14px!important}
+.customer-center .center-reorder h3{font-size:17px!important;line-height:1.25!important;margin:0 0 4px!important}
+.customer-center .center-reorder .button{min-height:40px!important;padding:0 16px!important;font-size:13px!important}
+.customer-center :has(>.center-reorder){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
+.customer-center .empty-state,.customer-center .reset-notice,.customer-center .library-player-box,.customer-center .library-filter-box,.customer-center .library-accordion,.customer-center .center-profile-group,.customer-center .account-chat{border-radius:24px!important}
+.customer-center input:not([type=checkbox]):not([type=radio]),.customer-center select{border-radius:999px!important;padding-inline:18px!important}
+.customer-center textarea{border-radius:20px!important}
+@media(max-width:1100px){.customer-center :has(>.center-reorder){grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:640px){.customer-center :has(>.center-reorder){grid-template-columns:1fr!important}.customer-center .center-card{border-radius:22px!important}}
+
+/* ---------- Prihlásenie a registrácia ---------- */
+.auth-section .auth-visual{border-radius:36px!important;overflow:hidden!important}
+.auth-copy .auth-tabs{display:inline-flex!important;gap:4px!important;padding:5px!important;border:0!important;border-radius:999px!important;background:#f0eff7!important}
+.auth-copy .auth-tabs button{min-height:42px!important;padding:0 22px!important;border:0!important;border-radius:999px!important;color:#73729c!important}
+.auth-copy .auth-tabs button[aria-selected=true]{background:#fff!important;color:#2d2c4a!important;box-shadow:0 4px 14px -8px rgba(64,63,98,.5)!important}
+.auth-panel input:not([type=checkbox]){min-height:50px!important;padding:0 20px!important;border:1px solid #dcdaea!important;border-radius:999px!important;background:#fff!important;box-shadow:none!important}
+.auth-panel input:not([type=checkbox]):focus{outline:2px solid #b9b7dc!important;outline-offset:1px!important;border-color:#73729c!important}
+.auth-panel .button{justify-self:start!important;width:auto!important;min-height:50px!important;padding:0 28px!important;gap:12px!important;border-radius:999px!important}
+.auth-panel .form-status:not(:empty){border:0!important;border-radius:16px!important;background:#f3f2f9!important;padding:12px 16px!important}
+@media(max-width:760px){.auth-section .auth-visual{border-radius:28px!important}}
+
+/* ---------- Celý web: nič hranaté, žiadne dlhé tlačidlá ---------- */
+.button,button.button,a.button{border-radius:999px!important}
+.form-status:not(:empty),.notice,.alert,.empty-state{border-radius:16px!important}
+:where(main) input:not([type=checkbox]):not([type=radio]):not([type=range]),:where(main) select{border-radius:999px!important}
+:where(main) textarea{border-radius:20px!important}
+.cookie-banner{border-radius:28px 28px 0 0!important}
+.cookie-banner .cookie-banner-actions{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;gap:10px!important}
+.cookie-banner .cookie-btn{width:auto!important;flex:0 0 auto!important;min-height:46px!important;padding:0 24px!important;border-radius:999px!important}
+@media(min-width:900px){.cookie-banner .cookie-banner-inner{display:flex!important;align-items:center!important;gap:28px!important}.cookie-banner .cookie-banner-text{flex:1!important;margin:0!important}}
+.shop-mini-cart button:not(.shop-mini-scrim),.shop-mini-cart .button{border-radius:999px!important}
+.shop-mini-cart img{border-radius:14px!important}
+
+.customer-center .center-card:not(.center-astro){background:#fff!important}
+
+/* ---------- Detail produktu: množstvo a košík ---------- */
+.pd-purchase{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:12px!important}
+.pd-stepper{display:inline-flex!important;align-items:center!important;gap:4px!important;height:54px!important;padding:5px!important;border:0!important;border-radius:999px!important;background:#f0eff7!important}
+.pd-stepper button{width:44px!important;height:44px!important;border:0!important;border-radius:50%!important;background:#fff!important;color:#403f62!important;font-size:18px!important;box-shadow:0 2px 8px -4px rgba(64,63,98,.4)!important}
+.pd-stepper input{width:40px!important;height:44px!important;border:0!important;border-radius:0!important;background:transparent!important;text-align:center!important;font-size:16px!important;padding:0!important;box-shadow:none!important}
+.pd-purchase .pd-buy{flex:0 0 auto!important;width:auto!important;min-height:54px!important;padding:0 34px!important}
+/* mobil: Menu blíž k pravému okraju */
+@media(max-width:760px){
+  .dc-chrome header.lh-top{right:0!important;padding-right:12px!important}
+  .lh-top__side .lh-top__menu{position:relative;left:24px}
+  .shop-shortcuts{display:none!important}
+}
+/* voľby produktu a hodnoty poukazu ako tlačidlá */
+.pd-options{display:grid!important;gap:14px!important;margin:6px 0 18px!important}
+.pd-option{border:0!important;margin:0!important;padding:0!important;min-width:0!important}
+.pd-option legend{padding:0!important;margin:0 0 8px!important;font-size:12px!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#73729c!important}
+.pd-option>div{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+.pd-option button{height:42px!important;padding:0 20px!important;border-radius:999px!important;border:1px solid #d9d8e8!important;background:#fff!important;color:#2d2c4a!important;font:500 14px/1 Figtree,sans-serif!important;cursor:pointer!important;transition:background .2s,border-color .2s,color .2s!important}
+.pd-option button:hover{border-color:#73729c!important}
+.pd-option button[aria-pressed="true"]{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
+.pd-option button.is-off:not([aria-pressed="true"]){opacity:.45!important;text-decoration:line-through!important}
+.gv-select{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important}
+.gv-values{margin:0 0 6px!important}
+/* mobil: cesta späť a zvuk na každej stránke */
+.ana-mobile-dock{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:70;display:flex;align-items:center;gap:6px;padding:5px;border-radius:999px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 8px 28px rgba(45,44,74,.16);border:1px solid rgba(115,114,156,.18)}
+.ana-mobile-dock .ana-back,.ana-mobile-dock [data-media-controls] button:not([hidden]){width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border-radius:999px!important;display:inline-grid!important;place-items:center!important;background:#f0eff7!important;color:#403f62!important;border:0!important}
+.ana-mobile-dock [data-media-controls]{display:flex!important;gap:6px!important;position:static!important;margin:0!important}
+.ana-mobile-dock [data-media-controls]{border:0!important;padding:0!important;flex-direction:row!important}
+.ana-mobile-dock [data-video-toggle]{display:none!important}
+@media(min-width:1000px){.ana-mobile-dock{display:none!important}}
+body:has(.cookie-banner:not([hidden])) .ana-mobile-dock{display:none!important}
+/* mobilné menu: logo s nápisom, výrazný účet a kontakt, košík a jazyk s vlajkami v strede */
+#dc-top-menu .menu-quick{display:none!important}
+@media(max-width:760px){
+  #dc-top-menu .menu-brand-mark img{filter:brightness(0) saturate(100%) invert(47%) sepia(14%) saturate(1046%) hue-rotate(204deg) brightness(92%) contrast(88%)!important;opacity:1!important}
+  #dc-top-menu .menu-brand-mark+div{display:flex!important}
+  #dc-top-menu .menu-brand-mark+div>span:first-child{font-size:17px!important;letter-spacing:4px!important;color:#403f62!important;font-weight:500!important}
+  #dc-top-menu .menu-brand-mark+div>span:last-child{display:none!important}
+  #dc-top-menu [data-menu-account]:not(.menu-quick *),#dc-top-menu .menu-register,#dc-top-menu a[href="/kosik"]:not(.menu-quick *){display:none!important}
+  #dc-top-menu div:has(>a[href="/klub"]){display:none!important}
+  #dc-top-menu .menu-quick{display:grid!important;gap:14px!important;justify-items:center!important;padding:4px 0 18px!important;border-bottom:1px solid rgba(115,114,156,.18)!important}
+  .menu-quick__links{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:8px!important}
+  .menu-quick__links a{display:inline-flex!important;align-items:center!important;height:44px!important;padding:0 18px!important;border-radius:999px!important;background:#fff!important;border:1px solid #d9d8e8!important;color:#2d2c4a!important;font:700 15px/1 Figtree,sans-serif!important;text-decoration:none!important}
+  .menu-quick__links a[data-register-link]{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
+  .menu-quick__links a[hidden]{display:none!important}
+  .menu-quick__row{display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:center!important;gap:10px!important}
+  .menu-quick__cart{display:inline-flex!important;align-items:center!important;gap:8px!important;height:40px!important;padding:0 16px!important;border-radius:999px!important;background:#f0eff7!important;color:#403f62!important;font:600 14px/1 Figtree,sans-serif!important;text-decoration:none!important}
+  .menu-quick__cart .cart-count{display:inline-grid!important;place-items:center!important;min-width:20px!important;height:20px!important;padding:0 5px!important;border-radius:999px!important;background:#73729c!important;color:#fff!important;font-size:11px!important}
+  .menu-quick .menu-lang{display:flex!important;align-items:center!important;gap:6px!important;font-size:13px!important}
+  .menu-quick .menu-lang>span:not([data-i18n-switch]){display:none!important}
+  .menu-quick .menu-lang [data-i18n-switch]{display:inline-flex!important;align-items:center!important;gap:6px!important;height:40px!important;padding:0 12px 0 8px!important;border-radius:999px!important;background:#fff!important;border:1px solid #d9d8e8!important;color:#403f62!important;font:600 13px/1 Figtree,sans-serif!important;letter-spacing:.04em!important;opacity:1!important;cursor:pointer!important}
+  .menu-quick .menu-lang [data-i18n-switch][aria-current="true"]{border-color:#73729c!important;box-shadow:inset 0 0 0 1px #73729c!important}
+  .menu-quick .menu-lang [data-i18n-switch]::before{content:""!important;width:22px!important;height:22px!important;border-radius:50%!important;background-size:cover!important;background-position:center!important;box-shadow:0 0 0 1px rgba(45,44,74,.12)!important}
+  .menu-quick .menu-lang [data-flag="sk"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Cpath fill='%23fff' d='M0 0h30v7H0z'/%3E%3Cpath fill='%230b4ea2' d='M0 7h30v6H0z'/%3E%3Cpath fill='%23ee1c25' d='M0 13h30v7H0z'/%3E%3Cpath d='M7 4h8v6.5c0 3-2 4.6-4 5.6c-2-1-4-2.6-4-5.6z' fill='%23ee1c25' stroke='%23fff' stroke-width='.9'/%3E%3Cpath d='M11 6.2v7M9.2 8.2h3.6M9.6 10.2h2.8' stroke='%23fff' stroke-width='.9'/%3E%3Cpath d='M7.6 13.4c1-.9 2-.9 3.4-.1c1.4-.8 2.4-.8 3.4.1c-.8 1.1-2 1.9-3.4 2.5c-1.4-.6-2.6-1.4-3.4-2.5z' fill='%230b4ea2'/%3E%3C/svg%3E");background-position:30% center!important}
+  .menu-quick .menu-lang [data-flag="ru"]::before{background-image:linear-gradient(#fff 0 33.3%,#0039a6 33.3% 66.6%,#d52b1e 66.6%)!important}
+  .menu-quick .menu-lang [data-flag="en"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30'%3E%3CclipPath id='t'%3E%3Cpath d='M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z'/%3E%3C/clipPath%3E%3Cpath d='M0,0 v30 h60 v-30 z' fill='%23012169'/%3E%3Cpath d='M0,0 L60,30 M60,0 L0,30' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M0,0 L60,30 M60,0 L0,30' clip-path='url(%23t)' stroke='%23C8102E' stroke-width='4'/%3E%3Cpath d='M30,0 v30 M0,15 h60' stroke='%23fff' stroke-width='10'/%3E%3Cpath d='M30,0 v30 M0,15 h60' stroke='%23C8102E' stroke-width='6'/%3E%3C/svg%3E")}
+}
+/* Mobil: zvuk schovaný v tlačidle vedľa Menu, ovládanie sa vysunie dole po ťuknutí */
+.ana-sound-pop{position:relative!important;display:inline-flex!important;align-items:center!important;margin-right:8px!important;flex:0 0 auto!important;pointer-events:auto!important}
+.ana-sound-pop__btn{width:40px!important;height:40px!important;padding:0!important;border-radius:999px!important;display:inline-grid!important;place-items:center!important;border:1px solid #d9d8e8!important;background:rgba(255,255,255,.88)!important;color:#403f62!important;-webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important;cursor:pointer!important;transition:background .2s,color .2s!important}
+.ana-sound-pop.is-open .ana-sound-pop__btn{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
+.ana-sound-pop__panel{position:fixed!important;z-index:80!important;padding:6px!important;border-radius:999px!important;background:rgba(255,255,255,.97)!important;border:1px solid #e6e5f0!important;box-shadow:0 14px 34px rgba(45,44,74,.18)!important;animation:ana-pop-drop .3s cubic-bezier(.16,1,.3,1)!important}
+.ana-sound-pop__panel[hidden]{display:none!important}
+.ana-sound-pop__panel [data-media-controls]{display:flex!important;flex-direction:row!important;gap:6px!important;position:static!important;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}
+.ana-sound-pop__panel [data-media-controls] button:not([hidden]){width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border-radius:999px!important;display:inline-grid!important;place-items:center!important;background:#f0eff7!important;color:#403f62!important;border:0!important}
+.ana-sound-pop__panel [data-video-toggle]{display:none!important}
+@keyframes ana-pop-drop{from{opacity:0;transform:translateY(-10px) scale(.96)}}
+@media(min-width:1000px){.ana-sound-pop{display:none!important}}
+.ana-menu-open .ana-mobile-dock,.ana-menu-open .ana-sound-pop__panel{display:none!important}
+/* Patička: platobné metódy */
+.site-footer .sf-pay{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:22px 0 4px;margin-top:8px;border-top:1px solid rgba(115,114,156,.18)}
+.site-footer .sf-pay__badge{display:inline-grid;place-items:center;width:60px;height:38px;border-radius:9px;background:#fff;border:1px solid #e3e2ee;box-shadow:0 2px 8px rgba(45,44,74,.06)}
+.site-footer .sf-pay__badge svg{display:block}
+@media(min-width:761px){.site-footer .sf-pay{justify-content:flex-end}}
+/* Patička na mobile: všetko na stred, symetricky */
+@media(max-width:760px){
+  .site-footer .sf-news{text-align:center!important}
+  .site-footer .sf-news form{justify-content:center!important}
+  .site-footer .sf-links{display:grid!important;grid-template-columns:1fr 1fr!important;gap:30px 16px!important;text-align:center!important;justify-items:center!important}
+  .site-footer .sf-links>div{display:flex!important;flex-direction:column!important;align-items:center!important;gap:12px!important}
+  .site-footer .sf-links>div:nth-child(3){grid-column:1/-1!important}
+  .site-footer .sf-brands{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:22px!important;text-align:center!important}
+  .site-footer .sf-brands>*{align-items:center!important;text-align:center!important}
+  .site-footer .sf-bottom{flex-direction:column!important;align-items:center!important;text-align:center!important;gap:14px!important}
+  .site-footer .sf-bottom>div{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:10px 18px!important}
+  .site-footer .sf-bottom>*{margin:0!important}
+}
+
+@media(min-width:1000px){.ana-sound-panel{display:none!important}}
+/* Mobilné menu: rýchle odkazy vo vnútri hlavičky menu, tri tlačidlá v jednom riadku */
+@media(max-width:760px){
+  #dc-top-menu div:has(>.menu-quick){flex-wrap:wrap!important}
+  #dc-top-menu .menu-quick{display:flex!important;flex-direction:column!important;align-items:center!important;flex:1 0 100%!important;width:100%!important;grid-column:1/-1!important;margin-top:16px!important}
+  #dc-top-menu .menu-quick__links{width:100%!important;flex-wrap:nowrap!important;gap:6px!important}
+  #dc-top-menu .menu-quick__links a{height:42px!important;padding:0 13px!important;font-size:14px!important;white-space:nowrap!important}
+  #dc-top-menu .menu-quick__row{width:100%!important}
+}
+/* Patička: odznaky platieb */
+.site-footer .sf-pay{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:10px!important}
+.site-footer .sf-pay__badge{display:inline-grid!important;place-items:center!important;width:60px!important;height:38px!important;border-radius:9px!important;background:#fff!important;border:1px solid #e3e2ee!important;box-shadow:0 2px 8px rgba(45,44,74,.06)!important;padding:0!important}
+@media(min-width:761px){.site-footer .sf-pay{justify-content:flex-end!important}}
