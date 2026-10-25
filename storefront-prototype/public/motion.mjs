@@ -56,7 +56,7 @@ atmosphereSections.forEach((el, index) => {
   el.prepend(layer);
 });
 if (gsap && ScrollTrigger) {
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger);ScrollTrigger.config({ignoreMobileResize:true});
 
   // Zlatý odlesk: úzký pruh přejede přes nápis. Animuje se jen background-position
   // (u loga maska), žádný layout.

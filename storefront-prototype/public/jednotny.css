@@ -191,7 +191,7 @@
 #page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .page-intro h1{grid-column:1;grid-row:2/span 2;align-self:end;font:300 clamp(58px,8.6vw,148px)/.92 var(--serif)!important;letter-spacing:-.045em!important;text-transform:none!important;color:var(--ink)!important;margin:0!important;text-wrap:balance}
 #page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) :is(.page-intro .lead,.zs-lead){grid-column:2;grid-row:2;font:300 clamp(17px,1.3vw,20px)/1.55 var(--sans)!important;color:var(--muted)!important;max-width:36ch!important;margin:0!important;padding-left:20px;border-left:1px solid var(--gold)}
 #page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__text>:not(.page-intro){grid-column:2;justify-self:start;margin:0!important}
-#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__photo{order:1!important;width:calc(100% - 2*clamp(16px,5vw,96px));max-width:1560px;margin:0 auto!important;height:clamp(320px,62vh,720px);min-height:0!important;border-radius:var(--drop)!important;overflow:hidden;animation:kcReveal 1.4s cubic-bezier(.2,.7,.2,1) both}
+#page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__photo{order:1!important;width:calc(100% - 2*clamp(16px,5vw,96px));max-width:1560px;margin:0 auto!important;height:clamp(320px,62svh,720px);min-height:0!important;border-radius:var(--drop)!important;overflow:hidden;animation:kcReveal 1.4s cubic-bezier(.2,.7,.2,1) both}
 #page-shell.kc-unified .legacy-main .lan-hero:not(.voucher-split) .lan-hero__photo>img{animation:kcZoom 2.4s cubic-bezier(.2,.7,.2,1) both}
 @keyframes kcReveal{from{clip-path:inset(18% 8% 0 8% round 28px)}to{clip-path:inset(0 0 0 0 round 0)}}
 @keyframes kcZoom{from{transform:scale(1.12)}to{transform:scale(1)}}
@@ -220,7 +220,7 @@
 #page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) .lan-row__price{color:var(--lav-2)!important}
 #page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) .lan-row__actions .button:not(.outline){background:var(--paper)!important;color:var(--olive)!important;border-color:var(--paper)!important}
 #page-shell.kc-unified .legacy-main .lan-row:nth-of-type(4n+2) .lan-row__actions .button.outline{background:transparent!important;color:var(--paper)!important;border-color:rgba(247,244,236,.5)!important}
-#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky{display:grid!important;grid-template-columns:minmax(0,1fr)!important;min-height:clamp(420px,56vh,620px)!important;align-content:end;background:#0b0d1c!important}
+#page-shell.kc-unified .legacy-main .lan-row.lan-row--sky{display:grid!important;grid-template-columns:minmax(0,1fr)!important;min-height:clamp(420px,56svh,620px)!important;align-content:end;background:#0b0d1c!important}
 #page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__photo{display:none!important}
 #page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__sky{border-radius:32px}
 #page-shell.kc-unified .legacy-main .lan-row.lan-row--sky .lan-row__text{background:transparent!important;max-width:620px}
@@ -282,7 +282,7 @@
 
 /* Světlé plochy: motiv pod sklem (DESIGN.md §6, krytí motivu max 30 %) */
 #page-shell.kc-unified .legacy-main :is(.kc-motif,.pd-page){position:relative;isolation:isolate;background:var(--paper)!important}
-#page-shell.kc-unified .legacy-main :is(.kc-motif,.pd-page)::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:url(/img/botanical-light.webp) right -8% top 40px/min(62vw,980px) auto no-repeat,url(/img/atmosphere/lavender.webp) left -12% bottom -40px/min(48vw,720px) auto no-repeat;opacity:.28;filter:saturate(.75)}
+#page-shell.kc-unified .legacy-main :is(.kc-motif,.pd-page)::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:none;opacity:0}
 #page-shell.kc-unified .legacy-main :is(.kc-glass,.pd-page .pd-info){background:rgba(255,255,255,.55)!important;-webkit-backdrop-filter:blur(18px) saturate(1.1);backdrop-filter:blur(18px) saturate(1.1);border:1px solid rgba(255,255,255,.7)!important;border-radius:var(--drop)!important;box-shadow:0 24px 60px -30px rgba(47,52,36,.25);padding:clamp(24px,3vw,48px)!important}
 #page-shell.kc-unified .legacy-main .pd-page{padding:clamp(28px,4vw,64px) max(clamp(16px,5vw,96px),calc((100% - 1400px)/2)) clamp(64px,8vw,120px)!important;color:var(--ink)}
 #page-shell.kc-unified .legacy-main .pd-page :is(.pd-main-image,.pd-main-image img){border-radius:var(--drop)!important}
@@ -325,7 +325,7 @@
 #page-shell.kc-unified .legacy-main .pdm .pd-breadcrumbs [aria-current]{color:var(--olive)}
 #page-shell.kc-unified .legacy-main .pdm-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(24px,3.6vw,64px);align-items:start}
 #page-shell.kc-unified .legacy-main .pdm-media{position:sticky;top:96px;display:grid;gap:12px}
-#page-shell.kc-unified .legacy-main .pdm .pd-main-image{position:relative;margin:0!important;aspect-ratio:1/1;max-height:min(78vh,760px);width:100%;overflow:hidden;background:rgba(255,255,255,.5);border:1px solid rgba(47,52,36,.1)}
+#page-shell.kc-unified .legacy-main .pdm .pd-main-image{position:relative;margin:0!important;aspect-ratio:1/1;max-height:min(78svh,760px);width:100%;overflow:hidden;background:rgba(255,255,255,.5);border:1px solid rgba(47,52,36,.1)}
 #page-shell.kc-unified .legacy-main .pdm .pd-main-image img{width:100%!important;height:100%!important;object-fit:cover!important;display:block;max-height:none!important}
 #page-shell.kc-unified .legacy-main .pdm .pd-gallery-actions{position:absolute;right:14px;bottom:14px;display:flex;gap:8px}
 #page-shell.kc-unified .legacy-main .pdm .pd-gallery-actions button{width:40px;height:40px;border-radius:999px;border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--olive);cursor:pointer}
@@ -412,7 +412,7 @@
 #page-shell.kc-unified .legacy-main .pdm-more{color:var(--muted);font-size:14px;margin-top:10px!important}
 
 /* poukaz v master šablóne */
-#page-shell.kc-unified .legacy-main .pdm--voucher .pdm-voucher-stage{position:relative;display:grid;place-items:center;aspect-ratio:1/1;max-height:min(78vh,760px);padding:clamp(20px,3vw,48px);border-radius:var(--drop);background:radial-gradient(120% 90% at 30% 20%,rgba(201,165,92,.16),transparent 60%),rgba(255,255,255,.4);border:1px solid rgba(47,52,36,.1);overflow:hidden}
+#page-shell.kc-unified .legacy-main .pdm--voucher .pdm-voucher-stage{position:relative;display:grid;place-items:center;aspect-ratio:1/1;max-height:min(78svh,760px);padding:clamp(20px,3vw,48px);border-radius:var(--drop);background:radial-gradient(120% 90% at 30% 20%,rgba(201,165,92,.16),transparent 60%),rgba(255,255,255,.4);border:1px solid rgba(47,52,36,.1);overflow:hidden}
 
 /* podobné produkty */
 #page-shell.kc-unified .legacy-main .pdm-related{margin-top:clamp(56px,7vw,110px)}
@@ -534,7 +534,7 @@
 #page-shell.kc-unified .legacy-main .pdm-select--voucher select{appearance:none!important;-webkit-appearance:none!important;min-height:60px!important;padding:0 52px 0 24px!important;font:400 19px/1 var(--serif)!important;color:var(--ink)!important;border:1px solid rgba(201,165,92,.5)!important;border-radius:999px!important;background:#FFFDF8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A9842F' stroke-width='1.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 22px center/18px no-repeat!important;box-shadow:0 10px 24px -16px rgba(70,58,30,.4)!important;cursor:pointer}
 #page-shell.kc-unified .legacy-main .pdm-select--voucher select:hover{border-color:#C9A55C!important}
 #page-shell.kc-unified .legacy-main .pdm-select--voucher select:focus-visible{outline:none;border-color:#C9A55C!important;box-shadow:0 0 0 4px rgba(201,165,92,.22)!important}
-#page-shell.kc-unified .legacy-main .pdm--voucher::before{background:url(/img/botanical-light.webp) right -6% top 0/min(64vw,980px) auto no-repeat!important;-webkit-mask-image:radial-gradient(55% 45% at 82% 22%,#000 35%,transparent 78%);mask-image:radial-gradient(55% 45% at 82% 22%,#000 35%,transparent 78%)}
+#page-shell.kc-unified .legacy-main .pdm--voucher::before{background:none!important;-webkit-mask-image:radial-gradient(55% 45% at 82% 22%,#000 35%,transparent 78%);mask-image:radial-gradient(55% 45% at 82% 22%,#000 35%,transparent 78%)}
 #page-shell.kc-unified .legacy-main .pdm--voucher .pdm-media{position:sticky;top:110px;align-self:start}
 #page-shell.kc-unified .legacy-main .pdm--voucher .pdm-related{margin-top:clamp(48px,6vw,88px);margin-bottom:0}
 #page-shell.kc-unified .legacy-main .pdm--voucher .pdm-related-img{aspect-ratio:4/5;background:#FFFDF8;border:1px solid rgba(201,165,92,.2)}
@@ -752,7 +752,7 @@ html body .customer-center .reset-scale button[aria-pressed=true]{background:lin
 @media(max-width:640px){html body .customer-center .reset-scale{gap:4px!important}html body .customer-center .reset-scale button{height:30px!important;font-size:12px!important}}
 /* Knižnica: plagát namiesto autoplay */
 .library-poster{position:relative!important;display:grid!important;place-items:center!important;align-content:center!important;gap:8px!important;width:100%!important;aspect-ratio:16/9!important;border:0!important;border-radius:18px!important;cursor:pointer!important;color:#fff!important;background:radial-gradient(90% 120% at 80% 0%,rgba(201,163,85,.45),transparent 60%),linear-gradient(135deg,#6E6A9C,#2E2C4D)!important;text-align:center!important;padding:20px!important}
-.library-poster__play{width:72px!important;height:72px!important;border-radius:50%!important;background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.5)!important;backdrop-filter:blur(6px)!important;position:relative!important;transition:transform .2s!important}
+.library-poster__play{width:72px!important;height:72px!important;border-radius:50%!important;background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.5)!important;-webkit-backdrop-filter:blur(6px)!important;backdrop-filter:blur(6px)!important;position:relative!important;transition:transform .2s!important}
 .library-poster__play::after{content:""!important;position:absolute!important;left:29px!important;top:22px!important;border-left:20px solid #fff!important;border-top:14px solid transparent!important;border-bottom:14px solid transparent!important}
 .library-poster:hover .library-poster__play{transform:scale(1.06)!important}
 .library-poster__label{font-size:12px!important;letter-spacing:.16em!important;text-transform:uppercase!important;opacity:.8!important}
@@ -789,7 +789,7 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 @media (max-width:900px){#page-shell.kc-unified .legacy-main .pdm .pdm-media{justify-content:flex-start}}
 
 /* Design DNA 25. 10.: organické linky (zlato + levanduľa) pevne pod obsahom, karty v popredí z mliečneho skla */
-#page-shell.kc-unified .legacy-main :is(.kc-motif,.pd-page,.shop-page,.customer-center){background:url(/img/organic-lines.svg) center/max(1600px,100vw) auto fixed,var(--paper,#fdfbf7)!important}
+#page-shell.kc-unified .legacy-main :is(.kc-motif,.pd-page,.shop-page,.customer-center){background:url(/img/organic-lines.svg) center top/max(1600px,100vw) auto repeat-y,var(--paper,#fdfbf7)!important}
 #page-shell.kc-unified .legacy-main :is(.pdm-panel,.pdm-details .pdm-accordions details,.acc-card,.shop-grid--v3 .shop-card,.pdm-related-card)background:rgba(253,251,247,.85)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;border:1px solid rgba(197,168,128,.18)!important
 #page-shell.kc-unified .legacy-main .shop-card[hidden]{display:none!important}
 /* Fotky v katalógu celé: rovnaký box 4:5, produkt vycentrovaný bez orezu */
@@ -814,7 +814,7 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 
 /* Obchod má !important vo vrstve shopv2 (tokens.css ju radí pred jednotny), preto design DNA obchodu žije tu */
 @layer shopv2{
-#page-shell.kc-unified .legacy-main .shop-page{background:url(/img/organic-lines.svg) center/max(1600px,100vw) auto fixed,var(--paper,#fdfbf7)!important}
+#page-shell.kc-unified .legacy-main .shop-page{background:url(/img/organic-lines.svg) center top/max(1600px,100vw) auto repeat-y,var(--paper,#fdfbf7)!important}
 #page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card{background:rgba(253,251,247,.85)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;border:1px solid rgba(197,168,128,.18)!important}
 #page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card[hidden]{display:none!important}
 #page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card__image{aspect-ratio:4/5!important;display:flex!important;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#fffdf8 0,#f4efe4 75%)!important}

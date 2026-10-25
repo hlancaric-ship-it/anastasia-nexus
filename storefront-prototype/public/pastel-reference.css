@@ -59,7 +59,7 @@ body.lh-intro-page #lh-reset :is(.lh-display,.lh-caps,.lh-topic h3,.lh-topic p,.
 body.lh-intro-page #lh-reset .lh-topic{background:#fff!important;border-color:#a7a5cf!important;color:#403f62!important;box-shadow:0 8px 30px #73729c12}
 body.lh-intro-page #lh-reset .lh-cta{background:#73729c!important;border-color:#73729c!important;color:#fff!important}
 body.lh-intro-page #lh-sky{background:#e9e9f2!important;color:#403f62!important}
-body.lh-intro-page #lh-sky .lh-sky__stage{background:#e9e9f2!important;min-height:70vh}
+body.lh-intro-page #lh-sky .lh-sky__stage{background:#e9e9f2!important;min-height:70svh}
 body.lh-intro-page #lh-stack{background:#fff!important}
 body.lh-intro-page #lh-stack .lh-card{background:#e9e9f2!important;color:#292833!important;min-height:420px}
 body.lh-intro-page #lh-stack .lh-card__bg{background-size:cover;background-position:center}
@@ -79,7 +79,7 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
   .lh-reset__head{padding-bottom:12px}
   .lh-reset__buy,.lh-reset__price{position:relative;z-index:2}
   body.lh-intro-page #lh-stack .lh-card{min-height:390px}
-  body.lh-intro-page #lh-sky .lh-sky__stage{min-height:56vh}
+  body.lh-intro-page #lh-sky .lh-sky__stage{min-height:56svh}
   .dc-chrome .top-menu,.dc-chrome .dc-top-menu{position:relative;z-index:100}
 }
 .shop-page{padding-top:84px!important}
@@ -143,10 +143,10 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
 #ana-rail[data-tone="dark"]{border-color:rgba(255,255,255,.22)!important}
 #ana-rail[data-tone="dark"] :is(a,button,span,svg){color:#fff!important}
 #ana-rail[data-tone="light"]{border-color:rgba(64,63,98,.12)!important}
-.legacy-main .lucia-opening{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:1fr auto;align-items:center;column-gap:clamp(28px,5vw,76px);min-height:0;height:auto;padding:clamp(48px,7vh,86px) clamp(28px,5vw,76px) 32px;background:#e9e9f2!important;color:#403f62!important}
+.legacy-main .lucia-opening{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:1fr auto;align-items:center;column-gap:clamp(28px,5vw,76px);min-height:0;height:auto;padding:clamp(48px,7svh,86px) clamp(28px,5vw,76px) 32px;background:#e9e9f2!important;color:#403f62!important}
 .legacy-main .lucia-opening>h1{grid-column:1;grid-row:1;align-self:center;margin:0!important;max-width:100%;font-size:clamp(58px,7.4vw,112px);line-height:1.02;color:#403f62!important;opacity:1!important;visibility:visible!important;transform:none!important}
 .legacy-main .lucia-opening>h1 span{color:#73729c!important}
-.legacy-main .lucia-opening .source-media{grid-column:2;grid-row:1;width:100%;height:clamp(500px,68vh,740px);min-height:0;margin:0!important;border-radius:120px 0 0 0;overflow:hidden}
+.legacy-main .lucia-opening .source-media{grid-column:2;grid-row:1;width:100%;height:clamp(500px,68svh,740px);min-height:0;margin:0!important;border-radius:120px 0 0 0;overflow:hidden}
 .legacy-main .lucia-opening .source-media img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
 .legacy-main .lucia-opening .lucia-caption{grid-column:2;grid-row:2;margin:14px 0 0!important;color:#403f62!important}
 .legacy-main .author-quote{background:#e9e9f2!important;color:#403f62!important}
@@ -167,7 +167,7 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
 .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child{justify-content:center!important;padding-block:clamp(40px,6vw,88px)!important;gap:clamp(22px,2.6vw,38px)!important;color:#403f62!important}
 .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child :is(a,div,h1,p,span){color:#403f62!important}
 .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child h1{font-size:clamp(55px,6vw,112px)!important;line-height:.98!important}
-.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(480px,70vh,820px)!important}
+.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(480px,70svh,820px)!important}
 .dc-root section[data-screen-label="01b Dôvera"]{background:#e9e9f2!important;color:#403f62!important;padding-block:clamp(30px,4vw,56px)!important;margin-bottom:0!important}
 .dc-root section[data-screen-label="02 O mne"]{background:#fff!important;color:#403f62!important;padding-top:clamp(36px,5vw,68px)!important;margin-top:0!important}
 .dc-root section[data-screen-label="03 Citát"]{background:#e9e9f2!important;color:#403f62!important;border-color:#a7a5cf!important}

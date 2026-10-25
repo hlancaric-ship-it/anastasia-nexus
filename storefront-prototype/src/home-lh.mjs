@@ -327,14 +327,14 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-intro__mask svg{position:absolute;inset:0 var(--lh-gut,16px);width:calc(100% - 2*var(--lh-gut,16px));height:100%;overflow:visible}
 .lh-intro__meta{position:absolute;inset:0;pointer-events:none;color:var(--lh-ink,#1E281C);display:none}
 .motion .lh-intro__meta{display:block}
-.lh-intro__meta .k{position:absolute;top:clamp(96px,16vh,160px);left:0;right:0;margin:0;text-align:center;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--lh-muted,#6E7468)}
+.lh-intro__meta .k{position:absolute;top:clamp(96px,16svh,160px);left:0;right:0;margin:0;text-align:center;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--lh-muted,#6E7468)}
 .lh-intro__meta .k span{display:block}
-.lh-intro__meta ul{position:absolute;bottom:clamp(96px,14vh,140px);left:var(--lh-gut,16px);right:var(--lh-gut,16px);margin:0;padding:0;list-style:none;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;max-width:1100px;margin-inline:auto}
+.lh-intro__meta ul{position:absolute;bottom:clamp(96px,14svh,140px);left:var(--lh-gut,16px);right:var(--lh-gut,16px);margin:0;padding:0;list-style:none;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;max-width:1100px;margin-inline:auto}
 .lh-intro__meta li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--site-accent,#C9A355);margin:0 10px 2px 0}
 /* --- Tři loga v řadě nad úvodem: hlavní uprostřed, boční symetricky -------- */
-.lh-intro__brands{position:absolute;top:clamp(24px,5vh,58px);left:0;right:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:56px;color:#EFE5C7;pointer-events:none}
+.lh-intro__brands{position:absolute;top:clamp(24px,5svh,58px);left:0;right:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:56px;color:#EFE5C7;pointer-events:none}
 /* r17/1: rada troch log je na desktope aspoň 48 px pod hlavičkou. */
-@media (min-width:761px) and (pointer:fine){.lh-intro__brands{top:clamp(112px,11vh,150px)}}
+@media (min-width:761px) and (pointer:fine){.lh-intro__brands{top:clamp(112px,11svh,150px)}}
 .motion .lh-intro__brands{color:#EFE5C7}
 .lh-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:inherit;pointer-events:auto;opacity:1}
 .motion .lh-brand{opacity:0}
@@ -366,7 +366,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 /* Úvod bez log, jen nápis a tlačítko Vstúpte (Lucky 23. 10.). */
 .lh-intro__brands{display:none!important}
 @media (max-width:699.98px){
-  .lh-intro__brands{top:clamp(16px,2.6vh,34px);gap:12px 22px}
+  .lh-intro__brands{top:clamp(16px,2.6svh,34px);gap:12px 22px}
   .lh-brand--main{flex:0 0 auto;height:58px}
   .lh-brand--academy,.lh-brand--ai{height:58px}
   .lh-brand__lock--mark{width:34px}
@@ -379,9 +379,9 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 .lh-say .lh-cta{text-shadow:none}
 .lh-say .lh-display{display:block;font-family:'Fraunces',Georgia,serif;font-weight:300;font-size:clamp(44px,8vw,132px);line-height:.95}
 .lh-say__note{display:block;max-width:52ch;margin-top:18px;font-size:clamp(15px,1.05vw,17px);font-weight:400;line-height:1.65;color:#EFEAE0}
-.lh-say--one{left:var(--lh-gut,16px);bottom:14vh;max-width:min(92vw,1100px);display:none}
+.lh-say--one{left:var(--lh-gut,16px);bottom:14svh;max-width:min(92vw,1100px);display:none}
 .motion .lh-say--one{display:block;opacity:0}
-.lh-say--two{left:6vw;right:auto;top:auto;bottom:14vh;text-align:left;max-width:560px}
+.lh-say--two{left:6vw;right:auto;top:auto;bottom:14svh;text-align:left;max-width:560px}
 .lh-say--two .lh-eyebrow{margin:0 0 14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#E6D3A3}
 .lh-say--two .lh-display{font-size:clamp(28px,2.6vw,44px);line-height:1.22;max-width:560px;font-weight:300}
 .lh-say--two .lh-cta{margin-top:26px}
@@ -452,10 +452,10 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 /* --- Kategorie se objevují jedna po druhé kolem slova --------------------- */
 .lh-intro__cats{position:absolute;inset:0;pointer-events:none}
 .lh-cat{text-shadow:0 1px 14px rgba(245,242,232,.92),0 0 4px rgba(245,242,232,.85);position:absolute;pointer-events:auto;font-weight:300;font-size:clamp(26px,3.4vw,54px);line-height:1.1;letter-spacing:-.03em;color:#313C2B;opacity:0;text-decoration:none;white-space:nowrap}
-.lh-cat--1{top:16vh;left:9%}
-.lh-cat--2{bottom:22vh;right:11%}
-.lh-cat--3{top:30vh;right:13%}
-.lh-cat--4{bottom:15vh;left:12%}
+.lh-cat--1{top:16svh;left:9%}
+.lh-cat--2{bottom:22svh;right:11%}
+.lh-cat--3{top:30svh;right:13%}
+.lh-cat--4{bottom:15svh;left:12%}
 /* r17/3: rotujúca kategória je pod slovom ANASTASIA, centrovaná, plná farba. */
 @media (min-width:761px) and (pointer:fine){.lh-cat--1,.lh-cat--2,.lh-cat--3,.lh-cat--4{top:calc(50% + min((100vw - 2*var(--lh-gut,16px))*.135,15svh*1.35) + 12px);left:0;right:0;text-align:center;color:#313C2B;background-image:none!important;-webkit-text-fill-color:#313C2B}}
 @media (max-width:760px){
@@ -488,7 +488,7 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-brand__sub{font-size:8px;letter-spacing:.22em;padding-left:.22em;gap:5px}
   .lh-brand__sub i{width:9px}
   .lh-brand__stem{height:10px}
-  .lh-intro__cats{position:absolute;left:0;right:0;top:auto;bottom:20vh;height:0;display:block}
+  .lh-intro__cats{position:absolute;left:0;right:0;top:auto;bottom:20svh;height:0;display:block}
   .lh-cat{position:absolute;left:0;right:0;top:auto;bottom:0;width:100%;font-size:21px;white-space:normal;text-align:center;line-height:1.2}
   .lh-intro__meta .k{font-size:10px;letter-spacing:.22em}
 }
@@ -567,12 +567,12 @@ html.lh-mobile-intro .lh-post-entry nav a{background:#73729c;color:#fff}.lh-post
 @media (prefers-reduced-motion:reduce){.lh-scroll-cue__wheel i{animation:none;opacity:1}}
 
 /* --- Split sekce ---------------------------------------------------------- */
-.lh-split{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:min(86vh,860px);background:var(--site-main,#283020);color:var(--site-cream,#EFE5C7);overflow:hidden}
+.lh-split{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:min(86svh,860px);background:var(--site-main,#283020);color:var(--site-cream,#EFE5C7);overflow:hidden}
 /* Každá sekce má jiný poměr – mřížka není pravidelná jako na referenci. */
 .lh-split--wide-text{grid-template-columns:minmax(0,58%) minmax(0,42%)}
 .lh-split--wide-media{grid-template-columns:minmax(0,42%) minmax(0,58%)}
 .lh-split--narrow-text{grid-template-columns:minmax(0,36%) minmax(0,64%)}
-.lh-split--tall{min-height:min(96vh,980px)}
+.lh-split--tall{min-height:min(96svh,980px)}
 .lh-split--low .lh-split__text{justify-content:flex-end}
 .lh-split--high .lh-split__text{justify-content:flex-start;padding-top:clamp(40px,6vw,96px)}
 .lh-split--flip .lh-split__media{order:-1}
@@ -670,7 +670,7 @@ html.lh-mobile-intro .lh-post-entry nav a{background:#73729c;color:#fff}.lh-post
   .lh-stats{grid-template-columns:1fr}
   .lh-lucia{min-height:70vw}
   .lh-lucia__float{right:-3%;bottom:-6%;width:38%;border-width:8px}
-  .lh-say--two{top:auto;bottom:14vh;left:var(--lh-gut,16px);text-align:left}
+  .lh-say--two{top:auto;bottom:14svh;left:var(--lh-gut,16px);text-align:left}
   .lh-say--two p:last-child{margin-left:0}
 }
 @media(max-width:600px){
@@ -743,7 +743,7 @@ html.lh-mobile-intro #lh-paper{opacity:.86}
  .lh-pharmacy__room{grid-column:1;grid-row:auto;margin:18px 0 0}
  .lh-pharmacy__room:nth-of-type(4){max-width:100%;margin-left:0}
  .lh-program{grid-template-columns:1fr}
- .lh-program>img{max-height:72vh}
+ .lh-program>img{max-height:72svh}
  .lh-consult>img{grid-column:1;grid-row:1;max-width:76%;margin:0 auto}
  .lh-consult>div{grid-column:1;grid-row:2}
 }
@@ -788,7 +788,7 @@ html.lh-mobile-intro .lh-post-entry nav a:last-child{min-height:0!important;padd
 @media(prefers-reduced-motion:reduce){.lh-pharmacy__room-frame img{transform:none!important;will-change:auto}}
 
 /* Hero po vstupe: veľký claim vľavo dole, vpravo sklenený číslovaný rozcestník. */
-.dc-root .lh-intro .lh-hx{inset:0;top:0;transform:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,400px);align-items:end;gap:40px;padding:0 clamp(28px,4vw,64px) clamp(96px,11vh,120px) calc(var(--rail-pad,0px) + clamp(28px,4vw,64px));text-align:left;align-content:end;background:linear-gradient(0deg,rgba(18,20,26,.62) 0%,rgba(18,20,26,.18) 45%,rgba(18,20,26,0) 70%);text-shadow:none}
+.dc-root .lh-intro .lh-hx{inset:0;top:0;transform:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,400px);align-items:end;gap:40px;padding:0 clamp(28px,4vw,64px) clamp(96px,11svh,120px) calc(var(--rail-pad,0px) + clamp(28px,4vw,64px));text-align:left;align-content:end;background:linear-gradient(0deg,rgba(18,20,26,.62) 0%,rgba(18,20,26,.18) 45%,rgba(18,20,26,0) 70%);text-shadow:none}
 .dc-root .lh-intro .lh-hx__brand{display:flex;align-items:center;gap:14px;margin:0 0 22px;padding-top:20px;border-top:1px solid rgba(216,197,152,.7);width:min(100%,340px)}
 .dc-root .lh-intro .lh-hx__brand img{width:34px;height:34px;max-width:34px;margin:0;filter:brightness(0) invert(1)}
 .dc-root .lh-intro .lh-hx .lh-post-entry__brand{font-size:12px;letter-spacing:.42em;padding:0;color:#fff}

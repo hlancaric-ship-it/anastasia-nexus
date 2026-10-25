@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" fill="none" stroke-linecap="round">
-  <g opacity=".75" stroke="rgb(197,168,128)" stroke-width="1.3" stroke-opacity=".16">
+  <g opacity=".45" stroke="rgb(197,168,128)" stroke-width="1.3" stroke-opacity=".16">
     <path d="M-80 220C160 120 340 330 600 250S1040 60 1280 170 1600 300 1700 230"/>
     <path d="M-80 260C170 165 350 370 610 292S1050 104 1290 214 1610 344 1700 274"/>
     <path d="M-80 300C180 210 360 410 620 334S1060 148 1300 258 1620 388 1700 318"/>
@@ -9,13 +9,13 @@
     <path d="M430 520c-60 10-110-30-120-90 60-10 110 30 120 90Zm-8-70c40-30 96-22 120 16-40 32-96 24-120-16Z"/>
     <path d="M300 700c-58-6-96-56-90-114 58 6 96 56 90 114Zm-12 104c50-30 112-14 140 34-50 30-112 14-140-34Z"/>
   </g>
-  <g opacity=".75" stroke="rgb(197,168,128)" stroke-width="1.1" stroke-opacity=".16" transform="translate(1240 640)">
+  <g opacity=".45" stroke="rgb(197,168,128)" stroke-width="1.1" stroke-opacity=".16" transform="translate(1240 640)">
     <circle r="150"/><circle cx="150" r="150"/><circle cx="-150" r="150"/>
     <circle cx="75" cy="130" r="150"/><circle cx="-75" cy="130" r="150"/>
     <circle cx="75" cy="-130" r="150"/><circle cx="-75" cy="-130" r="150"/>
     <circle r="300"/>
   </g>
-  <g opacity=".75" stroke="rgb(150,140,196)" stroke-width="1.2" stroke-opacity=".14">
+  <g opacity=".45" stroke="rgb(150,140,196)" stroke-width="1.2" stroke-opacity=".14">
     <path d="M-80 560C200 470 420 680 720 600S1180 420 1420 520 1640 640 1700 600"/>
     <path d="M-80 604C210 516 430 726 732 646S1192 466 1432 566 1652 686 1700 646"/>
     <path d="M1380 0C1340 160 1440 260 1380 420"/>

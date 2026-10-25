@@ -98,7 +98,7 @@ test('bočný panel účtu na desktope neprekračuje výhľad a odhlásenie je l
     const css = await read(file);
     const desktop = mediaBlocks(css, 'min-width:1000px');
     assert.ok(desktop.length > 0, file + ': existujú pravidlá pre desktop');
-    const panel = desktop.filter(block => /\.center-sidebar\{[^}]*max-height:calc\(100vh - 76px - 16px\)/.test(block));
+    const panel = desktop.filter(block => /\.center-sidebar\{[^}]*max-height:calc\(100dvh - 76px - 16px\)/.test(block));
     assert.equal(panel.length, 1, file + ': panel účtu je najviac vysoký ako výhľad');
     assert.match(panel[0], /overflow-y:auto/, file + ': panel účtu sa rol sám, nie stránka');
     const signOut = desktop.filter(block => /\.center-sidebar>a\[data-sign-out\]\{[^}]*position:sticky[^}]*bottom:0/.test(block));

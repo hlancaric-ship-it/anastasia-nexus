@@ -223,6 +223,16 @@ body:has(.cookie-banner:not([hidden])) .ana-mobile-dock{display:none!important}
 .ana-sound-pop__panel [data-video-toggle]{display:none!important}
 @keyframes ana-pop-drop{from{opacity:0;transform:translateY(-10px) scale(.96)}}
 @media(min-width:1000px){.ana-sound-pop{display:none!important}}
+/* Mobil: košík s počtom a účet hneď vedľa Menu, rovnaký tvar ako tlačidlo zvuku. */
+.ana-mquick{display:inline-flex!important;align-items:center!important;gap:6px!important;margin-right:6px!important;flex:0 0 auto!important;pointer-events:auto!important}
+.ana-mquick__btn{position:relative!important;width:40px!important;height:40px!important;border-radius:999px!important;display:inline-grid!important;place-items:center!important;border:1px solid #d9d8e8!important;background:rgba(255,255,255,.92)!important;color:#1E261D!important;text-decoration:none!important}
+.ana-mquick__btn:is(:hover,:focus-visible){color:#B08D57!important;border-color:#B08D57!important}
+.ana-mquick__count{position:absolute!important;top:-4px!important;right:-4px!important;min-width:18px!important;height:18px!important;padding:0 5px!important;border-radius:999px!important;background:#73729c!important;color:#fff!important;font:600 11px/18px Figtree,system-ui,sans-serif!important;text-align:center!important}
+.ana-mquick__count:is(:empty,[data-zero]){display:none!important}
+@media(min-width:1000px){.ana-mquick{display:none!important}}
+.ana-menu-open .ana-mquick{visibility:hidden!important}
+html.ana-menu-open,html.ana-menu-open body{overflow:hidden!important;overscroll-behavior:none!important}
+:is(#dc-top-menu,#dc-side-menu){overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch}
 .ana-menu-open .ana-mobile-dock,.ana-menu-open .ana-sound-pop__panel{display:none!important}
 /* Patička: platobné metódy */
 .site-footer .sf-pay{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:22px 0 4px;margin-top:8px;border-top:1px solid rgba(115,114,156,.18)}
@@ -293,3 +303,8 @@ html body .site-footer .sf-brands>a:hover span{color:var(--ft-lav)!important}
 html body .site-footer .sf-pay{border-top-color:var(--ft-line)!important}
 html body .site-footer .sf-pay__badge{background:rgba(239,229,199,.94)!important;border-color:rgba(201,165,92,.25)!important;box-shadow:none!important}
 .shop-v2 .shop-benefits svg{color:#A8894F!important}
+
+/* Safari / iOS: hero a animované vrstvy na vlastnej GPU vrstve, rozostrenie mimo obrazovky vypnuté. */
+:is(.lh-intro__stage,.lh-intro__video,#lh-intro-video,[data-screen-label="01 Hero"]>:first-child,.shop-v2 .shop-hero>:first-child,.ana-atmosphere,.lh-say){-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform}
+:is(.lh-intro__stage,[data-screen-label="01 Hero"]>:first-child,.shop-v2 .shop-hero>:first-child){transform:translate3d(0,0,0)}
+.ana-bf-off{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}

@@ -1,5 +1,5 @@
 /* E-shop screens follow the approved cream, olive and lavender reference. */
-.shop-page{--shop-paper:#f8f5ed;--shop-ink:#26271f;--shop-olive:#30432f;--shop-gold:#98733e;--shop-lav:#8c70b4;background:radial-gradient(ellipse at 100% 20%,#e9e4d5 0,transparent 30%),var(--shop-paper);color:var(--shop-ink);padding:36px clamp(22px,4.2vw,68px) 84px;min-height:74vh}
+.shop-page{--shop-paper:#f8f5ed;--shop-ink:#26271f;--shop-olive:#30432f;--shop-gold:#98733e;--shop-lav:#8c70b4;background:radial-gradient(ellipse at 100% 20%,#e9e4d5 0,transparent 30%),var(--shop-paper);color:var(--shop-ink);padding:36px clamp(22px,4.2vw,68px) 84px;min-height:74svh}
 .shop-page .page-intro{max-width:1320px;margin:0 auto 26px;text-align:left;border-bottom:1px solid #ded8ca;padding:0 0 24px}
 .shop-page .page-intro .eyebrow{color:var(--shop-gold);letter-spacing:.18em;font-size:11px}
 .shop-page .page-intro h1{font:400 clamp(36px,4vw,54px)/1.08 'Fraunces',Georgia,serif;letter-spacing:-.035em;color:#27261e;margin:8px 0}
@@ -131,7 +131,7 @@
 
 /* Obchod podľa predlohy (Lucky 23. 10.): tmavé hero, 4 dlaždice, mriežka 7 × 2, pás Lucia, komunita, hodnoty. */
 .shop-v2{padding:0 0 70px;background:var(--shop-paper)}
-.shop-v2 .shop-hero{position:relative;min-height:clamp(460px,62vh,640px);display:grid;grid-template-columns:1fr auto;align-items:center;gap:40px;padding:110px clamp(22px,5vw,80px) 70px;color:#f6f1e6;overflow:hidden;isolation:isolate}
+.shop-v2 .shop-hero{position:relative;min-height:clamp(460px,62svh,640px);display:grid;grid-template-columns:1fr auto;align-items:center;gap:40px;padding:110px clamp(22px,5vw,80px) 70px;color:#f6f1e6;overflow:hidden;isolation:isolate}
 .shop-v2 .shop-hero__photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 30%;z-index:-2}
 .shop-v2 .shop-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(28,30,20,.86) 0%,rgba(28,30,20,.62) 38%,rgba(28,30,20,.12) 70%,rgba(28,30,20,.42) 100%)}
 .shop-v2 .shop-hero .page-intro{border:0;padding:0;margin:0;max-width:560px}
@@ -366,7 +366,7 @@ main .shop-page.shop-v2{padding:0 0 70px!important;max-width:none!important;widt
 .pd-physical .pd-about-text p{margin:0}
 .pd-physical .pd-about-text strong{font:400 18px/1.25 'Fraunces',Georgia,serif;letter-spacing:-.01em;text-transform:none;color:#7a5fa6;margin-bottom:8px}
 @media(max-width:760px){.pd-physical .pd-physical-layout{grid-template-columns:1fr;gap:22px}.pd-physical .pd-thumbnails button{width:64px;height:64px}.pd-stepper{width:120px}.pd-page.pd-physical .pd-about{padding:26px 0 0;margin-top:36px}}
-.pd-page.pd-physical .pd-about{box-shadow:none;backdrop-filter:none}
+.pd-page.pd-physical .pd-about{box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 
 /* Master protokol §3: krémová plocha pod dlaždicami, pilulky, 4 stĺpce, karty 4:5 */
 .shop-page.shop-v2 .shop-products{max-width:none!important;margin:0!important;padding:64px clamp(18px,4vw,64px) 48px!important;background:radial-gradient(ellipse at 0% 0%,rgba(185,183,221,.16),transparent 42%),radial-gradient(ellipse at 100% 100%,rgba(201,165,92,.1),transparent 40%),#F6F0E1!important}

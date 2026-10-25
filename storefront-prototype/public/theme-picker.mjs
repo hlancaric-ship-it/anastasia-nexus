@@ -19,7 +19,7 @@ export function openThemePicker(){
   panel.className='ana-theme-picker';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Vzhľad webu');
   panel.innerHTML=`
     <style>
-      .ana-theme-picker{position:fixed;right:16px;bottom:16px;z-index:9999;width:300px;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);overflow:auto;background:#1b1b1b;color:#f4f0e4;border:1px solid #C9A355;border-radius:14px;padding:16px;font:14px/1.4 system-ui,sans-serif;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+      .ana-theme-picker{position:fixed;right:16px;bottom:16px;z-index:9999;width:300px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto;background:#1b1b1b;color:#f4f0e4;border:1px solid #C9A355;border-radius:14px;padding:16px;font:14px/1.4 system-ui,sans-serif;box-shadow:0 18px 60px rgba(0,0,0,.5)}
       .ana-theme-picker h2{font-size:15px;margin:0 0 4px}
       .ana-theme-picker p.hint{margin:0 0 12px;font-size:12px;opacity:.7}
       .ana-theme-picker .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}

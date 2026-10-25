@@ -1,5 +1,5 @@
 /* ANASTASIA / two product detail layouts. Preserve original chrome and vertical rail. */
-.pd-page{--pd-ink:var(--site-main,#283020);--pd-cream:#F5F2E8;--pd-gold:#B99B5F;color:var(--pd-ink);background:radial-gradient(ellipse at 0% 65%,rgba(169,177,136,.18),transparent 39%),radial-gradient(ellipse at 100% 65%,rgba(169,177,136,.12),transparent 32%),var(--pd-cream);padding:24px clamp(22px,4.3vw,76px) 90px;overflow:hidden;min-height:75vh}
+.pd-page{--pd-ink:var(--site-main,#283020);--pd-cream:#F5F2E8;--pd-gold:#B99B5F;color:var(--pd-ink);background:radial-gradient(ellipse at 0% 65%,rgba(169,177,136,.18),transparent 39%),radial-gradient(ellipse at 100% 65%,rgba(169,177,136,.12),transparent 32%),var(--pd-cream);padding:24px clamp(22px,4.3vw,76px) 90px;overflow:hidden;min-height:75svh}
 .pd-page *{box-sizing:border-box}
 .pd-page :is(button,a,input,summary):focus-visible{outline:2px solid var(--pd-gold);outline-offset:4px}
 .pd-breadcrumbs{max-width:1560px;margin:0 auto 35px;display:flex;flex-wrap:wrap;align-items:center;gap:11px;font-size:12px;color:#747968}
@@ -42,7 +42,7 @@
 
 /* Figma Page 2, 223:4816. Header is intentionally reduced to 64 px by the user. */
 .pd-page.pd-digital{background:#f7f4eb;position:relative;isolation:isolate;padding:24px 64px 63px 51px}
-.pd-page.pd-digital::before{content:"";position:absolute;inset:0;background:url('/assets/digital-product/botanical-light.png') center top/100% auto no-repeat;opacity:.38;z-index:-1;pointer-events:none}
+.pd-page.pd-digital::before{content:"";position:absolute;inset:0;background:none;opacity:0;z-index:-1;pointer-events:none}
 .pd-digital .pd-breadcrumbs{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .pd-digital .pd-digital-layout{max-width:none;grid-template-columns:minmax(0,707fr) minmax(0,662fr);gap:51px}
 .pd-digital .pd-info{padding-top:0}

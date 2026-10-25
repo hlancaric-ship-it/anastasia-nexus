@@ -175,3 +175,9 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 ## Admin – produkt (25. 10.)
 - Fotky se vybírají z mediální banky (vyhledávání, filtr Všetky / Nepriradené / 30 dní, vícenásobný výběr). Pořadí se mění šipkami nebo přetažením. Hlavní fotka má zlatou linku. Odebrání fotku z knihovny nemaže.
 - Sklad se nastavuje u každé varianty ve sloupci Skladom (ks). Zaškrtnutím Neobmedzené / digitálne se sklad nesleduje. Při 0 ks je u varianty štítek vypredané.
+
+## Pozadí a Safari (25. 10.)
+- Žádné fotky ani květiny jako pozadí sekcí. Světlé plochy jsou krém a vektorová aura linek (`/img/organic-lines.svg`) kolem 6–8 %, nikdy `background-attachment:fixed`.
+- Výšky obrazovky jen `dvh` (plná výška) nebo `svh`. `vh` jen jako záloha před dvh/svh.
+- Každý `backdrop-filter` má i `-webkit-backdrop-filter`. Mimo obrazovku blur vypíná třída `.ana-bf-off`.
+- Mobil pod 1000 px: vedle Menu kulaté ikony Košík s počtem a Môj účet (`.ana-mquick`), otevřené menu zamyká scroll.

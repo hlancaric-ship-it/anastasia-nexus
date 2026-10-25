@@ -70,3 +70,12 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Hlavní fotka je čtverec s radiusem 24 px bez deformace.
 - Levá lišta nad světlým podkladem je tmavě olivová #1E261D se zlatým hoverem.
 - Nasazeno na test, ověřeno v 1440 i 390, bez horizontálního scrollu. Testy 162/162.
+
+## 25. 10. 2026 – Safari/iOS, mobilní lišta a čisté pozadí
+- Rozmazané květiny a fotky v pozadí detailu, košíku a poukazu jsou pryč. Světlé plochy mají jen krémový podklad a vektorovou auru zlatých linek kolem 7 %, bez fixed pozadí (iOS ho neumí plynule).
+- Všechna 100vh nahrazena 100dvh, ostatní výšky svh. Cookie lišta má vh jako zálohu pro staré prohlížeče.
+- Hero a animované kontejnery mají translate3d, will-change a backface-visibility. ScrollTrigger ignoruje změnu výšky při skrytí lišty Safari.
+- Blur (backdrop-filter) má všude i -webkit- variantu a mimo obrazovku se vypíná.
+- Mobil: vedle Menu stálé ikony Košík s počtem a Môj účet. Otevřené menu zamkne scroll stránky.
+- Levá lišta: aura linek se už nepočítá jako fotka, takže nad světlým detailem zůstává tmavě olivová.
+- Ověřeno v Chrome s emulací iPhone 13 a v 1440. Skutečné Safari lokálně nejde (macOS 12 bez WebKitu), ověřit na iPhonu. Testy 162/162.

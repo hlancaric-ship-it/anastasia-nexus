@@ -26,7 +26,7 @@ document.addEventListener('error',event=>{
 },true);
 let toastTimeout;
 function toast(message){const el=$('.toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true;},4500);}
-async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>el.textContent=String(count));}
+async function updateCount(){const count=(await api.getCart()).lines.reduce((sum,line)=>sum+line.quantity,0);$$('.cart-count').forEach(el=>{el.textContent=String(count);el.toggleAttribute('data-zero',!count);});}
 let miniCart;
 const shopText=value=>{const item=DICT[value];const lang=document.documentElement.lang;return lang==='en'?(item?.[0]||value):lang==='ru'?(item?.[1]||value):value;};
 async function showMiniCart(){
@@ -242,8 +242,8 @@ function setMenu(kind){
   shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
   menuOpen=kind;root.classList.toggle('ana-menu-open',!!kind);
   if(kind)fitMenu($(`#dc-${kind}-menu`));
-  if(kind){if(!prev)previousFocus=document.activeElement;lenis?lenis.stop():root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
-  else{lenis?lenis.start():root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
+  if(kind){if(!prev)previousFocus=document.activeElement;lenis?.stop();root.style.overflow='hidden';document.body.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
+  else{lenis?.start();root.style.overflow='';document.body.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
 }
 document.addEventListener('click',event=>{
   const open=event.target.closest('[data-menu-open]');if(open){event.preventDefault();setMenu(menuOpen===open.dataset.menuOpen?null:open.dataset.menuOpen);return;}
@@ -339,6 +339,20 @@ const placeMedia=()=>{
   if(wideMedia.matches&&mobileDock.isConnected)mobileDock.remove();
 };
 placeMedia();wideMedia.addEventListener('change',placeMedia);
+// Mobil: vedľa Menu vždy košík s počtom a vstup do účtu, aby sa dalo nakúpiť bez otvárania menu.
+const mobileQuick=document.createElement('nav');mobileQuick.className='ana-mquick';mobileQuick.setAttribute('aria-label',shopText('Košík a účet'));
+mobileQuick.innerHTML=`<a class="ana-mquick__btn" href="/kosik" aria-label="${e(shopText('Košík'))}" title="${e(shopText('Košík'))}"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z M9 7V5.5a3 3 0 0 1 6 0V7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="cart-count ana-mquick__count" data-zero>0</span></a><a class="ana-mquick__btn" href="/prihlasenie"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5 20c1.2-3.6 3.8-5.4 7-5.4s5.8 1.8 7 5.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>`;
+setAccountLink(mobileQuick.lastElementChild,customerLogged());
+const placeQuick=()=>{const menuBtn=headerMenuBtn();if(!wideMedia.matches&&menuBtn){(soundPop.isConnected?soundPop:menuBtn).before(mobileQuick);updateCount().catch(()=>{});}else mobileQuick.remove();};
+placeQuick();wideMedia.addEventListener('change',placeQuick);
+// Safari: rozostrenie pozadia (backdrop-filter) mimo obrazovky stojí výkon a pri skrole bliká, preto sa mimo zorného poľa vypína.
+const blurIdle=window.requestIdleCallback||(f=>setTimeout(f,600));
+blurIdle(()=>{try{
+  const blurred=$$('body *').filter(el=>{const c=getComputedStyle(el);const f=c.backdropFilter||c.webkitBackdropFilter;return f&&f!=='none'&&c.position!=='fixed'&&c.position!=='sticky';});
+  if(!blurred.length||!('IntersectionObserver' in window))return;
+  const bio=new IntersectionObserver(entries=>entries.forEach(en=>en.target.classList.toggle('ana-bf-off',!en.isIntersecting)),{rootMargin:'200px 0px'});
+  blurred.forEach(el=>bio.observe(el));
+}catch{}});
 // Ambient (public/ambient.mjs): části s prolínáním, pozice v sessionStorage, vypnutí v localStorage. Bez gesta prohlížeč
 // zvuk nepustí, proto se rozjede při první interakci se stránkou. Ovládá se tlačítky v boční liště (na mobilu pod hero).
 const AMB_OFF='ana-ambient-off';
@@ -425,7 +439,7 @@ if(motion&&$('.dc-root')){
   };
   const toneAt=y=>{
     let el=document.elementFromPoint(80,Math.max(0,Math.min(innerHeight-1,y)));
-    while(el){if(!el.closest('aside')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||el.hasAttribute('data-par')||/url\(/.test(cs.backgroundImage))return 'dark';const colors=(cs.backgroundImage.match(/rgba?\([^)]*\)/g)||[]).map(lum).filter(L=>L>=0);if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';const L=lum(cs.backgroundColor);if(L>=0)return L>0.62?'light':'dark';}el=el.parentElement;}
+    while(el){if(!el.closest('aside')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||el.hasAttribute('data-par')||/url\((?![^)]*\.svg)/.test(cs.backgroundImage))return 'dark';const colors=(cs.backgroundImage.match(/rgba?\([^)]*\)/g)||[]).map(lum).filter(L=>L>=0);if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';const L=lum(cs.backgroundColor);if(L>=0)return L>0.62?'light':'dark';}el=el.parentElement;}
     return 'dark';
   };
   const probe=()=>{
@@ -1044,7 +1058,8 @@ initDigitalProduct();
           if(el.classList.contains('lh-intro__stage')&&document.documentElement.classList.contains('lh-entered'))return true;
           const cs=getComputedStyle(el);
           if(cs.visibility==='hidden'||Number(cs.opacity)<.2)break;
-          if(cs.backgroundImage.includes('url(')&&el.getBoundingClientRect().width>200)return true;
+          // Vektorová aura liniek (.svg) je svetlý podklad, nie fotka.
+          if(/url\((?![^)]*\.svg)/.test(cs.backgroundImage)&&el.getBoundingClientRect().width>200)return true;
           const l=lum(cs.backgroundColor);if(l!==null)return l<.35;
         }
       }
