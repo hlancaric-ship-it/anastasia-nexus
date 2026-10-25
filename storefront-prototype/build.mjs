@@ -73,7 +73,7 @@ const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 // Úvod webu je nový koncept (30+, poukaz, čo tu nájdete). Pôvodný úvod ostáva na /povodny-uvod.
-add2('/','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8'),'about');
+add2('/','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8').replace(/<!--[\s\S]*?-->\n?/g,''),'about');
 add2('/povodny-uvod','Light for the Future',homeSections(homepageProducts,homepageCategories),'home');
 add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmetika'));
@@ -104,7 +104,7 @@ if(routes.has(reviewsPath))routes.set('/ai-anastasia/recenzie-zakaznikov',routes
 add('/zdravy-svet','Zdravý svet',views.zdravySvet());
 add2('/o-lucii','O Lucii',aboutSections()+aboutPhotos,'about');
 // Koncept nového úvodu na schválenie (noindex ako celý test), so spoločnou lištou a pätičkou webu.
-add2('/koncept','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8'),'about');
+add2('/koncept','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8').replace(/<!--[\s\S]*?-->\n?/g,''),'about');
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
 // Drafty starého webu (ve výpisu mali stav 404) na novom webe tiež 404 – nie výpis e-shopu.

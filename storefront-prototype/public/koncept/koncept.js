@@ -3,13 +3,22 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const mobile = () => innerWidth <= 760;
 
-// manifest: rozdelenie na slová
+// manifest: rozdelenie na slová v jazyku stránky (preklad celej vety, nie jednotlivých slov)
+import {DICT, getLang} from '/i18n.mjs';
 const words = document.querySelector('[data-words]');
-if (words) {
-  const hl = new Set(['Zdravý', 'svet', 'ideál,']);
-  words.innerHTML = words.textContent.trim().split(/\s+/).map(w => `<span class="kc-w${hl.has(w) ? ' hl' : ''}">${w}</span>`).join(' ');
+const HL = /^(zdravý|svet|ideál|healthy|world|ideal|здоровый|мир|идеал)$/i;
+let wordEls = [];
+function splitWords(lang) {
+  if (!words) return;
+  if (!words.dataset.src) words.dataset.src = words.textContent.trim();
+  const src = words.dataset.src;
+  const entry = DICT[src];
+  const text = lang === 'en' && entry?.[0] ? entry[0] : lang === 'ru' && entry?.[1] ? entry[1] : src;
+  words.innerHTML = text.split(/\s+/).map(w => `<span class="kc-w${HL.test(w.replace(/[^\p{L}]/gu, '')) ? ' hl' : ''}">${w}</span>`).join(' ');
+  wordEls = [...words.querySelectorAll('.kc-w')];
 }
-const wordEls = [...document.querySelectorAll('.kc-w')];
+splitWords(getLang());
+document.addEventListener('anastasia:lang', e => { splitWords(e.detail); dispatchEvent(new Event('scroll')); });
 
 const open = document.querySelector('[data-open]');
 const drop = document.querySelector('[data-drop]');

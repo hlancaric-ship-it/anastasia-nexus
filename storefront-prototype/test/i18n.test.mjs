@@ -29,7 +29,7 @@ function visibleChunks(html) {
       continue;
     }
     const selfClosing = /\/>$/.test(attrs) || VOID.has(tag.toLowerCase());
-    stack.push({tag, sk: /\bdata-sk-only\b/.test(attrs)});
+    stack.push({tag, sk: /\bdata-sk-only\b|\btranslate="no"/.test(attrs)});
     if (selfClosing) stack.pop();
   }
   return chunks;
@@ -122,7 +122,8 @@ test('every page speaks one language only', async () => {
 });
 
 test('the Slovak-only blocks are marked and the note exists in every language', async () => {
-  const html = await htmlFor('/');
+  // Nový úvod je preložený celý, nepreložené bloky má pôvodný úvod.
+  const html = await htmlFor('/povodny-uvod');
   assert.ok(/data-sk-only/.test(html), 'homepage marks the untranslated blocks');
   const legacy = await htmlFor('/zdravy-svet');
   assert.ok(/data-sk-only/.test(legacy), 'content pages mark their body');

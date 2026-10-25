@@ -381,6 +381,48 @@ export const DICT = {
   'AI ANASTASIA · V PONUKE': ['ANASTASIA · IN THE SHOP', 'ANASTASIA · В КАТАЛОГЕ'],
   'Rezervovať konzultáciu': ['Book a consultation', 'Записаться на консультацию'],
   'Súhlasím so zasielaním noviniek e-mailom.': ['I agree to receive email newsletters.', 'Я согласен получать новости по электронной почте.'],
+  // Úvod webu (koncept)
+  "Priestor pre zdravie,": ["A space for health,", "Пространство для здоровья,"],
+  "poznanie a vedomý život.": ["knowledge and mindful living.", "знаний и осознанной жизни."],
+  "Bylinky, kozmetika, doplnky": ["Herbs, cosmetics, supplements", "Травы, косметика, добавки"],
+  "Online aj osobne s Luciou": ["Online or in person with Lucia", "Онлайн или лично с Люцией"],
+  "16 týždňov pre telo aj myseľ": ["16 weeks for body and mind", "16 недель для тела и разума"],
+  "rokov s ľuďmi": ["years with people", "лет с людьми"],
+  "lekáreň vo Vyšnej Slanej": ["pharmacy in Vysna Slana", "аптека в Вышней Сланой"],
+  "týždňov RESET 40+": ["weeks of RESET 40+", "недель RESET 40+"],
+  "Vitajte v zdravom svete. Kde veci nemusia byť urýchľované, vysvetľované ani riadené.": ["Welcome to a healthy world. Where nothing has to be rushed, explained or managed.", "Добро пожаловать в здоровый мир. Где ничего не нужно торопить, объяснять или контролировать."],
+  "vstúpte": ["enter", "войдите"],
+  "vitajte.": ["welcome.", "добро пожаловать."],
+  "Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.": ["This part of the site belongs to the ANASTASIA project. Not as an offer of solutions, but as a space where nothing has to be pushed, explained or managed. It is not a goal to reach by working on yourself. It is a possibility that appears once we stop feeling that we have to do something with ourselves.", "Эта часть сайта принадлежит проекту ANASTASIA. Не как предложение решений, а как пространство, где ничего не нужно подталкивать, объяснять или контролировать. Это не цель, которой нужно достичь работой над собой. Это возможность, которая появляется, когда мы перестаём чувствовать, что должны что-то с собой делать."],
+  "čo tu": ["what you", "что вы"],
+  "nájdete.": ["will find.", "здесь найдёте."],
+  "Lekáreň a projekty vo Vyšnej Slanej": ["Pharmacy and projects in Vysna Slana", "Аптека и проекты в Вышней Сланой"],
+  "Každý deň má zmysel, keď ho žijeme spolu. Spoločnosť, aktivitu, dôstojnosť a pokračovanie života, nie iba starostlivosť.": ["Every day has meaning when we live it together. Company, activity, dignity and a life that goes on, not just care.", "Каждый день имеет смысл, когда мы проживаем его вместе. Общение, активность, достоинство и продолжение жизни, а не только уход."],
+  "AI je nástroj.": ["AI is a tool.", "AI — это инструмент."],
+  "zostáva ľudská.": ["stays human.", "остаётся человеческой."],
+  "Odbornosť zostáva ľudská.": ["Expertise stays human.", "Экспертиза остаётся человеческой."],
+  "Mgr. Lucia Rogožanová, MBA · Farmaceutka": ["Lucia Rogozanova, Mgr., MBA · Pharmacist", "Магистр Люция Рогожанова, МВА · фармацевт"],
+  "kto za tým stojí.": ["who is behind it.", "кто за этим стоит."],
+  "Volám sa": ["My name is", "Меня зовут"],
+  "Lucia Rogožanová.": ["Lucia Rogozanova.", "Люция Рогожанова."],
+  "viac ako 30 rokov s ľuďmi.": ["more than 30 years with people.", "более 30 лет с людьми."],
+  "Individuálny prístup": ["Individual approach", "Индивидуальный подход"],
+  "Prevencia a vitalita": ["Prevention and vitality", "Профилактика и жизненная сила"],
+  "Zdravie vzniká každý deň v našich rozhodnutiach, návykoch, vzťahoch a postoji k sebe samým.": ["Health is created every day in our decisions, habits, relationships and in how we treat ourselves.", "Здоровье рождается каждый день в наших решениях, привычках, отношениях и отношении к самим себе."],
+  "niečo pre každého.": ["something for everyone.", "что-то для каждого."],
+  "Čo môžeme": ["What can we", "Что мы можем"],
+  "spolu": ["work on", "решить"],
+  "riešiť?": ["together?", "вместе?"],
+  "Objavte produkty a programy sveta ANASTASIA.": ["Discover the products and programmes of the ANASTASIA world.", "Откройте продукты и программы мира ANASTASIA."],
+  "Veci, ktoré majú zmysel. Malé každodenné rituály.": ["Things that make sense. Small everyday rituals.", "Вещи, в которых есть смысл. Маленькие ежедневные ритуалы."],
+  "darček.": ["a gift.", "подарок."],
+  "Darčekový": ["Gift", "Подарочный"],
+  "poukaz": ["voucher", "сертификат"],
+  "Darujte priestor pre vlastný výber.": ["Give them the space to choose for themselves.", "Подарите свободу собственного выбора."],
+  "Meno a e-mail príjemcu": ["Recipient's name and email", "Имя и электронная почта получателя"],
+  "Odkaz pre príjemcu": ["Message for the recipient", "Послание для получателя"],
+  "pre vašich blízkych": ["for your loved ones", "для ваших близких"],
+  "Kód poukazu": ["Voucher code", "Код сертификата"],
 };
 
 // Poznámka nad obsahem, který zatím nemá schválený překlad.
@@ -517,6 +559,7 @@ export function apply(lang) {
   applySkOnly(target);
   document.documentElement.lang = target;
   markSwitch(target);
+  document.dispatchEvent(new CustomEvent('anastasia:lang', {detail: target}));
 }
 
 // Obsah bez schváleného překladu: v EN/RU dostane vlastní poznámku, text zůstane slovenský.
