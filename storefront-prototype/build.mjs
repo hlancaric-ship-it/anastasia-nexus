@@ -72,7 +72,9 @@ const routes=new Map();
 const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
-add2('/','Light for the Future',homeSections(homepageProducts,homepageCategories),'home');
+// Úvod webu je nový koncept (30+, poukaz, čo tu nájdete). Pôvodný úvod ostáva na /povodny-uvod.
+add2('/','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8'),'about');
+add2('/povodny-uvod','Light for the Future',homeSections(homepageProducts,homepageCategories),'home');
 add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmetika'));
 for(const [slug,cat] of [['kozmetika','Kozmetika'],['bylinky-a-vyziva','Bylinky a výživa'],['programy-a-sluzby','Programy a služby']])add(`/eshop/kategoria/${slug}`,cat,catalog(cat));
