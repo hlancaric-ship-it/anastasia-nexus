@@ -101,3 +101,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Po úspešnej platbe presmerovanie na /dakujeme: číslo objednávky, položky, celková suma, čo bude ďalej podľa typu (knižnica, PDF poukazu, zásielka, dobierka, prevod), tlačidlá Moje objednávky a Pokračovať v nákupe.
 - Platby s presmerovaním (banky) majú return_url na /dakujeme, objednávka sa dokončí tam, pri neúspechu ponuka zopakovať platbu.
 - Stripe formulár je v slovenčine a vo farbách webu (krém, oliva, matné zlato).
+
+## 26. 10. – prihlásenie a konzultácie
+- /prihlasenie: krémový podklad s aurou zlatých liniek, vľavo organický sklenený tvar s pečaťou a zlatým svitom, vpravo sklenená karta s pill prepínačom, pill vstupmi a olivovým tlačidlom so zlatou šípkou.
+- /konzultacie: zrušené generické karty. Každá konzultácia je sklenená karta s asymetrickým zaoblením, fotka v organickej maske prelínajúca sa do krému, číslo ako zlatý vodoznak (20 %), veľký serifový názov, parametre ako typografická linka s bodkami v šampanskej. Karty sa striedajú vľavo/vpravo, pod sekciou min. 128 px.
+- Skip link už nikdy nepresvitá mimo fokusu.
