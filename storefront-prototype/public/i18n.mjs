@@ -75,6 +75,7 @@ export const DICT = {
   'Vyhľadať': ['Search', 'Поиск'],
   'Navigácia obchodu': ['Shop navigation', 'Навигация магазина'],
   'Darčekový poukaz': ['Gift voucher', 'Подарочный сертификат'],
+  'Darčekové poukazy': ['Gift vouchers', 'Подарочные сертификаты'],
   'Novinky': ['New', 'Новинки'],
   'Bestsellery': ['Bestsellers', 'Хиты продаж'],
   'Kozmetika': ['Cosmetics', 'Косметика'],

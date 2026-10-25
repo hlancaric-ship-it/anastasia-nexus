@@ -51,6 +51,7 @@ const unifyFont=html=>html.replaceAll('Outfit,sans-serif','Figtree,"Helvetica Ne
   .replaceAll('href="/ai-anastasia"','href="https://www.aianastasia.com/" target="_blank" rel="noopener"');
 // Zdvojené stránky: jedna adresa na obsah, ostatné 301 (22. 10.).
 const DUPLICATE_REDIRECTS=[
+  ['/darcekovy-poukaz','/eshop/?category=darcekove-poukazy'],
   ['/zdrava-lekaren','/eshop/'],['/eshop/kategoria/-vsetko-','/eshop/'],['/eshop/kategorie','/eshop/'],
   ['/eshop/kategoria/bio-kozmetika-bez-chemie','/eshop/?category=bio-kozmetika-bez-chemie'],['/eshop/kategoria/kozmetika','/eshop/?category=bio-kozmetika-bez-chemie'],
   ['/eshop/kategoria/bylinky-a-vyziva','/eshop/?category=zdrave-doplnky-vyzivy'],['/eshop/kategoria/programy-a-sluzby','/eshop/?category=sebarozvoj'],

@@ -3,6 +3,7 @@ import {SHOP_CATEGORY_HANDLES} from './lib/api/catalog.mjs';
 const handleOf=c=>SHOP_CATEGORY_HANDLES[c]||c;
 
 const icons={
+  'Darčekové poukazy':'<path d="M3 9h18v12H3zM3 9V6h18v3M12 6v15M12 6c-2-3-6-3-6 0h6Zm0 0c2-3 6-3 6 0h-6Z"/>',
   'BIOKOZMETIKA':'<path d="M7 14h10v7H7zM10 14V8h4v6M10 8V4h4v4M19 5c0 3-3 4-3 4s-3-1-3-4"/>',
   'AI ANASTASIA ACADEMY':'<path d="M12 5v16M12 6c-3-3-7-3-10-2v15c3-1 7-1 10 2 3-3 7-3 10-2V4c-3-1-7-1-10 2Z"/>',
   'Zdravé doplnky výživy':'<path d="M12 22V3M12 8C7 8 5 5 5 3c5 0 7 3 7 5Zm0 6c-5 0-7-3-7-5 5 0 7 3 7 5Z"/>',
@@ -18,10 +19,10 @@ const icons={
 const iconPath=category=>icons[category]||icons[category.toUpperCase()]||icons[category==='Biokozmetika'?'BIOKOZMETIKA':'']||icons['Bylinky a výživa'];
 export const symbolFor=category=>`<svg class="catalog-nav-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPath(category)}</svg>`;
 
-const TILES=[['AI ANASTASIA ACADEMY','Programy a služby','/eshop?category=sebarozvoj'],['BIOKOZMETIKA','Biokozmetika','/eshop?category=bio-kozmetika-bez-chemie'],['Zdravé doplnky výživy','Zdravé doplnky výživy','/eshop?category=zdrave-doplnky-vyzivy'],['Darčekový poukaz','Darčekový poukaz','/darcekovy-poukaz']];
+const TILES=[['AI ANASTASIA ACADEMY','Programy a služby','/eshop?category=sebarozvoj'],['BIOKOZMETIKA','Biokozmetika','/eshop?category=bio-kozmetika-bez-chemie'],['Zdravé doplnky výživy','Zdravé doplnky výživy','/eshop?category=zdrave-doplnky-vyzivy'],['Darčekové poukazy','Darčekové poukazy','/eshop?category=darcekove-poukazy']];
 
 export function catalogNavigation(categories,current=''){
-  const known=TILES.filter(([key])=>key==='Darčekový poukaz'||categories.includes(key));
+  const known=TILES.filter(([key])=>key==='Darčekové poukazy'||categories.includes(key));
   const rest=categories.filter(category=>!known.some(([key])=>key===category));
   const tile=([key,label,href])=>`<a class="catalog-nav-tile" href="${href}" data-catalog-category="${e(key)}" ${handleOf(key)===current?'aria-current="page"':''}>${symbolFor(key)}<span>${e(label)}</span></a>`;
   return `<nav class="catalog-navigation" id="catalog-navigation" aria-label="Vybrať kategóriu">${known.map(tile).join('')}${rest.map(category=>`<a class="catalog-nav-tile" href="/eshop?category=${encodeURIComponent(handleOf(category))}" data-catalog-category="${e(category)}" ${handleOf(category)===current?'aria-current="page"':''}><span>${e(category)}</span></a>`).join('')}</nav>`;

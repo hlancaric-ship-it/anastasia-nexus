@@ -24,7 +24,15 @@ export const SHOP_CATEGORY_HANDLES=Object.freeze({
   'BIOKOZMETIKA':'bio-kozmetika-bez-chemie',
   'Zdravé doplnky výživy':'zdrave-doplnky-vyzivy',
   'Konzultácie':'konzultacie',
+  'Darčekové poukazy':'darcekove-poukazy',
 });
+// Darčekový poukaz je v jadre jeden produkt s hodnotami. V obchode je každá hodnota samostatný produkt.
+export const VOUCHER_CATEGORY='Darčekové poukazy';
+export const VOUCHER_CATEGORY_HANDLE='darcekove-poukazy';
+export const VOUCHER_SLUG_PREFIX='darcekovy-poukaz-';
+export const voucherAmountFromSlug=slug=>{const m=/^darcekovy-poukaz-(\d{1,5})$/.exec(String(slug||''));return m?Number(m[1]):null;};
+export const voucherSlug=amount=>VOUCHER_SLUG_PREFIX+Math.round(Number(amount));
+export const VOUCHER_IMAGE='/img/eshop/vouchery.webp';
 export const FEATURED_SLUGS=Object.freeze(['osviezit-plet','pletova-voda','chripka-prasok','online-zdravotna-konzultacia']);
 export const SHOP_CATALOG=Object.freeze([
   {slug:"reset-40-plus",name:"AI ANASTASIA RESET 40+",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"168,00 €",art:"sun",image:"/assets/lucia-longevity.png"},

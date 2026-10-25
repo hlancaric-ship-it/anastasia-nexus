@@ -1,4 +1,4 @@
-import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES} from './catalog.mjs';
+import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES, VOUCHER_CATEGORY, VOUCHER_CATEGORY_HANDLE, VOUCHER_IMAGE, voucherAmountFromSlug, voucherSlug} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
@@ -70,6 +70,7 @@ function mapProduct(p,apiBase='') {
     isBestseller: false,
     image: isEditorialOnlyAsset(p.thumbnail) ? '/assets/product-placeholder.svg' : media(p.thumbnail) || '/assets/product-placeholder.svg',
     _variantId: variant.id,
+    booking: Boolean(p.metadata?.booking),
     // Voľby produktu (napr. Pre: Dámsky/Pánsky, Množstvo: 50 ml/100 ml). Technická voľba „Variant: Štandard“ sa nezobrazuje.
     options: (p.variants || []).length > 1 ? (p.options || []).map(o => ({ id: o.id, title: o.title, values: [...new Set((o.values || []).map(v => v.value))] })).filter(o => o.values.length > 1) : [],
     variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, priceLabel: v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : 'Cena sa doplní', options: Object.fromEntries((v.options || []).map(o => [(p.options || []).find(x => x.id === (o.option_id || o.option?.id))?.title || o.option?.title || '', o.value])) })),
@@ -187,8 +188,30 @@ export function createHttpApi(storage, config) {
     return { ok: true, booking: b };
   }
 
+  // Každá hodnota poukazu ako samostatný produkt (variant poukazu v jadre). Bez publikovaného poukazu nič.
+  function voucherProducts(p) {
+    if (!p) return [];
+    return (p.variants || []).map(v => {
+      const amount = Number(v.metadata?.gift_voucher_amount_minor) / 100 || Number(v.calculated_price?.calculated_amount);
+      if (!Number.isFinite(amount) || amount <= 0) return null;
+      const priceLabel = v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : money(amount);
+      return {
+        slug: voucherSlug(amount), code: voucherSlug(amount), name: `Darčekový poukaz ${money(amount).replace(',00', '')}`,
+        category: VOUCHER_CATEGORY, categoryHandle: VOUCHER_CATEGORY_HANDLE, priceLabel, art: 'gift',
+        description: 'Darujte priestor pre vlastný výber. Poukaz vám príde e-mailom ako PDF hneď po zaplatení a odovzdáte ho, komu chcete.',
+        descriptionHtml: '', longDescription: '', images: [VOUCHER_IMAGE], availability: 'Ihneď e-mailom', isNew: false, isBestseller: false,
+        image: VOUCHER_IMAGE, giftVoucher: true, voucherAmount: amount, _variantId: v.id, options: [],
+        variants: [{ id: v.id, title: v.title, priceLabel, options: {} }],
+      };
+    }).filter(Boolean).sort((a, b) => a.voucherAmount - b.voucherAmount);
+  }
+  async function voucherList() {
+    const r = await call(`/store/products?handle=darkovy-poukaz&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
+    return r.ok ? voucherProducts(r.data?.products?.[0]) : [];
+  }
   const productCache = new Map();
   async function variantFor(code, wanted = '') {
+    if (voucherAmountFromSlug(code) != null) return (await voucherList()).find(v => v.slug === code)?._variantId || null;
     let ids = productCache.get(code);
     if (!ids) {
       const r = await call(`/store/products?handle=${encodeURIComponent(code)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
@@ -248,14 +271,14 @@ export function createHttpApi(storage, config) {
     const cart = r.data?.cart; if (!cart) return empty;
     const held = storedBooking();
     const lines = (cart.items || []).map(it => ({
-      slug: it.product_handle || it.product?.handle || it.id,
+      slug: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? voucherSlug(it.unit_price) : it.product_handle || it.product?.handle || it.id,
       key: it.id,
       name: (it.product_title || it.title || it.product?.title || 'Položka') + (it.variant_title && !/^(Štandard|Predvolené|Default.*)$/i.test(it.variant_title) && it.variant_title !== it.product_title ? ` · ${it.variant_title}` : ''),
       code: it.product_handle || it.product?.handle,
       priceLabel: money(it.unit_price),
       image: publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
       quantity: it.quantity,
-      giftVoucher: false,
+      giftVoucher: it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true',
       // Konzultácia má vždy 1 ks a termín; množstvo sa nemení, riadok sa dá len odstrániť.
       booking: it.product?.metadata?.booking ? { label: held && held.product_id === it.product_id ? held.label : '', heldUntil: held && held.product_id === it.product_id ? held.held_until : '' } : null,
       _itemId: it.id,
@@ -324,7 +347,9 @@ export function createHttpApi(storage, config) {
     async getProducts({ category = '', search = '', filter = '' } = {}) {
       const r = await call(`/store/products?region_id=${config.regionId}&limit=100&fields=${PRODUCT_FIELDS}`);
       if(!r.ok)throw new Error('Katalóg sa nepodarilo načítať.');
-      let items = (r.data?.products || []).filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
+      const all = r.data?.products || [];
+      let items = all.filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
+      items = items.concat(voucherProducts(all.find(p=>p.metadata?.gift_voucher===true||p.metadata?.gift_voucher==='true')));
       const s = search.toLocaleLowerCase('sk');
       if (category) { const wanted = NAME_BY_HANDLE[category] || category; items = items.filter(p => p.category === wanted || p.categoryHandle === category); }
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
@@ -333,6 +358,7 @@ export function createHttpApi(storage, config) {
       return items;
     },
     async getProduct(slug) {
+      if (voucherAmountFromSlug(slug) != null) return (await voucherList()).find(v => v.slug === slug) || null;
       const r = await call(`/store/products?handle=${encodeURIComponent(slug)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
       const p = r.data?.products?.[0];
       return p ? mapProduct(p,base) : null;
