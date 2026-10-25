@@ -119,7 +119,7 @@ describe("sendEmail", () => {
   })
 })
 
-describe("sendEmail cez Medusa Emails na Cloude", () => {
+describe("sendEmail cez Medusa Emails (Cloud bez vlastného poskytovateľa)", () => {
   const saved = { ...process.env }
   beforeEach(() => {
     process.env.EXECUTION_CONTEXT = "medusa-cloud"
@@ -148,16 +148,8 @@ describe("sendEmail cez Medusa Emails na Cloude", () => {
     expect(notifications.createNotifications).not.toHaveBeenCalled()
   })
 
-  it("na Cloude posiela cez Medusa Emails aj keď je nastavený kľúč Resend", async () => {
+  it("s kľúčom Resend obsah nerenderuje, robí to provider", async () => {
     process.env.RESEND_API_KEY = "re_test"
-    const { container, notifications } = makeContainer()
-    await sendEmail(container, { to: TO, template: "order-placed-sk", data: { order_display_id: "1" } })
-    expect((notifications.createNotifications.mock.calls[0] as any[])[0].content.subject).toBeTruthy()
-  })
-
-  it("mimo Cloudu obsah nerenderuje, robí to provider", async () => {
-    delete process.env.EXECUTION_CONTEXT
-    delete process.env.MEDUSA_CLOUD_ENVIRONMENT_TYPE
     const { container, notifications } = makeContainer()
     await sendEmail(container, { to: TO, template: "order-placed-sk", data: { order_display_id: "1" } })
     expect((notifications.createNotifications.mock.calls[0] as any[])[0].content).toBeUndefined()
