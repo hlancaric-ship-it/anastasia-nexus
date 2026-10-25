@@ -151,3 +151,9 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - Vrstvené karty mají stín `0 -20px 40px rgba(0,0,0,.15)`.
 - Všechny fotky karet jsou v klenutém rámu `999px 999px 28px 0`.
 - Mezi tmavou sekcí a patičkou je vždy linka 1px `rgba(253,230,138,.15)`.
+
+## Môj účet (25. 10.)
+- Žádný autoplay videa ani zvuku. Video startuje jen po kliknutí na plakát s ikonou Play.
+- Levá lišta `#ana-rail` je v účtu skrytá (`body.customer-page`).
+- Kontejner max 1152 px, padding 32/24/80, mřížka `.acc-grid` 65/35, pod 1000 px jeden sloupec.
+- Obsah jen v kartách `.acc-card` (glass). Žádné prázdné plochy, prázdné stavy mají fotku a CTA.

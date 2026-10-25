@@ -44,3 +44,15 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Home, karta Konzultácie: místo místnosti se stolem je portrét Lucie před zlatým ornamentem. Rám je klenutý jako u Obchodu a RESET 40+ a karta je v champagne gradientu. Vrstvené karty mají stín `0 -20px 40px rgba(0,0,0,.15)` a na nízkých displejích nižší výšku.
 - Sekce Volám sa Lucia je svisle vycentrovaná ke kruhové kompozici a bez prázdného místa pod tlačítkem O Lucii.
 - Poukaz končí vlastním paddingem a mezi poukazem a patičkou je zlatá linka 1px s opacitou 15 %.
+
+## 25. 10. večer, Můj účet
+- Video ani audio v účtu nehraje samo. Knižnica ukazuje plakát s ikonou Play a lekce se načte až po kliknutí. Ambientní zvuk webu v účtu nehraje.
+- Levá lišta se sociálními sítěmi a jazyky je v celém účtu skrytá a obsah využívá plnou šířku.
+- Rozložení je 65/35 v kontejneru 1152 px. Vlevo je obsah, vpravo rychlé akce a podpora s fotkou Lucie.
+- Objednávky jsou karty s číslem, datem, stavem, náhledy, celkovou cenou a tlačítky Detail, Stiahnuť doklad a Zopakovať nákup. Sledování zásilky se zobrazí, jen když ho dopravce vrátí. Spodní pruh Objednať znova je pryč a oblíbené produkty jsou vpravo.
+- Konzultace mají box Moje termíny nebo prázdný stav s výběrem typu konzultace, přípravou a častými otázkami.
+- Chat má hlavičku s Luciou, zaoblené pole a levandulové tlačítko Odoslať.
+- Poukazy jsou vizuální karty s kódem, uplatněním v košíku a PDF. Formulář na kód poukazu ho uplatní v košíku.
+- Profil má mřížku dva a tři sloupce a barvu prostoru v jednom řádku.
+- Zrkadielko má pilulky 1–10 s popisky Nízka, Vyvážená a Vysoká. Při úpravě záznamu jsou hodnoty předvyplněné.
+- Otevřené: skutečná faktura potřebuje rozhodnutí o fakturačním systému, zatím je to tisknutelný doklad.
