@@ -146,6 +146,7 @@ const ICONS = {
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   box2: '<path d="m3 7 9-4 9 4-9 5Z M3 7v10l9 4 9-4V7 M12 12v9"/>',
   trend: '<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  photos: '<rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/><circle cx="8" cy="11" r="1.5"/><path d="m3 18 5-5 4 4 2-2 3 3"/>',
 };
 const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 const LOGO = './assets/lucia-logo.png';
@@ -1369,8 +1370,8 @@ async function vProductDetail(view, id, opts = {}) {
   const kategorie = `<label for="p-category">Pridať kategóriu</label><select id="p-category" ${catsR ? '' : 'disabled'}><option value="">Vyberte kategóriu…</option>${cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select><div id="p-categories" class="category-chips"></div><a class="subtle-link" href="#/kategorie">Spravovať kategórie →</a>${catsR ? '' : '<p class="muted">Kategórie sa nepodarilo načítať. Pôvodné zaradenie zostane zachované.</p>'}`;
   const popis = wysiwygHtml('p-desc', p.description || '');
   const obrazky = `<div id="p-imgs" class="rc-grid"></div>
-    <label style="margin-top:12px">Pridať obrázky (JPG, PNG, WebP do 5 MB)</label><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple>
-    <p class="muted" style="font-size:12px">Hlavný obrázok sa zobrazuje v zozname produktov a vo výsledkoch vyhľadávania. Zmeny sa uložia tlačidlom Uložiť.</p>`;
+    <div class="p-img-actions"><label class="btn ghost p-img-upload"><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only">Nahrať z počítača</label><button type="button" class="btn gold" id="p-pick">${navIcon('photos')} Vybrať z mediálnej banky</button></div>
+    <p class="muted" style="font-size:12px">JPG, PNG a WebP do 5 MB. Poradie zmeníte pretiahnutím alebo šípkami, prvý hlavný obrázok sa zobrazuje v obchode. Odobratím sa fotka nezmaže z mediálnej banky. Zmeny sa uložia tlačidlom Uložiť.</p>`;
   const predaj = `<label>Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" maxlength="64" autocomplete="off"><p class="muted" style="font-size:12px">Kód môžete zmeniť. Pozor: QR kódy vytvorené pre starý kód prestanú fungovať a treba ich vytvoriť znova.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}
     <div class="row"><div><label for="p-ean">EAN (čiarový kód)</label><input id="p-ean" value="${esc(String(variant?.barcode || variant?.ean || ''))}" maxlength="64" inputmode="numeric" autocomplete="off" placeholder="napr. 5901234123457"></div>
     <div><label for="p-weight">Hmotnosť (kg)</label><input id="p-weight" type="number" min="0" step="0.001" value="${esc(String(variant?.weight ?? ''))}" placeholder="napr. 0.25"></div></div>
@@ -1441,11 +1442,30 @@ async function vProductDetail(view, id, opts = {}) {
   view.querySelector('#p-category').onchange = e => { if (e.target.value) inC.add(e.target.value); e.target.value = ''; drawCategories(); renderChecks(); };
   drawCategories();
   view.querySelector('#p-back').onclick = () => vProducts(view);
+  // Fotky produktu: poradie pretiahnutím alebo šípkami, hlavná fotka, odobratie bez zmazania z mediálnej banky.
+  const move = (from, to) => { if (to < 0 || to >= images.length || from === to) return; images.splice(to, 0, images.splice(from, 1)[0]); drawImgs(); };
   const drawImgs = () => {
-    view.querySelector('#p-imgs').innerHTML = images.map((u, i) => `<div class="rc"><div class="rc-body"><img src="${esc(u)}" alt="" class="product-photo">
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${u === thumb ? '<span class="pill ok">hlavný</span>' : `<button type="button" class="btn ghost" data-main="${i}">Hlavný</button>`}<button type="button" class="btn ghost" data-rm="${i}">Odstrániť</button></div></div></div>`).join('') || '<div class="empty">Produkt zatiaľ nemá obrázok.</div>';
-    view.querySelectorAll('[data-main]').forEach(b => b.onclick = () => { thumb = images[+b.dataset.main]; drawImgs(); });
-    view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const u = images.splice(+b.dataset.rm, 1)[0]; if (thumb === u) thumb = images[0] || null; drawImgs(); renderChecks(); });
+    const grid = view.querySelector('#p-imgs');
+    grid.innerHTML = images.map((u, i) => `<div class="rc p-img${u === thumb ? ' is-main' : ''}" draggable="true" data-i="${i}"><div class="rc-body"><img src="${esc(u)}" alt="" class="product-photo" draggable="false">
+      <div class="p-img-bar"><button type="button" class="btn ghost sm" data-mv="${i}" data-to="${i - 1}" aria-label="Posunúť doľava" ${i ? '' : 'disabled'}>←</button><button type="button" class="btn ghost sm" data-mv="${i}" data-to="${i + 1}" aria-label="Posunúť doprava" ${i < images.length - 1 ? '' : 'disabled'}>→</button>${u === thumb ? '<span class="pill ok">hlavný</span>' : `<button type="button" class="btn ghost sm" data-main="${i}">Hlavný</button>`}<button type="button" class="btn ghost sm" data-rm="${i}" title="Súbor ostane v mediálnej banke">Odobrať</button></div></div></div>`).join('') || '<div class="empty">Produkt zatiaľ nemá obrázok.</div>';
+    grid.querySelectorAll('[data-main]').forEach(b => b.onclick = () => { thumb = images[+b.dataset.main]; drawImgs(); });
+    grid.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const u = images.splice(+b.dataset.rm, 1)[0]; if (thumb === u) thumb = images[0] || null; drawImgs(); renderChecks(); });
+    grid.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => move(+b.dataset.mv, +b.dataset.to));
+    let from = -1;
+    grid.querySelectorAll('.p-img').forEach(card => {
+      card.ondragstart = e => { from = +card.dataset.i; card.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(from)); };
+      card.ondragend = () => card.classList.remove('dragging');
+      card.ondragover = e => { e.preventDefault(); card.classList.add('drop-over'); };
+      card.ondragleave = () => card.classList.remove('drop-over');
+      card.ondrop = e => { e.preventDefault(); card.classList.remove('drop-over'); if (from >= 0) move(from, +card.dataset.i); from = -1; };
+    });
+  };
+  view.querySelector('#p-pick').onclick = async () => {
+    const picked = await pickMedia(images);
+    const added = picked.filter(u => !images.includes(u));
+    if (!added.length) return;
+    images.push(...added); if (!thumb) thumb = images[0] || null;
+    drawImgs(); renderChecks(); view.querySelector('#pmsg').innerHTML = `<div class="notice">Priradené fotografie: ${added.length}. Nezabudnite Uložiť.</div>`;
   };
   drawImgs(); renderChecks();
   view.querySelectorAll('#p-price,#p-ship,#p-sku,[data-ch],[data-c]').forEach(el => el.addEventListener('change', renderChecks));
@@ -3212,6 +3232,34 @@ async function vPageTextEdit(view, slug) {
   };
 }
 // --- Obsah → Médiá: knihovna verejných obrázkov ---
+// Výber z mediálnej banky: mriežka náhľadov, hľadanie podľa názvu, výber viacerých fotiek. Vracia zoznam URL (prázdny pri zrušení).
+function pickMedia(assigned = []) {
+  return new Promise(resolve => {
+    const dlg = document.createElement('dialog'); dlg.className = 'mp';
+    const chosen = new Set(); let files = [];
+    dlg.innerHTML = `<form method="dialog" class="mp-box"><header class="mp-head"><h2>Mediálna banka</h2><button type="submit" value="" class="btn ghost sm" aria-label="Zavrieť">✕</button></header>
+      <div class="mp-tools"><input type="search" class="mp-search" placeholder="Hľadať podľa názvu súboru…" autocomplete="off"><select class="mp-filter"><option value="">Všetky</option><option value="free">Nepriradené k produktu</option><option value="new">Nahraté za 30 dní</option></select></div>
+      <div class="mp-grid"><div class="muted">Načítavam mediálnu banku…</div></div>
+      <footer class="mp-foot"><span class="muted mp-count"></span><div><button type="submit" value="" class="btn ghost">Zrušiť</button> <button type="button" class="btn gold mp-ok" disabled>Priradiť vybrané fotografie (0)</button></div></footer></form>`;
+    document.body.appendChild(dlg);
+    const grid = dlg.querySelector('.mp-grid'), ok = dlg.querySelector('.mp-ok'), q = dlg.querySelector('.mp-search'), filter = dlg.querySelector('.mp-filter');
+    const sync = () => { ok.disabled = !chosen.size; ok.textContent = `Priradiť vybrané fotografie (${chosen.size})`; };
+    const draw = () => {
+      const term = q.value.trim().toLowerCase(), since = Date.now() - 30 * 864e5;
+      const list = files.filter(f => (!term || String(f.name || '').toLowerCase().includes(term)) && (filter.value !== 'free' || !assigned.includes(f.url)) && (filter.value !== 'new' || new Date(f.uploaded_at).getTime() >= since));
+      dlg.querySelector('.mp-count').textContent = `${list.length} z ${files.length} súborov`;
+      grid.innerHTML = list.map(f => `<button type="button" class="mp-item" data-url="${esc(f.url)}" aria-pressed="${chosen.has(f.url)}" title="${esc(f.name)}"><img src="${esc(f.url)}" alt="" loading="lazy"><span class="mp-check" aria-hidden="true">✓</span>${assigned.includes(f.url) ? '<span class="mp-tag">už v produkte</span>' : ''}<small>${esc(f.name)}</small></button>`).join('') || '<div class="empty">Nič sa nenašlo. Obrázky nahráte v sekcii Médiá.</div>';
+    };
+    grid.onclick = e => { const b = e.target.closest('.mp-item'); if (!b) return; const u = b.dataset.url; chosen.has(u) ? chosen.delete(u) : chosen.add(u); b.setAttribute('aria-pressed', String(chosen.has(u))); sync(); };
+    q.oninput = draw; filter.onchange = draw;
+    ok.onclick = () => dlg.close('ok');
+    dlg.addEventListener('close', () => { const out = dlg.returnValue === 'ok' ? [...chosen] : []; dlg.remove(); resolve(out); });
+    dlg.showModal();
+    api('/admin/media').then(d => { files = (d.files || []).filter(f => /^image\//.test(f.content_type || 'image/') && f.url).sort((a, b) => String(b.uploaded_at).localeCompare(String(a.uploaded_at))); draw(); })
+      .catch(e => { grid.innerHTML = `<div class="err">${esc(e.message === '401' ? 'Prihlásenie vypršalo. Obnovte stránku.' : e.message)}</div>`; });
+  });
+}
+
 async function vMediaLibrary(view) {
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam knihovnu…</div>';
