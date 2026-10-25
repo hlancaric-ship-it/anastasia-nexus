@@ -78,6 +78,7 @@ Pozadí pod sklem na světlých pásech: krytí max 30 %.
 - Každé ovládání jen jednou na obrazovce (žádné zdvojené menu).
 - Boční skleněná lišta se objeví plynule až po scrollu, obsah jde pod ní přes celou šířku.
 - Preloader jen „Vstúpte“, bez horní lišty.
+- **Klub v menu skrytý v obou variantách** (boční i horní menu, desktop i mobil, Lucky 25. 10.). Stránka /klub a záložka v účtu zůstávají.
 - Hero video, intro a preloader neměnit bez výslovného pokynu.
 - QA vždy na 1440 a 390 px, bez přetékání do strany.
 - Admin: tlačítka světlá levandule, tenký levandulový okraj, tmavý text.

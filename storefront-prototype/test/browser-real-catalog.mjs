@@ -5,8 +5,9 @@ import {digitalTopics} from '../src/lib/digital-content.mjs';
 const {config}=await import('../dist/config.mjs');
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||pathToFileURL('/Users/lucky/hra-studio54/node_modules/playwright/index.mjs').href);
 const base=process.env.STOREFRONT_URL||'http://127.0.0.1:4174';
-const products=await createHttpApi({getItem:()=>null,setItem:()=>{}},config).getProducts();
-assert.equal(products.length,14);assert.deepEqual(['Kozmetika','Bylinky a výživa','Programy a služby'].map(c=>products.filter(p=>p.category===c).length),[5,2,7]);
+// Testovací typ konzultácie (bez kategórie) slúži E2E rezervácii, do počtov katalógu nepatrí.
+const products=(await createHttpApi({getItem:()=>null,setItem:()=>{}},config).getProducts()).filter(p=>!/^testovaci-/.test(p.slug));
+assert.equal(products.length,14);assert.deepEqual(['BIOKOZMETIKA','Zdravé doplnky výživy','AI ANASTASIA ACADEMY','Konzultácie'].map(c=>products.filter(p=>p.category===c).length),[5,2,5,2]);
 assert.equal(digitalTopics(products.find(p=>p.slug==='nic-nemusis')).length,6);
 assert.equal(digitalTopics(products.find(p=>p.slug==='reset-40-plus')).length,16);
 const b=await chromium.launch({channel:'chrome',headless:true});let checks=4;const errors=[];
