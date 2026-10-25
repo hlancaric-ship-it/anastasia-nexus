@@ -480,7 +480,7 @@ const filterForm=$('.catalog-controls');
 if(filterForm){
   const params=new URLSearchParams(location.search);
   for(const name of ['category','search','filter','sort'])if(params.has(name)&&filterForm.elements[name])filterForm.elements[name].value=params.get(name);
-  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));const products=await api.getProducts(query);if(sequence!==renderSequence)return;const priceOf=p=>Number(String(p.priceLabel).replace(/[^\d,]/g,'').replace(',','.'))||0;let ordered=shopOrder(products);if(query.sort==='price-asc')ordered=[...ordered].sort((a,b)=>priceOf(a)-priceOf(b));else if(query.sort==='price-desc')ordered=[...ordered].sort((a,b)=>priceOf(b)-priceOf(a));else if(query.sort==='name')ordered=[...ordered].sort((a,b)=>a.name.localeCompare(b.name,'sk'));$('#catalog-results').innerHTML=products.length?ordered.map(shopCard).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;
+  let renderSequence=0;const render=async()=>{const sequence=++renderSequence;const query=Object.fromEntries(new FormData(filterForm));const products=await api.getProducts(query);if(sequence!==renderSequence)return;const priceOf=p=>Number(String(p.priceLabel).replace(/[^\d,]/g,'').replace(',','.'))||0;let ordered=shopOrder(products);if(query.sort==='price-asc')ordered=[...ordered].sort((a,b)=>priceOf(a)-priceOf(b));else if(query.sort==='price-desc')ordered=[...ordered].sort((a,b)=>priceOf(b)-priceOf(a));else if(query.sort==='name')ordered=[...ordered].sort((a,b)=>a.name.localeCompare(b.name,'sk'));$('#catalog-results').innerHTML=products.length?ordered.map(shopCard).join(''):'<div class="empty-state"><h2>Nič sme nenašli.</h2><p>Skúste iný názov alebo kategóriu.</p><button class="button outline" type="button" id="reset-filters">Zobraziť všetko</button></div>';$('.result-count').textContent=`${products.length} produktov`;pageGrid();
     $$('[data-catalog-category]').forEach(link=>{if(link.dataset.catalogCategory===query.category)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
     const search=new URLSearchParams(Object.entries(query).filter(([,v])=>v));history.replaceState(null,'',location.pathname+(search.size?'?'+search:''));
     $('#reset-filters')?.addEventListener('click',()=>{for(const name of ['search','category','filter','sort'])if(filterForm.elements[name])filterForm.elements[name].value='';render();});
@@ -502,6 +502,16 @@ if(filterForm){
     const target=$('#nase-produkty')||$('#catalog-results');
     if(target&&lenis)lenis.scrollTo(target,{offset:-16});else target?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
   },true);
+  // Mriežka obchodu po celých radoch: najviac 2 rady, neúplný rad sa skryje za tlačidlo „Zobraziť ďalšie produkty“.
+  const pageGrid=()=>{
+    const grid=$('#catalog-results');if(!grid)return;$('.shop-more')?.remove();
+    const cards=$$('.shop-card',grid);const cols=getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length||4;
+    let shown=cards.length<=cols?cards.length:Math.floor(Math.min(cards.length,cols*2)/cols)*cols;
+    const paint=()=>{cards.forEach((c,i)=>{c.hidden=i>=shown;});const rest=cards.length-shown;$('.shop-more')?.remove();if(rest<=0)return;
+      const more=document.createElement('div');more.className='shop-more';more.innerHTML=`<button type="button" class="button outline">Zobraziť ďalšie produkty (${rest}) ${arrow}</button>`;
+      more.firstElementChild.addEventListener('click',()=>{shown=Math.min(cards.length,shown+cols*2);paint();});grid.after(more);};
+    paint();
+  };
   filterForm.addEventListener('input',render);filterForm.addEventListener('submit',ev=>{ev.preventDefault();render();});render();
 }
 // Jeden handler na formulár: druhý (v bloku živého detailu) posielal 2× POST a do košíka pridal dvojnásobok.
@@ -585,6 +595,18 @@ if(productDetail){
   }).catch(()=>{});
 }
 
+
+// Dlhý popis v detaile produktu: 380 px s prechodom, tlačidlo ho plynule rozvinie (meria sa až pri otvorení akordeónu).
+$$('[data-clamp]').forEach(box=>{
+  const inner=box.firstElementChild,btn=$('[data-clamp-toggle]',box);if(!inner||!btn)return;
+  const fit=()=>{if(box.classList.contains('is-open'))return;const long=inner.scrollHeight>420;box.classList.toggle('is-clamped',long);btn.hidden=!long;};
+  box.closest('details')?.addEventListener('toggle',fit);fit();
+  btn.addEventListener('click',()=>{
+    inner.style.maxHeight=inner.offsetHeight+'px';box.classList.remove('is-clamped');box.classList.add('is-open');btn.hidden=true;
+    requestAnimationFrame(()=>{inner.style.maxHeight=inner.scrollHeight+'px';});
+    inner.addEventListener('transitionend',()=>{inner.style.maxHeight='';},{once:true});
+  });
+});
 
 const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
 // Detail: výber hodnoty poukazu otvorí produkt s danou hodnotou, doprava a doprava zdarma podľa servera.

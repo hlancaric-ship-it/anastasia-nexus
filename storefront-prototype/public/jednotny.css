@@ -787,4 +787,37 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 #page-shell.kc-unified .legacy-main .pdm-grid{align-items:stretch!important}
 #page-shell.kc-unified .legacy-main .pdm .pdm-media,#page-shell.kc-unified .legacy-main .pdm--voucher .pdm-media{position:static!important;align-self:stretch!important;display:flex!important;flex-direction:column;justify-content:center;gap:12px}
 @media (max-width:900px){#page-shell.kc-unified .legacy-main .pdm .pdm-media{justify-content:flex-start}}
+
+/* Design DNA 25. 10.: organické linky (zlato + levanduľa) pevne pod obsahom, karty v popredí z mliečneho skla */
+#page-shell.kc-unified .legacy-main :is(.kc-motif,.pd-page,.shop-page,.customer-center){background:url(/img/organic-lines.svg) center/max(1600px,100vw) auto fixed,var(--paper,#fdfbf7)!important}
+#page-shell.kc-unified .legacy-main :is(.pdm-panel,.pdm-details .pdm-accordions details,.acc-card,.shop-grid--v3 .shop-card,.pdm-related-card)background:rgba(253,251,247,.85)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;border:1px solid rgba(197,168,128,.18)!important
+#page-shell.kc-unified .legacy-main .shop-card[hidden]{display:none!important}
+/* Fotky v katalógu celé: rovnaký box 4:5, produkt vycentrovaný bez orezu */
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card__image,#page-shell.kc-unified .legacy-main .pdm-related-img{aspect-ratio:4/5!important;display:flex!important;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#fffdf8 0,#f4efe4 75%)!important}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card__image img,#page-shell.kc-unified .legacy-main .pdm-related-img img{width:100%!important;height:100%!important;object-fit:contain!important;padding:16px;box-sizing:border-box}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card{height:100%}
+#page-shell.kc-unified .legacy-main .shop-more{display:flex;justify-content:center;margin-top:clamp(28px,3vw,44px)}
+#page-shell.kc-unified .legacy-main .shop-products{padding-bottom:96px!important}
+/* Dlhý popis v detaile: 380 px s prechodom do pozadia */
+#page-shell.kc-unified .legacy-main .pdm-clamp__inner{position:relative;overflow:hidden;transition:max-height .6s cubic-bezier(.2,.7,.2,1)}
+#page-shell.kc-unified .legacy-main .pdm-clamp.is-clamped .pdm-clamp__inner{max-height:380px}
+#page-shell.kc-unified .legacy-main .pdm-clamp.is-clamped .pdm-clamp__inner::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(rgba(253,251,247,0),rgba(253,251,247,.96) 85%);pointer-events:none}
+#page-shell.kc-unified .legacy-main .pdm-clamp__more{display:inline-flex;gap:8px;align-items:center;margin:14px 0 4px;padding:0;border:0;background:none;font:500 13px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--lav);cursor:pointer}
+#page-shell.kc-unified .legacy-main .pdm-clamp__more[hidden]{display:none}
+/* Odstup od plávajúcej navigácie a pred pätičkou */
+#page-shell.kc-unified .legacy-main .pd-page.pdm{padding-top:clamp(96px,8vw,112px)!important;padding-bottom:96px!important;position:relative;z-index:0}
+@media (max-width:900px){#page-shell.kc-unified .legacy-main .pd-page.pdm{padding-top:88px!important}}
+
+#page-shell.kc-unified .legacy-main .pdm-related-card{padding:12px 12px 16px;border-radius:18px}
+#page-shell.kc-unified .legacy-main .pdm-related-img{border-radius:12px!important;overflow:hidden}
+}
+
+/* Obchod má !important vo vrstve shopv2 (tokens.css ju radí pred jednotny), preto design DNA obchodu žije tu */
+@layer shopv2{
+#page-shell.kc-unified .legacy-main .shop-page{background:url(/img/organic-lines.svg) center/max(1600px,100vw) auto fixed,var(--paper,#fdfbf7)!important}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card{background:rgba(253,251,247,.85)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;border:1px solid rgba(197,168,128,.18)!important}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card[hidden]{display:none!important}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card__image{aspect-ratio:4/5!important;display:flex!important;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#fffdf8 0,#f4efe4 75%)!important}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card__image img{width:100%!important;height:100%!important;object-fit:contain!important;padding:16px!important;box-sizing:border-box}
+#page-shell.kc-unified .legacy-main .shop-grid--v3 .shop-card:hover .shop-card__image img{transform:scale(1.03)!important}
 }

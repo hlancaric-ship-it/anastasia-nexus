@@ -41,6 +41,8 @@ const ICON = {
 const icon = name => `<svg class="pdm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]||ICON.check}</svg>`;
 const features = items => `<ul class="pdm-features" aria-label="Kľúčové vlastnosti">${items.map(([name,title,detail,attr=''])=>`<li${attr}>${icon(name)}<span><b>${title}</b>${detail?`<small>${detail}</small>`:''}</span></li>`).join('')}</ul>`;
 const accordions = (items, open=0, cls='') => `<div class="pdm-accordions${cls}" data-product-accordions>${items.filter(Boolean).map(([title,html],i)=>`<details${i===open?' open':''}><summary>${title}<span class="pdm-plus" aria-hidden="true"></span></summary><div class="pdm-accordion-body">${html}</div></details>`).join('')}</div>`;
+// Dlhý text v akordeóne: výška obmedzená s prechodom, tlačidlo ho rozvinie (dopĺňa public/app.mjs).
+const clamp = (html, label) => `<div class="pdm-clamp" data-clamp><div class="pdm-clamp__inner">${html}</div><button type="button" class="pdm-clamp__more" data-clamp-toggle hidden>${label} <span aria-hidden="true">∨</span></button></div>`;
 // Podrobnosti pod nákupným blokom cez celú šírku: dva stĺpce zatvorených akordeónov (rovnaká výška kariet), posledný (doprava, prístup, podmienky) široký.
 const details = items => {
   const list = items.filter(Boolean);
@@ -91,7 +93,7 @@ function physicalPage(p, products) {
   const panel = head(p,{badge:`<p class="pd-availability"><span class="status-dot" aria-hidden="true"></span><span data-product-availability>${txt(stock)}</span></p>`})
     + perex(p) + buyForm(p)
     + features([['stock',txt(stock),'odosielame po zaplatení'],['truck','Kuriér alebo osobný odber','cenu uvidíte pred zaplatením'],['gift','Doprava zdarma','<span data-ship-free-detail>pri väčšom nákupe</span>',' data-ship-free hidden'],['return','14 dní na vrátenie','podľa obchodných podmienok']]);
-  const more = details([['Zloženie a účinky',fullDescription(p)],['Špecifikácia a rozmery',specRows(p)],['Doprava, vrátenie a balenie',deliveryHtml]]);
+  const more = details([['Zloženie a účinky',clamp(fullDescription(p),'Zobraziť celé zloženie')],['Špecifikácia a rozmery',specRows(p)],['Doprava, vrátenie a balenie',deliveryHtml]]);
   return shell(p,'physical',crumb(p.category,categoryHref(p),p.name),photo(p),panel,more+related(p,products),` data-packshots='${txt(JSON.stringify(packshots(p)))}'`);
 }
 
@@ -117,7 +119,7 @@ function digitalPage(p, products) {
   const terms = `<ul class="pdm-list"><li>Prístup sa aktivuje automaticky po prijatí platby, nájdete ho v sekcii Moja knižnica vo svojom účte.</li><li>Obsah je určený pre vás osobne. Tímovú alebo profesijnú licenciu dohodneme osobitne.</li><li>Prečítajte si <a href="/vop">obchodné podmienky</a>. S otázkami sa obráťte na Luciu cez <a href="/kontakt?produkt=${encodeURIComponent(p.slug)}">kontaktný formulár</a>.</li></ul>`;
   const items = isVvv
     ? [['Čo vás čaká',contentHtml],...VVV_PANELS.map((item,index)=>[txt(item.title),`<div class="pd-original-text">${index===4?VVV_INTRO.slice(1).map(t=>'<p>'+t+'</p>').join(''):''}${item.html}</div>`]),['Pôvodný popis produktu',fullDescription(p)],['Prístup a podmienky',terms]]
-    : [['Popis programu',fullDescription(p)],contentHtml?['Obsah a formáty',contentHtml+(fmt.length?`<p class="pdm-more">Formáty: ${txt(fmt.join(', '))}.</p>`:'')]:null,['Prístup a podmienky',terms]];
+    : [['Popis programu',clamp(fullDescription(p),'Zobraziť celý popis')],contentHtml?['Obsah a formáty',contentHtml+(fmt.length?`<p class="pdm-more">Formáty: ${txt(fmt.join(', '))}.</p>`:'')]:null,['Prístup a podmienky',terms]];
   const perexHtml = isVvv ? `<p class="pdm-perex" data-product-approved-intro>${VVV_INTRO[0]}</p>` : perex(p);
   const panel = head(p) + digitalBadge + perexHtml + buyForm(p,{quantity:false}) + features(facts) + accessBox + preview(p);
   return shell(p,'digital',crumb(p.category,categoryHref(p),p.name),photo(p),panel,details(items)+related(p,products),isVvv?' data-product-authoritative':'');
@@ -149,7 +151,7 @@ function consultationPage(p, products) {
   const panel = head(p,{eyebrow:'Konzultácie'}) + perex(p)
     + `<a class="button pd-buy pdm-cta" href="/konzultacie/rezervacia?typ=${encodeURIComponent(p.slug)}">Vybrať termín ${arrow}</a>`
     + features([['calendar','Navrhnete termín','deň a čas si vyberiete v kalendári'],['check','Lucia ho potvrdí','príde vám e-mail s odkazom'],['card','Zaplatíte','až po potvrdení termínu'],['screen','Online stretnutie','odkaz dostanete pri potvrdení']]);
-  const more = details([['Popis konzultácie',fullDescription(p)],['Termín a platba','<ul class="pdm-list"><li>Termín navrhnete v rezervácii. Lucia ho potvrdí alebo ponúkne iný.</li><li>Po potvrdení vám príde e-mail s odkazom na platbu. Termín je váš po zaplatení.</li><li>Podmienky nájdete v <a href="/vop">obchodných podmienkach</a>.</li></ul>']]);
+  const more = details([['Popis konzultácie',clamp(fullDescription(p),'Zobraziť celý popis')],['Termín a platba','<ul class="pdm-list"><li>Termín navrhnete v rezervácii. Lucia ho potvrdí alebo ponúkne iný.</li><li>Po potvrdení vám príde e-mail s odkazom na platbu. Termín je váš po zaplatení.</li><li>Podmienky nájdete v <a href="/vop">obchodných podmienkach</a>.</li></ul>']]);
   return shell(p,'consultation',crumb('Konzultácie','/eshop/?category='+encodeURIComponent(SHOP_CATEGORY_HANDLES['Konzultácie']||'konzultacie')+'#nase-produkty',p.name),photo(p),panel,more+related(p,products));
 }
 
