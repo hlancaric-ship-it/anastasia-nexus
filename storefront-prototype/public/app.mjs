@@ -496,22 +496,22 @@ if(productDetail){
     put('[data-product-price]',product.priceLabel);
     const buy=productDetail.querySelector('.add-product');
     if(buy&&product.options?.length&&product.variants?.length>1){
-      // Voľby ako pri iných e-shopoch: každá voľba je rad tlačidiel, kombinácia určuje variant a cenu.
-      const box=document.createElement('div');box.className='pd-options';
-      const chosen=Object.fromEntries(product.options.map(o=>[o.title,product.variants[0].options[o.title]||'']));
-      box.innerHTML=product.options.map(o=>`<fieldset class="pd-option"><legend>${e(o.title)}</legend><div>${o.values.map(v=>`<button type="button" data-opt="${e(o.title)}" data-val="${e(v)}">${e(v)}</button>`).join('')}</div></fieldset>`).join('');
+      // Voľby ako rolovacia ponuka (master protokol): kombinácia určuje variant a cenu, vypredané sú vypnuté.
+      const box=document.createElement('div');box.className='pdm-selects';
+      const chosen=Object.fromEntries(product.options.map(o=>[o.title,(product.variants.find(v=>!v.soldOut)||product.variants[0]).options?.[o.title]||'']));
+      const fits=test=>product.variants.filter(v=>product.options.every(o=>v.options?.[o.title]===test[o.title]));
+      box.innerHTML=product.options.map((o,i)=>`<label class="pdm-select"><span>${e(o.title)}</span><select data-opt="${e(o.title)}" id="pdm-opt-${i}">${o.values.map(v=>`<option value="${e(v)}">${e(v)}</option>`).join('')}</select></label>`).join('');
       const paint=()=>{
-        const match=product.variants.find(v=>product.options.every(o=>v.options[o.title]===chosen[o.title]));
-        box.querySelectorAll('[data-opt]').forEach(b=>{const on=chosen[b.dataset.opt]===b.dataset.val;b.setAttribute('aria-pressed',String(on));const test={...chosen,[b.dataset.opt]:b.dataset.val};b.classList.toggle('is-off',!product.variants.some(v=>product.options.every(o=>v.options[o.title]===test[o.title])));});
-        if(match){buy.dataset.variant=match.id;delete buy.dataset.variantMissing;const price=productDetail.querySelector('[data-product-price]');if(price)price.textContent=match.priceLabel;}
+        box.querySelectorAll('select[data-opt]').forEach(sel=>{sel.value=chosen[sel.dataset.opt];[...sel.options].forEach(opt=>{const hits=fits({...chosen,[sel.dataset.opt]:opt.value});const out=!hits.length||hits.every(v=>v.soldOut);opt.disabled=out&&opt.value!==chosen[sel.dataset.opt];opt.textContent=opt.value+(hits.length&&hits.every(v=>v.soldOut)?' '+shopText('(Vypredané)'):'');});});
+        const match=fits(chosen)[0];
+        if(match&&!match.soldOut){buy.dataset.variant=match.id;delete buy.dataset.variantMissing;const price=productDetail.querySelector('[data-product-price]');if(price)price.textContent=match.priceLabel;}
         else{delete buy.dataset.variant;buy.dataset.variantMissing='1';}
       };
-      box.addEventListener('click',ev=>{const b=ev.target.closest('[data-opt]');if(!b)return;chosen[b.dataset.opt]=b.dataset.val;paint();});
-      buy.before(box);paint();
+      box.addEventListener('change',ev=>{const sel=ev.target.closest('select[data-opt]');if(!sel)return;chosen[sel.dataset.opt]=sel.value;paint();});
+      buy.prepend(box);paint();
     }
     put('[data-product-category]',product.category);
     const purchase=productDetail.querySelector('.add-product');if(purchase)purchase.dataset.code=product.code;
-    put('[data-product-availability]',product.availability);
     // The original legacy description must stay complete, without unverified marketing copy.
     const html=product.descriptionHtml;const complete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
     if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
@@ -540,14 +540,46 @@ if(productDetail){
 
 
 const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
+// Detail: výber hodnoty poukazu otvorí produkt s danou hodnotou, doprava a doprava zdarma podľa servera.
+$('[data-voucher-value]')?.addEventListener('change',ev=>{if(ev.target.value)location.href=ev.target.value;});
+if(productDetail&&typeof api.getShippingInfo==='function'&&productDetail.dataset.productKind==='physical'){
+  api.getShippingInfo().then(info=>{
+    if(!info)return;const m=info.money;
+    const free=productDetail.querySelector('[data-ship-free]');
+    if(free&&info.threshold>0){free.hidden=false;const d=free.querySelector('[data-ship-free-detail]');if(d)d.textContent='pri nákupe od '+m(info.threshold);}
+    const list=productDetail.querySelector('[data-shipping-info]');if(!list)return;
+    const set=(k,t)=>{const li=list.querySelector(`[data-ship="${k}"]`);if(li&&t){li.textContent=t;li.hidden=false;}};
+    if(info.courier!=null)set('courier','Doručenie kuriérom: '+m(info.courier)+(info.threshold>0?', pri nákupe od '+m(info.threshold)+' zdarma.':'.'));
+    if(info.pickup!=null)set('pickup','Osobný odber v lekárni: '+(info.pickup>0?m(info.pickup):'zdarma')+'.');
+  }).catch(()=>{});
+}
+
+// Košík podľa master protokolu: 2/3 položky, 1/3 lepiaci súhrn. Sumy a doprava zdarma prichádzajú zo servera.
+const CART_ICON={lock:'<path d="M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4"/>',shield:'<path d="M12 3 5 6v6c0 4 3 7.5 7 9 4-1.5 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/>',card:'<path d="M3 6h18v12H3zM3 10h18M7 15h4"/>',bolt:'<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>',truck:'<path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/>',bag:'<path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/>'};
+const cartIcon=name=>`<svg class="ck-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CART_ICON[name]}</svg>`;
+let shippingInfo=null;
+const cartLineHref=l=>l.giftVoucher?'/eshop/produkt/'+e(l.slug)+'/':l.booking?'/konzultacie/rezervacia?typ='+encodeURIComponent(l.slug):'/eshop/produkt/'+e(l.slug)+'/';
+const cartLine=l=>{
+  const physical=l.physical!==false&&!l.booking&&!l.giftVoucher;
+  const type=l.booking?(l.booking.label?`Termín: ${e(l.booking.label)}`:'Konzultácia · termín vyberiete v rezervácii'):l.giftVoucher?'Digitálny produkt · PDF poukaz e-mailom po platbe':physical?'Fyzický produkt · skladom':'Digitálny produkt · aktivácia na účte po platbe';
+  return `<article class="ck-line"><a class="ck-line-img" href="${cartLineHref(l)}" tabindex="-1" aria-hidden="true"><img src="${e(l.image)}" alt="" width="120" height="120" loading="lazy"></a><div class="ck-line-main">${l.category?`<p class="ck-line-cat">${e(l.category)}</p>`:''}<h2><a href="${cartLineHref(l)}">${e(l.name)}</a></h2><p class="ck-line-type${physical?'':' is-digital'}">${cartIcon(physical?'truck':'bolt')}<span>${type}</span></p><div class="ck-line-controls">${physical?`<div class="ck-stepper"><button type="button" data-quantity="${l.quantity-1}" data-slug="${e(l.key||l.slug)}" ${l.quantity<=1?'disabled':''} aria-label="Znížiť množstvo: ${e(l.name)}">−</button><span aria-label="Množstvo">${l.quantity}</span><button type="button" data-quantity="${l.quantity+1}" data-slug="${e(l.key||l.slug)}" ${l.quantity>=99?'disabled':''} aria-label="Zvýšiť množstvo: ${e(l.name)}">+</button></div>`:`<span class="ck-fixed">1 ks</span>`}<button type="button" class="ck-remove" data-quantity="0" data-slug="${e(l.key||l.slug)}">Odstrániť</button></div></div><div class="ck-line-price"><small>${e(l.priceLabel)} / ks</small><b>${e(l.lineTotalLabel||l.priceLabel)}</b></div></article>`;
+};
+const freeShippingBar=cart=>{
+  const t=shippingInfo?.threshold;if(!cart.hasPhysical||!(t>0))return '';
+  const have=Number(cart.itemTotal)||0,left=Math.max(0,t-have),pct=Math.min(100,Math.round(have/t*100));
+  return `<div class="ck-free"><p>${cartIcon('truck')}<span>${left>0?`Do dopravy zdarma vám chýba <b>${e(shippingInfo.money(left))}</b>`:'<b>Doprava zdarma</b> je vaša'}</span></p><div class="ck-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div></div>`;
+};
+const cartSummary=cart=>`<aside class="ck-summary kc-glass" aria-labelledby="ck-summary-h"><h2 id="ck-summary-h">Súhrn objednávky</h2>${freeShippingBar(cart)}<form class="coupon-form ck-code"><label for="ck-coupon">Zľavový kód</label><div class="ck-code-row"><input id="ck-coupon" name="coupon" value="${e(cart.coupon)}" placeholder="Zadajte kód" maxlength="100" required autocomplete="off"><button class="ck-apply" type="submit">Použiť</button></div><p class="form-status" role="status"></p>${cart.coupon?'<button type="button" id="remove-coupon" class="ck-text">Odstrániť kód</button>':''}</form><details class="ck-voucher"${cart.gift_voucher?' open':''}><summary>Máte darčekový poukaz?</summary><form id="redeem-voucher-form" class="ck-code"><label for="ck-voucher">Kód poukazu</label><div class="ck-code-row"><input id="ck-voucher" name="code" required maxlength="100" placeholder="Kód poukazu" autocomplete="off"><button class="ck-apply" type="submit">Uplatniť</button></div><p class="form-status" role="status"></p></form>${cart.gift_voucher?'<button type="button" id="remove-voucher" class="ck-text">Odstrániť poukaz</button>':''}</details><dl class="ck-rows"><div><dt>Medzisúčet</dt><dd>${e(cart.subtotalLabel)}</dd></div>${cart.coupon||/^-/.test(cart.discountLabel||'')?`<div><dt>Zľava</dt><dd>${e(cart.discountLabel)}</dd></div>`:''}${cart.gift_voucher?`<div><dt>Poukaz ${e(cart.gift_voucher.masked_code)}</dt><dd>${e(cart.gift_voucher.amountLabel)}</dd></div>`:''}<div><dt>Doprava</dt><dd>${cart.hasPhysical===false?'Netreba, digitálny obsah':cart.shippingLabel?e(cart.shippingLabel):'Vyberiete v pokladni'}</dd></div>${cart.taxLabel?`<div><dt>DPH</dt><dd>${e(cart.taxLabel)}</dd></div>`:''}<div class="ck-total"><dt>Celkom${cart.taxLabel?'':' <small>vrátane DPH</small>'}</dt><dd>${e(cart.totalLabel)}</dd></div></dl><a class="button ck-cta" href="/pokladna">Pokračovať k pokladni ${arrow}</a><ul class="ck-trust"><li>${cartIcon('lock')}<span>Zabezpečená platba</span></li><li>${cartIcon('shield')}<span>14 dní na odstúpenie</span></li><li>${cartIcon('card')}<span>Kartou online alebo na dobierku</span></li></ul></aside>`;
 async function renderCart(){
   const target=$('#cart-view');if(!target)return;
-  const cart=await api.getCart();
-  if(!cart.lines.length){target.innerHTML=`<div class="empty-state"><p class="eyebrow">Priestor pre vaše rituály</p><h2>Váš košík je zatiaľ prázdny.</h2><p>Vyberte si niečo, čo vám spraví radosť.</p>${button('/eshop','Objaviť obchod')}</div>`;return;}
-  target.innerHTML=`<div class="cart-layout"><div>${cart.lines.map(l=>`<article class="cart-line"><img src="${l.image}" alt="" width="95" height="116"><div><h2><a href="${l.giftVoucher?'/eshop/produkt/'+l.slug+'/':l.booking?'/konzultacie/rezervacia?typ='+encodeURIComponent(l.slug):'/eshop/produkt/'+e(l.slug)}">${e(l.name)}</a></h2>${l.booking?`<p>${l.booking.label?`Termín: ${e(l.booking.label)}`:'Termín vyberiete v rezervácii.'}</p><p>${e(l.priceLabel)}</p>`:`<p>${e(l.priceLabel)} / kus</p><div class="quantity"><button data-quantity="${l.quantity-1}" data-slug="${e(l.key||l.slug)}" aria-label="Znížiť množstvo: ${e(l.name)}">−</button><span aria-label="Množstvo">${l.quantity}</span><button data-quantity="${l.quantity+1}" data-slug="${e(l.key||l.slug)}" ${l.quantity>=99?'disabled':''} aria-label="Zvýšiť množstvo: ${e(l.name)}">+</button></div>`}</div><button class="remove-line" data-quantity="0" data-slug="${e(l.key||l.slug)}" aria-label="Odstrániť ${e(l.name)}"><span aria-hidden="true">×</span></button></article>`).join('')}<div class="cart-codes"><form class="coupon-form"><div class="coupon-input"><label>Zľavový kupón<input name="coupon" value="${e(cart.coupon)}" placeholder="Kód kupónu" maxlength="100" required></label><button class="button outline" type="submit">Použiť</button></div><p class="form-status" role="status"></p>${cart.coupon?'<button type="button" id="remove-coupon" class="text-link">Odstrániť kupón</button>':''}</form><form id="redeem-voucher-form"><label>Kód darčekového poukazu<input name="code" required maxlength="100" placeholder="Kód poukazu" autocomplete="off"></label><button class="button outline" type="submit">Uplatniť poukaz</button><p class="form-status" role="status"></p></form>${cart.gift_voucher?'<button type="button" id="remove-voucher" class="text-link">Odstrániť poukaz</button>':''}</div></div><aside class="order-summary">${summary(cart)}${button('/pokladna','Pokračovať na objednávku')}</aside></div>`;
-  $$('[data-quantity]',target).forEach(btn=>btn.addEventListener('click',async()=>{const slug=btn.dataset.slug,q=Number(btn.dataset.quantity);const result=await api.setQuantity(slug,q);if(!result.ok){toast(result.message);return;}await renderCart();updateCount();const remaining=$$('[data-slug]',target).find(el=>el.dataset.slug===slug);(remaining||$('a',target))?.focus();}));
-  $('.coupon-form',target).addEventListener('submit',async event=>{event.preventDefault();const result=await api.applyCoupon(event.currentTarget.elements.coupon.value);if(result.ok)await renderCart();$('.coupon-form .form-status',target).textContent=result.message;});
-  $('#redeem-voucher-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(form.dataset.busy)return;form.dataset.busy='1';try{const result=await api.applyGiftVoucher(form.elements.code.value);if(result.ok)await renderCart();$('#redeem-voucher-form .form-status').textContent=result.message;}finally{delete form.dataset.busy;}});
+  const [cart,info]=await Promise.all([api.getCart(),shippingInfo?Promise.resolve(shippingInfo):(typeof api.getShippingInfo==='function'?api.getShippingInfo():Promise.resolve(null))]);
+  shippingInfo=info;
+  if(!cart.lines.length){target.innerHTML=`<div class="ck-empty kc-glass">${cartIcon('bag')}<p class="ck-empty-kick">Košík</p><h2>Váš košík je zatiaľ prázdny</h2><p>Prírodná kozmetika, programy aj konzultácie čakajú v obchode.</p><a class="button" href="/eshop">Späť do obchodu ${arrow}</a></div>`;return;}
+  const count=cart.lines.reduce((n,l)=>n+Number(l.quantity||0),0);
+  target.innerHTML=`<div class="ck-layout"><section class="ck-lines" aria-label="Položky v košíku"><div class="ck-lines-head"><span>${count} ${count===1?'položka':count<5?'položky':'položiek'}</span><a class="ck-text" href="/eshop">Pokračovať v nákupe</a></div>${cart.lines.map(cartLine).join('')}</section>${cartSummary(cart)}</div>`;
+  $$('[data-quantity]',target).forEach(btn=>btn.addEventListener('click',async()=>{const slug=btn.dataset.slug,q=Number(btn.dataset.quantity);btn.disabled=true;const result=await api.setQuantity(slug,q);if(!result.ok){toast(result.message);btn.disabled=false;return;}await renderCart();updateCount();const remaining=$$('[data-slug]',target).find(el=>el.dataset.slug===slug);(remaining||$('a',target))?.focus();}));
+  $('.coupon-form',target).addEventListener('submit',async event=>{event.preventDefault();const result=await api.applyCoupon(event.currentTarget.elements.coupon.value);if(result.ok)await renderCart();const st=$('.coupon-form .form-status',target);if(st)st.textContent=result.message;});
+  $('#redeem-voucher-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(form.dataset.busy)return;form.dataset.busy='1';try{const result=await api.applyGiftVoucher(form.elements.code.value);if(result.ok)await renderCart();const st=$('#redeem-voucher-form .form-status');if(st)st.textContent=result.message;}finally{delete form.dataset.busy;}});
   $('#remove-voucher')?.addEventListener('click',async()=>{await api.removeGiftVoucher();await renderCart();});
   $('#remove-coupon')?.addEventListener('click',async()=>{await api.removeCoupon();await renderCart();});
   renderUpsell(target,cart).catch(()=>{});

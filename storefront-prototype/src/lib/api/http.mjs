@@ -7,7 +7,7 @@ const NAME_BY_HANDLE=Object.fromEntries(Object.entries(SHOP_CATEGORY_HANDLES).ma
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
-  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price,*options,*options.values,*variants.options';
+  'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price,+variants.inventory_quantity,+variants.manage_inventory,+variants.allow_backorder,*options,*options.values,*variants.options';
 
 // Tieto dve médiá sú infografiky článkov, nie produktové fotografie. Starý
 // katalóg ich mal omylom nastavené ako náhľady, preto ich e-shop nesmie zobraziť.
@@ -71,9 +71,16 @@ function mapProduct(p,apiBase='') {
     image: isEditorialOnlyAsset(p.thumbnail) ? '/assets/product-placeholder.svg' : media(p.thumbnail) || '/assets/product-placeholder.svg',
     _variantId: variant.id,
     booking: Boolean(p.metadata?.booking),
+    // Druh produktu podľa katalógu: konzultácia (termín), digitálny (prístup v účte) alebo fyzický (doprava).
+    kind: (p.metadata?.booking || (p.categories||[]).some(c=>c.name==='Konzultácie')) ? 'consultation' : p.metadata?.product_kind === 'digital' ? 'digital' : 'physical',
+    sku: p.metadata?.legacy_code || variant.sku || '',
+    manufacturer: p.metadata?.manufacturer || '',
+    stock: p.metadata?.availability || '',
+    // Chránený obsah: len názvy a typy súborov pre detail (súbory sa otvárajú až v účte po nákupe).
+    contents: (Array.isArray(p.metadata?.protected_media) ? p.metadata.protected_media : []).filter(m=>m && typeof m.key==='string').map(m=>({ title: String(m.title||''), ext: (m.key.match(/\.([a-z0-9]{2,4})$/i)?.[1]||'').toLowerCase() })),
     // Voľby produktu (napr. Pre: Dámsky/Pánsky, Množstvo: 50 ml/100 ml). Technická voľba „Variant: Štandard“ sa nezobrazuje.
     options: (p.variants || []).length > 1 ? (p.options || []).map(o => ({ id: o.id, title: o.title, values: [...new Set((o.values || []).map(v => v.value))] })).filter(o => o.values.length > 1) : [],
-    variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, priceLabel: v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : 'Cena sa doplní', options: Object.fromEntries((v.options || []).map(o => [(p.options || []).find(x => x.id === (o.option_id || o.option?.id))?.title || o.option?.title || '', o.value])) })),
+    variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, soldOut: v.manage_inventory === true && v.allow_backorder !== true && Number(v.inventory_quantity) <= 0, priceLabel: v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : 'Cena sa doplní', options: Object.fromEntries((v.options || []).map(o => [(p.options || []).find(x => x.id === (o.option_id || o.option?.id))?.title || o.option?.title || '', o.value])) })),
   };
 }
 
@@ -267,7 +274,7 @@ export function createHttpApi(storage, config) {
     const id = get(CART);
     const empty = { mode: 'http', lines: [], gift_voucher: giftCredit(), coupon: get(COUPON) || '', subtotalLabel: '0,00 €', discountLabel: get(COUPON) ? 'Kupón prijatý' : 'Kupón nezadaný', totalLabel: '0,00 €' };
     if (!id) return empty;
-    const r = await call(`/store/carts/${id}?fields=*items,*items.product,*shipping_methods,total,item_subtotal,discount_total,shipping_total,tax_total`);
+    const r = await call(`/store/carts/${id}?fields=*items,*items.product,items.product.categories.name,*shipping_methods,total,item_total,item_subtotal,discount_total,shipping_total,tax_total`);
     const cart = r.data?.cart; if (!cart) return empty;
     const held = storedBooking();
     const lines = (cart.items || []).map(it => ({
@@ -276,7 +283,11 @@ export function createHttpApi(storage, config) {
       name: (it.product_title || it.title || it.product?.title || 'Položka') + (it.variant_title && !/^(Štandard|Predvolené|Default.*)$/i.test(it.variant_title) && it.variant_title !== it.product_title ? ` · ${it.variant_title}` : ''),
       code: it.product_handle || it.product?.handle,
       priceLabel: money(it.unit_price),
-      image: publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
+      image: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_IMAGE : publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
+      category: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_CATEGORY : ((it.product?.categories || []).map(c => c.name).find(n => SHOP_CATEGORIES.includes(n)) || ''),
+      // Fyzickú položku určuje server (requires_shipping podľa prepravného profilu), digitálna má vždy 1 ks.
+      physical: it.requires_shipping === true,
+      lineTotalLabel: money(it.total ?? Number(it.unit_price) * Number(it.quantity)),
       quantity: it.quantity,
       giftVoucher: it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true',
       // Konzultácia má vždy 1 ks a termín; množstvo sa nemení, riadok sa dá len odstrániť.
@@ -291,6 +302,7 @@ export function createHttpApi(storage, config) {
       shippingLabel: (cart.shipping_methods || []).length ? (Number(cart.shipping_total) > 0 ? money(cart.shipping_total) : 'Zadarmo') : '',
       taxLabel: Number(cart.tax_total) > 0 ? money(cart.tax_total) : '',
       totalLabel: money(cart.total), paymentRequired: cart.total!==0,
+      itemTotal: Number(cart.item_total ?? cart.item_subtotal ?? 0), hasPhysical: (cart.items || []).some(it => it.requires_shipping === true),
     };
   }
 
@@ -521,6 +533,11 @@ export function createHttpApi(storage, config) {
     },
 
     // Konzultácie: typ = publikovaný produkt s metadata.booking. Voľné termíny, cenu a obsadenosť určuje server.
+    // Doprava pre košík a detail: hranica „zdarma“ a ceny určuje server (pravidlá ceny v Meduse).
+    async getShippingInfo() {
+      try { const r = await call('/store/nexus-checkout/free-shipping'); const d = r.ok ? r.data : null; const n = v => (v === null || v === undefined || !Number.isFinite(Number(v))) ? null : Number(v);
+        return { threshold: n(d?.threshold), courier: n(d?.courier), pickup: n(d?.pickup), money }; } catch { return { threshold: null, courier: null, pickup: null, money }; }
+    },
     async getBookingTypes() {
       let r; try { r = await call(`/store/products?region_id=${config.regionId}&limit=50&fields=${PRODUCT_FIELDS}`); } catch { return { ok: false, types: [] }; }
       if (!r.ok) return { ok: false, types: [] };

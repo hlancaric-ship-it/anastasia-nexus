@@ -264,3 +264,32 @@ body:has(.cookie-banner:not([hidden])) .ana-mobile-dock{display:none!important}
 #dc-top-menu a[href="/klub"],#dc-side-menu a[href="/klub"]{display:none!important}
 /* O Lucii: fotky bez oblúkov (Lucky 25. 10.) */
 .dc-page .photo-gallery--lucia figure,.dc-page .lucia-real-photos figure{border-radius:0!important}
+
+/* Patička v brandových tónoch 25. 10.: tmavá olivová, matné zlato, levanduľa, krémové písmo */
+html body .site-footer{--ft-bg:#182218;--ft-gold:#BFA26A;--ft-line:rgba(201,165,92,.14);--ft-cream:#EFE5C7;--ft-text:rgba(239,229,199,.7);--ft-lav:#B9B7DD;--ft-lav-ink:#22223A}
+html body .site-footer{background:radial-gradient(120% 80% at 18% 0%,#22301f 0%,rgba(34,48,31,0) 60%),radial-gradient(90% 70% at 100% 100%,#141c13 0%,rgba(20,28,19,0) 70%),linear-gradient(180deg,#1b261a 0%,#182218 45%,#131b13 100%)!important;color:var(--ft-text)!important;border-top:1px solid var(--ft-line)!important}
+html body .site-footer :is(a,p,span){color:var(--ft-text)!important}
+html body .site-footer .sf-news>p:first-child{color:var(--ft-cream)!important}
+html body .site-footer .sf-news>p:not(:first-child){color:rgba(239,229,199,.62)!important}
+html body .site-footer .sf-news form{border-bottom:1px solid rgba(201,165,92,.32)!important}
+html body .site-footer .sf-news input{color:var(--ft-cream)!important;border-color:transparent!important;background:transparent!important}
+html body .site-footer .sf-news input::placeholder{color:rgba(239,229,199,.45)!important}
+html body .site-footer .sf-news button,html body .site-footer .sf-news input[type=submit]{background:var(--ft-lav)!important;border:1px solid var(--ft-lav)!important;color:var(--ft-lav-ink)!important;box-shadow:0 8px 24px rgba(0,0,0,.22)!important;transition:background .35s ease,border-color .35s ease,transform .35s ease!important}
+html body .site-footer .sf-news button span{color:var(--ft-lav-ink)!important}
+html body .site-footer .sf-news button:hover{background:#CFCDEC!important;border-color:#CFCDEC!important;transform:translateY(-1px)}
+html body .site-footer .sf-links>div>span{color:var(--ft-gold)!important}
+html body .site-footer a{transition:color .35s ease,opacity .35s ease!important}
+html body .site-footer a:hover,html body .site-footer a:focus-visible,html body .site-footer a:hover span{color:var(--ft-lav)!important}
+html body .site-footer .sf-brands{border-color:var(--ft-line)!important;border-top:0!important}
+html body .site-footer .sf-bottom{border-color:var(--ft-line)!important;color:rgba(239,229,199,.55)!important}
+html body .site-footer .sf-bottom :is(a,span){color:rgba(239,229,199,.6)!important}
+html body .site-footer .sf-bottom a:hover{color:var(--ft-lav)!important}
+html body .site-footer .sf-brands>*>img,html body .site-footer .sf-brands>*>div img{filter:brightness(0) invert(72%) sepia(28%) saturate(520%) hue-rotate(4deg) brightness(92%) contrast(86%)!important;opacity:.92}
+html body .site-footer .sf-brands span{color:var(--ft-gold)!important}
+html body .site-footer .sf-brands>a>div>span:nth-child(2),html body .site-footer .sf-brands>a>div>span:only-of-type{color:var(--ft-cream)!important}
+html body .site-footer .sf-brands>a>div>span[style*="height:1px"],html body .site-footer .sf-brands>a>div>span>span{background:var(--ft-gold)!important}
+html body .site-footer .sf-brands>a>div>span[style*="height:46px"]{background:linear-gradient(180deg,rgba(191,162,106,0),var(--ft-gold))!important}
+html body .site-footer .sf-brands>a:hover span{color:var(--ft-lav)!important}
+html body .site-footer .sf-pay{border-top-color:var(--ft-line)!important}
+html body .site-footer .sf-pay__badge{background:rgba(239,229,199,.94)!important;border-color:rgba(201,165,92,.25)!important;box-shadow:none!important}
+.shop-v2 .shop-benefits svg{color:#A8894F!important}
