@@ -27,6 +27,6 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Nic.
 
 ### Chybí
-- Obsah knihovny ze starého webu (nic-nemusis, vyuka-vedomeho-vnimania, reset-40-plus). Potřebujeme kompletní ZIP od programátora starého webu.
+- Obsah knihovny: RESET 40+ (17 videí) a Nic nemusíš (7 MP3) jsou v R2 `anastasia-media`. Výuka vedomého vnímania leží v R2 v Cloudflaru Lucie (ZIP od programátora nepotřebujeme). Je potřeba ji přenést do `anastasia-media` a napojit v knihovně.
 - `test/browser.mjs` je stále napsaný na starý úvod a je potřeba ho přepsat.
 - Na Cloud testu zůstal testovací produkt `testovaci-konzultace` bez kategorie.
