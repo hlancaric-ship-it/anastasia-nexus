@@ -60,7 +60,7 @@ const LAN={
   '/denny-stacionar-vysna-slana/ds-dnes':{eyebrow:'Denný stacionár',img:L+'stacionar-priestor-1600.webp',tone:'cream',link:['/kontakt','Kontaktovať nás'],gallery:true},
 };
 const BOOK_RE=/^(VÝKLAD\s+)?OBJ?EDNA[ŤT](\s.{0,40})?$/i, PRICE_RE=/^Cena:\s*(.+)$/i;
-const GALLERY=[['stacionar-priestor','Spoločenský priestor denného stacionára'],['stacionar-poradna','Poradenská miestnosť'],['stacionar-kresla','Oddychová časť']];
+const GALLERY=[['stacionar-priestor','Spoločenský priestor denného stacionára'],['stacionar-poradna','Poradenská miestnosť'],['stacionar-kresla','Oddychová časť'],['stacionar-satna','Šatňa s uzamykateľnými skrinkami'],['stacionar-kuchynka','Kuchynka pre klientov'],['stacionar-kava','Kávovar a čaj v kuchynke'],['stacionar-linka','Kuchynská linka']];
 function lanStory(page,render,keyOf,o){
   const tones=['cream','lavender','sage'];
   let price='';
