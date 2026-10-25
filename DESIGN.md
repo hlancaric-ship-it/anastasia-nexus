@@ -131,3 +131,12 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - **Aktivní položka**: pozadí `rgba(194,170,218,.47)`, text `#382248`, vnitřní linka `#cdb7de`, výška 38 px, písmo 500.
 - **Mobil**: panel schovaný, otevírá se hamburgerem vlevo nahoře, logo uprostřed horní lišty, vyhledávání pod ní.
 - **Obsah adminu**: seznamy kompaktní (tabulka, jeden řádek na záznam), tlačítka světlá levandule s tenkým levandulovým okrajem a tmavým textem.
+
+## Patička (25. 10.)
+- Pozadí: tmavá olivová `#182218` s jemným sametovým gradientem.
+- Linky: 1px `rgba(201,165,92,.14)`.
+- Zlato: matné `#BFA26A` (nadpisy sloupců, loga, popisky značek).
+- Text: krémový `#EFE5C7`. Nadpis je plný, odkazy na 70 % opacity.
+- Levandule `#B9B7DD`: tlačítko Odoberať s tmavým textem `#22223A` a hover odkazů.
+- Pravidla jsou v `public/polish.css` (vrstva polish přebíjí legacy pastel-reference).
+- Detail produktu a košík se řídí master protokolem: select pro varianty a košík 2/3 + 1/3.

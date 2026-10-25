@@ -30,3 +30,10 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Obsah knihovny: RESET 40+ (17 videí) a Nic nemusíš (7 MP3) jsou v R2 `anastasia-media`. Výuka vedomého vnímania leží v R2 v Cloudflaru Lucie (ZIP od programátora nepotřebujeme). Je potřeba ji přenést do `anastasia-media` a napojit v knihovně.
 - `test/browser.mjs` je stále napsaný na starý úvod a je potřeba ho přepsat.
 - Na Cloud testu zůstal testovací produkt `testovaci-konzultace` bez kategorie.
+
+## 25. 10. večer — detail produktu, košík, patička
+- Detail produktu má jednu šablonu pro všechny typy (fyzický, digitální, poukaz, konzultace). Média jsou vlevo a nákupní panel vpravo. Varianty se vybírají jen přes select a vyprodané varianty jsou zakázané s textem „(Vypredané)“.
+- Košík je rozdělený 2/3 položky a 1/3 sticky souhrn. Souhrn obsahuje progress na dopravu zdarma, zľavový kód, poukaz, rozpis s DPH a trust badges. Prázdný košík má prémiový stav.
+- Nový veřejný endpoint `/store/nexus-checkout/free-shipping` vrací práh dopravy zdarma a ceny dopravy.
+- Patička je v tmavé olivové `#182218`. Linky jsou zlaté s opacitou 14 %, loga a nadpisy sloupců v matném zlatě. Tlačítko Odoberať je levandulové a hover odkazů přechází do levandule. Texty jsou krémové na 70 %. Ikony výhod v obchodě jsou v matném zlatě.
+- Ověřeno na testu na 1440 a 390: přidání do košíku 200, žádné chyby stránky, 162/162 testů.
