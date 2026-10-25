@@ -20,6 +20,33 @@ export const LANGS = ['sk', 'en', 'ru'];
 export const LANG_KEY = 'ana-lang-manual';
 
 export const DICT = {
+  // Prihlásenie, konzultácie a ďakovná stránka (26. 10.).
+  'Vitajte späť': ['Welcome back', 'С возвращением'],
+  'Vitajte': ['Welcome', 'Добро пожаловать'],
+  'Váš priestor.': ['Your space.', 'Ваше пространство.'],
+  'Objednávky, programy a všetko, čo je vám blízke.': ['Orders, programmes and everything close to you.', 'Заказы, программы и всё, что вам близко.'],
+  'Poslať prihlasovací odkaz': ['Send sign-in link', 'Отправить ссылку для входа'],
+  'Bez hesla. Prihlásenie pomocou odkazu vo vašom e-maile.': ['No password. Sign in with the link in your email.', 'Без пароля. Вход по ссылке из вашего письма.'],
+  'vas@email.sk': ['you@email.com', 'vy@email.com'],
+  'obchodnými podmienkami': ['the terms and conditions', 'условиями покупки'],
+  'Chcem dostávať novinky e-mailom': ['Send me news by email', 'Хочу получать новости по e-mail'],
+  'Bez hesla. Odkaz na potvrdenie pošleme e-mailom.': ['No password. We will email you a confirmation link.', 'Без пароля. Ссылку для подтверждения пришлём по e-mail.'],
+  'Vyberte si': ['Choose your', 'Выберите'],
+  'termín.': ['appointment.', 'время.'],
+  'Online konzultácie, supervízia, astrologický profil a personifikované protokoly. Voľné termíny vidíte priamo v kalendári.': ['Online consultations, supervision, astrological profile and personalised protocols. Free slots are shown right in the calendar.', 'Онлайн-консультации, супервизия, астрологический профиль и персональные протоколы. Свободное время видно прямо в календаре.'],
+  'Online alebo telefonicky': ['Online or by phone', 'Онлайн или по телефону'],
+  'Osobne alebo online': ['In person or online', 'Лично или онлайн'],
+  'Vybrať termín': ['Choose a time', 'Выбрать время'],
+  'Pre vás, ak chcete lepšie porozumieť svojmu zdravotnému stavu.': ['For you if you want to understand your health better.', 'Для вас, если вы хотите лучше понимать своё здоровье.'],
+  'Pre vás, ak pracujete s klientom a potrebujete odstup a nadhľad.': ['For you if you work with clients and need distance and perspective.', 'Для вас, если вы работаете с клиентами и нуждаетесь во взгляде со стороны.'],
+  'Pre vás, ak chcete lepšie pochopiť sami seba a svoje silné stránky.': ['For you if you want to understand yourself and your strengths.', 'Для вас, если вы хотите лучше понять себя и свои сильные стороны.'],
+  'Pre vás, ak chcete jasný plán pre lieky, doplnky a životný štýl.': ['For you if you want a clear plan for medicines, supplements and lifestyle.', 'Для вас, если вам нужен ясный план по лекарствам, добавкам и образу жизни.'],
+  'Objednávka prijatá': ['Order received', 'Заказ принят'],
+  'Ďakujeme.': ['Thank you.', 'Спасибо.'],
+  'Vašu objednávku sme prijali. Potvrdenie sme poslali na váš e-mail.': ['We have received your order. A confirmation is on its way to your email.', 'Мы приняли ваш заказ. Подтверждение отправлено на ваш e-mail.'],
+  'Pokračovať v nákupe': ['Continue shopping', 'Продолжить покупки'],
+  'Otázky k objednávke? Napíšte nám cez': ['Questions about your order? Write to us via the', 'Вопросы по заказу? Напишите нам через'],
+  'kontaktný formulár': ['contact form', 'контактную форму'],
   'Administrácia': ['Administration', 'Администрирование'],
   'Nakúpiť môžete aj bez registrácie.': ['You can shop without registering.', 'Покупать можно и без регистрации.'],
   'OBCHOD': ['SHOP', 'МАГАЗИН'],
@@ -336,7 +363,6 @@ export const DICT = {
   'Kontaktujte nás': ['Contact us', 'Свяжитесь с нами'],
   'Objavte svet ANASTASIA': ['Discover the ANASTASIA world', 'Откройте мир ANASTASIA'],
 
-  'Light for the Future': ['A light for the future', 'Свет для будущего'],
   'Kto je Lucia': ['Who is Lucia', 'Кто такая Луция'],
   'Mgr. Lucia Rogožanová, MBA': ['Mgr. Lucia Rogozanova, MBA', 'Магистр делового администрирования Луция Рогожанова'],
   'Farmaceutka a zakladateľka ANASTASIA': ['Pharmacist and founder of ANASTASIA', 'Фармацевт и основатель ANASTASIA'],
@@ -567,19 +593,9 @@ export function apply(lang) {
   document.dispatchEvent(new CustomEvent('anastasia:lang', {detail: target}));
 }
 
-// Obsah bez schváleného překladu: v EN/RU dostane vlastní poznámku, text zůstane slovenský.
-function applySkOnly(target) {
-  for (const block of document.querySelectorAll('[data-sk-only]')) {
-    let note = block.querySelector(':scope > [data-sk-only-note]');
-    if (target === 'sk') { if (note) note.remove(); continue; }
-    if (!note) {
-      note = document.createElement('p');
-      note.setAttribute('data-sk-only-note', '');
-      note.className = 'sk-only-note';
-      block.prepend(note);
-    }
-    note.textContent = SK_ONLY_NOTE[target];
-  }
+// Obsah bez schváleného překladu zostáva slovensky bez rušivej poznámky nad stránkou (Lucky 26. 10.).
+function applySkOnly() {
+  for (const note of document.querySelectorAll('[data-sk-only-note]')) note.remove();
 }
 
 export function setLang(lang) {

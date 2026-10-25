@@ -192,3 +192,9 @@ Stav nasazený 24. 10. na anastasia-test-admin.l-code-dynamics.com je předloha.
 - Vždy matne priehľadná: pozadie max 16 % + blur 18 px se -webkit-, nikdy plná farba.
 - Farba textu a ikon podľa podkladu pod každou ikonou, vrátane gradientov.
 - Plávajúca lišta obchodu sa nad patičkou skryje, nikdy neprekrýva súhrn ani patičku.
+
+
+## Logo a podstránky (26. 10., záväzné)
+- Jediné logo je zlatá pečať `/assets/brand-seal.svg` (#C5A880, drop-shadow šampanský svit). Staré kruhové logo `lucia-logo.png` sa nikde nepoužíva, `seal()` v `src/dc.mjs` ho nahrádza automaticky.
+- Podstránky s vizuálnym blokom preberajú DNA úvodu 1:1: oblúk fotky `999px 999px 28px 0` (striedavo `28px 999px 999px 999px`), karta `48px 48px 48px 0`, tieň `0 -20px 60px -30px rgba(47,52,36,.35)`, sticky `top:calc(90px + var(--i)*26px)`, pozadia #E9E9F2 / #2F3424 / #E4E6D6 / zlato-levanduľový gradient, názov Fraunces 300 -.035em, číslo zlaté 13px .3em, pill CTA s 1px linkou.
+- Zakázané: generické ovály, bloby, dekoratívne sklo navyše, tracking pod -0.04em, kontrast pod 4.5:1.

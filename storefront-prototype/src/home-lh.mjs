@@ -89,7 +89,7 @@ export const LH_HEADER = `
     <a href="/eshop?category=sebarozvoj">Programy a služby</a>
   </nav>
   <a class="lh-top__brand" href="/" aria-label="ANASTASIA — domov">
-    <img src="/assets/lucia-logo.png" alt="" width="34" height="34">
+    <img src="/assets/brand-seal.svg" class="brand-seal" alt="" width="34" height="34">
     <span>ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
   </a>
   <nav class="lh-top__side lh-top__side--right" aria-label="Účet">

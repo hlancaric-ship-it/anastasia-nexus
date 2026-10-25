@@ -42,7 +42,7 @@ export const SHOP_CATALOG=Object.freeze([
   {slug:"Mineralny-ochranny-krem-pre-citlivu-pokozku",name:"MINERAL PROTECT 200ml",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"38,00 €",art:"bottle",image:"/assets/product-placeholder.svg"},
   {slug:"nic-nemusis",name:"Nič nemusíš",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"38,00 €",art:"sun",image:"/assets/zdravy-svet-luka.jpg"},
   {slug:"online-zdravotna-konzultacia",name:"Online zdravotná konzultácia",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"69,00 €",art:"sun",image:"/assets/lucia-portrait.jpg"},
-  {slug:"personalizovany-zdravotny-protokol-pro",name:"Personifikovaný zdravotný protokol",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"59,00 €",art:"sun",image:"/assets/lucia-logo.png"},
+  {slug:"personalizovany-zdravotny-protokol-pro",name:"Personifikovaný zdravotný protokol",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"59,00 €",art:"sun",image:"/assets/brand-seal.svg"},
   {slug:"supervizia",name:"Supervízia",category:"AI ANASTASIA ACADEMY",categoryHandle:"sebarozvoj",priceLabel:"69,00 €",art:"sun",image:"/assets/lucia-portrait.jpg"},
   {slug:"bio-plet-krem",name:"Tvoj pleťový krém",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"77,00 €",art:"jar",image:"/assets/product-placeholder.svg"},
   {slug:"bio-sprchovy-gel",name:"Tvoj sprcháč",category:"BIOKOZMETIKA",categoryHandle:"bio-kozmetika-bez-chemie",priceLabel:"11,00 €",art:"bottle",image:"/assets/p-gel.png"},

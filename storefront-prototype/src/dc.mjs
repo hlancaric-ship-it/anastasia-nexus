@@ -221,6 +221,9 @@ function footerClasses(html) {
 }
 
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
+// Staré kruhové logo (BUSINESS / LIFE COACHING / MARTIAL ART) nahrádza výhradne zlatá pečať ANASTASIA (Lucky 26. 10.).
+const seal=h=>h.replace(/<img src="\.?\/assets\/lucia-logo\.png"([^>]*)>/g,(m,a)=>`<img src="/assets/brand-seal.svg" class="brand-seal"${a.replace(/filter:[^;"]*;?/,'').replace(/opacity:\.82;?/,'')}>`);
+
 export function chrome(page) {
   const src = page === 'about' ? P.about : P.home;
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
@@ -277,13 +280,15 @@ export function chrome(page) {
   const headerHtml=convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA — domov"><span class="header-brand-emblem"><img src="/assets/lucia-logo.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">').replace('<header ','<header id="lh-top" class="lh-top" ');
   // Na novém rozvržení úvodu hlavička leží přes hero, ne tlačí obsah dolů.
   const header=page==='home'?headerHtml.replace('style="position:relative;z-index:2;','style="position:absolute;left:0;right:0;top:0;z-index:4;'):headerHtml;
-  return {
+  const out={
     header: page==='home' ? LH_HEADER : header,
     footer: bleed(withCookieSettings(convert(footerClasses(footerLegalLinks(footerLinks(src.footer))), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
     menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(topLayout(convert(menuBrand(src.top), {page: linkPage, region: 'menu'}))),
   };
+  for(const k of Object.keys(out)) out[k]=seal(out[k]);
+  return out;
 }
 
 export function homeSections(products, categories) {
@@ -299,7 +304,7 @@ export function aboutSections() {
   ]};
   return P.about.sections.map((s, i) => {
     const out = convert(s, {page: 'about', data});
-    return i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : bleed(out);
+    return seal(i === 0 ? out.replace(/<header[\s\S]*?<\/header>/, '%%HEADER%%') : bleed(out));
   }).join('\n');
 }
 

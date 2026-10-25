@@ -1,5 +1,5 @@
 import {api} from './lib/api/index.mjs';
-import {escape as e, arrow, button, splitHero, sentenceCase} from './components.mjs';
+import {escape as e} from './components.mjs';
 import {consultMeta, consultLead} from './consult-info.mjs';
 
 const CONSULTATION_HANDLES = {
@@ -21,28 +21,25 @@ export const consultations = () => {
     return `<section class="section"><h2>Konzultácie</h2><p>Načítavam ponuku konzultácií…</p></section>`;
   }
 
-  // Autorská kompozícia: sklenená karta s asymetrickým zaoblením, fotka v organickej maske prelínajúca sa do krému, číslo ako zlatý vodoznak.
+  // DNA úvodu 1:1: panely ako „Čo môžeme“ (zaoblenie 48/48/48/0, striedanie levanduľa · oliva · hmla · zlatá), fotka v oblúku 3:4 (Lucky 26. 10.).
   const items = consults.map((p, i) => {
     const info = CONSULTATION_HANDLES[p.slug] || {};
     const detail = info.page || `/konzultacie/rezervacia?typ=${encodeURIComponent(p.slug)}`;
     const own = /^Podrobnosti a podmienky nájdete/.test(p.description || '') ? '' : (p.description || '');
     const desc = own ? own.slice(0, 200) + (own.length > 200 ? '…' : '') : consultLead(p.slug);
     const img = info.kind === 'astrologia-zdravie-predispozicia' ? '/media/night-sky.jpg' : (info.img || p.image);
-    const name = info.name || p.name;
-    return `<article class="cv3-item${i % 2 ? ' cv3-item--flip' : ''}">
-        <span class="cv3-num" aria-hidden="true">0${i + 1}</span>
-        <a href="${e(detail)}" class="cv3-visual" tabindex="-1" aria-hidden="true"><img src="${e(img)}" alt="" width="900" height="900" loading="eager" decoding="async"></a>
-        <div class="cv3-body">
-          <p class="cv3-kicker">Konzultácia</p>
-          <h2><a href="${e(detail)}">${e(name)}</a></h2>
-          <p class="cv3-meta">${consultMeta(info.kind || p.slug) || `<span>${e(p.priceLabel)}</span>`}</p>
-          ${desc ? `<p class="cv3-desc">${e(desc)}</p>` : ''}
-          <div class="cv3-actions">${button(detail, 'Vybrať termín')}</div>
+    const name = e(info.name || p.name);
+    return `<article class="cs-panel cs-panel--${i % 4 + 1}" style="--i:${i}">
+        <div class="cs-copy">
+          <span class="cs-n">0${i + 1}</span>
+          <h2 class="cs-name"><a href="${e(detail)}">${name}</a></h2>
+          <p class="cs-meta">${consultMeta(info.kind || p.slug) || `<span>${e(p.priceLabel)}</span>`}</p>
+          ${desc ? `<p class="cs-d">${e(desc)}</p>` : ''}
+          <a class="cs-go" href="${e(detail)}">Vybrať termín <i aria-hidden="true">→</i></a>
         </div>
+        <figure><img src="${e(img)}" alt="" width="900" height="1200" loading="eager" decoding="async"></figure>
       </article>`;
   }).join('');
 
-  return `<section class="section consult-page cv3"><header class="cv3-intro">${pageIntro('KONZULTÁCIE', 'Vyberte si termín.', 'Online konzultácie, supervízia, astrologický profil a personifikované protokoly. Voľné termíny vidíte priamo v kalendári.')}</header><div class="cv3-list">${items}</div></section>`;
+  return `<section class="section consult-page cs"><header class="cs-head"><p data-content="konzultacie__konzultacie-1__0-text" hidden>Konzultácie</p><h1 class="cs-h">Vyberte si <em>termín.</em></h1><p class="cs-t">Online konzultácie, supervízia, astrologický profil a personifikované protokoly. Voľné termíny vidíte priamo v kalendári.</p></header><div class="cs-stack">${items}</div></section>`;
 };
-
-const pageIntro = (eyebrow, title, description) => `<div class="page-intro"><p class="eyebrow" data-content="konzultacie__konzultacie-1__0-text">${e(sentenceCase(eyebrow))}</p><h1>${e(title)}</h1><p class="lead">${e(description)}</p></div>`;
