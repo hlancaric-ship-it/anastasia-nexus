@@ -1181,3 +1181,9 @@ html body select:-webkit-autofill{
   -webkit-text-fill-color:#26242f;caret-color:#26242f;
   box-shadow:0 0 0 1000px #fdfcf9 inset;
   transition:background-color 600000s 0s,color 600000s 0s}
+
+/* Diagnostika plynulosti scrollu (jen test, odstranit po vyhodnocení). */
+html.fx-a *,html.fx-a *::before,html.fx-a *::after,html.fx-all *,html.fx-all *::before,html.fx-all *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
+html.fx-b *,html.fx-b *::before,html.fx-b *::after,html.fx-all *,html.fx-all *::before,html.fx-all *::after{box-shadow:none!important;text-shadow:none!important}
+html.fx-c *,html.fx-c *::before,html.fx-c *::after,html.fx-all *,html.fx-all *::before,html.fx-all *::after{animation:none!important;transition:none!important}
+html.fx-c .page-transition,html.fx-c .ana-sound-pop,html.fx-c div[aria-hidden=true][style*="z-index:-1"],html.fx-all .page-transition,html.fx-all .ana-sound-pop,html.fx-all div[aria-hidden=true][style*="z-index:-1"]{display:none!important}

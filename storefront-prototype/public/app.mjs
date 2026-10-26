@@ -1,3 +1,5 @@
+// Diagnostika plynulosti (jen test): ?fx=a|b|c|all zapne vypnutí skupin efektů, ?fx=off je zruší.
+try{const q=new URLSearchParams(location.search).get('fx');if(q==='off')sessionStorage.removeItem('anastasia.fx');else if(q)sessionStorage.setItem('anastasia.fx',q);const fx=sessionStorage.getItem('anastasia.fx');if(fx)document.documentElement.classList.add('fx-'+fx)}catch{}
 import {isMediaUrl} from '/lib/media-url.mjs';
 import {descriptionHtml} from '/lib/description-blocks.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
