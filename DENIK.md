@@ -161,3 +161,6 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 ### 26. 10. – e-mail z automatického vyplnění v telefonu
 - V newsletteru v patičce (tmavě zelená) a v kruhu komunity v obchodě zmizel po vložení e-mailu z paměti telefonu text. Telefon obarví pole světle a text je krémový. Přidána pravidla `:-webkit-autofill` do `public/jednotny.css`, text i pozadí zůstávají tmavé.
 - Android v tmavém režimu: automaticky vyplněný e-mail a heslo na přihlášení byly světlé na bílém. `color-scheme: light` a pravidla `:-webkit-autofill` pro všechna pole na světlé ploše (tmavý text, světlé pozadí) v `public/jednotny.css`.
+- Objednávky v účtu na mobilu: spodní část karty objednávky (cena a tlačítka) měla tmavé olivové pozadí z obecného pravidla pro patičku. `.acc-order footer` má průhledné pozadí a dědí barvu (`public/jednotny.css`).
+- Přihlášení: když je přihlášení na zařízení aktivní, ukáže to hláška nad formulářem (SK, EN, RU), aby se Môj účet nezdál jako obejití.
+- Plynulost scrollu v účtu na Androidu: záznam obrazovky 12,7 s má jen dvě krátké zastavení (3 a 1 snímek), jinak plynulý. Mini košík jsem na Pixel 7 v tmavém režimu zkoušel, je v pořádku (fixní panel, obrázek 66 px). Nezastyleného košíku z 22:16 jsem nezreprodukoval, nejspíš načtení stránky během nasazení.

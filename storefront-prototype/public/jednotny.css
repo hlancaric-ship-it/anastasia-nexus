@@ -640,7 +640,7 @@ html body .customer-center .acc-support{display:grid!important;grid-template-col
 .acc-thumbs img{width:100%!important;height:100%!important;object-fit:cover!important}
 .acc-thumbs b{position:absolute!important;right:3px!important;bottom:3px!important;font-size:10px!important;background:#fff!important;border-radius:6px!important;padding:0 4px!important}
 .acc-thumbs li.acc-thumbs__text{width:auto!important;height:auto!important;flex:1 1 180px!important;border:0!important;background:none!important;display:block!important;font-weight:400!important;color:var(--center-muted)!important;font-size:14px!important;overflow:visible!important}
-.acc-order footer{align-items:center!important;border-top:1px solid var(--acc-line)!important;padding-top:14px!important}
+.acc-order footer{align-items:center!important;border-top:1px solid var(--acc-line)!important;padding:14px 0 0!important;background:transparent!important;color:inherit!important}
 .acc-order footer strong{font-size:20px!important}
 .acc-order__actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
 .acc-order__detail table{width:100%!important;border-collapse:collapse!important;margin-top:14px!important;font-size:14px!important}

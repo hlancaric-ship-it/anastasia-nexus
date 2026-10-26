@@ -871,6 +871,7 @@ if($('#ty-view')){
   if(form){
     const status=$('.form-status',form),go=()=>{let back='';try{back=localStorage.getItem('anastasia.return')||'';localStorage.removeItem('anastasia.return');}catch{}const want=new URLSearchParams(location.search).get('redirect')||'';location.replace([want,back].find(x=>x&&SAFE_PATH.test(x))||'/ucet#prehlad');};
     let busy=false;
+    (async()=>{try{if(typeof api.isLoggedIn==='function'&&await api.isLoggedIn()&&!status.textContent)status.textContent='Na tomto zariadení je prihlásenie už aktívne. Pokračujte cez Môj účet.';}catch{}})();
     const run=async(mode)=>{if(busy)return;const email=form.elements.email;if(!email.reportValidity())return;busy=true;$$('button',form).forEach(b=>b.disabled=true);
       try{
         if(mode==='password'){const pass=form.elements.password;if(!pass.value){status.textContent='Zadajte heslo alebo si pošlite prihlasovací odkaz.';pass.focus();return;}status.textContent='Prihlasujem…';const r=await api.signInWithPassword(email.value,pass.value);status.textContent=r.message;if(r.ok){try{sessionStorage.setItem('anastasia.welcome','1');}catch{}go();}else pass.select();}
