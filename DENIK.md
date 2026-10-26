@@ -160,3 +160,4 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 
 ### 26. 10. – e-mail z automatického vyplnění v telefonu
 - V newsletteru v patičce (tmavě zelená) a v kruhu komunity v obchodě zmizel po vložení e-mailu z paměti telefonu text. Telefon obarví pole světle a text je krémový. Přidána pravidla `:-webkit-autofill` do `public/jednotny.css`, text i pozadí zůstávají tmavé.
+- Android v tmavém režimu: automaticky vyplněný e-mail a heslo na přihlášení byly světlé na bílém. `color-scheme: light` a pravidla `:-webkit-autofill` pro všechna pole na světlé ploše (tmavý text, světlé pozadí) v `public/jednotny.css`.

@@ -1169,3 +1169,15 @@ html body .site-footer .sf-news input:-webkit-autofill:focus{
   -webkit-text-fill-color:#fbf7ee!important;caret-color:#fbf7ee;
   box-shadow:0 0 0 1000px #33352a inset!important;
   transition:background-color 600000s 0s,color 600000s 0s}
+
+/* Tmavý režim telefonu: automaticky vyplněné pole na světlé ploše dostane světlý text. Držíme tmavý text a světlé pozadí.
+   Tmavé plochy (patička, komunita v obchodě) mají vlastní pravidla výše s vyšší specificitou. */
+:root{color-scheme:light}
+html body input:-webkit-autofill,
+html body input:-webkit-autofill:hover,
+html body input:-webkit-autofill:focus,
+html body textarea:-webkit-autofill,
+html body select:-webkit-autofill{
+  -webkit-text-fill-color:#26242f;caret-color:#26242f;
+  box-shadow:0 0 0 1000px #fdfcf9 inset;
+  transition:background-color 600000s 0s,color 600000s 0s}
