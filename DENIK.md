@@ -141,3 +141,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - 17 zákazníků ze starého webu je v systému od 22. 10. jako hosté s historií a přístupy. Registrace je ale zakládala znovu a přišli by o historii.
 - Nová cesta `/store/customers/legacy-claim`: první přihlášení odkazem naváže identitu na existující záznam, účet se nezakládá znovu. E-mail se bere z ověřeného odkazu.
 - Testy: backend 5 nových, web 1 nový.
+
+### 26. 10. – PDF RESET 40+ v knihovně
+- PDF jsou v soukromém bucketu `anastasia-paid-content-test` (111 kusů), video a audio v `anastasia-media`. Doručovací worker `anastasia-test-protected-media` četl jen druhý, takže PDF vracela 403. Teď hledá v obou.
+- Na Cloud testu přidané proměnné `PROTECTED_R2_*` (stejné klíče jako `S3_*`).
+- Ověřeno v Safari na účtu z přihlášení odkazem: knihovna ukazuje týden 1 se 7 PDF, PDF se otevře (200, application/pdf), video se přehraje (206).

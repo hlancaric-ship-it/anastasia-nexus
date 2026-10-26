@@ -2,7 +2,18 @@ import { handleMediaDelivery, MEDIA_PATH_PREFIX } from '../nexus/workers/api/rou
 import { ApiError } from '../nexus/workers/api/http'
 import type { Env } from '../nexus/workers/api/types'
 
-export type MediaEnv = Pick<Env, 'MEDIA_BUCKET' | 'MEDIA_TOKEN_SECRET'> & { ALLOWED_ORIGINS?: string }
+export type MediaEnv = Pick<Env, 'MEDIA_BUCKET' | 'MEDIA_TOKEN_SECRET'> & { ALLOWED_ORIGINS?: string, MEDIA_BUCKET_PROTECTED?: Env['MEDIA_BUCKET'] }
+
+/** PDF materiály leží v samostatném soukromém bucketu, video a audio v hlavním: hledá se v obou, nejdřív v hlavním. */
+function withFallback(env: MediaEnv): Env {
+  const primary = env.MEDIA_BUCKET, secondary = env.MEDIA_BUCKET_PROTECTED
+  if (!primary || !secondary) return env as Env
+  const bucket = {
+    head: async (key: string) => (await primary.head(key)) ?? (await secondary.head(key)),
+    get: async (key: string, options?: unknown) => (await primary.get(key, options as never)) ?? (await secondary.get(key, options as never)),
+  } as unknown as Env['MEDIA_BUCKET']
+  return { ...env, MEDIA_BUCKET: bucket } as Env
+}
 
 /** Dedicated private-bucket gateway. No pricing, vouchers, public object listing or write API. */
 export default {
@@ -27,7 +38,7 @@ export default {
       return new Response(null, { status: 403, headers })
     }
     try {
-      const response = await handleMediaDelivery(request, env as Env)
+      const response = await handleMediaDelivery(request, withFallback(env))
       const result = new Response(response.body, response)
       for (const [key, value] of headers) result.headers.set(key, value)
       if (!isDocument) result.headers.set('Content-Disposition', 'inline')
