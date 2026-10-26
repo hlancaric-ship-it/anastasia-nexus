@@ -151,3 +151,4 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Videa RESET 40+ (17) a MP3 Nič nemusíš (A1 až A6) byly v `anastasia-media` s veřejnou adresou a šly stáhnout bez přihlášení. Zkopírovány do soukromého bucketu `anastasia-paid-content-test` (velikosti ověřeny), veřejné kopie smazány. Ukázka A0 zůstává veřejná.
 - Ověřeno v Safari: video lekce se přehrává (206), v knihovně je 111 PDF.
 - Starý web (správa médií, jen čtení): 111 PDF, stejně jako u nás. Soubor `Reset 40 Plus 1` je navíc, majitelka dříve potvrdila, že lekce 1 je `lekcia-00`.
+- Video lekce 1: `Reset 40 Plus 1` ze starého webu (týden 1) nahráno do soukromého bucketu jako `lekcia-01.mp4`. `lekcia-00` je teď „Úvod“ (předmluva) a zůstává v týdnu 1. Registr knihovny na testu upraven přes admin, manifest v kódu srovnán. Ověřeno v Safari: týden 1 má Úvod a Lekci 1, přehrává se (206).
