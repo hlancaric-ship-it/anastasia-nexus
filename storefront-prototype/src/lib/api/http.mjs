@@ -864,6 +864,24 @@ export function createHttpApi(storage, config) {
       const r = await call('/store/customers/me?fields=email');
       return r.data?.customer?.email || '';
     },
+    // Údaje prihláseného zákazníka na predvyplnenie pokladne: meno, e-mail a adresa z profilu alebo z uloženej adresy (aj zo starého webu).
+    async getCheckoutProfile() {
+      if (!loggedIn()) return null;
+      const r = await call('/store/customers/me?fields=first_name,last_name,email,phone,metadata,*addresses');
+      if (!r.ok) return null;
+      const c = r.data?.customer || {}, md = c.metadata || {};
+      const list = Array.isArray(c.addresses) ? c.addresses : [];
+      const a = list.find(x => x.is_default_shipping) || list.find(x => x.address_1) || {};
+      const text = v => (typeof v === 'string' ? v.trim() : '');
+      return {
+        firstName: text(c.first_name) || text(a.first_name),
+        lastName: text(c.last_name) || text(a.last_name),
+        email: text(c.email),
+        street: text(md.street) || text(a.address_1),
+        city: text(md.city) || text(a.city),
+        postalCode: text(md.postal_code) || text(a.postal_code),
+      };
+    },
     // Darčekové poukazy zákazníka (z jeho objednávok), s celým kódom na uplatnenie alebo vytlačenie.
     async getVouchers() {
       if (!loggedIn()) return { ok: false, vouchers: [] };

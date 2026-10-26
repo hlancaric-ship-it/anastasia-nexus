@@ -747,6 +747,8 @@ if(checkoutForm){
       checkoutForm.setAttribute('aria-busy',String(!!disabled));
     };
     const retry=$('#checkout-retry',checkoutForm);
+    // Prihlásený zákazník má údaje predvyplnené z účtu. Čo už zákazník sám napísal, sa neprepisuje.
+    (async()=>{try{const prof=await api.getCheckoutProfile?.();if(!prof)return;for(const k of ['firstName','lastName','email','street','city','postalCode']){const f=checkoutForm.elements[k];if(f&&!f.value&&prof[k])f.value=prof[k];}}catch{}})();
     if(retry)retry.addEventListener('click',async()=>{
       retry.hidden=true;setNextState(nextButtonState({cartReady:true,optionsReady:false}));
       const again=await loadOptions();
