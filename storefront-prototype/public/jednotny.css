@@ -1066,7 +1066,7 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 @keyframes lgSpin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#page-shell#page-shell.kc-unified .legacy-main .lg-seal img{animation:none}}
 #page-shell#page-shell.kc-unified .legacy-main .lg-brand{margin:22px 0 0!important;display:grid;gap:8px;font:400 20px/1 Figtree,sans-serif;letter-spacing:.42em;color:#2F3424!important}
-#page-shell#page-shell.kc-unified .legacy-main .lg-brand small{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#9C7B45}
+#page-shell#page-shell.kc-unified .legacy-main .lg-brand small{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#7A5F2E}
 #page-shell#page-shell.kc-unified .legacy-main .lg-card{padding:clamp(28px,4vw,56px)!important;border-radius:48px 48px 48px 0!important;background:#F7F4EC!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;box-shadow:0 50px 100px -50px rgba(47,52,36,.45)!important}
 #page-shell#page-shell.kc-unified .legacy-main .lg-card .page-intro .eyebrow{display:none!important}
 #page-shell#page-shell.kc-unified .legacy-main .lg-card .page-intro h1{color:#2F3424!important;letter-spacing:-.03em!important}
@@ -1076,7 +1076,7 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 #page-shell#page-shell.kc-unified .legacy-main .cs-head{max-width:1280px;margin:0 auto 56px}
 #page-shell#page-shell.kc-unified .legacy-main .cs-h{margin:0 0 18px!important;font:300 clamp(48px,7vw,112px)/.95 Fraunces,Georgia,serif!important;letter-spacing:-.035em!important;color:#2F3424!important}
 #page-shell#page-shell.kc-unified .legacy-main .cs-h em{font-style:italic;color:#73729C}
-#page-shell#page-shell.kc-unified .legacy-main .cs-t{margin:0!important;max-width:60ch;font:400 17px/1.6 Figtree,sans-serif!important;color:#6B705F!important}
+#page-shell#page-shell.kc-unified .legacy-main .cs-t{margin:0!important;max-width:60ch;font:400 17px/1.6 Figtree,sans-serif!important;color:#585C4C!important}
 #page-shell#page-shell.kc-unified .legacy-main .cs-stack{max-width:1280px;margin:0 auto}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel{position:sticky;top:calc(90px + var(--i) * 26px);display:grid;grid-template-columns:minmax(0,58fr) minmax(0,42fr);gap:clamp(24px,4vw,64px);align-items:center;min-height:min(72vh,640px);margin-bottom:12vh;padding:clamp(28px,4vw,64px);border-radius:48px 48px 48px 0;overflow:hidden;box-shadow:0 -20px 60px -30px rgba(47,52,36,.35)}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel:last-child{margin-bottom:0}
@@ -1085,8 +1085,8 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel--3{background:#E4E6D6;color:#2F3424}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel--4{background:radial-gradient(120% 120% at 100% 0%,#d8c08a 0%,#A7A5CF 45%,#73729C 100%);color:#F7F4EC}
 #page-shell#page-shell.kc-unified .legacy-main .cs-copy{display:flex;flex-direction:column;gap:22px;min-width:0}
-#page-shell#page-shell.kc-unified .legacy-main .cs-n{font:400 13px/1 Figtree,sans-serif;letter-spacing:.3em;color:#C9A55C}
-#page-shell#page-shell.kc-unified .legacy-main .cs-panel--4 .cs-n{color:#F7F4EC}
+#page-shell#page-shell.kc-unified .legacy-main .cs-n{font:400 13px/1 Figtree,sans-serif;letter-spacing:.3em;color:#7A5D25}
+#page-shell#page-shell.kc-unified .legacy-main .cs-panel--4 .cs-n{color:#F7F4EC}#page-shell#page-shell.kc-unified .legacy-main .cs-panel--2 .cs-n{color:#C9A55C}
 #page-shell#page-shell.kc-unified .legacy-main .cs-name{margin:0!important;font:300 clamp(44px,5.4vw,88px)/.92 Fraunces,Georgia,serif!important;letter-spacing:-.035em!important;color:inherit!important;text-wrap:balance}
 #page-shell#page-shell.kc-unified .legacy-main .cs-name a{color:inherit!important;text-decoration:none!important}
 #page-shell#page-shell.kc-unified .legacy-main .cs-name em{font-style:italic;color:#73729C}
@@ -1106,6 +1106,18 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel figure img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel:hover figure img{transform:scale(1.05)}
 @media(max-width:900px){#page-shell#page-shell.kc-unified .legacy-main .cs-panel{grid-template-columns:1fr;top:calc(70px + var(--i) * 16px);min-height:0;margin-bottom:8vh;padding:28px 24px 32px;border-radius:32px 32px 32px 0;gap:24px}#page-shell#page-shell.kc-unified .legacy-main .cs-panel figure{justify-self:start;width:min(100%,320px)}#page-shell#page-shell.kc-unified .legacy-main .cs-name{font-size:clamp(40px,11vw,56px)!important}}
+
+/* Impeccable 26. 10.: kontrast min. 4.5:1 a funkčný text min. 11 px. */
+#page-shell#page-shell.kc-unified .legacy-main .cs-panel--4{background:linear-gradient(90deg,rgba(47,52,36,.58) 0%,rgba(47,52,36,.3) 55%,rgba(47,52,36,0) 75%),radial-gradient(120% 120% at 100% 0%,#d8c08a 0%,#A7A5CF 45%,#73729C 100%)}
+#page-shell#page-shell.kc-unified .legacy-main .cs-panel--4 :is(.cs-d,.cs-meta,.cs-n){color:#F7F4EC!important;opacity:1!important}
+#page-shell#page-shell.kc-unified .legacy-main :is(.cs-d,.cs-t,.lg-card p){text-wrap:pretty}
+#page-shell#page-shell.kc-unified .legacy-main .lg-card input::placeholder{color:#686868}
+.site-footer span[style*="font-size:9px"],.site-footer span[style*="font-size:8px"],#dc-top-menu span[style*="font-size:8px"],#dc-top-menu span[style*="font-size:7px"]{font-size:11px!important;letter-spacing:.16em!important}
+.site-footer .sf-links span[style*="font-size:10px"],.site-footer .sf-links>div>span{font-size:11px!important}
+.site-footer .sf-news input::placeholder{color:rgba(239,229,199,.72)!important}
+.site-footer .sf-bottom :is(a,span){color:rgba(255,255,255,.72)!important;opacity:1!important}
+.cookie-banner .cookie-banner-text{max-width:60ch!important;margin-inline:auto!important;text-wrap:pretty}
+#ana-rail .dch0 span,#ana-rail>a span,#dc-side-menu a span{font-size:11px!important}
 }
 
 .skip-link:not(:focus){top:-200px!important;transform:translateY(-100%);clip-path:inset(50%);opacity:0}

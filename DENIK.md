@@ -113,3 +113,4 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Žiadne generické ovály ani bloby. /prihlasenie a /konzultacie berú presne triedy a tvary úvodu (kc): oblúková fotka 3:4, karty s radiusom 48 48 48 0, rovnaký tieň, sticky stoh panelov so striedaním levanduľa / oliva / hmla / gradient, pill tlačidlo s 1px linkou, rozloženie 58/42 v 1280 px.
 - Prihlásenie: vľavo oblúková fotka Lucie (arabeska), cez roh olivový medailón s pečaťou, vpravo krémová karta.
 - Hlášky „len po slovensky“ pri prepnutí jazyka zrušené, texty prihlásenia, konzultácií a poďakovania preložené do EN a RU.
+- Kontrola impeccable (detect) na /prihlasenie a /konzultacie: zo 14 a 10 nálezov ostáva len logo Google Pay a kurzíva v nadpise podľa úvodu. Opravené kontrasty (zlaté čísla, fialový panel, sivé texty, placeholdery, patička), funkčný text min. 11 px (patička, lišta, menu), text cookies max. 60 znakov na riadok.
