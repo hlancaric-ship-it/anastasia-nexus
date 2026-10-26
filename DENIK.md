@@ -136,3 +136,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 ### 26. 10. – zákazníci starého webu
 - Heslo ze starého webu se nepřenáší (rozhodnutí ze zadání). Na přihlášení je věta pro zákazníky starého webu: e-mail a odkaz, objednávky a programy už v účtu jsou.
 - Hláška při špatném hesle to vysvětluje. Texty jsou SK, EN i RU.
+
+### 26. 10. – první přihlášení zákazníků ze starého webu
+- 17 zákazníků ze starého webu je v systému od 22. 10. jako hosté s historií a přístupy. Registrace je ale zakládala znovu a přišli by o historii.
+- Nová cesta `/store/customers/legacy-claim`: první přihlášení odkazem naváže identitu na existující záznam, účet se nezakládá znovu. E-mail se bere z ověřeného odkazu.
+- Testy: backend 5 nových, web 1 nový.

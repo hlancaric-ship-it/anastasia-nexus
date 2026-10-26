@@ -712,6 +712,14 @@ export function createHttpApi(storage, config) {
         const me = await call('/store/customers/me', { token: identityToken });
         if (me.status === 401) {
           // Nový zákazník: najprv ho založíme (registračným tokenom), až potom žiadame nový token.
+          // Zákazník zo starého webu už existuje s históriou a prístupmi: naviažeme identitu naňho, nezakladáme nový účet.
+          const claim = await call('/store/customers/legacy-claim', { method: 'POST', body: {}, token: identityToken });
+          if (claim.ok && claim.data?.claimed === true) {
+            const claimed = await boundToken(() => call('/auth/token/refresh', { method: 'POST', body: {}, token: identityToken }));
+            if (!claimed.ok) return { ok: false, message: 'Prihlásenie prebehlo, ale účet ešte nie je naviazaný. Skúste to prosím znova.' };
+            set(JWT, claimed.token);
+            return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
+          }
           const created = await call('/store/customers', { method: 'POST', body: { email }, token: identityToken });
           if (!created.ok) return { ok: false, message: 'Účet sa nepodarilo založiť. Vyžiadajte si nový odkaz.' };
           const bound = await boundToken(() => call('/auth/token/refresh', { method: 'POST', body: {}, token: identityToken }));

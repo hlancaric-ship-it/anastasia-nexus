@@ -31,6 +31,7 @@ export const customerPrivacyMiddlewares:MiddlewareRoute[]=[
  {matcher:"/auth/*",middlewares:[optional,denyErasedCustomer]},
  {matcher:"/store/customers/me/export",method:["GET"],middlewares:[customer,legalRate("customer-export",3,3600,true)]},
  {matcher:"/store/customers/me/erasure-request",method:["POST"],middlewares:[customer,legalRate("customer-erasure",5,3600,true)],bodyParser:{sizeLimit:"1kb"}},
+ {matcher:"/store/customers/legacy-claim",method:["POST"],middlewares:[authenticate("customer",["bearer"],{allowUnregistered:true}),legalRate("legacy-claim",10,3600,true)],bodyParser:{sizeLimit:"1kb"}},
  {matcher:"/store/customers/me/password",method:["GET"],middlewares:[customer]},
  {matcher:"/store/customers/me/password",method:["POST"],middlewares:[customer,legalRate("customer-password",10,3600,true)],bodyParser:{sizeLimit:"2kb"}},
  {matcher:"/admin/customer-erasures*",middlewares:[admin],bodyParser:{sizeLimit:"2kb"}},

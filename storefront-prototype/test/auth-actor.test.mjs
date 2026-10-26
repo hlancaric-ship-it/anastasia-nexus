@@ -48,6 +48,7 @@ test('registrácia: odkaz → založenie zákazníka → nový login token s act
   const log=router([
     ['POST',/^\/auth\/customer\/magic-link$/,()=>respond(200,{token:NO_ACTOR})],
     ['GET',/^\/store\/customers\/me$/,()=>respond(401,{})],
+    ['POST',/^\/store\/customers\/legacy-claim$/,()=>respond(200,{claimed:false})],
     ['POST',/^\/store\/customers$/,()=>{storedDuringCreate=storage.getItem('anastasia.jwt');return respond(200,{customer:{id:'cus_1'}});}],
     ['POST',/^\/auth\/token\/refresh$/,()=>respond(200,{token:ACTOR})],
   ]);
@@ -58,6 +59,7 @@ test('registrácia: odkaz → založenie zákazníka → nový login token s act
   assert.deepEqual(log.map(l=>l.call),[
     'POST /auth/customer/magic-link',
     'GET /store/customers/me',
+    'POST /store/customers/legacy-claim',
     'POST /store/customers',
     'POST /auth/token/refresh',
   ]);
@@ -67,6 +69,27 @@ test('registrácia: odkaz → založenie zákazníka → nový login token s act
   // Uložený je až nový login token s actor_id.
   assert.equal(storage.getItem('anastasia.jwt'),ACTOR);
   assert.equal(api.isLoggedIn(),true);
+});
+
+test('zákazník zo starého webu: identita sa naviaže na existujúci záznam, nový sa nezakladá',async()=>{
+  withLink();
+  const storage=memoryStorage();
+  const log=router([
+    ['POST',/^\/auth\/customer\/magic-link$/,()=>respond(200,{token:NO_ACTOR})],
+    ['GET',/^\/store\/customers\/me$/,()=>respond(401,{})],
+    ['POST',/^\/store\/customers\/legacy-claim$/,()=>respond(200,{claimed:true})],
+    ['POST',/^\/auth\/token\/refresh$/,()=>respond(200,{token:ACTOR})],
+  ]);
+  const api=createHttpApi(storage,config);
+  const r=await api.confirmMagicLink();
+  assert.equal(r.ok,true);
+  assert.deepEqual(log.map(l=>l.call),[
+    'POST /auth/customer/magic-link',
+    'GET /store/customers/me',
+    'POST /store/customers/legacy-claim',
+    'POST /auth/token/refresh',
+  ]);
+  assert.equal(storage.getItem('anastasia.jwt'),ACTOR);
 });
 
 test('token bez actor_id: login sa zopakuje (max 2×) a použije sa viazaný token',async()=>{
