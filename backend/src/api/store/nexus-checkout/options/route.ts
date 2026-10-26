@@ -177,7 +177,9 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       }
       if (!collectionId) throw new CheckoutChoiceError("PAYMENT_COLLECTION_FAILED", 409)
       const { result: session } = await createPaymentSessionsWorkflow(req.scope).run({
-        input: { payment_collection_id: collectionId, provider_id: payment.provider_id, customer_id: actorId },
+        // Zákazník platí kartou, Apple Pay nebo Google Pay (peněženky jsou typ card). Ostatní metody z účtu Stripe se nenabízejí.
+        input: { payment_collection_id: collectionId, provider_id: payment.provider_id, customer_id: actorId,
+          data: payment.code === "card" ? { payment_method_types: ["card"], automatic_payment_methods: { enabled: false } } : undefined },
       })
       const secret = (session as any)?.data?.client_secret
       if (payment.code === "card") {
