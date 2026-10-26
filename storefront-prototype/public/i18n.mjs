@@ -21,6 +21,8 @@ export const LANG_KEY = 'ana-lang-manual';
 
 export const DICT = {
   // Prihlásenie, konzultácie a ďakovná stránka (26. 10.).
+  'Máte účet zo starého webu? Zadajte svoj e-mail a pošlite si prihlasovací odkaz. Vaše objednávky aj programy sú už v účte.': ['Do you have an account from our previous website? Enter your email and send yourself a sign-in link. Your orders and programmes are already in your account.', 'У вас есть аккаунт на нашем прежнем сайте? Введите свой e-mail и отправьте себе ссылку для входа. Ваши заказы и программы уже в аккаунте.'],
+  'E-mail alebo heslo nesedí. Heslo zo starého webu tu neplatí, pošlite si prihlasovací odkaz.': ['The email or password is incorrect. Passwords from our previous website do not work here, please send yourself a sign-in link.', 'Неверный e-mail или пароль. Пароль с прежнего сайта здесь не действует, отправьте себе ссылку для входа.'],
   'Vitajte späť': ['Welcome back', 'С возвращением'],
   'Vitajte': ['Welcome', 'Добро пожаловать'],
   'Váš priestor.': ['Your space.', 'Ваше пространство.'],

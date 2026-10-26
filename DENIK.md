@@ -126,3 +126,13 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Kategórie sú všade rovnaké ako v obchode na webe: Programy a služby, Biokozmetika, Zdravé doplnky výživy, Darčekové poukazy. Rovnaké názvy majú administrácia (testovacie jadro), menu, dlaždice a filtre obchodu aj úvod.
 - V administrácii premenované AI ANASTASIA ACADEMY, BIOKOZMETIKA a Darčekové vouchery, poradie podľa menu. Kategória Konzultácie zrušená, jej 4 konzultácie sú v Programy a služby. Konzultácie ostávajú v menu ako služba so svojou stránkou.
 - Úvod berie kategórie priamo z menu obchodu, nič sa nepíše ručne. Staré názvy kategórií web aj jadro stále rozpoznajú, aby nič nespadlo.
+
+## 26. 10. – prihlásenie heslom a trvalé prihlásenie
+- Podľa zmluvy sa majú zachovať funkcie existujúcich účtov a starý web mal prihlásenie heslom. Na /prihlasenie je preto e-mail + heslo a pod tým tlačidlo „Poslať prihlasovací odkaz na e-mail“.
+- Heslo si zákazník nastaví alebo zmení v účte v časti Profil. Heslo patrí k tomu istému účtu ako odkaz, takže oba spôsoby vedú k tým istým objednávkam a knižnici. Zabudnuté heslo: pošle si odkaz a heslo zmení v Profile.
+- Zákazník ostane prihlásený aj po zatvorení prehliadača: prihlásenie platí 30 dní a pri návšteve sa raz za deň predĺži. Odhlásenie ho okamžite zruší. Administrácia má platnosť bez zmeny.
+- Ochrana: najviac 10 pokusov o heslo na e-mail a 30 na zariadenie za 15 minút, heslo 8 až 200 znakov, heslá sa nikde nelogujú. Samostatná registrácia heslom mimo účtu je zablokovaná, aby si nikto nemohol založiť heslo na cudzí e-mail.
+
+### 26. 10. – zákazníci starého webu
+- Heslo ze starého webu se nepřenáší (rozhodnutí ze zadání). Na přihlášení je věta pro zákazníky starého webu: e-mail a odkaz, objednávky a programy už v účtu jsou.
+- Hláška při špatném hesle to vysvětluje. Texty jsou SK, EN i RU.

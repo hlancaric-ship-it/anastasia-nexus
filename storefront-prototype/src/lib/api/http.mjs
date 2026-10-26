@@ -742,7 +742,7 @@ export function createHttpApi(storage, config) {
         const r = await call('/auth/customer/emailpass', { method: 'POST', body: { email: mail, password: pass } });
         if (r.status === 429) return { ok: false, message: 'Príliš veľa pokusov. Skúste to neskôr alebo sa prihláste odkazom z e-mailu.' };
         const token = r.data?.token;
-        if (!r.ok || !token || !tokenHasActor(token)) return { ok: false, message: r.status >= 500 ? 'Prihlásenie je dočasne nedostupné. Skúste to o chvíľu.' : 'E-mail alebo heslo nesedí. Ak heslo ešte nemáte, pošlite si prihlasovací odkaz.' };
+        if (!r.ok || !token || !tokenHasActor(token)) return { ok: false, message: r.status >= 500 ? 'Prihlásenie je dočasne nedostupné. Skúste to o chvíľu.' : 'E-mail alebo heslo nesedí. Heslo zo starého webu tu neplatí, pošlite si prihlasovací odkaz.' };
         set(JWT, token);
         return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
       } catch { return { ok: false, message: 'Prihlásenie sa nepodarilo. Skúste to prosím znova o chvíľu.' }; }
