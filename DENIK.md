@@ -146,3 +146,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - PDF jsou v soukromém bucketu `anastasia-paid-content-test` (111 kusů), video a audio v `anastasia-media`. Doručovací worker `anastasia-test-protected-media` četl jen druhý, takže PDF vracela 403. Teď hledá v obou.
 - Na Cloud testu přidané proměnné `PROTECTED_R2_*` (stejné klíče jako `S3_*`).
 - Ověřeno v Safari na účtu z přihlášení odkazem: knihovna ukazuje týden 1 se 7 PDF, PDF se otevře (200, application/pdf), video se přehraje (206).
+
+### 26. 10. – placený obsah už není veřejný
+- Videa RESET 40+ (17) a MP3 Nič nemusíš (A1 až A6) byly v `anastasia-media` s veřejnou adresou a šly stáhnout bez přihlášení. Zkopírovány do soukromého bucketu `anastasia-paid-content-test` (velikosti ověřeny), veřejné kopie smazány. Ukázka A0 zůstává veřejná.
+- Ověřeno v Safari: video lekce se přehrává (206), v knihovně je 111 PDF.
+- Starý web (správa médií, jen čtení): 111 PDF, stejně jako u nás. Soubor `Reset 40 Plus 1` je navíc, majitelka dříve potvrdila, že lekce 1 je `lekcia-00`.
