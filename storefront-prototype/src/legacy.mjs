@@ -114,7 +114,8 @@ function lanStory(page,render,keyOf,o){
   });
   // Krátke fakty (otvorenie, kapacita, hodiny) v jednom páse vedľa seba.
   if(short.length){const facts=`<section class="lan-chap lan-chap--lavender lan-facts">${short.map(c=>`<div class="lan-fact"><h3${keyAttr(c.title)}>${e(c.title.text)}</h3>${body(c.body)}</div>`).join('')}</section>`;chapterHtml.splice(Math.min(1,chapterHtml.length),0,facts);}
-  const gallery=o.gallery?`<section class="lan-gallery">${GALLERY.filter(([f])=>!o.img.includes(f)).map(([f,alt])=>`<figure>${picture(L+f+'-1600.webp',alt,'loading="lazy" decoding="async" width="900" height="1100"')}</figure>`).join('')}</section>`:'';
+  // Prehliadka priestorov v DNA úvodu: sticky panely, oblúková fotka 3:4, zlaté číslo (Lucky 26. 10.).
+  const gallery=o.gallery?`<section class="cs ds-tour"><header class="cs-head"><h2 class="cs-h">Prehliadka <em>priestorov.</em></h2></header><div class="cs-stack">${GALLERY.filter(([f])=>!o.img.includes(f)).map(([f,alt],i)=>`<article class="cs-panel cs-panel--${i%4+1}" style="--i:${i}"><div class="cs-copy"><span class="cs-n">0${i+1}</span><h3 class="cs-name">${alt}</h3><p class="cs-meta"><span>Denný stacionár</span><span>Vyšná Slaná</span></p></div><figure>${picture(L+f+'-1600.webp',alt,'loading="lazy" decoding="async" width="900" height="1200"')}</figure></article>`).join('')}</div></section>`:'';
   const cta=o.book?`<section class="lan-cta"><p class="eyebrow">Rezervácia</p><h2>${e(head?.text||page.title)}</h2>${price?`<p class="lan-cta__price">${e(price)}</p>`:''}${button(`/konzultacie/rezervacia?typ=${encodeURIComponent(o.book)}`,o.cta||'Vybrať termín')}</section>`:'';
   if(o.book){
     // Konzultácia: úvod s kalendárom hore, karty pod ním, pôvodné kapitoly Lucie ako sklenené karty (žiadne celoplošné pásy).

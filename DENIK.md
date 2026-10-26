@@ -114,3 +114,9 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Prihlásenie: vľavo oblúková fotka Lucie (arabeska), cez roh olivový medailón s pečaťou, vpravo krémová karta.
 - Hlášky „len po slovensky“ pri prepnutí jazyka zrušené, texty prihlásenia, konzultácií a poďakovania preložené do EN a RU.
 - Kontrola impeccable (detect) na /prihlasenie a /konzultacie: zo 14 a 10 nálezov ostáva len logo Google Pay a kurzíva v nadpise podľa úvodu. Opravené kontrasty (zlaté čísla, fialový panel, sivé texty, placeholdery, patička), funkčný text min. 11 px (patička, lišta, menu), text cookies max. 60 znakov na riadok.
+
+## 26. 10. – prehliadka stacionára, mobilná lišta, test celého webu
+- Denný stacionár (/denny-stacionar-vysna-slana aj /ds-dnes): galéria je teraz „Prehliadka priestorov.“ v DNA úvodu, sticky stoh panelov so striedaním levanduľa / oliva / hmla / gradient, oblúková fotka 3:4, zlaté číslo. Použité všetky fotky priestorov (spoločenský priestor, poradňa, kreslá, šatňa, kuchynka, kávovar, linka), fotka z hlavičky stránky sa neopakuje. Texty preložené do EN a RU.
+- Mobil (do 999 px): hore vľavo len tlačidlo Menu, košík a účet sú v menu. Ovládanie hudby je jazýček v pravom dolnom rohu schovaný do boku, po ťuknutí sa vysunie a panel sa otvorí smerom hore. Pri otvorenom menu je jazýček skrytý.
+- Test 390 / 768 / 1440 px (úvod, e-shop, detail produktu, košík, konzultácie, prihlásenie, stacionár, účet, kontakt): bez chýb v konzole, nič nepreteká do strany, LCP 0,4–1,3 s. Úvod má 950 kB kvôli hero videu, ostatné 45–560 kB.
+- Zabezpečenie: doplnené HSTS (1 rok) a Permissions-Policy (bez kamery, mikrofónu a polohy, platby len Stripe). CSP povoľuje analytiku Cloudflare, ktorú predtým blokovala. V builde nie sú žiadne tajné kľúče. Test ostáva noindex.

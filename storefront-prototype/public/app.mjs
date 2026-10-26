@@ -317,14 +317,14 @@ function mountMenuQuick(){
     updateCount().catch(()=>{});
   }
 }
-// Mobil: ovládanie zvuku je schované v malom tlačidle vedľa Menu a vysunie sa dole až po ťuknutí.
+// Mobil: ovládanie zvuku je jazýček schovaný v pravom dolnom rohu, ovládanie sa vysunie nahor po ťuknutí (Lucky 26. 10.).
 const soundPop=document.createElement('div');soundPop.className='ana-sound-pop';
 soundPop.innerHTML=`<button type="button" class="ana-sound-pop__btn" aria-expanded="false" aria-label="${e(shopText('Ovládanie zvuku'))}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 18V6l10-2v12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16.5" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div class="ana-sound-pop__panel" hidden></div>`;
 const soundPanel=$('.ana-sound-pop__panel',soundPop),soundPopBtn=$('.ana-sound-pop__btn',soundPop);
 // Panel visí v body (fixed), aby ho hlavička s backdrop-filter neorezala.
 soundPanel.classList.add('ana-sound-panel');document.body.append(soundPanel);
 let soundAnchor=soundPopBtn;
-const setSoundPop=open=>{if(open){const r=soundAnchor.getBoundingClientRect();soundPanel.style.top=`${Math.round(r.bottom+10)}px`;soundPanel.style.right=`${Math.max(12,Math.round(innerWidth-r.right-6))}px`;}soundPanel.hidden=!open;$$('.ana-sound-pop__btn').forEach(b=>b.setAttribute('aria-expanded',String(open)));$$('.ana-sound-pop').forEach(p=>p.classList.toggle('is-open',open));};
+const setSoundPop=open=>{if(open){const r=soundAnchor.getBoundingClientRect();soundPanel.style.top='auto';soundPanel.style.bottom=`${Math.round(innerHeight-r.top+10)}px`;soundPanel.style.right='12px';}soundPanel.hidden=!open;$$('.ana-sound-pop__btn').forEach(b=>b.setAttribute('aria-expanded',String(open)));$$('.ana-sound-pop').forEach(p=>p.classList.toggle('is-open',open));};
 // Hlavička môže byť naklonovaná (plávajúca lišta), preto klik cez delegáciu na dokumente.
 document.addEventListener('click',event=>{const btn=event.target.closest?.('.ana-sound-pop__btn');if(btn){soundAnchor=btn;setSoundPop(soundPanel.hidden);return;}if(!soundPanel.hidden&&!soundPanel.contains(event.target))setSoundPop(false);});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!soundPanel.hidden){setSoundPop(false);soundPopBtn.focus();}});
@@ -332,7 +332,7 @@ const headerMenuBtn=()=>$$('header [data-menu-open]').find(b=>!b.closest('#dc-to
 const placeMedia=()=>{
   const menuBtn=headerMenuBtn();
   if(mediaControls&&wideMedia.matches){$('#ana-rail')?.append(mediaControls);soundPop.remove();setSoundPop(false);}
-  else if(mediaControls&&menuBtn){soundPanel.append(mediaControls);if(!soundPop.isConnected)menuBtn.before(soundPop);}
+  else if(mediaControls&&menuBtn){soundPanel.append(mediaControls);if(!soundPop.isConnected)document.body.append(soundPop);}
   else if(mediaControls&&mobileMedia){mobileMedia.append(mediaControls);}
   else if(mediaControls){mobileDock.append(mediaControls);}
   if(!wideMedia.matches&&mobileDock.childElementCount&&!mobileDock.isConnected)document.body.append(mobileDock);
@@ -343,7 +343,8 @@ placeMedia();wideMedia.addEventListener('change',placeMedia);
 const mobileQuick=document.createElement('nav');mobileQuick.className='ana-mquick';mobileQuick.setAttribute('aria-label',shopText('Košík a účet'));
 mobileQuick.innerHTML=`<a class="ana-mquick__btn" href="/kosik" aria-label="${e(shopText('Košík'))}" title="${e(shopText('Košík'))}"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z M9 7V5.5a3 3 0 0 1 6 0V7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="cart-count ana-mquick__count" data-zero>0</span></a><a class="ana-mquick__btn" href="/prihlasenie"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5 20c1.2-3.6 3.8-5.4 7-5.4s5.8 1.8 7 5.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>`;
 setAccountLink(mobileQuick.lastElementChild,customerLogged());
-const placeQuick=()=>{const menuBtn=headerMenuBtn();if(!wideMedia.matches&&menuBtn){(soundPop.isConnected?soundPop:menuBtn).before(mobileQuick);updateCount().catch(()=>{});}else mobileQuick.remove();};
+// Mobil (Lucky 26. 10.): hore len Menu, košík a účet sú v menu.
+const placeQuick=()=>{mobileQuick.remove();};
 placeQuick();wideMedia.addEventListener('change',placeQuick);
 // Safari: rozostrenie pozadia (backdrop-filter) mimo obrazovky stojí výkon a pri skrole bliká, preto sa mimo zorného poľa vypína.
 const blurIdle=window.requestIdleCallback||(f=>setTimeout(f,600));
