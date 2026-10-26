@@ -281,7 +281,6 @@ html:has(.kc){overflow-x:clip}
   .kc-who__main{clip-path:none}
   .kc-who__main img{transform:none}
   .kc [data-rv]{opacity:1;transform:none}
-  .kc-pre__i{opacity:1;pointer-events:auto}
 }
 .kc-ticket__brand img{width:34px;height:34px;flex:none}
 main>.lh-top{z-index:60}
@@ -303,7 +302,14 @@ main>.lh-top+.kc{margin-top:-64px}
 @keyframes kc-gold{0%,25%{filter:none}45%{filter:sepia(.85) saturate(2.6) hue-rotate(3deg) brightness(1.05) drop-shadow(0 0 14px rgba(232,200,128,.7))}70%,100%{filter:none}}
 .kc .kc-pre__cat:hover{--ink-shim:var(--lav)}
 @media (max-width:760px){.kc .kc-pre__cat{font-size:26px}}
-@media (prefers-reduced-motion:reduce){.kc-pre__cat,.kc-pre__brand b,.kc-pre__brand small{-webkit-text-fill-color:currentColor;background:none}}
+/* Omezený pohyb v systéme (Windows „Zobraziť animácie“ vypnuté, macOS „Obmedziť pohyb“): úvod sa nezastaví, len jemne prelína bez posunu a rozmazania (Lucky 26. 10.). */
+@media (prefers-reduced-motion:reduce){
+  .kc .kc-pre__cat.on{animation:kc-fade 5.2s ease-in-out both,kc-shim 5.2s ease-in-out both!important}
+  .kc .kc-pre__brand.on{animation:kc-fade 5.2s ease-in-out both!important}
+  .kc .kc-pre__i.on b,.kc .kc-pre__i.on small{animation:kc-shim 5.2s ease-in-out both!important}
+  .kc .kc-pre__i.on{pointer-events:auto}
+}
+@keyframes kc-fade{0%{opacity:0}18%,78%{opacity:1}100%{opacity:0}}
 
 /* desktop: celý úvod vyššie, kvapka hneď pod podtitulom (poloha z koncept.js) */
 @media (min-width:761px){

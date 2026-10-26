@@ -1,10 +1,10 @@
-import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES, VOUCHER_CATEGORY, VOUCHER_CATEGORY_HANDLE, VOUCHER_IMAGE, voucherAmountFromSlug, voucherSlug} from './catalog.mjs';
+import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES, shopCategoryName, VOUCHER_CATEGORY, VOUCHER_CATEGORY_HANDLE, VOUCHER_IMAGE, voucherAmountFromSlug, voucherSlug} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
 const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena sa doplní');
 const NAME_BY_HANDLE=Object.fromEntries(Object.entries(SHOP_CATEGORY_HANDLES).map(([name,handle])=>[handle,name]));
-const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
+const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Biokozmetika: 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
 const PRODUCT_FIELDS =
   'handle,title,subtitle,description,thumbnail,metadata,*images,*categories,*variants,+variants.sku,+variants.calculated_price,+variants.inventory_quantity,+variants.manage_inventory,+variants.allow_backorder,*options,*options.values,*variants.options';
@@ -53,7 +53,7 @@ function mapProduct(p,apiBase='') {
   const media=value=>{if(typeof value!=='string')return value;try{const u=new URL(value),base=new URL(apiBase);const localStatic=['http://localhost:9000','http://127.0.0.1:9000'].includes(u.origin);if((u.origin===base.origin||localStatic)&&u.pathname.startsWith('/static/'))return '/backend-media'+decodeURIComponent(decodeURIComponent(u.pathname))+u.search;}catch{}return value;};
   const variant = (p.variants || [])[0] || {};
   const cp = variant.calculated_price || {};
-  const category = (p.categories||[]).map(c=>c.name).find(n=>SHOP_CATEGORIES.includes(n)) || (p.categories||[])[0]?.name || '';
+  const category = (p.categories||[]).map(c=>shopCategoryName(c.name)).find(n=>SHOP_CATEGORIES.includes(n)) || shopCategoryName((p.categories||[])[0]?.name || '');
   return {
     slug: p.handle,
     name: p.title,
@@ -284,7 +284,7 @@ export function createHttpApi(storage, config) {
       code: it.product_handle || it.product?.handle,
       priceLabel: money(it.unit_price),
       image: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_IMAGE : publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
-      category: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_CATEGORY : ((it.product?.categories || []).map(c => c.name).find(n => SHOP_CATEGORIES.includes(n)) || ''),
+      category: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_CATEGORY : ((it.product?.categories || []).map(c => shopCategoryName(c.name)).find(n => SHOP_CATEGORIES.includes(n)) || ''),
       // Fyzickú položku určuje server (requires_shipping podľa prepravného profilu), digitálna má vždy 1 ks.
       physical: it.requires_shipping === true,
       lineTotalLabel: money(it.total ?? Number(it.unit_price) * Number(it.quantity)),
@@ -377,7 +377,7 @@ export function createHttpApi(storage, config) {
     },
     async getCategories() {
       const r = await call('/store/product-categories?limit=100&fields=name');
-      const names = (r.data?.product_categories || []).map(c => c.name).filter(Boolean);
+      const names = (r.data?.product_categories || []).map(c => shopCategoryName(c.name)).filter(Boolean);
       return r.ok ? SHOP_CATEGORIES.filter(name=>names.includes(name)) : [];
     },
 

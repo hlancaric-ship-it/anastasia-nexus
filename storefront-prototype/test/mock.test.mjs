@@ -41,7 +41,7 @@ test('checkout has four explicit outcomes without granting access',()=>{
   const api=createMockApi();for(const scenario of ['ALLOW','REVIEW','BLOCK','ERROR']){assert.equal(api.checkout({scenario}).status,scenario);assert.ok(api.checkout({scenario}).messages);assert.equal(api.getEntitlements().active,false);}
 });
 test('data is returned defensively and catalogue filters are coherent',()=>{
-  const api=createMockApi();const products=api.getProducts();products[0].name='changed';assert.notEqual(api.getProducts()[0].name,'changed');assert.equal(api.getProducts({search:'sprcháč'}).length,1);assert.equal(api.getProducts({category:'BIOKOZMETIKA'}).length,5);assert.equal(api.getProducts({category:'bio-kozmetika-bez-chemie'}).length,5);
+  const api=createMockApi();const products=api.getProducts();products[0].name='changed';assert.notEqual(api.getProducts()[0].name,'changed');assert.equal(api.getProducts({search:'sprcháč'}).length,1);assert.equal(api.getProducts({category:'Biokozmetika'}).length,5);assert.equal(api.getProducts({category:'bio-kozmetika-bez-chemie'}).length,5);
 });
 test('async adapter waits for writes and serializes concurrent mutations',async()=>{
   const api=createApi(undefined,createMockApi());await Promise.all([api.addToCart('bio-sprchovy-gel'),api.addToCart('bio-sprchovy-gel',2),api.applyCoupon('DEMO10')]);

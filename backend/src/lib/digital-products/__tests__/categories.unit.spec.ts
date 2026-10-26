@@ -19,6 +19,7 @@ describe('Skupiny digitálnych produktov', () => {
 
   it('priradí produkt ku skupine podľa jeho kategórií', () => {
     expect(digitalGroupFor(['AI ANASTASIA ACADEMY'])?.handle).toBe('academy-kurzy')
+    expect(digitalGroupFor(['Programy a služby'])?.handle).toBe('academy-kurzy')
     expect(digitalGroupFor(['Konzultácie'])?.label).toBe('Konzultácie')
     expect(digitalGroupFor(['AI ANASTASIA ACADEMY', 'Konzultácie'])?.handle).toBe('academy-kurzy')
     expect(digitalGroupFor(['BIOKOZMETIKA'])).toBeNull()

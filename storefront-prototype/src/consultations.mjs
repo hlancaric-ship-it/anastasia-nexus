@@ -13,7 +13,7 @@ export const consultations = () => {
   const products = api.getProducts();
   const consults = products.filter(p => {
     const handle = p.slug;
-    // Konzultácie sú v kategórii AI ANASTASIA ACADEMY a majú špecifické slugy
+    // Konzultácie sú v kategórii Programy a služby a majú špecifické slugy
     return CONSULTATION_HANDLES[handle];
   });
 

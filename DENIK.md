@@ -120,3 +120,9 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Mobil (do 999 px): hore vľavo len tlačidlo Menu, košík a účet sú v menu. Ovládanie hudby je jazýček v pravom dolnom rohu schovaný do boku, po ťuknutí sa vysunie a panel sa otvorí smerom hore. Pri otvorenom menu je jazýček skrytý.
 - Test 390 / 768 / 1440 px (úvod, e-shop, detail produktu, košík, konzultácie, prihlásenie, stacionár, účet, kontakt): bez chýb v konzole, nič nepreteká do strany, LCP 0,4–1,3 s. Úvod má 950 kB kvôli hero videu, ostatné 45–560 kB.
 - Zabezpečenie: doplnené HSTS (1 rok) a Permissions-Policy (bez kamery, mikrofónu a polohy, platby len Stripe). CSP povoľuje analytiku Cloudflare, ktorú predtým blokovala. V builde nie sú žiadne tajné kľúče. Test ostáva noindex.
+
+## 26. 10. – úvod pri obmedzenom pohybe, kategórie 1:1
+- Úvod (preloader) stál, keď má návštevník v systéme zapnuté „Obmedziť pohyb“ (Windows: Zobrazovať animácie vypnuté). Teraz sa aj vtedy kategórie a značky striedajú, len jemne prelínajú bez posunu a rozmazania.
+- Kategórie sú všade rovnaké ako v obchode na webe: Programy a služby, Biokozmetika, Zdravé doplnky výživy, Darčekové poukazy. Rovnaké názvy majú administrácia (testovacie jadro), menu, dlaždice a filtre obchodu aj úvod.
+- V administrácii premenované AI ANASTASIA ACADEMY, BIOKOZMETIKA a Darčekové vouchery, poradie podľa menu. Kategória Konzultácie zrušená, jej 4 konzultácie sú v Programy a služby. Konzultácie ostávajú v menu ako služba so svojou stránkou.
+- Úvod berie kategórie priamo z menu obchodu, nič sa nepíše ručne. Staré názvy kategórií web aj jadro stále rozpoznajú, aby nič nespadlo.

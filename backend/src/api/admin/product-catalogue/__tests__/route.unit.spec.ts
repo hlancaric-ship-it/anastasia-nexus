@@ -1,4 +1,4 @@
-import { GET } from '../route'
+import { GET, compareCatalogue } from '../route'
 import { adminActor } from '../../../../lib/observability/audit'
 
 jest.mock('../../../../lib/observability/audit', () => ({
@@ -13,6 +13,7 @@ const products = [
 
 function fixture(queryResult?: any) {
   const graph = jest.fn(async (args: any) => {
+    if (Array.isArray(args.filters?.id)) return { data: products.filter((p) => args.filters.id.includes(p.id)) }
     if (args.filters?.shipping_profile?.type === 'digital' && !args.filters?.id) {
       return { data: products.filter((p) => p.shipping_profile.type === 'digital'), metadata: { count: 1, skip: 0, take: 50 } }
     }
@@ -83,10 +84,23 @@ describe('Zoznam produktov s filtrom Fyzické / Digitálne', () => {
     const f = fixture()
     f.req.query = { type: 'all', status: 'published', q: 'reset', limit: '10', offset: '5' }
     await GET(f.req, f.res)
-    const args = f.graph.mock.calls.at(-1)?.[0]
+    const args = f.graph.mock.calls[0]?.[0]
     expect(args.filters.status).toBe('published')
     expect(args.filters.q).toBe('reset')
-    expect(args.pagination).toMatchObject({ take: 10, skip: 5 })
+    const body = f.res.json.mock.calls[0][0]
+    expect(body).toMatchObject({ limit: 10, offset: 5, count: 2 })
+    expect(body.products).toHaveLength(0)
+  })
+
+  it('zoradí zverejnené pred konceptmi, fyzické, služby a potom digitálne', () => {
+    const rows = [
+      { id: 'd_draft', status: 'draft', shipping_profile: { type: 'default' } },
+      { id: 'digital', status: 'published', shipping_profile: { type: 'digital' } },
+      { id: 'service', status: 'published', metadata: { booking: true } },
+      { id: 'old', status: 'published', created_at: '2026-01-01' },
+      { id: 'new', status: 'published', created_at: '2026-10-01' },
+    ]
+    expect(rows.slice().sort(compareCatalogue).map((r) => r.id)).toEqual(['new', 'old', 'service', 'digital', 'd_draft'])
   })
 
   it('neuhádza stránku ani neprekročí limit', async () => {

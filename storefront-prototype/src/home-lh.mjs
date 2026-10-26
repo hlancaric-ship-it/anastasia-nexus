@@ -110,7 +110,7 @@ export function homeSections(products = [], activeCategories = []) {
   const categories = {};
   const selected = [];
   for (const p of products) {
-    const cat = p.category || 'AI ANASTASIA ACADEMY';
+    const cat = p.category || 'Programy a služby';
     if (!categories[cat] && selected.length < 4) {
       categories[cat] = true;
       selected.push(p);
@@ -239,17 +239,17 @@ export function homeSections(products = [], activeCategories = []) {
   const realProducts = products.filter(p => media(p) && p.slug && priced(p));
   // Ostré originály z podkladov Lucie (min. 2× šírka zobrazenia), nie malé fotky produktov zo starého webu.
   const WORLD_SHOTS = {
-    'BIOKOZMETIKA': ['/assets/packshots/sprchovy-gel-kralovna.webp', '/assets/packshots/sprchovy-gel-kralovna.webp', 'center 35%'],
+    'Biokozmetika': ['/assets/packshots/sprchovy-gel-kralovna.webp', '/assets/packshots/sprchovy-gel-kralovna.webp', 'center 35%'],
     'Zdravé doplnky výživy': ['/img/lucia/lekaren-800.webp', '/img/lucia/lekaren-1600.webp', '38% center'],
     'Konzultácie': ['/img/lucia/stacionar-kresla-800.webp', '/img/lucia/stacionar-kresla-1600.webp', '45% center'],
-    'AI ANASTASIA ACADEMY': ['/img/lucia/lucia-portret-hero-800.webp', '/img/lucia/lucia-portret-hero-1600.webp', '64% center'],
+    'Programy a služby': ['/img/lucia/lucia-portret-hero-800.webp', '/img/lucia/lucia-portret-hero-1600.webp', '64% center'],
   };
-  const categoryOrder = ['BIOKOZMETIKA', 'Zdravé doplnky výživy', 'Konzultácie', 'AI ANASTASIA ACADEMY'];
+  const categoryOrder = ['Biokozmetika', 'Zdravé doplnky výživy', 'Konzultácie', 'Programy a služby'];
   const categoryProducts = {
-    'BIOKOZMETIKA': 'bio-sprchovy-gel',
+    'Biokozmetika': 'bio-sprchovy-gel',
     'Zdravé doplnky výživy': 'antibioticky-prasok',
     'Konzultácie': 'online-zdravotna-konzultacia',
-    'AI ANASTASIA ACADEMY': 'reset-40-plus',
+    'Programy a služby': 'reset-40-plus',
   };
   const categoryLinks = categoryOrder.filter(name => activeCategories.includes(name)).map((name, i) => {
     const categoryItems = realProducts.filter(item => item.category === name);

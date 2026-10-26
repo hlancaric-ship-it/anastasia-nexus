@@ -20,7 +20,7 @@ export type DigitalProductGroup = {
  * zvyšok sú nové kategórie, ktoré môže Lucia založiť v administrácii.
  */
 export const DIGITAL_PRODUCT_GROUPS: readonly DigitalProductGroup[] = Object.freeze([
-  { handle: "academy-kurzy", label: "ACADEMY kurzy", categories: ["AI ANASTASIA ACADEMY"] },
+  { handle: "academy-kurzy", label: "ACADEMY kurzy", categories: ["Programy a služby", "AI ANASTASIA ACADEMY"] },
   { handle: "audio-meditacie", label: "Audio a meditácie", categories: ["Audio a meditácie"] },
   { handle: "e-knihy-dokumenty", label: "E-knihy a dokumenty", categories: ["E-knihy a dokumenty"] },
   { handle: "konzultacie", label: "Konzultácie", categories: ["Konzultácie"] },

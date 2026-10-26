@@ -11,6 +11,8 @@ import {cookieConsent} from './src/cookie-consent.mjs';
 import {api} from './src/lib/api/index.mjs';
 import {createHttpApi,JWT_KEY} from './src/lib/api/http.mjs';
 import {FEATURED_SLUGS,SHOP_CATEGORIES} from './src/lib/api/catalog.mjs';
+import {menuGroups} from './src/lib/menu-navigation.mjs';
+const escapeHtml=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
 import {libraryPage} from './src/library-page.mjs';
@@ -74,7 +76,13 @@ const add=(path,title,body)=>routes.set(path,{title,body});
 // Úvod a O Lucii se generují přímo z handoff návrhů (design/*.dc.html).
 const add2=(path,title,body,design)=>routes.set(path,{title,body,design});
 // Úvod webu je nový koncept (30+, poukaz, čo tu nájdete). Pôvodný úvod ostáva na /povodny-uvod.
-add2('/','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8').replace(/<!--[\s\S]*?-->\n?/g,''),'about');
+// Úvod ukazuje presne kategórie obchodu z menu webu, rovnaké názvy aj odkazy ako v administrácii (Lucky 26. 10.).
+const preCategories=menuGroups[0].links;
+let preIndex=0;
+const konceptHome=readFileSync(join(root,'src','koncept-home.html'),'utf8').replace(/<!--[\s\S]*?-->\n?/g,'')
+ .replace(/<a class="kc-pre__i kc-pre__cat" href="[^"]*"( style="[^"]*")>[^<]*<\/a>\n?/g,(m,style)=>{const item=preCategories[preIndex++];return item?`<a class="kc-pre__i kc-pre__cat" href="${escapeHtml(item[1])}"${style}>${escapeHtml(item[0])}</a>\n`:'';});
+if(preIndex<preCategories.length)throw new Error('Preloader má menej miest ako kategórií e-shopu');
+add2('/','ANASTASIA',konceptHome,'about');
 add2('/povodny-uvod','Light for the Future',homeSections(homepageProducts,homepageCategories),'home');
 add('/eshop','Obchod',catalog());add('/eshop/kategorie','Kategórie',views.categories());
 add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmetika'));
@@ -105,7 +113,7 @@ if(routes.has(reviewsPath))routes.set('/ai-anastasia/recenzie-zakaznikov',routes
 add('/zdravy-svet','Zdravý svet',views.zdravySvet());
 add2('/o-lucii','O Lucii',aboutSections()+aboutPhotos,'about');
 // Koncept nového úvodu na schválenie (noindex ako celý test), so spoločnou lištou a pätičkou webu.
-add2('/koncept','ANASTASIA',readFileSync(join(root,'src','koncept-home.html'),'utf8').replace(/<!--[\s\S]*?-->\n?/g,''),'about');
+add2('/koncept','ANASTASIA',konceptHome,'about');
 // The actual CSV target column controls coverage, not guessed paths.
 const csv=await readFile(join(root,'../backend/docs/wp/redirects-map.csv'),'utf8');
 // Drafty starého webu (ve výpisu mali stav 404) na novom webe tiež 404 – nie výpis e-shopu.

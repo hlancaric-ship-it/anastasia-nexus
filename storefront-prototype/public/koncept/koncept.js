@@ -163,7 +163,8 @@ const preCats = [...document.querySelectorAll('.kc-pre__cat')];
 const preBrands = [...document.querySelectorAll('.kc-pre__brand')];
 // kategória, značka, kategória… – kategórie sú hlavné, značky medzi nimi
 const pre = preCats.flatMap((c, i) => preBrands[i] ? [c, preBrands[i]] : [c]);
-if (pre.length && !reduce) {
+// beží aj pri obmedzenom pohybe, vtedy CSS len prelína (Lucky 26. 10.)
+if (pre.length) {
   const SLOTS = [[22, 12], [78, 12], [23, 60], [77, 60], [21, 72], [79, 73], [77, 86]];
   const SLOTS_M = [[32, 22], [68, 26], [50, 24], [36, 27], [64, 21]];
   let i = 0, last = -1;
@@ -177,7 +178,9 @@ if (pre.length && !reduce) {
     el.style.setProperty('--y', slots[s][1]);
     void el.offsetWidth;
     el.classList.add('on');
+    // Pri obmedzenom pohybe globálne CSS vypína animácie, preto len jemné prelínanie cez Web Animations bez posunu.
+    if (reduce) el.animate([{ opacity: 0 }, { opacity: 1, offset: .18 }, { opacity: 1, offset: .78 }, { opacity: 0 }], { duration: 5200, easing: 'ease-in-out' }).onfinish = () => el.classList.remove('on');
   };
-  pre.forEach(el => el.addEventListener('animationend', e => { if (e.animationName === 'kc-cycle') el.classList.remove('on'); }));
+  pre.forEach(el => el.addEventListener('animationend', e => { if (e.animationName === 'kc-cycle' || e.animationName === 'kc-fade') el.classList.remove('on'); }));
   setTimeout(() => { show(); setInterval(() => { if (document.visibilityState === 'visible') show(); }, 3800); }, 1200);
 }

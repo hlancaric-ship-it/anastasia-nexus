@@ -9,6 +9,10 @@ import { DIGITAL_PRODUCT_GROUPS, digitalGroupFor } from "../../../lib/digital-pr
  * Zoznam produktov pre administráciu s filtrom Fyzické / Digitálne.
  * Rozlišenie je serverové a autoritativne: digitálny produkt je ten, ktorý má
  * dopravný profil typu „digital“ (rovnaké pravidlo používa pokladňa).
+ *
+ * Poradie (Lucky 26. 10.): zverejnené pred konceptmi, v rámci nich fyzické,
+ * potom služby a nakoniec digitálne, najnovšie prvé. Triedi sa celý výber,
+ * takže poradie platí aj cez stránkovanie.
  */
 
 const TYPES = ["all", "digital", "physical"] as const
@@ -18,6 +22,20 @@ const str = (value: unknown): string => {
   const raw = Array.isArray(value) ? value[0] : value
   return typeof raw === "string" ? raw.trim() : ""
 }
+
+type SortRow = { id: string; status?: string; created_at?: string | Date; metadata?: Record<string, unknown> | null; shipping_profile?: { type?: string } | null }
+
+/** 0 fyzické, 1 služba (konzultácia), 2 digitálne. */
+export const kindRank = (p: SortRow): number => {
+  if (p.shipping_profile?.type === "digital" || p.metadata?.product_kind === "digital") return 2
+  if (p.metadata?.booking || p.metadata?.product_kind === "service") return 1
+  return 0
+}
+
+export const compareCatalogue = (a: SortRow, b: SortRow): number =>
+  (a.status === "published" ? 0 : 1) - (b.status === "published" ? 0 : 1) ||
+  kindRank(a) - kindRank(b) ||
+  new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
 
 const int = (value: unknown, fallback: number): number => {
   const n = Number(Array.isArray(value) ? value[0] : value)
@@ -57,17 +75,29 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
       filters.id = { $nin: digitalIds }
     }
 
-    const { data, metadata } = await query.graph({
+    // Najprv ľahký zoznam celého výberu na zoradenie, potom plné údaje len pre aktuálnu stranu.
+    const { data: rows } = await query.graph({
       entity: "product",
-      fields: [
-        "id", "title", "status", "handle", "thumbnail", "metadata",
-        "variants.*", "variants.prices.*", "categories.id", "categories.name", "shipping_profile.id", "shipping_profile.type",
-      ],
+      fields: ["id", "status", "created_at", "metadata", "shipping_profile.type"],
       filters,
-      pagination: { skip: offset, take: limit, order: { created_at: "DESC" } },
     } as any)
+    const ordered = ((rows ?? []) as SortRow[]).slice().sort(compareCatalogue)
+    const pageIds = ordered.slice(offset, offset + limit).map((p) => p.id)
 
-    const products = ((data ?? []) as any[]).map((product) => {
+    const { data } = pageIds.length
+      ? await query.graph({
+          entity: "product",
+          fields: [
+            "id", "title", "status", "handle", "thumbnail", "metadata",
+            "variants.*", "variants.prices.*", "categories.id", "categories.name", "shipping_profile.id", "shipping_profile.type",
+          ],
+          filters: { id: pageIds },
+        } as any)
+      : { data: [] }
+    const position = new Map(pageIds.map((id, i) => [id, i]))
+    const page = ((data ?? []) as any[]).slice().sort((a, b) => (position.get(a.id) ?? 0) - (position.get(b.id) ?? 0))
+
+    const products = page.map((product) => {
       const categories = (product.categories ?? []).map((category: any) => ({ id: category.id, name: category.name }))
       return {
         id: product.id,
@@ -86,9 +116,9 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 
     return res.status(200).json({
       products,
-      count: Number(metadata?.count ?? products.length),
-      offset: Number(metadata?.skip ?? offset),
-      limit: Number(metadata?.take ?? limit),
+      count: ordered.length,
+      offset,
+      limit,
       groups: DIGITAL_PRODUCT_GROUPS.map((group) => ({ handle: group.handle, label: group.label })),
     })
   } catch (error) {

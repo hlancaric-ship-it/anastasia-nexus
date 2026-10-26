@@ -1197,6 +1197,11 @@ async function vProducts(view) {
         api('/admin/inventory-items?limit=500&fields=id,sku,*location_levels').catch(() => null),
       ]);
       const products = data.products || [];
+      // Poradie robí jadro (zverejnené, fyzické, služby, digitálne). Záložný zoznam zoradíme aspoň na strane rovnako.
+      if (data.fallback) {
+        const kind = p => p.metadata?.product_kind === 'digital' ? 2 : (p.metadata?.booking || p.metadata?.product_kind === 'service') ? 1 : 0;
+        products.sort((a, b) => (a.status === 'published' ? 0 : 1) - (b.status === 'published' ? 0 : 1) || kind(a) - kind(b));
+      }
       // Katalóg zo staršieho jadra vracia varianty bez cien a SKU – doplníme ich zo zoznamu produktov.
       if (!data.fallback && products.some(p => !(p.variants || []).length || p.variants.some(v => !v?.id || !Array.isArray(v.prices)))) {
         try {

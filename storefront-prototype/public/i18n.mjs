@@ -262,7 +262,7 @@ export const DICT = {
   'EN / RU už čoskoro': ['EN / RU coming soon', 'EN / RU скоро'],
   'Košík (': ['Cart (', 'Корзина ('],
   'AI ANASTASIA Academy': ['AI ANASTASIA Academy', 'AI ANASTASIA Academy'],
-  'Biokozmetika': ['Biocometics', 'Биокосметика'],
+  'Biokozmetika': ['Biocosmetics', 'Биокосметика'],
   // Texty úvodu 1:1 podľa pôvodného webu.
   'Táto časť webu patrí projektu ANASTASIA. Nie ako ponuka riešení, ale ako priestor, kde veci nemusia byť tlačené, vysvetľované ani riadené. Zdravý svet nie je ideál, ku ktorému sa treba dopracovať. Nie je to cieľ, ktorý treba dosiahnuť prácou na sebe. Je to možnosť, ktorá sa objavuje vtedy, keď prestaneme mať pocit, že so sebou musíme niečo robiť.': ['This part of the website belongs to the ANASTASIA project. It is not an offer of solutions, but a space where things do not have to be hurried, explained or managed. A healthy world is not an ideal to work towards. It is not a goal to be achieved by working on yourself. It is a possibility that appears when we stop feeling that we must do something with ourselves.', 'Эта часть сайта принадлежит проекту ANASTASIA. Это не предложение решений, а пространство, где ничто не нужно форсировать, объяснять или контролировать. Здоровый мир — не идеал, к которому нужно стремиться. Это не цель, которую нужно достигать работой над собой. Это возможность, которая появляется, когда мы перестаём чувствовать, что обязаны что-то с собой делать.'],
   'Priestor pre zdravie, poznanie a vedomý život.': ['A space for health, knowledge and conscious living.', 'Пространство для здоровья, знания и осознанной жизни.'],
