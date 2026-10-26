@@ -1181,3 +1181,6 @@ html body select:-webkit-autofill{
   -webkit-text-fill-color:#26242f;caret-color:#26242f;
   box-shadow:0 0 0 1000px #fdfcf9 inset;
   transition:background-color 600000s 0s,color 600000s 0s}
+
+/* Přihlášení: točící se pečeť je zlatá, aby byla vidět na tmavém kruhu. */
+@layer jednotny{html body .lg-seal img.brand-seal{filter:brightness(0) saturate(100%) invert(72%) sepia(38%) saturate(620%) hue-rotate(2deg) brightness(96%) contrast(90%)!important}}
