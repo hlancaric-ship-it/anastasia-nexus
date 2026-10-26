@@ -157,3 +157,6 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Balík `docs/predani` (8 dokumentů, slovensky) už existoval z 23. 10. Zkontrolovaný, bez zmínek Zoho, AWS a Codex.
 - Aktualizováno: přihlášení heslem a 30 dní, převzetí účtu starého zákazníka, nové trasy API, soukromý bucket plateného obsahu a jeho proměnné `PROTECTED_R2_*`, limit 300 minut buildu, nové řádky v tabulce běžných situací.
 - Zůstává otevřené: v dokumentech je produkce na Cloudflare Pages, test běží jako Worker se statickými soubory. Před ostrým nasazením sjednotit podle skutečného postupu.
+
+### 26. 10. – e-mail z automatického vyplnění v telefonu
+- V newsletteru v patičce (tmavě zelená) a v kruhu komunity v obchodě zmizel po vložení e-mailu z paměti telefonu text. Telefon obarví pole světle a text je krémový. Přidána pravidla `:-webkit-autofill` do `public/jednotny.css`, text i pozadí zůstávají tmavé.
