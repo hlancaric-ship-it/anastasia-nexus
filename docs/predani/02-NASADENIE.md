@@ -18,7 +18,7 @@ Tento dokument obsahuje **iba názvy premenných prostredia, nikdy ich hodnoty**
 
 | Časť | Prostredie | Spôsob nasadenia | Výstup |
 |---|---|---|---|
-| Backend | Medusa Cloud, plán Develop, región `eu-central-1` | automaticky po zlúčení do vetvy `master` | bežiaca Node služba |
+| Backend | Medusa Cloud, plán Develop, región `eu-central-1` | automaticky po každom nahratí do sledovanej vetvy repozitára (každé nahratie čerpá minúty buildu) | bežiaca Node služba |
 | Web | Cloudflare Pages, projekt `anastasia-web` | build z repozitára | statické súbory v `storefront-prototype/dist` |
 | Administrácia | Cloudflare Pages, projekt `anastasia-admin` | build z repozitára | statické súbory v `anastasia-admin/dist` |
 | NEXUS Worker | Cloudflare Workers, `nexus-api-production` | príkaz `wrangler deploy` z počítača správcu | Worker a jeho väzby |
@@ -167,6 +167,7 @@ Hodnoty sa zadávajú v nastavení hostingu ako tajomstvá. Nikdy nie do repozit
 |---|---|
 | `MEDIA_TOKEN_SECRET` | podpis odkazov na chránené médiá, minimálne 32 znakov, zhodné s Workerom |
 | `MEDIA_DELIVERY_BASE_URL` | adresa doručovania médií cez Worker |
+| `PROTECTED_R2_ENDPOINT`, `PROTECTED_R2_BUCKET`, `PROTECTED_R2_ACCESS_KEY_ID`, `PROTECTED_R2_SECRET_ACCESS_KEY` | súkromný bucket plateného obsahu, odkiaľ backend vydáva odkazy. Bez nich sa PDF a videá v knižnici neotvoria |
 | `COUPON_LINK_STOREFRONT_ORIGIN` | origin webu pre generovanie QR odkazov kupónov |
 | `COUPON_LINK_LEGACY_ORIGINS` | povolené pôvodné originy pre import už vydaných QR odkazov |
 | `GIFT_VOUCHER_DELIVERY` | spôsob doručenia darčekových poukazov, v produkcii `notification` |

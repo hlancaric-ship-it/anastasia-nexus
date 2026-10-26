@@ -152,3 +152,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Ověřeno v Safari: video lekce se přehrává (206), v knihovně je 111 PDF.
 - Starý web (správa médií, jen čtení): 111 PDF, stejně jako u nás. Soubor `Reset 40 Plus 1` je navíc, majitelka dříve potvrdila, že lekce 1 je `lekcia-00`.
 - Video lekce 1: `Reset 40 Plus 1` ze starého webu (týden 1) nahráno do soukromého bucketu jako `lekcia-01.mp4`. `lekcia-00` je teď „Úvod“ (předmluva) a zůstává v týdnu 1. Registr knihovny na testu upraven přes admin, manifest v kódu srovnán. Ověřeno v Safari: týden 1 má Úvod a Lekci 1, přehrává se (206).
+
+### 26. 10. – dokumentace k předání
+- Balík `docs/predani` (8 dokumentů, slovensky) už existoval z 23. 10. Zkontrolovaný, bez zmínek Zoho, AWS a Codex.
+- Aktualizováno: přihlášení heslem a 30 dní, převzetí účtu starého zákazníka, nové trasy API, soukromý bucket plateného obsahu a jeho proměnné `PROTECTED_R2_*`, limit 300 minut buildu, nové řádky v tabulce běžných situací.
+- Zůstává otevřené: v dokumentech je produkce na Cloudflare Pages, test běží jako Worker se statickými soubory. Před ostrým nasazením sjednotit podle skutečného postupu.

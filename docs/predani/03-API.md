@@ -152,8 +152,11 @@ Trasy pracujú iba pre zákazníka s aktívnym prístupom k programu. Bez príst
 | Metódy | Cesta | Čo rieši |
 |---|---|---|
 | POST | `/store/nexus-auth/logout` | zneplatní prihlásenie na serveri, po odhlásení token prestane platiť aj pri ďalšom volaní |
+| GET, POST | `/store/customers/me/password` | GET povie, či má účet heslo, POST heslo nastaví (8 až 200 znakov), heslo patrí k tej istej identite ako prihlasovací odkaz |
+| POST | `/store/customers/legacy-claim` | prvé prihlásenie zákazníka zo starého webu naviaže prihlásenie na jeho existujúci záznam s históriou a prístupmi, e-mail berie z overeného odkazu, nezakladá nový účet |
+| POST | `/auth/token/refresh` | predĺži prihlásenie zákazníka na ďalších 30 dní (web to robí raz denne) |
 
-Samotné prihlásenie jednorazovým odkazom a štandardné prihlásenie heslom rieši natívne rozhranie Medusy, ktoré tento katalóg neopakuje. Vlastná trasa odhlásenia existuje preto, že bežné odhlásenie v Meduse token nezruší a ten by ostal platný do vypršania.
+Samotné prihlásenie jednorazovým odkazom (`/auth/customer/magic-link`) a heslom (`/auth/customer/emailpass`) rieši natívne rozhranie Medusy, ktoré tento katalóg neopakuje. Heslom sa dá len prihlásiť, registrácia, reset a zmena hesla cez natívne trasy sú zablokované, heslo sa nastavuje iba cez `/store/customers/me/password` po prihlásení odkazom. Prihlásenie heslom má brzdu 30 pokusov za 15 minút na adresu IP a 10 na e-mail. Platnosť prihlásenia zákazníka je 30 dní, administrácia má kratšiu platnosť a tento rozdiel zostáva. Vlastná trasa odhlásenia existuje preto, že bežné odhlásenie v Meduse token nezruší a ten by ostal platný do vypršania.
 
 ### 3.13 Pomocné trasy
 

@@ -108,7 +108,7 @@ Do rozpočtu patria:
 
 | Služba | Ako sa platí | Poznámka |
 |---|---|---|
-| Medusa Cloud, plán Develop | 29 USD mesačne, uhradené | zahŕňa backend, databázu a úložisko súborov |
+| Medusa Cloud, plán Develop | 29 USD mesačne, uhradené | zahŕňa backend, databázu a úložisko súborov. Plán má **300 minút buildu mesačne**: každé nahratie zmeny backendu do sledovanej vetvy spustí build (okolo 3 minút), preto sa zmeny backendu nahrávajú v dávkach. Zmena premenných prostredia build nespúšťa |
 | Cloudflare | podľa použitia, R2 do 10 GB bezplatne | web, administrácia, DNS, Worker, zálohy |
 | Stripe | poplatok z transakcie | nie je mesačný paušál |
 | E-mailová služba | podľa počtu odoslaných e-mailov | transakčné e-maily a newsletter |
@@ -206,6 +206,9 @@ Mapa starých ciest produktov a kategórií sa naplní po importe katalógu s p�
 | Newsletter sa neodošle | chýbajúci kľúč pre odhlasovací odkaz alebo neplatná konfigurácia | kontaktovať podporu, kampaň zostáva v stave konceptu |
 | Záloha zlyhala | zmena hesla alebo siete na strane služby | kontaktovať podporu do 24 hodín, ďalší beh sa spustí nasledujúcu noc |
 | Administrácia je pomalá | slabé pripojenie alebo veľký počet záznamov | skúsiť inú sieť, potom kontaktovať podporu |
+| Zákazník zo starého webu nevie zadať heslo | heslá zo starého webu sa neprenášajú | poslať mu odkaz na prihlásenie z e-mailu, heslo si potom nastaví v účte v časti Profil |
+| Zákazník je odhlásený po zatvorení prehliadača | súkromné okno alebo vymazané údaje prehliadača | prihlásenie platí 30 dní a uchováva sa v prehliadači, pri súkromnom okne alebo vymazaní údajov je potrebné prihlásiť sa znova |
+| V knižnici sa PDF alebo video neotvorí (chyba 403) | chýba súbor v súkromnom buckete alebo nezhodné podpisové tajomstvo | skontrolovať, či súbor existuje v súkromnom buckete a či `MEDIA_TOKEN_SECRET` sedí na backende aj na Workeri médií |
 
 ---
 

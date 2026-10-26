@@ -2,7 +2,7 @@
 
 **Pre:** Mgr. Lucia Rogožanová, LUCRAT spol. s r.o.
 **Vypracoval:** L-Code Dynamics
-**Verzia dokumentácie:** 22. 10. 2026
+**Verzia dokumentácie:** 26. 10. 2026
 **Rozsah:** Fáza 1 podľa čl. 2 zmluvy, dokumentácia podľa čl. 4 odst. 4
 
 ---

@@ -82,7 +82,7 @@ Zásada je jednoduchá a zámerná: **prehliadač nikdy nerozhoduje o peniazoch.
 | Backend | Medusa Cloud, plán Develop, región `eu-central-1` | rozhoduje o cene, sklade, objednávke, platbe a prístupe k obsahu | PostgreSQL, všetky obchodné dáta |
 | Databáza | spravuje Medusa Cloud | jediný zdroj pravdy o produktoch, objednávkach a zákazníkoch | osobné údaje zákazníkov |
 | NEXUS Worker | Cloudflare Workers, `nexus-api-production` | výpočet ceny, posúdenie rizika, rezervácie, QR a presmerovania, prevádzkové udalosti | D1 `nexus-voucher`, Durable Object `VOUCHER_SECURITY` |
-| Úložisko médií | Cloudflare R2, `anastasia-media` | chránené videá, audia a PDF, obrázky | chránený platený obsah |
+| Úložisko médií | Cloudflare R2: `anastasia-media` (verejné obrázky a ukážka) a súkromný bucket plateného obsahu | obrázky a ukážky verejne, videá, audia a PDF len súkromne | chránený platený obsah |
 | Úložisko záloh | Cloudflare R2, `anastasia-db-backups`, jurisdikcia EU | šifrované denné zálohy databázy | šifrované kópie obchodných dát |
 | Platby | Stripe, účet LUCRAT | prijatie platby, Apple Pay a Google Pay, vrátenie peňazí | platobné údaje drží výhradne Stripe |
 | E-maily | Resend cez notification modul | odosielanie e-mailov zákazníkom a Vám | adresy a texty e-mailov |
@@ -180,7 +180,7 @@ E-maily doručuje Resend cez notification modul. Ak kľúč nie je nastavený, s
 |---|---|---|
 | Produkty, ceny, sklad, objednávky, zákazníci, súhlasy | PostgreSQL na Medusa Cloud | jediný zdroj pravdy |
 | Stav darčekových poukazov v NEXUS | D1 `nexus-voucher` | zálohuje sa exportom a Time Travel |
-| Chránené videá, audia, PDF | R2 `anastasia-media` | prístup iba cez krátkodobý podpísaný odkaz |
+| Chránené videá, audia, PDF | súkromný R2 bucket plateného obsahu (na teste `anastasia-paid-content-test`) | prístup iba cez krátkodobý podpísaný odkaz, súbory nemajú verejnú adresu |
 | Obrázky produktov | úložisko, ktoré spravuje Medusa Cloud | originály má objednávateľ |
 | Zálohy databázy | R2 `anastasia-db-backups` | šifrované, retencia podľa pravidiel |
 | Prevádzkové udalosti a audit | PostgreSQL, tabuľky `ops_event` a `ops_audit_entry` | retencia 90 a 1095 dní |
