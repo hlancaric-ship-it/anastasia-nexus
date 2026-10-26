@@ -2,6 +2,7 @@ import { PDFDocument, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib"
 import fontkit from "@pdf-lib/fontkit"
 import { formatEur } from "./policy"
 import { FIGTREE_MEDIUM, FIGTREE_REGULAR, FRAUNCES_ITALIC, FRAUNCES_LIGHT } from "./voucher-fonts"
+import { LUCIA_BALL_PNG } from "./voucher-logo"
 
 /**
  * Darčekový poukaz ANASTASIA ako A4 PDF v tmavej olivovej so zlatými linkami.
@@ -32,13 +33,6 @@ const C = {
 
 const W = 595.28
 const H = 841.89
-
-// Pečať ANASTASIA (rovnaké cesty ako brand-mark.svg na webe), súradnice 240×240.
-const MARK_PATHS = [
-  "M120 116V64m0 34c-18-15-21-34 0-59 21 25 18 44 0 59Zm0 10c-20 0-32-13-40-28 22 0 35 9 40 28Zm0 0c20 0 32-13 40-28-22 0-35 9-40 28Z",
-  "M22 122c29-7 54 11 88 5s46-25 72-22 21 14 36 14M24 130c40-5 59 12 89 4s50-22 72-20 20 15 31 11M30 137c37-7 56 14 89 5s54-20 67-15 18 5 28 6M120 141v59m0-47-17 18-6 22m6-22-19 3m36-7 14 16 3 18m-3-18 20 3m-34-3-10 18m10-55 28 16 17 1m-17-1 4 14m-32-33-29 13-15 4m15-4-3 14",
-  "M53 95v-9m0 57v9m24-33h9m-66 0h9m41-17 7-7m-40 40-7 7m40-7 7 7m-40-40-7-7m32 1 4-9m-22 53-4 9m35-39 9-4m-53 22-9 4m53 0 9 4m-53-22-9-4m39 35 4 9m-22-53-4-9",
-]
 
 // Organické zlaté linky v pozadí (aura ako na webe), súradnice strany s počiatkom vľavo hore.
 const AURA_PATHS = [
@@ -120,15 +114,11 @@ export async function renderVoucherPdf(voucher: VoucherPdfInput): Promise<Buffer
   for (const [x, y] of [[26, 26], [W - 26, 26], [26, H - 26], [W - 26, H - 26]]) page.drawCircle({ x, y, size: 2.2, color: C.gold })
   for (const d of AURA_PATHS) page.drawSvgPath(d, { x: 0, y: H, borderColor: C.gold, borderWidth: 0.7, borderOpacity: 0.16 })
 
-  // Pečať a značka.
-  const markScale = 0.36
-  const markSize = 240 * markScale
-  const markX = (W - markSize) / 2
+  // Guľa z loga Lucie a značka.
+  const markSize = 86
   const markTop = H - 92
-  for (const d of MARK_PATHS) page.drawSvgPath(d, { x: markX, y: markTop, scale: markScale, borderColor: C.gold, borderWidth: 1.7 })
-  page.drawCircle({ x: markX + 120 * markScale, y: markTop - 120 * markScale, size: 100 * markScale, borderColor: C.gold, borderWidth: 1.7 * markScale })
-  page.drawCircle({ x: markX + 53 * markScale, y: markTop - 119 * markScale, size: 16 * markScale, borderColor: C.gold, borderWidth: 1.7 * markScale })
-  for (const [px, py] of [[120, 20], [220, 120], [120, 220], [20, 120]]) page.drawCircle({ x: markX + px * markScale, y: markTop - py * markScale, size: 6 * markScale, color: C.gold })
+  const ball = await doc.embedPng(Buffer.from(LUCIA_BALL_PNG, "base64"))
+  page.drawImage(ball, { x: (W - markSize) / 2, y: markTop - markSize, width: markSize, height: markSize })
 
   let y = markTop - markSize - 34
   spaced(page, "ANASTASIA", W / 2, y, medium, 13, 6.5, C.cream)

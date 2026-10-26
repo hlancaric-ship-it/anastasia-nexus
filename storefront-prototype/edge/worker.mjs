@@ -12,8 +12,8 @@ export default {
     const url0 = new URL(request.url);
     if (url0.pathname.startsWith('/media/')) return media(request, env);
     if (url0.pathname.startsWith('/backend-media/static/')) return backendMedia(request, env, url0);
-    // Stará adresa minerálního krému má velké M, e-shop odkazuje malými písmeny.
-    if (/^\/eshop\/produkt\/mineralny-ochranny-krem-pre-citlivu-pokozku\/?$/.test(url0.pathname)) return Response.redirect(new URL('/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku/' + url0.search, url0).toString(), 301);
+    // Stará adresa minerálního krému má velké M, statická stránka je malými písmeny (build na macOS nerozliší velikost).
+    if (/^\/eshop\/produkt\/Mineralny-ochranny-krem-pre-citlivu-pokozku\/?$/.test(url0.pathname)) return Response.redirect(new URL('/eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku/' + url0.search, url0).toString(), 301);
     const response = await env.ASSETS.fetch(request);
     const type = response.headers.get('content-type') || '';
     if (!type.includes('text/html')) return response;

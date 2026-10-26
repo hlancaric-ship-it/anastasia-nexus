@@ -89,7 +89,7 @@ add('/eshop/kategoria/bio-kozmetika-bez-chemie','Bio kozmetika',catalog('Kozmeti
 for(const [slug,cat] of [['kozmetika','Kozmetika'],['bylinky-a-vyziva','Bylinky a výživa'],['programy-a-sluzby','Programy a služby']])add(`/eshop/kategoria/${slug}`,cat,catalog(cat));
 for(const p of catalogProducts)add(`/eshop/produkt/${p.slug}`,p.name,views.product(p,catalogProducts));
 // Zachovat původní velikost písmen staré adresy minerálního krému.
-const mineral=catalogProducts.find(p=>p.slug.toLowerCase()==='mineralny-ochranny-krem-pre-citlivu-pokozku');if(mineral)add('/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku',mineral.name,views.product(mineral,catalogProducts));
+const mineral=catalogProducts.find(p=>p.slug.toLowerCase()==='mineralny-ochranny-krem-pre-citlivu-pokozku');if(mineral)add('/eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku',mineral.name,views.product(mineral,catalogProducts));
 for(const p of api.getPages())add(p.path,p.title,views.content(p));
 add('/darcekovy-poukaz','Darčekový poukaz',views.giftVoucher());add('/kosik','Košík',views.cart());add('/eshop/kosik','QR košík',views.cart());add('/pokladna','Objednávka',views.checkout());add('/dakujeme','Ďakujeme za objednávku',views.thankYou());
 add('/prihlasenie','Prihlásenie',views.login());

@@ -1117,7 +1117,7 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 .site-footer .sf-news input::placeholder{color:rgba(239,229,199,.72)!important}
 .site-footer .sf-bottom :is(a,span){color:rgba(255,255,255,.72)!important;opacity:1!important}
 .cookie-banner .cookie-banner-text{max-width:60ch!important;margin-inline:auto!important;text-wrap:pretty}
-#ana-rail .dch0 span,#ana-rail>a span,#dc-side-menu a span{font-size:11px!important}
+#ana-rail .dch0 span,#ana-rail>a span,#dc-side-menu a:not(:first-child) span{font-size:11px!important}
 
 /* Prehliadka stacionára (26. 10.): rovnaké panely ako konzultácie, na celú šírku. */
 #page-shell#page-shell.kc-unified .legacy-main .ds-tour{width:100cqw;max-width:none;margin:0 calc(50% - 50cqw)!important;box-sizing:border-box}
@@ -1136,3 +1136,18 @@ body>.ana-sound-pop .ana-sound-pop__btn{width:44px!important;height:44px!importa
 }
 
 .skip-link:not(:focus){top:-200px!important;transform:translateY(-100%);clip-path:inset(50%);opacity:0}
+/* Menu v pôvodnom písme, len nadpisy skupín tučné a väčšie (Lucky 26. 10.). Vo vrstve jednotny, inak by prehralo s !important ostatných vrstiev. */
+@layer jednotny{
+html body :is(#dc-top-menu,#dc-side-menu) div[style*="flex-direction:column;gap:"]>:is(a,span):first-child,html body :is(#dc-top-menu,#dc-side-menu) div[style*="flex-direction:column;gap:"]>:is(a,span):first-child *{font-weight:600!important;font-size:24px!important}
+html body #dc-side-menu div[style*="flex-direction:column;gap:"]>:is(a,span):first-child,html body #dc-side-menu div[style*="flex-direction:column;gap:"]>:is(a,span):first-child *{font-size:20px!important;font-family:Fraunces,Georgia,serif!important}
+#page-shell.kc-unified .legacy-main .lan-cta .lan-cta__price{font:300 clamp(28px,2.6vw,40px)/1 var(--serif)!important;color:var(--paper)!important;margin:0!important}
+#page-shell.kc-unified .legacy-main .lan-cta .button{grid-column:1/-1;justify-self:start}
+
+/* Menu: všetky nadpisy stĺpcov rovnaké písmo, výška aj odstup, aby stĺpce sedeli naproti sebe (Lucky 26. 10.). */
+html body :is(#dc-top-menu,#dc-side-menu) div[style*="flex-direction:column;gap:"]>:is(a,span):first-child{display:block!important;margin:0 0 6px!important;padding:4px 0!important;line-height:1.15!important}
+html body #dc-top-menu div[style*="flex-direction:column;gap:"]>:is(a,span):first-child,html body #dc-top-menu div[style*="flex-direction:column;gap:"]>:is(a,span):first-child *{font-family:Fraunces,Georgia,serif!important;white-space:nowrap!important}
+@media(max-width:600px){html body #dc-top-menu div[style*="flex-direction:column;gap:"]>:is(a,span):first-child,html body #dc-top-menu div[style*="flex-direction:column;gap:"]>:is(a,span):first-child *{font-size:min(24px,4.6vw)!important}}
+
+/* Mobil: karty bez backdrop blur, iPhone ho pri scrolle prepočítava každý snímok (sekanie v Môj účet) */
+@media(max-width:999px){html body :is(#page-shell,.customer-center) :is(.acc-card,.pdm-panel,.pdm-details .pdm-accordions details,.shop-grid--v3 .shop-card,.pdm-related-card){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
+}

@@ -25,7 +25,8 @@
 /eshop/kategorie/Second-hand  /eshop  301
 /eshop/kategorie/veterinar-pripravky  /eshop  301
 /eshop/kategorie/Krajcirstvo-sitie  /eshop  301
-
+# --- Produkt s velkým M: statická stránka je malými písmeny (case-insensitive FS pri builde), veľké M presmeruje sem ---
 # --- Produkt s velkým M: odkaz malým písmenem vedl na 404 ---
-/eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku  /eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku  301
+/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku/  /eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku/  301
+/eshop/produkt/Mineralny-ochranny-krem-pre-citlivu-pokozku  /eshop/produkt/mineralny-ochranny-krem-pre-citlivu-pokozku/  301
 /ai-anastasia/recenzie-zakaznikov-ai-anastasia-com /ai-anastasia/recenzie-zakaznikov 301

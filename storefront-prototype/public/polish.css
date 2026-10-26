@@ -310,6 +310,6 @@ html body .site-footer .sf-pay__badge{background:rgba(239,229,199,.94)!important
 .ana-bf-off{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 
 /* Zlatá pečať ANASTASIA namiesto starého kruhového loga: matné zlato #C5A880, šampanský svit, bez orezu a filtrov (Lucky 26. 10.). */
-html body img.brand-seal,html body #dc-top-menu .menu-brand-mark img.brand-seal,html body :is(.dc-root,.dc-chrome) .header-brand-emblem img.brand-seal,html body .menu-brand-mark img.brand-seal{position:static!important;width:100%!important;height:100%!important;max-width:100%!important;left:auto!important;top:auto!important;object-fit:contain!important;opacity:1!important;filter:drop-shadow(0 0 10px rgba(197,168,128,.42)) drop-shadow(0 0 2px rgba(239,229,199,.35))!important}
+html body img.brand-seal,html body #dc-top-menu .menu-brand-mark img.brand-seal,html body :is(.dc-root,.dc-chrome) .header-brand-emblem img.brand-seal,html body .menu-brand-mark img.brand-seal{position:static!important;width:100%!important;height:100%!important;max-width:100%!important;left:auto!important;top:auto!important;object-fit:contain!important;opacity:1!important;filter:none!important}
 html body :is(.header-brand-emblem,.menu-brand-mark){overflow:visible!important;border-radius:0!important}
 html body footer img.brand-seal,html body [data-menu-brand] img.brand-seal{width:auto!important}

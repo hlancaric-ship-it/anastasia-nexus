@@ -159,3 +159,18 @@ test('přepnutí skladby při vypnutém zvuku nic nespustí', async () => {
   await amb.next(1500); await advance(500);
   assert.ok(audios.every(a => a.paused));
 });
+
+test('bez ovladatelné hlasitosti (iPhone) se části nepřekrývají', async () => {
+  class FixedVolumeAudio extends FakeAudio { get volume() { return 1; } set volume(v) {} }
+  const audios = [];
+  let t = 0, id = 0;
+  const frames = new Map();
+  const amb = createAmbient({
+    createAudio: () => { const a = new FixedVolumeAudio(); audios.push(a); return a; },
+    raf: f => { frames.set(++id, f); return id; }, caf: i => frames.delete(i), now: () => t, random: () => 0,
+  });
+  const run = async () => { for (let i = 0; i < 6; i++) { await tick(); t += 16; for (const [k, f] of [...frames]) { frames.delete(k); f(t); } } };
+  await amb.play(); await run();
+  const next = amb.next(); await run(); await next;
+  assert.equal(audios.filter(a => !a.paused).length, 1);
+});

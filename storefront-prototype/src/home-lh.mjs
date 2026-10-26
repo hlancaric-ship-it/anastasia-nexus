@@ -89,7 +89,7 @@ export const LH_HEADER = `
     <a href="/eshop?category=sebarozvoj">Programy a služby</a>
   </nav>
   <a class="lh-top__brand" href="/" aria-label="ANASTASIA — domov">
-    <img src="/assets/brand-seal.svg" class="brand-seal" alt="" width="34" height="34">
+    <img src="/assets/lucia-koule.png" class="brand-seal" alt="" width="34" height="34">
     <span>ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
   </a>
   <nav class="lh-top__side lh-top__side--right" aria-label="Účet">
@@ -167,7 +167,7 @@ export function homeSections(products = [], activeCategories = []) {
         <span class="lh-brand__name lh-shimmer-text">ANASTASIA</span>
         <span class="lh-brand__sub lh-shimmer-text lh-shimmer-text--gold"><i></i>ACADEMY<i></i></span>
       </a>
-      <a class="lh-brand lh-brand--main" href="/" aria-label="ANASTASIA OZ — Light for the Future">
+      <a class="lh-brand lh-brand--main" href="/" aria-label="ANASTASIA — Light for the Future">
         <span class="lh-brand__lock">
           <img class="lh-brand__mark" src="/assets/logo-mark.png" alt="" width="72" height="72">
           <img class="lh-brand__img--shine" src="/assets/logo-mark.png" alt="" aria-hidden="true" width="72" height="72">

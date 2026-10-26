@@ -12,6 +12,9 @@ export function createAmbient({
 }) {
   const decks = [0, 1].map(() => Object.assign(createAudio(), {preload: 'none', volume: 0}));
   const fades = new Map();
+  // iPhone/iPad hlasitost <audio> ignorují (volume je vždy 1). Prolnutí by pak pustilo dvě stejná místa skladby naplno
+  // přes sebe a zvuk by drnčel – bez ovladatelné hlasitosti se na další část přepne hned.
+  const canFade = (() => { const a = decks[0]; try { a.volume = 0.5; return Math.abs(a.volume - 0.5) < 0.01; } catch { return false; } finally { a.volume = 0; } })();
   let state = null;
   try { state = JSON.parse(storage?.getItem(key) || 'null'); } catch {}
   let cur = 0, part = 0, started = false, paused = true, gen = 0, xfading = null, savedAt = 0;
@@ -91,6 +94,7 @@ export function createAmbient({
   async function next(ms = xfade * 1000) {
     if (paused || xfading === gen) return;
     const g = gen; xfading = g;
+    if (!canFade) ms = 0;
     const from = decks[cur], to = decks[1 - cur], n = (part + 1) % parts;
     try {
       await load(to, n);

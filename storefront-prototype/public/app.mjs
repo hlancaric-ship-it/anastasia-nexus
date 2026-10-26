@@ -294,7 +294,7 @@ const mediaControls=$('[data-media-controls]'),mobileMedia=$('[data-mobile-media
 // Mobil: mimo úvodu chýba miesto pod videom, preto zvuk a cesta späť sedia v malom doku vľavo dole.
 const mobileDock=document.createElement('div');mobileDock.className='ana-mobile-dock';
 // Při posouvání dolů se dock schová, aby nepřekrýval tlačítka, nahoru se vrátí.
-{let lastY=scrollY,ticking=false;addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{const y=scrollY,end=y+innerHeight>=document.documentElement.scrollHeight-80;if(y<lastY-4||end||y<120)mobileDock.classList.remove('is-hidden');else if(y>lastY+4)mobileDock.classList.add('is-hidden');if(Math.abs(y-lastY)>4)lastY=y;ticking=false;});},{passive:true});}
+{let lastY=scrollY,ticking=false,docH=document.documentElement.scrollHeight;try{new ResizeObserver(()=>{docH=document.documentElement.scrollHeight;}).observe(document.body);}catch{}addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{const y=scrollY,end=y+innerHeight>=docH-80;if(y<lastY-4||end||y<120)mobileDock.classList.remove('is-hidden');else if(y>lastY+4)mobileDock.classList.add('is-hidden');if(Math.abs(y-lastY)>4)lastY=y;ticking=false;});},{passive:true});}
 // Odkaz z e-mailu na objednávku (/ucet/order_… alebo /ucet/objednavky/…) otvorí záložku Objednávky v účte.
 {const m=location.pathname.match(/^\/ucet\/(?:objednavky\/)?(order_[A-Za-z0-9]+)\/?$/)||(location.pathname.replace(/\/$/,'')==='/ucet/objednavky'?[0,'']:null);if(m)location.replace('/ucet'+(m[1]?'?objednavka='+encodeURIComponent(m[1]):'')+'#objednavky');}
 if(location.pathname!=='/'){const back=document.createElement('button');back.type='button';back.className='ana-back';back.setAttribute('aria-label',shopText('Späť'));back.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';back.addEventListener('click',()=>{let same=false;try{same=!!document.referrer&&new URL(document.referrer).origin===location.origin;}catch{}if(same&&history.length>1){history.back();return;}const parts=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean);parts.pop();location.href='/'+parts.join('/');});mobileDock.append(back);}
@@ -394,6 +394,8 @@ playBtn?.addEventListener('click',()=>{if(!heroVideo){toggleAmbient();return;}if
 soundBtn?.addEventListener('click',toggleAmbient);
 // Ovládání zvuku je i v úvodu — vystavíme ho, ať se dá zapnout bez lišty.
 try{window.anaToggleAmbient=toggleAmbient;window.anaSoundState=()=>soundBtn?.getAttribute('aria-pressed')==='true';}catch{}
+// Vstúpte na úvode: hudbu vždy zapne (aj keď ju predtým niekto vypol), nikdy ju neprepne na vypnutú.
+try{window.anaPlayAmbient=async()=>{ambOff=false;try{localStorage.removeItem(AMB_OFF);}catch{}if(amb.paused){try{await amb.play();}catch{}}soundLabel();};}catch{}
 nextBtn?.addEventListener('click',()=>{amb.next(1500);});
 addEventListener('pagehide',amb.save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)amb.save();});
@@ -439,8 +441,8 @@ if(motion&&$('.dc-root')){
     $$('div',rail).forEach(d=>{if(d.style.borderBottom||d.style.borderTop)d.style.borderColor=light?'color-mix(in srgb,var(--site-main) 10%,transparent)':'rgba(255,255,255,0.16)';});
   };
   const toneAt=y=>{
-    let el=document.elementFromPoint(80,Math.max(0,Math.min(innerHeight-1,y)));
-    while(el){if(!el.closest('aside')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||el.hasAttribute('data-par')||/url\((?![^)]*\.svg)/.test(cs.backgroundImage))return 'dark';const colors=(cs.backgroundImage.match(/rgba?\([^)]*\)/g)||[]).map(lum).filter(L=>L>=0);if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';const L=lum(cs.backgroundColor);if(L>=0)return L>0.62?'light':'dark';}el=el.parentElement;}
+    // Všetky vrstvy pod bodom zhora nadol, aby sa započítala aj fotka hero pod textom (obchod).
+    for(const el of document.elementsFromPoint(rail?Math.max(1,rail.getBoundingClientRect().width/2):80,Math.max(0,Math.min(innerHeight-1,y)))){if(!el.closest('aside,#ana-rail')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||(el.tagName==='IMG'&&!/\.svg(\?|$)/.test(el.currentSrc||el.src))||el.hasAttribute('data-par')||/url\((?![^)]*\.svg)/.test(cs.backgroundImage))return 'dark';const colors=(cs.backgroundImage.match(/rgba?\([^)]*\)/g)||[]).map(lum).filter(L=>L>=0);if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';const L=lum(cs.backgroundColor);if(L>=0)return L>0.62?'light':'dark';}}
     return 'dark';
   };
   const probe=()=>{
@@ -777,7 +779,10 @@ if(checkoutForm){
     const loaded=await loadOptions();
     if(loaded.ok)setNextState(nextButtonState({cartReady:true,optionsReady:true}));
     else{setNextState({disabled:true,loading:loaded.message});if(retry&&loaded.status!==401)retry.hidden=false;}
-    const initPayment=async()=>{
+    let paymentInit=null;
+    // Jedna príprava naraz, odoslanie si na ňu počká (pomalý mobil, zmena platby tesne pred kliknutím).
+    const initPayment=()=>(paymentInit=preparePayment().finally(()=>{paymentInit=null}));
+    const preparePayment=async()=>{
       paymentReady=false;
       const fs=$('fieldset[data-step="3"]',checkoutForm);if(!fs)return;
       let host=$('#stripe-payment-element',checkoutForm);
@@ -811,7 +816,7 @@ if(checkoutForm){
     checkoutForm.addEventListener('submit',async event=>{event.preventDefault();if(checkoutBusy)return;const current=$('fieldset:not([hidden])',checkoutForm);if(current.dataset.step!=='3'){if(checkoutForm.reportValidity()){step(Number(current.dataset.step)+1);if(Number(current.dataset.step)+1===3)initPayment();}return;}
       const output=$('#checkout-result'),submit=checkoutForm.querySelector('[type=submit]');checkoutBusy=true;if(submit)submit.disabled=true;
       try{
-      if(typeof api.acceptCheckoutTerms==='function'){if(!paymentReady){output.dataset.state='ERROR';output.textContent='Platba ešte nie je pripravená. Skontrolujte údaje v predchádzajúcich krokoch.';output.focus();return;}
+      if(typeof api.acceptCheckoutTerms==='function'){if(!paymentReady){output.dataset.state='REVIEW';output.textContent='Pripravujem platbu…';await (paymentInit||initPayment());}if(!paymentReady){const why=$('#stripe-payment-element',checkoutForm)?.textContent.trim();output.dataset.state='ERROR';output.textContent=why||'Platbu sa nepodarilo pripraviť. Skúste to prosím znova.';output.focus();return;}
         const ok=await api.acceptCheckoutTerms({terms_accepted:checkoutForm.elements.terms.checked,privacy_acknowledged:checkoutForm.elements.privacy.checked});if(!ok.ok){output.dataset.state='ERROR';output.textContent=ok.message;output.focus();return;}}
       if(typeof api.verifyCartBooking==='function'){const term=await api.verifyCartBooking();if(!term.ok){output.dataset.state='ERROR';output.innerHTML=`${e(term.message)}${term.expired?` <a class="text-link" href="/konzultacie/rezervacia">Vybrať termín</a>`:''}`;output.focus();return;}}
       if(paymentRequired&&paymentMethod==='card'&&stripe&&paymentReady){output.dataset.state='REVIEW';output.textContent='Spracúvam platbu…';const {error}=await stripe.confirmPayment({elements,confirmParams:{return_url:location.origin+'/dakujeme/'},redirect:'if_required'});if(error){output.dataset.state='ERROR';output.textContent=error.message||'Platba zlyhala. Skontrolujte údaje karty.';output.focus();return;}}

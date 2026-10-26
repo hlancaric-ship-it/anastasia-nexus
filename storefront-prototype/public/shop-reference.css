@@ -205,7 +205,7 @@
   .shop-v2 .shop-hero__quote{display:none}
   .shop-v2 .shop-tiles{grid-template-columns:repeat(2,1fr)}
   .shop-v2 .shop-tile{aspect-ratio:4/5;padding:16px}
-  .shop-v2 .shop-tile__title{font-size:22px}
+  .shop-v2 .shop-tile__title{font-size:min(22px,4.3vw);letter-spacing:.01em}
   .shop-v2 .shop-tile__sub{font-size:10px;letter-spacing:.1em}
   .shop-v2 .shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 14px}
   .shop-v2 .shop-products{padding:40px 16px 20px}

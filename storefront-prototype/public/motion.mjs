@@ -130,6 +130,8 @@ if (gsap && ScrollTrigger) {
   };
   // Hlavička a boční lišta jsou součástí preloaderu? Ne: na úvodu nejsou vidět
   // vůbec a objeví se až za ním, když už je člověk v obsahu.
+  // Obchod ukazuje lištu hneď po načítaní, plynulým prechodom (Lucky 26. 10.).
+  if (!intro && /^\/eshop(\/|$)/.test(location.pathname)) requestAnimationFrame(() => requestAnimationFrame(showChrome));
   const chromeAt = () => (intro ? Math.max(0, intro.offsetHeight - window.innerHeight) : window.innerHeight * 0.45);
   const head = () => {
     if (window.scrollY > chromeAt()) showChrome();

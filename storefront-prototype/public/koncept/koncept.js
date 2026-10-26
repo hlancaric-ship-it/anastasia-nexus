@@ -18,7 +18,7 @@ function splitWords(lang) {
   wordEls = [...words.querySelectorAll('.kc-w')];
 }
 splitWords(getLang());
-document.addEventListener('anastasia:lang', e => { splitWords(e.detail); dispatchEvent(new Event('scroll')); });
+document.addEventListener('anastasia:lang', e => { splitWords(e.detail); litCount = -1; dispatchEvent(new Event('scroll')); });
 
 const open = document.querySelector('[data-open]');
 const drop = document.querySelector('[data-drop]');
@@ -33,80 +33,102 @@ const count = document.querySelector('[data-count]');
 
 function sizeRoad() {
   if (!road || !track) return;
-  if (mobile() || reduce) { road.style.removeProperty('--road-h'); track.style.transform = ''; return; }
+  if (mobile() || reduce) { road.style.removeProperty('--road-h'); track.style.transform = ''; last.delete(track); return; }
   const dist = Math.max(0, track.scrollWidth - innerWidth);
   road.style.setProperty('--road-h', `${innerHeight + dist}px`);
 }
 
+// Na telefóne sa výška okna mení pri skrole (lišta Safari) – výšku berieme len pri zmene šírky, inak by úvod poskakoval.
+let stableVh = innerHeight, stableW = innerWidth;
+const cardTops = new Map();
+// Zápis štýlu len pri zmene hodnoty – inak by telefón prepočítaval layout každý snímok a skrol by trhal.
+const last = new WeakMap();
+function put(el, prop, val) {
+  if (!el) return;
+  let m = last.get(el); if (!m) last.set(el, m = {});
+  if (m[prop] === val) return;
+  m[prop] = val;
+  if (prop.startsWith('--')) el.style.setProperty(prop, val); else el.style[prop] = val;
+}
+let litCount = -1;
 function frame() {
-  const vh = innerHeight;
+  if (!mobile() || innerWidth !== stableW) { stableVh = innerHeight; stableW = innerWidth; cardTops.clear(); }
+  const vh = stableVh;
+  // Najprv všetky merania, potom zápisy (bez striedania čítanie/zápis, ktoré vynúti layout viackrát za snímok).
+  const rOpen = open && drop && !reduce ? open.getBoundingClientRect() : null;
+  const kick = rOpen ? open.querySelector('.kc-open__kicker') : null;
+  const top0 = kick ? kick.offsetTop + kick.offsetHeight + 40 : vh * .55;
+  const rMani = mani ? mani.getBoundingClientRect() : null;
+  const roadOn = road && track && !mobile() && !reduce;
+  const rRoad = roadOn ? road.getBoundingClientRect() : null;
+  const dist = roadOn ? Math.max(0, track.scrollWidth - innerWidth) : 0;
+  const rAi = ai && !reduce ? ai.getBoundingClientRect() : null;
+  const rWho = who && !reduce ? who.getBoundingClientRect() : null;
+  const cardRects = reduce ? [] : cards.map((c, i) => {
+    if (!cards[i + 1]) return null;
+    if (!cardTops.has(c)) cardTops.set(c, parseFloat(getComputedStyle(c).top) || 0);
+    return { top: cardTops.get(c), nextTop: cards[i + 1].getBoundingClientRect().top };
+  });
   // 1 · kvapka rastie do celej obrazovky
-  if (open && drop && !reduce) {
-    const r = open.getBoundingClientRect();
-    const p = clamp(-r.top / (r.height - vh));
+  if (rOpen) {
+    const p = clamp(-rOpen.top / (rOpen.height - vh));
     const e = 1 - Math.pow(1 - clamp(p / .7), 3);
-    // desktop: kvapka začína tesne pod podtitulom a celá sa zmestí na obrazovku
-    const kick = open.querySelector('.kc-open__kicker');
-    const top0 = kick ? kick.offsetTop + kick.offsetHeight + 40 : vh * .55;
     const w0 = mobile() ? Math.min(innerWidth * .40, 260) : Math.max(120, Math.min(innerWidth * .18, 260, (vh - top0 - 28) * 3 / 4));
     const h0 = w0 * 4 / 3;
-    drop.style.width = `${w0 + (innerWidth - w0) * e}px`;
-    drop.style.height = `${h0 + (vh - h0) * e}px`;
-    drop.style.aspectRatio = 'auto';
-    const rad = 999 * (1 - e);
-    drop.style.borderRadius = `${rad}px ${rad}px ${rad}px 0`;
-    open.style.setProperty('--p', e.toFixed(3));
+    // plná veľkosť ostáva, rastie len orez (bez prepočtu layoutu na každom snímku)
+    const W = innerWidth, w = w0 + (W - w0) * e, h = h0 + (vh - h0) * e;
+    put(drop, 'width', `${W}px`);
+    put(drop, 'height', `${vh}px`);
+    put(drop, 'aspectRatio', 'auto');
+    put(drop, 'borderRadius', '0');
+    const rad = (999 * (1 - e)).toFixed(1), ix = ((W - w) / 2).toFixed(1), iy = ((vh - h) / 2).toFixed(1);
+    put(drop, 'clipPath', `inset(${iy}px ${ix}px round ${rad}px ${rad}px ${rad}px 0)`);
+    put(open, '--p', e.toFixed(3));
+    open.classList.toggle('is-in', p > .04);
     const dy0 = mobile() ? vh * .26 : top0 + h0 / 2 - vh / 2;
-    drop.style.setProperty('--dy', `${(dy0 * (1 - e)).toFixed(1)}px`);
-    drop.style.setProperty('--veil', clamp((p - .45) / .3).toFixed(3));
-    drop.style.setProperty('--claim', clamp((p - .55) / .3).toFixed(3));
+    put(drop, '--dy', `${(dy0 * (1 - e)).toFixed(1)}px`);
+    put(drop, '--veil', clamp((p - .45) / .3).toFixed(3));
+    put(drop, '--claim', clamp((p - .55) / .3).toFixed(3));
   }
   // 2 · slová sa rozsvecujú podľa postupu v pripnutej sekcii
-  if (mani) {
-    const r = mani.getBoundingClientRect();
-    const p = reduce ? 1 : clamp(-r.top / Math.max(1, r.height - vh * 1.1) * 1.15);
+  if (rMani) {
+    const p = reduce ? 1 : clamp(-rMani.top / Math.max(1, rMani.height - vh * 1.1) * 1.15);
     const lit = Math.round(p * wordEls.length * 1.05);
-    wordEls.forEach((w, i) => w.classList.toggle('on', i < lit));
-    mani.style.setProperty('--mf', clamp((p - .8) / .2).toFixed(3));
+    if (lit !== litCount) { litCount = lit; wordEls.forEach((w, i) => w.classList.toggle('on', i < lit)); }
+    put(mani, '--mf', clamp((p - .8) / .2).toFixed(3));
   }
   // 3 · horizontálna cesta
-  if (road && track && !mobile() && !reduce) {
-    const r = road.getBoundingClientRect();
-    const dist = Math.max(0, track.scrollWidth - innerWidth);
-    const p = clamp(-r.top / Math.max(1, r.height - vh));
-    track.style.transform = `translate3d(${-dist * p}px,0,0)`;
-    bar?.parentElement.style.setProperty('--rp', p.toFixed(3));
-    bar && (bar.style.transform = `scaleX(${p.toFixed(3)})`);
+  if (rRoad) {
+    const p = clamp(-rRoad.top / Math.max(1, rRoad.height - vh));
+    put(track, 'transform', `translate3d(${(-dist * p).toFixed(1)}px,0,0)`);
+    put(bar?.parentElement, '--rp', p.toFixed(3));
+    put(bar, 'transform', `scaleX(${p.toFixed(3)})`);
   }
   // 4 · AI: písmená s videom sa priblížia, potom sa ukáže text
-  if (ai && !reduce) {
-    const r = ai.getBoundingClientRect();
-    const p = clamp(-r.top / Math.max(1, r.height - vh));
+  if (rAi) {
+    const p = clamp(-rAi.top / Math.max(1, rAi.height - vh));
     const z = clamp(p / .6);
-    ai.style.setProperty('--as', (1 + Math.pow(z, 3) * 14).toFixed(3));
-    ai.style.setProperty('--ao', clamp(1 - (p - .45) / .15).toFixed(3));
-    ai.style.setProperty('--ai', clamp((p - .58) / .2).toFixed(3));
+    put(ai, '--as', (1 + Math.pow(z, 3) * 14).toFixed(3));
+    put(ai, '--ao', clamp(1 - (p - .45) / .15).toFixed(3));
+    put(ai, '--ai', clamp((p - .58) / .2).toFixed(3));
   }
   // 5 · Lucia: medailón sa otvorí, prstence sa točia, malé fotky plávajú
-  if (who && !reduce) {
-    const r = who.getBoundingClientRect();
-    const p = clamp((vh - r.top) / (vh + r.height));
-    const o = clamp((vh - r.top) / (vh * .9));
-    who.style.setProperty('--ci', `${(14 * (1 - o)).toFixed(2)}%`);
-    who.style.setProperty('--ms', (1.1 - .1 * p).toFixed(3));
-    who.style.setProperty('--my', `${(-40 * p).toFixed(1)}px`);
-    who.style.setProperty('--rr', `${(p * 70).toFixed(1)}deg`);
-    who.style.setProperty('--ya', `${(120 - 320 * p).toFixed(1)}px`);
-    who.style.setProperty('--yb', `${(-80 + 240 * p).toFixed(1)}px`);
-    who.style.setProperty('--gx', `${((.5 - p) * 30).toFixed(1)}vw`);
+  if (rWho) {
+    const p = clamp((vh - rWho.top) / (vh + rWho.height));
+    const o = clamp((vh - rWho.top) / (vh * .9));
+    put(who, '--ci', `${(14 * (1 - o)).toFixed(2)}%`);
+    put(who, '--ms', (1.1 - .1 * p).toFixed(3));
+    put(who, '--my', `${(-40 * p).toFixed(1)}px`);
+    put(who, '--rr', `${(p * 70).toFixed(1)}deg`);
+    put(who, '--ya', `${(120 - 320 * p).toFixed(1)}px`);
+    put(who, '--yb', `${(-80 + 240 * p).toFixed(1)}px`);
+    put(who, '--gx', `${((.5 - p) * 30).toFixed(1)}vw`);
   }
   // 6 · karty sa pri prekrytí zmenšia
-  if (!reduce) cards.forEach((c, i) => {
-    const next = cards[i + 1];
-    if (!next) return;
-    const top = parseFloat(getComputedStyle(c).top) || 0;
-    const k = clamp((vh - next.getBoundingClientRect().top) / (vh - top));
-    c.style.setProperty('--sc', (1 - k * .06).toFixed(4));
+  cardRects.forEach((r, i) => {
+    if (!r) return;
+    const k = clamp((vh - r.nextTop) / (vh - r.top));
+    put(cards[i], '--sc', (1 - k * .06).toFixed(4));
   });
 }
 
@@ -183,4 +205,19 @@ if (pre.length) {
   };
   pre.forEach(el => el.addEventListener('animationend', e => { if (e.animationName === 'kc-cycle' || e.animationName === 'kc-fade') el.classList.remove('on'); }));
   setTimeout(() => { show(); setInterval(() => { if (document.visibilityState === 'visible') show(); }, 3800); }, 1200);
+}
+
+// Vstúpte: zapne hudbu (klik je gesto, prehliadač ju pustí) a plynulo prehrá otvorenie až do konca
+const enter = document.querySelector('[data-enter]');
+if (enter && open) {
+  enter.addEventListener('click', () => {
+    window.anaPlayAmbient?.();
+    const end = open.offsetTop + Math.max(open.offsetHeight - innerHeight, innerHeight * .9);
+    const ease = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    if (window.__anaLenis) { window.__anaLenis.scrollTo(end, { duration: reduce ? 0 : 3.2, easing: ease }); return; }
+    if (reduce) { scrollTo(0, end); return; }
+    const y0 = scrollY, t0 = performance.now(), dur = 3200;
+    const step = t => { const k = clamp((t - t0) / dur); scrollTo(0, y0 + (end - y0) * ease(k)); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
 }

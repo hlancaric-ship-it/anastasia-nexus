@@ -194,6 +194,9 @@ function footerLinks(html) {
   for (const [title, links] of Object.entries(FOOTER_GROUPS)) {
     out = out.replace(new RegExp(`(>${title}</span>\\s*)(?:<a\\b[^>]*>[^<]*</a>)+`), (_, head) => head + links.map(([t, h]) => `<a href="${h}">${t}</a>`).join(''));
   }
+  // Pod guľou z loga Lucie náš nápis ANASTASIA a Light for the Future (Lucky 26. 10.).
+  out = out.replace('<span style="font-weight:400;font-size:9px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">ANASTASIA OZ</span>',
+    '<span style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-weight:300;font-size:14px;letter-spacing:.32em;padding-left:.32em;color:#EFE5C7">ANASTASIA</span><span style="font-weight:400;font-size:9px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">Light for the Future</span></span>');
   // Loga Academy a AI ANASTASIA jsou odkazy na své stránky (stejný styl, jen <a> místo <div>).
   // Kontakt v päte ako na starom webe: telefón, e-mail a odkaz na Cookies.
   out = out.replace(/(<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:12px;color:#C4C7B6">)/,
@@ -222,7 +225,7 @@ function footerClasses(html) {
 
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
 // Staré kruhové logo (BUSINESS / LIFE COACHING / MARTIAL ART) nahrádza výhradne zlatá pečať ANASTASIA (Lucky 26. 10.).
-const seal=h=>h.replace(/<img src="\.?\/assets\/lucia-logo\.png"([^>]*)>/g,(m,a)=>`<img src="/assets/brand-seal.svg" class="brand-seal"${a.replace(/filter:[^;"]*;?/,'').replace(/opacity:\.82;?/,'')}>`);
+const seal=h=>h.replace(/<img src="\.?\/assets\/lucia-logo\.png"([^>]*)>/g,(m,a)=>`<img src="/assets/lucia-koule.png" class="brand-seal"${a.replace(/filter:[^;"]*;?/,'').replace(/opacity:\.82;?/,'')}>`);
 
 export function chrome(page) {
   const src = page === 'about' ? P.about : P.home;
@@ -230,7 +233,7 @@ export function chrome(page) {
   const side=src.side.replace(/<div style="display:flex;align-items:center;gap:14px"><img src="\.\/assets\/logo-mark\.png"[^>]*><div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div><\/div>/,'');
   // Tri logá z pätičky v spodnom riadku horného menu vpravo, vedľa jazykov.
   const MENU_LOGOS='<div class="menu-brand-logos" style="display:flex;justify-content:flex-end;align-items:flex-start;gap:18px;min-width:0;padding-top:6px">'
-    +'<a data-menu-brand href="/" data-menu-close style="display:grid;grid-template-rows:96px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><img src="/assets/lucia-logo.png" alt="ANASTASIA — Light for the Future" style="height:92px;width:auto;opacity:.82"><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent);white-space:nowrap">ANASTASIA OZ</span></a>'
+    +'<a data-menu-brand href="/" data-menu-close style="display:grid;grid-template-rows:96px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><img src="/assets/lucia-logo.png" alt="" style="height:72px;width:72px"><span style="display:flex;flex-direction:column;align-items:center;gap:5px;white-space:nowrap"><span style="font-weight:300;font-size:13px;letter-spacing:.32em;padding-left:.32em">ANASTASIA</span><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent)">Light for the Future</span></span></a>'
     +'<a data-menu-brand href="https://www.anastasia.academy/" target="_blank" rel="noopener" style="display:grid;grid-template-rows:96px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><div style="display:flex;flex-direction:column;align-items:center;gap:7px;padding-bottom:4px"><span style="width:1px;height:26px;background:linear-gradient(180deg,rgba(201,163,85,0),var(--site-accent))"></span><span style="font-weight:200;font-size:12px;letter-spacing:.3em;padding-left:.3em;white-space:nowrap">ANASTASIA</span><span style="display:flex;align-items:center;gap:6px;font-weight:300;font-size:7px;letter-spacing:.5em;padding-left:.5em;color:var(--site-accent);white-space:nowrap"><span style="width:10px;height:1px;background:var(--site-accent)"></span>ACADEMY<span style="width:10px;height:1px;background:var(--site-accent)"></span></span></div><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent);white-space:nowrap">ANASTASIA.ACADEMY</span></a>'
     +'<a data-menu-brand href="https://www.aianastasia.com/" target="_blank" rel="noopener" style="display:grid;grid-template-rows:96px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><img src="/assets/logo-mark.png" alt="" style="width:58px;height:auto"><span style="font-weight:200;font-size:11px;letter-spacing:.3em;padding-left:.3em;white-space:nowrap">ANASTASIA</span></div><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent);white-space:nowrap">AI ANASTASIA</span></a></div>';
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
