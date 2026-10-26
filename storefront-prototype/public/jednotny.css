@@ -1150,4 +1150,10 @@ html body #dc-top-menu div[style*="flex-direction:column;gap:"]>:is(a,span):firs
 
 /* Mobil: karty bez backdrop blur, iPhone ho pri scrolle prepočítava každý snímok (sekanie v Môj účet) */
 @media(max-width:999px){html body :is(#page-shell,.customer-center) :is(.acc-card,.pdm-panel,.pdm-details .pdm-accordions details,.shop-grid--v3 .shop-card,.pdm-related-card){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
+/* Prihlásenie heslom (26. 10.): druhé tlačidlo pre odkaz z e-mailu, obrysové v rovnakom tvare. */
+#page-shell#page-shell.kc-unified .legacy-main .lg-card .button.lg-link{width:100%!important;max-width:none!important;display:inline-flex!important;height:48px;min-height:48px;justify-content:center;border-radius:999px!important;background:transparent!important;border:1px solid rgba(40,48,32,.35)!important;color:#283020!important;font-weight:500}
+#page-shell#page-shell.kc-unified .legacy-main .lg-card .button.lg-link:hover{background:rgba(40,48,32,.06)!important}
+.customer-center .acc-password{display:grid;gap:12px}
+.customer-center .acc-password label{display:grid;gap:6px;font-size:13px}
+.customer-center .acc-password .form-status:empty{display:none}
 }

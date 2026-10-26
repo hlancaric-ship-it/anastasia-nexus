@@ -13,7 +13,13 @@ import {initWithdrawalForm} from '/withdrawal-form.mjs';
 import {initResetZone} from '/reset-zone.mjs';
 import {setAccountLink,setAccountVisibility} from '/account-links.mjs';
 import {JWT_KEY} from '/lib/api/http.mjs';
-let storage;try{storage=window.sessionStorage;}catch{}
+// Prihlásenie (JWT) je v localStorage, aby prežilo zatvorenie prehliadača. Košík a ostatné ostávajú v karte.
+let storage;try{
+  const tab=window.sessionStorage;let keep=null;try{keep=window.localStorage;}catch{}
+  if(keep){try{const old=tab.getItem(JWT_KEY);if(old&&!keep.getItem(JWT_KEY))keep.setItem(JWT_KEY,old);tab.removeItem(JWT_KEY);}catch{}}
+  const pick=k=>k===JWT_KEY&&keep?keep:tab;
+  storage={getItem:k=>pick(k).getItem(k),setItem:(k,v)=>pick(k).setItem(k,v),removeItem:k=>pick(k).removeItem(k)};
+}catch{}
 const api=createApi(storage);
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
 // Product media can be temporarily unavailable while catalogue URLs are repaired.
@@ -40,6 +46,8 @@ updateCount().catch(()=>{});
 window.addEventListener('unhandledrejection',event=>{const reason=String(event.reason||'');if(/Failed to fetch|NetworkError|Load failed/i.test(reason))event.preventDefault();});
 // Prihlásenie zákazníka: token v prehliadači (kľúč je JWT_KEY z API adaptéra, src/lib/api/http.mjs).
 const customerLogged=()=>{try{return Boolean(storage&&storage.getItem(JWT_KEY));}catch{return false;}};
+// Prihlásenie sa pri návšteve raz za deň predĺži, zrušený token sa zmaže.
+if(customerLogged()){let last=0;try{last=Number(localStorage.getItem('anastasia.jwt.refreshed'))||0;}catch{}if(Date.now()-last>864e5)api.refreshSession().then(r=>{if(r.ok)try{localStorage.setItem('anastasia.jwt.refreshed',String(Date.now()));}catch{}}).catch(()=>{});}
 // Ikona účtu v hlavičke aj položka účtu v menu idú podľa prihlásenia (účet / prihlásenie).
 for(const link of $$('[data-global-account],[data-menu-account]'))setAccountLink(link,customerLogged());
 for(const link of $$('[data-global-account],[data-menu-account]')){if(link.classList.contains('dch6')||link.parentElement?.querySelector(':scope > [data-register-link]'))continue;const register=document.createElement('a');register.href='/nova-registracia?mode=register';register.dataset.registerLink='';register.className=link.classList.contains('header-account')?'header-register':'menu-register';register.textContent='Zaregistrovať sa';link.insertAdjacentElement('afterend',register);}
@@ -97,6 +105,16 @@ if(customerCenter){
   $$('[data-material-filter]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const filter=btn.dataset.materialFilter;$$('[data-material-filter]',customerCenter).forEach(item=>item.setAttribute('aria-pressed',String(item===btn)));$$('[data-material-category]',customerCenter).forEach(row=>{row.hidden=!!filter&&row.dataset.materialCategory!==filter;});}));
   // Členská zóna RESET 40+ a Zrkadielko: načíta sa len pri prístupe, inak nič nevymýšľame.
   initResetZone(api, customerCenter);
+  {const pw=$('#center-password');if(pw){
+    const status=$('.form-status',pw),mark=has=>{$('[data-password-title]',pw).textContent=has?'Zmena hesla':'Nastavte si heslo';$('[data-password-lead]',pw).textContent=has?'Heslo máte nastavené. Prihlásiť sa môžete heslom aj odkazom z e-mailu.':'Zatiaľ sa prihlasujete odkazom z e-mailu. Nastavte si heslo a prihlásite sa aj bez čakania na e-mail.';$('button[type=submit]',pw).textContent=has?'Zmeniť heslo':'Uložiť heslo';};
+    api.getPasswordStatus().then(r=>{if(r.ok)mark(r.hasPassword);}).catch(()=>{});
+    pw.addEventListener('submit',async event=>{event.preventDefault();const send=$('button[type=submit]',pw),a=pw.elements.password.value,b=pw.elements.password2.value;if(send.disabled)return;
+      if(a.length<8){status.textContent='Heslo musí mať aspoň 8 znakov.';pw.elements.password.focus();return;}
+      if(a!==b){status.textContent='Heslá sa nezhodujú.';pw.elements.password2.focus();return;}
+      send.disabled=true;status.textContent='Ukladám…';
+      try{const r=await api.setPassword(a);status.textContent=r.message;if(r.ok){pw.elements.password.value='';pw.elements.password2.value='';mark(true);}}
+      catch{status.textContent='Heslo sa nepodarilo uložiť. Skúste to znova.';}finally{send.disabled=false;}});
+  }}
   $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{$('.form-status',form).textContent=(await api.saveCustomerProfile(Object.fromEntries(new FormData(form)))).message;}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
   // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.
   (async()=>{
@@ -109,7 +127,7 @@ if(customerCenter){
     const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');
     if(data.ok&&data.profile){
       const pr=data.profile;$('#center-name').textContent=pr.name||pr.email;
-      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});
+      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});{const u=$('#center-password [name=username]');if(u&&pr.email)u.value=pr.email;}
       const birth=[pr.birthDate&&new Date(`${pr.birthDate}T00:00:00`).toLocaleDateString('sk-SK'),pr.birthTime,pr.birthPlace].filter(Boolean);
       if(birth.length)put('#center-birth-summary',e(birth.join(' · ')));
     }
@@ -849,7 +867,20 @@ if($('#ty-view')){
   }
   title.focus();
 }
-$('#login-form')?.addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;$('.form-status',form).textContent=(await api.requestMagicLink(form.elements.email.value)).message;});
+{const form=$('#login-form');
+  if(form){
+    const status=$('.form-status',form),go=()=>{let back='';try{back=localStorage.getItem('anastasia.return')||'';localStorage.removeItem('anastasia.return');}catch{}const want=new URLSearchParams(location.search).get('redirect')||'';location.replace([want,back].find(x=>x&&SAFE_PATH.test(x))||'/ucet#prehlad');};
+    let busy=false;
+    const run=async(mode)=>{if(busy)return;const email=form.elements.email;if(!email.reportValidity())return;busy=true;$$('button',form).forEach(b=>b.disabled=true);
+      try{
+        if(mode==='password'){const pass=form.elements.password;if(!pass.value){status.textContent='Zadajte heslo alebo si pošlite prihlasovací odkaz.';pass.focus();return;}status.textContent='Prihlasujem…';const r=await api.signInWithPassword(email.value,pass.value);status.textContent=r.message;if(r.ok){try{sessionStorage.setItem('anastasia.welcome','1');}catch{}go();}else pass.select();}
+        else{status.textContent='Posielam odkaz…';status.textContent=(await api.requestMagicLink(email.value)).message;}
+      }catch{status.textContent='Prihlásenie sa nepodarilo. Skúste to prosím znova.';}
+      finally{busy=false;$$('button',form).forEach(b=>b.disabled=false);}};
+    form.addEventListener('submit',event=>{event.preventDefault();run('password');});
+    $('[data-login-link]',form)?.addEventListener('click',()=>run('link'));
+  }
+}
 const authTabs=$$('.auth-tabs [role=tab]'),authPanels=$$('.auth-panel');
 authTabs.forEach(tab=>tab.addEventListener('click',()=>{authTabs.forEach(item=>item.setAttribute('aria-selected',String(item===tab)));authPanels.forEach(panel=>{panel.hidden=panel.id!==tab.getAttribute('aria-controls');});const eb=$('.lg-card .page-intro .eyebrow')||$('.auth-copy .page-intro .eyebrow');if(eb)eb.textContent=tab.getAttribute('aria-controls')==='registration-form'?'Vitajte':'Vitajte späť';}));
 if(new URLSearchParams(location.search).get('mode')==='register')$('#tab-register')?.click();

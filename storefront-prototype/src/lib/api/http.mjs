@@ -734,6 +734,46 @@ export function createHttpApi(storage, config) {
       }
     },
 
+    // Prihlásenie heslom: heslo patrí k tomu istému účtu ako prihlasovací odkaz.
+    async signInWithPassword(email, password) {
+      const mail = String(email || '').trim().toLowerCase(), pass = String(password || '');
+      if (!mail || !pass) return { ok: false, message: 'Zadajte e-mail a heslo.' };
+      try {
+        const r = await call('/auth/customer/emailpass', { method: 'POST', body: { email: mail, password: pass } });
+        if (r.status === 429) return { ok: false, message: 'Príliš veľa pokusov. Skúste to neskôr alebo sa prihláste odkazom z e-mailu.' };
+        const token = r.data?.token;
+        if (!r.ok || !token || !tokenHasActor(token)) return { ok: false, message: r.status >= 500 ? 'Prihlásenie je dočasne nedostupné. Skúste to o chvíľu.' : 'E-mail alebo heslo nesedí. Ak heslo ešte nemáte, pošlite si prihlasovací odkaz.' };
+        set(JWT, token);
+        return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
+      } catch { return { ok: false, message: 'Prihlásenie sa nepodarilo. Skúste to prosím znova o chvíľu.' }; }
+    },
+    async getPasswordStatus() {
+      if (!loggedIn()) return { ok: false, status: 401 };
+      try { const r = await call('/store/customers/me/password'); return r.ok ? { ok: true, hasPassword: r.data?.has_password === true } : { ok: false, status: r.status }; }
+      catch { return { ok: false, status: 0 }; }
+    },
+    async setPassword(password) {
+      const pass = String(password || '');
+      if (pass.length < 8) return { ok: false, message: 'Heslo musí mať aspoň 8 znakov.' };
+      try {
+        const r = await call('/store/customers/me/password', { method: 'POST', body: { password: pass } });
+        if (r.ok) return { ok: true, message: 'Heslo je uložené. Odteraz sa môžete prihlasovať aj heslom.' };
+        if (r.status === 401) return { ok: false, message: 'Prihlásenie vypršalo. Prihláste sa znova.' };
+        if (r.status === 429) return { ok: false, message: 'Príliš veľa zmien. Skúste to neskôr.' };
+        return { ok: false, message: r.status === 400 ? 'Heslo musí mať 8 až 200 znakov.' : r.data?.message || 'Heslo sa nepodarilo uložiť. Skúste to znova.' };
+      } catch { return { ok: false, message: 'Heslo sa nepodarilo uložiť. Skúste to znova.' }; }
+    },
+    // Predĺženie prihlásenia: platný token vymení za nový (30 dní), zrušený alebo vypršaný zmaže.
+    async refreshSession() {
+      if (!loggedIn()) return { ok: false };
+      try {
+        const r = await call('/auth/token/refresh', { method: 'POST', body: {} });
+        if (r.ok && r.data?.token && tokenHasActor(r.data.token)) { set(JWT, r.data.token); return { ok: true }; }
+        if (r.status === 401) { del(JWT); return { ok: false, expired: true }; }
+      } catch { /* sieť: token ostáva, skúsi sa nabudúce */ }
+      return { ok: false };
+    },
+
     // Odhlásenie: zruší serverovú reláciu a vymaže token aj údaje zákazníka z prehliadača.
     // Serverová chyba odhlásenie neblokuje – lokálne údaje sa vymažú vždy, inak by účet zostal dostupný.
     async signOut() {

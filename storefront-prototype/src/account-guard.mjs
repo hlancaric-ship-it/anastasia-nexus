@@ -6,4 +6,4 @@
 // API adaptér (src/lib/api/http.mjs) – zdroj pravdy je export JWT_KEY.
 // Odkaz na objednávku z e-mailu (?objednavka=) si zapamätá, aby sa po prihlásení dal otvoriť.
 export const accountGuardBoot = (jwtKey) =>
-  `try{if(!sessionStorage.getItem(${JSON.stringify(jwtKey)})){if(/objednavka=/.test(location.search))try{localStorage.setItem('anastasia.return','/ucet'+location.search);}catch(e){}location.replace(location.search.includes('mode=register')?'/prihlasenie?mode=register':'/prihlasenie');}}catch(e){/* prehliadač bez sessionStorage nechá rozhodnúť aplikácia */}\n`;
+  `try{var k=${JSON.stringify(jwtKey)},t=null;try{t=localStorage.getItem(k);}catch(e){}if(!t)t=sessionStorage.getItem(k);if(!t){if(/objednavka=/.test(location.search))try{localStorage.setItem('anastasia.return','/ucet'+location.search);}catch(e){}location.replace(location.search.includes('mode=register')?'/prihlasenie?mode=register':'/prihlasenie');}}catch(e){/* prehliadač bez úložiska nechá rozhodnúť aplikácia */}\n`;

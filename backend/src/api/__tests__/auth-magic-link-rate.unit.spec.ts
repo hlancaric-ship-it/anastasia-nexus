@@ -26,7 +26,7 @@ describe('magic link abuse control',()=>{
  it('handles decoded provider paths without interfering with other auth providers',async()=>{
   const f=fixture();f.req.path='/auth/customer/%6dagic-link';await limitMagicLink(f.req,f.res,f.next)
   expect(f.db.raw).toHaveBeenCalledTimes(2)
-  const other=fixture();other.req.params.auth_provider='emailpass';await limitMagicLink(other.req,other.res,other.next)
+  const other=fixture();other.req.params.auth_provider='google';await limitMagicLink(other.req,other.res,other.next)
   expect(other.next).toHaveBeenCalled();expect(other.db.raw).not.toHaveBeenCalled()
  })
  it('fails closed when persistence is unavailable',async()=>{
