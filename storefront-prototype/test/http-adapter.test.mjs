@@ -122,3 +122,23 @@ test('expired hold blocks payment before Stripe confirmation',async()=>{
   const r=await createHttpApi(memoryStorage({'anastasia.jwt':'jwt','anastasia.cart':'cart_1'}),config).verifyCartBooking();
   assert.equal(r.ok,false);assert.equal(r.expired,true);
 });
+
+test('a hanging backend call is aborted after the read timeout with a clear message',async(t)=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  let signal=null;
+  globalThis.fetch=(url,init)=>{signal=init.signal;return new Promise((_,reject)=>init.signal.addEventListener('abort',()=>reject(Object.assign(new Error('aborted'),{name:'AbortError'}))));};
+  const pending=createHttpApi(memoryStorage(),config).getProducts();
+  await new Promise(r=>setImmediate(r));
+  assert.ok(signal,'fetch dostal AbortSignal');
+  t.mock.timers.tick(14999);assert.equal(signal.aborted,false);
+  t.mock.timers.tick(1);assert.equal(signal.aborted,true);
+  await assert.rejects(pending,err=>err.code==='API_TIMEOUT'||/neodpovedá|nedostupn|načítať/i.test(String(err?.message)));
+});
+
+test('protected contents use the redacted ext from Store API and still accept legacy keys',async()=>{
+  router([['GET',/^\/store\/products/,()=>respond(200,{products:[
+    {id:'p1',handle:'reset',title:'RESET',metadata:{protected_media:[{title:'Kniha',ext:'PDF'},{title:'Starý',key:'paid/a.mp3'},{title:'Zlý',ext:'"><x'},null]},variants:[{id:'v1'}]},
+  ]})]]);
+  const p=await createHttpApi(memoryStorage(),config).getProduct('reset');
+  assert.deepEqual(p.contents,[{title:'Kniha',ext:'pdf'},{title:'Starý',ext:'mp3'},{title:'Zlý',ext:'x'}]);
+});

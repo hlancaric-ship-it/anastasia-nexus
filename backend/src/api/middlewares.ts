@@ -22,6 +22,7 @@ import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
 import { customerCreateMiddlewares } from "./store/customers/create-guard"
 import { adminCapabilityMiddlewares } from "./admin-capability-middlewares"
 import { abuseGuardMiddlewares } from "./abuse-guard-middlewares"
+import { protectedMediaRedactionMiddlewares } from "./protected-media-redaction-middlewares"
 import { adminUploadGuardMiddlewares } from "./admin/upload-guard"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
@@ -48,6 +49,8 @@ export default defineMiddlewares({
     ...customerCreateMiddlewares,
     // Brzdy Store API: card testing, zahltenie cudzej schránky, termíny, stránkovanie, množstvá.
     ...abuseGuardMiddlewares,
+    // Kľúče chránených súborov sa verejne nevracajú (len názov a prípona).
+    ...protectedMediaRedactionMiddlewares,
     // Odhlásenie: iba platný Bearer token zákazníka, odhlásenie ho zneplatní na serveri.
     ...nexusAuthStoreMiddlewares,
     ...entitlementStoreMiddlewares,

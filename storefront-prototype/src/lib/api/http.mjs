@@ -77,7 +77,8 @@ function mapProduct(p,apiBase='') {
     manufacturer: p.metadata?.manufacturer || '',
     stock: p.metadata?.availability || '',
     // Chránený obsah: len názvy a typy súborov pre detail (súbory sa otvárajú až v účte po nákupe).
-    contents: (Array.isArray(p.metadata?.protected_media) ? p.metadata.protected_media : []).filter(m=>m && typeof m.key==='string').map(m=>({ title: String(m.title||''), ext: (m.key.match(/\.([a-z0-9]{2,4})$/i)?.[1]||'').toLowerCase() })),
+    // Store API vracia len `title` a `ext` (kľúč objektu je skrytý); `key` ostáva kvôli starším odpovediam.
+    contents: (Array.isArray(p.metadata?.protected_media) ? p.metadata.protected_media : []).filter(m=>m && (typeof m.ext==='string' || typeof m.key==='string')).map(m=>({ title: String(m.title||''), ext: String(typeof m.ext==='string' ? m.ext : (m.key.match(/\.([a-z0-9]{2,4})$/i)?.[1]||'')).toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,4) })),
     // Voľby produktu (napr. Pre: Dámsky/Pánsky, Množstvo: 50 ml/100 ml). Technická voľba „Variant: Štandard“ sa nezobrazuje.
     options: (p.variants || []).length > 1 ? (p.options || []).map(o => ({ id: o.id, title: o.title, values: [...new Set((o.values || []).map(v => v.value))] })).filter(o => o.values.length > 1) : [],
     variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, soldOut: v.manage_inventory === true && v.allow_backorder !== true && Number(v.inventory_quantity) <= 0, priceLabel: v.calculated_price?.calculated_amount != null ? money(v.calculated_price.calculated_amount) : 'Cena sa doplní', options: Object.fromEntries((v.options || []).map(o => [(p.options || []).find(x => x.id === (o.option_id || o.option?.id))?.title || o.option?.title || '', o.value])) })),
@@ -87,6 +88,7 @@ function mapProduct(p,apiBase='') {
 // Kľúč tokenu zákazníka v prehliadači. Používa ho aj skript stráže účtu (src/account-guard.mjs).
 export const JWT_KEY = 'anastasia.jwt';
 
+const CALL_TIMEOUT_READ_MS = 15000, CALL_TIMEOUT_WRITE_MS = 30000;
 export function createHttpApi(storage, config) {
   const base = config.apiBaseUrl.replace(/\/+$/, '');
   const JWT = JWT_KEY, CART = 'anastasia.cart', COUPON = 'anastasia.coupon', QRKEYS = 'anastasia.qrkeys', GIFT = 'anastasia.gift';
@@ -100,13 +102,30 @@ export function createHttpApi(storage, config) {
     const t = token || get(JWT); if (t) h.authorization = `Bearer ${t}`;
     return h;
   };
-  async function call(path, { method = 'GET', body, token } = {}) {
-    const res = await fetch(base + path, {
-      method, headers: headers(body !== undefined, token),
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    let data = null; try { data = await res.json(); } catch { /* prázdné tělo */ }
-    return { status: res.status, ok: res.ok, data };
+  // Zaseknuté spojenie nesmie nechať stránku čakať donekonečna. Zápis (napr. dokončenie objednávky)
+  // má dlhší limit; po vypršaní hádže chybu ako výpadok siete – volajúci ju už spracúvajú.
+  async function call(path, { method = 'GET', body, token, timeoutMs } = {}) {
+    const limit = timeoutMs ?? (method === 'GET' || method === 'HEAD' ? CALL_TIMEOUT_READ_MS : CALL_TIMEOUT_WRITE_MS);
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), limit) : null;
+    try {
+      const res = await fetch(base + path, {
+        method, headers: headers(body !== undefined, token),
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller?.signal,
+      });
+      let data = null; try { data = await res.json(); } catch { /* prázdné tělo */ }
+      return { status: res.status, ok: res.ok, data };
+    } catch (error) {
+      if (controller?.signal.aborted) {
+        const timeout = new Error('Server neodpovedá. Skúste to, prosím, o chvíľu znova.');
+        timeout.name = 'TimeoutError'; timeout.code = 'API_TIMEOUT';
+        throw timeout;
+      }
+      throw error;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
   const loggedIn = () => Boolean(get(JWT));
 
