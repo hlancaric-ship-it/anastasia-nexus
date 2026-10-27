@@ -1280,3 +1280,12 @@ html body .ana-bf-off>img.brand-seal{display:none!important}
 @layer shopv2{
 html body #page-shell#page-shell.kc-unified .legacy-main .bk-summary button.bk-go[data-bk-reserve]{background:#F7F4EC!important;color:var(--olive,#2F3424)!important;border:1px solid #F7F4EC!important;width:100%;justify-content:space-between;padding:0 24px!important}
 }
+
+/* Pokladňa: firemné údaje, každé pole na vlastnom riadku, dostatok miesta nad tlačidlom. */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .shop-checkout .company-fields{display:grid;gap:26px;margin:10px 0 34px}
+#page-shell#page-shell.kc-unified .shop-checkout .company-fields[hidden]{display:none}
+#page-shell#page-shell.kc-unified .shop-checkout .company-fields>label{display:grid;gap:10px;margin:0}
+#page-shell#page-shell.kc-unified .shop-checkout label.check{display:flex;align-items:center;gap:12px;margin:22px 0 18px}
+#page-shell#page-shell.kc-unified .shop-checkout fieldset[data-step="1"]>.button[data-next]{margin-top:30px}
+}
