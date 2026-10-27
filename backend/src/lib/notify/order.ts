@@ -7,6 +7,7 @@ import { recordEvent } from "../observability/events"
 import type { NotifyResult } from "./index"
 import { bankTransferInstructions, bankTransferQr, paymentMethodByProvider } from "../checkout/delivery-payment"
 import { qrPng } from "../payments/qr-payment"
+import { invoiceAttachment } from "../invoice/load"
 
 /**
  * E-maily k objednávce a účtu (C-1). Stejná pravidla jako `notify` u rezervací:
@@ -166,6 +167,9 @@ export async function notifyOrderPlaced(container: Container, orderId: string): 
         data.bank_transfer_qr = true
       } catch { /* e-mail s IBAN a variabilným symbolom odíde aj bez QR kódu */ }
     }
+    // Faktúra (zaplatené) alebo zálohová faktúra (prevod) ide v prílohe.
+    const invoice = await invoiceAttachment(container, order.id)
+    if (invoice) attachments = [...(attachments ?? []), invoice]
     return send(container, {
       to, template: ORDER_TEMPLATES.placed, idempotency_key: `order.placed:${order.id}`,
       resource_id: order.id, resource_type: "order", data, ...(attachments ? { attachments } : {}),
@@ -190,9 +194,11 @@ export async function notifyPaymentCaptured(container: Container, paymentId: str
     if (!isOrderPaid(order)) return skip("NOT_PAID")
     const to = clean(order.email)
     if (!to) return skip("NO_EMAIL")
+    const paidInvoice = await invoiceAttachment(container, order.id)
     return send(container, {
       to, template: ORDER_TEMPLATES.paymentCaptured, idempotency_key: `order.paid:${order.id}`,
       resource_id: order.id, resource_type: "order",
+      ...(paidInvoice ? { attachments: [paidInvoice] } : {}),
       data: {
         order_display_id: order.display_id != null ? String(order.display_id) : null,
         amount: formatMoney(capturedTotal(order), order.currency_code),

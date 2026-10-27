@@ -17,5 +17,6 @@ export async function ownOrderOnly(req:AuthenticatedMedusaRequest,res:MedusaResp
 
 export const orderSelfCancelMiddlewares:MiddlewareRoute[]=[
  {matcher:"/store/orders/:id",method:["GET"],middlewares:[authenticate("customer",["session","bearer"]),ownOrderOnly]},
+ {matcher:"/store/orders/:id/invoice",method:["GET"],middlewares:[authenticate("customer",["session","bearer"]),ownOrderOnly]},
  {matcher:"/store/orders/:id/cancel",method:["POST"],middlewares:[authenticate("customer",["session","bearer"]),legalRate("order-self-cancel",10,60,true)],bodyParser:{sizeLimit:"1kb"}},
 ]

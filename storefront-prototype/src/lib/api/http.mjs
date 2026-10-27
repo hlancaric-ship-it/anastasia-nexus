@@ -859,7 +859,7 @@ export function createHttpApi(storage, config) {
         const tracking = (o.fulfillments || []).flatMap(f => f.labels || []).filter(l => l && (l.tracking_number || l.tracking_url)).map(l => ({ number: l.tracking_number || '', url: /^https:\/\//.test(l.tracking_url || '') ? l.tracking_url : '' }));
         const status = o.status === 'canceled' ? ORDER_STATUS.canceled : SHIP[o.fulfillment_status] || ORDER_STATUS[o.status] || 'Prijatá';
         return {
-          id: o.id, number: String(o.metadata?.legacy_customer_migration?.number || o.display_id || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
+          id: o.id, legacy: Boolean(o.metadata?.legacy_customer_migration), number: String(o.metadata?.legacy_customer_migration?.number || o.display_id || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
           product: items[0]?.title || '—', items, tracking,
           status, statusKey: o.status === 'canceled' ? 'canceled' : o.fulfillment_status === 'delivered' ? 'delivered' : SHIP[o.fulfillment_status] ? 'shipped' : 'placed',
           totalLabel: money(o.total), subtotalLabel: money(o.subtotal), shippingLabel: money(o.shipping_total), taxLabel: money(o.tax_total), discountLabel: o.discount_total ? money(o.discount_total) : '',
@@ -890,6 +890,15 @@ export function createHttpApi(storage, config) {
         city: text(md.city) || text(a.city),
         postalCode: text(md.postal_code) || text(a.postal_code),
       };
+    },
+    // Faktúra (daňový doklad) k vlastnej objednávke ako PDF. Stiahne sa s prihlasovacím tokenom.
+    async downloadInvoicePdf(id) {
+      if (!loggedIn()) return { ok: false };
+      try {
+        const res = await fetch(base + '/store/orders/' + encodeURIComponent(id) + '/invoice', { headers: headers(false) });
+        if (!res.ok) return { ok: false };
+        return { ok: true, blob: await res.blob() };
+      } catch { return { ok: false }; }
     },
     // Darčekové poukazy zákazníka (z jeho objednávok), s celým kódom na uplatnenie alebo vytlačenie.
     async getVouchers() {

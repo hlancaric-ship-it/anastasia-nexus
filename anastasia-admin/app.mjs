@@ -100,6 +100,20 @@ async function verifyMfa(challengeId, code, method) {
 // údaje objednávok sa načítajú až potom z /admin/orders?id[]=…&fields=PRINT_FIELDS.
 // 'label' = adresný štítok A6, 'slip' = dodací list A4.
 const PRINT_KIND = { label: 'Štítok', slip: 'Dodací list' };
+// Faktúra (daňový doklad) alebo zálohová faktúra ako PDF. Okno sa otvorí hneď v kliknutí, PDF sa doplní po načítaní.
+async function openInvoice(id) {
+  const w = window.open('', '_blank');
+  if (!w) { alert('Povoľte v prehliadači otváranie nových okien a skúste to znova.'); return; }
+  w.document.title = 'Faktúra – ANASTASIA';
+  w.document.body.innerHTML = '<p style="font:14px Arial;padding:24px">Pripravujem faktúru…</p>';
+  try {
+    const res = await fetch(API + '/admin/orders/' + encodeURIComponent(id) + '/invoice', { headers: token ? { authorization: 'Bearer ' + token } : {} });
+    if (!res.ok) throw new Error('invoice');
+    w.location.href = URL.createObjectURL(new Blob([await res.blob()], { type: 'application/pdf' }));
+  } catch {
+    w.document.body.innerHTML = '<p style="font:14px Arial;padding:24px">Faktúru sa nepodarilo vytvoriť. Skúste to znova.</p>';
+  }
+}
 async function printOrders(ids, kind) {
   const list = [...new Set((ids || []).filter(Boolean))];
   if (!list.length) return;
@@ -1671,6 +1685,7 @@ async function vOrders(view) {
       <td class="ot-act ot-act-print"><div class="ot-acts">
         <button type="button" class="btn ghost sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
         <button type="button" class="btn ghost sm" data-print="slip" title="Vytlačiť dodací list (A4)">Dodací list</button>
+        ${archived(o) ? '' : '<button type="button" class="btn ghost sm" data-invoice title="Faktúra alebo zálohová faktúra (PDF)">Faktúra</button>'}
         <button type="button" class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</button>
       </div></td></tr>`;
   };
@@ -1721,6 +1736,7 @@ async function vOrders(view) {
       const open = () => vOrderDetail(view, tr.dataset.id);
       tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
       tr.querySelectorAll('[data-print]').forEach(b => b.onclick = (e) => { e.stopPropagation(); printOrders([tr.dataset.id], b.dataset.print); });
+      tr.querySelectorAll('[data-invoice]').forEach(b => b.onclick = (e) => { e.stopPropagation(); openInvoice(tr.dataset.id); });
       const box = tr.querySelector('[data-pick]');
       if (box) {
         box.checked = selected.has(tr.dataset.id);
@@ -1909,6 +1925,7 @@ async function vOrderDetail(view, id, notice) {
   view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<div class="card-h-act">
       <button type="button" class="btn ghost" id="o-print-label">Vytlačiť štítok</button>
       <button type="button" class="btn ghost" id="o-print-slip">Dodací list</button>
+      ${archived ? '' : '<button type="button" class="btn ghost" id="o-invoice">Faktúra</button>'}
       <button class="btn ghost" id="o-back">Späť</button>
     </div></div><div class="card-b">
     <div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
@@ -1948,6 +1965,7 @@ async function vOrderDetail(view, id, notice) {
   };
   view.querySelector('#o-print-label').onclick = () => printOrders([id], 'label');
   view.querySelector('#o-print-slip').onclick = () => printOrders([id], 'slip');
+  view.querySelector('#o-invoice')?.addEventListener('click', () => openInvoice(id));
   // Poznámka k objednávke: server ju uloží s autorom a časom a zapíše do auditu.
   const noteBtn = view.querySelector('#o-note-save');
   if (noteBtn) noteBtn.onclick = async () => {
