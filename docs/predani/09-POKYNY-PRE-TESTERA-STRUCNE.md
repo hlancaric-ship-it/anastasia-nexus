@@ -1,10 +1,10 @@
 # Pokyny pre testera (stručne)
 
-**Čo testujete:** testovací web `https://anastasia-test.l-code-dynamics.com` a administráciu `https://anastasia-test-admin.l-code-dynamics.com`. Prístupy dostanete osobne, nie e-mailom.
+**Čo testujete:** iba naše testovacie prostredie: web `https://anastasia-test.l-code-dynamics.com` a administráciu `https://anastasia-test-admin.l-code-dynamics.com`. Nič iné netestujte. Prístupy dostanete osobne, nie e-mailom.
 
 **Môžete:** skúšať prihlásenie a heslá, cudzie objednávky a faktúry, formuláre, košík, ceny, kupóny a platby. Platby len testovacou kartou 4242 4242 4242 4242.
 
-**Nesmiete:** útočiť na `anastasiaoz.eu` ani na ostrý web, platiť skutočnou kartou, útočiť na ľudí a služby tretích strán (Stripe, Cloudflare, e-mail), mazať cudzie dáta a meniť nastavenia v administrácii.
+**Nesmiete:** testovať nič mimo týchto dvoch adries, platiť skutočnou kartou, útočiť na ľudí a služby tretích strán (Stripe, Cloudflare, e-mail), mazať cudzie dáta a meniť nastavenia v administrácii.
 
 **Záťažový test (DoS):** len po dohode, najviac 5 minút. Pred začiatkom napíšte termín a IP adresy, z ktorých testujete.
 
