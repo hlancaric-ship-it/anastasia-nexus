@@ -1,22 +1,22 @@
 # Návrh: odhlásenie zákazníka zo všetkých zariadení cez `session_epoch`
 
-**Stav:** návrh, bez implementácie. Súčasné odhlásenie zneplatňuje iba konkrétny Bearer JWT cez `auth_token_revocation`.
+**Stav:** implementované na vetve `codex/session-epoch`, bez nasadenia. Epochy sú uložené v `auth_session_epoch`; bežné odhlásenie ďalej používa `auth_token_revocation`.
 
 ## Cieľ a navrhované správanie
 
-Pridať zákaznícky epochový čítač relácie. JWT nesie podpísaný `session_epoch` vydaný pri prihlásení; autorizačný middleware porovná claim s aktuálnou epochou zákazníka v úložisku. Ak sa hodnoty nezhodujú, request sa odmietne ako `401 SESSION_REVOKED`. Zvýšenie epochy zneplatní všetky predtým vydané zákaznícke tokeny naprieč zariadeniami.
+Pridať epochový čítač pre zákaznícke aj admin účty. JWT nesie podpísaný `session_epoch` vydaný pri prihlásení; middleware porovná claim s aktuálnou epochou účtu. Nesúlad alebo legacy token bez claimu vráti `401 SESSION_REVOKED`. Zvýšenie epochy zneplatní všetky predtým vydané tokeny daného účtu.
 
 Odporúčané hranice:
 
-- Bežné odhlásenie zostane odhlásením konkrétneho tokenu; samostatná akcia „Odhlásiť všetky zariadenia“ zvýši epochu.
-- Úspešná zmena alebo reset hesla a bezpečnostne vynútené odhlásenie zvýšia epochu. Pri zmene hesla sa treba rozhodnúť, či používateľ dostane nový token s novou epochou alebo sa musí znovu prihlásiť; predvolený návrh je vyžadovať nové prihlásenie.
-- Nové JWT dostanú aktuálnu epochu. Tokeny bez epoch claimu sa počas prechodu posudzujú podľa výslovne schválenej kompatibilitnej politiky; bezpečný cieľový stav je ich odmietnuť po ukončení prechodného obdobia.
+- Bežné odhlásenie zostáva odhlásením konkrétneho tokenu; „Odhlásiť všade“ zvyšuje epochu. Zákaznícke aj admin rozhranie má túto akciu.
+- Zmena zákazníckeho hesla a admin reset hesla zneplatní všetky relácie; používateľ sa musí prihlásiť znova.
+- Nové actor-bound JWT dostanú aktuálnu epochu. Legacy JWT bez epoch claimu sa odmietajú hneď po nasadení; klienti sa musia znovu prihlásiť.
 
 ## Úložisko a transakcie
 
-Pridať aditívne pole `session_epoch` s predvolenou hodnotou `0` k stabilnému zákazníckemu záznamu, prípadne samostatnú tabuľku s unikátnym `customer_id`. Pred výberom treba overiť podporovaný spôsob rozšírenia zákazníckeho modelu v používanej verzii Medusa. Epochu nikdy neukladať iba do cache, ktorá sa môže medzi inštanciami líšiť.
+Samostatná tabuľka `auth_session_epoch` má unikátny kľúč `(actor_type, actor_id)` pre stabilné ID zákazníka alebo admina. Chýbajúci riadok znamená epochu `0`. Epochu nikdy neukladať iba do cache.
 
-Zvýšenie epochy musí byť atomický SQL update (`session_epoch = session_epoch + 1`) a musí prebehnúť v tej istej transakcii ako úspešná zmena hesla, ak ju vykonáva aplikácia. Retry nesmie epochu znížiť ani obnoviť starý token. Nepoužívať e-mail ako kľúč: identita zákazníka je nemenné customer ID.
+Zvýšenie epochy používa atomický PostgreSQL upsert. Nepoužívať e-mail ako kľúč. Zákaznícka zmena hesla epochu zvýši tesne pred volaním provideru; ak provider následne zlyhá, môže to odhlásiť relácie bez zmeny hesla, čo je bezpečné. Natívny admin reset sa potvrdí až po zvýšení epochy; ak zvýšenie zlyhá, API vráti 503. Kroky resetu a epochy nie sú jednou transakciou.
 
 ## Overovanie JWT
 
@@ -28,7 +28,7 @@ Je potrebné overiť, že kontrola pokrýva všetky cesty, ktoré prijímajú cu
 
 1. Aditívna migrácia vytvorí epochu pre existujúcich zákazníkov s hodnotou `0`; bez mazania ani resetovania existujúcich revokácií.
 2. Nasadiť vydávanie claimu a čítanie epochy v režime kompatibilnom s existujúcimi tokenmi, ak to bezpečnostné rozhodnutie dovolí.
-3. Po potvrdení pokrytia začať vydávať iba epochové tokeny a zvoliť konečný dátum odmietania legacy tokenov. Klienti sa po jeho dosiahnutí znovu prihlásia.
+3. Pri nasadení začať vydávať iba epochové tokeny a odmietať legacy tokeny; klienti sa znovu prihlásia.
 4. Overiť rollback: odstránenie kódu nesmie vyžadovať zmazanie epochových dát; databázový rollback sa nemá použiť ako bežný spôsob návratu.
 
 ## Testy a akceptácia
@@ -38,7 +38,7 @@ Je potrebné overiť, že kontrola pokrýva všetky cesty, ktoré prijímajú cu
 - Token iného zákazníka ani admin token sa nedá overiť proti cudzej/nesprávnej epoche.
 - Legacy tokeny majú pokryté obe fázy kompatibility; chýbajúci zákazník a poškodený claim fail closed.
 - DB chyba v chránenom requeste vráti `503`; request bez Bearer tokenu na verejnom katalógu zostáva bez epoch lookupu.
-- Reset hesla a zvýšenie epochy sa otestujú aj pri rollbacku transakcie; pri zlyhaní resetu sa nesmie heslo zmeniť bez zodpovedajúcej epochy ani naopak.
-- E2E overí logout-all na dvoch nezávislých klientoch a opätovné prihlásenie.
+- Unit testy pokrývajú atomický inkrement, chýbajúci riadok s epochou `0`, chýbajúci claim, starú epochu, nesprávny typ účtu a zlyhanie DB.
+- E2E logout-all na dvoch živých klientoch zostáva potrebný po nasadení.
 
-**Rozhodnutia pred implementáciou:** UX a názov akcie „všetky zariadenia“, správanie po zmene/resetovaní hesla, kompatibilita existujúcich JWT a potvrdený Medusa hook/model pre bezpečné uloženie epochy.
+**Implementačné obmedzenia:** používá sa Medusa auth response middleware `/auth/*` na podpísanie tokenu a zachytenie admin resetu; pri downgrade migrácia ponechá epochové dáta. Žiadne cloudové prostredie ani deploy neboli použity.

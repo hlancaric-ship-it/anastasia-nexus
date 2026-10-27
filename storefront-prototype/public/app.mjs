@@ -112,8 +112,9 @@ if(customerCenter){
       if(a.length<8){status.textContent='Heslo musí mať aspoň 8 znakov.';pw.elements.password.focus();return;}
       if(a!==b){status.textContent='Heslá sa nezhodujú.';pw.elements.password2.focus();return;}
       send.disabled=true;status.textContent='Ukladám…';
-      try{const r=await api.setPassword(a);status.textContent=r.message;if(r.ok){pw.elements.password.value='';pw.elements.password2.value='';mark(true);}}
+      try{const r=await api.setPassword(a);status.textContent=r.message;if(r.ok){pw.elements.password.value='';pw.elements.password2.value='';if(r.requiresLogin){setTimeout(()=>location.assign('/prihlasenie'),900);}else mark(true);}}
       catch{status.textContent='Heslo sa nepodarilo uložiť. Skúste to znova.';}finally{send.disabled=false;}});
+    const all=$('[data-sign-out-everywhere]',pw),sessionStatus=$('[data-session-status]',pw);all?.addEventListener('click',async()=>{all.disabled=true;sessionStatus.textContent='Odhlasujem všetky relácie…';try{const r=await api.signOutEverywhere();if(r.ok){sessionStatus.textContent='Všetky relácie sú odhlásené.';setTimeout(()=>location.assign('/prihlasenie'),500);}else sessionStatus.textContent=r.message;}catch{sessionStatus.textContent='Odhlásenie sa nepodarilo. Skúste to znova.';}finally{all.disabled=false;}});
   }}
   $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{$('.form-status',form).textContent=(await api.saveCustomerProfile(Object.fromEntries(new FormData(form)))).message;}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
   // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.

@@ -293,6 +293,7 @@ function shell(active, title, sub) {
               ${navIcon('chev')}
             </button>
             <div class="dd-menu" data-menu="user">
+              <button type="button" class="dd-item" id="logout-all">Odhlásiť všade</button>
               <button type="button" class="dd-item" id="logout">${navIcon('out')}Odhlásiť sa</button>
             </div>
           </div>
@@ -4232,6 +4233,14 @@ async function route() {
     // Server token zneplatní (inak by platil až do expirácie); výpadok siete odhlásenie v prehliadači nezastaví.
     if (token) fetch(API + '/admin/nexus-auth/logout', { method: 'POST', headers: { authorization: 'Bearer ' + token } }).catch(() => {});
     token = ''; localStorage.removeItem('ana_token'); ADMIN_ROLE_LOADED = false; ADMIN_ROLE = 'owner'; renderLogin(); };
+  root.querySelector('#logout-all').onclick = async () => {
+    const button = root.querySelector('#logout-all'); button.disabled = true;
+    try {
+      const response = await fetch(API + '/admin/nexus-auth/logout-all', { method: 'POST', headers: { authorization: 'Bearer ' + token } });
+      if (!response.ok) { button.disabled = false; return alert('Odhlásenie sa nepodarilo. Skúste to znova.'); }
+      token = ''; localStorage.removeItem('ana_token'); ADMIN_ROLE_LOADED = false; ADMIN_ROLE = 'owner'; renderLogin();
+    } catch { button.disabled = false; alert('Odhlásenie sa nepodarilo. Skontrolujte pripojenie a skúste to znova.'); }
+  };
   wireMobileNav();
   wireTopbar();
   loadMe().then(setUserChip);
