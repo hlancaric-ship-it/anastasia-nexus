@@ -34,6 +34,12 @@ describe("faktúra", () => {
     expect(m.customer.name).toBe("Firma s.r.o.")
     expect(m.customer.lines).toEqual(expect.arrayContaining(["IČO: 12345678", "DIČ: 2020202020", "IČ DPH: SK2020202020"]))
   })
+  it("neplatný text v metadátach sa na faktúru nedostane", () => {
+    const m = buildInvoiceModel({ ...order, billing_address: { ...order.billing_address, company: "F".repeat(500) }, metadata: { company_ico: "Zaplatené", company_dic: "2020202020", company_ic_dph: "<b>x</b>" } })
+    expect(m.customer.name).toHaveLength(120)
+    expect(m.customer.lines).toContain("DIČ: 2020202020")
+    expect(m.customer.lines.join(" ")).not.toMatch(/IČO|IČ DPH|Zaplatené|<b>/)
+  })
   it("bez firmy sa IČO z metadát nepoužije", () => {
     const m = buildInvoiceModel({ ...order, metadata: { company_ico: "12345678" } })
     expect(m.customer.lines.join(" ")).not.toContain("IČO")

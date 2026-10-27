@@ -1,4 +1,5 @@
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { invalidCompanyFields } from "../../../lib/invoice/company-ids"
 
 /**
  * Kľúče `cart.metadata`, ktoré zapisuje výhradne server (`/store/nexus-cart`).
@@ -19,11 +20,22 @@ export function reservedCartMetadataKeys(body: unknown): string[] {
 
 export function rejectServerOwnedCartMetadata(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
   const keys = reservedCartMetadataKeys(req.body)
-  if (!keys.length) return next()
+  if (keys.length) {
+    return res.status(400).json({
+      ok: false,
+      code: "RESERVED_METADATA",
+      error: "RESERVED_METADATA",
+      message: "Kupón sa uplatňuje len cez /store/nexus-cart.",
+    })
+  }
+  // Firemné údaje idú na daňový doklad: iba platný formát IČO/DIČ/IČ DPH a krátky názov firmy.
+  const fields = invalidCompanyFields(req.body)
+  if (!fields.length) return next()
   return res.status(400).json({
     ok: false,
-    code: "RESERVED_METADATA",
-    error: "RESERVED_METADATA",
-    message: "Kupón sa uplatňuje len cez /store/nexus-cart.",
+    code: "INVALID_COMPANY_ID",
+    error: "INVALID_COMPANY_ID",
+    fields,
+    message: "Skontrolujte IČO, DIČ a IČ DPH.",
   })
 }

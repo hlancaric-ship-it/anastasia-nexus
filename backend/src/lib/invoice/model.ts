@@ -1,5 +1,6 @@
 import { BANK_TRANSFER_ACCOUNT, variableSymbol } from "../checkout/delivery-payment"
 import { isOrderPaid } from "../../modules/entitlement/policy"
+import { COMPANY_NAME_MAX, validCompanyId } from "./company-ids"
 
 /** Údaje predávajúceho (verejné údaje spoločnosti zo zmluvy a zo starého webu). */
 export const INVOICE_SELLER = {
@@ -78,15 +79,15 @@ const METHOD_LABEL: Record<string, string> = {
 function companyIds(order: InvoiceOrder, isCompany: boolean): string[] {
   if (!isCompany) return []
   const md = order.metadata ?? {}
-  const clean = (value: unknown) => text(value).replace(/\s+/g, "")
-  return [["IČO", clean(md.company_ico)], ["DIČ", clean(md.company_dic)], ["IČ DPH", clean(md.company_ic_dph)]]
+  // Metadáta pochádzajú z prehliadača: na doklad ide iba hodnota v platnom formáte, nikdy ľubovoľný text.
+  return [["IČO", validCompanyId("company_ico", md.company_ico)], ["DIČ", validCompanyId("company_dic", md.company_dic)], ["IČ DPH", validCompanyId("company_ic_dph", md.company_ic_dph)]]
     .filter(([, value]) => value).map(([label, value]) => `${label}: ${value}`)
 }
 
 function address(order: InvoiceOrder): { name: string; lines: string[] } {
   const a = (order.billing_address && Object.keys(order.billing_address).length ? order.billing_address : order.shipping_address) ?? {}
   const person = [text(a.first_name), text(a.last_name)].filter(Boolean).join(" ")
-  const company = text(a.company)
+  const company = text(a.company).slice(0, COMPANY_NAME_MAX)
   const street = [text(a.address_1), text(a.address_2)].filter(Boolean).join(" ")
   const city = [text(a.postal_code), text(a.city)].filter(Boolean).join(" ")
   const fallback = [text(order.customer?.first_name), text(order.customer?.last_name)].filter(Boolean).join(" ")

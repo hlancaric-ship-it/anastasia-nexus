@@ -30,3 +30,40 @@ describe("poistka server-owned metadát košíka", () => {
     }
   })
 })
+
+describe("firemné údaje v košíku (IČO, DIČ, IČ DPH)", () => {
+  const run = (body: unknown) => {
+    const r = res()
+    const next = jest.fn()
+    rejectServerOwnedCartMetadata({ body } as any, r, next)
+    return { r, next }
+  }
+
+  it("pustí platné SK a CZ údaje aj prázdne hodnoty", () => {
+    for (const metadata of [
+      { company_ico: "36652164", company_dic: "2022216372", company_ic_dph: "SK2022216372" },
+      { company_ico: "12 345 678", company_dic: "CZ12345678", company_ic_dph: "cz12345678" },
+      { company_ico: "", company_dic: "", company_ic_dph: "" },
+    ]) {
+      const { r, next } = run({ metadata, billing_address: { company: "Firma s.r.o." } })
+      expect(next).toHaveBeenCalledTimes(1)
+      expect(r.status).not.toHaveBeenCalled()
+    }
+  })
+
+  it("odmietne neplatný formát, ne-reťazec a dlhý názov firmy (400 INVALID_COMPANY_ID)", () => {
+    for (const body of [
+      { metadata: { company_ico: "<script>alert(1)</script>" } },
+      { metadata: { company_dic: "Zaplatené v hotovosti" } },
+      { metadata: { company_ic_dph: { $ne: 1 } } },
+      { metadata: { company_ico: "1".repeat(5000) } },
+      { billing_address: { company: "x".repeat(121) } },
+      { shipping_address: { company: 42 } },
+    ]) {
+      const { r, next } = run(body)
+      expect(next).not.toHaveBeenCalled()
+      expect(r.status).toHaveBeenCalledWith(400)
+      expect(r.json).toHaveBeenCalledWith(expect.objectContaining({ code: "INVALID_COMPANY_ID" }))
+    }
+  })
+})

@@ -521,7 +521,7 @@ export function createHttpApi(storage, config) {
       body.metadata = { company_ico: co?.ico || '', company_dic: co?.dic || '', company_ic_dph: co?.icDph || '' };
       const mail = String(email).trim(); if (mail) body.email = mail;
       const up = await call(`/store/carts/${id}`, { method: 'POST', body });
-      if (!up.ok) return { ok: false, status: up.status, error: up.data?.error, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
+      if (!up.ok) return { ok: false, status: up.status, error: up.data?.error, message: up.data?.code === 'INVALID_COMPANY_ID' ? 'Skontrolujte IČO, DIČ a IČ DPH (napr. IČO 8 číslic, IČ DPH SK1234567890).' : up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };
       // Jediný serverový krok výberu: doprava + platba + prepocet + platobná session.
       const so = await call('/store/nexus-checkout/options', { method: 'POST', body: { cart_id: id, delivery: wanted, payment } });
       if (!so.ok) return { ok: false, status: so.status, error: so.data?.error, message: checkoutFail(so, fail) };
