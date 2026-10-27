@@ -171,3 +171,8 @@ Píše se průběžně při každé práci. Nejnovější nahoře.
 - Platba kartou: v pokladně na Androidu se vedle Karty nabízely Bancontact, MB WAY a Link (zapnuté v účtu Stripe, `automaticPaymentMethods: true`). Smlouva počítá s kartou, Apple Pay a Google Pay. PaymentIntent pro kartu teď dostává `payment_method_types: ["card"]` (peněženky jsou typ card), `backend/src/api/store/nexus-checkout/options/route.ts`.
 - Stripe (testovací režim, výchozí konfigurace platebních metod): Google Pay byl vypnutý, proto se v pokladni na Androidu nenabízel. Zapnut Google Pay, vypnut Link. Apple Pay byl zapnutý. Ověřeno na telefonu: v pokladně jsou záložky Karta a Google Pay, bez Linku, Bancontactu a MB WAY. Platbu samotnou (potvrzení ve Wallet) musí potvrdit člověk. Před ostrým provozem stejné nastavení zopakovat v živém režimu Stripe, u Apple Pay přidat doménu.
 - Pokladna: přihlášenému zákazníkovi se předvyplní jméno, příjmení, e-mail a adresa (z profilu nebo z uložené adresy, i ze starého webu). Hosté a už napsané hodnoty se nemění. `getCheckoutProfile` v `http.mjs`, volání v `app.mjs`. Ověřeno: přihlášený má pole vyplněná, host prázdná.
+
+### 27. 10. – odevzdání Fáze 1
+- Lucia už je v administraci a nastavila si nové heslo, takže testování fakticky běží. Datum předání do testování v protokolu: 27. 10. 2026, lhůta 7 dní končí 3. 11. 2026.
+- Přidána příloha č. 1 `docs/predani/08-TESTOVACIE-SCENARE.md` (slovensky, vykání, s políčky k odškrtnutí). Protokol vyplněn a odškrtnut, kromě řádku „Opravy z auditu“, který jsem neověřoval.
+- Platby (karta, Apple Pay, Google Pay) Lucky otestoval na telefonu, funguje to.
