@@ -111,3 +111,35 @@ export async function couponLimitState(
   const used = typeof row?.used === "number" ? row.used : Number(row?.used ?? 0) || 0
   return { limit, used, exhausted: limit !== null && used >= limit }
 }
+
+/**
+ * Read-only predbežná kontrola pred dokončením košíka: vyčerpaný kupón (a košík bez vlastnej
+ * rezervácie) odmietne checkout skôr, než Medusa zamkne košík. Inak súbežné dokončenie
+ * (webhook platby) držalo zámok `cart_<id>` a zákazník dostal chybu zámku namiesto
+ * COUPON_LIMIT_EXHAUSTED. Autoritatívna kontrola ostáva atomická `reserveUsage` v hooku –
+ * pri chybe vyhľadávania sa preto nič neblokuje.
+ */
+export async function assertCouponNotExhausted(scope: MedusaContainer, cartId: string): Promise<void> {
+  let exhausted = false
+  try {
+    const query = scope.resolve(ContainerRegistrationKeys.QUERY) as any
+    const { data } = await query.graph({ entity: "cart", fields: ["id", "metadata", "completed_at"], filters: { id: cartId } })
+    const cart = data?.[0]
+    const code = storedCouponCode(cart?.metadata)
+    if (!code || cart?.completed_at) return
+    const promotionId = await promotionIdForCode(scope, code)
+    if (!promotionId) return
+    const db = scope.resolve(ContainerRegistrationKeys.PG_CONNECTION) as any
+    const own = await db("coupon_usage_reservation").where({ cart_id: cartId, promotion_id: promotionId }).whereIn("status", ["reserved", "confirmed"]).first("id")
+    if (own) return
+    exhausted = (await couponLimitState(scope, promotionId)).exhausted
+  } catch {
+    return
+  }
+  if (exhausted) throw new Error("COUPON_LIMIT_EXHAUSTED")
+}
+
+/** Zámok košíka drží iné dokončenie (napr. webhook platby) – stav sa nezmenil, dá sa zopakovať. */
+export function isCartLockError(message: string): boolean {
+  return /^Failed to acquire lock for key\b/.test(message) || message === "Timed-out acquiring lock."
+}

@@ -10,6 +10,7 @@ import { assertCartAccess, customerActor } from "../../../lib/checkout/cart-acce
 import { assertCartConsent, loadConsentCart } from "../../../lib/legal/checkout"
 import { LegalError } from "../../../modules/legal/policy"
 import { compensateUnfinishedCheckout, stripeIntentsOfCart } from "../../../lib/checkout/payment-compensation"
+import { assertCouponNotExhausted, isCartLockError } from "../../../lib/pricing/coupon-usage"
 import { bankTransferInstructions, bankTransferQr, loadCartShape, paymentMethodByProvider, PICKUP_ADDRESS } from "../../../lib/checkout/delivery-payment"
 
 /** Objednávka nevznikla: ak už bola platba kartou stiahnutá/autorizovaná, vráti ju (nikdy nevyhodí). */
@@ -52,6 +53,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       })
     }
 
+    // Vyčerpaný kupón odmietni pred zamknutím košíka (čistá 409, košík ostáva použiteľný).
+    await assertCouponNotExhausted(req.scope, cartId)
     // SafeOrder runs in completeCartWorkflow's validation hook for every completion path.
     const result = await completeCartWorkflow(req.scope).run({ input: { id: cartId } })
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -108,6 +111,13 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (["COUPON_LIMIT_EXHAUSTED", "COUPON_USAGE_RESERVATION_CONFLICT", "COUPON_USAGE_RESERVATION_INVALID", "COUPON_USAGE_RESERVATION_UNAVAILABLE"].includes(workflowMessage)) {
       await recordEvent(req.scope, "warn", "coupon", "reservation_rejected", { cart_id: cartId, error_code: workflowMessage, http_status: 409 })
       return fail(409, { ok: false, error: workflowMessage })
+    }
+    if (isCartLockError(workflowMessage)) {
+      // Košík práve dokončuje iná požiadavka (napr. webhook platby). Ak medzitým došiel kupón, povedz to.
+      const couponGone = await assertCouponNotExhausted(req.scope, cartId).then(() => false, () => true)
+      const code = couponGone ? "COUPON_LIMIT_EXHAUSTED" : "CHECKOUT_IN_PROGRESS"
+      await recordEvent(req.scope, "warn", "checkout", "cart_locked", { cart_id: cartId, error_code: code, http_status: 409 })
+      return fail(409, { ok: false, error: code, ...(couponGone ? {} : { message: "Objednávka sa práve spracúva. Skúste to o chvíľu znova." }) })
     }
     const message = error instanceof Error ? error.message : workflowMessage
     // do logu jen kód chyby, nikdy libovolná zpráva nebo payload

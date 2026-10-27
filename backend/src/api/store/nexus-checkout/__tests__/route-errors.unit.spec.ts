@@ -1,5 +1,6 @@
 jest.mock("../../../../lib/legal/checkout", () => ({ assertCartConsent: jest.fn(async () => {}), loadConsentCart: jest.fn(async () => ({id:"cart_test",customer_id:"cust_owner"})) }))
 jest.mock("../../nexus-cart/route", () => ({ repriceCart: jest.fn() }))
+jest.mock("../../../../lib/pricing/coupon-usage", () => ({ ...jest.requireActual("../../../../lib/pricing/coupon-usage"), assertCouponNotExhausted: jest.fn(async () => {}) }))
 jest.mock("@medusajs/medusa/core-flows", () => ({ completeCartWorkflow: jest.fn() }))
 jest.mock("../../../../lib/checkout/payment-compensation", () => ({ compensateUnfinishedCheckout: jest.fn(async () => ({ status: "refunded", payment_intents: [] })), stripeIntentsOfCart: jest.fn(async () => ["pi_paid"]) }))
 import { compensateUnfinishedCheckout } from "../../../../lib/checkout/payment-compensation"
@@ -10,6 +11,7 @@ import { repriceCart } from "../../nexus-cart/route"
 import { LegalError } from "../../../../modules/legal/policy"
 import { SafeOrderError } from "../safeorder"
 import { POST } from "../route"
+import { assertCouponNotExhausted } from "../../../../lib/pricing/coupon-usage"
 
 const AUTH = { actor_type: "customer", actor_id: "cust_owner" }
 
@@ -77,6 +79,34 @@ describe("checkout auth gate", () => {
 })
 
 describe("checkout workflow error transport", () => {
+  it("vyčerpaný kupón odmietne pred dokončením košíka (bez zámku) a vráti platbu", async () => {
+    jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: false } as any)
+    jest.mocked(assertCouponNotExhausted).mockRejectedValueOnce(new Error("COUPON_LIMIT_EXHAUSTED"))
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
+    await POST({ body: { cart_id: "synthetic-cart" }, scope: makeScope().scope, auth_context: AUTH } as any, res)
+    expect(completeCartWorkflow).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(409)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: "COUPON_LIMIT_EXHAUSTED" }))
+    expect(compensateUnfinishedCheckout).toHaveBeenCalled()
+  })
+
+  it.each([
+    ["kupón medzitým došiel", true, "COUPON_LIMIT_EXHAUSTED"],
+    ["košík dokončuje iná požiadavka", false, "CHECKOUT_IN_PROGRESS"],
+  ])("chybu zámku košíka nevracia surovo: %s", async (_label, exhausted, code) => {
+    jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: false } as any)
+    jest.mocked(completeCartWorkflow).mockReturnValue({ run: jest.fn().mockRejectedValue(new Error('Failed to acquire lock for key "cart_synthetic"')) } as any)
+    jest.mocked(assertCouponNotExhausted).mockResolvedValueOnce(undefined)
+    if (exhausted) jest.mocked(assertCouponNotExhausted).mockRejectedValueOnce(new Error("COUPON_LIMIT_EXHAUSTED"))
+    const { scope, events } = makeScope()
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
+    await POST({ body: { cart_id: "synthetic-cart" }, scope, auth_context: AUTH } as any, res)
+    expect(res.status).toHaveBeenCalledWith(409)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: code }))
+    expect(JSON.stringify(res.json.mock.calls)).not.toContain("acquire lock")
+    expect(events.createOpsEvents).toHaveBeenCalledWith(expect.objectContaining({ domain: "checkout", event: "cart_locked" }))
+  })
+
   it.each(["COUPON_LIMIT_EXHAUSTED", "COUPON_USAGE_RESERVATION_UNAVAILABLE", "COUPON_USAGE_RESERVATION_CONFLICT"])("returns 409 for coupon reservation failure %s", async (code) => {
     jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: false } as any)
     jest.mocked(completeCartWorkflow).mockReturnValue({ run: jest.fn().mockRejectedValue(new Error(code)) } as any)

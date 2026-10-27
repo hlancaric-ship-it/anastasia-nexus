@@ -106,3 +106,48 @@ describe('Započítanie použitia kupónu', () => {
     expect(await couponLimitState(freeScope, 'promo_1')).toEqual({ limit: null, used: 7, exhausted: false })
   })
 })
+
+describe('Predbežná kontrola vyčerpaného kupónu (C8)', () => {
+  const { assertCouponNotExhausted, isCartLockError } = require('../coupon-usage')
+  const scopeFor = (o: { coupon?: boolean; used?: number; limit?: number | null; own?: boolean; completed?: boolean; graphFails?: boolean } = {}) => {
+    const first = jest.fn(async () => (o.own ? { id: 'cur_1' } : undefined))
+    const builder: any = { where: jest.fn(() => builder), whereIn: jest.fn(() => builder), first }
+    const db = jest.fn(() => builder)
+    const query = {
+      graph: jest.fn(async (args: any) => {
+        if (o.graphFails) throw new Error('db down')
+        if (args.entity === 'cart') return { data: [{ id: 'cart_1', completed_at: o.completed ? new Date() : null, metadata: o.coupon === false ? {} : { nexus_coupon: { code: 'SYNTHETIC-ONCE', promotion_id: 'promo_1' } } }] }
+        if (args.filters?.code) return { data: [{ id: 'promo_1', code: args.filters.code }] }
+        return { data: [{ id: 'promo_1', limit: o.limit === undefined ? 1 : o.limit, used: o.used ?? 0 }] }
+      }),
+    }
+    return { scope: { resolve: (key: string) => (key === 'query' ? query : db) } as any, db, first }
+  }
+
+  it('odmietne košík s vyčerpaným kupónom bez vlastnej rezervácie', async () => {
+    await expect(assertCouponNotExhausted(scopeFor({ used: 1 }).scope, 'cart_1')).rejects.toThrow('COUPON_LIMIT_EXHAUSTED')
+  })
+
+  it.each([
+    ['voľný limit', { used: 0 }],
+    ['bez limitu', { used: 5, limit: null }],
+    ['bez kupónu', { coupon: false, used: 1 }],
+    ['vlastná rezervácia (opakovaný checkout)', { used: 1, own: true }],
+    ['dokončený košík', { used: 1, completed: true }],
+    ['výpadok vyhľadávania – rozhodne hook', { graphFails: true }],
+  ])('pustí ďalej: %s', async (_label, options) => {
+    await expect(assertCouponNotExhausted(scopeFor(options).scope, 'cart_1')).resolves.toBeUndefined()
+  })
+
+  it('vlastnú rezerváciu hľadá podľa košíka, akcie a živého stavu', async () => {
+    const { scope, db } = scopeFor({ used: 1, own: true })
+    await assertCouponNotExhausted(scope, 'cart_1')
+    expect(db).toHaveBeenCalledWith('coupon_usage_reservation')
+  })
+
+  it('rozpozná chyby zámku košíka', () => {
+    expect(isCartLockError('Failed to acquire lock for key "cart_01X"')).toBe(true)
+    expect(isCartLockError('Timed-out acquiring lock.')).toBe(true)
+    expect(isCartLockError('COUPON_LIMIT_EXHAUSTED')).toBe(false)
+  })
+})
