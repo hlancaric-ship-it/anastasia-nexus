@@ -54,7 +54,7 @@ export const MEMBERSHIP_PROVIDER_ID = "pp_membership_stripe_membership"
 export const TAX_PROVIDER_ID = "tp_system"
 
 /**
- * Sazby DPH SR platné od 1. 1. 2025: základní 23 %, snížená 19 % a 5 %.
+ * Sazby DPH SR platné od 1. 1. 2025: základní 23 %, snížená 19 % a 5 %. Lucie (27. 10. 2026): pro zboží i služby jen 23 %, snížené sazby se nepoužívají.
  * Starý e-shop (ecProductPrice.vatRate) používal hlavně 23 % (27 z 30 cen), dále 19 a 20 %
  * (20 % = sazba před 2025). Ceny ve starém e-shopu jsou koncové včetně DPH
  * (price_1_WithVat), proto je region v Medusě "tax inclusive".
@@ -62,8 +62,6 @@ export const TAX_PROVIDER_ID = "tp_system"
  */
 export const SK_VAT_RATES = [
   { code: "SK-DPH-23", name: "DPH SR 23 % (základní)", rate: 23, is_default: true },
-  { code: "SK-DPH-19", name: "DPH SR 19 % (snížená)", rate: 19, is_default: false },
-  { code: "SK-DPH-5", name: "DPH SR 5 % (snížená)", rate: 5, is_default: false },
 ] as const
 
 /**
