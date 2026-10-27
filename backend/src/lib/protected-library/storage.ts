@@ -39,7 +39,28 @@ export function protectedStorageFromEnv(env: NodeJS.ProcessEnv = process.env): P
   try { url = new URL(endpoint) } catch { return null }
   if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") return null
   if (!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/i.test(bucket)) return null
+  // Chránené médiá nesmú skončiť vo verejnom bucketi obrázkov (`S3_BUCKET`, verejná adresa
+  // `S3_FILE_URL`): obsah by sa dal stiahnuť bez nákupu. Zhoda = nekonfigurované (fail closed).
+  const publicBucket = String(env.S3_BUCKET ?? "").trim()
+  if (publicBucket && publicBucket.toLowerCase() === bucket.toLowerCase()) {
+    const publicEndpoint = String(env.S3_ENDPOINT ?? "").trim().replace(/\/+$/, "")
+    if (!publicEndpoint || publicEndpoint.toLowerCase() === endpoint.toLowerCase()) return null
+  }
+  if (publicUrlServesBucket(env.S3_FILE_URL, bucket)) return null
   return { endpoint, bucket, region, accessKeyId, secretAccessKey }
+}
+
+/** Verejná adresa súborov smeruje na tento bucket (path-style `/<bucket>/…` alebo `<bucket>.host`)? */
+function publicUrlServesBucket(value: unknown, bucket: string): boolean {
+  const raw = String(value ?? "").trim()
+  if (!raw) return false
+  try {
+    const url = new URL(raw)
+    const name = bucket.toLowerCase()
+    return url.hostname.toLowerCase().startsWith(`${name}.`) || url.pathname.toLowerCase().split("/")[1] === name
+  } catch {
+    return false
+  }
 }
 
 /** Klient S3 pre R2 (path-style, aby sa nestavovala vlastná subdoména bucketu). */

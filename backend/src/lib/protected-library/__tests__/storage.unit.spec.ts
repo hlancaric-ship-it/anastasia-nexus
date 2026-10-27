@@ -37,4 +37,14 @@ describe('Konfigurácia súkromného úložiiska', () => {
     expect(PROTECTED_UPLOAD_URL_TTL_SECONDS).toBeGreaterThanOrEqual(600)
     expect(PROTECTED_UPLOAD_URL_TTL_SECONDS).toBeLessThanOrEqual(3600)
   })
+  it('odmietne súkromný bucket, ktorý je zároveň verejným bucketom obrázkov (fail closed)', () => {
+    const bucket = complete.PROTECTED_R2_BUCKET
+    expect(protectedStorageFromEnv({ ...complete, S3_BUCKET: bucket } as NodeJS.ProcessEnv)).toBeNull()
+    expect(protectedStorageFromEnv({ ...complete, S3_BUCKET: bucket, S3_ENDPOINT: complete.PROTECTED_R2_ENDPOINT } as NodeJS.ProcessEnv)).toBeNull()
+    expect(protectedStorageFromEnv({ ...complete, S3_FILE_URL: `https://cdn.example.test/${bucket}` } as NodeJS.ProcessEnv)).toBeNull()
+    expect(protectedStorageFromEnv({ ...complete, S3_FILE_URL: `https://${bucket}.r2.dev` } as NodeJS.ProcessEnv)).toBeNull()
+    // Iný verejný bucket je v poriadku.
+    expect(protectedStorageFromEnv({ ...complete, S3_BUCKET: 'public-images', S3_FILE_URL: `https://cdn.example.test/${bucket}-public` } as NodeJS.ProcessEnv)).not.toBeNull()
+    expect(protectedStorageFromEnv({ ...complete, S3_BUCKET: bucket, S3_ENDPOINT: 'https://other-account.r2.cloudflarestorage.com' } as NodeJS.ProcessEnv)).not.toBeNull()
+  })
 })
