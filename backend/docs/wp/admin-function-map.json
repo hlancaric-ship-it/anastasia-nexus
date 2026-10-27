@@ -1385,7 +1385,7 @@
       ],
       "source": "backend/src/api/admin/nexus/admin-2fa/recovery-codes/route.ts",
       "feature": "roles",
-      "sha256": "03f145785a96d05c69baff992140534382ca2868efca1c6bbe0b84dab93162c9"
+      "sha256": "c38a970a6a4953653fb26d48085023b4ab5e9ffe21eac77f833616ffa3b60cdb"
     },
     {
       "path": "/admin/nexus/admin-2fa/verify",
@@ -1534,7 +1534,7 @@
       ],
       "source": "backend/src/api/admin/product-catalogue/route.ts",
       "feature": "products",
-      "sha256": "660eff9ba7d9030389773addc60c1f4280ecfcb449b4031e6ffaf7ba59349a93"
+      "sha256": "8d8f8e33d318a213ab086c95f07619ec176022aa3ed5734ca9fd5d2ebd9f627c"
     },
     {
       "path": "/admin/products/:id/protected-media",
@@ -2025,7 +2025,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "f4bdbab6acd3eaa38e778ac69d146452ecd97d29e772fedad840b3b45f93e07d"
+      "sha256": "e3a4b461f39f2317df891f6f40cd68d32560b5283766141b4f9a06c7a3d55bc5"
     },
     {
       "path": "/store/nexus-checkout",
@@ -2034,7 +2034,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "3bb39ea1d5558599bd994eb3874754ffffb50fe0886c0f30f7ae6bdd5c2e3a23"
+      "sha256": "6055189e0966ee67cce67251df90c6f304809ca5838ab18fd3e8eb106043acbd"
     },
     {
       "path": "/store/nexus-checkout/options",
@@ -2044,7 +2044,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/options/route.ts",
-      "sha256": "8a1b6dc47c387f0007a82552440ee8fb473474b08d85bffae09b726fe0dd6ea9"
+      "sha256": "7eaf7aa62ebe0f9b81e655b87b036512aebc94e47cc97c12b2fc26f52c10ddf6"
     },
     {
       "path": "/store/orders/:id/cancel",
@@ -2101,6 +2101,160 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/store/booking-guest",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/booking-guest/route.ts",
+      "sha256": "048690361efdea1c1788d087adcf95a8ca7c75bcd07bb4348209ddf616bf2686"
+    },
+    {
+      "path": "/store/booking-guest/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/booking-guest/[id]/route.ts",
+      "sha256": "3cd991d51f241bbd247f8ed94a79950f20dab76ffd01c16260b2d96829f3e60a"
+    },
+    {
+      "path": "/store/booking-guest/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/booking-guest/[id]/cancel/route.ts",
+      "sha256": "1b264c58e76cc858b0ea6f0c6c2948268658c5bfcdf0cfc2a3bd6201c6a8a03e"
+    },
+    {
+      "path": "/store/booking-requests",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/booking-requests/route.ts",
+      "sha256": "f96d1352204ac5cafc0e5fa205749c86537a893d3be4ea01c5866f3501bd5977"
+    },
+    {
+      "path": "/store/booking-requests/:id",
+      "methods": [
+        "GET"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/booking-requests/[id]/route.ts",
+      "sha256": "22167f6e5a4dedbb45ec72c2e4f6cff14f187a9a41425c43be3898786b2ec667"
+    },
+    {
+      "path": "/store/booking-requests/:id/claim",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/store/booking-requests/[id]/claim/route.ts",
+      "sha256": "ecc2ba7f30a2de624e38186b91d0122958203fe5f03fe7e2451f83904a975715"
+    },
+    {
+      "path": "/admin/booking-requests",
+      "methods": [
+        "GET"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/booking-requests/route.ts",
+      "sha256": "a68dbeb65910b040282e67e8cc6d6d9a04c89ffb9d702c47a0b560683e1f895e"
+    },
+    {
+      "path": "/admin/booking-requests/:id/approve",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/booking-requests/[id]/approve/route.ts",
+      "sha256": "9a7ab204f7fa9874b5e541a6d80fa325214a9ebe9dad41c2fb7d9ceb7c5d4a00"
+    },
+    {
+      "path": "/admin/booking-requests/:id/decline",
+      "methods": [
+        "POST"
+      ],
+      "feature": "booking",
+      "source": "backend/src/api/admin/booking-requests/[id]/decline/route.ts",
+      "sha256": "c9924b0f09b7263997143344f7f57f7064cc76d9ca1a64703c30c4a512f1dbca"
+    },
+    {
+      "path": "/store/orders/:id/invoice",
+      "methods": [
+        "GET"
+      ],
+      "feature": "invoices",
+      "source": "backend/src/api/store/orders/[id]/invoice/route.ts",
+      "sha256": "a5e7721a3acb34b5f96f748394c06fcf7af9aaaa8cca7924186bdfbf14330f78"
+    },
+    {
+      "path": "/admin/orders/:id/invoice",
+      "methods": [
+        "GET"
+      ],
+      "feature": "invoices",
+      "source": "backend/src/api/admin/orders/[id]/invoice/route.ts",
+      "sha256": "39b0387f5734a26dc44529afec7283df3c10f4be38ee99b7363bc3b25dde270d"
+    },
+    {
+      "path": "/store/nexus-checkout/free-shipping",
+      "methods": [
+        "GET"
+      ],
+      "feature": "shipping",
+      "source": "backend/src/api/store/nexus-checkout/free-shipping/route.ts",
+      "sha256": "b85dcaef62bb5fee20c5825e00cce607dfc37655329a7792dc9b446e437deeb2"
+    },
+    {
+      "path": "/store/gift-vouchers/mine",
+      "methods": [
+        "GET"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/store/gift-vouchers/mine/route.ts",
+      "sha256": "9ea8eb49e312a6cba5a4ddd02ea1e3d834111bf4a76b5ac3f0ca2a166ad574b6"
+    },
+    {
+      "path": "/store/gift-vouchers/mine/:id/pdf",
+      "methods": [
+        "GET"
+      ],
+      "feature": "vouchers",
+      "source": "backend/src/api/store/gift-vouchers/mine/[id]/pdf/route.ts",
+      "sha256": "b5026135cc014a94339f0f855c41ff8012b2832e985304a3c6e2057ca393f21a"
+    },
+    {
+      "path": "/store/customers/legacy-claim",
+      "methods": [
+        "POST"
+      ],
+      "feature": "customer-recovery",
+      "source": "backend/src/api/store/customers/legacy-claim/route.ts",
+      "sha256": "86cce7c7e5801bb7625ea850040273743ad563f06e676d0625dceef117138fc6"
+    },
+    {
+      "path": "/store/customers/me/password",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "customer-recovery",
+      "source": "backend/src/api/store/customers/me/password/route.ts",
+      "sha256": "d0f282d35bb21773bc0c858bf49710543cb513423f7676c9b6673249eb619a77"
+    },
+    {
+      "path": "/admin/nexus-auth/logout",
+      "methods": [
+        "POST"
+      ],
+      "feature": "admin-account",
+      "source": "backend/src/api/admin/nexus-auth/logout/route.ts",
+      "sha256": "7526d90171dba5441212479cebc30cb6aecbd48c35759f456ef738172080ddf1"
     }
   ],
   "native_medusa_version": "2.19.0",
@@ -4615,14 +4769,18 @@
       "backend/src/jobs/ops-retention.ts"
     ],
     "subscribers": [
+      "backend/src/subscribers/admin-invite-created.ts",
       "backend/src/subscribers/admin-order-placed.ts",
+      "backend/src/subscribers/admin-user-default-role.ts",
       "backend/src/subscribers/auth-magic-link-requested.ts",
+      "backend/src/subscribers/auth-password-reset.ts",
       "backend/src/subscribers/booking-order-canceled.ts",
       "backend/src/subscribers/booking-order-placed.ts",
       "backend/src/subscribers/booking-payment-captured.ts",
       "backend/src/subscribers/chat-admin-reply.ts",
       "backend/src/subscribers/chat-customer-message.ts",
       "backend/src/subscribers/compensation-payment-refunded.ts",
+      "backend/src/subscribers/coupon-usage-order-placed.ts",
       "backend/src/subscribers/email-customer-welcome.ts",
       "backend/src/subscribers/email-order-canceled.ts",
       "backend/src/subscribers/email-order-placed.ts",
@@ -4654,6 +4812,7 @@
     "models": [
       "backend/src/modules/auth-security/models/state.ts",
       "backend/src/modules/booking/models/booking-availability.ts",
+      "backend/src/modules/booking/models/booking-request.ts",
       "backend/src/modules/booking/models/booking.ts",
       "backend/src/modules/chat/models/chat-conversation.ts",
       "backend/src/modules/chat/models/chat-customer-block.ts",
