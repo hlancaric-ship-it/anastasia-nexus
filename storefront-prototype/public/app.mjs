@@ -1020,7 +1020,7 @@ if($('#booking-view')){
     const step2=free?`<div class="bk-step"><p class="bk-step__no">Krok 2</p><h3>${e(dayLabel(day))}</h3><div class="bk-times" role="group" aria-label="Voľné časy">${free.map(s=>`<button type="button" class="bk-time${slot?.start===s.start?' is-on':''}" data-bk-slot="${e(s.start)}" aria-pressed="${slot?.start===s.start}">${e(fmt(s.start,{hour:'2-digit',minute:'2-digit'}))}</button>`).join('')}</div></div>`
       :`<div class="bk-step bk-step--hint"><p class="bk-step__no">Krok 1</p><h3>${empty?'Termíny na tento mesiac sú obsadené.':'Vyberte si deň v kalendári.'}</h3><p>${empty?'Pozrite si nasledujúci mesiac, nové termíny pribúdajú priebežne.':'Dni so zlatou bodkou majú voľné termíny.'}</p>${empty&&month<monthAdd(thisMonth,MAX_AHEAD)?`<button type="button" class="button outline" data-bk-month="1">Nasledujúci mesiac ${arrow}</button>`:''}<button type="button" class="button bk-go bk-go--idle" disabled aria-disabled="true">Pokračovať k platbe</button><p class="bk-go__hint">Najprv vyberte deň a čas.</p></div>`;
     const step3=slot?`<article class="bk-summary"><p class="bk-step__no">Krok 3 · Súhrn</p><h3>${e(dayLabel(day,slot.start))}</h3><p class="bk-summary__type">${e(type.title)}${type.durationMinutes?` · ${e(String(type.durationMinutes))} min`:''}</p><p class="bk-summary__price"><span>Cena</span><strong>${e(type.priceLabel||'')}</strong></p><button type="button" class="button bk-go" data-bk-reserve>Pokračovať k platbe ${arrow}</button><p class="fine-print">Termín vám podržíme, kým dokončíte objednávku. Účet nepotrebujete.</p><p class="form-status" role="status" aria-live="polite"></p></article>`:'';
-    return `<div class="bk-side">${note?status(note,'ERROR'):''}${step2}${step3}</div>`;
+    return `<div class="bk-side">${note?`<p class="form-status bk-alert" role="alert" tabindex="-1" data-state="ERROR">${e(note)}</p>`:''}${step2}${step3}</div>`;
   };
   const render=async()=>{
     loadError='';
@@ -1037,6 +1037,8 @@ if($('#booking-view')){
     $('[data-bk-retry]',view)?.addEventListener('click',()=>{cache.clear();render();});
     $('[data-bk-reserve]',view)?.addEventListener('click',reserve);
   };
+  // Chyba musí byť na očiach: posun k hláške a fokus (čítačky ju oznámia cez role=alert).
+  const showAlert=el=>{if(!el)return;el.setAttribute('role','alert');el.tabIndex=-1;el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true});};
   const reserve=async event=>{
     const go=event.currentTarget,out=$('.bk-summary .form-status',view);
     if(busy||!slot)return;busy=true;go.disabled=true;out.dataset.state='REVIEW';out.textContent='Rezervujem termín…';
@@ -1044,8 +1046,8 @@ if($('#booking-view')){
       const r=await api.reserveBooking({productId:type.id,variantId:type.variantId,startsAt:slot.start,title:type.title});
       if(r.ok){out.dataset.state='ALLOW';out.textContent='Termín je podržaný. Pokračujeme na objednávku…';await updateCount();location.assign('/pokladna');return;}
       if(r.status===401){rememberReturn(`${location.pathname}?typ=${encodeURIComponent(type.handle)}`);view.innerHTML=loginPrompt('Prihlásenie vypršalo. Prihláste sa znova.');return;}
-      if(r.status===409||r.status===404){cache.clear();slot=null;note=r.message||'Tento termín si medzitým rezervoval niekto iný. Vyberte si prosím iný.';await render();return;}
-      out.dataset.state='ERROR';out.textContent=r.message;
+      if(r.status===409||r.status===404){cache.clear();slot=null;note=r.message||'Tento termín si medzitým rezervoval niekto iný. Vyberte si prosím iný.';await render();showAlert($('.bk-alert',view));return;}
+      out.dataset.state='ERROR';out.textContent=r.message;showAlert(out);
     }finally{busy=false;if(go.isConnected)go.disabled=false;}
   };
   // Prvý mesiac s voľným termínom (najviac pol roka dopredu), inak ostane aktuálny mesiac.

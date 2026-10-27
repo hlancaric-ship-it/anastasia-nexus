@@ -68,6 +68,34 @@ test('guest reserveBooking holds the slot through booking-guest, never the accou
   assert.ok(log.includes('POST /store/booking-guest'));assert.ok(!log.includes('POST /store/bookings'),'guest never uses the account booking endpoint');
 });
 
+test('completed cart from a previous order is not reused for a guest booking',async()=>{
+  const storage=memoryStorage({'anastasia.cart':'cart_old'});
+  const log=router([
+    ['GET',/^\/store\/carts\/cart_old/,()=>respond(200,{cart:{id:'cart_old',completed_at:'2026-10-27T18:00:00.000Z'}})],
+    ['POST',/^\/store\/carts$/,()=>respond(200,{cart:{id:'cart_new'}})],
+    ['GET',/^\/store\/carts\/cart_new/,()=>respond(200,{cart:{id:'cart_new',items:[],metadata:{}}})],
+    ['POST',/^\/store\/carts\/cart_new\/line-items$/,()=>respond(200,{cart:{id:'cart_new',items:[]}})],
+    ['POST',/^\/store\/booking-guest$/,(_p,body)=>body.cart_id==='cart_new'?respond(201,{booking:{id:'b2',starts_at:'2026-10-20T08:00:00.000Z',ends_at:'2026-10-20T09:00:00.000Z'}}):respond(404,{type:'not_found'})],
+  ]);
+  const r=await createHttpApi(storage,config).reserveBooking({productId:'p1',variantId:'v1',startsAt:'2026-10-20T08:00:00.000Z'});
+  assert.equal(r.ok,true,r.message);assert.equal(storage.getItem('anastasia.cart'),'cart_new');
+  assert.ok(!log.includes('POST /store/carts/cart_old/line-items'),'do dokončeného košíka sa nič nepridáva');
+});
+
+test('guest booking retries once with a fresh cart when the server does not know the stored cart',async()=>{
+  const storage=memoryStorage({'anastasia.cart':'cart_acc'});
+  let created=0;
+  const log=router([
+    ['GET',/^\/store\/carts\/cart_/,(p)=>respond(200,{cart:{id:p.match(/cart_\w+/)[0],items:[],metadata:{}}})],
+    ['POST',/^\/store\/carts$/,()=>{created++;return respond(200,{cart:{id:'cart_fresh'}});}],
+    ['POST',/^\/store\/carts\/cart_\w+\/line-items$/,()=>respond(200,{cart:{items:[]}})],
+    ['POST',/^\/store\/booking-guest$/,(_p,body)=>body.cart_id==='cart_fresh'?respond(201,{booking:{id:'b3',starts_at:'2026-10-20T08:00:00.000Z',ends_at:'2026-10-20T09:00:00.000Z'}}):respond(404,{type:'not_found'})],
+  ]);
+  const r=await createHttpApi(storage,config).reserveBooking({productId:'p1',variantId:'v1',startsAt:'2026-10-20T08:00:00.000Z'});
+  assert.equal(r.ok,true,r.message);assert.equal(r.booking.id,'b3');assert.equal(created,1,'najviac jeden nový košík');
+  assert.equal(log.filter(l=>l==='POST /store/booking-guest').length,2);
+});
+
 test('slot taken by someone else returns 409 with a clear message and nothing is added to the cart',async()=>{
   const log=router([
     ['GET',/^\/store\/carts\/cart_1/,()=>respond(200,{cart:{id:'cart_1',items:[],metadata:{}}})],

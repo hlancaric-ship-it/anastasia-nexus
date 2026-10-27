@@ -261,8 +261,10 @@ export function createHttpApi(storage, config) {
   async function ensureCart() {
     const existing = get(CART);
     if (existing) {
-      const r = await call(`/store/carts/${existing}`);
-      if (r.ok && r.data?.cart) return existing;
+      // Dokončený košík (objednávka už vznikla) sa znovu nepoužije, inak server odmietne rezerváciu aj platbu.
+      const r = await call(`/store/carts/${existing}?fields=id,completed_at`);
+      if (r.ok && r.data?.cart && !r.data.cart.completed_at) return existing;
+      del(CART); del(BOOKING);
     }
     const r = await call('/store/carts', { method: 'POST', body: { region_id: config.regionId } });
     const id = r.data?.cart?.id;
@@ -596,7 +598,14 @@ export function createHttpApi(storage, config) {
         const cartId = await ensureCart();
         if (!cartId) return { ok: false, message: 'Košík sa nepodarilo vytvoriť. Skúste to znova.' };
         await releaseBooking(cartId);
-        if (!loggedIn()) return await reserveGuestBooking({ cartId, productId, variantId, startsAt, title, fail });
+        if (!loggedIn()) {
+          const guest = await reserveGuestBooking({ cartId, productId, variantId, startsAt, title, fail });
+          if (guest.ok || guest.status !== 404) return guest;
+          // Server košík pre hosťa nepozná (dokončený alebo patrí účtu po odhlásení): jeden pokus s novým košíkom.
+          del(CART); del(BOOKING);
+          const fresh = await ensureCart();
+          return fresh ? await reserveGuestBooking({ cartId: fresh, productId, variantId, startsAt, title, fail }) : guest;
+        }
         const hold = await call('/store/bookings', { method: 'POST', body: { product_id: productId, starts_at: startsAt } });
         const booking = hold.data?.booking;
         if (hold.status !== 201 || !booking?.id) {

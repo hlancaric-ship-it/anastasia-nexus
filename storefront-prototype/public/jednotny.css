@@ -937,8 +937,9 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 #page-shell.kc-unified .legacy-main .bk-step__no{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--g-gold);margin:0 0 6px}
 #page-shell.kc-unified .legacy-main :is(.bk-step,.bk-summary) h3{font-size:18px!important;margin:0 0 12px!important}
 #page-shell.kc-unified .legacy-main .bk-step--hint p{font-size:14px;color:#5a604f;margin:0 0 12px}
-#page-shell.kc-unified .legacy-main .bk-times{display:flex;flex-wrap:wrap;gap:8px}
-#page-shell.kc-unified .legacy-main .bk-time{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(179,154,106,.45);background:#FDFBF7;color:var(--g-ink);font-size:15px;cursor:pointer;transition:background .2s,color .2s}
+#page-shell.kc-unified .legacy-main .bk-times{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+#page-shell.kc-unified .legacy-main .bk-time{min-height:44px;padding:0 8px;width:100%;text-align:center;font-variant-numeric:tabular-nums;border-radius:999px;border:1px solid rgba(179,154,106,.45);background:#FDFBF7;color:var(--g-ink);font-size:15px;cursor:pointer;transition:background .2s,color .2s}
+#page-shell.kc-unified .legacy-main .bk-alert{scroll-margin:120px;outline:none}
 #page-shell.kc-unified .legacy-main .bk-time:hover{border-color:var(--g-gold)}
 #page-shell.kc-unified .legacy-main .bk-time.is-on{background:var(--g-green);border-color:var(--g-green);color:#F4EFE2}
 #page-shell.kc-unified .legacy-main .bk-summary{border-color:rgba(179,154,106,.45)}
