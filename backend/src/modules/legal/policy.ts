@@ -48,6 +48,8 @@ export function assertContractWithdrawalTransition(from: string, to: unknown) {
 }
 export function csvCell(value: unknown) {
   let text = String(value ?? "")
-  if (/^[\s]*[=+@-]/.test(text)) text = "'" + text
+  // Leading TAB/CR must be text even without a following formula marker.
+  // Keep the existing protection for formula markers after whitespace as well.
+  if (/^(?:[\t\r]|\s*[=+@-])/.test(text)) text = "'" + text
   return '"' + text.replace(/"/g, '""') + '"'
 }
