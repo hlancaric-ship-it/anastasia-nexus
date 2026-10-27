@@ -77,6 +77,17 @@ describe("checkout auth gate", () => {
 })
 
 describe("checkout workflow error transport", () => {
+  it.each(["COUPON_LIMIT_EXHAUSTED", "COUPON_USAGE_RESERVATION_UNAVAILABLE", "COUPON_USAGE_RESERVATION_CONFLICT"])("returns 409 for coupon reservation failure %s", async (code) => {
+    jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: false } as any)
+    jest.mocked(completeCartWorkflow).mockReturnValue({ run: jest.fn().mockRejectedValue(new Error(code)) } as any)
+    const { scope, events } = makeScope()
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
+    await POST({ body: { cart_id: "synthetic-cart" }, scope, auth_context: AUTH } as any, res)
+    expect(res.status).toHaveBeenCalledWith(409)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: code }))
+    expect(events.createOpsEvents).toHaveBeenCalledWith(expect.objectContaining({ level: "warn", domain: "coupon", event: "reservation_rejected" }))
+  })
+
   it.each([
     ["SAFEORDER_UNAVAILABLE", 503],
     ["SAFEORDER_NOT_CONFIGURED", 503],

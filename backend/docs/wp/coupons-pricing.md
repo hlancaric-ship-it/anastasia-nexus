@@ -36,12 +36,11 @@ Podporované a overené:
   iné pravidlo na produkty než `items.product.id in [...]`. Takýto kupón sa **neuplatní**
   a zákazník dostane `COUPON_INVALID` – žiadna tichá strata zľavy.
 - **Limit použití a platnosť od–do** sa rešpektujú (`codeAvailable`: `limit` vs `used`,
-  `campaign.starts_at`/`ends_at`). Navyše sa použitie po vytvorení objednávky započíta
-  jedným **atomickým** `UPDATE promotion SET used = used + 1 … WHERE used < limit`
-  (`backend/src/lib/pricing/coupon-usage.ts`) – dva súbežné nákupy sa o jedno použitie
-  nesporia. Započítanie prebieha až po vytvorení objednávky a nikdy nevyhodí chybu.
+  `campaign.starts_at`/`ends_at`). Použitie s limitom sa rezervuje pri dokončení košíka
+  pod zámkom riadka promotion; rezervácia sa pri vytvorení objednávky potvrdí a pri
+  zlyhaní alebo zrušení uvoľní. Podrobnosti sú v bode 1c.
 
-### 1b. Jedna objednávka = jedno použitie kupónu (opravené 21. 10. 2026)
+### 1b. Predchádzajúci zápis po objednávke (historický, nahradený 27. 10. 2026)
 
 Použitie kupónu s limitom sa zapisovalo **dvakrát**: raz `registerUsage` v hooku
 dokončenia košíka (Medusa zvýšila `promotion.used`) a raz zápisom
@@ -51,6 +50,10 @@ bolo treba `"limit"`; chybu navyše spolupráca zapisovania prehĺtla), takže s
 použitie kupónu vôbec nikde nepočítalo.
 
 Oprava (`backend/src/lib/pricing/coupon-usage.ts`):
+
+Táto iterácia vyriešila dvojité započítanie a chybný SQL zápis, ale zapisovala až po
+objednávke a nechávala súbeh medzi kontrolou a zápisom. Jej aktuálnou náhradou je
+rezervačný tok opísaný v bode 1c.
 
 - jediným miestom zápisu je `recordCouponUsage` po vytvorení objednávky; hook
   dokončenia košíka už Medusa `registerUsage` nepoužíva (v `src/workflows/hooks.ts`
@@ -63,6 +66,24 @@ Oprava (`backend/src/lib/pricing/coupon-usage.ts`):
 - test: `src/lib/pricing/__tests__/coupon-usage.unit.spec.ts` + e2e scenár
   (`src/scripts/e2e-digital-coupon-loyalty.ts`, krok „použitie kupónu sa započíta
   právě raz“).
+
+### 1c. Atomická rezervácia limitu pri checkoutu (27. 10. 2026)
+
+`coupon_link` modul uchováva `coupon_usage_reservation`, jednu rezerváciu na košík.
+Pri checkout hooku sa promotion určí podľa serverom overeného kódu, jej riadok sa
+zamkne (`FOR UPDATE`) a pre limitovaný kupón sa `promotion.used` zvýši v tej istej
+transakcii, v ktorej sa uloží rezervácia. Tým vidia rovnaký obsadený slot aj ostatné
+Medusa cesty používajúce `registerUsage`; súbežný checkout pri limite 1 neprejde.
+
+- rovnaký košík môže rezerváciu zopakovať bez ďalšieho čerpania; iný kód/promotion na
+  tom istom košíku zlyhá fail-closed,
+- chyba pred vytvorením objednávky uvoľní rezerváciu; ak objednávka už existuje,
+  kompenzácia ju potvrdí namiesto uvoľnenia,
+- `order.placed` rezerváciu idempotentne potvrdí; `order.canceled` vráti započítané
+  použitie a opakované události počítadlo nemenia,
+- neoveriteľná rezervácia vráti z checkoutu HTTP 409; objednávka sa nedokončí.
+
+Implementácia: `src/modules/coupon-link/{service.ts,models/coupon-usage-reservation.ts,migrations/Migration20261027190000.ts}`, `src/workflows/hooks.ts` a `src/subscribers/coupon-usage-order-placed.ts`.
 
 ### 2. Akčná (výpredajová) cena
 
@@ -175,19 +196,14 @@ npx medusa exec ./src/scripts/e2e-digital-coupon-loyalty.ts stub
 
 ## Riziká a limity
 
-- **Použitie kupónu sa započítava až po vytvorení objednávky.** Pri páde procesu medzi
-  vytvorením objednávky a zápisom sa jedno použitie stratí (kupón sa môže použiť o jeden
-  raz viac). Pre jednorazové kupóny je to malé riziko; pre campaign s limitom odporúčame
-  sledovať `promotion.used`.
-- **Dva súbežné checkouty môžu prekročiť limit o jedno použitie** – zápis je atomický,
-  ale kontrola limitu prebehne v košíku, nie v transakcii objednávky. Pred objednávkou
-  sa navyše urobí read-only kontrola limitu (`couponLimitState`), takže vyčerpaný
-  limit checkout zastaví; v úzkom medzivode medzi kontrolou a zápisom môže limit
-  spotrebovať iný súbežný nákup (zápis to potom nahlási ako `limit_exhausted`).
+- **Tvrdý pád procesu po zápise rezervácie, ale pred kompenzáciou**, môže ponechať
+  rezerváciu v stave `reserved` a dočasne obsadiť limit. Rezervácie sa automaticky
+  neexpirujú, pretože počas pomalého checkoutu by expirácia mohla uvoľniť platný nákup;
+  zaseknuté záznamy vyžadujú manuálne overenie voči `order_cart` pred uvoľnením.
 - **Rozpočet kampane sa nezapisuje.** Medusa `registerUsage` vie kumulovať aj
-  rozpočet kampane (`promotion_campaign_budget`); tento obchod rozpočty nemá
-  a zápis použitia robí `recordCouponUsage`. Ak sa rozpočet kampane niekedy pridá,
-  treba použitie zapisovať cez Medusa `registerUsage` (a zrušiť zápis v `coupon-usage.ts`).
+  rozpočet kampane (`promotion_campaign_budget`); tento obchod rozpočty nemá.
+  Ak sa pridajú, rezervácia musí atomicky zohľadniť aj kampaňový rozpočet bez dvojitého
+  započítania v Medusa `registerUsage`.
 - **Pevná zľava sa počíta z ceny pred zľavou** (base price). Ak výpredajová cena alebo
   vernostná zľava zníži cenu pod podiel pevnej sumy, zákazník dostane menej zľavy, než
   kupón nominálne hovorí (cena však nikdy nejde pod 0).

@@ -1,5 +1,6 @@
 jest.mock("../../lib/membership/checkout-guard",()=>({assertMembershipCheckoutCart:jest.fn(async()=>{})}))
 jest.mock("../../lib/legal/checkout", () => ({ assertCartConsent: jest.fn(async () => {}) }))
+jest.mock("../gift-voucher-checkout", () => ({ prepareGiftVoucherCheckout: jest.fn(async () => null) }))
 var mockValidate: any
 var mockCompensate: any
 jest.mock("@medusajs/medusa/core-flows", () => ({
@@ -7,9 +8,11 @@ jest.mock("@medusajs/medusa/core-flows", () => ({
   completeCartWorkflow: { hooks: { validate: jest.fn((handler, compensate) => { mockValidate = handler; mockCompensate = compensate }) } },
 }))
 jest.mock("../../api/store/nexus-cart/route", () => ({ repriceCart: jest.fn() }))
-jest.mock("../../lib/pricing/coupon-usage", () => ({ couponLimitState: jest.fn(async () => ({ limit: null, used: 0, exhausted: false })), promotionIdForCode: jest.fn(async () => "promo_1") }))
+jest.mock("../../lib/pricing/coupon-usage", () => ({ promotionIdForCode: jest.fn(async () => "promo_1") }))
+jest.mock("../../modules/coupon-link", () => ({ COUPON_LINK_MODULE: "coupon_link" }))
 import { repriceCart } from "../../api/store/nexus-cart/route"
-import { couponLimitState, promotionIdForCode } from "../../lib/pricing/coupon-usage"
+import { promotionIdForCode } from "../../lib/pricing/coupon-usage"
+import { prepareGiftVoucherCheckout } from "../gift-voucher-checkout"
 import { SafeOrderError } from "../../api/store/nexus-checkout/safeorder"
 import "../hooks"
 
@@ -79,19 +82,23 @@ describe("SafeOrder guard on every completeCartWorkflow path", () => {
 })
 
 
-describe("C3 coupon usage after SafeOrder", () => {
+describe("coupon usage reservation after SafeOrder", () => {
   const originalEnv = { ...process.env }
   const originalFetch = global.fetch
-  const registerUsage = jest.fn()
-  const revertUsage = jest.fn()
-  const container = { resolve: jest.fn(() => ({ registerUsage, revertUsage })) }
+  const reserveUsage = jest.fn()
+  const releaseReservation = jest.fn()
+  const couponService = { reserveUsage, releaseReservation }
+  const giftVoucherService = { redeem: jest.fn(), reverseRedemption: jest.fn() }
+  const container = { resolve: jest.fn((key?: string) => key === "coupon_link" ? couponService : giftVoucherService) }
   const cart = () => ({ ...snapshot(), metadata: { nexus_coupon: { code: "SYNTHETIC-ONCE", promotion_id: "promo_1" } } })
   const validate = (value: any = cart()) => mockValidate({ input: { id: value.id }, cart: value }, { container })
   beforeEach(() => {
     jest.resetAllMocks()
-    container.resolve.mockReturnValue({ registerUsage, revertUsage })
-    registerUsage.mockResolvedValue(undefined)
-    ;(couponLimitState as jest.Mock).mockResolvedValue({ limit: null, used: 0, exhausted: false })
+    container.resolve.mockImplementation((key?: string) => key === "coupon_link" ? couponService : giftVoucherService)
+    reserveUsage.mockResolvedValue({ id: "reservation_1", status: "reserved" })
+    releaseReservation.mockResolvedValue(undefined)
+    giftVoucherService.redeem.mockResolvedValue({ transaction_id: "redemption_1" })
+    ;(prepareGiftVoucherCheckout as jest.Mock).mockResolvedValue(null)
     ;(promotionIdForCode as jest.Mock).mockResolvedValue("promo_1")
     process.env.NEXUS_SAFEORDER_URL = "https://nexus.internal/api/nexus/safeorder"
     process.env.NEXUS_PRICING_API_KEY = "synthetic-key"
@@ -100,39 +107,36 @@ describe("C3 coupon usage after SafeOrder", () => {
     global.fetch = jest.fn(async (_url, options) => new Response(JSON.stringify({ ...JSON.parse(options!.body as string), ok: true, decision: "ALLOW", score: 0, factors: [] }))) as any
   })
   afterEach(() => { process.env = { ...originalEnv }; global.fetch = originalFetch })
-  it("nepíše použitie kupónu v hooku (zapisuje sa až po vytvorení objednávky)", async () => {
+  it("reserves a use by server-resolved coupon code", async () => {
     const response = await validate()
-    expect(registerUsage).not.toHaveBeenCalled()
-    expect(couponLimitState).toHaveBeenCalledWith(expect.anything(), "promo_1")
-    // Bez kupónu, rezervácie aj poukazu netreba nič kompenzovať.
-    expect(response).toBeUndefined()
+    expect(reserveUsage).toHaveBeenCalledWith({ promotion_id: "promo_1", coupon_code: "SYNTHETIC-ONCE", cart_id: "cart_synthetic" })
+    expect(response).toBeTruthy()
   })
-  it("vyčerpaný limit kupónu zastaví checkout", async () => {
-    ;(couponLimitState as jest.Mock).mockResolvedValue({ limit: 1, used: 1, exhausted: true })
+  it("fails closed when atomic reservation says the limit is exhausted", async () => {
+    reserveUsage.mockRejectedValue(new Error("COUPON_LIMIT_EXHAUSTED"))
     await expect(validate()).rejects.toThrow("COUPON_LIMIT_EXHAUSTED")
-    expect(registerUsage).not.toHaveBeenCalled()
   })
   it("neplatný kód kupónu zastaví checkout", async () => {
     await expect(validate({ ...cart(), metadata: { nexus_coupon: { code: "  " } } })).rejects.toThrow("COUPON_INVALID")
   })
-  it("limit sa kontroluje na akcii podľa kódu, nie podľa podvrhnutého promotion_id", async () => {
+  it("resolves the promotion from code, not a client-supplied promotion_id", async () => {
     await validate({ ...cart(), metadata: { nexus_coupon: { code: "SYNTHETIC-ONCE", promotion_id: "promo_spoofed" } } })
     expect(promotionIdForCode).toHaveBeenCalledWith(expect.anything(), "SYNTHETIC-ONCE")
-    expect(couponLimitState).toHaveBeenCalledWith(expect.anything(), "promo_1")
+    expect(reserveUsage).toHaveBeenCalledWith(expect.objectContaining({ promotion_id: "promo_1" }))
   })
   it("kód bez akcie zastaví checkout (fail closed)", async () => {
     ;(promotionIdForCode as jest.Mock).mockResolvedValue(null)
     await expect(validate()).rejects.toThrow("COUPON_INVALID")
-    expect(couponLimitState).not.toHaveBeenCalled()
+    expect(reserveUsage).not.toHaveBeenCalled()
   })
-  it("bez kupónu sa limit nekontroluje", async () => {
+  it("does not reserve a cart without a coupon", async () => {
     await validate(snapshot())
-    expect(couponLimitState).not.toHaveBeenCalled()
+    expect(reserveUsage).not.toHaveBeenCalled()
   })
   it.each(["BLOCK", "REVIEW"])("never consumes for %s", async decision => {
     global.fetch = jest.fn(async () => new Response(JSON.stringify({ ok: true, tenantId: "anastasia", currency: "eur", orderSum: 55, decision, score: decision === "BLOCK" ? 90 : 50, factors: [] }))) as any
     await expect(validate()).rejects.toBeInstanceOf(SafeOrderError)
-    expect(registerUsage).not.toHaveBeenCalled()
+    expect(reserveUsage).not.toHaveBeenCalled()
   })
   it("does not consume if a later payment provider rejects", async () => {
     const value = cart()
@@ -142,12 +146,36 @@ describe("C3 coupon usage after SafeOrder", () => {
       return new Response(JSON.stringify({ ...body, ok: true, decision: body.paymentMethod === "cod" ? "REVIEW" : "ALLOW", score: body.paymentMethod === "cod" ? 50 : 0, factors: [] }))
     }) as any
     await expect(validate(value)).rejects.toBeInstanceOf(SafeOrderError)
-    expect(registerUsage).not.toHaveBeenCalled()
+    expect(reserveUsage).not.toHaveBeenCalled()
+  })
+  it("allows only one of five competing carts at a one-use limit", async () => {
+    const held = new Set<string>()
+    let tail = Promise.resolve()
+    reserveUsage.mockImplementation(async (input: { cart_id: string }) => {
+      const previous = tail
+      let unlock!: () => void
+      tail = new Promise<void>((resolve) => { unlock = resolve })
+      await previous
+      try {
+        if (held.size >= 1) throw new Error("COUPON_LIMIT_EXHAUSTED")
+        held.add(input.cart_id)
+        return { id: `reservation_${input.cart_id}`, status: "reserved" }
+      } finally { unlock() }
+    })
+    const outcomes = await Promise.allSettled(Array.from({ length: 5 }, (_, index) => validate({ ...cart(), id: `cart_${index}` })))
+    expect(outcomes.filter((entry) => entry.status === "fulfilled")).toHaveLength(1)
+    expect(outcomes.filter((entry) => entry.status === "rejected")).toHaveLength(4)
+    expect(held.size).toBe(1)
+  })
+  it("releases a reservation when a later checkout step fails", async () => {
+    ;(prepareGiftVoucherCheckout as jest.Mock).mockResolvedValue({ redeem: { voucher_id: "voucher_synthetic" } })
+    giftVoucherService.redeem.mockRejectedValue(new Error("VOUCHER_REDEEM_FAILED"))
+    await expect(validate()).rejects.toThrow("VOUCHER_REDEEM_FAILED")
+    expect(releaseReservation).toHaveBeenCalledWith({ cart_id: "cart_synthetic" })
   })
   it("skips carts without coupons and already completed carts", async () => {
     await validate(snapshot())
     await validate({ ...cart(), completed_at: new Date() })
-    expect(couponLimitState).not.toHaveBeenCalled()
-    expect(registerUsage).not.toHaveBeenCalled()
+    expect(reserveUsage).not.toHaveBeenCalled()
   })
 })
