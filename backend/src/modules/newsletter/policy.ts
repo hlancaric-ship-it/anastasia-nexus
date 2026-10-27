@@ -209,15 +209,43 @@ export function remainingDailyBudget(sentLast24h: number, limit: number, batch: 
 
 // --- Šablóna e-mailu ---
 
+/** Paleta webu ANASTASIA: šedomodrá, levanduľa, olivová, krémová, zlatá. */
 const BRAND = {
   cream: "#e9e9f2",
-  card: "#ffffff",
+  paper: "#f7f4ec",
+  card: "#fdfbf7",
   lavender: "#a7a5cf",
   accent: "#73729c",
+  olive: "#2f3424",
+  gold: "#c9a55c",
   ink: "#2b2a3a",
-  muted: "#55546b",
-  line: "#a7a5cf",
+  muted: "#5a5b70",
+  line: "#d8d8e8",
 }
+
+/** Verejná adresa obrázkov v e-maile (logo). Nastaviteľná cez NEWSLETTER_ASSET_URL, kým beží test, ukazuje na testovací web. */
+export function newsletterAssetUrl(env: NodeJS.ProcessEnv = process.env): string {
+  return (env.NEWSLETTER_ASSET_URL || "https://anastasia-test.l-code-dynamics.com").replace(/\/+$/, "")
+}
+
+/**
+ * Odsek, v ktorom je len jeden odkaz (`<p><a href="https://…">Text</a></p>`), sa v e-maile zobrazí ako tlačidlo.
+ * Jeden odkaz = jedno tlačidlo, ostatné odkazy v texte zostávajú obyčajné.
+ */
+export function ctaButtons(bodyHtml: string, dark = false): string {
+  const fill = dark ? "#f7f4ec" : BRAND.olive
+  const ink = dark ? BRAND.olive : "#f7f4ec"
+  return bodyHtml.replace(/<p>\s*<a [^>]*href="([^"]+)"[^>]*>([^<]{1,80})<\/a>\s*<\/p>/gi, (_m, href: string, label: string) =>
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 14px"><tr><td align="center" bgcolor="${fill}" style="border-radius:999px;background:${fill}"><a data-cta="1" href="${href}" style="display:inline-block;padding:17px 38px;font-family:Figtree,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;color:${ink};text-decoration:none;border-radius:999px">${label}</a></td></tr></table>`)
+}
+
+/** Panely ako na webe: šedomodrá, svetlá zelená, olivová, zlatá. Každý nadpis (h2) začína nový panel. */
+const PANELS = [
+  { bg: "#e9e9f2", ink: BRAND.ink, head: BRAND.olive, link: BRAND.accent, dark: false },
+  { bg: "#e4e6d6", ink: BRAND.ink, head: BRAND.olive, link: BRAND.accent, dark: false },
+  { bg: BRAND.olive, ink: "#e9eadf", head: "#f7f4ec", link: BRAND.gold, dark: true },
+  { bg: "#f3e9d0", ink: BRAND.ink, head: BRAND.olive, link: "#8a6d2e", dark: false },
+]
 
 /** Prevod sanitizovaného HTML na čitateľný text (pätička sa pridáva zvlášť). */
 export function htmlToText(html: string): string {
@@ -246,45 +274,62 @@ export type CampaignEmailInput = {
 }
 
 /**
- * Svetlá šablóna: krémové pozadie, levanduľová a šalviová, tenký serif v hlavičke.
+ * Šablóna „Dopis“: šedomodré pozadie, krémová karta, serif nadpis, jedno tlačidlo, olivová pätička.
  * Testovací e-mail bez známeho súhlasu odkaz na odhlásenie nemá (nemá čo podpísať).
  */
 export function renderCampaignEmail(input: CampaignEmailInput): { html: string; text: string } {
   const preheader = String(input.preheader ?? "").trim()
   const unsubscribe = input.unsubscribeUrl ? String(input.unsubscribeUrl) : ""
-  const bodyHtml = input.bodyHtml.replace(/<(h[23])>/gi, '<$1 style="color:#73729c">')
+  const asset = newsletterAssetUrl()
+  const serif = "Fraunces,Georgia,'Times New Roman',serif"
+  const sans = "Figtree,Helvetica,Arial,sans-serif"
+  const styleBlock = (html: string, panel: (typeof PANELS)[number]): string => ctaButtons(html, panel.dark)
+    .replace(/<a href=/gi, `<a style="color:${panel.link};text-decoration:underline" href=`)
+    .replace(/<h2>/gi, `<h2 style="margin:0 0 20px;font-family:${serif};font-size:32px;line-height:1.15;font-weight:300;letter-spacing:-.01em;color:${panel.head}">`)
+    .replace(/<h3>/gi, `<h3 style="margin:26px 0 10px;font-family:${serif};font-size:21px;line-height:1.25;font-weight:400;color:${panel.link}">`)
+    .replace(/<p>/gi, `<p style="margin:0 0 18px">`)
+    .replace(/<ul>/gi, `<ul style="margin:0 0 18px;padding-left:22px">`)
+    .replace(/<ol>/gi, `<ol style="margin:0 0 18px;padding-left:22px">`)
+    .replace(/<li>/gi, `<li style="margin:0 0 8px">`)
+    .replace(/<img /gi, `<img style="display:block;width:100%;max-width:520px;height:auto;border-radius:16px;margin:8px 0 22px" `)
+    .replace(/ data-cta="1"/g, "")
+  const sections = input.bodyHtml.split(/(?=<h2>)/i).filter(part => part.trim())
+  const rows = (sections.length ? sections : [""]).map((part, index) => {
+    const panel = PANELS[index % PANELS.length]
+    return `<tr><td bgcolor="${panel.bg}" style="padding:44px 48px 36px;background:${panel.bg};font-family:${sans};font-size:16px;line-height:1.8;color:${panel.ink}">
+${styleBlock(part, panel)}
+</td></tr>`
+  }).join("\n")
   const footer = unsubscribe
-    ? `<p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
-<p style="margin:0"><a href="${escapeHtml(unsubscribe)}" style="font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.accent};text-decoration:underline">Odhlásiť sa z odberu</a></p>`
-    : `<p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.</p>`
+    ? `<p style="margin:0 0 6px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
+<p style="margin:0"><a href="${escapeHtml(unsubscribe)}" style="font-family:${sans};font-size:12px;line-height:1.7;color:${BRAND.gold};text-decoration:underline">Odhlásiť sa z odberu</a></p>`
+    : `<p style="margin:0;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.</p>`
 
   const html = `<!doctype html>
 <html lang="sk">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>${escapeHtml(input.subject)}</title>
 </head>
 <body style="margin:0;padding:0;background:${BRAND.cream}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.cream}">
-<tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:${BRAND.card};border:1px solid ${BRAND.line};border-radius:14px">
-<tr><td style="padding:36px 40px 0;text-align:center">
-<img src="https://media.anastasiaoz.eu/logo-mark.png" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;margin:0 auto 10px;object-fit:contain;border:0">
-<div style="font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:300;letter-spacing:6px;color:${BRAND.accent};text-transform:uppercase">ANASTASIA</div>
-<div style="font-family:Figtree,Arial,sans-serif;font-size:10px;letter-spacing:3px;color:${BRAND.muted};text-transform:uppercase;padding-top:8px">Light for the future</div>
-<div style="height:1px;background:${BRAND.lavender};opacity:0.35;margin:22px 0 0"></div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${BRAND.cream}" style="background:${BRAND.cream}">
+<tr><td align="center" background="${asset}/assets/email-lines.png" style="padding:36px 16px 44px;background:${BRAND.cream} url(${asset}/assets/email-lines.png) center top repeat-y;background-size:1200px auto">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;background:${BRAND.card};border-radius:28px;overflow:hidden">
+<tr><td align="center" style="padding:44px 40px 26px;background:${BRAND.paper}">
+<img src="${asset}/assets/lucia-koule.png" width="64" height="64" alt="ANASTASIA" style="display:block;width:64px;height:64px;margin:0 auto 16px;border:0">
+<div style="font-family:${serif};font-size:26px;font-weight:300;letter-spacing:9px;color:${BRAND.olive};text-transform:uppercase">ANASTASIA</div>
+<div style="font-family:${sans};font-size:10px;letter-spacing:4px;color:${BRAND.gold};text-transform:uppercase;padding-top:10px">Light for the future</div>
 </td></tr>
-<tr><td style="padding:26px 40px 8px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.75;color:${BRAND.ink}">
-${bodyHtml}
-</td></tr>
-<tr><td style="padding:28px 40px 34px">
-<div style="height:1px;background:${BRAND.accent};opacity:0.25;margin:0 0 20px"></div>
-<p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${BRAND.muted}">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
+<tr><td height="3" bgcolor="${BRAND.gold}" style="height:3px;background:${BRAND.gold};line-height:3px;font-size:3px"></td></tr>
+${rows}
+<tr><td style="padding:34px 48px 36px;background:${BRAND.olive}">
+<p style="margin:0 0 10px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
 ${footer}
-<p style="margin:14px 0 0;font-family:Fraunces,Georgia,serif;font-size:11px;letter-spacing:2px;color:${BRAND.accent};text-transform:uppercase">ANASTASIA · Light for the future</p>
-<p style="margin:10px 0 0;font-family:Figtree,Arial,sans-serif;font-size:11px;line-height:1.6;color:${BRAND.muted}">LUCRAT spol. s r.o. · IČO 36652164 · <a href="https://anastasiaoz.eu" style="color:${BRAND.accent}">anastasiaoz.eu</a></p>
+<p style="margin:18px 0 0;font-family:${serif};font-size:11px;letter-spacing:3px;color:${BRAND.gold};text-transform:uppercase">ANASTASIA · Light for the future</p>
+<p style="margin:10px 0 0;font-family:${sans};font-size:11px;line-height:1.6;color:#aeb29c">LUCRAT spol. s r.o. · IČO 36652164 · <a href="https://anastasiaoz.eu" style="color:${BRAND.gold}">anastasiaoz.eu</a> · info@anastasiaoz.eu</p>
 </td></tr>
 </table>
 </td></tr>

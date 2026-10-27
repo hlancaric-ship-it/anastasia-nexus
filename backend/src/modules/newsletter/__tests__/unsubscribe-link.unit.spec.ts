@@ -65,8 +65,8 @@ describe("šablóna e-mailu", () => {
     const link = "https://api.example.test/store/newsletter/unsubscribe/link?c=lgl_1&s=abc"
     const { html, text } = renderCampaignEmail({ subject: "Novinky", preheader: "Krátky úvod", bodyHtml: "<p>Dobrý deň</p>", unsubscribeUrl: link })
     expect(html).toContain("background:#e9e9f2")
-    expect(html).toContain("#a7a5cf")
-    expect(html).toContain("#73729c")
+    expect(html).toContain("#2f3424")
+    expect(html).toContain("#c9a55c")
     expect(html).toContain("#2b2a3a")
     expect(html).not.toContain("#5f7a5a")
     expect(html).toContain("ANASTASIA")
@@ -79,7 +79,7 @@ describe("šablóna e-mailu", () => {
 
   it("vykreslí nadpisy obsahu v kontrastnej levanduľovej", () => {
     const { html } = renderCampaignEmail({ subject: "Novinky", bodyHtml: "<h2>Nový článok</h2><p>Text</p>" })
-    expect(html).toContain('<h2 style="color:#73729c">Nový článok</h2>')
+    expect(html).toMatch(/<h2 style="[^"]*color:#2f3424[^"]*">Nový článok<\/h2>/)
   })
 
   it("testovací e-mail bez súhlasu nemá vymyslený odkaz", () => {
