@@ -1254,3 +1254,29 @@ html body .ana-bf-off>img.brand-seal{display:none!important}
 #page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-chap .lan-card{background:rgba(255,255,255,.7)!important}
 #page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-steps__no{border-color:#C9A55C;color:#8a6d2e}
 }
+
+/* Rezervácia termínu: kompaktný kalendár a paleta ako na detaile konzultácie (šedomodrá, olivová, zlatá). */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .legacy-main:has(.bk){background:url(/img/organic-lines.svg) center top/max(1600px,100vw) auto repeat-y,linear-gradient(180deg,var(--lav-3,#E9E9F2) 0%,var(--paper,#F7F4EC) 46%,#F0E5CB 100%)!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk{max-width:1180px;margin:0 auto}
+#page-shell#page-shell.kc-unified .legacy-main .bk-types{gap:12px!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-types button{background:rgba(253,251,247,.9)!important;border:1px solid rgba(115,114,156,.25)!important;border-radius:999px!important;padding:12px 22px!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-types button[aria-selected=true]{background:var(--olive,#2F3424)!important;border-color:var(--olive,#2F3424)!important;color:#F7F4EC!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-types button[aria-selected=true] small{color:#D9C28A!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-body{grid-template-columns:minmax(0,1fr) minmax(0,.9fr)!important;gap:28px!important;align-items:start!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-cal{background:var(--lav-3,#E9E9F2)!important;border-radius:28px;padding:clamp(18px,2.4vw,30px);max-width:560px}
+#page-shell#page-shell.kc-unified .legacy-main .bk-day{aspect-ratio:auto!important;height:48px!important;min-height:0!important;border-radius:12px!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-day--free{background:#fff!important;border-color:rgba(201,165,92,.5)!important;color:var(--olive,#2F3424)!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-day--free i{background:#C9A55C!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-day.is-on,#page-shell#page-shell.kc-unified .legacy-main .bk-day[aria-pressed=true]{background:var(--olive,#2F3424)!important;color:#F7F4EC!important;border-color:var(--olive,#2F3424)!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-step{background:var(--mist,#E4E6D6)!important;border:0!important;border-radius:24px!important;padding:clamp(18px,2.2vw,28px)!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-time{background:#fff!important;border:1px solid rgba(47,52,36,.18)!important;border-radius:999px!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-time.is-on{background:var(--olive,#2F3424)!important;color:#F7F4EC!important;border-color:var(--olive,#2F3424)!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-summary{background:var(--olive,#2F3424)!important;color:#F7F4EC!important;border:0!important;border-radius:24px!important;padding:clamp(20px,2.4vw,30px)!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-summary :is(h3,p,strong,span){color:#F7F4EC!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-summary .bk-step__no{color:#D9C28A!important}
+#page-shell#page-shell.kc-unified .legacy-main .bk-summary .bk-go{background:#F7F4EC!important;color:var(--olive,#2F3424)!important;border-color:#F7F4EC!important}
+}
+@layer shopv2{
+html body #page-shell#page-shell.kc-unified .legacy-main .bk-summary button.bk-go[data-bk-reserve]{background:#F7F4EC!important;color:var(--olive,#2F3424)!important;border:1px solid #F7F4EC!important;width:100%;justify-content:space-between;padding:0 24px!important}
+}
