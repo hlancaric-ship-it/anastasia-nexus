@@ -20,6 +20,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
       program: access.program,
       total_weeks: access.structure.total_weeks,
       entry_questionnaire_url: access.structure.entry_questionnaire_url,
+      exit_questionnaire_url: access.structure.exit_questionnaire_url,
       final_summary: access.structure.final_summary,
       weeks: access.structure.weeks,
       content_ready: access.structure.content_ready,

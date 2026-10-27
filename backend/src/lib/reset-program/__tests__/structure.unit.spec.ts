@@ -9,7 +9,7 @@ describe("Zrkadielko – štruktúra programu", () => {
     expect(skeleton.weeks[15].week).toBe(16)
     expect(skeleton.weeks[0].days.map((day) => day.day)).toEqual([2, 3, 4, 5, 6, 7])
     expect(skeleton.final_summary?.title).toBe("Záverečné zhrnutie")
-    expect(skeleton.entry_questionnaire_url).toBe(RESET_ENTRY_QUESTIONNAIRE_URL)
+    expect(skeleton.entry_questionnaire_url).toBe(RESET_ENTRY_QUESTIONNAIRE_URL); expect(skeleton.exit_questionnaire_url).toContain("tally.so")
     expect(skeleton.content_ready).toBe(false)
   })
 
