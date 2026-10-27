@@ -208,3 +208,17 @@ Vlastník oznámil úhradu billing. Oba nové verify pokusy byly stále odmítnu
 startem runneru stejným account-lock důvodem. Přesná data:
 `backend/docs/wp/evidence/safeorder-ci-after-payment.json`. Gate P0 zůstává
 BLOCKED, Auth nebylo otevřeno. Další krok je rerun38125396491 po změně stavu účtu.
+
+## Security audit delta — 2026-10-27/28, `claude/security-audit-2026-10` (1ffdb13)
+
+Zadání `docs/ZADANI-ZABEZPECENI-UTOKY.md`. Důkaz: `npx tsc --noEmit` OK, `npm run test:unit` 182/182 sad, 1766/1766 testů PASS, `check-admin-function-map.py` PASS. Stav na testu (Medusa Cloud) = IMPLEMENTED_UNVERIFIED do E2E po jednom buildu (Sonnet).
+
+| Požadavek | Implementace | Test | Stav |
+|---|---|---|---|
+| S1-09 odhlášení na všech zařízeních | session epoch v JWT (C7 Codex) + guard pro `/store/*`, `/admin/*`, `/auth/token/refresh`, `/auth/session`; neregistrovaná identita (magic-link, pozvánka) projde jen na svůj typ aktéra | `auth-session-transport.unit.spec.ts` (skutečný Express, regresní test registrace) | unit VERIFIED, Cloud UNVERIFIED |
+| S1-09 smazaný zákazník (GDPR) | `denyErasedCustomer` čte `originalUrl` (globální middleware má oříznutou `path`) | `privacy.unit.spec.ts` | unit VERIFIED |
+| S1-09 role asistenta | capability `payments`, `shipping` (jen owner); pricing pro order-edits, draft-orders, customer-groups, booking types s cenou; access pro `metadata.protected_media`/`membership`; refund jen platby vlastní objednávky | `admin-capability.unit.spec.ts`, `orders-admin.unit.spec.ts` | unit VERIFIED, Cloud UNVERIFIED |
+| S1-03 vrácená/zrušená platba | validate hook ověří PaymentIntent a refundy přímo ve Stripe, `compensated_payment_intents` serverový klíč | `payment-compensation` + hooks testy | unit VERIFIED |
+| S1-06 kupón s limitem (C8) | předkontrola vyčerpání před zamknutím košíku, chyba zámku → 409 `COUPON_LIMIT_EXHAUSTED`/`CHECKOUT_IN_PROGRESS`; autoritativní zůstává atomická `reserveUsage` | `coupon-usage.unit.spec.ts`, `route-errors.unit.spec.ts` | unit VERIFIED, Cloud UNVERIFIED |
+
+Otevřené: N1 limit kupónu ignoruje budget kampaně, N2 rezervace `reserved` po pádu procesu nevyprší, CAPTCHA (Turnstile) a CVE závislostí čekají na rozhodnutí Luckyho. T1-7 zůstává NOT_IMPLEMENTED do externího pentestu.
