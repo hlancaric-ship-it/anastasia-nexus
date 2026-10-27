@@ -5,7 +5,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 /**
  * Doprava a platby 1:1 podľa starého webu (ecTransportType, ecPaymentType, ecSysConst):
  * - Kuriér 6,00 € s DPH, zdarma od 60,00 € hodnoty tovaru (`item_total`, nativne pravidlo ceny Medusa),
- * - Osobný odber 0 € (Zdravá lekáreň, Sokolská 88, 960 01 Zvolen),
+ * - Osobný odber 0 € (Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná),
  * - Na dobierku +2,00 € s DPH – len fyzický tovar a len s kuriérom (enableForEp=0),
  * - Kartou online (Stripe), Prevodom na účet (VS = číslo objednávky).
  *
@@ -46,12 +46,12 @@ export function safeOrderPaymentMethod(providerId: string): string {
 /** Platobné údaje pre prevod (zo starého webu, verejné údaje predávajúceho). */
 export const BANK_TRANSFER_ACCOUNT = {
   beneficiary: "LUCRAT spol. s r.o.",
-  bank: "Tatra banka",
-  iban: "SK17 1100 0000 0026 2409 8906",
-  swift: "TATRSKBX",
+  bank: "VÚB banka",
+  iban: "SK43 0200 0000 0052 3107 0754",
+  swift: "SUBASKBX",
 } as const
 
-export const PICKUP_ADDRESS = "Zdravá lekáreň, Sokolská 88, 960 01 Zvolen"
+export const PICKUP_ADDRESS = "Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná"
 
 /** Variabilný symbol = číslo objednávky (len číslice, max. 10 znakov). */
 export function variableSymbol(displayId: unknown): string | null {

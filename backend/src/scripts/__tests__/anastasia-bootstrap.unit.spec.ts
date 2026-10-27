@@ -46,7 +46,7 @@ describe("anastasia-bootstrap config", () => {
     expect(base(byCode.courier_cod)).toEqual([8, 8])
     expect(free(byCode.courier_cod)).toEqual([2, 2])
     expect(base(byCode.pickup)).toEqual([0, 0])
-    expect(byCode.pickup.name).toContain("Sokolská 88, 960 01 Zvolen")
+    expect(byCode.pickup.name).toContain("Vyšná Slaná 259, 049 26 Vyšná Slaná")
     expect(byCode.courier_cod.shipping_profile_id).toBe("sp_p")
   })
 
