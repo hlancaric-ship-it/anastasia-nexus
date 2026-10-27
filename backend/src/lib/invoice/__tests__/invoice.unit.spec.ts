@@ -43,6 +43,8 @@ describe("faktúra", () => {
     const paid = await renderInvoicePdf(buildInvoiceModel(order))
     const images = (pdf: Buffer) => (pdf.toString("latin1").match(/\/Subtype\s*\/Image/g) ?? []).length
     expect(images(unpaid)).toBe(images(paid) + 1)
+    const cod = await renderInvoicePdf(buildInvoiceModel({ ...order, payment_collections: [{ captured_amount: 0, payments: [{ provider_id: "pp_cod_cod", captured_at: null }] }] }))
+    expect(images(cod)).toBe(images(paid))
     if (process.env.INVOICE_DUMP) require("fs").writeFileSync(process.env.INVOICE_DUMP, unpaid)
   })
   it("PDF sa vyrobí a začína hlavičkou PDF", async () => {

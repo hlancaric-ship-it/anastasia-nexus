@@ -106,7 +106,7 @@ export async function renderInvoicePdf(model: InvoiceModel): Promise<Buffer> {
   const tx = W - M
   put(page, model.paid ? "Uhradené" : "Celkom na úhradu", tx - 150, y - 16, medium, 10, MUTED)
   put(page, money(model.totals.gross, model.currency), tx, y - 34, display, 22, INK, "right")
-  if (!model.paid) {
+  if (!model.paid && model.bank_transfer) {
     put(page, `Banka: ${s.bank}`, tx - 150, y - 56, regular, 9, MUTED)
     put(page, `IBAN: ${s.iban}`, tx - 150, y - 69, regular, 9, MUTED)
     put(page, `Variabilný symbol: ${model.variable_symbol}`, tx - 150, y - 82, regular, 9, MUTED)

@@ -44,6 +44,8 @@ export type InvoiceModel = {
   currency: string
   paid: boolean
   method: string
+  /** Platba prevodom na účet: iba vtedy sa na nezaplatenej faktúre ukážu bankové údaje a QR platba. */
+  bank_transfer: boolean
   customer: { name: string; lines: string[]; email: string }
   lines: InvoiceLine[]
   recap: Array<{ rate: number; net: number; vat: number; gross: number }>
@@ -126,6 +128,7 @@ export function buildInvoiceModel(order: InvoiceOrder, now = new Date()): Invoic
     currency: (text(order.currency_code) || "eur").toUpperCase(),
     paid,
     method: METHOD_LABEL[provider] ?? "",
+    bank_transfer: provider === "pp_bank_transfer_bank_transfer",
     customer: { name: customer.name, lines: customer.lines, email: text(order.email) },
     lines, recap, totals,
   }
