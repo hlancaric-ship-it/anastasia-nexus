@@ -41,7 +41,9 @@ import { resolveDeployEnv } from "../lib/deploy-env"
 export const CURRENCY_CODE = "eur"
 export const STORE_NAME = "ANASTASIA"
 export const SALES_CHANNEL_NAME = "ANASTASIA e-shop"
-export const REGION_NAME = "Slovensko"
+export const REGION_NAME = "Slovensko a Česko"
+/** Dřívější název regionu (do 27. 10. 2026): bootstrap ho dál najde, aby po přejmenování nezaložil druhý region. */
+export const LEGACY_REGION_NAMES = ["Slovensko"] as const
 export const API_KEY_TITLE = "ANASTASIA storefront"
 export const STOCK_LOCATION_NAME = "Sklad ANASTASIA"
 export const PHYSICAL_FULFILLMENT_SET_NAME = "Zásielky - Slovensko"
@@ -61,7 +63,7 @@ export const TAX_PROVIDER_ID = "tp_system"
  * Sazby před ostrým provozem potvrdit s účetní.
  */
 export const SK_VAT_RATES = [
-  { code: "SK-DPH-23", name: "DPH SR 23 % (základní)", rate: 23, is_default: true },
+  { code: "SK-DPH-23", name: "DPH SR 23 % (základná)", rate: 23, is_default: true },
 ] as const
 
 /**
@@ -305,7 +307,7 @@ export default async function anastasiaBootstrap({ container }: { container: Med
     if (paymentProviders[0] === SYSTEM_PROVIDER_ID) {
       logger.warn(`[anastasia-bootstrap] Stripe provider not registered (missing STRIPE_API_KEY); region uses ${SYSTEM_PROVIDER_ID} - local development only`)
     }
-    const existing = await findFirst("region", { name: REGION_NAME }, ["id", "payment_providers.id"])
+    const existing = await findFirst("region", { name: [REGION_NAME, ...LEGACY_REGION_NAMES] }, ["id", "payment_providers.id"])
     if (existing) {
       // Idempotence s dorovnáním: starší region mohl vzniknout bez Stripe (dřív nebyl klíč).
       // Když je teď Stripe registrovaný, ale na regionu chybí, napojíme ho (jinak storefront

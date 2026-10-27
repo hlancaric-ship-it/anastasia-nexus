@@ -3369,7 +3369,7 @@ const vObsah = (view) => subnav(view, [
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
-const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (+2 €)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta', pp_membership_stripe_membership: 'Platobná karta – predplatné Klubu', manual_manual: 'Vlastná doprava' };
+const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (poplatok je v cene dopravy „Kuriér – dobierka“)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta', pp_membership_stripe_membership: 'Platobná karta – predplatné Klubu', manual_manual: 'Vlastná doprava' };
 const provLabel = (id) => PROVIDER_LABEL[id] || id || '—';
 async function vDopravaPlatby(view) {
   view = freshView(view);
@@ -3389,16 +3389,16 @@ async function vDopravaPlatby(view) {
       <span class="rc-f"><em>Platby</em>${(r.payment_providers || []).map(pp => `<span class="pill ${pp.is_enabled === false ? 'off' : 'ok'}">${esc(provLabel(pp.id))}</span>`).join(' ') || '<span class="pill off">žiadna platobná metóda</span>'}</span></div></div></div>`).join('') || '<div class="empty">Žiadny predajný región. Bez neho sa nedá nakupovať.</div>'}</div>`;
   const eurPrice = (o) => (o.prices || []).find(x => x.currency_code === 'eur' && !(x.price_rules?.length || x.rules_count > 0));
   const regionName = (id) => regions.find(r => r.id === id)?.name || String(id || '—');
-  // Cenové hladiny: každá cena s vlastným pravidlom (región) – takto vidno, kde koľko stojí.
-  const levelsOf = (o) => (o.prices || []).map(p => {
-    const rule = (p.price_rules || [])[0];
-    const where = rule?.attribute === 'region_id' ? regionName(rule.value) : 'všeobecná cena';
-    return { amount: Number(p.amount) || 0, where, currency: p.currency_code };
-  }).filter(l => l.currency === 'eur');
+  // Cena pri hodnote tovaru (pravidlo item_total, napr. doprava zdarma od 60 €) – zobrazuje sa, čo drží jadro, nič sa tu nepočíta.
+  const tierOf = (o) => (o.prices || []).filter(x => x.currency_code === 'eur')
+    .map(x => ({ amount: Number(x.amount), rule: (x.price_rules || []).find(r => r.attribute === 'item_total' && ['gte', 'gt'].includes(r.operator)) }))
+    .filter(x => x.rule && Number.isFinite(x.amount) && Number(x.rule.value) > 0)
+    .sort((a, b) => Number(a.rule.value) - Number(b.rule.value))[0] || null;
   const optionsHtml = !so ? unread : `<div class="rc-grid">${options.map(o => { const pr = eurPrice(o), ret = (o.rules || []).some(x => x.attribute === 'is_return' && String(x.value) === 'true');
-    const levels = levelsOf(o);
+    const tier = tierOf(o);
     return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(o.name)}</div><div class="rc-fields">
       <span class="rc-f"><em>Cena</em>${o.price_type === 'calculated' ? 'počíta dopravca' : pr ? (Number(pr.amount) === 0 ? 'zadarmo' : fmtEur(pr.amount)) : '<span class="pill warn">bez ceny v EUR</span>'}</span>
+      ${tier && pr && Number(pr.amount) !== tier.amount ? `<span class="rc-f"><em>Od ${esc(fmtEur(tier.rule.value))} tovaru</em>${tier.amount === 0 ? 'zadarmo' : esc(fmtEur(tier.amount))}</span>` : ''}
       <span class="rc-f"><em>Dopravca</em>${esc(provLabel(o.provider_id))}</span>
       <span class="rc-f"><em>Oblasť</em>${esc(o.service_zone?.name || '—')}</span>
       ${ret ? '<span class="pill off">len pre vrátenie</span>' : ''}</div></div></div>`; }).join('') || '<div class="empty">Žiadny spôsob dopravy. Fyzický tovar sa nedá odoslať.</div>'}</div>`;
