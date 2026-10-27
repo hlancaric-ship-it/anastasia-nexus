@@ -28,6 +28,7 @@ export type InvoiceOrder = {
   items?: Array<{ title?: string | null; product_title?: string | null; quantity?: unknown; total?: unknown; tax_total?: unknown; tax_lines?: TaxLine[] | null }> | null
   shipping_methods?: Array<{ name?: string | null; total?: unknown; amount?: unknown; tax_total?: unknown; tax_lines?: TaxLine[] | null }> | null
   customer?: { first_name?: string | null; last_name?: string | null; company_name?: string | null } | null
+  metadata?: Record<string, unknown> | null
   billing_address?: Row | null
   shipping_address?: Row | null
   payment_collections?: Array<{ captured_amount?: unknown; refunded_amount?: unknown; payments?: Array<{ provider_id?: string | null; captured_at?: string | Date | null }> | null }> | null
@@ -71,6 +72,15 @@ const METHOD_LABEL: Record<string, string> = {
   pp_bank_transfer_bank_transfer: "Prevodom na účet",
 }
 
+/** Firemné údaje zákazníka z pokladne (metadáta objednávky): IČO, DIČ a IČ DPH iba pri nákupe na firmu. */
+function companyIds(order: InvoiceOrder, isCompany: boolean): string[] {
+  if (!isCompany) return []
+  const md = order.metadata ?? {}
+  const clean = (value: unknown) => text(value).replace(/\s+/g, "")
+  return [["IČO", clean(md.company_ico)], ["DIČ", clean(md.company_dic)], ["IČ DPH", clean(md.company_ic_dph)]]
+    .filter(([, value]) => value).map(([label, value]) => `${label}: ${value}`)
+}
+
 function address(order: InvoiceOrder): { name: string; lines: string[] } {
   const a = (order.billing_address && Object.keys(order.billing_address).length ? order.billing_address : order.shipping_address) ?? {}
   const person = [text(a.first_name), text(a.last_name)].filter(Boolean).join(" ")
@@ -78,7 +88,7 @@ function address(order: InvoiceOrder): { name: string; lines: string[] } {
   const street = [text(a.address_1), text(a.address_2)].filter(Boolean).join(" ")
   const city = [text(a.postal_code), text(a.city)].filter(Boolean).join(" ")
   const fallback = [text(order.customer?.first_name), text(order.customer?.last_name)].filter(Boolean).join(" ")
-  return { name: company || person || fallback || text(order.email) || "Zákazník", lines: [company ? person : "", street, city, text(a.country_code).toUpperCase() === "SK" ? "" : text(a.country_code).toUpperCase()].filter(Boolean) }
+  return { name: company || person || fallback || text(order.email) || "Zákazník", lines: [company ? person : "", street, city, text(a.country_code).toUpperCase() === "SK" ? "" : text(a.country_code).toUpperCase(), ...companyIds(order, Boolean(company))].filter(Boolean) }
 }
 
 /** Z objednávky zostaví podklad pre faktúru: riadky s DPH, rekapitulácia podľa sadzieb a súčty. */

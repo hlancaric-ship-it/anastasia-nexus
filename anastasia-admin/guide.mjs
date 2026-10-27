@@ -248,7 +248,7 @@ export const GUIDES = [
     why: 'Prevod a dobierka nejdú cez platobnú bránu. Objednávka preto vznikne so stavom „čaká na platbu“ a digitálny obsah sa zákazníkovi sprístupní až potom, ako platbu prijmete. Doprava kuriérom stojí 6 €, od 60 € je zadarmo; dobierka je o 2 € drahšia a dá sa zvoliť len pri kuriérovi a fyzickom tovare.',
     steps: [
       'V Objednávkach otvorte objednávku so stavom platby „čaká na platbu (prevod)“ alebo „čaká na platbu (dobierka)“. Spôsob platby vidíte v Prehľade.',
-      'Prevod: vo výpise z účtu v Tatra banke (IBAN SK17 1100 0000 0026 2409 8906) nájdite platbu, ktorej variabilný symbol je číslo objednávky. Skontrolujte, že suma sedí s „Celkom“ v objednávke.',
+      'Prevod: vo výpise z účtu vo VÚB banke (IBAN SK43 0200 0000 0052 3107 0754) nájdite platbu, ktorej variabilný symbol je číslo objednávky. Skontrolujte, že suma sedí s „Celkom“ v objednávke.',
       'Dobierka: tovar pripravte a odošlite kuriérom. Keď vám dopravca vyplatí vybranú sumu, nájdite objednávku podľa čísla na výpise od dopravcu.',
       'V záložke Platby kliknite na Prijať platbu a potvrďte.',
     ],

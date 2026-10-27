@@ -53,8 +53,8 @@ describe("výber dopravy a platby (server)", () => {
     expect(shippingSatisfied(items, ["sp_p"])).toBe(true)
     expect(shippingSatisfied([{ requires_shipping: true, product: null }], ["sp_p"])).toBe(false)
   })
-  it("prevod: IBAN Tatra banky a VS = číslo objednávky", () => {
-    expect(bankTransferInstructions({ display_id: 1042, total: 66, currency_code: "eur" })).toMatchObject({ iban: "SK17 1100 0000 0026 2409 8906", bank: "Tatra banka", variable_symbol: "1042", amount: 66 })
+  it("prevod: IBAN VÚB banky a VS = číslo objednávky", () => {
+    expect(bankTransferInstructions({ display_id: 1042, total: 66, currency_code: "eur" })).toMatchObject({ iban: "SK43 0200 0000 0052 3107 0754", bank: "VÚB banka", variable_symbol: "1042", amount: 66 })
     expect(bankTransferInstructions({ display_id: "x1", total: 66 })).toBeNull()
     expect(variableSymbol("12345678901")).toBeNull()
   })

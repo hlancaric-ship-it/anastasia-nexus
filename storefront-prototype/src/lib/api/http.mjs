@@ -500,7 +500,7 @@ export function createHttpApi(storage, config) {
     // Pokladňa krok 2→3: košík priradí prihlásenému zákazníkovi, uloží kontakt a adresu a
     // odovzdá výber dopravy a platby serveru. Server nastaví dopravu (fyzickú aj digitálnu),
     // prepočíta ceny a založí platobnú session – klient použije len client_secret z odpovede.
-    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = null, street = '', city = '', postalCode = '', payment = 'card' } = {}) {
+    async prepareCheckout({ firstName = '', lastName = '', email = '', delivery = null, street = '', city = '', postalCode = '', payment = 'card', company = null } = {}) {
       const id = get(CART); if (!id) return { ok: false, error: 'CART_EMPTY', message: CHECKOUT_MSG.CART_EMPTY };
       const fail = 'Objednávku sa nepodarilo pripraviť. Skúste to znova.';
       // Prihlásený zákazník: košík sa mu priradí. Host nakupuje bez registrácie (košík bez účtu).
@@ -515,7 +515,10 @@ export function createHttpApi(storage, config) {
       // Adresa na doručenie patrí ku kuriérovi; pri osobnom odbere a digitálnom tovare stačí krajina.
       const address = { first_name: String(firstName).trim(), last_name: String(lastName).trim(), country_code: 'sk',
         ...(wanted === 'courier' ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
-      const body = { shipping_address: address, billing_address: address };
+      // Nákup na firmu: názov firmy ide do fakturačnej adresy, IČO, DIČ a IČ DPH do metadát košíka (prejdú do objednávky a na faktúru).
+      const co = company && String(company.name || '').trim() ? { name: String(company.name).trim().slice(0, 120), ico: String(company.ico || '').replace(/\s+/g, '').slice(0, 12), dic: String(company.dic || '').replace(/\s+/g, '').slice(0, 14), icDph: String(company.icDph || '').replace(/\s+/g, '').toUpperCase().slice(0, 14) } : null;
+      const body = { shipping_address: address, billing_address: co ? { ...address, company: co.name } : address };
+      body.metadata = { company_ico: co?.ico || '', company_dic: co?.dic || '', company_ic_dph: co?.icDph || '' };
       const mail = String(email).trim(); if (mail) body.email = mail;
       const up = await call(`/store/carts/${id}`, { method: 'POST', body });
       if (!up.ok) return { ok: false, status: up.status, error: up.data?.error, message: up.status === 400 ? 'Skontrolujte kontaktné údaje a adresu.' : fail };

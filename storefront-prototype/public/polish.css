@@ -231,7 +231,7 @@ body:has(.cookie-banner:not([hidden])) .ana-mobile-dock{display:none!important}
 .ana-mquick__count:is(:empty,[data-zero]){display:none!important}
 @media(min-width:1000px){.ana-mquick{display:none!important}}
 .ana-menu-open .ana-mquick{visibility:hidden!important}
-html.ana-menu-open,html.ana-menu-open body{overflow:hidden!important;overscroll-behavior:none!important}
+html.ana-menu-open{overflow:hidden!important;overscroll-behavior:none!important}
 :is(#dc-top-menu,#dc-side-menu){overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch}
 .ana-menu-open .ana-mobile-dock,.ana-menu-open .ana-sound-pop__panel{display:none!important}
 /* Patička: platobné metódy */

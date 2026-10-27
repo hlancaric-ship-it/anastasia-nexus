@@ -152,9 +152,9 @@ describe("potvrdenie objednávky – spôsob platby a dopravy", () => {
   it("prevod: e-mail obsahuje IBAN, variabilný symbol (= číslo objednávky) a sumu", () => {
     const data = orderPlacedData(unpaid("pp_bank_transfer_bank_transfer") as any)
     expect(data).toMatchObject({ paid: false, payment_method: "bank_transfer", shipping_method: "Kuriér (zásielka)" })
-    expect(data.bank_transfer).toMatchObject({ iban: "SK17 1100 0000 0026 2409 8906", variable_symbol: "1042", bank: "Tatra banka" })
+    expect(data.bank_transfer).toMatchObject({ iban: "SK43 0200 0000 0052 3107 0754", variable_symbol: "1042", bank: "VÚB banka" })
     const mail = renderTemplate("order-placed-sk", data)
-    expect(mail.text).toContain("IBAN: SK17 1100 0000 0026 2409 8906")
+    expect(mail.text).toContain("IBAN: SK43 0200 0000 0052 3107 0754")
     expect(mail.text).toContain("Variabilný symbol: 1042")
     expect(mail.text).toMatch(/Suma: 66,00\s€/)
     expect(mail.text).toContain("Platba: Prevodom na účet")
@@ -163,8 +163,8 @@ describe("potvrdenie objednávky – spôsob platby a dopravy", () => {
     const cod = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_cod_cod", "Kuriér – platba na dobierku") as any))
     expect(cod.text).toMatch(/Platíte pri prevzatí zásielky: 66,00\s€/)
     expect(cod.text).not.toContain("IBAN")
-    const pickup = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_bank_transfer_bank_transfer", "Osobný odber – Zdravá lekáreň, Sokolská 88, 960 01 Zvolen") as any))
-    expect(pickup.text).toContain("Sokolská 88, 960 01 Zvolen")
+    const pickup = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_bank_transfer_bank_transfer", "Osobný odber – Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná") as any))
+    expect(pickup.text).toContain("Vyšná Slaná 259, 049 26 Vyšná Slaná")
   })
   it("prevod s priloženým QR kódom ho v e-maile spomenie, bez QR nič nespomína", () => {
     const data: any = orderPlacedData(unpaid("pp_bank_transfer_bank_transfer") as any)

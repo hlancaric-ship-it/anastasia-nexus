@@ -261,8 +261,8 @@ function setMenu(kind){
   shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
   menuOpen=kind;root.classList.toggle('ana-menu-open',!!kind);
   if(kind)fitMenu($(`#dc-${kind}-menu`));
-  if(kind){if(!prev)previousFocus=document.activeElement;lenis?.stop();root.style.overflow='hidden';document.body.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
-  else{lenis?.start();root.style.overflow='';document.body.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
+  if(kind){if(!prev)previousFocus=document.activeElement;lenis?.stop();root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
+  else{lenis?.start();root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
 }
 document.addEventListener('click',event=>{
   const open=event.target.closest('[data-menu-open]');if(open){event.preventDefault();setMenu(menuOpen===open.dataset.menuOpen?null:open.dataset.menuOpen);return;}
@@ -745,6 +745,7 @@ if($('#cart-view')){
 }
 
 const checkoutForm=$('#checkout-form');
+if(checkoutForm){const cb=checkoutForm.elements.asCompany,box=checkoutForm.querySelector('[data-company-fields]');cb?.addEventListener('change',()=>{if(box)box.hidden=!cb.checked;const n=checkoutForm.elements.companyName;if(n)n.required=cb.checked;});}
 if(checkoutForm){
   const cart=await api.getCart();$('#checkout-summary').innerHTML=summary(cart);
   if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
@@ -825,7 +826,7 @@ if(checkoutForm){
       const el=checkoutForm.elements,f=Object.fromEntries(['firstName','lastName','email','street','city','postalCode'].map(k=>[k,el[k]?.value||'']));
       paymentMethod=el.payment?.value||'card';
       // Server pripraví dopravu, prepočíta ceny a založí platobnú session (client_secret).
-      const prep=await api.prepareCheckout({firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:el.delivery?.value||null,street:f.street,city:f.city,postalCode:f.postalCode,payment:paymentMethod});
+      const prep=await api.prepareCheckout({company:el.asCompany?.checked?{name:el.companyName?.value||'',ico:el.companyIco?.value||'',dic:el.companyDic?.value||'',icDph:el.companyIcDph?.value||''}:null,firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:el.delivery?.value||null,street:f.street,city:f.city,postalCode:f.postalCode,payment:paymentMethod});
       if(!prep.ok){host.textContent=prep.message;return;}
       lastCart=prep.cart;$('#checkout-summary').innerHTML=summary(prep.cart);
       paymentRequired=prep.paymentRequired===true;

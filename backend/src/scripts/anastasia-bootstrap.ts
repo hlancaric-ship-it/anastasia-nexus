@@ -54,7 +54,7 @@ export const MEMBERSHIP_PROVIDER_ID = "pp_membership_stripe_membership"
 export const TAX_PROVIDER_ID = "tp_system"
 
 /**
- * Sazby DPH SR platné od 1. 1. 2025: základní 23 %, snížená 19 % a 5 %.
+ * Sazby DPH SR platné od 1. 1. 2025: základní 23 %, snížená 19 % a 5 %. Lucie (27. 10. 2026): pro zboží i služby jen 23 %, snížené sazby se nepoužívají.
  * Starý e-shop (ecProductPrice.vatRate) používal hlavně 23 % (27 z 30 cen), dále 19 a 20 %
  * (20 % = sazba před 2025). Ceny ve starém e-shopu jsou koncové včetně DPH
  * (price_1_WithVat), proto je region v Medusě "tax inclusive".
@@ -62,8 +62,6 @@ export const TAX_PROVIDER_ID = "tp_system"
  */
 export const SK_VAT_RATES = [
   { code: "SK-DPH-23", name: "DPH SR 23 % (základní)", rate: 23, is_default: true },
-  { code: "SK-DPH-19", name: "DPH SR 19 % (snížená)", rate: 19, is_default: false },
-  { code: "SK-DPH-5", name: "DPH SR 5 % (snížená)", rate: 5, is_default: false },
 ] as const
 
 /**
@@ -84,7 +82,7 @@ export const COURIER_PRICE_EUR = 6
 /** Poplatok za dobierku zo starého e-shopu (ecPaymentType): 2,00 EUR s DPH, len s kuriérom. */
 export const COD_FEE_EUR = 2
 /** Osobný odber zo starého e-shopu: 0 EUR. */
-export const PICKUP_OPTION_NAME = "Osobný odber – Zdravá lekáreň, Sokolská 88, 960 01 Zvolen"
+export const PICKUP_OPTION_NAME = "Osobný odber – Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná"
 /** Manuálne platby (dobierka, prevod) – provider ID podľa medusa-config (pp_<identifier>_<id>). */
 export const COD_PROVIDER_ID = "pp_cod_cod"
 export const BANK_TRANSFER_PROVIDER_ID = "pp_bank_transfer_bank_transfer"
@@ -202,7 +200,7 @@ export function buildShippingOptionInputs(args: {
       provider_id: "manual_manual",
       service_zone_id: args.physicalZoneId,
       shipping_profile_id: args.physicalProfileId,
-      type: { label: "Osobný odber", description: "Vyzdvihnutie: Zdravá lekáreň, Sokolská 88, 960 01 Zvolen.", code: "pickup" },
+      type: { label: "Osobný odber", description: "Vyzdvihnutie: Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná.", code: "pickup" },
       prices: flat(0, null),
       rules: SHIPPING_RULES,
     },
