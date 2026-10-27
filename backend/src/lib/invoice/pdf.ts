@@ -3,6 +3,7 @@ import fontkit from "@pdf-lib/fontkit"
 import { FIGTREE_MEDIUM, FIGTREE_REGULAR, FRAUNCES_LIGHT } from "../../modules/gift-voucher/voucher-fonts"
 import { LUCIA_BALL_PNG } from "../../modules/gift-voucher/voucher-logo"
 import { INVOICE_SELLER, type InvoiceModel } from "./model"
+import { qrPng, transferQrTexts } from "../payments/qr-payment"
 
 const W = 595.28, H = 841.89, M = 44
 const INK = rgb(0.18, 0.2, 0.14), MUTED = rgb(0.42, 0.42, 0.42), LINE = rgb(0.82, 0.79, 0.89), ACCENT = rgb(0.45, 0.45, 0.61)
@@ -92,7 +93,7 @@ export async function renderInvoicePdf(model: InvoiceModel): Promise<Buffer> {
 
   // Rekapitulácia DPH a súčet
   y -= 10
-  if (y < 190) { page = doc.addPage([W, H]); y = H - M - 10 }
+  if (y < (model.paid ? 190 : 300)) { page = doc.addPage([W, H]); y = H - M - 10 }
   put(page, "REKAPITULÁCIA DPH", M, y, regular, 8, MUTED)
   put(page, "Sadzba", M, y - 16, medium, 8.5, MUTED); put(page, "Základ", M + 90, y - 16, medium, 8.5, MUTED, "right")
   put(page, "DPH", M + 170, y - 16, medium, 8.5, MUTED, "right"); put(page, "Spolu", M + 250, y - 16, medium, 8.5, MUTED, "right")
@@ -109,6 +110,21 @@ export async function renderInvoicePdf(model: InvoiceModel): Promise<Buffer> {
     put(page, `Banka: ${s.bank}`, tx - 150, y - 56, regular, 9, MUTED)
     put(page, `IBAN: ${s.iban}`, tx - 150, y - 69, regular, 9, MUTED)
     put(page, `Variabilný symbol: ${model.variable_symbol}`, tx - 150, y - 82, regular, 9, MUTED)
+    // QR platba (PAY by square): zákazník ju naskenuje v bankovej aplikácii a platba sa vyplní.
+    if (Number.isFinite(model.totals.gross) && model.totals.gross > 0 && model.variable_symbol) {
+      try {
+        const texts = await transferQrTexts({
+          iban: s.iban, beneficiary: s.name, amount: model.totals.gross, currency: model.currency,
+          variable_symbol: model.variable_symbol, note: `Faktúra ${model.number}`, bic: s.swift,
+        })
+        const qr = await doc.embedPng(await qrPng(texts.pay_by_square))
+        const size = 96
+        page.drawImage(qr, { x: tx - size, y: y - 100 - size, width: size, height: size })
+        put(page, "QR platba", tx - size, y - 112 - size, medium, 8, MUTED)
+      } catch {
+        // QR je len pomôcka: bez neho sa faktúra vystaví s platobnými údajmi v texte.
+      }
+    }
   }
 
   // Pätička

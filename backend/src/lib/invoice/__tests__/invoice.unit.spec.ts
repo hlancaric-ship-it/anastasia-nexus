@@ -38,6 +38,13 @@ describe("faktúra", () => {
     const m = buildInvoiceModel({ ...order, metadata: { company_ico: "12345678" } })
     expect(m.customer.lines.join(" ")).not.toContain("IČO")
   })
+  it("nezaplatená faktúra má QR platbu, zaplatená nie", async () => {
+    const unpaid = await renderInvoicePdf(buildInvoiceModel({ ...order, payment_collections: [{ captured_amount: 0, payments: [{ provider_id: "pp_bank_transfer_bank_transfer", captured_at: null }] }] }))
+    const paid = await renderInvoicePdf(buildInvoiceModel(order))
+    const images = (pdf: Buffer) => (pdf.toString("latin1").match(/\/Subtype\s*\/Image/g) ?? []).length
+    expect(images(unpaid)).toBe(images(paid) + 1)
+    if (process.env.INVOICE_DUMP) require("fs").writeFileSync(process.env.INVOICE_DUMP, unpaid)
+  })
   it("PDF sa vyrobí a začína hlavičkou PDF", async () => {
     const pdf = await renderInvoicePdf(buildInvoiceModel(order))
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-"); expect(pdf.length).toBeGreaterThan(5000)
