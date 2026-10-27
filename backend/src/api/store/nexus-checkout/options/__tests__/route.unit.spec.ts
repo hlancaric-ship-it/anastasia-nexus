@@ -10,6 +10,7 @@ import {
   addShippingMethodToCartWorkflow, createPaymentCollectionForCartWorkflow, createPaymentSessionsWorkflow, listShippingOptionsForCartWithPricingWorkflow,
 } from "@medusajs/medusa/core-flows"
 import { GET, POST } from "../route"
+import { repriceCart } from "../../../nexus-cart/route"
 
 const AUTH = { actor_type: "customer", actor_id: "cus_1" }
 const PROVIDERS = ["pp_stripe_stripe", "pp_cod_cod", "pp_bank_transfer_bank_transfer"].map((id) => ({ id }))
@@ -45,13 +46,31 @@ function setup(opts: { profiles: string[]; free?: boolean; customer?: string; to
   const ops = { createOpsEvents: jest.fn(async () => ({ id: "ev" })) }
   const map: Record<string, unknown> = { query: { graph }, ops_audit: ops, logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() }, cart: { deleteShippingMethods: jest.fn() } }
   const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
-  return { scope: { resolve: (k: string) => map[k] }, res, added }
+  return { scope: { resolve: (k: string) => map[k] }, res, added, cart }
 }
 const body = (res: any) => res.json.mock.calls[0][0]
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  jest.clearAllMocks()
+  jest.mocked(repriceCart).mockResolvedValue({ pricesChanged: false, items: [] } as any)
+})
 
 describe("GET /store/nexus-checkout/options", () => {
+  it("booking-only cart with default profile needs no delivery or shipping address", async () => {
+    const t = setup({ profiles: ["sp_p"] })
+    Object.assign(t.cart.items[0].product, { metadata: { booking: { durationMinutes: 60 } } })
+    t.cart.shipping_address = null as any
+    await GET({ query: { cart_id: "cart_1" }, scope: t.scope, auth_context: AUTH } as any, t.res)
+    expect(body(t.res)).toMatchObject({ requires_delivery: false, delivery: [] })
+    expect(body(t.res).payment[0].available).toBe(false)
+    expect(listShippingOptionsForCartWithPricingWorkflow).not.toHaveBeenCalled()
+  })
+  it("physical goods sharing the booking profile still require delivery", async () => {
+    const t = setup({ profiles: ["sp_p", "sp_p"] })
+    Object.assign(t.cart.items[0].product, { metadata: { booking: { durationMinutes: 60 } } })
+    await GET({ query: { cart_id: "cart_1" }, scope: t.scope, auth_context: AUTH } as any, t.res)
+    expect(body(t.res).requires_delivery).toBe(true)
+  })
   it("kuriér 6 € pod 60 €, zdarma nad 60 €, osobný odber 0 €, dobierka +2 € zo servera", async () => {
     for (const [free, courier] of [[false, 6], [true, 0]] as const) {
       const t = setup({ profiles: ["sp_p"], free })
@@ -79,6 +98,24 @@ describe("GET /store/nexus-checkout/options", () => {
 })
 
 describe("POST /store/nexus-checkout/options", () => {
+  it("prepares a booking payment without shipping after the server normalizes the line", async () => {
+    const t = setup({ profiles: ["sp_p"] })
+    Object.assign(t.cart.items[0].product, { metadata: { booking: { durationMinutes: 60 } } })
+    t.cart.shipping_address = null as any
+    jest.mocked(repriceCart).mockImplementation(async () => { t.cart.items[0].requires_shipping = false; return { pricesChanged: false, items: [] } as any })
+    await POST({ body: { cart_id: "cart_1", payment: "card" }, scope: t.scope, auth_context: AUTH } as any, t.res)
+    expect(t.res.status).toHaveBeenCalledWith(200)
+    expect(body(t.res)).toMatchObject({ ok: true, delivery: null, client_secret: "pi_1_secret_x" })
+    expect(addShippingMethodToCartWorkflow).not.toHaveBeenCalled()
+    expect(listShippingOptionsForCartWithPricingWorkflow).not.toHaveBeenCalled()
+  })
+  it("malformed booking metadata never exempts a physical cart from delivery", async () => {
+    const t = setup({ profiles: ["sp_p"] })
+    Object.assign(t.cart.items[0].product, { metadata: { booking: true } })
+    await POST({ body: { cart_id: "cart_1", payment: "card" }, scope: t.scope, auth_context: AUTH } as any, t.res)
+    expect(body(t.res)).toMatchObject({ error: "DELIVERY_REQUIRED" })
+    expect(createPaymentSessionsWorkflow).not.toHaveBeenCalled()
+  })
   it("zmiešaný košík (fyzický + digitálny): iba fyzické dopravy, digitálna sa odmietne", async () => {
     const t = setup({ profiles: ["sp_p", "sp_d"] })
     await POST({ body: { cart_id: "cart_1", delivery: "courier", payment: "card" }, scope: t.scope, auth_context: AUTH } as any, t.res)

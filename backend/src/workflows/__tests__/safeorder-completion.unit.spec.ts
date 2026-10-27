@@ -58,6 +58,13 @@ describe("SafeOrder guard on every completeCartWorkflow path", () => {
     const cart = snapshot(); cart.items = [{ ...item, unit_price: 1 }]
     await expect(run(cart)).rejects.toThrow("NEXUS_PRICE_MISMATCH")
   })
+  it("refuses a stale non-shipping snapshot after the catalog classifies the item as physical", async () => {
+    const cart: any = snapshot(); cart.items = [{ ...item, requires_shipping: false }]
+    ;(repriceCart as jest.Mock).mockResolvedValue({ pricesChanged: false, items: [{ ...item, requires_shipping: true }] })
+    global.fetch = jest.fn() as any
+    await expect(run(cart)).rejects.toThrow("NEXUS_PRICE_MISMATCH")
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
   it("all processable sessions must pass, so the first session cannot mask COD", async () => {
     const cart = snapshot(); cart.payment_collection.payment_sessions.push({ ...cart.payment_collection.payment_sessions[0], provider_id: "cod" })
     global.fetch = jest.fn(async (_url, options) => {
