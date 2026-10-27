@@ -2,7 +2,8 @@ import type { MiddlewareRoute } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { normalizeEmail } from "../modules/auth-magic-link/policy"
 import { claimAuthRate } from "../modules/auth-magic-link/state"
-import { getSessionEpoch, incrementSessionEpoch, type SessionActorType } from "../modules/auth-security/session-epoch"
+import { getSessionEpoch, type SessionActorType } from "../modules/auth-security/session-epoch"
+import { prepareAdminPasswordEpoch } from "./auth-password-epoch"
 import jwt from "jsonwebtoken"
 export async function limitMagicLink(req: any, res: any, next: any) {
   // Native auth uses decoded dynamic parameters, including percent-encoded paths.
@@ -166,17 +167,7 @@ export function bindSessionEpoch(req: any, res: any, next: any) {
   res.json = (body: any) => {
     const success = Number(res.statusCode ?? 200) < 300
     const token = body?.token
-    const pathParts = String(req.path || "").split("/").map((part: string) => {
-      try { return decodeURIComponent(part) } catch { return part }
-    })
-    const actor = req.params?.actor_type || pathParts[2]
-    const provider = req.params?.auth_provider || pathParts[3]
-    const isAdminPasswordReset = actor === "user"
-      && provider === "emailpass"
-      && pathParts.at(-1) === "update"
-      && body?.success === true
-
-    if (responseStarted || !success || (typeof token !== "string" && !isAdminPasswordReset)) {
+    if (responseStarted || !success || typeof token !== "string") {
       return originalJson(body)
     }
     responseStarted = true
@@ -185,18 +176,6 @@ export function bindSessionEpoch(req: any, res: any, next: any) {
       try {
         const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
 
-        // Medusa's reset-token middleware has already validated and consumed
-        // the one-use token before the native update route returns success.
-        if (isAdminPasswordReset) {
-          const email = normalizeEmail(req.auth_context?.actor_id)
-          if (req.auth_context?.actor_type !== "user" || !email) throw new Error("AUTH_RESET_ACTOR_INVALID")
-          const users = req.scope.resolve(Modules.USER) as any
-          const matches = await users.listUsers({ email }, { select: ["id"], take: 2 })
-          if (!Array.isArray(matches) || matches.length !== 1 || !matches[0]?.id) throw new Error("AUTH_RESET_USER_NOT_FOUND")
-          await incrementSessionEpoch(db, "user", matches[0].id)
-        }
-
-        if (typeof token !== "string") return originalJson(body)
         const http = req.scope.resolve(ContainerRegistrationKeys.CONFIG_MODULE).projectConfig.http
         const payload = jwt.verify(token, http.jwtSecret, http.jwtVerifyOptions ?? http.jwtOptions) as any
         const actorType = payload?.actor_type
@@ -235,6 +214,6 @@ export const authMagicLinkMiddlewares: MiddlewareRoute[] = [
   { matcher: "/auth/token/refresh", method: ["POST"], middlewares: [extendCustomerToken] },
   { matcher: "/auth/:actor_type/:auth_provider/register", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordRegister], bodyParser: { sizeLimit: "4kb" } },
   { matcher: "/auth/:actor_type/:auth_provider/reset-password", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordReset], bodyParser: { sizeLimit: "4kb" } },
-  { matcher: "/auth/:actor_type/:auth_provider/update", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordUpdate], bodyParser: { sizeLimit: "4kb" } },
+  { matcher: "/auth/:actor_type/:auth_provider/update", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordUpdate, prepareAdminPasswordEpoch], bodyParser: { sizeLimit: "4kb" } },
   { matcher: "/auth/*", middlewares: [bindSessionEpoch] },
 ]
