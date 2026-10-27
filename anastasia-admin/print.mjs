@@ -9,6 +9,13 @@ export const SENDER = {
   phone: '+421 905 363 778',
   email: 'zdravysvet@anastasiaoz.eu',
 };
+// Miesto, odkiaľ sa balíky odosielajú (sklad a lekáreň). Sídlo firmy v SENDER ostáva pre dodací list.
+export const SHIP_FROM = {
+  name: 'Lekáreň ANASTASIA',
+  street: 'Vyšná Slaná 259',
+  city: '049 26 Vyšná Slaná',
+  phone: SENDER.phone,
+};
 
 const COUNTRY = { sk: 'Slovensko', cz: 'Česko' };
 const h = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -33,7 +40,7 @@ function labelHtml(o) {
   const a = o.shipping_address || {};
   const cod = isCod(o) && !['captured', 'paid'].includes(o.payment_status);
   return `<section class="label">
-    <div class="from"><b>Odosielateľ</b>${[SENDER.name, SENDER.street, SENDER.city, SENDER.phone].map(h).join('<br>')}</div>
+    <div class="from"><b>Odosielateľ</b>${[SHIP_FROM.name, SHIP_FROM.street, SHIP_FROM.city, SHIP_FROM.phone].map(h).join('<br>')}</div>
     <div class="to"><b>Príjemca</b><div class="addr">${addressLines(a).map(h).join('<br>')}</div>
       ${a.phone ? `<div class="tel">Tel.: ${h(a.phone)}</div>` : ''}</div>
     <div class="meta"><span>Objednávka <b>#${h(num(o))}</b></span><span>${h(date(o.created_at))}</span>
