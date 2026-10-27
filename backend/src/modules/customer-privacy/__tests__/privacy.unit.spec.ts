@@ -39,6 +39,15 @@ describe("customer privacy",()=>{
   const req:any={scope:{resolve:()=>{throw new Error("DB unavailable")}},auth_context:{actor_type:"customer",actor_id:"a"}},response=res(),next=jest.fn()
   await denyErasedCustomer(req,response,next);expect(response.status).toHaveBeenCalledWith(503);expect(next).not.toHaveBeenCalled()
  })
+ it("blocks sign-in for an erased e-mail although global app.use strips req.path",async()=>{
+  const q:any={where:jest.fn((arg:any)=>{if(typeof arg==="function")arg({where:()=>({orWhereRaw:()=>null})});return q}),whereNull:jest.fn(()=>q),whereIn:jest.fn(()=>q),first:jest.fn(async()=>({id:"erasure"}))}
+  // Express app.use("/auth/*") leaves req.path "/" – only originalUrl carries the namespace.
+  const req:any={scope:{resolve:()=>()=>q},path:"/",originalUrl:"/auth/customer/magic-link?x=1",body:{email:"Gone@Example.test"}},response=res(),next=jest.fn()
+  await denyErasedCustomer(req,response,next)
+  expect(response.status).toHaveBeenCalledWith(401);expect(next).not.toHaveBeenCalled()
+  const admin:any={scope:{resolve:()=>()=>q},path:"/",originalUrl:"/auth/user/emailpass",body:{email:"gone@example.test"}},r2=res(),n2=jest.fn()
+  await denyErasedCustomer(admin,r2,n2);expect(n2).toHaveBeenCalledTimes(1)
+ })
  it("leaves an unerased customer usable",async()=>{
   const req:any={scope:{resolve:()=>()=>chain(null)},auth_context:{actor_type:"customer",actor_id:"a"}},response=res(),next=jest.fn()
   await denyErasedCustomer(req,response,next);expect(next).toHaveBeenCalledTimes(1)

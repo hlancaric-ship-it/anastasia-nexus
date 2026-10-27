@@ -12,7 +12,9 @@ export async function denyErasedCustomer(req:any,res:any,next:any) {
    const row=await db("customer_erasure").where({customer_id:customerId}).whereNull("deleted_at").whereIn("status",["processing","completed"]).first("id")
    if(row) {if(req.session?.auth_context?.actor_type==="customer") delete req.session.auth_context;return res.status(401).json({error:"CUSTOMER_ACCESS_REVOKED",message:"Prístup k účtu bol zrušený."})}
   }
-  if(req.path?.startsWith("/auth/customer/")) {
+  // Global app.use("/auth/*") odreže namespace z req.path – rozhoduje plná cesta bez query.
+  const path=String(req.originalUrl||`${req.baseUrl||""}${req.path||""}`).split("?")[0]
+  if(path.startsWith("/auth/customer/")) {
    const email=normalizeEmail(req.body?.email)
    if(email) {
     const erased=await db("customer_erasure").where((q:any)=>q.where({email_hash:tokenHash(email)}).orWhereRaw("email_hashes @> ?::jsonb",[JSON.stringify([tokenHash(email)])])).whereNull("deleted_at").whereIn("status",["processing","completed"]).where("blocked_until",">",new Date()).first("id")
