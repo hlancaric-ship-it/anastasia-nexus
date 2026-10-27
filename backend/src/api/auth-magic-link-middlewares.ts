@@ -1,5 +1,5 @@
 import type { MiddlewareRoute } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { normalizeEmail } from "../modules/auth-magic-link/policy"
 import { claimAuthRate } from "../modules/auth-magic-link/state"
 import jwt from "jsonwebtoken"
@@ -76,7 +76,37 @@ export function extendCustomerToken(req: any, res: any, next: any) {
   }
   return next()
 }
+/**
+ * Přihlášení e-mailem a heslem je v Medusa sdílené pro zákazníky i administrátory podle e-mailu.
+ * Když přihlašovací údaje daného e-mailu vede identita bez vazby na administrátora (třeba po nastavení
+ * zákaznického hesla), přihlášení by vrátilo token bez administrátora a administrace by odpověděla 401.
+ * Před přihlášením proto identitu, která drží heslo tohoto e-mailu, propojíme s administrátorem se stejným e-mailem.
+ * Samotné heslo se tím nemění ani neobchází: bez správného hesla se přihlášení stejně nepodaří.
+ */
+export async function healSharedAdminLogin(req: any, _res: any, next: any) {
+  try {
+    const email = normalizeEmail(req?.body?.email)
+    if (email) {
+      const users = req.scope.resolve(Modules.USER) as any
+      const [admin] = await users.listUsers({ email }, { select: ["id"], take: 1 })
+      if (admin) {
+        const auth = req.scope.resolve(Modules.AUTH) as any
+        const rows = await auth.listProviderIdentities({ entity_id: email, provider: "emailpass" }, { select: ["auth_identity_id"] })
+        for (const row of rows) {
+          const [identity] = await auth.listAuthIdentities({ id: row.auth_identity_id }, { select: ["id", "app_metadata"] })
+          const meta = identity?.app_metadata || {}
+          if (identity && !meta.user_id) await auth.updateAuthIdentities([{ id: identity.id, app_metadata: { ...meta, user_id: admin.id } }])
+        }
+      }
+    }
+  } catch {
+    // Oprava je pomocná. Přihlášení proběhne dál běžným způsobem.
+  }
+  return next()
+}
+
 export const authMagicLinkMiddlewares: MiddlewareRoute[] = [
+  { matcher: "/auth/user/emailpass", method: ["POST"], middlewares: [healSharedAdminLogin] },
   { matcher: "/auth/:actor_type/:auth_provider", method: ["POST", "GET"], middlewares: [limitMagicLink], bodyParser: { sizeLimit: "4kb" } },
   { matcher: "/auth/customer/:auth_provider", method: ["POST"], middlewares: [extendCustomerToken] },
   { matcher: "/auth/token/refresh", method: ["POST"], middlewares: [extendCustomerToken] },
