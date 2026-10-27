@@ -393,7 +393,7 @@
         "backend/src/modules/newsletter/runtime.ts",
         "backend/src/modules/newsletter/models/newsletter-campaign.ts",
         "backend/src/modules/newsletter/models/newsletter-delivery.ts",
-        "backend/src/modules/newsletter/migrations/Migration20261022120000.ts",
+        "backend/src/modules/newsletter/migrations/Migration20261022120500.ts",
         "backend/src/jobs/newsletter-send.ts",
         "backend/src/modules/legal/service.ts",
         "anastasia-admin/newsletter.mjs",

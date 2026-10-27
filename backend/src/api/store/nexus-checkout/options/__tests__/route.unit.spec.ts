@@ -59,7 +59,7 @@ describe("GET /store/nexus-checkout/options", () => {
       const b = body(t.res)
       expect(b.delivery).toEqual([
         expect.objectContaining({ code: "courier", amount: courier, free_from: 60 }),
-        expect.objectContaining({ code: "pickup", amount: 0, address: expect.stringContaining("Sokolská 88") }),
+        expect.objectContaining({ code: "pickup", amount: 0, address: expect.stringContaining("Vyšná Slaná 259") }),
       ])
       expect(b.payment.map((p: any) => p.code)).toEqual(["cod", "card", "bank_transfer"])
       expect(b.payment[0]).toMatchObject({ available: true, fee: 2, requires_delivery: "courier" })
