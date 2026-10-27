@@ -1196,3 +1196,44 @@ html body select:-webkit-autofill{
 @layer shopv2{
 #page-shell#page-shell.kc-unified .legacy-main .lg-page{background:linear-gradient(90deg,#EFEADD 0,#EFEADD 62%,#F7F4EC 100%)!important}
 }
+
+/* Rozloženie podstránok: obsah je vždy na stred okna, nie nalepený vľavo (konzultácie, účet, prihlásenie, formuláre). */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .legacy-main>:not(.legal-doc){margin-left:auto!important;margin-right:auto!important}
+#page-shell#page-shell.kc-unified .legacy-main>.section{width:100%!important;max-width:none!important}
+}
+
+/* Detail konzultácie a kontakt: širší obsah, farby webu (levanduľa), pozadie s líniami ako v obchode. */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .legacy-main:has(>:is(.cv2,.contact-glass)){background:url(/img/organic-lines.svg) center top/max(1600px,100vw) auto repeat-y,var(--paper,#F7F4EC)!important}
+#page-shell#page-shell.kc-unified .legacy-main :is(.cv2,.contact-glass){max-width:min(1560px,100% - 32px)!important;--g-gold:var(--lav,#73729C);--g-line:rgba(115,114,156,.22)}
+#page-shell#page-shell.kc-unified .legacy-main .cv2-hero{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)!important;gap:32px!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2-info,#page-shell#page-shell.kc-unified .legacy-main .cv2-story{gap:32px!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2-story>.cv2-chap{grid-column:1/-1!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2-chap p{max-width:82ch}
+#page-shell#page-shell.kc-unified .legacy-main .cv2-intro__photo{margin:0 0 30px!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .eyebrow,#page-shell#page-shell.kc-unified .legacy-main .cv2-card>h2+*:is(em,span),#page-shell#page-shell.kc-unified .legacy-main .cv2 :is(h2,h3)>em{color:var(--lav,#73729C)!important}
+}
+
+/* Rezervácia: tlačidlo k platbe je vidieť vždy, kým nie je vybraný termín, je neaktívne. */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .bk-go--idle{margin-top:14px;opacity:.55;cursor:not-allowed}
+#page-shell#page-shell.kc-unified .bk-go__hint{margin:8px 0 0;font-size:13px;color:#6b6f60}
+}
+
+/* O Lucii: obrovská rozmazaná pečať v bloku Vízia pryč (zdroj má 420 px, nafúknutá na 900 px). */
+@layer shopv2{
+html body .ana-bf-off>img.brand-seal{display:none!important}
+}
+
+/* Detail konzultácie: olivová zelená ako na hlavnej stránke, text v dvoch stĺpcoch. */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .legacy-main :is(.cv2,.contact-glass){--g-ink:var(--olive,#2F3424);--g-green:#1E261D}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .button:not(.outline):not(:disabled),#page-shell#page-shell.kc-unified .legacy-main .cv2 .bk-go:not(:disabled){background:var(--olive,#2F3424)!important;border-color:var(--olive,#2F3424)!important;color:#F7F4EC!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .bk-go--idle{background:var(--olive,#2F3424)!important;color:#F7F4EC!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .bk-time.is-on,#page-shell#page-shell.kc-unified .legacy-main .cv2 .bk-day.is-on{background:var(--olive,#2F3424)!important;border-color:var(--olive,#2F3424)!important;color:#F7F4EC!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-meta span:last-child{border-color:var(--olive,#2F3424);color:var(--olive,#2F3424)}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-chap:not(:has(h2,h3,ul,ol,.lan-cards))>div{column-count:2;column-gap:56px}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-chap:not(:has(h2,h3,ul,ol,.lan-cards)) p{max-width:none}
+@media (max-width:900px){#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-chap>div{column-count:1!important}}
+}
