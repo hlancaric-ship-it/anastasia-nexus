@@ -20,6 +20,10 @@ describe("poistka server-owned metadát košíka", () => {
     expect(reservedCartMetadataKeys({ metadata: { nexus_coupon: null } })).toEqual(["nexus_coupon"])
   })
 
+  it.each([[], null, ""])("odmietne prepis zoznamu vrátených platieb compensated_payment_intents: %p", (value) => {
+    expect(reservedCartMetadataKeys({ metadata: { compensated_payment_intents: value } })).toEqual(["compensated_payment_intents"])
+  })
+
   it("pustí bežné metadáta a telo bez metadát", () => {
     for (const body of [{ metadata: { note: "x" } }, { email: "a@b.test" }, undefined, { metadata: "x" }, { metadata: [] }]) {
       const r = res()

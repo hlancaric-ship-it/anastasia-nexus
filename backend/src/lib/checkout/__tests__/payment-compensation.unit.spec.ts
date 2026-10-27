@@ -1,4 +1,4 @@
-import { assertNoCompensatedSession, compensateUnfinishedCheckout, COMPENSATED_PI_KEY } from "../payment-compensation"
+import { assertNoCompensatedSession, assertStripeIntentsNotReversed, compensateUnfinishedCheckout, COMPENSATED_PI_KEY } from "../payment-compensation"
 
 const KEY = "sk_test_synthetic"
 
@@ -69,5 +69,48 @@ describe("kompenzácia platby, keď objednávka nevznikla", () => {
     const t = setup({ stripeFail: true })
     expect((await compensateUnfinishedCheckout(t.container, "cart_1", "X_FAILED", { fetch: t.fetchImpl, apiKey: KEY })).status).toBe("failed")
     expect(t.ops.createOpsEvents).toHaveBeenCalledWith(expect.objectContaining({ level: "error", event: "payment_compensation_failed" }))
+  })
+})
+
+describe("dokončenie košíka overí platbu priamo v Stripe (metadáta môže prepísať klient)", () => {
+  const cart = (sessions: any[] = [{ provider_id: "pp_stripe_stripe", data: { id: "pi_123" } }]) => ({ metadata: {}, payment_collection: { payment_sessions: sessions } })
+  const stripeWith = (opts: { status?: string; refunds?: any[]; hasMore?: boolean; fail?: boolean }) => {
+    const urls: string[] = []
+    const fetchImpl: any = jest.fn(async (url: string) => {
+      urls.push(url)
+      if (opts.fail) return { ok: false, status: 503, json: async () => ({}) }
+      if (url.includes("/refunds?")) return { ok: true, status: 200, json: async () => ({ data: opts.refunds ?? [], has_more: !!opts.hasMore }) }
+      return { ok: true, status: 200, json: async () => ({ id: "pi_123", status: opts.status ?? "succeeded" }) }
+    })
+    return { fetchImpl, urls }
+  }
+  it("vrátenú platbu odmietne, aj keď klient zmazal compensated_payment_intents", async () => {
+    const s = stripeWith({ refunds: [{ id: "re_1", status: "succeeded" }] })
+    await expect(assertStripeIntentsNotReversed(cart(), { fetch: s.fetchImpl, apiKey: KEY })).rejects.toThrow("PAYMENT_COMPENSATED")
+    expect(s.urls.some((u) => u.includes("refunds?payment_intent=pi_123"))).toBe(true)
+  })
+  it.each(["pending", "requires_action"])("odmietne aj rozpracovaný refund (%s)", async (status) => {
+    const s = stripeWith({ refunds: [{ id: "re_1", status }] })
+    await expect(assertStripeIntentsNotReversed(cart(), { fetch: s.fetchImpl, apiKey: KEY })).rejects.toThrow("PAYMENT_COMPENSATED")
+  })
+  it("odmietne zrušenú platbu", async () => {
+    const s = stripeWith({ status: "canceled" })
+    await expect(assertStripeIntentsNotReversed(cart(), { fetch: s.fetchImpl, apiKey: KEY })).rejects.toThrow("PAYMENT_COMPENSATED")
+  })
+  it("pustí platbu bez refundu aj s neúspešným refundom", async () => {
+    for (const refunds of [[], [{ id: "re_1", status: "failed" }, { id: "re_2", status: "canceled" }]]) {
+      const s = stripeWith({ refunds })
+      await expect(assertStripeIntentsNotReversed(cart(), { fetch: s.fetchImpl, apiKey: KEY })).resolves.toBeUndefined()
+    }
+  })
+  it.each([{ fail: true }, { hasMore: true }])("fail closed pri výpadku alebo neúplnom zozname %j", async (opts) => {
+    const s = stripeWith(opts)
+    await expect(assertStripeIntentsNotReversed(cart(), { fetch: s.fetchImpl, apiKey: KEY })).rejects.toThrow("PAYMENT_VERIFICATION_UNAVAILABLE")
+  })
+  it("bez kľúča Stripe fail closed, bez platby kartou nič nevolá", async () => {
+    const s = stripeWith({})
+    await expect(assertStripeIntentsNotReversed(cart(), { fetch: s.fetchImpl, apiKey: "" })).rejects.toThrow("PAYMENT_VERIFICATION_UNAVAILABLE")
+    await expect(assertStripeIntentsNotReversed(cart([{ provider_id: "pp_system_default", data: {} }]), { fetch: s.fetchImpl, apiKey: "" })).resolves.toBeUndefined()
+    expect(s.fetchImpl).not.toHaveBeenCalled()
   })
 })

@@ -9,7 +9,7 @@ import { invalidCompanyFields } from "../../../lib/invoice/company-ids"
  * limit použití kupónu. Server síce kupón pri každom prepočte znovu overí podľa kódu, ale
  * podvrhnutý zápis sa odmietne už tu (fail closed, 400 RESERVED_METADATA).
  */
-export const SERVER_OWNED_CART_METADATA_KEYS = ["nexus_coupon"] as const
+export const SERVER_OWNED_CART_METADATA_KEYS = ["nexus_coupon", "compensated_payment_intents"] as const
 
 export function reservedCartMetadataKeys(body: unknown): string[] {
   if (!body || typeof body !== "object") return []
@@ -25,7 +25,7 @@ export function rejectServerOwnedCartMetadata(req: MedusaRequest, res: MedusaRes
       ok: false,
       code: "RESERVED_METADATA",
       error: "RESERVED_METADATA",
-      message: "Kupón sa uplatňuje len cez /store/nexus-cart.",
+      message: "Tieto údaje košíka nastavuje len server.",
     })
   }
   // Firemné údaje idú na daňový doklad: iba platný formát IČO/DIČ/IČ DPH a krátky názov firmy.

@@ -42,6 +42,32 @@ export function assertNoCompensatedSession(cart: { metadata?: Record<string, unk
   }
 }
 
+/**
+ * Validate hook: platbu kartou overí priamo v Stripe. `cart.metadata` môže prepísať klient,
+ * preto zoznam kompenzácií nestačí – vrátená (aj čiastočne) alebo zrušená platba objednávku
+ * nedokončí. Bez kľúča alebo pri výpadku Stripe fail closed.
+ */
+export async function assertStripeIntentsNotReversed(cart: any, deps: Deps = {}) {
+  const intents = intentsOf(cart)
+  if (!intents.length) return
+  const apiKey = deps.apiKey ?? (process.env.STRIPE_API_KEY || "").trim()
+  if (!/^(sk|rk)_(test|live)_/.test(apiKey)) throw new Error("PAYMENT_VERIFICATION_UNAVAILABLE")
+  const resolved: Required<Deps> = { fetch: deps.fetch ?? fetch, apiKey }
+  for (const id of intents) {
+    let intent: any, refunds: any
+    try {
+      intent = await stripe(resolved, "GET", `payment_intents/${id}`)
+      refunds = await stripe(resolved, "GET", `refunds?payment_intent=${encodeURIComponent(id)}&limit=100`)
+    } catch {
+      throw new Error("PAYMENT_VERIFICATION_UNAVAILABLE")
+    }
+    if (intent?.status === "canceled") throw new Error("PAYMENT_COMPENSATED")
+    const list = Array.isArray(refunds?.data) ? refunds.data : null
+    if (!list || refunds?.has_more) throw new Error("PAYMENT_VERIFICATION_UNAVAILABLE")
+    if (list.some((refund: any) => !["failed", "canceled"].includes(refund?.status))) throw new Error("PAYMENT_COMPENSATED")
+  }
+}
+
 async function stripe(deps: Required<Deps>, method: "GET" | "POST", path: string, body?: Record<string, string>, idempotencyKey?: string) {
   const response = await deps.fetch(`https://api.stripe.com/v1/${path}`, {
     method,

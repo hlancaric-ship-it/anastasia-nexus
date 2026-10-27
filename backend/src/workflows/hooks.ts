@@ -29,7 +29,7 @@ import { prepareGiftVoucherCheckout } from "./gift-voucher-checkout"
 import { assertMembershipCheckoutCart } from "../lib/membership/checkout-guard"
 import { assertCartConsent } from "../lib/legal/checkout"
 import { assertDeliveryPaymentConsistency, loadCartShape, safeOrderPaymentMethod } from "../lib/checkout/delivery-payment"
-import { assertNoCompensatedSession } from "../lib/checkout/payment-compensation"
+import { assertNoCompensatedSession, assertStripeIntentsNotReversed } from "../lib/checkout/payment-compensation"
 
 type CheckoutCompensation = {
     bookingClaim?: Awaited<ReturnType<typeof claimCartBooking>>
@@ -51,6 +51,8 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
     await assertMembershipCheckoutCart(container, cart)
     // Vrátená/zrušená platba (kompenzácia) už objednávku nedokončí.
     assertNoCompensatedSession(cart)
+    // Metadáta môže prepísať klient: refund/zrušenie sa overí priamo v Stripe.
+    await assertStripeIntentsNotReversed(cart)
     const total = amountValue(cart?.total)
     // Košík celý uhrazený poukazem: Medusa platbu přeskočí (total 0, kredit ≥ 0), SafeOrder
     // nemá co posoudit. Výše kreditu se ověří níž proti zůstatku a způsobilé částce.
