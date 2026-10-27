@@ -16,7 +16,15 @@ Odporúčané hranice:
 
 Samostatná tabuľka `auth_session_epoch` má unikátny kľúč `(actor_type, actor_id)` pre stabilné ID zákazníka alebo admina. Chýbajúci riadok znamená epochu `0`. Epochu nikdy neukladať iba do cache.
 
-Zvýšenie epochy používa atomický PostgreSQL upsert. Nepoužívať e-mail ako kľúč. Zákaznícka zmena hesla epochu zvýši tesne pred volaním provideru; ak provider následne zlyhá, môže to odhlásiť relácie bez zmeny hesla, čo je bezpečné. Natívny admin reset sa potvrdí až po zvýšení epochy; ak zvýšenie zlyhá, API vráti 503. Kroky resetu a epochy nie sú jednou transakciou.
+Zvýšenie epochy používa atomický PostgreSQL upsert. Nepoužívať e-mail ako kľúč. Zákaznícka zmena hesla aj admin reset zvýšia epochu pred volaním password provideru. Pri chybe zápisu epochy sa heslo nemení; pri následnej chybe provideru sa epoch nevracia. Môže dôjsť k odhláseniu bez zmeny hesla, čo je bezpečné. Kroky nie sú jednou transakciou, ale úspešná zmena nikdy nepredbehne invalidáciu predchádzajúcich relácií.
+
+### C6: hranica natívneho admin resetu
+
+**C6 VERIFIED:** plná backendová regrese 178/178 suites, 1683/1683 testů PASS; následně doplněná sada s instalovaným native validátorem a update route 6/6 PASS (DB a provider jsou syntetické). `npx tsc --noEmit`, mapa API a `git diff --check` PASS.
+
+Medusa 2.19 vykoná `validateToken` (overenie a spotrebovanie jednorazového reset tokenu), potom natívna route zavolá `auth.updateProvider`. Middleware `prepareAdminPasswordEpoch` registruje proxy auth služby len v request scope, ktorý Medusa vytvára cez `container.createScope()`. Proxy na `updateProvider` vyžaduje overený kontext a zhodnú identitu, nájde práve jeden admin účet, atomicky zvýši jeho epochu a až potom zavolá pôvodnú službu. Ostatné metódy sú delegované na pôvodnú službu; zdieľaná služba a ostatné requesty sa nemenia. Žiadne odhlásenie neprebehne len pri príprave middleware bez úspešného overenia tokenu. Neúspešný zápis epochy po spotrebovaní tokenu vyžaduje vyžiadať nový reset odkaz.
+
+Response middleware už admin reset neinvaliduje dodatočne; podpisuje len vydávané JWT. Testy overujú poradie epoch → password, chybu epochy bez zmeny hesla, trvalý inkrement po chybe provideru, izoláciu request scope a odmietnutie starého admin JWT po zmene. Rovnaké poradie a chyby sú pokryté aj pre zákaznícku route.
 
 ## Overovanie JWT
 
@@ -41,4 +49,4 @@ Je potrebné overiť, že kontrola pokrýva všetky cesty, ktoré prijímajú cu
 - Unit testy pokrývajú atomický inkrement, chýbajúci riadok s epochou `0`, chýbajúci claim, starú epochu, nesprávny typ účtu a zlyhanie DB.
 - E2E logout-all na dvoch živých klientoch zostáva potrebný po nasadení.
 
-**Implementačné obmedzenia:** používá sa Medusa auth response middleware `/auth/*` na podpísanie tokenu a zachytenie admin resetu; pri downgrade migrácia ponechá epochové dáta. Žiadne cloudové prostredie ani deploy neboli použity.
+**Implementačné obmedzenia:** Medusa auth response middleware `/auth/*` podpisuje tokeny; admin reset používa request-scoped obal `updateProvider` popísaný vyššie. Pri downgrade migrácia ponechá epochové dáta. Žiadne cloudové prostredie ani deploy neboli použité.

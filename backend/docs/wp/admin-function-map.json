@@ -488,7 +488,8 @@
       "sources": [
         "backend/medusa-config.ts",
         "backend/src/api/admin/nexus/tour-state/route.ts",
-        "backend/src/modules/auth-security/session-epoch.ts"
+        "backend/src/modules/auth-security/session-epoch.ts",
+        "backend/src/api/auth-password-epoch.ts"
       ],
       "remaining": "Native emailpass reset/update existuje; chybí doložené vlastní UI a doručení reset-password události.",
       "acceptance": "Původní přístup nelze převzít; reset je časově omezený; ověření backendu a skutečného doručení v testu."
@@ -5316,7 +5317,8 @@
     "nexus/tests/workers/voucherConcurrency.test.ts",
     "storefront-prototype/test/digital-content.test.mjs",
     "backend/src/lib/checkout/__tests__/product-delivery.unit.spec.ts",
-    "backend/src/api/store/nexus-cart/__tests__/delivery.unit.spec.ts"
+    "backend/src/api/store/nexus-cart/__tests__/delivery.unit.spec.ts",
+    "backend/src/api/__tests__/auth-password-epoch.unit.spec.ts"
   ],
   "candidate_branch": "codex/admin-theming"
 }
