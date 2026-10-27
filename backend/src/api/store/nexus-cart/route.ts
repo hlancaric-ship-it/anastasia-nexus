@@ -12,6 +12,7 @@ import { GIFT_VOUCHER_CREDIT_REFERENCE, isGiftVoucherProduct, toMinor, fromMinor
 import { syncGiftVoucherCredit, type CreditState } from "../../../modules/gift-voucher/cart"
 import { recordEvent } from "../../../lib/observability/events"
 import { requestIdHeaders } from "../../../lib/observability/log"
+import { productRequiresShipping } from "../../../lib/checkout/product-delivery"
 
 type PriceResponse = {
   ok: true
@@ -155,7 +156,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
     entity: "cart",
     fields: [
       "id", "currency_code", "region_id", "metadata", "customer_id", "customer.has_account", "customer.metadata", "customer.groups.name", "customer.groups.metadata",
-      "items.id", "items.quantity", "items.variant_id", "items.unit_price",
+      "items.id", "items.quantity", "items.variant_id", "items.unit_price", "items.requires_shipping",
       "credit_lines.id", "credit_lines.reference",
     ],
     filters: { id: cartId },
@@ -177,7 +178,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const variantIds = (cart.items || []).map((item: any) => item.variant_id).filter(Boolean)
   const variantsResult = variantIds.length ? await query.graph({
     entity: "product_variant",
-    fields: ["id", "sku", "calculated_price.calculated_amount", "calculated_price.original_amount", "calculated_price.currency_code", "metadata", "product.id", "product.title", "product.metadata"],
+    fields: ["id", "sku", "calculated_price.calculated_amount", "calculated_price.original_amount", "calculated_price.currency_code", "metadata", "product.id", "product.title", "product.metadata", "product.shipping_profile.type"],
     filters: { id: variantIds },
     context: {
       calculated_price: QueryContext({
@@ -189,7 +190,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const variants = new Map((variantsResult.data || []).map((variant: any) => [variant.id, variant]))
 
   const customerTier = resolveCustomerTier(cart.customer?.groups)
-  const pricedItems: Array<{ id: string; sku: string; quantity: number; unit_price: number; is_discountable: boolean; metadata: Record<string, unknown> }> = []
+  const pricedItems: Array<{ id: string; sku: string; quantity: number; unit_price: number; requires_shipping: boolean; is_discountable: boolean; metadata: Record<string, unknown> }> = []
   let pricesChanged = false
   let giftVoucher: CreditState = null
 
@@ -240,7 +241,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
       const amount = variantAmountMinor(variant)
       if (!Number.isInteger(amount) || toMinor(Number(variant?.calculated_price?.calculated_amount)) !== amount) throw new Error("GIFT_VOUCHER_PRODUCT_INVALID")
       const unitPrice = fromMinor(amount)
-      pricedItems.push({ id: item.id, sku: variant.sku, quantity, unit_price: unitPrice, is_discountable: false, metadata: { gift_voucher: true } })
+      pricedItems.push({ id: item.id, sku: variant.sku, quantity, unit_price: unitPrice, requires_shipping: productRequiresShipping(product), is_discountable: false, metadata: { gift_voucher: true } })
       pricesChanged ||= Number(cart.items?.find((line: any) => line.id === item.id)?.unit_price) !== unitPrice
       continue
     }
@@ -286,6 +287,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
       sku: variant.sku,
       quantity,
       unit_price: price.calculated.finalPrice,
+      requires_shipping: productRequiresShipping(product),
       is_discountable: false,
       metadata: { nexus_tenant_id: tenantId, nexus_pricing_rules: price.calculated.appliedRules, nexus_coupon_code: couponApplies ? coupon?.code : undefined },
     })
@@ -294,7 +296,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
 
   if (applyChanges) {
     for (const item of pricedItems) {
-      await updateLineItemInCartWorkflow(scope).run({ input: { cart_id: cartId, item_id: item.id, update: { unit_price: item.unit_price, is_discountable: false, metadata: item.metadata } } })
+      await updateLineItemInCartWorkflow(scope).run({ input: { cart_id: cartId, item_id: item.id, update: { unit_price: item.unit_price, requires_shipping: item.requires_shipping, is_discountable: false, metadata: item.metadata } } })
     }
     // Kredit poukazu se po přepočtu cen znovu srovná se zůstatkem a způsobilou částkou.
     if ((cart.credit_lines || []).some((line: any) => line?.reference === GIFT_VOUCHER_CREDIT_REFERENCE)) {
