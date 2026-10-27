@@ -8,10 +8,11 @@ jest.mock("@medusajs/medusa/core-flows", () => ({
 }))
 jest.mock("../../api/store/nexus-cart/route", () => ({ repriceCart: jest.fn() }))
 jest.mock("../booking-checkout", () => ({ claimCartBooking: jest.fn(async () => null) }))
-import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { repriceCart } from "../../api/store/nexus-cart/route"
 import { giftVoucherHttpError } from "../../api/store/gift-vouchers/errors"
 import { GIFT_VOUCHER_MODULE } from "../../modules/gift-voucher"
+import { COUPON_LINK_MODULE } from "../../modules/coupon-link"
 import { DEFAULT_SETTINGS } from "../../modules/gift-voucher/policy"
 import { claimCartBooking } from "../booking-checkout"
 import { prepareGiftVoucherCheckout } from "../gift-voucher-checkout"
@@ -37,11 +38,11 @@ function makeContainer(opts: { voucher?: any; settings?: any } = {}) {
     redeem: jest.fn(async (input: any) => ({ transaction_id: "gvtx_1", ...input })),
     reverseRedemption: jest.fn(async () => true),
   }
-  const promotions = { registerUsage: jest.fn(), revertUsage: jest.fn() }
+  const couponUsage = { reserveUsage: jest.fn(async () => ({ id: "reservation_1", status: "reserved" })), releaseReservation: jest.fn(async () => undefined) }
   const booking = { releaseCheckoutClaim: jest.fn() }
   const query = { graph: jest.fn(async ({ entity, filters }: any) => entity === "promotion" ? { data: [{ id: "promo_syn10", code: filters.code }] } : { data: variants.filter((v) => filters.id.includes(v.id)) }) }
-  const map: Record<string, unknown> = { [GIFT_VOUCHER_MODULE]: vouchers, [Modules.PROMOTION]: promotions, booking, [ContainerRegistrationKeys.QUERY]: query }
-  return { resolve: jest.fn((key: string) => map[key]), vouchers, promotions, booking, query } as any
+  const map: Record<string, unknown> = { [GIFT_VOUCHER_MODULE]: vouchers, [COUPON_LINK_MODULE]: couponUsage, booking, [ContainerRegistrationKeys.QUERY]: query }
+  return { resolve: jest.fn((key: string) => map[key]), vouchers, couponUsage, booking, query } as any
 }
 
 const credit = (amount: number) => [{ id: "cl_1", amount, reference: "gift_voucher", reference_id: "gv_1" }]
@@ -102,14 +103,14 @@ describe("completeCartWorkflow hook s poukazem", () => {
   it("nulový košík bez kreditu poukazu dál vyžaduje shodu platby", async () => {
     await expect(run(cart({ total: 0 }), makeContainer())).rejects.toThrow("MEDUSA_PAYMENT_AMOUNT_MISMATCH")
   })
-  it("selhání čerpání vrátí už registrovaný kupon i rezervaci a nic nečerpá", async () => {
+  it("selhání čerpání vrátí rezervovaný kupón i rezervaci booking slotu", async () => {
     const container = makeContainer({ voucher: { ...activeVoucher, balance: 5000 } })
     ;(claimCartBooking as jest.Mock).mockResolvedValueOnce({ id: "claim_1" })
     container.vouchers.redeem.mockRejectedValueOnce(new Error("GIFT_VOUCHER_BALANCE_INSUFFICIENT"))
     const snapshot = cart({ total: 0, credit_lines: credit(45), metadata: { nexus_coupon: { code: "SYN10" } } })
     await expect(run(snapshot, container)).rejects.toThrow("GIFT_VOUCHER_BALANCE_INSUFFICIENT")
-    // Použitie kupónu sa v hooku už nezapisuje (zapisuje sa až po vytvorení objednávky).
-    expect(container.promotions.revertUsage).not.toHaveBeenCalled()
+    expect(container.couponUsage.reserveUsage).toHaveBeenCalledWith({ promotion_id: "promo_syn10", coupon_code: "SYN10", cart_id: "cart_1" })
+    expect(container.couponUsage.releaseReservation).toHaveBeenCalledWith({ cart_id: "cart_1" })
     expect(container.booking.releaseCheckoutClaim).toHaveBeenCalledWith({ id: "claim_1" })
     expect(container.vouchers.reverseRedemption).not.toHaveBeenCalled()
   })

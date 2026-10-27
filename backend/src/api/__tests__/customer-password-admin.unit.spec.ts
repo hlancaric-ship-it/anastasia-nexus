@@ -3,6 +3,7 @@ const VERIFIED=[{id:'pi_ml',entity_id:'boss@example.test',provider:'magic-link'}
 function fixture(opts:{existing?:any,other?:any,admin?:any,own?:any[]}) {
  const state:any={deleted:[],created:[],updated:[],provider:[]}
  const db:any=()=>({where:()=>({whereNull:()=>({first:async()=>({email:'Boss@Example.test'})})})})
+ db.raw=jest.fn(async()=>({rows:[{epoch:1}]}))
  const auth={
   listProviderIdentities:jest.fn(async(f:any)=>f.auth_identity_id?(opts.own??VERIFIED):(opts.existing?[opts.existing]:[])),
   listAuthIdentities:jest.fn(async(f:any)=>f.id==='au_other'?[{id:'au_other',app_metadata:opts.other??{}}]:[{id:f.id,app_metadata:{customer_id:'cus_1'}}]),

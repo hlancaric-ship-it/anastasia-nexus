@@ -2,6 +2,7 @@ import type { MiddlewareRoute } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { normalizeEmail } from "../modules/auth-magic-link/policy"
 import { claimAuthRate } from "../modules/auth-magic-link/state"
+import { getSessionEpoch, incrementSessionEpoch, type SessionActorType } from "../modules/auth-security/session-epoch"
 import jwt from "jsonwebtoken"
 export async function limitMagicLink(req: any, res: any, next: any) {
   // Native auth uses decoded dynamic parameters, including percent-encoded paths.
@@ -152,6 +153,80 @@ export function extendCustomerToken(req: any, res: any, next: any) {
   }
   return next()
 }
+
+/**
+ * Bind every actor-bound JWT to the current account epoch before returning it.
+ * This covers login, refresh, MFA verification, callback, and any future auth
+ * response that contains a token. Actorless verification/MFA tokens stay
+ * short-lived and cannot authorize store/admin API calls.
+ */
+export function bindSessionEpoch(req: any, res: any, next: any) {
+  const originalJson = res.json.bind(res)
+  let responseStarted = false
+  res.json = (body: any) => {
+    const success = Number(res.statusCode ?? 200) < 300
+    const token = body?.token
+    const pathParts = String(req.path || "").split("/").map((part: string) => {
+      try { return decodeURIComponent(part) } catch { return part }
+    })
+    const actor = req.params?.actor_type || pathParts[2]
+    const provider = req.params?.auth_provider || pathParts[3]
+    const isAdminPasswordReset = actor === "user"
+      && provider === "emailpass"
+      && pathParts.at(-1) === "update"
+      && body?.success === true
+
+    if (responseStarted || !success || (typeof token !== "string" && !isAdminPasswordReset)) {
+      return originalJson(body)
+    }
+    responseStarted = true
+
+    void (async () => {
+      try {
+        const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
+
+        // Medusa's reset-token middleware has already validated and consumed
+        // the one-use token before the native update route returns success.
+        if (isAdminPasswordReset) {
+          const email = normalizeEmail(req.auth_context?.actor_id)
+          if (req.auth_context?.actor_type !== "user" || !email) throw new Error("AUTH_RESET_ACTOR_INVALID")
+          const users = req.scope.resolve(Modules.USER) as any
+          const matches = await users.listUsers({ email }, { select: ["id"], take: 2 })
+          if (!Array.isArray(matches) || matches.length !== 1 || !matches[0]?.id) throw new Error("AUTH_RESET_USER_NOT_FOUND")
+          await incrementSessionEpoch(db, "user", matches[0].id)
+        }
+
+        if (typeof token !== "string") return originalJson(body)
+        const http = req.scope.resolve(ContainerRegistrationKeys.CONFIG_MODULE).projectConfig.http
+        const payload = jwt.verify(token, http.jwtSecret, http.jwtVerifyOptions ?? http.jwtOptions) as any
+        const actorType = payload?.actor_type
+        const actorId = payload?.actor_id
+        if ((actorType !== "customer" && actorType !== "user") || typeof actorId !== "string" || !actorId) {
+          // Verification-required and MFA-challenge tokens have no bound actor.
+          return originalJson(body)
+        }
+
+        const epoch = await getSessionEpoch(db, actorType as SessionActorType, actorId)
+        const { iat: _iat, exp: originalExp, ...claims } = payload
+        const expiresIn = actorType === "customer"
+          ? process.env.CUSTOMER_JWT_EXPIRES_IN || "30d"
+          : typeof originalExp === "number"
+            ? Math.max(1, originalExp - Math.floor(Date.now() / 1000))
+            : undefined
+        const signed = jwt.sign(
+          { ...claims, session_epoch: epoch },
+          http.jwtSecret,
+          { ...(http.jwtOptions ?? {}), ...(expiresIn ? { expiresIn } : {}) },
+        )
+        return originalJson({ ...body, token: signed })
+      } catch {
+        return res.status(503).json({ error: "AUTH_UNAVAILABLE", message: "Prihlásenie je dočasne nedostupné." })
+      }
+    })()
+    return res
+  }
+  return next()
+}
 const SELF_SERVICE_METHODS: MiddlewareRoute["method"] = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 export const authMagicLinkMiddlewares: MiddlewareRoute[] = [
@@ -161,4 +236,5 @@ export const authMagicLinkMiddlewares: MiddlewareRoute[] = [
   { matcher: "/auth/:actor_type/:auth_provider/register", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordRegister], bodyParser: { sizeLimit: "4kb" } },
   { matcher: "/auth/:actor_type/:auth_provider/reset-password", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordReset], bodyParser: { sizeLimit: "4kb" } },
   { matcher: "/auth/:actor_type/:auth_provider/update", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordUpdate], bodyParser: { sizeLimit: "4kb" } },
+  { matcher: "/auth/*", middlewares: [bindSessionEpoch] },
 ]

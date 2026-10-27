@@ -6,4 +6,5 @@ import { authenticate, type MiddlewareRoute } from "@medusajs/framework/http"
  */
 export const nexusAuthStoreMiddlewares: MiddlewareRoute[] = [
   { matcher: "/store/nexus-auth/logout", method: ["POST"], middlewares: [authenticate("customer", ["bearer"])] },
+  { matcher: "/store/nexus-auth/logout-all", method: ["POST"], middlewares: [authenticate("customer", ["bearer"])] },
 ]

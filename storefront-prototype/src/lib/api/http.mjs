@@ -805,7 +805,11 @@ export function createHttpApi(storage, config) {
       if (pass.length < 8) return { ok: false, message: 'Heslo musí mať aspoň 8 znakov.' };
       try {
         const r = await call('/store/customers/me/password', { method: 'POST', body: { password: pass } });
-        if (r.ok) return { ok: true, message: 'Heslo je uložené. Odteraz sa môžete prihlasovať aj heslom.' };
+        if (r.ok) {
+          for (const key of CUSTOMER_KEYS) del(key);
+          try { globalThis.localStorage?.removeItem(RETURN_KEY); } catch { /* prehliadač bez localStorage */ }
+          return { ok: true, requiresLogin: true, message: 'Heslo je uložené. Z bezpečnostných dôvodov sa prihláste znova.' };
+        }
         if (r.status === 401) return { ok: false, message: 'Prihlásenie vypršalo. Prihláste sa znova.' };
         if (r.status === 429) return { ok: false, message: 'Príliš veľa zmien. Skúste to neskôr.' };
         return { ok: false, message: r.status === 400 ? 'Heslo musí mať 8 až 200 znakov.' : r.data?.message || 'Heslo sa nepodarilo uložiť. Skúste to znova.' };
@@ -829,6 +833,15 @@ export function createHttpApi(storage, config) {
       for (const key of CUSTOMER_KEYS) del(key);
       try { globalThis.localStorage?.removeItem(RETURN_KEY); } catch { /* prehliadač bez localStorage */ }
       return { ok: true };
+    },
+    async signOutEverywhere() {
+      try {
+        const r = await call('/store/nexus-auth/logout-all', { method: 'POST' });
+        if (!r.ok) return { ok: false, message: r.data?.message || 'Odhlásenie sa nepodarilo. Skúste to znova.' };
+        for (const key of CUSTOMER_KEYS) del(key);
+        try { globalThis.localStorage?.removeItem(RETURN_KEY); } catch { /* prehliadač bez localStorage */ }
+        return { ok: true };
+      } catch { return { ok: false, message: 'Odhlásenie sa nepodarilo. Skúste to znova.' }; }
     },
 
     // QR odkaz → košík: produkt + množstvo + voliteľný kupón. Idempotentné cez uložený kľúč (max 50).

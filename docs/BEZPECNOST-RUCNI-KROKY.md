@@ -34,6 +34,7 @@ Zóna `anastasiaoz.eu` a účet Lucie se mění **jen po jejím schválení**. T
 
 ## R. R2
 - **R1 – bucket `anastasia-media`:** R2 → bucket → Settings: zkontrolovat, že je `r2.dev` vypnuté a vlastní doména míří jen na veřejné obrázky. Výpis objektů by neměl obsahovat placené soubory (`paid/`, PDF a audio programů). Pokud tam jsou, přesunout je do soukromého bucketu.
+  - **Ověřeno 27. 10. 2026 (Opus, wrangler + curl):** `r2.dev` je u `anastasia-media` zapnuté, vlastní doména není. Placený obsah přes veřejnou adresu nejde: RESET 40+ `lekcia-00`–`17` vrací 404, Nič nemusíš A1–A6 vrací 404, veřejná je jen ukázka A0 (200, záměr). PDF jsou v soukromém `anastasia-paid-content-test` (r2.dev vypnuté, bez domény). Volitelně: r2.dev vypnout úplně, pokud ho nepotřebují veřejné obrázky.
 
 ## K. Klíče a zálohy
 - **K1 – heslo test-serveru:** heslo bylo dříve v `ops/test-server/compose.yml` v git historii. Pokud server běžel, heslo rotovat.

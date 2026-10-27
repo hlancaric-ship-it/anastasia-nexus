@@ -6,7 +6,6 @@ import { ContainerRegistrationKeys, Modules, QueryContext } from "@medusajs/fram
 import { capturePaymentWorkflow, completeCartWorkflow, createPaymentCollectionForCartWorkflow, createPaymentSessionsWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../api/store/nexus-cart/route"
 import { issueMediaAccess } from "../modules/entitlement/media/access"
-import { recordCouponUsage } from "../lib/pricing/coupon-usage"
 import { clearLoyaltySettings, readLoyaltySettingsFromStore, saveLoyaltySettingsToStore } from "../lib/loyalty/settings"
 import { workerLoyaltyTiers, type LoyaltyTier } from "../lib/loyalty/policy"
 import { applyLoyaltyAssignment, loyaltyTierGroups } from "../lib/loyalty/assignment"
@@ -275,6 +274,8 @@ export default async function e2eDigitalCouponLoyalty({ container, args = [] }: 
     await createPaymentSessionsWorkflow(container).run({
       input: { payment_collection_id: collectionId!, provider_id: providerId, customer_id: customerId },
     })
+    const { data: promoBeforeRows } = await query.graph({ entity: "promotion", fields: ["id", "used"], filters: { id: couponId } })
+    const usedBefore = Number(promoBeforeRows?.[0]?.used ?? 0)
     const order = await completeCartWorkflow(container).run({ input: { id: cart.id } })
     const orderId = (order.result as any).id
     step("objednávka vznikla", Boolean(orderId), orderId)
@@ -297,15 +298,18 @@ export default async function e2eDigitalCouponLoyalty({ container, args = [] }: 
     step("po zachytení platby je prístup udelený", grantedIds.includes(productId), `prístupy: ${grantedIds.join(", ")}`)
     report.entitlements = (granted ?? []).map((entry: any) => ({ product_id: entry.product_id, status: entry.status }))
 
-    // --- 7b) Použitie kupónu: jedna objednávka = jedno použitie ---------------
-    const { data: promoBefore } = await query.graph({ entity: "promotion", fields: ["id", "used"], filters: { id: couponId } })
-    const usedBefore = Number(promoBefore?.[0]?.used ?? 0)
-    const usage = await recordCouponUsage(container as never, { cartId: cart.id, orderId })
-    const usageAgain = await recordCouponUsage(container as never, { cartId: cart.id, orderId })
-    const { data: promoAfter } = await query.graph({ entity: "promotion", fields: ["id", "used"], filters: { id: couponId } })
-    const usedAfter = Number(promoAfter?.[0]?.used ?? 0)
-    step("použitie kupónu sa započíta právě raz (idempotentne podľa objednávky)", usage.counted && usageAgain.duplicate && usedAfter - usedBefore === 1, `pred ${usedBefore} → po ${usedAfter}; druhý pokaz: duplicate=${usageAgain.duplicate}`)
-    report.coupon_usage = { used_before: usedBefore, used_after: usedAfter, counted: usage.counted, duplicate_on_repeat: usageAgain.duplicate }
+    // --- 7b) Použitie kupónu: rezervácia sa potvrdí pri order.placed -----------
+    let reservation: any
+    for (let i = 0; i < 50; i++) {
+      const rows = await query.graph({ entity: "coupon_usage_reservation", fields: ["id", "status", "order_id"], filters: { cart_id: cart.id } })
+      reservation = rows.data?.[0]
+      if (reservation?.status === "confirmed" && reservation.order_id === orderId) break
+      await new Promise((r) => setTimeout(r, 100))
+    }
+    const { data: promoAfterRows } = await query.graph({ entity: "promotion", fields: ["id", "used"], filters: { id: couponId } })
+    const usedAfter = Number(promoAfterRows?.[0]?.used ?? 0)
+    step("použitie kupónu sa potvrdí práve raz", reservation?.status === "confirmed" && reservation.order_id === orderId && usedAfter - usedBefore === 1, `pred ${usedBefore} → po ${usedAfter}; stav rezervácie: ${reservation?.status ?? "nenašiel sa"}`)
+    report.coupon_usage = { used_before: usedBefore, used_after: usedAfter, reservation_status: reservation?.status ?? null, order_id: reservation?.order_id ?? null }
 
     // --- 8) Podpísaný krátkodobý odkaz na obsah ------------------------------
     const productRow = (await query.graph({ entity: "product", fields: ["id", "metadata"], filters: { id: productId } })).data?.[0]
