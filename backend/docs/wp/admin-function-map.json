@@ -489,7 +489,8 @@
         "backend/medusa-config.ts",
         "backend/src/api/admin/nexus/tour-state/route.ts",
         "backend/src/modules/auth-security/session-epoch.ts",
-        "backend/src/api/auth-password-epoch.ts"
+        "backend/src/api/auth-password-epoch.ts",
+        "backend/src/api/auth-revoke-middlewares.ts"
       ],
       "remaining": "Native emailpass reset/update existuje; chybí doložené vlastní UI a doručení reset-password události.",
       "acceptance": "Původní přístup nelze převzít; reset je časově omezený; ověření backendu a skutečného doručení v testu."
@@ -2267,7 +2268,7 @@
       ],
       "feature": "access",
       "source": "backend/src/api/store/reset-program/route.ts",
-      "sha256": "adf9c9f59deb64d605a4adc765f920f8fa0333008ddcf3bbeef81323c1c4c515"
+      "sha256": "0f0027e1aa208b477d242c5836f25c95f176b2dfa8aef2ce8b26bdea38f4f00e"
     },
     {
       "path": "/store/withdrawals",
@@ -5318,7 +5319,8 @@
     "storefront-prototype/test/digital-content.test.mjs",
     "backend/src/lib/checkout/__tests__/product-delivery.unit.spec.ts",
     "backend/src/api/store/nexus-cart/__tests__/delivery.unit.spec.ts",
-    "backend/src/api/__tests__/auth-password-epoch.unit.spec.ts"
+    "backend/src/api/__tests__/auth-password-epoch.unit.spec.ts",
+    "backend/src/api/__tests__/auth-session-transport.unit.spec.ts"
   ],
   "candidate_branch": "codex/admin-theming"
 }

@@ -28,6 +28,18 @@ Response middleware už admin reset neinvaliduje dodatočne; podpisuje len vydá
 
 ## Overovanie JWT
 
+### C7: Express mount a cookie session
+
+**C7 VERIFIED:** cílené auth regrese 4/4 suites, 38/38 testů PASS; plná backendová sada 182/182 suites, 1737/1737 testů PASS; `npx tsc --noEmit`, mapa API a `git diff --check` PASS.
+
+Původní globální guard chybně rozhodoval podle `req.path`. Medusa registruje globální middleware přes `app.use(matcher, ...)`, takže Express už odebral prefix `/admin/*` či `/store/*`; kontrola kvůli neznámému prefixu vracela `next()` i pro starý bearer. Navíc původní guard nečetl serverovou cookie session.
+
+Nově je typ aktéra pevně určen při registraci guardu a nepoužívá se oříznutá cesta. Ověřuje se autentizační kontext ve stejném pořadí jako v Meduse: odpovídající `req.session.auth_context`, potom kryptograficky ověřený bearer přes framework helper (včetně public key a verify options). Oba transporty kontrolují epochu v DB; chybějící claim či nesoulad vrací 401, nedostupná DB 503. Legacy cookies vyžadují nové přihlášení. Cookie context zůstává serverový, nic se nečte z klientského těla.
+
+`logout-all` přijímá cookie i bearer pro admina i zákazníka. Guard chrání i refresh a vytváření cookie session; `POST /auth/session` používá stejně jako nativní Medusa pouze bearer, aby nové přihlášení mohlo nahradit starou cookie. Stará cookie nesmí při běžném admin/store requestu obejít invalidaci pomocí jiného beareru. Epoch se zvyšuje pouze konkrétnímu účtu; není přidána migrace ani plošná invalidace.
+
+Regrese `auth-session-transport.unit.spec.ts` spouští skutečný lokální Express server, express-session a nativní Medusa autentizaci/session route. Před opravou reprodukovala 200 pro staré bearery a odmítnutí cookie logout-all. Pokrývá dvě relace obou typů účtů v obou transportech, izolaci jiného účtu, výpadek epoch store, legacy cookies, kombinované přihlašovací údaje, refresh a opětovné přihlášení. Používá jen syntetická lokální ID, bez zásahu do Cloud účtů.
+
 Po kryptografickom overení JWT načítať jeho `actor_id` a epoch claim; porovnanie musí prebehnúť pred obsluhou chráneného store requestu. Chýbajúci zákazník, neplatný claim alebo nesúlad znamená odmietnutie. Pri nedostupnom úložisku je pre chránené zákaznícke endpointy bezpečný návrh fail closed s `503 AUTH_UNAVAILABLE`; verejný katalóg bez Bearer tokenu nemá vyvolávať DB lookup. Nezapisovať JWT ani epochu do logov.
 
 Je potrebné overiť, že kontrola pokrýva všetky cesty, ktoré prijímajú customer Bearer token vrátane obnovy tokenu a vlastných auth endpointov, a že admin tokeny nepoužívajú zákaznícku epochu. Existujúca revokácia konkrétneho tokenu môže zostať ako doplnková ochrana alebo sa jej odstránenie riešiť samostatne po overení pokrytia.

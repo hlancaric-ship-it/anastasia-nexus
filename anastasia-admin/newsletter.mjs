@@ -10,10 +10,17 @@ const NL_STATUS = {
   cancelled: ['zrušená', 'off'],
 };
 
-const NL_BLANK = () => ({ id: null, subject: '', preheader: '', body_html: '', status: 'draft', recipients_count: 0, sent_count: 0, failed_count: 0, created_at: null, queued_at: null, sent_at: null });
+const NL_BLANK = () => ({ id: null, mode: 'sablona', form: { sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' }, subject: '', preheader: '', body_html: '', status: 'draft', recipients_count: 0, sent_count: 0, failed_count: 0, created_at: null, queued_at: null, sent_at: null });
 
 const NL_CSV_PAGE = 100;
 const NL_CSV_MAX_PAGES = 50;
+
+// Kampaň zo servera: ak sa dá poskladať späť na šablónu Dopis, otvorí sa vo formulári, inak ako HTML.
+function nlAdopt(campaign, keepMode) {
+  const parsed = nlParseForm(campaign && campaign.body_html);
+  const mode = keepMode === 'html' ? 'html' : (parsed ? 'sablona' : 'html');
+  return { ...campaign, mode, form: parsed || { sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' } };
+}
 
 export function newsletterView({ api, esc, fmtDate, freshView }) {
   return async function openNewsletter(view) {
@@ -54,7 +61,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       state.consentCount = Number(consents.count) || state.consents.length;
       if (state.editing.id) {
         const fresh = state.campaigns.find(c => c.id === state.editing.id);
-        if (fresh) state.editing = { ...fresh };
+        if (fresh) state.editing = nlAdopt(fresh, state.editing.mode);
       }
     }
 
@@ -64,7 +71,18 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       const body = view.querySelector('#nl-body');
       if (subject) state.editing.subject = subject.value;
       if (preheader) state.editing.preheader = preheader.value;
-      if (body) state.editing.body_html = body.value;
+      if (state.editing.mode === 'sablona') {
+        const form = state.editing.form;
+        view.querySelectorAll('[data-sec]').forEach(el => {
+          const idx = Number(el.dataset.sec), field = el.dataset.f;
+          if (form.sections[idx]) form.sections[idx][field] = el.value;
+        });
+        const cl = view.querySelector('#nl-cta-label'), cu = view.querySelector('#nl-cta-url'), sg = view.querySelector('#nl-sign');
+        if (cl) form.ctaLabel = cl.value;
+        if (cu) form.ctaUrl = cu.value;
+        if (sg) form.signature = sg.value;
+        state.editing.body_html = nlBuildBody(form);
+      } else if (body) state.editing.body_html = body.value;
     }
 
     function preview() {
@@ -87,6 +105,8 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
         .nl-v{font:500 30px/1.15 Georgia,'Times New Roman',serif;color:var(--primary);margin:6px 0 4px}
         .nl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
         .nl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+        .nl-sec{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px;background:rgba(255,255,255,.6)}
+        .nl-sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
         .nl-tools .btn{padding:8px 12px;min-height:36px}
         .nl-editor textarea{width:100%;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
         .nl-preview{width:100%;height:720px;border:1px solid var(--line);border-radius:12px;background:#fbf8f2}
@@ -117,7 +137,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
               <input id="nl-subject" maxlength="200" value="${esc(editing.subject)}" ${editable ? '' : 'disabled'} placeholder="Napríklad Novinky z ateliéru ANASTASIA">
               <label for="nl-preheader">Náhľadový text</label>
               <input id="nl-preheader" maxlength="300" value="${esc(editing.preheader)}" ${editable ? '' : 'disabled'} placeholder="Krátky úvod, ktorý sa zobrazí pri predmete">
-              <label for="nl-body">Obsah</label>
+              ${editing.mode === 'sablona' ? templateFormHtml(editing, editable) : `<label for="nl-body">Obsah</label>
               ${editable ? `<div class="nl-tools" role="group" aria-label="Formátovanie obsahu">
                 <button type="button" class="btn ghost" data-format="h2">Nadpis</button>
                 <button type="button" class="btn ghost" data-format="strong">Tučné</button>
@@ -127,6 +147,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
               </div>` : ''}
               <textarea id="nl-body" rows="14" ${editable ? '' : 'disabled'} placeholder="Napíšte text kampane. Povolené je základné formátovanie.">${esc(editing.body_html)}</textarea>
               <p class="muted nl-note">Povolené sú odseky, nadpisy, tučné a kurzívne písmo, odrážky, odkazy a obrázky len cez https. Ostatné značky server pri uložení odstráni.</p>
+              ${editable && !editing.id ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="sablona">Použiť šablónu Dopis</button></p>' : ''}`}
               <div class="row" style="margin-top:14px">
                 ${editable ? '<button type="button" class="btn gold" data-save>Uložiť koncept</button>' : ''}
                 ${editable && editing.id ? '<button type="button" class="btn ghost" data-delete>Zmazať koncept</button>' : ''}
@@ -165,6 +186,30 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       wire();
     }
 
+    function templateFormHtml(editing, editable) {
+      const form = editing.form, dis = editable ? '' : 'disabled';
+      const sections = form.sections.map((sec, i) => `<div class="nl-sec">
+        <div class="nl-sec-h"><b>Sekcia ${i + 1}</b>${editable && form.sections.length > 1 ? `<button type="button" class="btn ghost" data-sec-del="${i}">Odstrániť</button>` : ''}</div>
+        <label for="nl-sec-t-${i}">Nadpis sekcie</label>
+        <input id="nl-sec-t-${i}" data-sec="${i}" data-f="title" maxlength="120" value="${esc(sec.title)}" ${dis} placeholder="Napríklad Pokoj v tmavších dňoch">
+        <label for="nl-sec-x-${i}">Text (prázdny riadok = nový odsek)</label>
+        <textarea id="nl-sec-x-${i}" data-sec="${i}" data-f="text" rows="6" ${dis} placeholder="Napíšte text sekcie.">${esc(sec.text)}</textarea>
+      </div>`).join('');
+      return `<p class="muted nl-note" style="margin-top:0">Každá sekcia je v e-maile na vlastnom farebnom podklade, ako na webe.</p>
+        ${sections}
+        ${editable ? '<p><button type="button" class="btn ghost" data-sec-add>Pridať sekciu</button></p>' : ''}
+        <div class="nl-sec">
+          <div class="nl-sec-h"><b>Jedno tlačidlo s odkazom</b></div>
+          <label for="nl-cta-label">Text tlačidla</label>
+          <input id="nl-cta-label" maxlength="80" value="${esc(form.ctaLabel)}" ${dis} placeholder="Napríklad Pozrieť konzultácie">
+          <label for="nl-cta-url">Adresa odkazu (musí začínať https://)</label>
+          <input id="nl-cta-url" maxlength="500" value="${esc(form.ctaUrl)}" ${dis} placeholder="https://">
+          <label for="nl-sign">Podpis</label>
+          <input id="nl-sign" maxlength="80" value="${esc(form.signature)}" ${dis} placeholder="Lucia">
+        </div>
+        ${editable ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="html">Upraviť ako HTML (pokročilé)</button></p>' : ''}`;
+    }
+
     function campaignsHtml() {
       const rows = state.campaigns;
       return `<div class="ot-wrap"><table class="ot lv">
@@ -195,7 +240,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
         const open = () => {
           const campaign = state.campaigns.find(c => c.id === tr.dataset.id);
           if (!campaign) return;
-          state.editing = { ...campaign };
+          state.editing = nlAdopt(campaign);
           state.message = null;
           state.tab = 'campaigns';
           render();
@@ -216,6 +261,16 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       if (subject) subject.oninput = syncPreview;
       if (preheader) preheader.oninput = syncPreview;
       if (body) body.oninput = syncPreview;
+      view.querySelectorAll('[data-sec],#nl-cta-label,#nl-cta-url,#nl-sign').forEach(el => { el.oninput = syncPreview; });
+      const secAdd = view.querySelector('[data-sec-add]');
+      if (secAdd) secAdd.onclick = () => { sync(); state.editing.form.sections.push({ title: '', text: '' }); render(); };
+      view.querySelectorAll('[data-sec-del]').forEach(btn => btn.onclick = () => { sync(); state.editing.form.sections.splice(Number(btn.dataset.secDel), 1); sync(); render(); });
+      view.querySelectorAll('[data-mode]').forEach(btn => btn.onclick = () => {
+        sync();
+        if (btn.dataset.mode === 'html') state.editing.mode = 'html';
+        else { state.editing.mode = 'sablona'; state.editing.form = nlParseForm(state.editing.body_html) || { sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' }; sync(); }
+        render();
+      });
 
       view.querySelectorAll('[data-format]').forEach(button => button.onclick = () => insertFormat(button.dataset.format));
       const newButton = view.querySelector('[data-new]');
@@ -268,7 +323,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       const data = state.editing.id
         ? await api(`/admin/newsletter/campaigns/${encodeURIComponent(state.editing.id)}`, { method: 'POST', body: payload })
         : await api('/admin/newsletter/campaigns', { method: 'POST', body: payload });
-      state.editing = { ...data.campaign };
+      state.editing = nlAdopt(data.campaign, state.editing.mode);
       state.message = { text: 'Koncept je uložený. E-mail sa zatiaľ neposlal.', error: false };
       await load();
       render();
@@ -302,7 +357,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       sync();
       if (!confirm(`Odoslať kampaň ${count} prihláseným odberateľom? E-maily začnú odchádzať v najbližších minútach a už ich nebude možné zastaviť jednotlivo.`)) return;
       const data = await api(`/admin/newsletter/campaigns/${encodeURIComponent(state.editing.id)}/send`, { method: 'POST' });
-      state.editing = { ...data.campaign };
+      state.editing = nlAdopt(data.campaign, state.editing.mode);
       state.message = { text: 'Kampaň je v poradí. E-maily odchádzajú postupne podľa denného limitu.', error: false };
       await load();
       render();
@@ -312,7 +367,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       if (!state.editing.id) return;
       if (!confirm('Zrušiť odosielanie tejto kampane? Zvyšné e-maily sa už nepošlú.')) return;
       const data = await api(`/admin/newsletter/campaigns/${encodeURIComponent(state.editing.id)}/cancel`, { method: 'POST' });
-      state.editing = { ...data.campaign };
+      state.editing = nlAdopt(data.campaign, state.editing.mode);
       state.message = { text: 'Odosielanie je zrušené. Už odoslané e-maily zostávajú doručené.', error: false };
       await load();
       render();
@@ -362,39 +417,109 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
   };
 }
 
-// --- Rovnaká šablóna ako backend (policy.ts), len s ukážkovým odkazom na odhlásenie. ---
+// --- Rovnaká šablóna „Dopis“ ako backend (policy.ts), len s ukážkovým odkazom na odhlásenie. ---
+const NL_PANELS = [
+  { bg: '#e9e9f2', ink: '#2b2a3a', head: '#2f3424', link: '#73729c', dark: false },
+  { bg: '#e4e6d6', ink: '#2b2a3a', head: '#2f3424', link: '#73729c', dark: false },
+  { bg: '#2f3424', ink: '#e9eadf', head: '#f7f4ec', link: '#c9a55c', dark: true },
+  { bg: '#f3e9d0', ink: '#2b2a3a', head: '#2f3424', link: '#8a6d2e', dark: false },
+];
+const NL_ASSET = 'https://anastasia-test.l-code-dynamics.com';
+
+function ctaButtons(html, dark) {
+  const fill = dark ? '#f7f4ec' : '#2f3424';
+  const ink = dark ? '#2f3424' : '#f7f4ec';
+  return html.replace(/<p>\s*<a [^>]*href="([^"]+)"[^>]*>([^<]{1,80})<\/a>\s*<\/p>/gi, (_m, href, label) =>
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 14px"><tr><td align="center" bgcolor="${fill}" style="border-radius:999px;background:${fill}"><a data-cta="1" href="${href}" style="display:inline-block;padding:17px 38px;font-family:Figtree,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;color:${ink};text-decoration:none;border-radius:999px">${label}</a></td></tr></table>`);
+}
+
 function emailHtml(d) {
-  const cream = '#fbf8f2', card = '#fffdf8', lavender = '#8e7cc3', sage = '#5f7a5a', ink = '#2c2a23', muted = '#7a7368', line = '#ece4d6';
+  const serif = "Fraunces,Georgia,'Times New Roman',serif", sans = "Figtree,Helvetica,Arial,sans-serif";
   const preheader = String(d.preheader || '').trim();
-  const body = String(d.body_html || '');
+  const body = String(d.body_html || '') || '<h2>Nadpis</h2><p>Obsah e-mailu sa zobrazí tu.</p>';
+  const styleBlock = (html, panel) => ctaButtons(html, panel.dark)
+    .replace(/<a href=/gi, `<a style="color:${panel.link};text-decoration:underline" href=`)
+    .replace(/<h2>/gi, `<h2 style="margin:0 0 20px;font-family:${serif};font-size:32px;line-height:1.15;font-weight:300;letter-spacing:-.01em;color:${panel.head}">`)
+    .replace(/<h3>/gi, `<h3 style="margin:26px 0 10px;font-family:${serif};font-size:21px;line-height:1.25;font-weight:400;color:${panel.link}">`)
+    .replace(/<p>/gi, '<p style="margin:0 0 18px">')
+    .replace(/<ul>/gi, '<ul style="margin:0 0 18px;padding-left:22px">')
+    .replace(/<ol>/gi, '<ol style="margin:0 0 18px;padding-left:22px">')
+    .replace(/<li>/gi, '<li style="margin:0 0 8px">')
+    .replace(/<img /gi, '<img style="display:block;width:100%;max-width:520px;height:auto;border-radius:16px;margin:8px 0 22px" ')
+    .replace(/ data-cta="1"/g, '');
+  const sections = body.split(/(?=<h2>)/i).filter(part => part.trim());
+  const rows = sections.map((part, index) => {
+    const panel = NL_PANELS[index % NL_PANELS.length];
+    return `<tr><td bgcolor="${panel.bg}" style="padding:44px 48px 36px;background:${panel.bg};font-family:${sans};font-size:16px;line-height:1.8;color:${panel.ink}">${styleBlock(part, panel)}</td></tr>`;
+  }).join('');
   return `<!doctype html>
 <html lang="sk">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(d.subject || 'Nová kampaň')}</title></head>
-<body style="margin:0;padding:0;background:${cream}">
+<body style="margin:0;padding:0;background:#e9e9f2">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${cream}">
-<tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:${card};border:1px solid ${line};border-radius:14px">
-<tr><td style="padding:36px 40px 0;text-align:center">
-<div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:8px;color:${sage};text-transform:uppercase">ANASTASIA</div>
-<div style="font-family:Georgia,'Times New Roman',serif;font-size:10px;letter-spacing:4px;color:${lavender};text-transform:uppercase;padding-top:8px">Light for the future</div>
-<div style="height:1px;background:${lavender};opacity:0.35;margin:22px 0 0"></div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#e9e9f2" style="background:#e9e9f2">
+<tr><td align="center" background="${NL_ASSET}/assets/email-lines.png" style="padding:36px 16px 44px;background:#e9e9f2 url(${NL_ASSET}/assets/email-lines.png) center top repeat-y;background-size:1200px auto">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;background:#fdfbf7;border-radius:28px;overflow:hidden">
+<tr><td align="center" style="padding:44px 40px 26px;background:#f7f4ec">
+<img src="${NL_ASSET}/assets/lucia-koule.png" width="64" height="64" alt="ANASTASIA" style="display:block;width:64px;height:64px;margin:0 auto 16px;border:0">
+<div style="font-family:${serif};font-size:26px;font-weight:300;letter-spacing:9px;color:#2f3424;text-transform:uppercase">ANASTASIA</div>
+<div style="font-family:${sans};font-size:10px;letter-spacing:4px;color:#c9a55c;text-transform:uppercase;padding-top:10px">Light for the future</div>
 </td></tr>
-<tr><td style="padding:26px 40px 8px;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.75;color:${ink}">
-${body || '<p style="color:#7a7368">Obsah e-mailu sa zobrazí tu.</p>'}
-</td></tr>
-<tr><td style="padding:28px 40px 34px">
-<div style="height:1px;background:${sage};opacity:0.25;margin:0 0 20px"></div>
-<p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${muted}">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
-<p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${muted}">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
-<p style="margin:0"><a href="#" style="font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:${sage};text-decoration:underline">Odhlásiť sa z odberu</a></p>
-<p style="margin:14px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:2px;color:${sage};text-transform:uppercase">ANASTASIA · Light for the future</p>
+<tr><td height="3" bgcolor="#c9a55c" style="height:3px;background:#c9a55c;line-height:3px;font-size:3px"></td></tr>
+${rows}
+<tr><td style="padding:34px 48px 36px;background:#2f3424">
+<p style="margin:0 0 10px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
+<p style="margin:0 0 6px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
+<p style="margin:0"><a href="#" style="font-family:${sans};font-size:12px;line-height:1.7;color:#c9a55c;text-decoration:underline">Odhlásiť sa z odberu</a></p>
+<p style="margin:18px 0 0;font-family:${serif};font-size:11px;letter-spacing:3px;color:#c9a55c;text-transform:uppercase">ANASTASIA · Light for the future</p>
 </td></tr>
 </table>
 </td></tr>
 </table>
 </body>
 </html>`;
+}
+
+// --- Šablóna Dopis: sekcie (nadpis + text), jedno tlačidlo a podpis. Z formulára sa skladá HTML obsahu. ---
+function nlBuildBody(form) {
+  const paragraphs = text => String(text || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean)
+    .map(t => `<p>${escapeHtml(t).replace(/\n/g, '<br>')}</p>`).join('');
+  const parts = (form.sections || []).map(sec => {
+    const title = String(sec.title || '').trim();
+    const text = paragraphs(sec.text);
+    return (title ? `<h2>${escapeHtml(title)}</h2>` : '') + text;
+  }).filter(Boolean);
+  let html = parts.join('');
+  const label = String(form.ctaLabel || '').trim(), url = String(form.ctaUrl || '').trim();
+  if (label && /^https:\/\//i.test(url)) html += `<p><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></p>`;
+  const sign = String(form.signature || '').trim();
+  if (sign) html += `<p><em>${escapeHtml(sign)}</em></p>`;
+  return html;
+}
+
+function nlParseForm(html) {
+  const source = String(html || '').trim();
+  const blank = () => ({ sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' });
+  if (!source) return blank();
+  const doc = new DOMParser().parseFromString(`<body>${source}</body>`, 'text/html');
+  const form = { sections: [], ctaLabel: '', ctaUrl: '', signature: '' };
+  let current = null;
+  const nodes = [...doc.body.children];
+  for (let index = 0; index < nodes.length; index++) {
+    const node = nodes[index], tag = node.tagName.toLowerCase();
+    if (tag === 'h2') { current = { title: node.textContent, text: '' }; form.sections.push(current); continue; }
+    if (tag !== 'p') return null;
+    const link = node.children.length === 1 && node.firstElementChild.tagName === 'A' && node.textContent === node.firstElementChild.textContent ? node.firstElementChild : null;
+    if (link) { form.ctaLabel = link.textContent; form.ctaUrl = link.getAttribute('href') || ''; continue; }
+    const em = node.children.length === 1 && node.firstElementChild.tagName === 'EM' && node.textContent === node.firstElementChild.textContent ? node.firstElementChild : null;
+    if (em && index === nodes.length - 1) { form.signature = em.textContent; continue; }
+    if (node.children.length && [...node.children].some(c => c.tagName !== 'BR')) return null;
+    if (!current) { current = { title: '', text: '' }; form.sections.push(current); }
+    const text = [...node.childNodes].map(n => n.nodeName === 'BR' ? '\n' : n.textContent).join('');
+    current.text += (current.text ? '\n\n' : '') + text;
+  }
+  if (!form.sections.length) form.sections.push({ title: '', text: '' });
+  return form;
 }
 
 function escapeHtml(value) {

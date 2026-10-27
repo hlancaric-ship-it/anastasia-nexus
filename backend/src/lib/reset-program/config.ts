@@ -23,7 +23,9 @@ export const RESET_PROGRAM_TOTAL_WEEKS = 16
 export const RESET_PROGRAM_WORKLIST_DAYS: readonly number[] = Object.freeze([2, 3, 4, 5, 6, 7])
 
 /** Odkaz na vstupný dotazník programu (zo starého webu – externá služba Tally). */
-export const RESET_ENTRY_QUESTIONNAIRE_URL = "https://tally.so/r/440GBr"
+export const RESET_ENTRY_QUESTIONNAIRE_URL = "https://tally.so/r/44OGBr"
+/** Výstupný dotazník (Lucia, 27. 10. 2026). */
+export const RESET_EXIT_QUESTIONNAIRE_URL = "https://tally.so/r/WOqZ2e"
 
 /** Časové pásmo zákazníka: deň v Zrkadielku sa posudzuje podľa kalendárneho dňa v Bratislave. */
 export const RESET_JOURNAL_TIMEZONE = "Europe/Bratislava"

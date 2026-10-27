@@ -38,13 +38,16 @@ export function renderProgram(program) {
   const questionnaire = program?.entry_questionnaire_url
     ? `<div class="reset-questionnaire"><p>Vyplňte prosím vstupný dotazník.</p><a class="button" href="${e(program.entry_questionnaire_url)}" target="_blank" rel="noopener">Otvoriť vstupný dotazník</a></div>`
     : '';
+  const exitQuestionnaire = program?.exit_questionnaire_url
+    ? `<div class="reset-questionnaire"><p>Po absolvovaní programu vyplňte prosím výstupný dotazník.</p><a class="button" href="${e(program.exit_questionnaire_url)}" target="_blank" rel="noopener">Otvoriť výstupný dotazník</a></div>`
+    : '';
   const weekList = weeks.length ? `<ol class="reset-weeks">${weeks.map(w => {
     const hasContent = Boolean(w.title || w.intro || (w.materials || []).length || (w.days || []).some(d => (d.materials || []).length));
     const days = (w.days || []).map(d => `<li><span>${e(d.label || `${d.day}. deň`)}</span>${(d.materials || []).length ? materialList(d.materials, 'worksheet') : `<span class="reset-preparing">${PREPARING}</span>`}</li>`).join('');
     return `<li class="reset-week" data-reset-week="${e(w.week ?? '')}"><details><summary><span>Týždeň číslo ${e(w.week ?? '')}</span>${w.title ? `<em>${e(w.title)}</em>` : ''}</summary>${w.intro ? `<p class="reset-week-intro">${e(w.intro)}</p>` : ''}${hasContent ? materialList(w.materials, 'material') : `<p class="reset-preparing">${PREPARING}</p>`}${days ? `<ul class="reset-days">${days}</ul>` : ''}</details></li>`;
   }).join('')}</ol>` : `<p class="reset-preparing">${PREPARING}</p>`;
   const summary = program?.final_summary
-    ? `<section class="reset-summary"><h2>${e(program.final_summary.title || 'Záverečné zhrnutie')}</h2>${(program.final_summary.materials || []).length ? materialList(program.final_summary.materials, 'material') : `<p class="reset-preparing">${PREPARING}</p>`}</section>`
+    ? `<section class="reset-summary"><h2>${e(program.final_summary.title || 'Záverečné zhrnutie')}</h2>${(program.final_summary.materials || []).length ? materialList(program.final_summary.materials, 'material') : `<p class="reset-preparing">${PREPARING}</p>`}${exitQuestionnaire}</section>`
     : '';
   return `<div class="reset-program-head"><p class="eyebrow">RESET 40+</p><p>${e(`${total} tematických týždňov vo vašom vlastnom tempe.`)}</p></div>${questionnaire}${weekList}${summary}`;
 }

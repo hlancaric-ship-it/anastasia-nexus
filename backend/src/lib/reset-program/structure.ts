@@ -14,6 +14,7 @@
 
 import {
   RESET_ENTRY_QUESTIONNAIRE_URL,
+  RESET_EXIT_QUESTIONNAIRE_URL,
   RESET_PROGRAM_TOTAL_WEEKS,
   RESET_PROGRAM_WORKLIST_DAYS,
 } from "./config"
@@ -56,6 +57,7 @@ export type ProgramStructure = {
   total_weeks: number
   /** Odkaz na vstupný dotazník (null = ešte nedodaný). */
   entry_questionnaire_url: string | null
+  exit_questionnaire_url: string | null
   /** Záverečné zhrnutie (null = ešte nedodané). */
   final_summary: { title: string | null; materials: ProgramMaterial[] } | null
   /** Týždne 1…16. */
@@ -142,6 +144,7 @@ export function parseProgramStructure(raw: unknown, program: string): ProgramStr
         }
       : null
   const questionnaire = parseText(source.entry_questionnaire_url)
+  const exitQuestionnaire = parseText(source.exit_questionnaire_url)
   const totalWeeks = Number.isInteger(source.total_weeks) && Number(source.total_weeks) > 0 && Number(source.total_weeks) <= RESET_PROGRAM_TOTAL_WEEKS
     ? Number(source.total_weeks)
     : RESET_PROGRAM_TOTAL_WEEKS
@@ -150,6 +153,7 @@ export function parseProgramStructure(raw: unknown, program: string): ProgramStr
     program,
     total_weeks: totalWeeks,
     entry_questionnaire_url: questionnaire,
+    exit_questionnaire_url: exitQuestionnaire,
     final_summary: finalSummary,
     weeks: weeks.sort((a, b) => a.week - b.week),
   }
@@ -175,6 +179,7 @@ export function programSkeleton(program: string): ProgramStructure & { content_r
     program,
     total_weeks: RESET_PROGRAM_TOTAL_WEEKS,
     entry_questionnaire_url: RESET_ENTRY_QUESTIONNAIRE_URL,
+    exit_questionnaire_url: RESET_EXIT_QUESTIONNAIRE_URL,
     final_summary: { title: "Záverečné zhrnutie", materials: [] },
     weeks,
     content_ready: false,

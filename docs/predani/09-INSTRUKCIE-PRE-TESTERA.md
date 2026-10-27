@@ -6,7 +6,7 @@
 
 ## 1. Čo sa testuje
 
-Web a systém ANASTASIA vo Fáze 1. Testuje sa na testovacom prostredí. Ostrý web ešte nebeží.
+Web a systém ANASTASIA vo Fáze 1. Testuje sa iba na našom testovacom prostredí.
 
 | Čo | Adresa |
 |---|---|
@@ -29,10 +29,10 @@ Prístupové údaje do administrácie a testovacích zákazníckych účtov odov
 
 ## 3. Čo je zakázané
 
-- Akýkoľvek útok na doménu `anastasiaoz.eu`, jej DNS, e-mail alebo ostrý web. Ostrý web a doména sú mimo rozsahu, kým Vám nedáme písomný súhlas.
+- Testovanie čohokoľvek mimo adries z bodu 1.
 - Platby skutočnou kartou, skutočné objednávky a odosielanie e-mailov skutočným zákazníkom. Testovacie e-maily chodia iba na adresy majiteľky a nášho tímu.
 - Sociálne inžinierstvo, phishing a útoky na osoby (majiteľku, zamestnancov, zákazníkov, náš tím).
-- Útoky na služby tretích strán (Stripe, Cloudflare, Medusa Cloud, poskytovateľ e-mailov, hosting). Testuje sa náš systém, nie ich infraštruktúra.
+- Útoky na služby tretích strán (Stripe, Cloudflare, poskytovateľ e-mailov, hosting). Testuje sa náš systém, nie ich infraštruktúra.
 - Mazanie alebo ničenie dát, ktoré nepatria testerovi. Pri nájdení úniku osobných údajov dáta nesťahujte vo väčšom množstve, stačí dôkaz o prístupe (napríklad jeden záznam s čiastočne zakrytými údajmi).
 - Zneužitie nájdenej chyby nad rámec dôkazu, že existuje.
 - Zmena nastavení dopravy, platieb, cien a dostupnosti kalendára v administrácii. Overiť, že ich správca s rolou `assistant` nemôže zmeniť, je vítané. Pri účte `owner` ich nemeňte.
