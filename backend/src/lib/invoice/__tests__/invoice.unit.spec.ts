@@ -29,6 +29,15 @@ describe("faktúra", () => {
     const m = buildInvoiceModel({ ...order, items: [{ product_title: "A", quantity: 2, total: 10, tax_total: 1.87, tax_lines: [{ rate: 23 }] }, { product_title: "B", quantity: 1, total: 5, tax_total: 0.24, tax_lines: [{ rate: 5 }] }] })
     expect(m.recap.map(r => r.rate)).toEqual([23, 5])
   })
+  it("nákup na firmu doplní IČO, DIČ a IČ DPH do údajov odberateľa", () => {
+    const m = buildInvoiceModel({ ...order, billing_address: { ...order.billing_address, company: "Firma s.r.o." }, metadata: { company_ico: "12 345 678", company_dic: "2020202020", company_ic_dph: "SK2020202020" } })
+    expect(m.customer.name).toBe("Firma s.r.o.")
+    expect(m.customer.lines).toEqual(expect.arrayContaining(["IČO: 12345678", "DIČ: 2020202020", "IČ DPH: SK2020202020"]))
+  })
+  it("bez firmy sa IČO z metadát nepoužije", () => {
+    const m = buildInvoiceModel({ ...order, metadata: { company_ico: "12345678" } })
+    expect(m.customer.lines.join(" ")).not.toContain("IČO")
+  })
   it("PDF sa vyrobí a začína hlavičkou PDF", async () => {
     const pdf = await renderInvoicePdf(buildInvoiceModel(order))
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-"); expect(pdf.length).toBeGreaterThan(5000)

@@ -7,7 +7,7 @@ const FIELDS = [
   "id", "display_id", "created_at", "currency_code", "status", "email", "total",
   "items.title", "items.product_title", "items.quantity", "items.total", "items.tax_total", "items.tax_lines.rate",
   "shipping_methods.name", "shipping_methods.amount", "shipping_methods.total", "shipping_methods.tax_total", "shipping_methods.tax_lines.rate",
-  "customer.first_name", "customer.last_name",
+  "metadata", "customer.first_name", "customer.last_name",
   "billing_address.first_name", "billing_address.last_name", "billing_address.company", "billing_address.address_1", "billing_address.address_2", "billing_address.postal_code", "billing_address.city", "billing_address.country_code",
   "shipping_address.first_name", "shipping_address.last_name", "shipping_address.company", "shipping_address.address_1", "shipping_address.address_2", "shipping_address.postal_code", "shipping_address.city", "shipping_address.country_code",
   "payment_collections.captured_amount", "payment_collections.refunded_amount", "payment_collections.payments.provider_id", "payment_collections.payments.captured_at",
