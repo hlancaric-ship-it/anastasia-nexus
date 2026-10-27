@@ -1289,3 +1289,8 @@ html body #page-shell#page-shell.kc-unified .legacy-main .bk-summary button.bk-g
 #page-shell#page-shell.kc-unified .shop-checkout label.check{display:flex;align-items:center;gap:12px;margin:22px 0 18px}
 #page-shell#page-shell.kc-unified .shop-checkout fieldset[data-step="1"]>.button[data-next]{margin-top:30px}
 }
+
+/* Pokladňa: žiadna čiara nad prvou voľbou platby a doručenia. */
+@layer shopv2{
+html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,#delivery-options,.payment-options){border-top:0!important;border-bottom:0!important}
+}
