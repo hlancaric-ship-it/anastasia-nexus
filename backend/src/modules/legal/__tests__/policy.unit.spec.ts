@@ -32,4 +32,10 @@ describe("legal policy",()=>{
   expect(csvCell('=SUM(A1)')).toBe('"\'=SUM(A1)"')
   expect(csvCell('a"b\nc')).toBe('"a""b\nc"')
  })
+ it.each(['=SUM(A1)', '+cmd', '-12.00', '@SUM(A1)', '\tplain', '\rplain', '  =SUM(A1)', '\t=SUM(A1)'])("exports unsafe CSV input %j as text", value=>{
+  expect(csvCell(value)).toBe('"\'' + value + '"')
+ })
+ it.each([[null,'""'],[undefined,'""'],['plain@example.test','"plain@example.test"'],['source, "quoted"','"source, ""quoted"""'],['plain\r\nsource','"plain\r\nsource"']])("preserves ordinary CSV value %j", (value,expected)=>{
+  expect(csvCell(value)).toBe(expected)
+ })
 })
