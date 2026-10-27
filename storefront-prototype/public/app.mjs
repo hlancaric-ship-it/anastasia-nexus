@@ -261,8 +261,8 @@ function setMenu(kind){
   shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
   menuOpen=kind;root.classList.toggle('ana-menu-open',!!kind);
   if(kind)fitMenu($(`#dc-${kind}-menu`));
-  if(kind){if(!prev)previousFocus=document.activeElement;lenis?.stop();root.style.overflow='hidden';document.body.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
-  else{lenis?.start();root.style.overflow='';document.body.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
+  if(kind){if(!prev)previousFocus=document.activeElement;lenis?.stop();root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
+  else{lenis?.start();root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
 }
 document.addEventListener('click',event=>{
   const open=event.target.closest('[data-menu-open]');if(open){event.preventDefault();setMenu(menuOpen===open.dataset.menuOpen?null:open.dataset.menuOpen);return;}

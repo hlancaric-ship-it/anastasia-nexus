@@ -14,7 +14,7 @@ const SOURCES = {home: read('homepage-v2.dc.html'), about: read('o-lucii.dc.html
 export const PHONE = 'tel:+421905363778';
 const EXTERNAL = {
   Facebook: 'https://www.facebook.com/Anastasia-OZ-102480594468471/',
-  YouTube: 'https://youtube.com/channel/UCUbv5uZqcyFb7kplgF2xljw',
+  YouTube: 'https://www.youtube.com/@luciarogozanova544',
 };
 // Cílové routy podle textu odkazu (návrh má většinou href="#").
 const ROUTES = {
