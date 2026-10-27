@@ -30,7 +30,7 @@ Prístupové údaje do administrácie a testovacích zákazníckych účtov odov
 ## 3. Čo je zakázané
 
 - Testovanie čohokoľvek mimo adries z bodu 1.
-- Platby skutočnou kartou, skutočné objednávky a odosielanie e-mailov skutočným zákazníkom. Testovacie e-maily chodia iba na adresy majiteľky a nášho tímu.
+- Platby skutočnou kartou, skutočné objednávky a odosielanie e-mailov skutočným zákazníkom. Testovacie prostredie posiela e-maily iba na adresy nášho tímu. Ak potrebujete prijať e-mail (napríklad prihlasovací odkaz), napíšte nám a Vašu adresu na čas testu pridáme.
 - Sociálne inžinierstvo, phishing a útoky na osoby (majiteľku, zamestnancov, zákazníkov, náš tím).
 - Útoky na služby tretích strán (Stripe, Cloudflare, poskytovateľ e-mailov, hosting). Testuje sa náš systém, nie ich infraštruktúra.
 - Mazanie alebo ničenie dát, ktoré nepatria testerovi. Pri nájdení úniku osobných údajov dáta nesťahujte vo väčšom množstve, stačí dôkaz o prístupe (napríklad jeden záznam s čiastočne zakrytými údajmi).
@@ -68,8 +68,6 @@ Tieto riziká poznáme z interného auditu a ich riešenie je naplánované. Net
 
 | Obmedzenie | Popis |
 |---|---|
-| Súbeh pri kupóne s limitom | Pri niekoľkých súbežných dokončeniach objednávky sa môže kupón s limitom použitia uplatniť o jedenkrát viac. |
-| Odhlásenie na jednom zariadení | Odhlásenie zákazníka nezruší prihlásenie na jeho ostatných zariadeniach. |
 | Ochrana proti robotom | Formuláre chránia limity požiadaviek, CAPTCHA (Turnstile) zatiaľ nie je nasadená. Útok z mnohých IP adries limity iba spomalia. |
 | Odkaz na chránené médium | Podpísaný odkaz platí 10 minút a dá sa počas tejto doby zdieľať. Ochrana proti stiahnutiu videa sa nesľubuje. |
 | Závislosti | Niektoré knižnice majú známe zraniteľnosti (CVE). Aktualizácia je samostatná úloha. Uveďte ich v správe iba vtedy, ak ich viete v našom systéme reálne zneužiť. |
