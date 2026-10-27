@@ -16,7 +16,7 @@ import { StepResponse } from "@medusajs/framework/workflows-sdk"
 import { assertSafeOrderAllows, SafeOrderError } from "../api/store/nexus-checkout/safeorder"
 import { recordEvent } from "../lib/observability/events"
 import { repriceCart } from "../api/store/nexus-cart/route"
-import { couponLimitState } from "../lib/pricing/coupon-usage"
+import { couponLimitState, promotionIdForCode } from "../lib/pricing/coupon-usage"
 import { claimCartBooking } from "./booking-checkout"
 import type BookingModuleService from "../modules/booking/service"
 import { GIFT_VOUCHER_MODULE } from "../modules/gift-voucher"
@@ -106,10 +106,12 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
             // objednávky – idempotentně podle ID objednávky (jedna objednávka =
             // jedno použitie). Medusa `registerUsage` sa tu nepoužíva: zapisoval
             // by druhé použitie kupónu s limitem.
-            if (typeof coupon.promotion_id === "string" && coupon.promotion_id) {
-                const state = await couponLimitState(container as any, coupon.promotion_id)
-                if (state.exhausted) throw new Error("COUPON_LIMIT_EXHAUSTED")
-            }
+            // Akcia sa určí podľa kódu, nie podľa `promotion_id` z metadát (klient ich môže
+            // prepísať a podvrhnutým ID by obišiel limit). Neznámy kód = fail closed.
+            const promotionId = await promotionIdForCode(container as any, coupon.code)
+            if (!promotionId) throw new Error("COUPON_INVALID")
+            const state = await couponLimitState(container as any, promotionId)
+            if (state.exhausted) throw new Error("COUPON_LIMIT_EXHAUSTED")
         }
         if (giftVoucher?.redeem) {
             // Atomické čerpání (zámek řádku poukazu); případné selhání objednávky ho vrátí kompenzací.

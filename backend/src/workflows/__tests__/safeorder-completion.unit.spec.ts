@@ -7,9 +7,9 @@ jest.mock("@medusajs/medusa/core-flows", () => ({
   completeCartWorkflow: { hooks: { validate: jest.fn((handler, compensate) => { mockValidate = handler; mockCompensate = compensate }) } },
 }))
 jest.mock("../../api/store/nexus-cart/route", () => ({ repriceCart: jest.fn() }))
-jest.mock("../../lib/pricing/coupon-usage", () => ({ couponLimitState: jest.fn(async () => ({ limit: null, used: 0, exhausted: false })) }))
+jest.mock("../../lib/pricing/coupon-usage", () => ({ couponLimitState: jest.fn(async () => ({ limit: null, used: 0, exhausted: false })), promotionIdForCode: jest.fn(async () => "promo_1") }))
 import { repriceCart } from "../../api/store/nexus-cart/route"
-import { couponLimitState } from "../../lib/pricing/coupon-usage"
+import { couponLimitState, promotionIdForCode } from "../../lib/pricing/coupon-usage"
 import { SafeOrderError } from "../../api/store/nexus-checkout/safeorder"
 import "../hooks"
 
@@ -92,6 +92,7 @@ describe("C3 coupon usage after SafeOrder", () => {
     container.resolve.mockReturnValue({ registerUsage, revertUsage })
     registerUsage.mockResolvedValue(undefined)
     ;(couponLimitState as jest.Mock).mockResolvedValue({ limit: null, used: 0, exhausted: false })
+    ;(promotionIdForCode as jest.Mock).mockResolvedValue("promo_1")
     process.env.NEXUS_SAFEORDER_URL = "https://nexus.internal/api/nexus/safeorder"
     process.env.NEXUS_PRICING_API_KEY = "synthetic-key"
     process.env.NEXUS_TENANT_ID = "anastasia"
@@ -113,6 +114,16 @@ describe("C3 coupon usage after SafeOrder", () => {
   })
   it("neplatný kód kupónu zastaví checkout", async () => {
     await expect(validate({ ...cart(), metadata: { nexus_coupon: { code: "  " } } })).rejects.toThrow("COUPON_INVALID")
+  })
+  it("limit sa kontroluje na akcii podľa kódu, nie podľa podvrhnutého promotion_id", async () => {
+    await validate({ ...cart(), metadata: { nexus_coupon: { code: "SYNTHETIC-ONCE", promotion_id: "promo_spoofed" } } })
+    expect(promotionIdForCode).toHaveBeenCalledWith(expect.anything(), "SYNTHETIC-ONCE")
+    expect(couponLimitState).toHaveBeenCalledWith(expect.anything(), "promo_1")
+  })
+  it("kód bez akcie zastaví checkout (fail closed)", async () => {
+    ;(promotionIdForCode as jest.Mock).mockResolvedValue(null)
+    await expect(validate()).rejects.toThrow("COUPON_INVALID")
+    expect(couponLimitState).not.toHaveBeenCalled()
   })
   it("bez kupónu sa limit nekontroluje", async () => {
     await validate(snapshot())

@@ -1,5 +1,6 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { storedCouponCode } from "./coupon"
 
 /**
  * Použitie kupónu (limit použití) – jedna objednávka = jedno použitie.
@@ -41,8 +42,10 @@ export async function recordCouponUsage(
   try {
     const query = scope.resolve(ContainerRegistrationKeys.QUERY) as any
     const { data } = await query.graph({ entity: "cart", fields: ["id", "metadata"], filters: { id: input.cartId } })
-    const stored = data?.[0]?.metadata?.nexus_coupon as { promotion_id?: unknown } | undefined
-    const promotionId = typeof stored?.promotion_id === "string" ? stored.promotion_id : null
+    // Promotion sa určí podľa kódu, nikdy podľa `promotion_id` z metadát košíka: metadáta
+    // môže klient prepísať a podvrhnutým ID by sa započítalo použitie inej (alebo žiadnej) akcie.
+    const code = storedCouponCode(data?.[0]?.metadata)
+    const promotionId = code ? await promotionIdForCode(scope, code) : null
     if (!promotionId) return EMPTY
     const db = scope.resolve(ContainerRegistrationKeys.PG_CONNECTION) as any
     const result = await db.raw(
@@ -77,6 +80,20 @@ export async function recordCouponUsage(
   } catch {
     return EMPTY
   }
+}
+
+/**
+ * ID akcie (promotion) podľa kódu kupónu. Kód je v Meduse unikátny; pri nejednoznačnosti
+ * alebo chybe sa vráti null a volajúci postupuje fail closed.
+ */
+export async function promotionIdForCode(scope: MedusaContainer, code: string): Promise<string | null> {
+  const normalized = typeof code === "string" ? code.trim() : ""
+  if (!normalized) return null
+  const query = scope.resolve(ContainerRegistrationKeys.QUERY) as any
+  const { data } = await query.graph({ entity: "promotion", fields: ["id", "code"], filters: { code: normalized } })
+  const rows = Array.isArray(data) ? data : []
+  if (rows.length !== 1 || typeof rows[0]?.id !== "string") return null
+  return rows[0].id
 }
 
 /**

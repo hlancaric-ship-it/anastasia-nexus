@@ -18,6 +18,7 @@ import { nexusAuthStoreMiddlewares } from "./store/nexus-auth/middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
+import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
 import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
@@ -62,6 +63,9 @@ export default defineMiddlewares({
       method: ["POST"],
       middlewares: [requireNexusCheckoutForCouponCart],
     },
+    // `cart.metadata.nexus_coupon` zapisuje len server – natívne API ho od klienta neprijme.
+    { matcher: "/store/carts", method: ["POST"], middlewares: [rejectServerOwnedCartMetadata] },
+    { matcher: "/store/carts/:id", method: ["POST"], middlewares: [rejectServerOwnedCartMetadata] },
     ...contactStoreMiddlewares,
     // Klub: všechny /store/memberships* jen přihlášený zákazník (session/bearer).
     ...membershipStoreMiddlewares,

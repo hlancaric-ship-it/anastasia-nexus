@@ -1,10 +1,11 @@
-import { couponLimitState, recordCouponUsage } from '../coupon-usage'
+import { couponLimitState, promotionIdForCode, recordCouponUsage } from '../coupon-usage'
 
 describe('Započítanie použitia kupónu', () => {
   const scopeWith = (options: {
     promotionId?: string | null
     rows?: unknown[]
     throwOnRaw?: boolean
+    unknownCode?: boolean
     promotion?: { limit?: number | null; used?: number }
   } = {}) => {
     const raw = jest.fn(async () => {
@@ -13,11 +14,15 @@ describe('Započítanie použitia kupónu', () => {
     })
     const query = {
       graph: jest.fn(async (args: any) => {
+        if (args?.entity === 'promotion' && args?.filters?.code !== undefined) {
+          // Akcia sa hľadá podľa kódu – ID v metadátach košíka sa ignoruje.
+          return { data: options.unknownCode ? [] : [{ id: 'promo_1', code: args.filters.code }] }
+        }
         if (args?.entity === 'promotion') {
           return { data: [{ id: 'promo_1', limit: options.promotion?.limit ?? null, used: options.promotion?.used ?? 0 }] }
         }
         return {
-          data: [{ id: 'cart_1', metadata: options.promotionId ? { nexus_coupon: { promotion_id: options.promotionId } } : {} }],
+          data: [{ id: 'cart_1', metadata: options.promotionId ? { nexus_coupon: { code: 'SYNTHETIC-ONCE', promotion_id: options.promotionId } } : {} }],
         }
       }),
     }
@@ -70,6 +75,28 @@ describe('Započítanie použitia kupónu', () => {
     const { scope } = scopeWith({ promotionId: 'promo_1', throwOnRaw: true })
     const result = await recordCouponUsage(scope, { cartId: 'cart_1', orderId: 'order_1' })
     expect(result).toEqual({ promotion_id: null, counted: false, exhausted: false, duplicate: false })
+  })
+
+  it('podvrhnuté promotion_id v metadátach sa ignoruje – započíta sa akcia podľa kódu', async () => {
+    const { scope, raw } = scopeWith({ promotionId: 'promo_spoofed', rows: [{ claimed: 1, counted: 1 }] })
+    const result = await recordCouponUsage(scope, { cartId: 'cart_1', orderId: 'order_1' })
+    expect(result.promotion_id).toBe('promo_1')
+    const [, params] = raw.mock.calls[0] as any[]
+    expect(params).toEqual(['promo_1', 'order_1', 'promo_1'])
+  })
+
+  it('kód bez akcie sa nezapočíta', async () => {
+    const { scope, raw } = scopeWith({ promotionId: 'promo_1', unknownCode: true })
+    expect(await recordCouponUsage(scope, { cartId: 'cart_1', orderId: 'order_1' })).toEqual({ promotion_id: null, counted: false, exhausted: false, duplicate: false })
+    expect(raw).not.toHaveBeenCalled()
+  })
+
+  it('promotionIdForCode odmietne prázdny alebo nejednoznačný kód', async () => {
+    const graph = jest.fn(async () => ({ data: [{ id: 'promo_1' }, { id: 'promo_2' }] }))
+    const scope = { resolve: () => ({ graph }) } as any
+    expect(await promotionIdForCode(scope, '  ')).toBeNull()
+    expect(graph).not.toHaveBeenCalled()
+    expect(await promotionIdForCode(scope, 'DUP')).toBeNull()
   })
 
   it('stav limitu kupónu sa prečíta read-only', async () => {

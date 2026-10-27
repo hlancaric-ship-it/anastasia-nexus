@@ -126,6 +126,9 @@ async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
     await persistCartCoupon(scope, cartId, cartMetadata, null)
     return undefined
   }
+  // Uložené pole (promotion_id, hodnota, rozsah) mohol prepísať klient alebo ich medzitým
+  // zmenil správca – v košíku sa vždy prepíšu hodnotami zo servera.
+  if (JSON.stringify(stored) !== JSON.stringify(revalidated)) await persistCartCoupon(scope, cartId, cartMetadata, revalidated)
   return revalidated
 }
 

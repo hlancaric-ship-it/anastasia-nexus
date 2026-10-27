@@ -39,7 +39,7 @@ function makeContainer(opts: { voucher?: any; settings?: any } = {}) {
   }
   const promotions = { registerUsage: jest.fn(), revertUsage: jest.fn() }
   const booking = { releaseCheckoutClaim: jest.fn() }
-  const query = { graph: jest.fn(async ({ filters }: any) => ({ data: variants.filter((v) => filters.id.includes(v.id)) })) }
+  const query = { graph: jest.fn(async ({ entity, filters }: any) => entity === "promotion" ? { data: [{ id: "promo_syn10", code: filters.code }] } : { data: variants.filter((v) => filters.id.includes(v.id)) }) }
   const map: Record<string, unknown> = { [GIFT_VOUCHER_MODULE]: vouchers, [Modules.PROMOTION]: promotions, booking, [ContainerRegistrationKeys.QUERY]: query }
   return { resolve: jest.fn((key: string) => map[key]), vouchers, promotions, booking, query } as any
 }
