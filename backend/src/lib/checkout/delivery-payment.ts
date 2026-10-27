@@ -54,15 +54,19 @@ export const BANK_TRANSFER_ACCOUNT = {
 export const PICKUP_ADDRESS = "Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná"
 
 /** Variabilný symbol = číslo objednávky (len číslice, max. 10 znakov). */
-export function variableSymbol(displayId: unknown): string | null {
-  const value = typeof displayId === "number" ? String(displayId) : typeof displayId === "string" ? displayId.trim() : ""
-  return /^\d{1,10}$/.test(value) ? value : null
+export function variableSymbol(displayId: unknown, createdAt?: unknown): string | null {
+  const raw = typeof displayId === "number" ? String(displayId) : typeof displayId === "string" ? displayId.trim() : ""
+  if (!/^\d{1,6}$/.test(raw)) return null
+  const date = createdAt ? new Date(createdAt as string | number | Date) : new Date()
+  const year = (Number.isNaN(date.getTime()) ? new Date() : date).getUTCFullYear()
+  // 10 číslic: rok a číslo objednávky na 6 miest (zhodne s číslom faktúry FA + rok + 6 miest).
+  return `${year}${raw.padStart(6, "0")}`
 }
 
 export type BankTransferInstructions = typeof BANK_TRANSFER_ACCOUNT & { variable_symbol: string; amount: number; currency_code: string }
 
-export function bankTransferInstructions(order: { display_id?: unknown; total?: unknown; currency_code?: string | null }): BankTransferInstructions | null {
-  const vs = variableSymbol(order.display_id)
+export function bankTransferInstructions(order: { display_id?: unknown; created_at?: unknown; total?: unknown; currency_code?: string | null }): BankTransferInstructions | null {
+  const vs = variableSymbol(order.display_id, order.created_at)
   const amount = amountValue(order.total)
   if (!vs || !Number.isFinite(amount) || amount <= 0) return null
   return { ...BANK_TRANSFER_ACCOUNT, variable_symbol: vs, amount, currency_code: (order.currency_code || "eur").toLowerCase() }

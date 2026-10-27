@@ -53,8 +53,8 @@ describe("výber dopravy a platby (server)", () => {
     expect(shippingSatisfied(items, ["sp_p"])).toBe(true)
     expect(shippingSatisfied([{ requires_shipping: true, product: null }], ["sp_p"])).toBe(false)
   })
-  it("prevod: IBAN VÚB banky a VS = číslo objednávky", () => {
-    expect(bankTransferInstructions({ display_id: 1042, total: 66, currency_code: "eur" })).toMatchObject({ iban: "SK43 0200 0000 0052 3107 0754", bank: "VÚB banka", variable_symbol: "1042", amount: 66 })
+  it("prevod: IBAN VÚB banky a VS = rok a číslo objednávky na 6 miest (10 číslic)", () => {
+    expect(bankTransferInstructions({ display_id: 1042, created_at: "2026-10-27T09:00:00.000Z", total: 66, currency_code: "eur" })).toMatchObject({ iban: "SK43 0200 0000 0052 3107 0754", bank: "VÚB banka", variable_symbol: "2026001042", amount: 66 })
     expect(bankTransferInstructions({ display_id: "x1", total: 66 })).toBeNull()
     expect(variableSymbol("12345678901")).toBeNull()
   })

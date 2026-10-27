@@ -4,7 +4,7 @@ const EMAIL = "synthetic.customer@example.test"
 const NOW = new Date("2026-10-15T10:00:00Z")
 
 const baseOrder = (over: Record<string, unknown> = {}) => ({
-  id: "order_1", display_id: 1042, email: EMAIL, currency_code: "eur", status: "pending",
+  id: "order_1", display_id: 1042, created_at: "2026-10-27T09:00:00.000Z", email: EMAIL, currency_code: "eur", status: "pending",
   total: 111.5, item_total: 118, shipping_total: 3.5, discount_total: 10,
   customer: { first_name: "Jana" },
   items: [{ title: "Default", product_title: "Kurz RESET", quantity: 2, total: 118 }],
@@ -152,10 +152,10 @@ describe("potvrdenie objednávky – spôsob platby a dopravy", () => {
   it("prevod: e-mail obsahuje IBAN, variabilný symbol (= číslo objednávky) a sumu", () => {
     const data = orderPlacedData(unpaid("pp_bank_transfer_bank_transfer") as any)
     expect(data).toMatchObject({ paid: false, payment_method: "bank_transfer", shipping_method: "Kuriér (zásielka)" })
-    expect(data.bank_transfer).toMatchObject({ iban: "SK43 0200 0000 0052 3107 0754", variable_symbol: "1042", bank: "VÚB banka" })
+    expect(data.bank_transfer).toMatchObject({ iban: "SK43 0200 0000 0052 3107 0754", variable_symbol: "2026001042", bank: "VÚB banka" })
     const mail = renderTemplate("order-placed-sk", data)
     expect(mail.text).toContain("IBAN: SK43 0200 0000 0052 3107 0754")
-    expect(mail.text).toContain("Variabilný symbol: 1042")
+    expect(mail.text).toContain("Variabilný symbol: 2026001042")
     expect(mail.text).toMatch(/Suma: 66,00\s€/)
     expect(mail.text).toContain("Platba: Prevodom na účet")
   })

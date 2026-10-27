@@ -1,4 +1,4 @@
-import { BANK_TRANSFER_ACCOUNT } from "../checkout/delivery-payment"
+import { BANK_TRANSFER_ACCOUNT, variableSymbol } from "../checkout/delivery-payment"
 import { isOrderPaid } from "../../modules/entitlement/policy"
 
 /** Údaje predávajúceho (verejné údaje spoločnosti zo zmluvy a zo starého webu). */
@@ -124,7 +124,7 @@ export function buildInvoiceModel(order: InvoiceOrder, now = new Date()): Invoic
     kind: paid ? "invoice" : "proforma",
     issued,
     due: paid ? null : new Date(created.getTime() + 2 * 24 * 3600 * 1000),
-    variable_symbol: String(num(order.display_id) || ""),
+    variable_symbol: variableSymbol(num(order.display_id) || null, order.created_at) ?? "",
     currency: (text(order.currency_code) || "eur").toUpperCase(),
     paid,
     method: METHOD_LABEL[provider] ?? "",
