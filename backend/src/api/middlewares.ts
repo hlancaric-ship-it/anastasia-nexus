@@ -15,6 +15,7 @@ import { orderSelfCancelMiddlewares } from "./order-self-cancel-middlewares"
 import { authMagicLinkMiddlewares } from "./auth-magic-link-middlewares"
 import { authRevokeMiddlewares } from "./auth-revoke-middlewares"
 import { nexusAuthStoreMiddlewares } from "./store/nexus-auth/middlewares"
+import { nexusAuthAdminMiddlewares } from "./admin/nexus-auth/middlewares"
 import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
@@ -53,6 +54,7 @@ export default defineMiddlewares({
     ...protectedMediaRedactionMiddlewares,
     // Odhlásenie: iba platný Bearer token zákazníka, odhlásenie ho zneplatní na serveri.
     ...nexusAuthStoreMiddlewares,
+    ...nexusAuthAdminMiddlewares,
     ...entitlementStoreMiddlewares,
     // Zrkadielko a štruktúra programu RESET 40+: len prihlásený zákazník s aktívnym prístupom.
     ...resetJournalStoreMiddlewares,

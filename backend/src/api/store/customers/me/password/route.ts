@@ -1,6 +1,7 @@
 import type { MedusaRequest,MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys,Modules } from "@medusajs/framework/utils"
 import { normalizeEmail } from "../../../../../modules/auth-magic-link/policy"
+import { incrementSessionEpoch } from "../../../../../modules/auth-security/session-epoch"
 export const PASSWORD_MIN=8,PASSWORD_MAX=200
 export function passwordProblem(password:unknown) {
  if(typeof password!=="string") return "PASSWORD_REQUIRED"
@@ -61,6 +62,9 @@ export async function POST(req:MedusaRequest,res:MedusaResponse) {
    await auth.deleteProviderIdentities([existing.id])
   }
   if(!(existing&&existing.auth_identity_id===ctx.auth_identity_id)) await auth.createProviderIdentities({auth_identity_id:ctx.auth_identity_id,provider:"emailpass",entity_id:email,provider_metadata:{}})
+  // Bump first: if provider update then fails, logging out existing sessions is safe;
+  // changing the password without invalidating sessions is not.
+  await incrementSessionEpoch(db,"customer",ctx.actor_id)
   const result=await auth.updateProvider("emailpass",{entity_id:email,password})
   if(!result?.success) throw new Error("PASSWORD_UPDATE_FAILED")
   return res.json({has_password:true})
