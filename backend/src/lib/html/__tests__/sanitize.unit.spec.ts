@@ -56,6 +56,12 @@ describe('Čistenie rich textu pri zápise', () => {
     expect(isSafeHref('mailto:a@b.test')).toBe(true)
     expect(isSafeHref('/kontakt')).toBe(true)
     expect(isSafeHref('//a.test')).toBe(false)
+    // Prehliadač číta `\` ako `/` a vypúšťa tabulátory/konce riadkov → cudzia doména.
+    expect(isSafeHref('/\\evil.test')).toBe(false)
+    expect(isSafeHref('/\t/evil.test')).toBe(false)
+    expect(isSafeHref('/\n\\evil.test')).toBe(false)
+    expect(isSafeHref('java\tscript:alert(1)')).toBe(false)
+    expect(sanitizeRichText('<a href="/\\evil.test">x</a>')).not.toContain('evil.test')
     expect(isSafeHref('javascript:alert(1)')).toBe(false)
     expect(isSafeHref('')).toBe(false)
     expect(isSafeHref(null)).toBe(false)

@@ -91,7 +91,7 @@ export default async function nexusVoucherIssuanceHandler({ event, container }: 
     if (result.ok) {
       logger.info(`[nexus-voucher] order ${orderId}: voucher issued (alreadyIssued=${result.alreadyIssued})`)
     } else {
-      logger.warn(`[nexus-voucher] order ${orderId}: issuance failed ${response.status} — ${JSON.stringify(result)}`)
+      logger.warn(`[nexus-voucher] order ${orderId}: issuance failed ${response.status} — ${typeof result?.error === "string" ? result.error.slice(0, 80) : "unknown"}`)
     }
   } catch (error) {
     logger.error(`[nexus-voucher] order ${orderId}: issuance error — ${error instanceof Error ? error.message : String(error)}`)

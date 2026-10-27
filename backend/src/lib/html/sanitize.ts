@@ -37,10 +37,12 @@ const attributeValue = (attributes: string, name: string): string => {
 
 /** Je adresa v bezpečnej podobe? (http, https, mailto alebo cesta na vlastnú stránku) */
 export function isSafeHref(href: unknown): boolean {
-  const value = String(href ?? '').trim()
+  // Prehliadač z adresy vypúšťa tabulátory a konce riadkov a `\` číta ako `/`:
+  // `/\evil.sk` aj `/\t/evil.sk` by inak viedli na cudziu doménu (`//evil.sk`).
+  const value = String(href ?? '').replace(/[\t\n\r]/g, '').trim()
   if (!value) return false
   if (SAFE_SCHEME.test(value)) return true
-  return value.startsWith('/') && !value.startsWith('//')
+  return value.startsWith('/') && !/^\/[\/\\]/.test(value)
 }
 
 const safeRel = (attributes: string): string => {
