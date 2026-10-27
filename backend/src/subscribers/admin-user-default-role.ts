@@ -9,7 +9,7 @@ import { ADMIN_ROLE_METADATA_KEY, normalizeAdminRole } from "../lib/admin/roles"
  * každý pozvaný kolega mal plné práva. Prvý administrátor systému ostáva vlastníkom; vyššiu rolu
  * udelí vlastník v Nastaveniach → Zabezpečenie.
  */
-export default async function handler({ event, container }: SubscriberArgs<{ id: string }>) {
+export default async function adminUserDefaultRoleHandler({ event, container }: SubscriberArgs<{ id: string }>) {
   const userId = event.data?.id
   if (!userId) return
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
@@ -25,4 +25,4 @@ export default async function handler({ event, container }: SubscriberArgs<{ id:
   }
 }
 
-export const config: SubscriberConfig = { event: "user.created" }
+export const config: SubscriberConfig = { event: "user.created", context: { subscriberId: "admin-user-default-role" } }

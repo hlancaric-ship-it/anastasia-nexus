@@ -14,7 +14,7 @@ import { recordEvent } from "../lib/observability/events"
  * `recordCouponUsage` je idempotentný podľa ID objednávky – súbeh s `/store/nexus-checkout`
  * nezapočíta použitie dvakrát.
  */
-export default async function handler({ event, container }: SubscriberArgs<{ id: string }>) {
+export default async function couponUsageOrderPlacedHandler({ event, container }: SubscriberArgs<{ id: string }>) {
   const orderId = event.data?.id
   if (!orderId) return
   const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
@@ -28,4 +28,4 @@ export default async function handler({ event, container }: SubscriberArgs<{ id:
   })
 }
 
-export const config: SubscriberConfig = { event: "order.placed" }
+export const config: SubscriberConfig = { event: "order.placed", context: { subscriberId: "coupon-usage-order-placed" } }
