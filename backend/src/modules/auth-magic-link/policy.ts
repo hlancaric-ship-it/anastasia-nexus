@@ -5,12 +5,16 @@ import { z } from "zod"
 
 export const MAGIC_LINK_TTL_SECONDS = 900 // 15 min
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Lineárny regex: doménové časti neobsahujú bodku, takže nevzniká spätné prehľadávanie (ReDoS).
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@.]{1,63}(?:\.[^\s@.]{1,63})+$/
+export const EMAIL_MAX_LENGTH = 254
 
 export function normalizeEmail(email: unknown): string | null {
-  if (typeof email !== "string") return null
+  // Dĺžka sa kontroluje pred regexom aj pred trim(), aby obrovský vstup nezamestnal server.
+  if (typeof email !== "string" || email.length > 1024) return null
   const trimmed = email.trim().toLowerCase()
-  return EMAIL_RE.test(trimmed) && trimmed.length <= 254 ? trimmed : null
+  if (trimmed.length > EMAIL_MAX_LENGTH) return null
+  return EMAIL_RE.test(trimmed) ? trimmed : null
 }
 
 export function parseRegistration(body: Record<string, unknown>, email: string, env: NodeJS.ProcessEnv = process.env) {

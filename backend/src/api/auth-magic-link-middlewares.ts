@@ -13,7 +13,7 @@ export async function limitMagicLink(req: any, res: any, next: any) {
       actor = decodeURIComponent(parts[2] || "")
     } catch { return res.status(400).json({ error: "INVALID_AUTH_PATH" }) }
   }
-  if (provider === "emailpass" && actor === "customer") return limitPasswordLogin(req, res, next)
+  if (provider === "emailpass" && (actor === "customer" || actor === "user")) return limitPasswordLogin(req, res, next)
   if (provider !== "magic-link") return next()
   if (actor !== "customer") return res.status(404).json({ error: "AUTH_PROVIDER_UNAVAILABLE" })
   try {
@@ -32,15 +32,19 @@ export async function limitMagicLink(req: any, res: any, next: any) {
     return res.status(503).json({ error: "AUTH_SECURITY_UNAVAILABLE", message: "Prihlásenie je dočasne nedostupné." })
   }
 }
-/** Heslo zákazníka: brzda proti hádaniu hesiel na IP aj e-mail, e-mail sa zjednotí ako pri odkaze. */
+/**
+ * Heslo zákazníka aj administrátora: brzda proti hádaniu hesiel na IP aj e-mail, e-mail sa zjednotí ako pri odkaze.
+ * Administrátor má prísnejší limit a vlastné počítadlá (útok na admina nezablokuje zákazníkov a naopak).
+ */
 async function limitPasswordLogin(req: any, res: any, next: any) {
   const email = normalizeEmail(req.body?.email)
-  if (!email || typeof req.body?.password !== "string") return res.status(400).json({ error: "INVALID_CREDENTIALS", message: "Zadajte e-mail a heslo." })
+  if (!email || typeof req.body?.password !== "string" || req.body.password.length > 200) return res.status(400).json({ error: "INVALID_CREDENTIALS", message: "Zadajte e-mail a heslo." })
   req.body.email = email
+  const admin = req.params?.actor_type === "user" || String(req.path || "").startsWith("/auth/user/")
   try {
     const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
-    let rate = await claimAuthRate(db, `pw-ip:${req.ip || "unknown"}`, 30, 900)
-    if (rate.allowed) rate = await claimAuthRate(db, `pw-email:${email}`, 10, 900)
+    let rate = await claimAuthRate(db, `${admin ? "admin-pw-ip" : "pw-ip"}:${req.ip || "unknown"}`, admin ? 20 : 30, 900)
+    if (rate.allowed) rate = await claimAuthRate(db, `${admin ? "admin-pw-email" : "pw-email"}:${email}`, admin ? 5 : 10, 900)
     if (!rate.allowed) {
       res.setHeader("Retry-After", String(rate.retryAfter))
       return res.status(429).json({ error: "PASSWORD_RATE_LIMITED", message: "Príliš veľa pokusov. Skúste to, prosím, neskôr alebo sa prihláste odkazom." })
@@ -53,6 +57,78 @@ async function limitPasswordLogin(req: any, res: any, next: any) {
 // Heslo si zákazník nastaví až v účte. Natívna registrácia a reset cez emailpass by obišli overenie e-mailu.
 function blockCustomerPasswordSelfService(_req: any, res: any) {
   return res.status(404).json({ error: "AUTH_PROVIDER_UNAVAILABLE" })
+}
+export const ADMIN_PASSWORD_MIN = 12
+
+/**
+ * Samoobsluha hesla (`/auth/:actor/:provider/register|reset-password|update`) podľa DEKÓDOVANÝCH parametrov.
+ * Doslovný matcher `/auth/customer/emailpass/register` by obišla cesta `/auth/customer/emailpas%73/register`,
+ * ktorú Medusa po dekódovaní obslúži ako emailpass. Neznámy aktér alebo poskytovateľ sa odmietne (fail closed).
+ */
+function passwordSelfServiceGuard(action: "register" | "reset-password" | "update") {
+  return async (req: any, res: any, next: any) => {
+    const actor = req.params?.actor_type, provider = req.params?.auth_provider
+    if (provider !== "emailpass") return res.status(404).json({ error: "AUTH_PROVIDER_UNAVAILABLE" })
+    if (actor !== "user") return blockCustomerPasswordSelfService(req, res)
+    if (action === "register") return requireAdminInvite(req, res, next)
+    if (action === "reset-password") return limitAdminPasswordReset(req, res, next)
+    const password = req.body?.password
+    if (typeof password !== "string" || password.length < ADMIN_PASSWORD_MIN || password.length > 200) {
+      return res.status(400).json({ error: "PASSWORD_TOO_WEAK", message: `Heslo musí mať ${ADMIN_PASSWORD_MIN} až 200 znakov.` })
+    }
+    return next()
+  }
+}
+export const guardPasswordRegister = passwordSelfServiceGuard("register")
+export const guardPasswordReset = passwordSelfServiceGuard("reset-password")
+export const guardPasswordUpdate = passwordSelfServiceGuard("update")
+
+/**
+ * Registrácia administrátorského hesla len pre e-mail s platnou nevyužitou pozvánkou.
+ * Bez toho by si ktokoľvek vopred založil prihlasovacie údaje na e-mail budúceho správcu.
+ */
+async function requireAdminInvite(req: any, res: any, next: any) {
+  const email = normalizeEmail(req.body?.email), password = req.body?.password
+  if (!email) return res.status(400).json({ error: "INVALID_CREDENTIALS", message: "Zadajte e-mail a heslo." })
+  if (typeof password !== "string" || password.length < ADMIN_PASSWORD_MIN || password.length > 200) {
+    return res.status(400).json({ error: "PASSWORD_TOO_WEAK", message: `Heslo musí mať ${ADMIN_PASSWORD_MIN} až 200 znakov.` })
+  }
+  req.body.email = email
+  try {
+    const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
+    const rate = await claimAuthRate(db, `admin-register-ip:${req.ip || "unknown"}`, 10, 3600)
+    if (!rate.allowed) {
+      res.setHeader("Retry-After", String(rate.retryAfter))
+      return res.status(429).json({ error: "REGISTER_RATE_LIMITED", message: "Príliš veľa pokusov. Skúste to, prosím, neskôr." })
+    }
+    const users = req.scope.resolve(Modules.USER) as any
+    const invites = await users.listInvites({ email }, { select: ["id", "accepted", "expires_at"], take: 5 })
+    const now = Date.now()
+    const valid = (invites || []).some((invite: any) => !invite.accepted && invite.expires_at && new Date(invite.expires_at).getTime() > now)
+    if (!valid) return res.status(403).json({ error: "ADMIN_INVITE_REQUIRED", message: "Účet správcu sa dá založiť len z platnej pozvánky." })
+    return next()
+  } catch {
+    return res.status(503).json({ error: "AUTH_SECURITY_UNAVAILABLE", message: "Registrácia je dočasne nedostupná." })
+  }
+}
+
+/** Reset hesla správcu: brzda na IP aj adresu, aby sa nedala zahltiť schránka ani zisťovať účty. */
+async function limitAdminPasswordReset(req: any, res: any, next: any) {
+  const identifier = normalizeEmail(req.body?.identifier)
+  if (!identifier) return res.status(400).json({ error: "INVALID_IDENTIFIER", message: "Zadajte e-mail." })
+  req.body.identifier = identifier
+  try {
+    const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
+    let rate = await claimAuthRate(db, `admin-reset-ip:${req.ip || "unknown"}`, 10, 3600)
+    if (rate.allowed) rate = await claimAuthRate(db, `admin-reset-email:${identifier}`, 3, 3600)
+    if (!rate.allowed) {
+      res.setHeader("Retry-After", String(rate.retryAfter))
+      return res.status(429).json({ error: "RESET_RATE_LIMITED", message: "Príliš veľa pokusov. Skúste to, prosím, neskôr." })
+    }
+    return next()
+  } catch {
+    return res.status(503).json({ error: "AUTH_SECURITY_UNAVAILABLE", message: "Obnova hesla je dočasne nedostupná." })
+  }
 }
 /**
  * Zákazník ostane prihlásený aj po zatvorení prehliadača: jeho token platí 30 dní, admin si nechá kratšiu platnosť.
@@ -76,41 +152,13 @@ export function extendCustomerToken(req: any, res: any, next: any) {
   }
   return next()
 }
-/**
- * Přihlášení e-mailem a heslem je v Medusa sdílené pro zákazníky i administrátory podle e-mailu.
- * Když přihlašovací údaje daného e-mailu vede identita bez vazby na administrátora (třeba po nastavení
- * zákaznického hesla), přihlášení by vrátilo token bez administrátora a administrace by odpověděla 401.
- * Před přihlášením proto identitu, která drží heslo tohoto e-mailu, propojíme s administrátorem se stejným e-mailem.
- * Samotné heslo se tím nemění ani neobchází: bez správného hesla se přihlášení stejně nepodaří.
- */
-export async function healSharedAdminLogin(req: any, _res: any, next: any) {
-  try {
-    const email = normalizeEmail(req?.body?.email)
-    if (email) {
-      const users = req.scope.resolve(Modules.USER) as any
-      const [admin] = await users.listUsers({ email }, { select: ["id"], take: 1 })
-      if (admin) {
-        const auth = req.scope.resolve(Modules.AUTH) as any
-        const rows = await auth.listProviderIdentities({ entity_id: email, provider: "emailpass" }, { select: ["auth_identity_id"] })
-        for (const row of rows) {
-          const [identity] = await auth.listAuthIdentities({ id: row.auth_identity_id }, { select: ["id", "app_metadata"] })
-          const meta = identity?.app_metadata || {}
-          if (identity && !meta.user_id) await auth.updateAuthIdentities([{ id: identity.id, app_metadata: { ...meta, user_id: admin.id } }])
-        }
-      }
-    }
-  } catch {
-    // Oprava je pomocná. Přihlášení proběhne dál běžným způsobem.
-  }
-  return next()
-}
+const SELF_SERVICE_METHODS: MiddlewareRoute["method"] = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 export const authMagicLinkMiddlewares: MiddlewareRoute[] = [
-  { matcher: "/auth/user/emailpass", method: ["POST"], middlewares: [healSharedAdminLogin] },
   { matcher: "/auth/:actor_type/:auth_provider", method: ["POST", "GET"], middlewares: [limitMagicLink], bodyParser: { sizeLimit: "4kb" } },
   { matcher: "/auth/customer/:auth_provider", method: ["POST"], middlewares: [extendCustomerToken] },
   { matcher: "/auth/token/refresh", method: ["POST"], middlewares: [extendCustomerToken] },
-  { matcher: "/auth/customer/emailpass/register", middlewares: [blockCustomerPasswordSelfService] },
-  { matcher: "/auth/customer/emailpass/reset-password", middlewares: [blockCustomerPasswordSelfService] },
-  { matcher: "/auth/customer/emailpass/update", middlewares: [blockCustomerPasswordSelfService] },
+  { matcher: "/auth/:actor_type/:auth_provider/register", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordRegister], bodyParser: { sizeLimit: "4kb" } },
+  { matcher: "/auth/:actor_type/:auth_provider/reset-password", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordReset], bodyParser: { sizeLimit: "4kb" } },
+  { matcher: "/auth/:actor_type/:auth_provider/update", method: SELF_SERVICE_METHODS, middlewares: [guardPasswordUpdate], bodyParser: { sizeLimit: "4kb" } },
 ]

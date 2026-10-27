@@ -43,3 +43,24 @@ describe("auth-magic-link policy", () => {
     expect(isValidMagicLinkAttempt(state, "a@b.sk", "")).toBe(false)
   })
 })
+
+describe("normalizeEmail – odolnosť proti ReDoS", () => {
+  it("odmietne obrovský vstup rýchlo (bez spätného prehľadávania)", () => {
+    const { normalizeEmail } = require("../policy")
+    const started = Date.now()
+    expect(normalizeEmail("a@" + "a".repeat(100_000))).toBeNull()
+    // Starý regex /^[^\s@]+@[^\s@]+\.[^\s@]+$/ na tomto vstupe bežal kvadraticky (20 k znakov ≈ 0,5 s).
+    expect(normalizeEmail("a@" + ".".repeat(1000) + " ")).toBeNull()
+    expect(normalizeEmail("a@" + "a.".repeat(400) + "@")).toBeNull()
+    expect(normalizeEmail("a@b" + ".a".repeat(120) + "x".repeat(3000))).toBeNull()
+    expect(Date.now() - started).toBeLessThan(200)
+  })
+
+  it("prijme bežné adresy a odmietne zlé tvary", () => {
+    const { normalizeEmail } = require("../policy")
+    expect(normalizeEmail(" Jana.Novakova+eshop@Mail.Example.sk ")).toBe("jana.novakova+eshop@mail.example.sk")
+    for (const bad of ["a@b", "a@.b.sk", "a@b..sk", "a@b.sk.", "@b.sk", "a b@c.sk", "a@b@c.sk", "x".repeat(65) + "@b.sk"]) {
+      expect(normalizeEmail(bad)).toBeNull()
+    }
+  })
+})

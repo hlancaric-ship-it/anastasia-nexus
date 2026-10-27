@@ -42,26 +42,25 @@ export async function POST(req:MedusaRequest,res:MedusaResponse) {
   const customer=await db("customer").where({id:ctx.actor_id}).whereNull("deleted_at").first("email")
   const email=normalizeEmail(customer?.email)
   if(!email) return res.status(409).json({error:"CUSTOMER_EMAIL_MISSING",message:"Účet nemá e-mail."})
-  const owned=await auth.listProviderIdentities({auth_identity_id:ctx.auth_identity_id,provider:"emailpass"},{select:["id","entity_id"]})
-  const stale=owned.filter((row:any)=>row.entity_id!==email).map((row:any)=>row.id)
-  if(stale.length) await auth.deleteProviderIdentities(stale)
+  const owned=await auth.listProviderIdentities({auth_identity_id:ctx.auth_identity_id},{select:["id","entity_id","provider"]})
+  // Heslo smie nastaviť len identita, ktorá tento e-mail overila (odkaz e-mailom alebo vlastné heslo).
+  // Inak by zákazník s podvrhnutým e-mailom v účte nastavil heslo k cudziemu e-mailu.
+  if(!owned.some((row:any)=>row.entity_id===email)) return res.status(409).json({error:"PASSWORD_EMAIL_NOT_VERIFIED",message:"Prihláste sa, prosím, odkazom z e-mailu a skúste to znova."})
+  // Heslo administrátora sa zo zákazníckeho účtu nikdy nemení: obišlo by to overenie pôvodného hesla aj 2FA.
   const users=req.scope.resolve(Modules.USER) as any
   const [adminUser]=await users.listUsers({email},{select:["id"],take:1})
+  if(adminUser) return res.status(409).json({error:"ADMIN_EMAIL_USE_ADMIN_FLOW",message:"Heslo k tomuto e-mailu sa mení v administrácii."})
+  const stale=owned.filter((row:any)=>row.provider==="emailpass"&&row.entity_id!==email).map((row:any)=>row.id)
+  if(stale.length) await auth.deleteProviderIdentities(stale)
   const [existing]=await auth.listProviderIdentities({entity_id:email,provider:"emailpass"},{select:["id","auth_identity_id"]})
-  // Přihlášení e-mailem a heslem je sdílené pro zákazníky i administrátory podle e-mailu.
-  // Heslo administrátora se proto nikdy nemaže: stejné přihlašovací údaje platí pro obě role.
-  let holder=ctx.auth_identity_id as string
   if(existing&&existing.auth_identity_id!==ctx.auth_identity_id) {
    const [other]=await auth.listAuthIdentities({id:existing.auth_identity_id},{select:["id","app_metadata"]})
    const meta=other?.app_metadata||{}
-   if(meta.customer_id&&meta.customer_id!==ctx.actor_id) return res.status(409).json({error:"PASSWORD_IDENTITY_CONFLICT",message:"Heslo sa nedá nastaviť. Kontaktujte, prosím, podporu."})
-   if(adminUser&&meta.user_id===adminUser.id) holder=existing.auth_identity_id
-   else await auth.deleteProviderIdentities([existing.id])
+   // Prihlasovacie údaje administrátora alebo iného zákazníka sa neprepíšu ani nezmažú.
+   if(meta.user_id||(meta.customer_id&&meta.customer_id!==ctx.actor_id)) return res.status(409).json({error:"PASSWORD_IDENTITY_CONFLICT",message:"Heslo sa nedá nastaviť. Kontaktujte, prosím, podporu."})
+   await auth.deleteProviderIdentities([existing.id])
   }
-  if(!(existing&&existing.auth_identity_id===holder)) await auth.createProviderIdentities({auth_identity_id:holder,provider:"emailpass",entity_id:email,provider_metadata:{}})
-  const [holderIdentity]=await auth.listAuthIdentities({id:holder},{select:["id","app_metadata"]})
-  const meta={...(holderIdentity?.app_metadata||{}),customer_id:ctx.actor_id,...(adminUser?{user_id:adminUser.id}:{})}
-  if(JSON.stringify(meta)!==JSON.stringify(holderIdentity?.app_metadata||{})) await auth.updateAuthIdentities([{id:holder,app_metadata:meta}])
+  if(!(existing&&existing.auth_identity_id===ctx.auth_identity_id)) await auth.createProviderIdentities({auth_identity_id:ctx.auth_identity_id,provider:"emailpass",entity_id:email,provider_metadata:{}})
   const result=await auth.updateProvider("emailpass",{entity_id:email,password})
   if(!result?.success) throw new Error("PASSWORD_UPDATE_FAILED")
   return res.json({has_password:true})

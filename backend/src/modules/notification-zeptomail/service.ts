@@ -24,7 +24,8 @@ type Fetch = typeof fetch
 
 const DEFAULT_API_URL = "https://cpaas.zoho.eu/v1.1/email"
 const DEFAULT_TIMEOUT_MS = 15_000
-const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]+$/
+// Lineárny regex s dĺžkovým stropom (bez ReDoS): doménové časti neobsahujú bodku.
+const EMAIL_RE = /^(?=.{3,254}$)[^\s@<>()",;]{1,64}@[^\s@<>()",;.]{1,63}(?:\.[^\s@<>()",;.]{1,63})+$/
 
 const isEmail = (value: unknown): value is string => typeof value === "string" && EMAIL_RE.test(value.trim())
 const DOMAIN_RE = /^@[^\s@<>()",;]+\.[^\s@<>()",;]+$/

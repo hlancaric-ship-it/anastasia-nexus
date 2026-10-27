@@ -19,6 +19,7 @@ import { requestIdMiddleware } from "../lib/observability/request-id"
 import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
 import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
+import { customerCreateMiddlewares } from "./store/customers/create-guard"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
 import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
@@ -40,6 +41,8 @@ export default defineMiddlewares({
     // Odhlásený zákazník nesmie používať svoj JWT (Medusa tokeny sú bezstavové).
     ...authRevokeMiddlewares,
     ...authMagicLinkMiddlewares,
+    // Zákazník sa zakladá len na e-mail, ktorý jeho identita overila (inak prevzatie účtu správcu).
+    ...customerCreateMiddlewares,
     // Odhlásenie: iba platný Bearer token zákazníka, odhlásenie ho zneplatní na serveri.
     ...nexusAuthStoreMiddlewares,
     ...entitlementStoreMiddlewares,

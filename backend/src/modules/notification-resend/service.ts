@@ -10,7 +10,8 @@ export type ResendOptions = Omit<ZeptoMailOptions, "apiUrl"> & {
 }
 
 const DEFAULT_API_URL = "https://api.resend.com/emails"
-const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]+$/
+// Lineárny regex s dĺžkovým stropom (bez ReDoS): doménové časti neobsahujú bodku.
+const EMAIL_RE = /^(?=.{3,254}$)[^\s@<>()",;]{1,64}@[^\s@<>()",;.]{1,63}(?:\.[^\s@<>()",;.]{1,63})+$/
 const DOMAIN_RE = /^@[^\s@<>()",;]+\.[^\s@<>()",;]+$/
 
 type ZeptoPayload = ReturnType<ZeptoMailNotificationService["buildPayload"]>
