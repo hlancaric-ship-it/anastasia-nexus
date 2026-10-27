@@ -2034,7 +2034,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "6055189e0966ee67cce67251df90c6f304809ca5838ab18fd3e8eb106043acbd"
+      "sha256": "084097010f20eb3d8f9ae35e2e04192eb783d80e12aa2e95602446f2191dd981"
     },
     {
       "path": "/store/nexus-checkout/options",
@@ -4819,6 +4819,7 @@
       "backend/src/modules/chat/models/chat-message.ts",
       "backend/src/modules/chat/models/chat-notification-state.ts",
       "backend/src/modules/coupon-link/models/coupon-link-record.ts",
+      "backend/src/modules/coupon-link/models/coupon-usage-reservation.ts",
       "backend/src/modules/customer-privacy/models/customer-erasure.ts",
       "backend/src/modules/customer-privacy/models/customer-note.ts",
       "backend/src/modules/email-template/models/email-template-override.ts",

@@ -10,7 +10,6 @@ import { assertCartAccess, customerActor } from "../../../lib/checkout/cart-acce
 import { assertCartConsent, loadConsentCart } from "../../../lib/legal/checkout"
 import { LegalError } from "../../../modules/legal/policy"
 import { compensateUnfinishedCheckout, stripeIntentsOfCart } from "../../../lib/checkout/payment-compensation"
-import { recordCouponUsage } from "../../../lib/pricing/coupon-usage"
 import { bankTransferInstructions, bankTransferQr, loadCartShape, paymentMethodByProvider, PICKUP_ADDRESS } from "../../../lib/checkout/delivery-payment"
 
 /** Objednávka nevznikla: ak už bola platba kartou stiahnutá/autorizovaná, vráti ju (nikdy nevyhodí). */
@@ -69,16 +68,6 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     // Len informácia pre zákazníka – chyba tu nesmie zmeniť výsledok už vytvorenej objednávky.
     const pickup = await loadCartShape(req.scope, { profileIds: [], shippingOptionIds: (order.shipping_methods || []).map((m: any) => m?.shipping_option_id).filter(Boolean) })
       .then((shape) => shape.methodTypes.includes("pickup")).catch(() => false)
-    // Použitie kupónu sa započíta až po vytvorení objednávky (atomicky, s kontrolou limitu
-    // a idempotentne podľa objednávky – opakovaný checkout kupón nezapočíta druhý raz).
-    // Chyba tu nesmie zrušiť hotovú objednávku.
-    const couponUsage = await recordCouponUsage(req.scope, { cartId, orderId: order.id })
-    if (couponUsage.promotion_id) {
-      const couponEvent = couponUsage.duplicate ? "duplicate" : couponUsage.counted ? "used" : "limit_exhausted"
-      await recordEvent(req.scope, couponUsage.counted ? "info" : "warn", "coupon", couponEvent, {
-        cart_id: cartId, order_id: order.id, promotion_id: couponUsage.promotion_id,
-      })
-    }
     await recordEvent(req.scope, "info", "checkout", "completed", { cart_id: cartId, order_id: order.id, paid: isPaid, currency_code: order.currency_code, payment_method: method })
     const transfer = method === "bank_transfer" && !isPaid ? bankTransferInstructions(order) : null
     return res.status(200).json({
@@ -115,6 +104,10 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (voucherError) {
       await recordEvent(req.scope, "warn", "gift_voucher", "checkout_rejected", { cart_id: cartId, error_code: voucherError.body.error })
       return fail(voucherError.status, voucherError.body)
+    }
+    if (["COUPON_LIMIT_EXHAUSTED", "COUPON_USAGE_RESERVATION_CONFLICT", "COUPON_USAGE_RESERVATION_INVALID", "COUPON_USAGE_RESERVATION_UNAVAILABLE"].includes(workflowMessage)) {
+      await recordEvent(req.scope, "warn", "coupon", "reservation_rejected", { cart_id: cartId, error_code: workflowMessage, http_status: 409 })
+      return fail(409, { ok: false, error: workflowMessage })
     }
     const message = error instanceof Error ? error.message : workflowMessage
     // do logu jen kód chyby, nikdy libovolná zpráva nebo payload

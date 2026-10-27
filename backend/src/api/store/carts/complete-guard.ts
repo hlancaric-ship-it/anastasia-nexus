@@ -3,10 +3,10 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { storedCouponCode } from "../../../lib/pricing/coupon"
 
 /**
- * Natívne dokončenie košíka (`POST /store/carts/:id/complete`) nezapisuje použitie kupónu –
- * použitie sa zapisuje až PO vytvorení objednávky v `/store/nexus-checkout`
- * (`recordCouponUsage`, jeden atomický CTE). Bez zákazu by sa jednorazový kupón dal použiť
- * cez natívnu trasu donekonečno: počítadlo `promotion.used` by zostalo na nule.
+ * Natívne dokončenie košíka (`POST /store/carts/:id/complete`) neprochádza NEXUS repricingom.
+ * Košík s kupónom dokončuje iba `/store/nexus-checkout`, ktorý pred spoločným
+ * `completeCartWorkflow` hookom cenu znovu overí a atomicky rezervuje použitie kupónu.
+ * Bez obmedzenia by sa mohol dokončiť košík so zastaralou cenou.
  *
  * Preto sa košík s kupónom dokončí len cez `/store/nexus-checkout` → 409 USE_NEXUS_CHECKOUT.
  * Kupón sa v obchode ukladá do `cart.metadata.nexus_coupon` (Medusa promotion sa na košík
@@ -14,7 +14,7 @@ import { storedCouponCode } from "../../../lib/pricing/coupon"
  * košíku aj uložený kupón v metadátach.
  *
  * Interný checkout (`completeCartWorkflow`) sa z `/store/nexus-checkout` volá priamo a touto
- * trasou neprechádza – `/store/nexus-checkout` zapisuje použitie kupónu sám.
+ * trasou neprechádza; použitie rezervuje jeho validačný hook.
  */
 export async function requireNexusCheckoutForCouponCart(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
   try {
