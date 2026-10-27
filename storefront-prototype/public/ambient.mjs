@@ -6,11 +6,13 @@
 // je stále aktuální; jinak nic nezapne a skončí. Nahrazený fade svou Promise vždy dokončí, aby nic nevisí.
 export function createAmbient({
   createAudio, raf, caf, now, random = Math.random, storage = null,
-  parts = 10, xfade = 4, volume = 0.6, key = 'ana-ambient',
+  parts = 10, xfade = 4, volume = 0.6, key = 'ana-ambient', bindVolume = null,
   src = i => `/media/ambient/${String(i + 1).padStart(2, '0')}.mp3`,
   onChange = () => {},
 }) {
   const decks = [0, 1].map(() => Object.assign(createAudio(), {preload: 'none', volume: 0}));
+  // Prohlížeč, který hlasitost <audio> ignoruje (iPhone), ji dostane přes bindVolume (Web Audio zesílení) a pak funguje i prolnutí.
+  if (typeof bindVolume === 'function') for (const deck of decks) { try { bindVolume(deck); } catch {} }
   const fades = new Map();
   // iPhone/iPad hlasitost <audio> ignorují (volume je vždy 1). Prolnutí by pak pustilo dvě stejná místa skladby naplno
   // přes sebe a zvuk by drnčel – bez ovladatelné hlasitosti se na další část přepne hned.

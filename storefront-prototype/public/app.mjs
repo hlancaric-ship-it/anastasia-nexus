@@ -376,7 +376,19 @@ blurIdle(()=>{try{
 // zvuk nepustí, proto se rozjede při první interakci se stránkou. Ovládá se tlačítky v boční liště (na mobilu pod hero).
 const AMB_OFF='ana-ambient-off';
 let ambOff=false;try{ambOff=localStorage.getItem(AMB_OFF)==='1';}catch{}
-const amb=createAmbient({createAudio:()=>new Audio(),raf:f=>requestAnimationFrame(f),caf:id=>cancelAnimationFrame(id),now:()=>performance.now(),storage,onChange:()=>soundLabel()});
+// iPhone ignoruje hlasitost prvku <audio> (vždy 100 %, proto zvuk přehlušoval). Web Audio zesílení ji vrátí.
+const bindIosVolume=el=>{try{
+  const keep=el.volume;el.volume=0.5;const works=Math.abs(el.volume-0.5)<0.01;el.volume=keep;
+  if(works)return;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  const ctx=bindIosVolume.ctx||(bindIosVolume.ctx=new AC());
+  const gain=ctx.createGain();gain.gain.value=0;
+  ctx.createMediaElementSource(el).connect(gain).connect(ctx.destination);
+  let v=0;
+  Object.defineProperty(el,'volume',{configurable:true,get:()=>v,set:x=>{v=Math.min(1,Math.max(0,Number(x)||0));gain.gain.value=v;}});
+  const play=el.play.bind(el);el.play=()=>{if(ctx.state==='suspended')ctx.resume().catch(()=>{});return play();};
+}catch{}};
+const amb=createAmbient({bindVolume:bindIosVolume,createAudio:()=>new Audio(),raf:f=>requestAnimationFrame(f),caf:id=>cancelAnimationFrame(id),now:()=>performance.now(),storage,onChange:()=>soundLabel()});
 const videoLabel=()=>{if(!playBtn)return;const paused=heroVideo?heroVideo.paused:amb.paused,label=paused?(heroVideo?'Prehrať video':'Spustiť zvuk'):(heroVideo?'Pozastaviť video':'Pozastaviť zvuk');playBtn.setAttribute('aria-pressed',String(paused));playBtn.setAttribute('aria-label',label);playBtn.title=label;setLabel(playBtn,label);};
 const nextBtn=$('[data-sound-next]');
 const soundLabel=()=>{if(nextBtn)nextBtn.hidden=amb.paused;const on=!amb.paused;document.dispatchEvent(new CustomEvent('ana:sound',{detail:{on}}));if(!soundBtn)return;const label=on?'Vypnúť zvuk':'Zapnúť zvuk';setLabel(soundBtn,on?'Zvuk zapnutý':'Zvuk vypnutý');soundBtn.setAttribute('aria-pressed',String(on));soundBtn.setAttribute('aria-label',label);soundBtn.title=label;if(!heroVideo)videoLabel();};

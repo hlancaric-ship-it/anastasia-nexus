@@ -174,3 +174,21 @@ test('bez ovladatelné hlasitosti (iPhone) se části nepřekrývají', async ()
   const next = amb.next(); await run(); await next;
   assert.equal(audios.filter(a => !a.paused).length, 1);
 });
+
+// iPhone ignoruje hlasitost <audio>. Zesílení přes bindVolume ji vrátí, takže prolnutí funguje a zvuk nehraje naplno.
+test('bindVolume vrátí ovladatelnou hlasitost prohlížeči, který ji ignoruje', async () => {
+  const gains = [];
+  const bindVolume = el => {
+    let v = 0;
+    const gain = {value: 0};
+    gains.push(gain);
+    Object.defineProperty(el, 'volume', {configurable: true, get: () => v, set: x => { v = x; gain.value = x; }});
+  };
+  const {amb, audios, advance} = setup({bindVolume});
+  // FakeAudio nahrazuje vlastnost volume, proto se hlasitost řídí zesílením, ne prvkem.
+  audios.forEach(a => { a.autoLoad = true; a.autoPlay = true; });
+  amb.play();
+  await advance(1200);
+  assert.ok(gains.some(g => g.value > 0.3), 'zesílení dosáhlo cílové hlasitosti (ne naplno)');
+  assert.ok(gains.every(g => g.value <= 0.6 + 1e-9), 'hlasitost nikdy nepřekročí 0,6');
+});
