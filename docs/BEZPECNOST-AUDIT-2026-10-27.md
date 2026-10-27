@@ -118,6 +118,7 @@ Ověřeno: `npx tsc --noEmit` (backend) prošel. `npm run test:unit` (backend) p
 | Stored XSS v adminu a storefrontu (objednávky, chat, popisy) | Vše jde přes `esc` / `textContent`, CSP bez `unsafe-inline` pro skripty | – | – | OK |
 | E-mailové šablony | Proměnné se escapují, náhledy běží v sandboxu | – | – | OK |
 | CSRF | Bearer tokeny bez cookies | – | – | OK |
+| Podvržené IČO, DIČ a IČ DPH na faktuře (metadata košíku z prohlížeče) | Server hodnoty neověřoval, na daňový doklad šel libovolný text. | STŘEDNÍ | Guard na `POST /store/carts(/:id)`: jen řetězec v SK/CZ formátu, název firmy nejvýše 120 znaků, jinak 400 `INVALID_COMPANY_ID`. Faktura tiskne jen platné hodnoty. (`a8ca898`) | OPRAVENO – NEOVĚŘENO E2E: `metadata-guard`, `invoice` |
 | CORS media worker | Přesná shoda origin, bez credentials | – | – | OK |
 | SSRF | Feedy berou `Host` jen při chybějícím `BACKEND_PUBLIC_URL` (jen admin) | NÍZKÉ | Nastavit `BACKEND_PUBLIC_URL` v prostředí. | RUČNĚ (C7) |
 | `frame-ancestors` storefrontu odvozený z API originu | Odvozený | NÍZKÉ | Nastavit `ANASTASIA_ADMIN_ORIGIN` v buildu. | RUČNĚ (C7) |
@@ -153,6 +154,12 @@ Testy:
 - storefront: `node --test test/*.test.mjs` po lokálním `node build.mjs` bez env prošel na 172/174. Selhaly jen 2 testy `intro-chrome.test.mjs`, které potřebují běžící server na `127.0.0.1:4173` (Playwright).
 - admin: `csv-export`, `qr-otp` a `media-upload-accept` prošly. Neběžel `browser-security.mjs`, protože potřebuje testovací heslo admina.
 - media worker: vitest 11/11.
+
+## 9a. Provozní chyba nalezená po auditu
+
+| Problém | Dopad | Oprava | Ověřeno |
+|---|---|---|---|
+| Tři subscribery měly default funkci `handler` (dva přidal tento audit). Medusa bere název funkce jako ID subscriberu. | Server po nasazení nenaběhl („Subscriber with id handler already exists“). Nasazení na Medusa Cloud od `5e47dad` selhávala a na testu běžela starší verze. | Jedinečné názvy funkcí a explicitní `subscriberId`. Test `subscriber-ids` odmítne duplicitní nebo generické ID. (`1e8a697`) | Unit test. Úspěšné nasazení zatím neověřeno, čeká na souhlas s nasazením. |
 
 ## 10. Zbytková rizika (shrnutí)
 
