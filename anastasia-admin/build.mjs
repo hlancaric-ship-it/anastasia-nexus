@@ -21,7 +21,7 @@ const web = process.env.ANASTASIA_WEB_ORIGIN || api.replace('-api.', '.');
 
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-for (const f of ['app.mjs', 'guide.mjs', 'library-editor.mjs', 'variants-editor.mjs', 'qr.mjs', 'qr-encode.mjs', 'print.mjs', 'voucher.mjs', 'content.mjs', 'media-rules.mjs', 'security.mjs', 'newsletter.mjs', 'styles.css', 'reference.css', 'logo-mark.png'])await copyFile(join(root, f), join(out, f));
+for (const f of ['app.mjs', 'guide.mjs', 'library-editor.mjs', 'variants-editor.mjs', 'qr.mjs', 'qr-encode.mjs', 'print.mjs', 'voucher.mjs', 'content.mjs', 'media-rules.mjs', 'security.mjs', 'newsletter.mjs', 'csv.mjs', 'styles.css', 'reference.css', 'logo-mark.png'])await copyFile(join(root, f), join(out, f));
 await cp(join(root, 'assets'), join(out, 'assets'), { recursive: true });
 const html = await readFile(join(root, 'index.html'), 'utf8');
 if (!html.includes('<meta name="robots"')) throw new Error('index.html: chýba meta robots');
@@ -32,7 +32,9 @@ await writeFile(join(out, '_headers'), `/*
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
-  Strict-Transport-Security: max-age=31536000
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()
+  Cross-Origin-Opener-Policy: same-origin
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: ${api}${media ? ' ' + media : ''}; connect-src 'self' ${api}; frame-src ${web}; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
 `);
 await writeFile(join(out, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
