@@ -52,6 +52,8 @@ async function fixture() {
   app.get("/admin/users/me", authenticate("user", ["session", "bearer"]), (_req: any, res: any) => res.json({ ok: true }))
   app.get("/store/customers/me", authenticate("customer", ["session", "bearer"]), (_req: any, res: any) => res.json({ ok: true }))
   app.get("/store/catalog", (_req: any, res: any) => res.json({ ok: true }))
+  app.post("/store/customers", authenticate("customer", ["bearer"], { allowUnregistered: true }), (_req: any, res: any) => res.json({ ok: true }))
+  app.post("/admin/invites/accept", authenticate("user", ["bearer"], { allowUnregistered: true }), (_req: any, res: any) => res.json({ ok: true }))
   app.post("/admin/nexus-auth/logout-all", adminLogoutAll)
   app.post("/store/nexus-auth/logout-all", customerLogoutAll)
   const server = createServer(app)
@@ -136,5 +138,13 @@ describe("epoch invalidation through mounted Express middleware and native Medus
     const f = await fixture(), cookie = await f.cookieFor(f.token("user", "user_c7_synthetic"))
     const response = await f.send("/store/customers/me", { cookie, bearer: f.token("customer", "cus_c7_synthetic") })
     expect(response.status).toBe(200)
+  })
+  it("lets an unregistered identity create its customer or accept an admin invite", async () => {
+    const f = await fixture()
+    const identity = (actor: Actor) => jwt.sign({ actor_type: actor, actor_id: "", auth_identity_id: "auth_c7_new", jti: `c7_new_${actor}` }, secret, { expiresIn: "1h" })
+    expect((await f.send("/store/customers", { method: "POST", bearer: identity("customer") })).status).toBe(200)
+    expect((await f.send("/admin/invites/accept", { method: "POST", bearer: identity("user") })).status).toBe(200)
+    // A customer identity must not pass the admin namespace and vice versa.
+    expect((await f.send("/admin/invites/accept", { method: "POST", bearer: identity("customer") })).status).toBe(401)
   })
 })

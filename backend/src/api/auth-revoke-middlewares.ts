@@ -79,6 +79,10 @@ function sessionEpochMiddleware(expected?: SessionActorType, includeSession = tr
     const actorType = payload.actor_type
     const actorId = payload.actor_id
     const claim = payload.session_epoch
+    // Unregistered identity (magic-link before the customer exists, admin invite accept):
+    // no actor yet, so no account epoch to enforce. Routes only accept it with allowUnregistered.
+    if (actorId === "" && typeof payload.auth_identity_id === "string" && payload.auth_identity_id
+      && ["customer", "user"].includes(actorType) && (!expected || actorType === expected)) return next()
     if (!["customer", "user"].includes(actorType) || (expected && actorType !== expected) || typeof actorId !== "string" || !actorId || !Number.isSafeInteger(claim) || claim < 0) {
       return res.status(401).json({ error: "SESSION_REVOKED", message: "Relácia bola zrušená. Prihláste sa prosím znova." })
     }
