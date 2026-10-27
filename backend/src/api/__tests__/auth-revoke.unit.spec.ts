@@ -99,3 +99,40 @@ describe("odhlásenie zákazníka", () => {
     expect(f.res.json).toHaveBeenCalledWith(expect.objectContaining({ error: "AUTH_UNAVAILABLE" }))
   })
 })
+
+describe("revokácia a odhlásenie správcu", () => {
+  const { denyRevokedAdminToken } = require("../auth-revoke-middlewares")
+  const { POST: adminLogout } = require("../admin/nexus-auth/logout/route")
+  const admin = (revoked = false) => {
+    const f = fixture(revoked)
+    f.req.auth_context = { actor_type: "user", actor_id: "user_synthetic" }
+    return f
+  }
+
+  it("revokovaný token správcu odmietne 401", async () => {
+    const f = admin(true)
+    await denyRevokedAdminToken(f.req, f.res, f.next)
+    expect(f.res.status).toHaveBeenCalledWith(401)
+    expect(f.next).not.toHaveBeenCalled()
+  })
+
+  it("výpadok databázy pri administrácii fail closed (503)", async () => {
+    const f = admin()
+    f.db.raw.mockRejectedValue(new Error("synthetic database failure"))
+    await denyRevokedAdminToken(f.req, f.res, f.next)
+    expect(f.res.status).toHaveBeenCalledWith(503)
+    expect(f.next).not.toHaveBeenCalled()
+  })
+
+  it("odhlásenie správcu zapíše revokáciu, zákaznícky token odmietne", async () => {
+    const f = admin()
+    await adminLogout(f.req, f.res as any)
+    expect(f.res.status).toHaveBeenCalledWith(200)
+    expect(f.db.raw.mock.calls[0][1][0]).toBe(sha256Hex("synthetic-token"))
+
+    const customer = fixture()
+    await adminLogout(customer.req, customer.res as any)
+    expect(customer.res.status).toHaveBeenCalledWith(401)
+    expect(customer.db.raw).not.toHaveBeenCalled()
+  })
+})

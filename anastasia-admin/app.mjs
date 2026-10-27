@@ -20,6 +20,7 @@ import { voucherHtml, voucherListHtml, VOUCHER_CSS } from './voucher.mjs';
 import { contentPages, contentPage, wireContentPage } from './content.mjs';
 import { securityView } from './security.mjs';
 import { newsletterView } from './newsletter.mjs';
+import { csvCell } from './csv.mjs';
 
 // --- Rola administrátora: vlastník (všetko) alebo asistent (denná práca bez peňazí a rolí) ---
 // Rolu číta server (GET /admin/nexus/admin-roles); klient si ju len zobrazuje.
@@ -1630,7 +1631,6 @@ function downloadText(filename, text, type = 'text/csv;charset=utf-8') {
   a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-const csvCell = (v) => `"${String(v ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
 async function loadOrders() {
   const q = `limit=${ORDER_LOAD_PAGE}&order=-created_at&fields=${ORDER_LIST_FIELDS}`;
   const first = await api(`/admin/orders?${q}`);
@@ -4226,7 +4226,10 @@ async function route() {
   root.innerHTML = shell(key in ROUTES ? key : '', r[0], r[1]);
   window.scrollTo({ top: 0, behavior: 'instant' });
   loadTheme().then(applyTheme);
-  root.querySelector('#logout').onclick = () => { token = ''; localStorage.removeItem('ana_token'); ADMIN_ROLE_LOADED = false; ADMIN_ROLE = 'owner'; renderLogin(); };
+  root.querySelector('#logout').onclick = () => {
+    // Server token zneplatní (inak by platil až do expirácie); výpadok siete odhlásenie v prehliadači nezastaví.
+    if (token) fetch(API + '/admin/nexus-auth/logout', { method: 'POST', headers: { authorization: 'Bearer ' + token } }).catch(() => {});
+    token = ''; localStorage.removeItem('ana_token'); ADMIN_ROLE_LOADED = false; ADMIN_ROLE = 'owner'; renderLogin(); };
   wireMobileNav();
   wireTopbar();
   loadMe().then(setUserChip);

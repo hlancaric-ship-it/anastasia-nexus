@@ -7,6 +7,7 @@
   "main": "../../protected-media/worker.ts",
   "compatibility_date": "2026-10-19",
   "workers_dev": false,
+  "preview_urls": false,
   "routes": [{ "pattern": "anastasia-test-nexus.l-code-dynamics.com/api/media/*", "zone_name": "l-code-dynamics.com" }],
   "r2_buckets": [{ "binding": "MEDIA_BUCKET", "bucket_name": "anastasia-media" }, { "binding": "MEDIA_BUCKET_PROTECTED", "bucket_name": "anastasia-paid-content-test" }],
   "vars": { "ALLOWED_ORIGINS": "https://anastasia-test.l-code-dynamics.com" }

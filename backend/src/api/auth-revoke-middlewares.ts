@@ -36,7 +36,26 @@ export async function denyRevokedToken(req: any, res: any, next: any) {
   return next()
 }
 
+/**
+ * Administrácia: odhlásený alebo ukradnutý token správcu sa odmietne. Na rozdiel od katalógu
+ * fail closed – pri výpadku databázy sa nedá overiť, že token nebol zneplatnený.
+ */
+export async function denyRevokedAdminToken(req: any, res: any, next: any) {
+  const token = bearerToken(req)
+  if (!token) return next()
+  try {
+    const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
+    if (await isTokenRevoked(db, token)) {
+      return res.status(401).json({ error: "SESSION_REVOKED", message: "Relácia bola zrušená. Prihláste sa prosím znova." })
+    }
+    return next()
+  } catch {
+    return res.status(503).json({ error: "AUTH_UNAVAILABLE", message: "Overenie prihlásenia je dočasne nedostupné." })
+  }
+}
+
 export const authRevokeMiddlewares: MiddlewareRoute[] = [
   { matcher: "/store/*", middlewares: [denyRevokedToken] },
+  { matcher: "/admin/*", middlewares: [denyRevokedAdminToken] },
   { matcher: "/auth/token/refresh", method: ["POST"], middlewares: [denyRevokedToken] },
 ]
