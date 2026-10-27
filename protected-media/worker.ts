@@ -4,13 +4,17 @@ import type { Env } from '../nexus/workers/api/types'
 
 export type MediaEnv = Pick<Env, 'MEDIA_BUCKET' | 'MEDIA_TOKEN_SECRET'> & { ALLOWED_ORIGINS?: string, MEDIA_BUCKET_PROTECTED?: Env['MEDIA_BUCKET'] }
 
-/** PDF materiály leží v samostatném soukromém bucketu, video a audio v hlavním: hledá se v obou, nejdřív v hlavním. */
+/**
+ * PDF materiály leží v samostatném soukromém bucketu, video a audio v hlavním. Najprv sa číta soukromý bucket:
+ * rovnaký kľúč v hlavnom buckete (napr. omylom nahraný alebo verejne dostupný objekt) nesmie zatieniť chránený obsah.
+ * Hlavný bucket musí mať vypnutý verejný prístup (r2.dev / vlastná doména) – overuje sa ručne v Cloudflare.
+ */
 function withFallback(env: MediaEnv): Env {
-  const primary = env.MEDIA_BUCKET, secondary = env.MEDIA_BUCKET_PROTECTED
-  if (!primary || !secondary) return env as Env
+  const protectedBucket = env.MEDIA_BUCKET_PROTECTED, main = env.MEDIA_BUCKET
+  if (!protectedBucket || !main) return env as Env
   const bucket = {
-    head: async (key: string) => (await primary.head(key)) ?? (await secondary.head(key)),
-    get: async (key: string, options?: unknown) => (await primary.get(key, options as never)) ?? (await secondary.get(key, options as never)),
+    head: async (key: string) => (await protectedBucket.head(key)) ?? (await main.head(key)),
+    get: async (key: string, options?: unknown) => (await protectedBucket.get(key, options as never)) ?? (await main.get(key, options as never)),
   } as unknown as Env['MEDIA_BUCKET']
   return { ...env, MEDIA_BUCKET: bucket } as Env
 }
@@ -20,7 +24,11 @@ export default {
   async fetch(request: Request, env: MediaEnv): Promise<Response> {
     const origin = request.headers.get('Origin')
     const allowed = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
-    const headers = new Headers({ 'Cache-Control': 'private, no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff', 'Vary': 'Origin' })
+    const headers = new Headers({
+      'Cache-Control': 'private, no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff', 'Vary': 'Origin',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      'Cross-Origin-Resource-Policy': 'same-site',
+    })
     if (origin && !allowed.includes(origin)) return new Response(null, { status: 403, headers })
     if (origin) {
       headers.set('Access-Control-Allow-Origin', origin)
@@ -41,7 +49,11 @@ export default {
       const response = await handleMediaDelivery(request, withFallback(env))
       const result = new Response(response.body, response)
       for (const [key, value] of headers) result.headers.set(key, value)
-      if (!isDocument) result.headers.set('Content-Disposition', 'inline')
+      // Audio/video nikdy ako dokument so skriptami. PDF bez `sandbox` – Chrome by ho v sandboxe nezobrazil.
+      if (!isDocument) {
+        result.headers.set('Content-Disposition', 'inline')
+        result.headers.set('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'; sandbox")
+      }
       // PDF and WebM are also protected documents/media, never executable HTML.
       const path = new URL(request.url).pathname.toLowerCase()
       if (response.ok && path.endsWith('.pdf')) result.headers.set('Content-Type', 'application/pdf')

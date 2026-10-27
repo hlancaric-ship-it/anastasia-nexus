@@ -45,4 +45,18 @@ describe('private R2 gateway',()=>{
   const ok=await worker.fetch(request('paid/a.mp3',undefined,play({'Sec-Fetch-Dest':'audio'})),f.env);expect(ok.status).toBe(200);expect(ok.headers.get('content-disposition')).toBe('inline')
   expect((await worker.fetch(request('paid/book.pdf'),f.env)).status).toBe(200)
  })
+ it('reads the private bucket first so a same-key object in the main bucket cannot shadow protected content',async()=>{
+  const f=fixture()
+  const main={head:vi.fn(async()=>({size:6,httpEtag:'"main"'})),get:vi.fn(async()=>({body:'public',text:async()=>'public'}))}
+  const env={...f.env,MEDIA_BUCKET:main,MEDIA_BUCKET_PROTECTED:f.bucket} as unknown as MediaEnv
+  const r=await worker.fetch(request('paid/book.pdf'),env)
+  expect(r.status).toBe(200);expect(await r.text()).toBe('%PDF-1.4 private');expect(main.get).not.toHaveBeenCalled()
+ })
+ it('sends HSTS on every response and a sandboxing CSP on media (not on PDFs, which Chrome would block)',async()=>{
+  for(const r of [await worker.fetch(request('paid/a.mp3',undefined,play()),fixture().env),await worker.fetch(request('paid/a.mp3','bad'),fixture().env)]){
+   expect(r.headers.get('strict-transport-security')).toBe('max-age=31536000; includeSubDomains')
+  }
+  expect((await worker.fetch(request('paid/a.mp3',undefined,play()),fixture().env)).headers.get('content-security-policy')).toContain('sandbox')
+  expect((await worker.fetch(request('paid/book.pdf'),fixture().env)).headers.get('content-security-policy')).toBeNull()
+ })
 })
