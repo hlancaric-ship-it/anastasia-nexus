@@ -2182,7 +2182,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "e3a4b461f39f2317df891f6f40cd68d32560b5283766141b4f9a06c7a3d55bc5"
+      "sha256": "0e3f05560c37326fb7ddf57e0fda61533566eb812b13137093192974131187f9"
     },
     {
       "path": "/store/nexus-checkout",
@@ -2210,7 +2210,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/options/route.ts",
-      "sha256": "7eaf7aa62ebe0f9b81e655b87b036512aebc94e47cc97c12b2fc26f52c10ddf6"
+      "sha256": "e7fbedf4cf4986081edffa5afa609cd58f1f2f63f946101b81f4ece563aa19bb"
     },
     {
       "path": "/store/orders/:id/cancel",
@@ -5314,7 +5314,9 @@
     "nexus/tests/workers/schema.test.ts",
     "nexus/tests/workers/storedReconciliation.test.ts",
     "nexus/tests/workers/voucherConcurrency.test.ts",
-    "storefront-prototype/test/digital-content.test.mjs"
+    "storefront-prototype/test/digital-content.test.mjs",
+    "backend/src/lib/checkout/__tests__/product-delivery.unit.spec.ts",
+    "backend/src/api/store/nexus-cart/__tests__/delivery.unit.spec.ts"
   ],
   "candidate_branch": "codex/admin-theming"
 }

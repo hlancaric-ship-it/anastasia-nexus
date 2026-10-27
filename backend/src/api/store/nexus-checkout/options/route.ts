@@ -9,6 +9,7 @@ import {
 import { repriceCart } from "../../nexus-cart/route"
 import { recordEvent } from "../../../../lib/observability/events"
 import { canAccessCart, customerActor } from "../../../../lib/checkout/cart-access"
+import { isBookingService } from "../../../../lib/checkout/product-delivery"
 import {
   PAYMENT_METHODS, PICKUP_ADDRESS, CheckoutChoiceError, amountValue, assertCartShippingReady, freeShippingThreshold, loadCartShape, resolvePhysicalShippingType,
   type CartShape, type DeliveryCode, type PaymentMethodCode, type ShippingTypeCode,
@@ -23,7 +24,7 @@ import {
 const CART_FIELDS = [
   "id", "customer_id", "customer.has_account", "completed_at", "currency_code", "region_id",
   "shipping_address.country_code",
-  "items.id", "items.product.shipping_profile.id",
+  "items.id", "items.product.shipping_profile.id", "items.product.metadata",
   "shipping_methods.id", "shipping_methods.shipping_option_id",
   "region.payment_providers.id", "region.countries.iso_2",
   "payment_collection.id",
@@ -52,8 +53,10 @@ async function loadOwnedCart(req: AuthenticatedMedusaRequest, cartId: unknown, a
 }
 
 async function shapeOf(req: AuthenticatedMedusaRequest, cart: any): Promise<CartShape> {
+  const deliveryItems = (cart.items || []).filter((item: any) => !isBookingService(item?.product))
+  if (deliveryItems.some((item: any) => !item?.product?.shipping_profile?.id)) throw new CheckoutChoiceError("SHIPPING_PROFILE_UNKNOWN", 409)
   return loadCartShape(req.scope, {
-    profileIds: (cart.items || []).map((item: any) => item?.product?.shipping_profile?.id).filter(Boolean),
+    profileIds: deliveryItems.map((item: any) => item.product.shipping_profile.id),
     shippingOptionIds: (cart.shipping_methods || []).map((method: any) => method?.shipping_option_id).filter(Boolean),
   })
 }
@@ -129,7 +132,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const physicalType = resolvePhysicalShippingType(shape, body.delivery as DeliveryCode | null | undefined, payment.code as PaymentMethodCode)
 
     // Doprava: jedna možnosť pre každý profil v košíku, typ určuje server.
-    const options = await pricedOptions(req, cart)
+    const options = shape.hasPhysical || shape.hasDigital ? await pricedOptions(req, cart) : []
     
     const chosen: PricedOption[] = []
     if (physicalType) {
@@ -158,10 +161,10 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       await addShippingMethodToCartWorkflow(req.scope).run({ input: { cart_id: cart.id, options: chosen.map((option) => ({ id: option.id })) } })
     }
 
-    // Bez platnej dopravy pre všetky profily sa platba vôbec nepripraví (inak by zákazník zaplatil bez objednávky).
-    await assertCartShippingReady(req.scope, cart.id)
     // Ceny položiek (NEXUS) a suma platby sa prepočítajú až po zmene dopravy.
+    // Reprice tiež opraví requires_shipping z katalógu pred kontrolou a vytvorením platby.
     await repriceCart(cart.id, req.scope, true, undefined, actorId, !actorId)
+    await assertCartShippingReady(req.scope, cart.id)
     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
     let summary = (await query.graph({ entity: "cart", fields: SUMMARY_FIELDS, filters: { id: cart.id } })).data?.[0]
     const total = amountValue(summary?.total)

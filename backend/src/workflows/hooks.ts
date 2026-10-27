@@ -63,7 +63,7 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
     const result = await repriceCart(input.id, container as any, false)
     if (result.pricesChanged || result.items.length !== cart.items?.length || result.items.some((item) => {
         const line = cart.items.find((line: any) => line.id === item.id)
-        return !line || amountValue(line.unit_price) !== item.unit_price || line.quantity !== item.quantity
+        return !line || amountValue(line.unit_price) !== item.unit_price || line.quantity !== item.quantity || (typeof item.requires_shipping === "boolean" && line.requires_shipping !== item.requires_shipping)
     })) throw new Error("NEXUS_PRICE_MISMATCH")
     if (cart.currency_code !== "eur") throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
     if (!coveredByVoucher) {
@@ -71,7 +71,7 @@ completeCartWorkflow.hooks.validate(async ({ input, cart: snapshot }, { containe
         if (!processable.length) throw new SafeOrderError("SAFEORDER_UNAVAILABLE")
         // Dobierka len s kuriérom „na dobierku“ a len pri fyzickom tovare (typy z DB, nie z klienta).
         const shape = await loadCartShape(container as any, {
-            profileIds: (cart.items || []).map((item: any) => item?.variant?.product?.shipping_profile?.id).filter(Boolean),
+            profileIds: (cart.items || []).filter((item: any) => item?.requires_shipping !== false).map((item: any) => item?.variant?.product?.shipping_profile?.id).filter(Boolean),
             shippingOptionIds: (cart.shipping_methods || []).map((method: any) => method?.shipping_option_id).filter(Boolean),
         })
         assertDeliveryPaymentConsistency(shape, processable.map((session: any) => session.provider_id))
