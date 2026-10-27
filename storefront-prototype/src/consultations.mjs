@@ -1,5 +1,5 @@
 import {api} from './lib/api/index.mjs';
-import {escape as e} from './components.mjs';
+import {escape as e, imageSrc} from './components.mjs';
 import {consultMeta, consultLead} from './consult-info.mjs';
 
 const CONSULTATION_HANDLES = {
@@ -37,7 +37,7 @@ export const consultations = () => {
           ${desc ? `<p class="cs-d">${e(desc)}</p>` : ''}
           <a class="cs-go" href="${e(detail)}">Vybrať termín <i aria-hidden="true">→</i></a>
         </div>
-        <figure><img src="${e(img)}" alt="" width="900" height="1200" loading="eager" decoding="async"></figure>
+        <figure><img src="${imageSrc(img)}" alt="" width="900" height="1200" loading="eager" decoding="async"></figure>
       </article>`;
   }).join('');
 

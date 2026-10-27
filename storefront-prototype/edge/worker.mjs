@@ -18,13 +18,15 @@ export default {
     const type = response.headers.get('content-type') || '';
     if (!type.includes('text/html')) return response;
 
-    const country = (request.cf && request.cf.country) || request.headers.get('CF-IPCountry') || '';
+    // Len dvojpísmenový kód krajiny: hlavička môže prísť od klienta a ide priamo do HTML (inak HTML injection).
+    const rawCountry = String((request.cf && request.cf.country) || request.headers.get('CF-IPCountry') || '').toUpperCase();
+    const country = /^[A-Z]{2}$/.test(rawCountry) ? rawCountry : '';
     const html = await response.text();
     const patched = html.replace(
       '<meta name="ana-country" content="">',
-      `<meta name="ana-country" content="${String(country).toUpperCase()}">`,
+      `<meta name="ana-country" content="${country}">`,
     );
-    const headers = new Headers(response.headers);
+    const headers = withSecurity(new Headers(response.headers));
     headers.set('content-length', String(new TextEncoder().encode(patched).length));
     // HTML sa nesmie držať v cache prehliadača ani na hrane: po nasadení musí každý hneď vidieť novú verziu
     // (CSS/JS sú verzované cez ?v=…, takže samotné HTML ich načíta nanovo).
@@ -32,6 +34,14 @@ export default {
     return new Response(patched, {status: response.status, headers});
   },
 };
+
+// Hlavičky, ktoré platia aj pre odpovede tvorené Workerom (súbor _headers sa na ne nemusí použiť).
+const HSTS = 'max-age=31536000; includeSubDomains';
+function withSecurity(headers) {
+  headers.set('strict-transport-security', HSTS);
+  headers.set('x-content-type-options', 'nosniff');
+  return headers;
+}
 
 // Obrázky nahraté v administrácii: storefront ich kvôli CSP (img-src 'self') načítava z vlastnej domény
 // cez /backend-media/static/… a Worker ich preberá z /static/… backendu (API_ORIGIN). Len GET/HEAD a len
@@ -44,14 +54,14 @@ async function backendMedia(request, env, url) {
   const parts = decoded.split('/');
   if (!env.API_ORIGIN || !name || parts.some(part => !part || part === '.' || part === '..' || !/^[\p{L}\p{N} _.-]+$/u.test(part)) || !/\.(?:jpe?g|png|webp|avif|gif)$/i.test(parts.at(-1))) return new Response('Not found', {status: 404});
   try {
-    const upstream = await fetch(new URL('/static/' + decoded, env.API_ORIGIN), {method: request.method, redirect: 'manual', cf: {cacheTtl: 86400, cacheEverything: true}});
-    const headers = new Headers();
+    const upstream = await fetch(new URL('/static/' + decoded, env.API_ORIGIN), {method: request.method, redirect: 'manual', cf: {cacheEverything: true, cacheTtlByStatus: {'200-299': 86400, '404': 60, '500-599': 0}}});
+    // Chyba backendu sa na hrane nedrží (inak by výpadok alebo 404 platil celý deň).
+    const headers = withSecurity(new Headers());
     for (const h of ['content-type', 'content-length', 'etag', 'last-modified']) { const v = upstream.headers.get(h); if (v) headers.set(h, v); }
     headers.set('cache-control', upstream.ok ? 'public, max-age=86400' : 'no-store');
-    headers.set('x-content-type-options', 'nosniff');
     return new Response(upstream.ok ? upstream.body : null, {status: upstream.ok ? 200 : upstream.status === 404 ? 404 : 502, headers});
   } catch {
-    return new Response(null, {status: 502, headers: {'cache-control': 'no-store'}});
+    return new Response(null, {status: 502, headers: withSecurity(new Headers({'cache-control': 'no-store'}))});
   }
 }
 
@@ -63,9 +73,10 @@ async function media(request, env) {
   const plain = new Headers(request.headers);
   plain.delete('range');
   const response = await env.ASSETS.fetch(new Request(request.url, {method: request.method === 'HEAD' ? 'HEAD' : 'GET', headers: plain}));
-  const headers = new Headers(response.headers);
+  const headers = withSecurity(new Headers(response.headers));
   headers.set('accept-ranges', 'bytes');
-  headers.set('cache-control', 'public, max-age=86400');
+  // Dlho sa drží len úspešná celá odpoveď; chyba ani výrez (206) sa nesmú uložiť ako celý súbor.
+  headers.set('cache-control', response.ok ? 'public, max-age=86400' : 'no-store');
   if (!response.ok || !range || request.method === 'HEAD') {
     return new Response(response.body, {status: response.status, headers});
   }
@@ -77,10 +88,13 @@ async function media(request, env) {
   else if (m && m[2] !== '') { start = Math.max(0, size - Number(m[2])); end = size - 1; }
   if (start === undefined || start > end || start >= size) {
     headers.set('content-range', `bytes */${size}`);
+    headers.set('cache-control', 'no-store');
     headers.delete('content-length');
     return new Response(null, {status: 416, headers});
   }
   headers.set('content-range', `bytes ${start}-${end}/${size}`);
   headers.set('content-length', String(end - start + 1));
+  headers.set('cache-control', 'private, max-age=86400');
+  headers.delete('etag');
   return new Response(body.slice(start, end + 1), {status: 206, headers});
 }

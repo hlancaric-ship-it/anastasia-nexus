@@ -15,5 +15,5 @@ test('only the four agreed categories are exposed even when server retains archi
 });
 test('local preview media works without allowing unsafe media protocols or remote HTTP',()=>{
  for(const u of ['/assets/photo.avif','https://cdn.test/photo.jpg','http://127.0.0.1:9100/static.jpg','http://localhost:9100/static.jpg'])assert.equal(isMediaUrl(u),true,u);
- for(const u of ['//evil.test/p.jpg','javascript:alert(1)','data:image/svg+xml,x','http://evil.test/a.jpg','/a" onerror="x','/path\nfoo'])assert.equal(isMediaUrl(u),false,u);
+ for(const u of ['//evil.test/p.jpg','javascript:alert(1)','data:image/svg+xml,x','http://evil.test/a.jpg','/a" onerror="x','/path\nfoo','/\\evil.test/p.jpg','https://cdn.test\\@evil.test/p.jpg'])assert.equal(isMediaUrl(u),false,u);
 });
