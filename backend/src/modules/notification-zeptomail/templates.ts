@@ -289,7 +289,7 @@ function paymentBlocks(data: Data, t: T): Block[] {
         ...(str(transfer.swift) ? [{ label: "SWIFT/BIC", value: oneLine(str(transfer.swift)!) }] : []),
         { label: "Variabilný symbol", value: oneLine(str(transfer.variable_symbol)!) },
         { label: "Suma", value: oneLine(str(transfer.amount) ?? ""), strong: true },
-      ].filter(row => row.value) },
+      ].filter(row => row.value) },      ...(data.bank_transfer_qr === true ? p("QR kód pre platbu v bankovej aplikácii nájdete v prílohe tohto e-mailu (QR-platba.png).") : []),
     ]
   }
   if (data.payment_method === "cod") return p(t("cod") ?? t("unpaid"))
@@ -367,7 +367,7 @@ const CATALOG: Entry[] = [
       text("unpaid", "Text pri nezaplatenej objednávke", "Objednávku vybavíme hneď po prijatí platby vo výške {suma}.", true),
       text("bank_transfer", "Text pri platbe prevodom", "Prosíme, uhraďte {suma} prevodom na účet nižšie do 48 hodín. Ako variabilný symbol uveďte číslo objednávky {cislo_objednavky}. Objednávku vybavíme a digitálny obsah sprístupníme hneď po pripísaní platby.", true),
       text("cod", "Text pri platbe na dobierku", "Platíte pri prevzatí zásielky: {suma}.", true),
-      text("pickup", "Text pri osobnom odbere", "Objednávku si vyzdvihnete osobne: Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen. Keď bude pripravená, ozveme sa Vám.", true),
+      text("pickup", "Text pri osobnom odbere", "Objednávku si vyzdvihnete osobne: Zdravá lekáreň, Sokolská 88, 960 01 Zvolen. Keď bude pripravená, ozveme sa Vám.", true),
       text("outro", "Záverečný text", "Stav objednávky nájdete kedykoľvek vo svojom účte.", true),
       line("label_subtotal", "Riadok: medzisúčet", "Medzisúčet"),
       line("label_shipping", "Riadok: doprava", "Doprava"),

@@ -1184,3 +1184,10 @@ html body select:-webkit-autofill{
 
 /* Přihlášení: točící se pečeť je zlatá, aby byla vidět na tmavém kruhu. */
 @layer jednotny{html body .lg-seal img.brand-seal{filter:brightness(0) saturate(100%) invert(72%) sepia(38%) saturate(620%) hue-rotate(2deg) brightness(96%) contrast(90%)!important}}
+
+/* Poďakovanie: platba prevodom s QR kódom. */
+.ty-bank{margin-top:28px;padding:22px;border:1px solid rgba(176,141,87,.32);border-radius:22px;background:rgba(255,255,255,.72)}
+.ty-qr{margin:18px 0 0;text-align:center}
+.ty-qr__code svg{width:min(240px,70vw);height:auto;display:block;margin:0 auto;border-radius:12px}
+.ty-qr figcaption{font-size:13px;margin-top:10px;color:#686868}
+.ty-qr-cz{margin-top:16px;text-align:center}.ty-qr-cz summary{cursor:pointer;font-size:13px;color:#686868}.ty-qr-cz .ty-qr__code{margin-top:10px}

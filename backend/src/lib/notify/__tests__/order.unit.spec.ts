@@ -163,8 +163,13 @@ describe("potvrdenie objednávky – spôsob platby a dopravy", () => {
     const cod = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_cod_cod", "Kuriér – platba na dobierku") as any))
     expect(cod.text).toMatch(/Platíte pri prevzatí zásielky: 66,00\s€/)
     expect(cod.text).not.toContain("IBAN")
-    const pickup = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_bank_transfer_bank_transfer", "Osobný odber – Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen") as any))
+    const pickup = renderTemplate("order-placed-sk", orderPlacedData(unpaid("pp_bank_transfer_bank_transfer", "Osobný odber – Zdravá lekáreň, Sokolská 88, 960 01 Zvolen") as any))
     expect(pickup.text).toContain("Sokolská 88, 960 01 Zvolen")
+  })
+  it("prevod s priloženým QR kódom ho v e-maile spomenie, bez QR nič nespomína", () => {
+    const data: any = orderPlacedData(unpaid("pp_bank_transfer_bank_transfer") as any)
+    expect(renderTemplate("order-placed-sk", data).text).not.toContain("QR")
+    expect(renderTemplate("order-placed-sk", { ...data, bank_transfer_qr: true }).text).toContain("QR kód pre platbu v bankovej aplikácii")
   })
   it("zaplatená kartou: bez platobných údajov", () => {
     const data = orderPlacedData(baseOrder({ payment_collections: [{ captured_amount: 111.5, refunded_amount: 0, payments: [{ captured_at: "2026-10-15T09:00:00Z", provider_id: "pp_stripe_stripe" }] }] }) as any)

@@ -535,7 +535,7 @@ export function createHttpApi(storage, config) {
         BLOCK: 'Objednávku teraz nemožno dokončiť. Kontaktujte nás, prosím.',
         ERROR: 'Služba je dočasne nedostupná. Skúste to znova o chvíľu.',
       };
-      if (r.status === 200) { del(CART); del(COUPON); del(BOOKING); const paid=r.data?.paymentStatus==='PAID'; return { mode: 'http', status: paid?'ALLOW':'PENDING', messages: paid?M.ALLOW:'Objednávka bola vytvorená. Čakáme na potvrdenie platby; platený obsah sa sprístupní po úhrade.', order: r.data?.order }; }
+      if (r.status === 200) { del(CART); del(COUPON); del(BOOKING); const paid=r.data?.paymentStatus==='PAID'; return { mode: 'http', status: paid?'ALLOW':'PENDING', messages: paid?M.ALLOW:'Objednávka bola vytvorená. Čakáme na potvrdenie platby; platený obsah sa sprístupní po úhrade.', order: r.data?.order, bank_transfer: r.data?.bank_transfer ?? null, pickup_address: r.data?.pickup_address ?? null }; }
       if (r.status === 409) return { mode: 'http', status: 'REVIEW', messages: M.REVIEW };
       if (r.status === 403) return { mode: 'http', status: 'BLOCK', messages: M.BLOCK };
       return { mode: 'http', status: 'ERROR', messages: M.ERROR };

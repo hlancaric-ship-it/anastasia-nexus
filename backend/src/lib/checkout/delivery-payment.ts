@@ -1,10 +1,11 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
+import { qrSvg, transferQrTexts } from "../payments/qr-payment"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
 /**
  * Doprava a platby 1:1 podľa starého webu (ecTransportType, ecPaymentType, ecSysConst):
  * - Kuriér 6,00 € s DPH, zdarma od 60,00 € hodnoty tovaru (`item_total`, nativne pravidlo ceny Medusa),
- * - Osobný odber 0 € (Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen),
+ * - Osobný odber 0 € (Zdravá lekáreň, Sokolská 88, 960 01 Zvolen),
  * - Na dobierku +2,00 € s DPH – len fyzický tovar a len s kuriérom (enableForEp=0),
  * - Kartou online (Stripe), Prevodom na účet (VS = číslo objednávky).
  *
@@ -50,7 +51,7 @@ export const BANK_TRANSFER_ACCOUNT = {
   swift: "TATRSKBX",
 } as const
 
-export const PICKUP_ADDRESS = "Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen"
+export const PICKUP_ADDRESS = "Zdravá lekáreň, Sokolská 88, 960 01 Zvolen"
 
 /** Variabilný symbol = číslo objednávky (len číslice, max. 10 znakov). */
 export function variableSymbol(displayId: unknown): string | null {
@@ -65,6 +66,16 @@ export function bankTransferInstructions(order: { display_id?: unknown; total?: 
   const amount = amountValue(order.total)
   if (!vs || !Number.isFinite(amount) || amount <= 0) return null
   return { ...BANK_TRANSFER_ACCOUNT, variable_symbol: vs, amount, currency_code: (order.currency_code || "eur").toLowerCase() }
+}
+
+/** QR kódy pre platbu prevodom: PAY by square (slovenské banky) a QR platba SPAYD (české banky). */
+export async function bankTransferQr(transfer: BankTransferInstructions) {
+  const input = {
+    iban: transfer.iban, beneficiary: transfer.beneficiary, amount: transfer.amount, currency: transfer.currency_code,
+    variable_symbol: transfer.variable_symbol, note: `Objednávka ${transfer.variable_symbol}`, bic: transfer.swift,
+  }
+  const texts = await transferQrTexts(input)
+  return { pay_by_square: texts.pay_by_square, spayd: texts.spayd, qr_svg: await qrSvg(texts.pay_by_square), qr_spayd_svg: await qrSvg(texts.spayd) }
 }
 
 export function amountValue(value: unknown): number {

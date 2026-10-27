@@ -84,7 +84,7 @@ export const COURIER_PRICE_EUR = 6
 /** Poplatok za dobierku zo starého e-shopu (ecPaymentType): 2,00 EUR s DPH, len s kuriérom. */
 export const COD_FEE_EUR = 2
 /** Osobný odber zo starého e-shopu: 0 EUR. */
-export const PICKUP_OPTION_NAME = "Osobný odber – Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen"
+export const PICKUP_OPTION_NAME = "Osobný odber – Zdravá lekáreň, Sokolská 88, 960 01 Zvolen"
 /** Manuálne platby (dobierka, prevod) – provider ID podľa medusa-config (pp_<identifier>_<id>). */
 export const COD_PROVIDER_ID = "pp_cod_cod"
 export const BANK_TRANSFER_PROVIDER_ID = "pp_bank_transfer_bank_transfer"
@@ -202,7 +202,7 @@ export function buildShippingOptionInputs(args: {
       provider_id: "manual_manual",
       service_zone_id: args.physicalZoneId,
       shipping_profile_id: args.physicalProfileId,
-      type: { label: "Osobný odber", description: "Vyzdvihnutie: Lucrat spol. s r.o., Sokolská 88, 960 01 Zvolen.", code: "pickup" },
+      type: { label: "Osobný odber", description: "Vyzdvihnutie: Zdravá lekáreň, Sokolská 88, 960 01 Zvolen.", code: "pickup" },
       prices: flat(0, null),
       rules: SHIPPING_RULES,
     },

@@ -5,7 +5,8 @@ import { capturedTotal, isOrderPaid, refundedTotal, toNumber, type OrderPaymentV
 import { sendEmail } from "../email/send"
 import { recordEvent } from "../observability/events"
 import type { NotifyResult } from "./index"
-import { bankTransferInstructions, paymentMethodByProvider } from "../checkout/delivery-payment"
+import { bankTransferInstructions, bankTransferQr, paymentMethodByProvider } from "../checkout/delivery-payment"
+import { qrPng } from "../payments/qr-payment"
 
 /**
  * E-maily k objednávce a účtu (C-1). Stejná pravidla jako `notify` u rezervací:
@@ -154,9 +155,20 @@ export async function notifyOrderPlaced(container: Container, orderId: string): 
     if (order.no_notification === true) return skip("NO_NOTIFICATION")
     const to = clean(order.email)
     if (!to) return skip("NO_EMAIL")
+    const data: Record<string, unknown> = orderPlacedData(order)
+    // Prevod na účet: QR kód pre platbu v aplikácii banky ide v prílohe.
+    let attachments: Array<{ content: string; filename: string; content_type: string }> | undefined
+    const transfer = data.payment_method === "bank_transfer" && data.paid !== true ? bankTransferInstructions(order) : null
+    if (transfer) {
+      try {
+        const qr = await bankTransferQr(transfer)
+        attachments = [{ content: (await qrPng(qr.pay_by_square)).toString("base64"), filename: `QR-platba-${transfer.variable_symbol}.png`, content_type: "image/png" }]
+        data.bank_transfer_qr = true
+      } catch { /* e-mail s IBAN a variabilným symbolom odíde aj bez QR kódu */ }
+    }
     return send(container, {
       to, template: ORDER_TEMPLATES.placed, idempotency_key: `order.placed:${order.id}`,
-      resource_id: order.id, resource_type: "order", data: orderPlacedData(order),
+      resource_id: order.id, resource_type: "order", data, ...(attachments ? { attachments } : {}),
     })
   })
 }
