@@ -162,3 +162,5 @@ Testy:
 4. **NEXUS** (validate limit tenanta, Gemini klíč v URL, `ratelimits` binding, `workers_dev` v `nexus/wrangler`): `nexus/` je v tomto balíku jen ke čtení, předáno vlastníkovi.
 5. **Závislosti s CVE**: upgrade Medusy a wrangleru jako samostatný balík.
 6. **Obsah veřejného bucketu `anastasia-media`**: nebyl zkontrolován. Kontrola vyžaduje přístup do Cloudflare (R1).
+
+Pokyny pro testera: `docs/predani/09-INSTRUKCIE-PRE-TESTERA.md`. Ruční kroky: `docs/BEZPECNOST-RUCNI-KROKY.md`.

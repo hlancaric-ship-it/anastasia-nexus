@@ -44,6 +44,16 @@ Pred začiatkom nám tester pošle na `ceo@l-code-dynamics.com`:
 
 Záťažový test sa robí iba na testovacom webe a v predom dohodnutom čase. Ochrana webu môže neohlásený test zablokovať.
 
+## 4a. Čo by mal tester vedieť vopred
+
+- **Limity požiadaviek sú zámerné.** Pri opakovaných pokusoch dostanete odpoveď `429 RATE_LIMITED`, napríklad pri prihlásení, obnove hesla, platobnej relácii, kupónoch, rezerváciách termínov a formulároch s e-mailom. Na rovnakú e-mailovú adresu odídu najviac 3 správy za hodinu. Ide o ochranu, nie o chybu. Ak chcete testovať obídenie limitu, napíšte nám a pridáme Vašu IP do výnimky iba na Cloudflare.
+- **Automatické skenery** používajte najviac s 10 požiadavkami za sekundu.
+- **Účty:** dostanete dvoch zákazníkov a správcu s rolou `assistant`. Rolu `owner` iba na požiadanie. Asistent nesmie meniť ceny, kupóny, poukazy, prístupy ani API kľúče. Overenie týchto hraníc vítame.
+- **Dvojfaktorové overenie (TOTP)** si správca zapína v Administrácia → Zabezpečenie.
+- **Záťažový test:** najviac 5 minút, iba aplikačná vrstva (drahé dopyty, limity) a s okamžitým zastavením na náš pokyn. Objemové útoky na Cloudflare sú zakázané.
+- **Kritický nález** (prevzatie účtu, platba, únik dát) nahláste hneď telefonicky, nečakajte na záverečnú správu.
+- Po odovzdaní správy zmažte údaje získané počas testu.
+
 ## 5. Správa z testu
 
 Výsledok pošlite písomne. Pri každom náleze uveďte: názov, závažnosť, kroky na zopakovanie, dôkaz (snímka obrazovky alebo požiadavka a odpoveď), odporúčanú opravu. Všetky nálezy opravíme a vrátime ich na overenie.
