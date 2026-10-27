@@ -81,6 +81,23 @@ export async function loadTemplateSettings(container: Container, template: strin
 }
 
 export async function sendEmail(container: Container, input: SendEmailInput): Promise<SendEmailResult> {
+  // Adresu správce lze nastavit jako seznam (čárka nebo středník). Každý příjemce dostane vlastní e-mail s vlastním klíčem.
+  const recipients = String(input.to ?? "").split(/[;,]/).map(item => item.trim()).filter(Boolean)
+  if (recipients.length > 1) {
+    const results: SendEmailResult[] = []
+    let firstError: unknown
+    for (const [index, to] of recipients.entries()) {
+      try {
+        results.push(await sendEmail(container, { ...input, to, idempotency_key: input.idempotency_key ? `${input.idempotency_key}:${index}` : undefined }))
+      } catch (error) {
+        firstError ??= error
+        await recordEvent(container as MedusaContainer, "error", "notification", "recipient_send_failed", { template: input.template, resource_id: input.resource_id, recipient_index: index })
+      }
+    }
+    if (!results.length) throw firstError
+    return results.find(result => result.status === "sent") ?? results[0]!
+  }
+
   const def = getTemplateDef(input.template)
   const settings = await loadTemplateSettings(container, input.template)
   const fields = { template: input.template, resource_type: input.resource_type, resource_id: input.resource_id }

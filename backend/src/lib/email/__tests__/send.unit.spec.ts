@@ -154,4 +154,20 @@ describe("sendEmail cez Medusa Emails (Cloud bez vlastného poskytovateľa)", ()
     await sendEmail(container, { to: TO, template: "order-placed-sk", data: { order_display_id: "1" } })
     expect((notifications.createNotifications.mock.calls[0] as any[])[0].content).toBeUndefined()
   })
+
+  it("seznam adres oddělený čárkou pošle každému příjemci zvlášť s vlastním klíčem", async () => {
+    const { container, notifications } = makeContainer()
+    const out = await sendEmail(container, { to: "a@example.test, b@example.test", template: "order-placed-sk", data: { order_display_id: "7" }, idempotency_key: "order.placed:o7" })
+    expect(out).toEqual({ status: "sent" })
+    const calls = notifications.createNotifications.mock.calls.map((call: any[]) => [call[0].to, call[0].idempotency_key])
+    expect(calls).toEqual([["a@example.test", "order.placed:o7:0"], ["b@example.test", "order.placed:o7:1"]])
+  })
+
+  it("výpadek jednoho příjemce neznemožní doručení ostatním", async () => {
+    const { container, notifications } = makeContainer()
+    notifications.createNotifications.mockRejectedValueOnce(new Error("provider down"))
+    const out = await sendEmail(container, { to: "a@example.test,b@example.test", template: "order-placed-sk", data: {} })
+    expect(out).toEqual({ status: "sent" })
+    expect(notifications.createNotifications).toHaveBeenCalledTimes(2)
+  })
 })
