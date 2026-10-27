@@ -289,7 +289,7 @@ function paymentBlocks(data: Data, t: T): Block[] {
         ...(str(transfer.swift) ? [{ label: "SWIFT/BIC", value: oneLine(str(transfer.swift)!) }] : []),
         { label: "Variabilný symbol", value: oneLine(str(transfer.variable_symbol)!) },
         { label: "Suma", value: oneLine(str(transfer.amount) ?? ""), strong: true },
-      ].filter(row => row.value) },      ...(data.bank_transfer_qr === true ? p("QR kód pre platbu v bankovej aplikácii nájdete v prílohe tohto e-mailu (QR-platba.png).") : []),
+      ].filter(row => row.value) },      ...(data.bank_transfer_qr === true ? p("QR kód pre platbu v bankovej aplikácii nájdete v prílohe tohto e-mailu.") : []),
     ]
   }
   if (data.payment_method === "cod") return p(t("cod") ?? t("unpaid"))
