@@ -22,6 +22,7 @@ import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
 import { customerCreateMiddlewares } from "./store/customers/create-guard"
 import { adminCapabilityMiddlewares } from "./admin-capability-middlewares"
 import { abuseGuardMiddlewares } from "./abuse-guard-middlewares"
+import { adminUploadGuardMiddlewares } from "./admin/upload-guard"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
 import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
@@ -85,6 +86,8 @@ export default defineMiddlewares({
     ...contentAdminMiddlewares,
     // Serverová hranica rolí: asistent nemení ceny, kupóny, poukazy, prístupy ani API kľúče.
     ...adminCapabilityMiddlewares,
+    // Verejné nahrávanie len obrázkov a videí overených podľa obsahu.
+    ...adminUploadGuardMiddlewares,
     // Rola administrátora (metadata.anastasia_role) a zakladanie nových účtov:
     // iba vlastník. Bez toho by asistent prepísal metadáta a zvýšil si práva.
     {
