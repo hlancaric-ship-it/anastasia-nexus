@@ -1,8 +1,7 @@
-import type { MiddlewareRoute } from "@medusajs/framework/http"
+import { getAuthContextFromJwtToken, type MiddlewareRoute } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { isTokenRevoked } from "../modules/auth-magic-link/state"
 import { getSessionEpoch, type SessionActorType } from "../modules/auth-security/session-epoch"
-import jwt from "jsonwebtoken"
 
 const BEARER_RE = /^Bearer\s+(\S+)$/i
 
@@ -56,43 +55,57 @@ export async function denyRevokedAdminToken(req: any, res: any, next: any) {
   }
 }
 
-/** Account-wide session epoch. Valid JWTs without an epoch are legacy sessions and fail closed. */
-export async function denyStaleSessionEpoch(req: any, res: any, next: any) {
-  const token = bearerToken(req)
-  if (!token) return next()
-  let payload: any
-  try {
-    const http = req.scope.resolve(ContainerRegistrationKeys.CONFIG_MODULE).projectConfig.http
-    payload = jwt.verify(token, http.jwtSecret, http.jwtVerifyOptions ?? http.jwtOptions)
-  } catch {
-    // Let Medusa's route authentication produce the normal invalid/expired-token response.
-    return next()
-  }
-  const actorType = payload?.actor_type
-  const actorId = payload?.actor_id
-  const claim = payload?.session_epoch
-  const path = String(req.path || "")
-  const expected = path.startsWith("/store/") ? "customer"
-    : path.startsWith("/admin/") ? "user"
-      : path === "/auth/token/refresh" && (actorType === "customer" || actorType === "user") ? actorType
-        : null
-  if (!expected) return next()
-  if (actorType !== expected || typeof actorId !== "string" || !actorId || !Number.isSafeInteger(claim) || claim < 0) {
-    return res.status(401).json({ error: "SESSION_REVOKED", message: "Relácia bola zrušená. Prihláste sa prosím znova." })
-  }
-  try {
-    const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
-    if (await getSessionEpoch(db, actorType as SessionActorType, actorId) !== claim) {
+/**
+ * Policy is fixed when registering the middleware. Express app.use removes the
+ * matched namespace from req.path, so the security decision cannot use req.path.
+ * Follow Medusa's credential precedence: eligible server session, then Bearer.
+ */
+function sessionEpochMiddleware(expected?: SessionActorType, includeSession = true) {
+  return async (req: any, res: any, next: any) => {
+    const session = req.session?.auth_context
+    let payload: any
+    if (includeSession && session && (expected ? session.actor_type === expected : ["customer", "user"].includes(session.actor_type))) payload = session
+    if (!payload) {
+      if (!bearerToken(req)) return next()
+      try {
+        const http = req.scope.resolve(ContainerRegistrationKeys.CONFIG_MODULE).projectConfig.http
+        payload = getAuthContextFromJwtToken(req.headers.authorization, http.jwtSecret, ["bearer"], ["*"], http.jwtPublicKey, http.jwtVerifyOptions ?? http.jwtOptions)
+      } catch {
+        return res.status(503).json({ error: "AUTH_UNAVAILABLE", message: "Overenie prihlásenia je dočasne nedostupné." })
+      }
+      // Invalid/expired JWTs are rejected by native route authentication.
+      if (!payload) return next()
+    }
+    const actorType = payload.actor_type
+    const actorId = payload.actor_id
+    const claim = payload.session_epoch
+    if (!["customer", "user"].includes(actorType) || (expected && actorType !== expected) || typeof actorId !== "string" || !actorId || !Number.isSafeInteger(claim) || claim < 0) {
       return res.status(401).json({ error: "SESSION_REVOKED", message: "Relácia bola zrušená. Prihláste sa prosím znova." })
     }
-    return next()
-  } catch {
-    return res.status(503).json({ error: "AUTH_UNAVAILABLE", message: "Overenie prihlásenia je dočasne nedostupné." })
+    try {
+      const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
+      if (await getSessionEpoch(db, actorType as SessionActorType, actorId) !== claim) {
+        return res.status(401).json({ error: "SESSION_REVOKED", message: "Relácia bola zrušená. Prihláste sa prosím znova." })
+      }
+      return next()
+    } catch {
+      return res.status(503).json({ error: "AUTH_UNAVAILABLE", message: "Overenie prihlásenia je dočasne nedostupné." })
+    }
   }
 }
 
+/** Standalone entry point; registered routes below use explicit actor policies. */
+export function denyStaleSessionEpoch(req: any, res: any, next: any) {
+  const path = String(req.originalUrl || `${req.baseUrl || ""}${req.path || ""}`).split("?")[0]
+  const actor = path.startsWith("/admin/") ? "user" : path.startsWith("/store/") ? "customer" : undefined
+  return sessionEpochMiddleware(actor, path !== "/auth/session")(req, res, next)
+}
+
 export const authRevokeMiddlewares: MiddlewareRoute[] = [
-  { matcher: "/store/*", middlewares: [denyRevokedToken, denyStaleSessionEpoch] },
-  { matcher: "/admin/*", middlewares: [denyRevokedAdminToken, denyStaleSessionEpoch] },
-  { matcher: "/auth/token/refresh", method: ["POST"], middlewares: [denyRevokedToken, denyStaleSessionEpoch] },
+  { matcher: "/store/*", middlewares: [denyRevokedToken, sessionEpochMiddleware("customer")] },
+  { matcher: "/admin/*", middlewares: [denyRevokedAdminToken, sessionEpochMiddleware("user")] },
+  { matcher: "/auth/token/refresh", method: ["POST"], middlewares: [denyRevokedToken, sessionEpochMiddleware()] },
+  // Creating a cookie session must not launder a stale JWT into a new session.
+  // Native POST /auth/session accepts Bearer only, even if an older cookie exists.
+  { matcher: "/auth/session", method: ["POST"], middlewares: [denyRevokedToken, sessionEpochMiddleware(undefined, false)] },
 ]
