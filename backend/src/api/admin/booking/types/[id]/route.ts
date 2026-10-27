@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { updateProductsWorkflow, updateProductVariantsWorkflow } from "@medusajs/medusa/core-flows"
 import { bookingMeta, requireAdmin, retrieveTypeProduct, toTypeDTO, updateTypeSchema, zodMessage } from "../helpers"
 import { auditAdminChange } from "../../../../../lib/observability/audit"
+import { requireAdminCapability } from "../../../../../lib/admin/guard"
 
 /** GET /admin/booking/types/:id */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
@@ -33,6 +34,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     if (!product) return res.status(404).json({ message: "Typ konzultace neexistuje." })
     const current = toTypeDTO(product)
     if (input.price_eur !== undefined && input.price_eur !== current.price_eur) {
+      // Cenu konzultace mení len vlastník (asistent nesmie meniť ceny).
+      if (!(await requireAdminCapability(req, res, "pricing"))) return
       if (!current.variant_id) return res.status(409).json({ message: "Typ konzultace nemá variantu s cenou." })
       await updateProductVariantsWorkflow(req.scope).run({ input: {
         product_variants: [{ id: current.variant_id, prices: [{ amount: input.price_eur, currency_code: "eur" }] }],

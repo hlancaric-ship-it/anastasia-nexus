@@ -27,6 +27,7 @@ const updateOrders = jest.fn(async (_id: string, patch: any) => {
 })
 const retrieveOrder = jest.fn(async () => order)
 const retrieveUser = jest.fn(async () => ({ id: "user_1", email: "lucia@anastasia.sk" }))
+const graph = jest.fn(async () => ({ data: [{ id: "order_1", payment_collections: [{ payments: [{ id: "pay_1" }] }] }] }))
 
 function fixture(actorId: string | null = "user_1", body: unknown = {}, id = "order_1") {
   const req: any = {
@@ -39,6 +40,7 @@ function fixture(actorId: string | null = "user_1", body: unknown = {}, id = "or
         if (key === "order") return { retrieveOrder, updateOrders }
         if (key === "user") return { retrieveUser }
         if (key === "inventory") return { listInventoryItems, listInventoryLevels, updateInventoryLevels }
+        if (key === "query") return { graph }
         return { error: jest.fn(), info: jest.fn() }
       },
     },
@@ -142,6 +144,14 @@ describe("Vrátenie peňazí a tovaru na sklad", () => {
     const f = fixture("user_1", { payment_id: "pay_1", amount: 0, note: "reklamácia" })
     await REFUND(f.req, f.res)
     expect(f.res.status).toHaveBeenCalledWith(400)
+    expect(refundRun).not.toHaveBeenCalled()
+  })
+
+  it("platbu z cudzej objednávky nevráti", async () => {
+    const f = fixture("user_1", { payment_id: "pay_other", amount: 25, note: "reklamácia" })
+    await REFUND(f.req, f.res)
+    expect(f.res.status).toHaveBeenCalledWith(400)
+    expect(f.res.json.mock.calls[0][0].message).toBe("Platba nepatrí k tejto objednávke.")
     expect(refundRun).not.toHaveBeenCalled()
   })
 

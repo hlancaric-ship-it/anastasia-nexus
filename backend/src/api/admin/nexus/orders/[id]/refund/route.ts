@@ -35,6 +35,11 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   try {
     const orders = req.scope.resolve(Modules.ORDER) as any
     const order = await orders.retrieveOrder(orderId, { relations: ["items"] })
+    // Platba musí patriť tejto objednávke – inak by sa vrátili peniaze z cudzej objednávky.
+    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
+    const { data: owned } = await query.graph({ entity: "order", fields: ["id", "payment_collections.payments.id"], filters: { id: orderId } })
+    const paymentIds = new Set<string>((owned?.[0]?.payment_collections ?? []).flatMap((c: any) => (c?.payments ?? []).map((p: any) => p?.id)))
+    if (!paymentIds.has(paymentId)) return res.status(400).json({ message: "Platba nepatrí k tejto objednávke." })
     await refundPaymentWorkflow(req.scope).run({ input: { payment_id: paymentId, amount, note, created_by: actor } })
     let restocked = 0
     if (restock) restocked = await restockToStock(req, order)

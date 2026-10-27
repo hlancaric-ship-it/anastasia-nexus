@@ -46,10 +46,28 @@ export function bodyTouchesPrices(value: unknown, depth = 0): boolean {
   return Object.entries(value as Record<string, unknown>).some(([key, item]) => (key === "prices" && !(Array.isArray(item) && item.length === 0)) || bodyTouchesPrices(item, depth + 1))
 }
 
-/** Asistent smie upravovať produkty, ale nie ich ceny (doplnok k `pricing`). */
+/** Metadáta produktu, ktoré udeľujú prístup k obsahu (registr chránených médií, dĺžka členstva). */
+const ACCESS_METADATA_KEYS = ["protected_media", "membership"]
+
+/** Nájde v tele kľúč `metadata` s registrom médií alebo konfiguráciou členstva – aj v dávkach a variantoch. */
+export function bodyTouchesAccessMetadata(value: unknown, depth = 0): boolean {
+  if (!value || typeof value !== "object" || depth > 6) return false
+  if (Array.isArray(value)) return value.some((item) => bodyTouchesAccessMetadata(item, depth + 1))
+  return Object.entries(value as Record<string, unknown>).some(([key, item]) =>
+    (key === "metadata" && !!item && typeof item === "object" && ACCESS_METADATA_KEYS.some((k) => Object.prototype.hasOwnProperty.call(item, k)))
+    || bodyTouchesAccessMetadata(item, depth + 1))
+}
+
+/**
+ * Asistent smie upravovať produkty, ale nie ich ceny (`pricing`) ani metadáta, ktoré udeľujú
+ * prístup k chránenému obsahu (`access`) – inak by prémiové médium „pripojil“ k lacnému produktu.
+ */
 export async function rejectAssistantPriceChange(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
-  if (!bodyTouchesPrices(req.body)) return next()
-  return requireCapability("pricing")(req, res, next)
+  const prices = bodyTouchesPrices(req.body), access = bodyTouchesAccessMetadata(req.body)
+  if (!prices && !access) return next()
+  if (!access) return requireCapability("pricing")(req, res, next)
+  if (!prices) return requireCapability("access")(req, res, next)
+  return requireCapability("pricing")(req, res, () => requireCapability("access")(req, res, next))
 }
 
 const guard = (matcher: string, method: MiddlewareRoute["method"], capability: AdminCapability): MiddlewareRoute => ({
@@ -73,6 +91,30 @@ export const adminCapabilityMiddlewares: MiddlewareRoute[] = [
   { matcher: "/admin/products*", method: WRITE, middlewares: [adminAuth, rejectAssistantPriceChange] },
   // Ručné udelenie a odobratie prístupu k digitálnemu obsahu.
   guard("/admin/entitlements*", WRITE, "access"),
+  // Ručné ceny položiek (úprava objednávky, koncept) a zaradenie do skupiny s cenníkom.
+  guard("/admin/order-edits*", WRITE, "pricing"),
+  guard("/admin/draft-orders*", WRITE, "pricing"),
+  guard("/admin/customer-groups*", WRITE, "pricing"),
+  guard("/admin/customers/:id/customer-groups", WRITE, "pricing"),
+  // Nový typ konzultácie nesie cenu; zmenu ceny existujúceho typu overuje route.
+  guard("/admin/booking/types", ["POST"], "pricing"),
+  // Platby: vrátenie peňazí, zachytenie, „zaplatené“, regióny (platobné metódy), dane, obchod.
+  guard("/admin/payments*", WRITE, "payments"),
+  guard("/admin/payment-collections*", WRITE, "payments"),
+  guard("/admin/nexus/orders/:id/refund", WRITE, "payments"),
+  guard("/admin/memberships/billing*", WRITE, "payments"),
+  guard("/admin/regions*", WRITE, "payments"),
+  guard("/admin/stores*", WRITE, "payments"),
+  guard("/admin/tax-rates*", WRITE, "payments"),
+  guard("/admin/tax-regions*", WRITE, "payments"),
+  // Doprava a dopravcovia (vrátane API kľúča dopravcu).
+  guard("/admin/carriers*", WRITE, "shipping"),
+  guard("/admin/shipping-options*", WRITE, "shipping"),
+  guard("/admin/shipping-profiles*", WRITE, "shipping"),
+  guard("/admin/fulfillment-sets*", WRITE, "shipping"),
+  guard("/admin/stock-locations*", WRITE, "shipping"),
+  // Dĺžka členstva určuje, ako dlho má zákazník prístup k obsahu.
+  guard("/admin/memberships/products*", WRITE, "access"),
   // Role, 2FA ostatných a tajné API kľúče (kľúč by obišiel kontrolu role).
   guard("/admin/api-keys*", ALL, "roles"),
   guard("/admin/nexus/admin-roles", WRITE, "roles"),

@@ -28,9 +28,11 @@ export type AdminCapability =
   | "orders"
   | "customers"
   | "content"
+  | "payments"     // vrátenie peňazí, označenie ako zaplatené, regióny, dane, nastavenie obchodu
+  | "shipping"     // doprava, dopravcovia a ich API kľúče
 
 const CAPABILITIES: Record<AdminRole, AdminCapability[]> = {
-  owner: ["pricing", "access", "roles", "catalog", "orders", "customers", "content"],
+  owner: ["pricing", "access", "roles", "catalog", "orders", "customers", "content", "payments", "shipping"],
   assistant: ["catalog", "orders", "customers", "content"],
 }
 
