@@ -14,6 +14,11 @@ const authService = {
   verifyAuthMfa: jest.fn(async () => ({ id: 'mfa_new', provider: 'totp', status: 'enabled' })),
   disableAuthMfa: jest.fn(async () => ({ id: 'mfa_new', provider: 'totp', status: 'disabled' })),
   generateAuthMfaRecoveryCodes: jest.fn(async () => ({ codes: ['code-1', 'code-2'] })),
+  createAuthMfaChallenge: jest.fn(async () => ({ id: 'ch_1' })),
+  verifyAuthMfaChallenge: jest.fn(async ({ code }: any) => {
+    if (code !== '123456') throw new Error('Invalid MFA verification code')
+    return { id: 'ch_1', completed_at: new Date() }
+  }),
 }
 
 const userService = { retrieveUser: jest.fn(async () => ({ id: 'user_1', email: 'admin@anastasia.test', metadata: {} })) }
@@ -90,10 +95,41 @@ describe('Dvojfaktorové overenie administrátora (TOTP)', () => {
     expect(withCode.res.json.mock.calls[0][0]).toMatchObject({ enabled: false })
   })
 
-  it('vygeneruje nové záložné kódy', async () => {
-    const f = fixture('user_1', { count: 5 })
+  it('vypnutie odmietne nesprávny kód aj cudzí faktor (Medusa pri politike session kód neoverí)', async () => {
+    const wrong = fixture('user_1', { factor_id: 'mfa_1', code: '000000' })
+    await DELETE(wrong.req, wrong.res)
+    expect(wrong.res.status).toHaveBeenCalledWith(400)
+    expect(authService.disableAuthMfa).not.toHaveBeenCalled()
+
+    authService.listAuthMfa.mockImplementationOnce(async () => [])
+    const foreign = fixture('user_1', { factor_id: 'mfa_other', code: '123456' })
+    await DELETE(foreign.req, foreign.res)
+    expect(foreign.res.status).toHaveBeenCalledWith(400)
+    expect(authService.disableAuthMfa).not.toHaveBeenCalled()
+    expect(authService.listAuthMfa).toHaveBeenCalledWith({ id: 'mfa_other', auth_identity_id: 'authid_1' })
+  })
+
+  it('vygeneruje nové záložné kódy len s platným kódom z aplikácie', async () => {
+    const f = fixture('user_1', { count: 5, code: '123456' })
     await RECOVERY(f.req, f.res)
+    expect(authService.verifyAuthMfaChallenge).toHaveBeenCalledWith({ id: 'ch_1', method: 'totp', code: '123456' })
     expect(authService.generateAuthMfaRecoveryCodes).toHaveBeenCalledWith(expect.objectContaining({ count: 5 }))
     expect(f.res.json.mock.calls[0][0]).toEqual({ recovery_codes: ['code-1', 'code-2'] })
+  })
+
+  it('bez kódu alebo s nesprávnym kódom záložné kódy nevzniknú (ukradnutá relácia)', async () => {
+    const missing = fixture('user_1', { count: 5 })
+    await RECOVERY(missing.req, missing.res)
+    expect(missing.res.status).toHaveBeenCalledWith(400)
+
+    const wrong = fixture('user_1', { code: '999999' })
+    await RECOVERY(wrong.req, wrong.res)
+    expect(wrong.res.status).toHaveBeenCalledWith(403)
+
+    authService.listAuthMfa.mockImplementationOnce(async () => [{ id: 'mfa_1', provider: 'totp', status: 'pending' }])
+    const notEnrolled = fixture('user_1', { code: '123456' })
+    await RECOVERY(notEnrolled.req, notEnrolled.res)
+    expect(notEnrolled.res.status).toHaveBeenCalledWith(403)
+    expect(authService.generateAuthMfaRecoveryCodes).not.toHaveBeenCalled()
   })
 })

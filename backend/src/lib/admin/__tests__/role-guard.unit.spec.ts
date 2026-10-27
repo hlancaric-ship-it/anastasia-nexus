@@ -63,3 +63,29 @@ describe('Zábrana zápisu metadát administrátora', () => {
     expect(f.next).toHaveBeenCalled()
   })
 })
+
+describe("prijatie pozvánky len na pozvaný e-mail", () => {
+  const { requireInviteEmail } = require("../role-guard")
+  const run = async (query: any, body: any, invite: any = { email: "Kolega@Example.test" }) => {
+    const validateInviteToken = jest.fn(async () => { if (!invite) throw new Error("invalid"); return invite })
+    const req: any = { query, body, scope: { resolve: () => ({ validateInviteToken }) } }
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() }
+    const next = jest.fn()
+    await requireInviteEmail(req, res, next)
+    return { req, res, next }
+  }
+  it("odmietne iný e-mail, než na ktorý prišla pozvánka", async () => {
+    const r = await run({ token: "tok" }, { email: "boss@example.test" })
+    expect(r.res.status).toHaveBeenCalledWith(403); expect(r.next).not.toHaveBeenCalled()
+  })
+  it("prijme pozvaný e-mail (aj bez e-mailu v tele) a zjednotí ho", async () => {
+    const a = await run({ token: "tok" }, { email: " KOLEGA@example.test " })
+    expect(a.next).toHaveBeenCalled(); expect(a.req.body.email).toBe("kolega@example.test")
+    const b = await run({ token: "tok" }, { first_name: "K" })
+    expect(b.next).toHaveBeenCalled(); expect(b.req.body.email).toBe("kolega@example.test")
+  })
+  it("neplatný alebo chýbajúci token odmietne", async () => {
+    expect((await run({}, {})).res.status).toHaveBeenCalledWith(400)
+    expect((await run({ token: "bad" }, {}, null)).res.status).toHaveBeenCalledWith(400)
+  })
+})

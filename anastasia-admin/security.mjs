@@ -35,7 +35,7 @@ export function securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isO
       if (!loadError) loadError = e.message || 'Zoznam administrátorov sa nepodarilo načítať.';
     }
 
-    const state = { factorId: mfa?.factor_id || '', secret: '', otpauth: '', codes: null, enroll: false, busy: false, msg: null, disableOpen: false };
+    const state = { factorId: mfa?.factor_id || '', secret: '', otpauth: '', codes: null, enroll: false, busy: false, msg: null, disableOpen: false, codesOpen: false };
 
     const box = () => view.querySelector('[data-msg]');
     // Hláška sa drží v stave, aby prežila prekreslenie obrazovky.
@@ -64,6 +64,10 @@ export function securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isO
       <p class="muted">Záložné kódy, ktoré zostali: <b>${esc(String(mfa?.recovery_codes_remaining ?? 0))}</b>. Slúžia na prihlásenie vtedy, keď nemáte telefón s aplikáciou.</p>
       <div class="row"><button type="button" class="btn ghost" id="s-newcodes">Vygenerovať nové záložné kódy</button>
         <button type="button" class="btn ghost danger" id="s-disable">Vypnúť dvojfaktorové overenie</button></div>
+      <form id="s-newcodes-form" ${state.codesOpen ? '' : 'hidden'} style="margin-top:14px">
+        <label for="s-newcodes-code">Na nové záložné kódy vložte šesťmiestny kód z aplikácie</label>
+        <input id="s-newcodes-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="napr. 123456">
+        <button type="submit" class="btn ghost">Vygenerovať kódy</button></form>
       <form id="s-disable-form" ${state.disableOpen ? '' : 'hidden'} style="margin-top:14px">
         <label for="s-disable-code">Na vypnutie vložte šesťmiestny kód z aplikácie</label>
         <input id="s-disable-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="napr. 123456">
@@ -136,11 +140,12 @@ export function securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isO
       } finally { state.busy = false; render(); }
     }
 
-    async function newCodes() {
+    async function newCodes(code) {
       state.busy = true; render();
       try {
-        const data = await api('/admin/nexus/admin-2fa/recovery-codes', { method: 'POST', body: { count: 10 } });
+        const data = await api('/admin/nexus/admin-2fa/recovery-codes', { method: 'POST', body: { count: 10, code: String(code || '').trim() } });
         state.codes = data?.recovery_codes || [];
+        state.codesOpen = false;
         mfa = { ...(mfa || {}), recovery_codes_remaining: state.codes.length };
         render();
         say('Nové záložné kódy sú vygenerované. Predchádzajúce kódy už neplatia.');
@@ -208,7 +213,11 @@ export function securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isO
       const verifyForm = view.querySelector('#s-verify');
       if (verifyForm) verifyForm.onsubmit = (e) => { e.preventDefault(); verify(view.querySelector('#s-code').value); };
       const newBtn = view.querySelector('#s-newcodes');
-      if (newBtn) newBtn.onclick = () => newCodes();
+      const newForm = view.querySelector('#s-newcodes-form');
+      if (newBtn && newForm) {
+        newBtn.onclick = () => { state.codesOpen = !state.codesOpen; render(); if (state.codesOpen) view.querySelector('#s-newcodes-code')?.focus(); };
+        newForm.onsubmit = (e) => { e.preventDefault(); newCodes(view.querySelector('#s-newcodes-code').value); };
+      }
       const disBtn = view.querySelector('#s-disable');
       const disForm = view.querySelector('#s-disable-form');
       if (disBtn && disForm) {

@@ -94,6 +94,11 @@ export async function disableTotpFactor(
   input: { factor_id: string; code: string },
 ) {
   const service = authService(scope)
+  // Faktor musí patriť prihlásenej identite a kód sa overí vždy – nezávisle od politiky
+  // vypínania v konfigurácii Medusy (pri inej než `challenge` by Medusa kód neoverila).
+  const [factor] = (await service.listAuthMfa({ id: input.factor_id, auth_identity_id: identity.auth_identity_id })) ?? []
+  if (!factor) throw new Error("MFA_FACTOR_NOT_FOUND")
+  if (!(await confirmTotpCode(scope, identity, input.code))) throw new Error("MFA_CODE_INVALID")
   return service.disableAuthMfa({ id: input.factor_id, method: MFA_PROVIDER_TOTP, code: input.code })
 }
 
@@ -109,4 +114,22 @@ export async function regenerateRecoveryCodes(
     count,
   })
   return codes as string[]
+}
+
+/**
+ * Opätovné overenie kódom z aplikácie pred citlivou zmenou (nové záložné kódy).
+ * Ukradnutý token relácie bez telefónu tak nové záložné kódy nevyrobí. Bez zapnutého 2FA vráti false.
+ */
+export async function confirmTotpCode(scope: MedusaContainer, identity: MfaIdentity, code: string): Promise<boolean> {
+  if (!identity.auth_identity_id || !/^\d{6,8}$/.test(code)) return false
+  const service = authService(scope)
+  const factors = (await service.listAuthMfa({ auth_identity_id: identity.auth_identity_id })) ?? []
+  if (!factors.some((factor: any) => factor.status === "enabled")) return false
+  try {
+    const challenge = await service.createAuthMfaChallenge({ auth_identity_id: identity.auth_identity_id })
+    const verified = await service.verifyAuthMfaChallenge({ id: challenge.id, method: MFA_PROVIDER_TOTP, code })
+    return Boolean(verified?.completed_at)
+  } catch {
+    return false
+  }
 }

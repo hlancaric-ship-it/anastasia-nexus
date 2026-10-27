@@ -1,4 +1,6 @@
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { Modules } from "@medusajs/framework/utils"
+import { normalizeEmail } from "../../modules/auth-magic-link/policy"
 import { adminActor } from "../observability/audit"
 import { resolveAdminRole } from "./roles"
 
@@ -42,4 +44,34 @@ export async function protectAdminUserCreation(
   const role = await resolveAdminRole(req.scope as never, actor)
   if (role === "owner") return next()
   res.status(403).json({ message: "Nového administrátora môže pridať iba vlastník administrácie." })
+}
+
+/**
+ * Prijatie pozvánky len na e-mail, na ktorý pozvánka znie.
+ *
+ * Natívne `POST /admin/invites/accept` berie `email` z tela (`input.user.email ?? invite.email`),
+ * takže by pozvaný založil účet správcu na ľubovoľný e-mail. Overenie tokenu robí modul používateľov,
+ * neplatný token prenechá natívnej trase (odmietne ho).
+ */
+export async function requireInviteEmail(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction,
+): Promise<void> {
+  const token = typeof (req.query as any)?.token === "string" ? (req.query as any).token : ""
+  if (!token || token.length > 4096) return void res.status(400).json({ message: "Pozvánka je neplatná alebo vypršala." })
+  let invite: { email?: string } | null = null
+  try {
+    invite = await (req.scope.resolve(Modules.USER) as any).validateInviteToken(token)
+  } catch {
+    return void res.status(400).json({ message: "Pozvánka je neplatná alebo vypršala." })
+  }
+  const invited = normalizeEmail(invite?.email)
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const given = body.email == null || body.email === "" ? invited : normalizeEmail(body.email)
+  if (!invited || given !== invited) {
+    return void res.status(403).json({ message: "Účet sa dá založiť len na e-mail, na ktorý prišla pozvánka." })
+  }
+  body.email = invited
+  return next()
 }

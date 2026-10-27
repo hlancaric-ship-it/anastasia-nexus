@@ -20,11 +20,12 @@ import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
 import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
 import { customerCreateMiddlewares } from "./store/customers/create-guard"
+import { adminCapabilityMiddlewares } from "./admin-capability-middlewares"
 import { membershipStoreMiddlewares } from "./store/memberships/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
 import { feedAdminMiddlewares } from "./admin/feeds/middlewares"
 import { carrierAdminMiddlewares } from "./admin/carriers/middlewares"
-import { protectAdminRoleMetadata, protectAdminUserCreation } from "../lib/admin/role-guard"
+import { protectAdminRoleMetadata, protectAdminUserCreation, requireInviteEmail } from "../lib/admin/role-guard"
 import { pageAdminMiddlewares } from "./admin/pages/middlewares"
 import { mediaAdminMiddlewares } from "./admin/media/middlewares"
 import { contentAdminMiddlewares } from "./admin/content/middlewares"
@@ -79,6 +80,8 @@ export default defineMiddlewares({
     ...pageAdminMiddlewares,
     ...mediaAdminMiddlewares,
     ...contentAdminMiddlewares,
+    // Serverová hranica rolí: asistent nemení ceny, kupóny, poukazy, prístupy ani API kľúče.
+    ...adminCapabilityMiddlewares,
     // Rola administrátora (metadata.anastasia_role) a zakladanie nových účtov:
     // iba vlastník. Bez toho by asistent prepísal metadáta a zvýšil si práva.
     {
@@ -93,6 +96,12 @@ export default defineMiddlewares({
     },
     // Pozvánka založí účet s predvolenou rolou `owner` a zmazaním by asistent
     // mohol odstrániť vlastníka – oboje iba vlastník (accept rieši pozvaný sám).
+    // Pozvánka sa prijíma len na pozvaný e-mail (natívna trasa by prijala ľubovoľný).
+    {
+      matcher: "/admin/invites/accept",
+      method: ["POST"],
+      middlewares: [requireInviteEmail],
+    },
     {
       matcher: "/admin/invites",
       method: ["POST"],

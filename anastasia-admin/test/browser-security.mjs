@@ -50,6 +50,8 @@ await page.route('**/admin/nexus/admin-2fa**', async (route) => {
     return apiJson(route, { enabled: true, recovery_codes: state.codes });
   }
   if (req.method() === 'POST' && url.pathname.endsWith('/recovery-codes')) {
+    const body = req.postDataJSON() || {};
+    if (String(body.code || '').trim() !== '123456') return route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ message: 'Kód z aplikácie sa nepodarilo overiť.' }) });
     state.codes = ['N1EW-C0DE', 'V2AL-UE01', 'X3MP-LE02'];
     return apiJson(route, { recovery_codes: state.codes });
   }
@@ -120,6 +122,13 @@ try {
 
   // nové záložné kódy
   await page.click('#s-newcodes');
+  await page.waitForSelector('#s-newcodes-form:not([hidden])');
+  await page.fill('#s-newcodes-code', '000000');
+  await page.click('#s-newcodes-form button[type=submit]');
+  await page.waitForTimeout(700);
+  assert((await page.locator('#view').innerText()).includes('nepodarilo overiť'), 'nové kódy bez platného kódu neboli odmietnuté');
+  await page.fill('#s-newcodes-code', '123456');
+  await page.click('#s-newcodes-form button[type=submit]');
   await page.waitForTimeout(700);
   assert((await page.locator('#view').innerText()).includes('N1EW-C0DE'), 'nové záložné kódy sa nevygenerovali');
 
