@@ -1237,3 +1237,20 @@ html body .ana-bf-off>img.brand-seal{display:none!important}
 #page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-chap:not(:has(h2,h3,ul,ol,.lan-cards)) p{max-width:none}
 @media (max-width:900px){#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-chap>div{column-count:1!important}}
 }
+
+/* Detail konzultácie: paleta ako na stránke Denný stacionár (šedomodrá, olivová, svetlá zelená, zlatá, biela). */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .legacy-main:has(>.cv2){background:url(/img/organic-lines.svg) center top/max(1600px,100vw) auto repeat-y,linear-gradient(180deg,var(--lav-3,#E9E9F2) 0%,var(--paper,#F7F4EC) 46%,#F0E5CB 100%)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-card{background:rgba(253,251,247,.92)!important;border-color:rgba(115,114,156,.16)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-book{background:var(--lav-3,#E9E9F2)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-info>.cv2-card:nth-child(1){background:var(--lav-3,#E9E9F2)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-info>.cv2-card:nth-child(2){background:var(--olive,#2F3424)!important;border-color:var(--olive,#2F3424)!important;color:#F7F4EC!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-info>.cv2-card:nth-child(2) :is(h2,h3,li,p,summary,span,.eyebrow){color:#F7F4EC!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-info>.cv2-card:nth-child(2) :is(.eyebrow,.cv2-steps__no){color:#D9C28A!important;border-color:#D9C28A!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-info>.cv2-card:nth-child(2) :is(p,.cv2-steps p){color:rgba(247,244,236,.78)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-info>.cv2-card:nth-child(3){background:var(--mist,#E4E6D6)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-story>.cv2-card:nth-child(odd){background:rgba(253,251,247,.95)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-story>.cv2-card:nth-child(even){background:#F3E9D0!important;border-color:rgba(201,165,92,.35)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-chap .lan-card{background:rgba(255,255,255,.7)!important}
+#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-steps__no{border-color:#C9A55C;color:#8a6d2e}
+}

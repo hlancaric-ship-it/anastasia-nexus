@@ -5,7 +5,7 @@ Stav: zadání, návrh a odhad. Nad rámec Fáze 1 se dělá po jejím písemné
 ## Hotovo dnes
 | Požadavek | Stav |
 |---|---|
-| Osobní odběr je lékárna (Zdravá lekáreň, Sokolská 88, 960 01 Zvolen) | hotovo a nasazeno |
+| Osobní odběr je lékárna (Lekáreň ANASTASIA, Vyšná Slaná 259, 049 26 Vyšná Slaná) | hotovo a nasazeno |
 | QR kód na bankovní účet (PAY by square, SPAYD) | hotovo a nasazeno, ověřeno objednávkou č. 65, v aplikaci banky neověřeno |
 | Upozornění na objednávky, kontakt a chat chodí Lucii | hotovo |
 
