@@ -1191,3 +1191,8 @@ html body select:-webkit-autofill{
 .ty-qr__code svg{width:min(240px,70vw);height:auto;display:block;margin:0 auto;border-radius:12px}
 .ty-qr figcaption{font-size:13px;margin-top:10px;color:#686868}
 .ty-qr-cz{margin-top:16px;text-align:center}.ty-qr-cz summary{cursor:pointer;font-size:13px;color:#686868}.ty-qr-cz .ty-qr__code{margin-top:10px}
+
+/* Přihlášení: béžové pozadí se na pravém okraji plynule rozpustí do bílé krémové, bez ostré hrany. */
+@layer shopv2{
+#page-shell#page-shell.kc-unified .legacy-main .lg-page{background:linear-gradient(90deg,#EFEADD 0,#EFEADD 62%,#F7F4EC 100%)!important}
+}
