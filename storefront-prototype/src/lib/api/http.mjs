@@ -222,8 +222,17 @@ export function createHttpApi(storage, config) {
     let ids = productCache.get(code);
     if (!ids) {
       const r = await call(`/store/products?handle=${encodeURIComponent(code)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
-      const p = r.data?.products?.[0];
+      let p = r.data?.products?.[0];
       ids = p ? (p.variants || []).map(v => v.id).filter(Boolean) : [];
+      // QR odkazy zo starého webu nesú kód produktu (SKU, napr. EP.002), nie adresu produktu.
+      if (!ids.length && /^[A-Za-z]{1,4}\.\d{1,4}$/.test(code)) {
+        const all = await call(`/store/products?limit=100&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
+        const wantedSku = code.toLowerCase();
+        for (const x of all.data?.products || []) {
+          const exact = (x.variants || []).find(v => String(v.sku || '').toLowerCase() === wantedSku);
+          if (exact?.id) { ids = [exact.id]; break; }
+        }
+      }
       if (ids.length) productCache.set(code, ids);
     }
     // Zvolený variant musí patriť tomuto produktu, inak berieme prvý.
