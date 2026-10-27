@@ -167,7 +167,7 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
 .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child{justify-content:center!important;padding-block:clamp(40px,6vw,88px)!important;gap:clamp(22px,2.6vw,38px)!important;color:#403f62!important}
 .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child :is(a,div,h1,p,span){color:#403f62!important}
 .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child h1{font-size:clamp(55px,6vw,112px)!important;line-height:.98!important}
-.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(480px,70svh,820px)!important}
+.dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(480px,70svh,820px)!important;border-radius:120px 0 0 0!important;overflow:hidden!important;background-position:50% 22%!important}
 .dc-root section[data-screen-label="01b Dôvera"]{background:#e9e9f2!important;color:#403f62!important;padding-block:clamp(30px,4vw,56px)!important;margin-bottom:0!important}
 .dc-root section[data-screen-label="02 O mne"]{background:#fff!important;color:#403f62!important;padding-top:clamp(36px,5vw,68px)!important;margin-top:0!important}
 .dc-root section[data-screen-label="03 Citát"]{background:#e9e9f2!important;color:#403f62!important;border-color:#a7a5cf!important}
@@ -183,7 +183,7 @@ body.lh-intro-page :is(#lh-reset,#lh-sky,#lh-stack) .lh-display{font-family:Frau
 @media(max-width:699.98px){
  .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]{grid-template-columns:minmax(0,1fr)!important}
  .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:first-child{padding:42px 22px!important}
- .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(420px,112vw,560px)!important}
+ .dc-root section[data-screen-label="01 Úvod"]>div[style*="display:grid"]>div:last-child{min-height:clamp(420px,112vw,560px)!important;width:92%!important;margin-left:auto!important;border-radius:80px 0 0 0!important}
 }
 
 /* Finish the public theme after the legacy and generated design sheets. */
