@@ -3640,7 +3640,23 @@ async function vPripojenia(view) {
         ${c.active && c.key_hint ? `<span class="rc-f"><em>API kľúč</em>${esc(c.key_hint)}</span>` : ''}</div>
         <p class="muted" style="font-size:12px;margin:8px 0 0">${esc(c.hint)}</p>
       </div></label>`).join('')}</div>`;
+  const pohoda = feedsR?.pohoda || {
+    enabled: true,
+    mode: 'direct_xml',
+    url: `${API}/admin/feeds?format=pohoda`,
+    hint: 'Do Pohody sa automaticky prenášajú výhradne uhradené daňové doklady (FA). Nedokončené objednávky, storná ani nezaplatené zálohové faktúry (ZF) do účtovníctva nevstupujú.',
+  };
   view.innerHTML = `<div id="pm-msg"></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-h">Účtovníctvo (STORMWARE POHODA)</div><div class="card-b">
+      <p class="muted" style="margin-top:0">${esc(pohoda.hint)}</p>
+      <div class="rc"><div class="rc-body">
+        <div class="rc-title">STORMWARE POHODA XML 2.0</div>
+        <div class="rc-fields">
+          <span class="rc-f"><em>Režim</em><span class="pill ok">${pohoda.mode === 'mserver_auto' ? 'Automatický prenos (mServer)' : 'Priame napojenie (iba uhradené FA)'}</span></span>
+          <span class="rc-f"><em>Číselný rad</em><code>FA (uhradené) / ZF (zálohové mimo účtovníctva)</code></span>
+        </div>
+      </div></div>
+    </div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h">Produktové feedy</div><div class="card-b">
       <p class="muted" style="margin-top:0">Feed si porovnávač stiahne sám z odkazu – nič netreba nahrávať. Vo feede sú len zverejnené produkty v predajnom kanáli, s cenou s DPH.</p>
       ${feedsHtml}

@@ -63,10 +63,17 @@ export const cents = (value: number) => Math.round((value + Number.EPSILON) * 10
 const text = (value: unknown) => (typeof value === "string" ? value.trim() : "")
 const rateOf = (lines?: TaxLine[] | null) => cents((lines ?? []).reduce((sum, line) => sum + num(line.rate), 0))
 
-export function invoiceNumber(order: Pick<InvoiceOrder, "display_id" | "created_at">): string {
+const VALID_FA_NUMBER_RE = /^FA\d{10}$/
+
+export function invoiceNumber(order: Pick<InvoiceOrder, "display_id" | "created_at" | "metadata">, paid = true): string {
+  if (paid) {
+    const persisted = text(order.metadata?.invoice_number)
+    if (VALID_FA_NUMBER_RE.test(persisted)) return persisted
+  }
   const id = String(num(order.display_id) || "").replace(/\D/g, "")
   const year = new Date(order.created_at ?? Date.now()).getUTCFullYear()
-  return `FA${year}${id.padStart(6, "0")}`
+  const prefix = paid ? "FA" : "ZF"
+  return `${prefix}${year}${id.padStart(6, "0")}`
 }
 
 const METHOD_LABEL: Record<string, string> = {
@@ -121,7 +128,7 @@ export function buildInvoiceModel(order: InvoiceOrder, now = new Date()): Invoic
   const issued = paid && capturedAt ? new Date(capturedAt) : created
   const customer = address(order)
   return {
-    number: invoiceNumber(order),
+    number: invoiceNumber(order, paid),
     kind: paid ? "invoice" : "proforma",
     issued,
     due: paid ? null : new Date(created.getTime() + 2 * 24 * 3600 * 1000),

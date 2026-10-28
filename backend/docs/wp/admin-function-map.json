@@ -1293,7 +1293,7 @@
       ],
       "feature": "product-feeds",
       "source": "backend/src/api/admin/feeds/route.ts",
-      "sha256": "f9bb2b30b7f790dfc4c19eda0d2bbf458dd19a4ea47abd571ce2a03cb9198562"
+      "sha256": "aec36221eb4b205428e664b23b4db06a25a1fee742f7a4375c8f6a742963fba2"
     },
     {
       "path": "/admin/media",
@@ -1602,7 +1602,7 @@
       ],
       "feature": "invoices",
       "source": "backend/src/api/admin/orders/[id]/invoice/route.ts",
-      "sha256": "39b0387f5734a26dc44529afec7283df3c10f4be38ee99b7363bc3b25dde270d"
+      "sha256": "2c93883bd7897dd007ad9c8ab6bd9ce9e276cc0a58fc76e3f7474401cbe996c5"
     },
     {
       "path": "/admin/pages",
