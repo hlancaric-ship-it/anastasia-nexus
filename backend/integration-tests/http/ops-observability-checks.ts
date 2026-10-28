@@ -9,7 +9,7 @@ import { signEdgeBatch } from "../../src/modules/ops-audit/edge-ingest"
  */
 export async function verifyOpsObservability({ api, container, options, evidence, bookingRan }: any) {
   const [user] = await container.resolve(Modules.USER).createUsers([{ email: "ops-admin@example.test" }])
-  const token = generateJwtToken({ actor_id: user.id, actor_type: "user", auth_identity_id: `synthetic-${user.id}`, app_metadata: { user_id: user.id } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
+  const token = generateJwtToken({ actor_id: user.id, actor_type: "user", auth_identity_id: `synthetic-${user.id}`, app_metadata: { user_id: user.id, session_epoch: 0 } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
   const admin = { ...options, headers: { Authorization: `Bearer ${token}` } }
 
   // Admin čtení logů jen pro správce.

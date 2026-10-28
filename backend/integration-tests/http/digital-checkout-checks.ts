@@ -8,7 +8,7 @@ export async function verifyDigitalCheckout({ api, container, options, newCart, 
   const customers = await container.resolve(Modules.CUSTOMER).createCustomers([
     { email: "digital-owner@example.test" }, { email: "digital-other@example.test" },
   ])
-  const auth = customers.map((c: any) => ({ Authorization: `Bearer ${generateJwtToken({ actor_id: c.id, actor_type: "customer", auth_identity_id: `synthetic-${c.id}` }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` }))
+  const auth = customers.map((c: any) => ({ Authorization: `Bearer ${generateJwtToken({ actor_id: c.id, actor_type: "customer", auth_identity_id: `synthetic-${c.id}`, app_metadata: { customer_id: c.id, session_epoch: 0 } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` }))
   const opts = auth.map((headers: any) => ({ ...options, headers: { ...options.headers, ...headers } }))
   const mediaKey = "synthetic-reset/lesson-01.m3u8"
   await container.resolve(Modules.PRODUCT).updateProducts(product.id, { metadata: { booking: null, entitlement: true, protected_media: [{ key: mediaKey }] } })

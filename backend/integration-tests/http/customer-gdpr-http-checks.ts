@@ -4,7 +4,7 @@ import { stateKey, sha256Hex } from "../../src/modules/auth-magic-link/policy"
 /** Synthetic only. The integrator invokes this inside the serial CI Medusa/PG runner. */
 export async function verifyCustomerGdpr({api,container,options,newCart,evidence}:any) {
  const customers=await container.resolve(Modules.CUSTOMER).createCustomers([{email:"privacy-owner@example.test",first_name:"Synthetic",last_name:"Privacy",phone:"synthetic-phone"},{email:"privacy-other@example.test",first_name:"Other"}])
- const jwt=(id:string,type="customer")=>generateJwtToken({actor_id:id,actor_type:type,auth_identity_id:`synthetic-${id}`,app_metadata:{[`${type}_id`]:id}},{secret:process.env.JWT_SECRET!,expiresIn:"1h"})
+ const jwt=(id:string,type="customer")=>generateJwtToken({actor_id:id,actor_type:type,auth_identity_id:`synthetic-${id}`,app_metadata:{[`${type}_id`]:id,session_epoch:0}},{secret:process.env.JWT_SECRET!,expiresIn:"1h"})
  const opts=customers.map((c:any)=>({...options,headers:{...options.headers,Authorization:`Bearer ${jwt(c.id)}`}}))
  const [user]=await container.resolve(Modules.USER).createUsers([{email:"privacy-admin@example.test"}])
  const admin={...options,headers:{Authorization:`Bearer ${jwt(user.id,"user")}`}}

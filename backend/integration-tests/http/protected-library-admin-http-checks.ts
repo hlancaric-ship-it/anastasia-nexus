@@ -10,7 +10,7 @@ export async function verifyProtectedLibraryAdmin({api,container,options,evidenc
   ])
   const [user]=await container.resolve(Modules.USER).createUsers([{email:'library-admin@example.test'}])
   const [customer]=await container.resolve(Modules.CUSTOMER).createCustomers([{email:'library-customer@example.test'}])
-  const auth=(id:string,type:string)=>({...options,headers:{...options.headers,Authorization:`Bearer ${generateJwtToken({actor_id:id,actor_type:type,auth_identity_id:`synthetic-${id}`,...(type==='user'?{app_metadata:{user_id:id}}:{})},{secret:process.env.JWT_SECRET!,expiresIn:'1h'})}`}})
+  const auth=(id:string,type:string)=>({...options,headers:{...options.headers,Authorization:`Bearer ${generateJwtToken({actor_id:id,actor_type:type,auth_identity_id:`synthetic-${id}`,app_metadata:{[`${type}_id`]:id,session_epoch:0}},{secret:process.env.JWT_SECRET!,expiresIn:'1h'})}`}})
   const admin=auth(user.id,'user'),buyer=auth(customer.id,'customer'),path=`/admin/products/${product.id}/protected-media`
   for(const opts of [options,buyer]) {
     expect((await api.get(path,opts)).status).toBe(401)

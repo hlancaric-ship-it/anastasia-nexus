@@ -27,7 +27,7 @@ import { asValue } from "@medusajs/framework/awilix"
 import type { IPromotionModuleService } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
-import bootstrap, { API_KEY_TITLE, SALES_CHANNEL_NAME, DIGITAL_PROFILE_NAME } from "../../src/scripts/anastasia-bootstrap"
+import bootstrap, { API_KEY_TITLE, SALES_CHANNEL_NAME, DIGITAL_PROFILE_NAME, REGION_NAME } from "../../src/scripts/anastasia-bootstrap"
 
 jest.setTimeout(600_000)
 const root = process.env.WAVE1_SYNTHETIC_ROOT
@@ -69,7 +69,7 @@ medusaIntegrationTestRunner({
       const key = await entity("api_key", { title: API_KEY_TITLE }, ["token"])
       const channel = await entity("sales_channel", { name: SALES_CHANNEL_NAME }, ["id"])
       const profile = await entity("shipping_profile", { name: DIGITAL_PROFILE_NAME }, ["id"])
-      const region = await entity("region", { name: "Slovensko" }, ["id"])
+      const region = await entity("region", { name: REGION_NAME }, ["id"])
       const { result: products } = await createProductsWorkflow(container).run({ input: { products: [50, 400].map((amount) => ({
         title: `Synthetic P0 ${amount}`, handle: `synthetic-p0-${amount}`, status: "published", shipping_profile_id: profile.id,
         sales_channels: [{ id: channel.id }], options: [{ title: "Default", values: ["Default"] }],

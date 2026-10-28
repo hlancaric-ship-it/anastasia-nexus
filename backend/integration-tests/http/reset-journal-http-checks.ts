@@ -12,7 +12,7 @@ import { stateKey, sha256Hex } from "../../src/modules/auth-magic-link/policy"
 export async function verifyResetJournal({ api, container, options, evidence }: any) {
   const record = (scenario: string, extra: Record<string, unknown> = {}) => evidence.push({ scenario: `ZRK_${scenario}`, status: "PASS", ...extra })
   const jwt = (id: string, type = "customer") =>
-    generateJwtToken({ actor_id: id, actor_type: type, auth_identity_id: `synthetic-${id}`, app_metadata: { [`${type}_id`]: id } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
+    generateJwtToken({ actor_id: id, actor_type: type, auth_identity_id: `synthetic-${id}`, app_metadata: { [`${type}_id`]: id, session_epoch: 0 } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
   const as = (id: string, type = "customer") => ({ ...options, headers: { ...options.headers, Authorization: `Bearer ${jwt(id, type)}` } })
 
   const db = container.resolve(ContainerRegistrationKeys.PG_CONNECTION)

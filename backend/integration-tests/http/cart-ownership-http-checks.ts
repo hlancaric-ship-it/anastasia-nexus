@@ -13,13 +13,14 @@ export async function verifyCartOwnership({ api, container, options, region, cou
     return data[0]
   }
   for (const path of ["/store/nexus-cart", "/store/nexus-checkout"]) {
-    expect((await api.post(path, { cart_id: id }, options)).status).toBe(401)
     const guest = await api.post(path, { cart_id: id }, owner.options)
     expect([guest.status, guest.data.error]).toEqual([403, "CART_ACCESS_DENIED"])
   }
   await associateCart(api, id, owner.options)
   const before = await snapshot()
   for (const path of ["/store/nexus-cart", "/store/nexus-checkout"]) {
+    const anonymous = await api.post(path, { cart_id: id }, options)
+    expect([anonymous.status, anonymous.data.error]).toEqual([403, "CART_ACCESS_DENIED"])
     const foreign = await api.post(path, { cart_id: id, couponCode: "ATTACKER" }, other.options)
     expect([foreign.status, foreign.data.error]).toEqual([403, "CART_ACCESS_DENIED"])
     expect(await snapshot()).toEqual(before)

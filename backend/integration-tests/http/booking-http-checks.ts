@@ -11,7 +11,7 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
   const customers = container.resolve(Modules.CUSTOMER)
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
   const actors = await customers.createCustomers([{ email: "booking-a@example.test" }, { email: "booking-b@example.test" }])
-  const auth = actors.map((customer: any) => ({ Authorization: `Bearer ${generateJwtToken({ actor_id: customer.id, actor_type: "customer", auth_identity_id: `synthetic-${customer.id}` }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` }))
+  const auth = actors.map((customer: any) => ({ Authorization: `Bearer ${generateJwtToken({ actor_id: customer.id, actor_type: "customer", auth_identity_id: `synthetic-${customer.id}`, app_metadata: { customer_id: customer.id, session_epoch: 0 } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` }))
   const opts = auth.map((headers: any) => ({ ...options, headers: { ...options.headers, ...headers } }))
   await container.resolve(Modules.PRODUCT).updateProducts(product.id, { metadata: { booking: {
     durationMinutes: 60, bufferMinutes: 15, stepMinutes: 30,
@@ -150,7 +150,7 @@ export async function verifyBookingHttp({ api, container, options, newCart, prod
  */
 async function verifySharedCalendarAdmin({ api, container, options, opts, product, raceHolds, evidence }: any) {
   const [user] = await container.resolve(Modules.USER).createUsers([{ email: "lucia-admin@example.test" }])
-  const adminToken = generateJwtToken({ actor_id: user.id, actor_type: "user", auth_identity_id: `synthetic-${user.id}`, app_metadata: { user_id: user.id } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
+  const adminToken = generateJwtToken({ actor_id: user.id, actor_type: "user", auth_identity_id: `synthetic-${user.id}`, app_metadata: { user_id: user.id, session_epoch: 0 } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
   const admin = { ...options, headers: { Authorization: `Bearer ${adminToken}` } }
   // Admin API nepřijme zákaznický token ani anonymní volání.
   expect((await api.get("/admin/booking/types", opts[0])).status).toBe(401)
