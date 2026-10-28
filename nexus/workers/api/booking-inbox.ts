@@ -79,10 +79,11 @@ export async function consumeBookingInbox(env: Env, scheduledTime: number, fetch
     const at = new Date(scheduledTime).toISOString();
     const context = { tenantId: config.tenantId, platform: 'medusa' as const };
     const store = new D1ExecutionIntentStore(env.DB);
+    // Nové události mají přednost: neřešitelné UNKNOWN řádky se jinak točí dokola a blokují čerstvé rezervace.
     const rows = await env.DB.prepare(`SELECT event_type, event_id, target_id, operation_id FROM medusa_webhook_inbox
         WHERE tenant_id = ? AND event_type IN ('order.placed', 'order.canceled', 'payment.captured') AND processing_state IN ('RECEIVED', 'PROCESSING')
         AND julianday(received_at) <= julianday(?)
-        ORDER BY julianday(COALESCE(processing_updated_at, received_at)), event_id LIMIT 2`).bind(config.tenantId, at).all<Row>();
+        ORDER BY CASE processing_state WHEN 'RECEIVED' THEN 0 ELSE 1 END, julianday(COALESCE(processing_updated_at, received_at)), event_id LIMIT 2`).bind(config.tenantId, at).all<Row>();
     for (const row of rows.results) {
         try {
             if (!ID.test(row.event_id) || !ID.test(row.target_id)) throw new Error('INVALID_BOOKING_EVENT');

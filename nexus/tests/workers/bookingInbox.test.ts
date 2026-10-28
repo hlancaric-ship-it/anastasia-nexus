@@ -175,3 +175,15 @@ it.each([{targetId:'pay_other'},{eventType:'order.placed'},{orderId:null},{versi
     await consumeBookingInbox(f.config,now,f.request as typeof fetch);
     expect(await f.store.findById(f.tenant,f.id)).toMatchObject({state:'UNKNOWN'});
 });
+
+it('processes a fresh event before older unresolved retries', async () => {
+    const f = await fixture();
+    for(const suffix of ['a','b']) await env.DB.prepare(`INSERT INTO medusa_webhook_inbox(tenant_id,event_id,event_type,target_id,envelope_hash,processing_state,processing_updated_at,received_at)
+        VALUES (?,?,'order.placed',?,?,'PROCESSING',?,?)`).bind(f.tenant,`evt_stuck_${suffix}`,`order_stuck_${suffix}`,'c'.repeat(64),'2026-10-16T09:00:00.000Z','2026-10-16T08:00:00.000Z').run();
+    f.request.mockImplementation(async (_url, options) => {
+        if (JSON.parse(options.body as string).orderId !== f.order) throw new Error('synthetic-unreachable-order');
+        return f.reply({});
+    });
+    await consumeBookingInbox(f.config,now,f.request as typeof fetch);
+    expect(await f.inbox()).toMatchObject({ processing_state: 'PROCESSED', operation_id: f.id });
+});
