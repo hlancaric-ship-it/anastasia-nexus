@@ -1,6 +1,5 @@
 /* Stránka Novinky a výsuvný panel (návrh schválený 28. 10.). Hlbka = glass, zlaté linie, nové zlaté logo. */
-.nv{--nv-olive:#2F3424;--nv-gold:#C9A55C;--nv-gold-d:#9a7630;--nv-lav:#6b6a9c;--nv-lav2:#A7A5CF;--nv-ink:#2A2F21;--nv-muted:#55594a;--nv-script:"Snell Roundhand","Segoe Script","Apple Chancery","Brush Script MT",cursive;
- position:relative;overflow-x:clip;color:var(--nv-ink);font-family:Figtree,"Helvetica Neue",sans-serif;
+.nv{--nv-olive:#2F3424;--nv-gold:#C9A55C;--nv-gold-d:#9a7630;--nv-lav:#6b6a9c;--nv-lav2:#A7A5CF;--nv-ink:#2A2F21;--nv-muted:#55594a; position:relative;overflow-x:clip;color:var(--nv-ink);font-family:Figtree,"Helvetica Neue",sans-serif;
  background:url(/img/organic-lines.svg) center top/1500px auto repeat-y,url(/img/organic-lines.svg) 30% 40%/2100px auto repeat-y,linear-gradient(180deg,#d3dcea 0%,#e4e7ee 22%,#efe6cf 48%,#dfe3ec 72%,#e9d9aa 100%)}
 .nv *{box-sizing:border-box}
 .nv h1,.nv h2,.nv h3{font-family:Fraunces,Georgia,serif;font-weight:300;letter-spacing:-.04em;margin:0;line-height:1.02;color:var(--nv-ink)}
@@ -69,7 +68,7 @@
 .nv-x{position:absolute;top:30px;right:22px;width:34px;height:34px;border-radius:50%;border:1px solid #ffffffb0;background:#ffffff99;color:var(--nv-lav);font-size:18px;line-height:30px;text-align:center;z-index:3;cursor:pointer;padding:0}
 .nv-head{position:relative;padding:46px 34px 16px 112px}.nv-head .nv-leaf{top:70px;right:6px;width:70px;transform:rotate(18deg)}
 .nv-lbl{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--nv-gold-d);margin:0 0 4px}
-.nv-head h2{font-size:36px;line-height:1.05;white-space:nowrap}.nv-head h2 em{font-family:var(--nv-script);font-style:normal;font-weight:400;font-size:1.2em;letter-spacing:0;color:#7f7eb0;line-height:.9}
+.nv-head h2{font-size:36px;line-height:1.05;white-space:nowrap}.nv-head h2 em{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:300;font-size:1.12em;letter-spacing:-.04em;color:#7f7eb0}
 .nv-feed{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a7a5cf transparent}
 .nv-it{display:block;position:relative;padding:20px 30px 20px 46px;color:inherit;text-decoration:none;background:#ffffff1f;overflow:hidden}
 .nv-it h3{font-size:19px;line-height:1.2;margin:2px 0 4px}.nv-it p{margin:0;font-size:13.5px;color:#2f3424}.nv-it .nv-n{color:#B8903F}
