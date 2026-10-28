@@ -2221,7 +2221,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "0e3f05560c37326fb7ddf57e0fda61533566eb812b13137093192974131187f9"
+      "sha256": "cad520cfc8dabeed3083bd44f01ba201f9125698467137a963c7b1a73de1cb53"
     },
     {
       "path": "/store/nexus-checkout",
@@ -2230,7 +2230,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "733d6ab7d13fd930031f03de0ba42df4e35c98a9215e4f755b1439d4495d7fa3"
+      "sha256": "6da1cc3e44b93fa589652b8b717e97b65a33c4f2c27aa4a270853aaea903ab42"
     },
     {
       "path": "/store/nexus-checkout/free-shipping",

@@ -1,5 +1,6 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { updateCartWorkflow } from "@medusajs/medusa/core-flows"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { COUPON_LINK_MODULE } from ".."
 import type CouponLinkModuleService from "../service"
 
@@ -46,6 +47,16 @@ medusaIntegrationTestRunner({ dbName, testSuite: ({ getContainer }) => {
     expect(await db()("promotion").where({ id: "promo_c3_race" }).first("used")).toMatchObject({ used: 1 })
 
     const winner = successes[0].value
+    expect(await service().listCouponUsageReservations(
+      { cart_id: winner.cart_id }, { select: ["promotion_id", "coupon_code", "status"], take: 1 },
+    )).toEqual([expect.objectContaining({ promotion_id: "promo_c3_race", coupon_code: "C3-RACE", status: "reserved" })])
+
+    // Medusa merges metadata: deleting a local key does not clear it; explicit null does.
+    const carts = getContainer().resolve(Modules.CART) as any
+    const channel = await (getContainer().resolve(Modules.SALES_CHANNEL) as any).createSalesChannels({ name: "Synthetic coupon metadata" })
+    const cart = await carts.createCarts({ currency_code: "eur", sales_channel_id: channel.id, metadata: { nexus_coupon: { code: "C3-RACE" }, retained: "synthetic" } })
+    await updateCartWorkflow(getContainer()).run({ input: { id: cart.id, metadata: { nexus_coupon: null } } })
+    expect((await carts.retrieveCart(cart.id)).metadata).toMatchObject({ nexus_coupon: null, retained: "synthetic" })
     const replay = await service().reserveUsage({ promotion_id: "promo_c3_race", coupon_code: "C3-RACE", cart_id: winner.cart_id })
     expect(replay.id).toBe(winner.id)
     expect(await db()("promotion").where({ id: "promo_c3_race" }).first("used")).toMatchObject({ used: 1 })

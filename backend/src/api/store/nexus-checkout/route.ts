@@ -40,6 +40,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     ownerVerified = true
     knownIntents = await stripeIntentsOfCart(req.scope, cartId).catch(() => [])
     await assertCartConsent(req.scope, cart)
+    // Odmietnuť pred reprice, ktorý by zmenil cenu vyčerpaného kupónu.
+    await assertCouponNotExhausted(req.scope, cartId)
     const pricing = await repriceCart(cartId, req.scope, true, undefined, actorId, !actorId)
     if (pricing.pricesChanged) {
       await recordEvent(req.scope, "warn", "checkout", "price_changed", { cart_id: cartId })
@@ -53,8 +55,6 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       })
     }
 
-    // Vyčerpaný kupón odmietni pred zamknutím košíka (čistá 409, košík ostáva použiteľný).
-    await assertCouponNotExhausted(req.scope, cartId)
     // SafeOrder runs in completeCartWorkflow's validation hook for every completion path.
     const result = await completeCartWorkflow(req.scope).run({ input: { id: cartId } })
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)

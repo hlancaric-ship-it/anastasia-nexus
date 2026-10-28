@@ -22,7 +22,7 @@ describe("kupón v /store/nexus-cart", () => {
   const originalEnv = { ...process.env }
   const originalFetch = global.fetch
 
-  function scopeWith(opts: { cartMetadata?: Record<string, unknown>; promotions?: any[] }) {
+  function scopeWith(opts: { cartMetadata?: Record<string, unknown>; promotions?: any[]; reservations?: any[]; reservationFailure?: boolean }) {
     const graph = jest.fn(async ({ entity }: any) => ({
       data:
         entity === "cart"
@@ -34,7 +34,7 @@ describe("kupón v /store/nexus-cart", () => {
           : [{ id: "variant_synthetic", sku: "SYNTHETIC", calculated_price: { calculated_amount: 100, original_amount: 100, currency_code: "eur" }, product: { metadata: {} } }],
     }))
     const listPromotions = jest.fn(async () => opts.promotions ?? [])
-    return { resolve: (key: string) => (key === "query" ? { graph } : key === "promotion" ? { listPromotions } : undefined) } as any
+    return { resolve: (key: string) => (key === "query" ? { graph } : key === "promotion" ? { listPromotions } : key === "coupon_link" ? { listCouponUsageReservations: async()=>{if(opts.reservationFailure)throw Error("unavailable");return opts.reservations||[]} } : undefined) } as any
   }
 
   const activePercentagePromotion = {
@@ -47,8 +47,7 @@ describe("kupón v /store/nexus-cart", () => {
     process.env.NEXUS_PRICING_URL = "https://nexus.test/api/nexus/pricing"
     process.env.NEXUS_PRICING_API_KEY = "synthetic-service-key"
     process.env.NEXUS_TENANT_ID = "anastasia"
-    runMock.mockClear()
-    ;(updateCartWorkflow as unknown as jest.Mock).mockClear()
+    jest.clearAllMocks()
   })
   afterEach(() => { process.env = { ...originalEnv }; global.fetch = originalFetch })
 
@@ -60,7 +59,7 @@ describe("kupón v /store/nexus-cart", () => {
     }) as any
 
     const scope = scopeWith({ promotions: [activePercentagePromotion] })
-    const result = await repriceCart("cart_synthetic", scope, false, "SLEVA10")
+    const result = await repriceCart("cart_synthetic", scope, true, "SLEVA10")
 
     expect(sentBody.couponDiscountPercent).toBeCloseTo(0.1)
     expect(result.items[0].unit_price).toBe(90)
@@ -97,9 +96,10 @@ describe("kupón v /store/nexus-cart", () => {
   it("couponCode: null odstraní dřív uložený kupón a přepočítá bez něj", async () => {
     global.fetch = jest.fn(async () => new Response(JSON.stringify({ ok: true, tenantId: "anastasia", calculated: { finalPrice: 100, appliedRules: [], rejected: [] } }))) as any
     const scope = scopeWith({ cartMetadata: { nexus_coupon: { code: "stary", promotion_id: "promo_old", type: "percentage", value: 10 } } })
-    const result = await repriceCart("cart_synthetic", scope, false, null)
+    const result = await repriceCart("cart_synthetic", scope, true, null)
     expect(result.coupon).toBeNull()
     expect(updateCartWorkflow).toHaveBeenCalled()
+    expect(runMock).toHaveBeenCalledWith(expect.objectContaining({input:expect.objectContaining({metadata:expect.objectContaining({nexus_coupon:null})})}))
   })
 
   it("beze změny (undefined) dřív uložený kupón znovu ověří a použije", async () => {
@@ -117,18 +117,18 @@ describe("kupón v /store/nexus-cart", () => {
     expect(result.coupon).toEqual({ code: "SLEVA10" })
   })
 
-  it("dřív uložený kupón, co mezitím vypršel (limit vyčerpán): tiše se odebere, reprice pokračuje bez něj", async () => {
+  it("neaktivní starý kupón se při zápisu odebere", async () => {
     let sentBody: any
     global.fetch = jest.fn(async (_url, options: any) => {
       sentBody = JSON.parse(options.body)
       return new Response(JSON.stringify({ ok: true, tenantId: "anastasia", calculated: { finalPrice: 100, appliedRules: [], rejected: [] } }))
     }) as any
-    const exhausted = { ...activePercentagePromotion, limit: 1, used: 1 }
+    const exhausted = { ...activePercentagePromotion, status: "inactive" }
     const scope = scopeWith({
       cartMetadata: { nexus_coupon: { code: "SLEVA10", promotion_id: "promo_1", type: "percentage", value: 10 } },
       promotions: [exhausted],
     })
-    const result = await repriceCart("cart_synthetic", scope, false, undefined)
+    const result = await repriceCart("cart_synthetic", scope, true, undefined)
     expect(sentBody.couponDiscountPercent).toBeUndefined()
     expect(result.coupon).toBeNull()
     expect(updateCartWorkflow).toHaveBeenCalled() // vyčištění zastaralého metadata
@@ -141,4 +141,25 @@ describe("kupón v /store/nexus-cart", () => {
     expect(result.coupon).toBeNull()
     expect(updateCartWorkflow).not.toHaveBeenCalled()
   })
+  it("vyčerpaný kupón odmítne před změnou ceny či metadat",async()=>{
+    global.fetch=jest.fn()
+    const scope=scopeWith({cartMetadata:{nexus_coupon:{code:"SLEVA10",promotion_id:"promo_1",type:"percentage",value:10}},promotions:[{...activePercentagePromotion,limit:1,used:1}]})
+    await expect(repriceCart("cart_synthetic",scope,true)).rejects.toThrow("COUPON_LIMIT_EXHAUSTED")
+    expect(global.fetch).not.toHaveBeenCalled();expect(runMock).not.toHaveBeenCalled()
+  })
+  it.each(["reserved","confirmed"])("vlastní %s rezervace dovolí opakování",async status=>{
+    global.fetch=jest.fn(async()=>new Response(JSON.stringify({ok:true,tenantId:"anastasia",calculated:{finalPrice:90,appliedRules:["COUPON"],rejected:[]}}))) as any
+    const scope=scopeWith({cartMetadata:{nexus_coupon:{code:"SLEVA10",promotion_id:"promo_1",type:"percentage",value:10}},promotions:[{...activePercentagePromotion,limit:1,used:1}],reservations:[{promotion_id:"promo_1",coupon_code:"SLEVA10",status}]})
+    expect((await repriceCart("cart_synthetic",scope,false)).coupon).toEqual({code:"SLEVA10"});expect(runMock).not.toHaveBeenCalled()
+  })
+  it("nedostupný ledger odmítne přepočet uzavřeně",async()=>{
+    const scope=scopeWith({promotions:[{...activePercentagePromotion,limit:1,used:1}],reservationFailure:true})
+    await expect(repriceCart("cart_synthetic",scope,false,"SLEVA10")).rejects.toThrow("COUPON_USAGE_RESERVATION_UNAVAILABLE")
+  })
+  it.each([null,"SLEVA10",undefined])("read-only přepočet nezapisuje ani pro změnu %s",async code=>{
+    global.fetch=jest.fn(async()=>new Response(JSON.stringify({ok:true,tenantId:"anastasia",calculated:{finalPrice:90,appliedRules:["COUPON"],rejected:[]}}))) as any
+    await repriceCart("cart_synthetic",scopeWith({cartMetadata:{nexus_coupon:{code:"SLEVA10",promotion_id:"promo_1",type:"percentage",value:999}},promotions:[activePercentagePromotion]}),false,code)
+    expect(runMock).not.toHaveBeenCalled()
+  })
+
 })

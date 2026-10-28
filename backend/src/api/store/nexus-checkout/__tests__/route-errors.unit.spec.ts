@@ -84,6 +84,7 @@ describe("checkout workflow error transport", () => {
     jest.mocked(assertCouponNotExhausted).mockRejectedValueOnce(new Error("COUPON_LIMIT_EXHAUSTED"))
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
     await POST({ body: { cart_id: "synthetic-cart" }, scope: makeScope().scope, auth_context: AUTH } as any, res)
+    expect(repriceCart).not.toHaveBeenCalled()
     expect(completeCartWorkflow).not.toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(409)
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: "COUPON_LIMIT_EXHAUSTED" }))
