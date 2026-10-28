@@ -122,6 +122,43 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
 
     // Náhľad vykresľuje server rovnakou šablónou, akou e-mail odíde. Pri písaní s krátkym oneskorením.
     let previewTimer = null, previewSeq = 0, previewHtml = '';
+    // Celý e-mail bez vnútorného posúvania: iframe má skutočnú šírku e-mailu (počítač 1196 px, mobil 390 px)
+    // a zmenší sa na šírku panela, výška podľa obsahu. Skripty v iframe nebežia (sandbox bez allow-scripts).
+    let previewMode = 'desktop', previewObserver = null;
+    const PREVIEW_WIDTH = { desktop: 1196, mobile: 390 };
+    function fitPreview() {
+      const box = view.querySelector('#nl-pv');
+      const frame = view.querySelector('#nl-preview');
+      if (!box || !frame) return;
+      const width = PREVIEW_WIDTH[previewMode];
+      const scale = Math.min(1, (box.clientWidth || width) / width);
+      let height = 900;
+      try {
+        const doc = frame.contentDocument;
+        if (doc && doc.documentElement) {
+          frame.style.height = '0px';
+          height = Math.max(doc.documentElement.scrollHeight, doc.body ? doc.body.scrollHeight : 0) || height;
+        }
+      } catch { /* bez prístupu k obsahu ponecháme predvolenú výšku */ }
+      frame.style.width = width + 'px';
+      frame.style.height = height + 'px';
+      frame.style.transform = scale < 1 ? `scale(${scale})` : '';
+      box.style.height = Math.ceil(height * scale) + 'px';
+    }
+    function watchPreview() {
+      const box = view.querySelector('#nl-pv');
+      const frame = view.querySelector('#nl-preview');
+      if (!box || !frame) return;
+      frame.addEventListener('load', () => {
+        fitPreview();
+        // Obrázky a písma sa môžu dotiahnuť po load; prepočítame ešte raz.
+        try { frame.contentDocument?.querySelectorAll('img').forEach((img) => { if (!img.complete) img.addEventListener('load', fitPreview, { once: true }); }); } catch { /* ignore */ }
+        setTimeout(fitPreview, 600);
+      });
+      previewObserver?.disconnect();
+      if (typeof ResizeObserver === 'function') { previewObserver = new ResizeObserver(() => fitPreview()); previewObserver.observe(box); }
+      fitPreview();
+    }
     function preview(immediate = false) {
       clearTimeout(previewTimer);
       const frame = view.querySelector('#nl-preview');
@@ -171,13 +208,16 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         .nl-photo-act label[for]{margin-bottom:0}
         .nl-tools .btn{padding:8px 12px;min-height:36px}
         .nl-editor textarea{width:100%;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
-        .nl-preview{width:100%;height:1100px;border:1px solid var(--line);border-radius:12px;background:#fbf8f2}
+        .nl-pv{position:relative;width:100%;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fbf8f2;min-height:320px}
+        .nl-pv.mobile{max-width:392px;margin:0 auto}
+        .nl-preview{display:block;border:0;transform-origin:0 0;background:#fbf8f2}
+        .nl-pv-mode{display:flex;gap:6px}.nl-pv-mode .btn{padding:6px 12px;min-height:32px;font-size:12.5px}.nl-pv-mode .btn.on{border-color:var(--gold);color:var(--primary)}
         .nl-note{font-size:12px;color:var(--muted);line-height:1.6}
         .nl-tabs{display:flex;gap:20px;border-bottom:1px solid var(--line);margin:2px 0 18px}
         .nl-tabs .tab{background:none;border:0;border-bottom:2px solid transparent;padding:0 0 12px;min-height:44px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}
         .nl-tabs .tab.active{border-bottom-color:var(--gold);color:var(--primary)}
         .nl-row{cursor:pointer}
-        @media(max-width:900px){.nl-stats,.nl-grid,.nl-2,.nl-link{grid-template-columns:1fr}.nl-preview{height:560px}}
+        @media(max-width:900px){.nl-stats,.nl-grid,.nl-2,.nl-link{grid-template-columns:1fr}}
       </style>
       <div class="nl-wrap">
         <div class="rc-grid nl-stats">
@@ -189,16 +229,18 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         </div>
 
         <div class="nl-grid">
-          <section class="card nl-editor" aria-labelledby="nl-editor-h">
+          <section class="card nl-editor" aria-labelledby="nl-editor-h" data-no-fgrid>
             <div class="card-h"><h2 id="nl-editor-h" tabindex="-1" style="font:inherit;margin:0">Kampaň <span class="pill ${status[1]}">${esc(status[0])}</span></h2>
               <div class="card-h-act"><button type="button" class="btn ghost" data-new>Nová kampaň</button></div>
             </div>
             <div class="card-b">
               ${state.message ? msg(state.message.text, state.message.error) : ''}
-              <label for="nl-subject">Predmet</label>
-              <input id="nl-subject" maxlength="200" value="${esc(editing.subject)}" ${editable ? '' : 'disabled'} placeholder="Napríklad Novinky z ateliéru ANASTASIA">
-              <label for="nl-preheader">Náhľadový text</label>
-              <input id="nl-preheader" maxlength="300" value="${esc(editing.preheader)}" ${editable ? '' : 'disabled'} placeholder="Krátky úvod, ktorý sa zobrazí pri predmete">
+              <div class="nl-2">
+                <div><label for="nl-subject">Predmet</label>
+                <input id="nl-subject" maxlength="200" value="${esc(editing.subject)}" ${editable ? '' : 'disabled'} placeholder="Napríklad Novinky z ateliéru ANASTASIA"></div>
+                <div><label for="nl-preheader">Náhľadový text</label>
+                <input id="nl-preheader" maxlength="300" value="${esc(editing.preheader)}" ${editable ? '' : 'disabled'} placeholder="Krátky úvod, ktorý sa zobrazí pri predmete"></div>
+              </div>
               ${editing.mode === 'sablona' ? templateFormHtml(editing, editable) : `<label for="nl-body">Obsah</label>
               ${editable ? `<div class="nl-tools" role="group" aria-label="Formátovanie obsahu">
                 <button type="button" class="btn ghost" data-format="h2">Nadpis</button>
@@ -227,8 +269,14 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
           <section class="card" aria-labelledby="nl-preview-h">
             <div class="card-h"><h2 id="nl-preview-h" tabindex="-1" style="font:inherit;margin:0">Náhľad e-mailu</h2><span class="muted nl-note">Aktualizuje sa pri písaní</span></div>
             <div class="card-b">
-              <p class="muted nl-note" style="margin-top:0">Predmet: <b id="nl-preview-subject">${esc(editing.subject || '—')}</b></p>
-              <iframe id="nl-preview" class="nl-preview" title="Náhľad e-mailu kampane" sandbox></iframe>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+                <p class="muted nl-note" style="margin:0">Predmet: <b id="nl-preview-subject">${esc(editing.subject || '—')}</b></p>
+                <div class="nl-pv-mode" role="group" aria-label="Zobrazenie náhľadu">
+                  <button type="button" class="btn ${previewMode === 'desktop' ? 'on' : ''}" data-pv-mode="desktop" aria-pressed="${previewMode === 'desktop'}">Počítač</button>
+                  <button type="button" class="btn ${previewMode === 'mobile' ? 'on' : ''}" data-pv-mode="mobile" aria-pressed="${previewMode === 'mobile'}">Mobil</button>
+                </div>
+              </div>
+              <div class="nl-pv ${previewMode === 'mobile' ? 'mobile' : ''}" id="nl-pv"><iframe id="nl-preview" class="nl-preview" title="Náhľad e-mailu kampane" sandbox="allow-same-origin" scrolling="no"></iframe></div>
             </div>
           </section>
         </div>
@@ -244,6 +292,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         </section>
       </div>`;
 
+      watchPreview();
       preview(true);
       wire();
     }
@@ -353,6 +402,12 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
 
     function wire() {
       view.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sync(); state.tab = b.dataset.tab; render(); });
+      view.querySelectorAll('[data-pv-mode]').forEach(b => b.onclick = () => {
+        previewMode = b.dataset.pvMode === 'mobile' ? 'mobile' : 'desktop';
+        view.querySelector('#nl-pv')?.classList.toggle('mobile', previewMode === 'mobile');
+        view.querySelectorAll('[data-pv-mode]').forEach(x => { const on = x.dataset.pvMode === previewMode; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+        fitPreview();
+      });
       view.querySelectorAll('.nl-row').forEach(tr => {
         const open = () => {
           const campaign = state.campaigns.find(c => c.id === tr.dataset.id);
