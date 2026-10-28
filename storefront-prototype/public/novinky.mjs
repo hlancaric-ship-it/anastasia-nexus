@@ -93,7 +93,8 @@ function render(){
   const b=el('a','nv-btn',(a.button||'Zistiť viac')+' →');const u=safeUrl(a.url);if(u){b.href=u;b.rel='sponsored noopener';b.target='_blank';b.addEventListener('click',()=>beacon(a.slot))}t.append(b);c.append(i,t);g.append(c)});
  renderPanel();
 }
-function beacon(slot){try{navigator.sendBeacon?.(`${config.apiBaseUrl}/store/novinky/ads/${slot}/click`)}catch{}}
+// Kliknutie na reklamu: keepalive prežije odchod zo stránky; /store vyžaduje publishable key v hlavičke (sendBeacon ho neposiela).
+function beacon(slot){try{fetch(`${config.apiBaseUrl}/store/novinky/ads/${slot}/click`,{method:'POST',keepalive:true,headers:{'x-publishable-api-key':config.publishableKey}}).catch(()=>{})}catch{}}
 // --- panel ---
 const dock=$('nv-dock'),tab=$('nv-tab'),xbtn=$('nv-x');
 function renderPanel(){
