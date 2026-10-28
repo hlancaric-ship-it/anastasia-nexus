@@ -586,16 +586,19 @@ html body .site-footer .sf-bottom a:hover{color:rgba(255,255,255,.85)!important}
 body.customer-page{--rail-pad:0px;--rail-neg:0px}
 body.customer-page #ana-rail{display:none!important}
 html body .customer-center .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
-html body .customer-center{--acc-lav:#8E86B8;--acc-gold:#C9A355;--acc-line:color-mix(in srgb,var(--center-ink) 12%,transparent);--acc-card:rgba(255,255,255,.72);--acc-tint:color-mix(in srgb,var(--acc-lav) 9%,#FBF9F3)}
-html body .customer-center .center-content{padding:32px 24px 80px!important;max-width:none!important}
+html body .customer-center{--acc-lav:#8E86B8;--acc-gold:#C9A355;--acc-line:color-mix(in srgb,var(--center-ink) 12%,transparent);--acc-card:rgba(255,255,255,.72);--acc-tint:color-mix(in srgb,var(--acc-lav) 9%,#FBF9F3);background:var(--center-paper,#F5F2E8)!important}
+html body .customer-center .center-layout{background:var(--center-paper,#F5F2E8)!important;min-height:100vh!important}
+html body .customer-center .center-sidebar{top:0!important;min-height:100vh!important;border-top-right-radius:28px!important;border-bottom-right-radius:28px!important}
+html body .customer-center .center-content{padding:32px 24px 80px!important;max-width:none!important;background:url(/img/organic-lines.svg) center top/max(1600px,100vw) auto repeat-y,var(--center-paper,#F5F2E8)!important}
 html body .customer-center .center-content>*{max-width:1152px!important;margin-inline:auto!important}
 html body .customer-center .center-heading{margin-bottom:24px!important}
 html body .customer-center .center-heading h1{font-size:clamp(30px,3.2vw,44px)!important;margin:6px 0 0!important}
 html body .customer-center [data-account-panel]>.lead{margin:0 0 20px!important;color:var(--center-muted)!important}
-.acc-grid{display:grid!important;grid-template-columns:minmax(0,65fr) minmax(0,35fr)!important;gap:24px!important;align-items:start!important}
-.acc-main,.acc-side{display:grid!important;gap:20px!important;min-width:0!important}
-.acc-side{position:sticky!important;top:96px!important}
-@media(max-width:999.98px){.acc-grid{grid-template-columns:minmax(0,1fr)!important}.acc-side{position:static!important}}
+.acc-grid{display:grid!important;grid-template-columns:minmax(0,62fr) minmax(0,38fr)!important;gap:24px!important;align-items:stretch!important}
+.acc-main,.acc-side{display:flex!important;flex-direction:column!important;gap:20px!important;min-width:0!important;height:100%!important}
+.acc-side{position:sticky!important;top:24px!important}
+.acc-side>.acc-card:last-child{margin-top:auto!important}
+@media(max-width:999.98px){.acc-grid{grid-template-columns:minmax(0,1fr)!important}.acc-side{position:static!important;height:auto!important}.acc-side>.acc-card:last-child{margin-top:0!important}}
 html body .customer-center .acc-card{background:var(--acc-card)!important;border:1px solid var(--acc-line)!important;border-radius:20px!important;padding:22px 24px!important;box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 14px 34px -26px rgba(40,30,70,.35)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;color:var(--center-ink)!important;min-width:0!important}
 html body .customer-center .acc-card--tint{background:var(--acc-tint)!important}
 html body .customer-center .acc-card h2{font-size:24px!important;line-height:1.2!important;margin:4px 0 10px!important}
@@ -660,7 +663,9 @@ html body .customer-center .acc-favs .center-reorder p{margin:0!important;font-s
 .acc-add:hover{background:var(--acc-lav)!important;color:#fff!important;border-color:var(--acc-lav)!important}
 /* Konzultácie */
 #center-bookings:empty{display:none!important}
-.acc-booking{display:grid!important;grid-template-columns:56px minmax(0,1fr) auto!important;gap:14px!important;align-items:center!important;padding:12px 0!important;border-bottom:1px solid var(--acc-line)!important}
+.acc-booking{display:grid!important;grid-template-columns:84px minmax(0,1fr) auto!important;gap:18px!important;align-items:center!important;padding:14px 0!important;border-bottom:1px solid var(--acc-line)!important}
+.acc-booking .center-date{display:flex!important;align-items:center!important;justify-content:center!important}
+.acc-booking .center-date>span{min-width:76px!important;padding:10px 8px!important;font-size:24px!important;border-radius:18px 0 0 0!important;box-sizing:border-box!important}
 .acc-booking:last-child{border-bottom:0!important}
 .acc-booking.is-past{opacity:.6!important}
 .acc-booking h3{font-size:16px!important;margin:0!important}.acc-booking p{margin:0!important;font-size:14px!important}
@@ -994,15 +999,21 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 
 /* Ďakovná stránka: sklenená karta na kréme s aurou línií, pečať v matnom zlate. */
 #page-shell#page-shell.kc-unified .legacy-main .ty-page{display:grid;place-items:center;min-height:calc(100svh - 120px);padding:clamp(48px,8vw,104px) 16px clamp(96px,10vw,128px)!important;background:transparent!important}
-#page-shell#page-shell.kc-unified .legacy-main .ty-card{position:relative;width:min(640px,100%);padding:clamp(28px,5vw,56px)!important;border-radius:28px!important;background:rgba(253,251,247,.82)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(176,141,87,.28)!important;box-shadow:0 30px 80px -40px rgba(30,38,29,.35)!important;text-align:center}
-#page-shell#page-shell.kc-unified .legacy-main .ty-card:has(.ty-bank){width:min(1060px,100%)!important;max-width:1060px!important}
+#page-shell#page-shell.kc-unified .legacy-main .ty-card{position:relative;width:min(1040px,94vw)!important;max-width:1040px!important;padding:clamp(32px,5vw,56px)!important;border-radius:28px!important;background:rgba(253,251,247,.88)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(176,141,87,.28)!important;box-shadow:0 30px 80px -40px rgba(30,38,29,.35)!important;text-align:center}
 @media(min-width:860px){
-  #page-shell#page-shell.kc-unified .legacy-main #ty-view:has(.ty-bank){display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(0,0.92fr)!important;gap:36px!important;align-items:start!important;text-align:left!important;margin-top:24px!important}
-  #page-shell#page-shell.kc-unified .legacy-main #ty-view:has(.ty-bank) .ty-lines{margin-top:0!important}
-  #page-shell#page-shell.kc-unified .legacy-main #ty-view:has(.ty-bank) .ty-bank{margin-top:0!important;position:sticky!important;top:24px!important}
-  #page-shell#page-shell.kc-unified .legacy-main .ty-card:has(.ty-bank) .ty-actions{margin-top:36px!important}
+  #page-shell#page-shell.kc-unified .legacy-main #ty-view{display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,0.85fr)!important;gap:36px!important;align-items:start!important;text-align:left!important;margin-top:28px!important}
+  #page-shell#page-shell.kc-unified .legacy-main .ty-order-summary{background:rgba(255,255,255,.65)!important;border:1px solid rgba(176,141,87,.22)!important;border-radius:20px!important;padding:24px 26px!important}
+  #page-shell#page-shell.kc-unified .legacy-main .ty-side-info{display:flex!important;flex-direction:column!important;gap:20px!important}
+  #page-shell#page-shell.kc-unified .legacy-main .ty-lines{margin-top:0!important}
+  #page-shell#page-shell.kc-unified .legacy-main .ty-bank{margin-top:0!important}
+  #page-shell#page-shell.kc-unified .legacy-main .ty-next{margin-top:0!important;padding:22px 24px!important;border-radius:20px!important;background:rgba(255,255,255,.65)!important;border:1px solid rgba(176,141,87,.22)!important}
+  #page-shell#page-shell.kc-unified .legacy-main .ty-actions{margin-top:36px!important}
 }
-#page-shell#page-shell.kc-unified .legacy-main .ty-mark{display:block;margin:0 auto 18px;width:88px;height:88px;filter:drop-shadow(0 0 18px rgba(201,163,85,.35))}
+#page-shell#page-shell.kc-unified .legacy-main .ty-mark,
+html body .ty-mark,
+html body .ty-mark.brand-seal,
+html body .ty-card img.ty-mark,
+html body .ty-card img.brand-seal{display:block!important;margin:0 auto 18px!important;width:88px!important;height:88px!important;max-width:88px!important;max-height:88px!important;object-fit:contain!important;filter:drop-shadow(0 0 18px rgba(201,163,85,.35))!important}
 #page-shell#page-shell.kc-unified .legacy-main .ty-card .eyebrow{color:#9C7B45!important;letter-spacing:.18em}
 #page-shell#page-shell.kc-unified .legacy-main .ty-card h1{margin:6px 0 10px!important;font-family:Fraunces,Georgia,serif!important;font-weight:300!important;font-size:clamp(44px,7vw,72px)!important;line-height:1!important;color:#1E261D!important}
 #page-shell#page-shell.kc-unified .legacy-main .ty-card h1:focus{outline:none}
@@ -1339,4 +1350,6 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
 #page-shell.kc-unified .customer-center .center-sidebar>#center-name{color:#FBF9F3!important;font:500 25px/1.3 Fraunces,Georgia,serif!important;letter-spacing:-.02em!important;overflow-wrap:anywhere;margin:12px 28px 0!important;padding:0 0 24px!important}
 #page-shell.kc-unified .customer-center .center-sidebar>.eyebrow,#page-shell.kc-unified .customer-center .center-sidebar .center-theme p{color:#EDE9F5!important}
 @media(max-width:999.98px){#page-shell.kc-unified .customer-center .center-sidebar>#center-name{margin:8px 20px 0!important;padding-bottom:12px!important;font-size:22px!important}}
+/* Newsletter: organické línie na pozadí */
+html body .site-footer .sf-news{position:relative!important;background:url(/img/organic-lines.svg) center top/1400px auto repeat-y!important;background-blend-mode:overlay!important;border-radius:24px!important;padding:clamp(20px,3vw,36px)!important}
 }

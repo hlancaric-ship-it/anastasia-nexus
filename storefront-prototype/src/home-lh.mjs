@@ -925,7 +925,7 @@ html.lh-mobile-intro .lh-intro :is(.lh-vid-btn,.lh-intro__sound){background:rgba
 .dc-root .lh-flow .lh-consult>div{display:flex;flex-direction:column;align-items:center;max-width:760px}
 .dc-root .lh-flow .lh-consult h2{max-width:none}
 .dc-root .lh-flow .lh-consult .lh-cta{align-self:center}
-.dc-root .lh-flow .lh-register{display:grid!important;grid-template-columns:1fr 1fr;column-gap:clamp(32px,6vw,120px);align-items:start;width:auto!important;margin:0!important;padding:clamp(80px,9vw,140px) clamp(24px,5vw,96px)!important;border-radius:0!important;background:var(--fl-sage-band)!important}
+.dc-root .lh-flow .lh-register{display:grid!important;grid-template-columns:1fr 1fr;column-gap:clamp(32px,6vw,120px);align-items:start;width:auto!important;margin:0!important;padding:clamp(80px,9vw,140px) clamp(24px,5vw,96px)!important;border-radius:0!important;background:url(/img/organic-lines.svg) center top/max(1600px,100vw) auto repeat-y,var(--fl-sage-band,#d8ddd5)!important}
 .dc-root .lh-flow .lh-register>:not(form):not(.newsletter-status){grid-column:1}
 .dc-root .lh-flow .lh-register>form{grid-column:2;grid-row:1/span 4;align-self:center;display:grid;gap:14px}
 .dc-root .lh-flow .lh-register input[type=email]{border-radius:0;height:54px;background:#fff;border:0;border-bottom:1px solid var(--fl-ink)}
