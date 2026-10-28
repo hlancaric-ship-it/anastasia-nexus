@@ -232,7 +232,12 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         .nl-photo-act label[for],.nl-photo-act input{flex:1 1 100%}
         .nl-photo-act label[for]{margin-bottom:0}
         .nl-tools .btn{padding:8px 12px;min-height:36px}
-        .nl-editor textarea{width:100%;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
+        .nl-editor textarea{width:100%;font:inherit;font-size:13.5px;line-height:1.6}
+        #nl-body{font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
+        .nl-editor label{font-size:13.5px;font-weight:600;color:var(--ink,#2b2540)}
+        .nl-hint{font-weight:400;color:var(--muted);font-size:12.5px}
+        .nl-sec-h{padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line-soft)}
+        .nl-sec-h b{font-size:16px;font-weight:700;letter-spacing:.2px}
         .nl-pv{position:relative;width:100%;max-width:1198px;margin:0 auto;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fbf8f2;min-height:320px}
         .nl-pv.mobile{max-width:392px;margin:0 auto}
         .nl-preview{display:block;border:0;transform-origin:0 0;background:#fbf8f2}
@@ -337,7 +342,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
           <label class="btn ghost">Nahrať z počítača<input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-photo-file="${key}"></label>
           ${src ? `<button type="button" class="btn ghost" data-photo-crop="${key}">Upraviť výrez</button>
           <button type="button" class="btn ghost danger" data-photo-del="${key}">Odstrániť</button>` : ''}` : ''}
-          ${src ? `<label for="${altId}">Popis fotografie (pre nevidiacich a keď sa obrázky nenačítajú)</label>
+          ${src ? `<label for="${altId}">Popis fotografie <span class="nl-hint">(pre nevidiacich a keď sa obrázky nenačítajú)</span></label>
           <input id="${altId}" ${altAttrs} maxlength="200" value="${esc(alt)}" ${dis} placeholder="Napríklad Ranný les v hmle">` : ''}
         </div>
       </div>`;
@@ -347,7 +352,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
       return `<div class="${cls}">${before}
           <div><label for="${prefix}-t">Nadpis</label>
           <input id="${prefix}-t" ${idAttr('title')} maxlength="120" value="${esc(data.title)}" ${dis} placeholder="Napríklad Malý rituál"></div>
-          <div><label for="${prefix}-ac">Zvýraznené slová (fialová kurzíva)</label>
+          <div><label for="${prefix}-ac">Zvýraznené slová <span class="nl-hint">(fialová kurzíva)</span></label>
           <input id="${prefix}-ac" ${idAttr('accent')} maxlength="80" value="${esc(data.accent)}" ${dis} placeholder="Napríklad viac pokoja"></div>
         </div>`;
     }
@@ -365,14 +370,14 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         ${headingHtml(`nl-sec-${i}`, sec, dis, field, `
           <div><label for="nl-sec-s-${i}">Vzhľad sekcie</label>
           <select id="nl-sec-s-${i}" ${field('style')} ${dis}>${NL_STYLES.map(([v, l]) => `<option value="${v}" ${sec.style === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
-          <div><label for="nl-sec-e-${i}">Nadtitulok (malý text nad nadpisom)</label>
+          <div><label for="nl-sec-e-${i}">Nadtitulok <span class="nl-hint">(malý text nad nadpisom)</span></label>
           <input id="nl-sec-e-${i}" ${field('eyebrow')} maxlength="60" value="${esc(sec.eyebrow)}" ${dis} placeholder="Napríklad Tip pre vás"></div>`, 'nl-4')}
-        <label for="nl-sec-x-${i}">Text (prázdny riadok = nový odsek)</label>
+        <label for="nl-sec-x-${i}">Text <span class="nl-hint">(prázdny riadok = nový odsek)</span></label>
         <textarea id="nl-sec-x-${i}" ${field('text')} rows="4" ${dis} placeholder="Napíšte text sekcie.">${esc(sec.text)}</textarea>
         <div class="nl-2">
-          <div><label>Fotografia (v tmavom paneli sa ukáže, len ak nie je citát)</label>
+          <div><label>Fotografia <span class="nl-hint">(v tmavom paneli sa ukáže, len ak nie je citát)</span></label>
           ${photoHtml(`s${i}`, sec.image, sec.alt, editable, `nl-sec-a-${i}`, field('alt'))}</div>
-          <div><label for="nl-sec-q-${i}">Citát vpravo (len tmavý panel, nepovinné)</label>
+          <div><label for="nl-sec-q-${i}">Citát vpravo <span class="nl-hint">(len tmavý panel, nepovinné)</span></label>
           <input id="nl-sec-q-${i}" ${field('quote')} maxlength="160" value="${esc(sec.quote)}" ${dis} placeholder="Napríklad Pokoj začína v malých okamihoch."></div>
         </div>
         <label>Tlačidlá a odkazy</label>
@@ -393,9 +398,9 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         <div class="nl-sec">
           <div class="nl-sec-h"><b>Úvod vedľa fotografie Lucie</b></div>
           ${headingHtml('nl-in', intro, dis, introField, `
-          <div><label for="nl-in-e">Oslovenie (malý text nad nadpisom)</label>
+          <div><label for="nl-in-e">Oslovenie <span class="nl-hint">(malý text nad nadpisom)</span></label>
           <input id="nl-in-e" ${introField('eyebrow')} maxlength="60" value="${esc(intro.eyebrow)}" ${dis} placeholder="Napríklad Milá priateľka,"></div>`, 'nl-3')}
-          <label for="nl-in-x">Text (prázdny riadok = nový odsek)</label>
+          <label for="nl-in-x">Text <span class="nl-hint">(prázdny riadok = nový odsek)</span></label>
           <textarea id="nl-in-x" ${introField('text')} rows="4" ${dis} placeholder="Napíšte úvodný text.">${esc(intro.text)}</textarea>
           <div class="nl-2" style="align-items:end">
             <div><label for="nl-sign">Pozdrav pred podpisom</label>
