@@ -23,4 +23,4 @@ Backend/Cloud main se nepushuje; frontend a admin jen na testovací subdomény.
 
 ## Zbývá
 
-Společné nasazení balíku účtu a opravy médií, nový smoke a kontrola produktových obrázků. Zákaznický magic-link/logout-all, reálné testovací nákupy a kupónový E2E zůstávají UNVERIFIED. Přehled skutečně vytvořených testovacích dat je v hlavním handoffu, bez hesel a tokenů.
+Společné nasazení balíku účtu a opravy médií je hotové: web `000d9050`, admin `1c1bc472`, smoke PASS, hero/audio 200, všech 14 obrázků e-shopu i R2 obrázek v čerstvém adminu načtené. Nasazený účet prošel stejným browser testem 1440/390 px se syntetickým API. Zákaznický magic-link/logout-all, reálné testovací nákupy a kupónový E2E zůstávají UNVERIFIED. Přehled skutečně vytvořených testovacích dat je v hlavním handoffu, bez hesel a tokenů.
