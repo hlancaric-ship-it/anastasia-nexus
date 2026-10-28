@@ -194,20 +194,17 @@ function footerLinks(html) {
   for (const [title, links] of Object.entries(FOOTER_GROUPS)) {
     out = out.replace(new RegExp(`(>${title}</span>\\s*)(?:<a\\b[^>]*>[^<]*</a>)+`), (_, head) => head + links.map(([t, h]) => `<a href="${h}">${t}</a>`).join(''));
   }
-  // Pod guľou z loga Lucie náš nápis ANASTASIA a Light for the Future (Lucky 26. 10.).
-  out = out.replace('<span style="font-weight:400;font-size:9px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">ANASTASIA OZ</span>',
-    '<span style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-weight:300;font-size:14px;letter-spacing:.32em;padding-left:.32em;color:#EFE5C7">ANASTASIA</span><span style="font-weight:400;font-size:9px;letter-spacing:2.4px;text-transform:uppercase;color:#C9A355">Light for the Future</span></span>');
-  // Loga Academy a AI ANASTASIA jsou odkazy na své stránky (stejný styl, jen <a> místo <div>).
   // Kontakt v päte ako na starom webe: telefón, e-mail a odkaz na Cookies.
   out = out.replace(/(<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:12px;color:#C4C7B6">)/,
     '$1<div style="display:flex;gap:24px;flex-wrap:wrap"><a href="tel:+421905363778">+421 905 363 778</a><a href="mailto:zdravysvet@anastasiaoz.eu">zdravysvet@anastasiaoz.eu</a></div>');
-  out = out.replace(/<div (style="display:grid;grid-template-rows:clamp\(170px,17vw,240px\) auto;[^"]*")>((?:(?!<\/?div\b)[\s\S]|<div\b[\s\S]*?<\/div>)*?<span [^>]*>([^<]+)<\/span>)<\/div>/g,
-    (whole, style, inner, label) => FOOTER_BRANDS[label] ? `<a href="${FOOTER_BRANDS[label]}" class="footer-brand" ${style}>${inner}</a>` : whole);
-  // Zlatá guľa (koule) a nápis pod ňou pri všetkých 3 logách v pätičke konzistentne (Lucky 28. 10.).
-  out = out.replace(/<div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding-bottom:6px"><span style="width:1px;height:46px;[^"]*"><\/span><span [^>]+>ANASTASIA<\/span><span [^>]+><span [^>]+><\/span>ACADEMY<span [^>]+><\/span><\/span><\/div><span ([^>]+)>ANASTASIA\.ACADEMY<\/span>/,
-    '<img src="/assets/menu-logo-academy.png" class="brand-seal" alt="" style="height:clamp(150px,15vw,220px);width:auto;"><span style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-weight:300;font-size:14px;letter-spacing:.32em;padding-left:.32em;color:#EFE5C7">ANASTASIA</span><span $1>ANASTASIA.ACADEMY</span></span>');
-  out = out.replace(/<div style="display:flex;flex-direction:column;align-items:center;gap:12px"><img src="\.?\/assets\/logo-mark\.png"[^>]*><span [^>]+>ANASTASIA<\/span><\/div><span ([^>]+)>AI ANASTASIA<\/span>/,
-    '<img src="/assets/menu-logo-ai.png" class="brand-seal" alt="" style="height:clamp(150px,15vw,220px);width:auto;"><span style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-weight:300;font-size:14px;letter-spacing:.32em;padding-left:.32em;color:#EFE5C7">ANASTASIA</span><span $1>AI ANASTASIA</span></span>');
+  // Tri originálne veľké logá značiek v pätičke bez ďalších textových popiskov, rovnaký symetrický rozestup (Lucky 28. 10.).
+  const BRAND_TRIO = '<div class="sf-brands" style="display:flex;justify-content:center;align-items:center;gap:clamp(36px,5vw,72px);padding:clamp(36px,4vw,60px) 20px;border-bottom:1px solid rgba(201,163,85,0.28)">'
+    + '<a href="/" class="footer-brand" title="ANASTASIA — Light for the Future" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none"><img src="/assets/lucia-koule.png" class="brand-seal" alt="ANASTASIA — Light for the Future" style="height:clamp(200px,21vw,290px);width:auto;object-fit:contain"></a>'
+    + '<a href="https://www.anastasia.academy/" target="_blank" rel="noopener" class="footer-brand" title="ANASTASIA — ACADEMY" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none"><img src="/assets/menu-logo-academy.png" class="brand-seal" alt="ANASTASIA — ACADEMY" style="height:clamp(200px,21vw,290px);width:auto;object-fit:contain"></a>'
+    + '<a href="https://www.aianastasia.com/" target="_blank" rel="noopener" class="footer-brand" title="ANASTASIA — AI ANASTASIA" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none"><img src="/assets/menu-logo-ai.png" class="brand-seal" alt="ANASTASIA — AI ANASTASIA" style="height:clamp(200px,21vw,290px);width:auto;object-fit:contain"></a>'
+    + '</div>';
+  out = out.replace(/<div style="display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);align-items:end;[\s\S]*?border-bottom:1px solid rgba\(201,163,85,0\.28\)">[\s\S]*?<\/div>(?=\s*<div style="display:flex;justify-content:space-between;)/,
+    BRAND_TRIO);
   return out;
 }
 
@@ -218,7 +215,6 @@ const FOOTER_PARTS = [
   ['<div style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom', '<div class="sf-top" style="display:flex;flex-wrap:wrap;gap:56px clamp(40px,6vw,96px);padding-bottom'],
   ['<div style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px', '<div class="sf-news" style="display:flex;flex-direction:column;gap:22px;flex:1 1 440px'],
   ['<div style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"', '<div class="sf-links" style="display:flex;flex-wrap:wrap;gap:40px clamp(36px,5vw,88px);flex:0 1 auto"'],
-  ['<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end', '<div class="sf-brands" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end'],
   ['<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px', '<div class="sf-bottom" style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px'],
 ];
 function footerClasses(html) {
@@ -238,10 +234,10 @@ export function chrome(page) {
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
   const side=src.side.replace(/<div style="display:flex;align-items:center;gap:14px"><img src="\.\/assets\/logo-mark\.png"[^>]*><div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div><\/div>/,'');
   // Tri logá z pätičky v spodnom riadku horného menu vpravo, vedľa jazykov.
-  const MENU_LOGOS='<div class="menu-brand-logos" style="display:flex;justify-content:flex-end;align-items:flex-start;gap:18px;min-width:0;padding-top:6px">'
-    +'<a data-menu-brand href="/" data-menu-close style="display:grid;grid-template-rows:80px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><img src="/assets/lucia-logo.png" alt="" style="height:72px;width:72px"><span style="display:flex;flex-direction:column;align-items:center;gap:5px;white-space:nowrap"><span style="font-weight:300;font-size:13px;letter-spacing:.32em;padding-left:.32em">ANASTASIA</span><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent)">Light for the Future</span></span></a>'
-    +'<a data-menu-brand href="https://www.anastasia.academy/" target="_blank" rel="noopener" style="display:grid;grid-template-rows:80px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><img src="/assets/menu-logo-academy.png" alt="" style="height:72px;width:72px"><span style="display:flex;flex-direction:column;align-items:center;gap:5px;white-space:nowrap"><span style="font-weight:300;font-size:13px;letter-spacing:.32em;padding-left:.32em">ANASTASIA</span><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent)">ANASTASIA.ACADEMY</span></span></a>'
-    +'<a data-menu-brand href="https://www.aianastasia.com/" target="_blank" rel="noopener" style="display:grid;grid-template-rows:80px auto;justify-items:center;align-items:end;row-gap:10px;min-width:0;color:#403f62;text-decoration:none"><img src="/assets/menu-logo-ai.png" alt="" style="height:72px;width:72px"><span style="display:flex;flex-direction:column;align-items:center;gap:5px;white-space:nowrap"><span style="font-weight:300;font-size:13px;letter-spacing:.32em;padding-left:.32em">ANASTASIA</span><span style="font-weight:400;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--site-accent)">AI ANASTASIA</span></span></a></div>';
+  const MENU_LOGOS='<div class="menu-brand-logos" style="display:flex;justify-content:flex-end;align-items:center;gap:20px;min-width:0;padding-top:6px">'
+    +'<a data-menu-brand href="/" data-menu-close title="ANASTASIA — Light for the Future" style="display:inline-flex;align-items:center;justify-content:center;color:#403f62;text-decoration:none"><img src="/assets/lucia-koule.png" class="brand-seal" alt="ANASTASIA — Light for the Future" style="height:84px;width:84px;object-fit:contain"></a>'
+    +'<a data-menu-brand href="https://www.anastasia.academy/" target="_blank" rel="noopener" title="ANASTASIA — ACADEMY" style="display:inline-flex;align-items:center;justify-content:center;color:#403f62;text-decoration:none"><img src="/assets/menu-logo-academy.png" class="brand-seal" alt="ANASTASIA — ACADEMY" style="height:84px;width:84px;object-fit:contain"></a>'
+    +'<a data-menu-brand href="https://www.aianastasia.com/" target="_blank" rel="noopener" title="ANASTASIA — AI ANASTASIA" style="display:inline-flex;align-items:center;justify-content:center;color:#403f62;text-decoration:none"><img src="/assets/menu-logo-ai.png" class="brand-seal" alt="ANASTASIA — AI ANASTASIA" style="height:84px;width:84px;object-fit:contain"></a></div>';
   const menuMark='<span class="menu-brand-mark"><img src="./assets/lucia-logo.png" alt="ANASTASIA"></span>';
   // Obě menu čtou stejný seznam; původní návrhové duplicity se nepřenášejí.
   const menuBrand=html=>{
@@ -347,27 +343,16 @@ ${HOME_CSS}
 .site-footer .sf-links>div{display:flex!important;flex-direction:column!important;gap:10px!important;min-width:0!important}
 .site-footer .sf-links>div>span{margin-bottom:4px!important}
 .site-footer .sf-links a{line-height:1.35;overflow-wrap:anywhere}
-.site-footer .sf-brands{gap:clamp(12px,4vw,64px)!important;padding:26px 0 30px!important;border-top:1px solid color-mix(in srgb,var(--site-accent-light,#C9BCE0) 22%,transparent);border-bottom:1px solid color-mix(in srgb,var(--site-accent-light,#C9BCE0) 22%,transparent)}
-.site-footer .sf-brands>*{grid-template-rows:clamp(92px,8vw,118px) auto!important;row-gap:12px!important}
-.site-footer .sf-brands>*>img{height:clamp(88px,7.6vw,112px)!important;width:auto!important}
-.site-footer .sf-brands>*>div>img{height:clamp(54px,4.8vw,72px)!important;width:auto!important}
-.site-footer .sf-brands>*>div>span[style*="font-size:clamp(16px"]{font-size:clamp(16px,1.5vw,22px)!important}
-.site-footer .sf-brands>*>div{gap:8px!important;padding-bottom:0!important}
-.site-footer .sf-brands>*>div>span[style*="height:46px"]{height:24px!important}
+.site-footer .sf-brands{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:clamp(36px,5vw,72px)!important;padding:clamp(36px,4vw,60px) 20px!important;border-top:1px solid color-mix(in srgb,var(--site-accent-light,#C9BCE0) 22%,transparent);border-bottom:1px solid color-mix(in srgb,var(--site-accent-light,#C9BCE0) 22%,transparent)}
+.site-footer .sf-brands>*>img,.site-footer .sf-brands a>img{height:clamp(200px,21vw,290px)!important;width:auto!important;object-fit:contain!important;transition:transform .25s ease}
+.site-footer .sf-brands a:hover>img{transform:translateY(-4px) scale(1.02)}
 .site-footer .sf-bottom{padding-top:20px!important;align-items:center;row-gap:12px!important}
 @media(max-width:999.98px){.site-footer .sf-top{grid-template-columns:1fr}}
 @media(max-width:699.98px){
 .site-footer .sf-links{grid-template-columns:1fr 1fr;gap:26px 18px!important}
 .site-footer .sf-links>div:nth-child(3){grid-column:auto;display:flex!important;columns:auto}
-.site-footer .sf-brands>*{grid-template-rows:70px auto!important;row-gap:10px!important}
-.site-footer .sf-brands>*>img{height:66px!important}
-.site-footer .sf-brands>*>div>img{height:40px!important}
-.site-footer .sf-brands>*>div>span{letter-spacing:.18em!important;padding-left:.18em!important;font-size:13px!important}
-.site-footer .sf-brands>*>div>span:last-child{font-size:8px!important;letter-spacing:.3em!important;gap:6px!important}
-.site-footer .sf-brands>*>div>span:last-child>span{width:10px!important}
-.site-footer .sf-brands>*>span{font-size:8px!important;letter-spacing:1.4px!important;text-align:center}
-.site-footer .sf-brands>*>span>span:first-child{font-size:13px!important;letter-spacing:.22em!important;padding-left:.22em!important}
-.site-footer .sf-brands>*>span>span:last-child{font-size:8px!important;letter-spacing:1.4px!important}
+.site-footer .sf-brands{gap:clamp(16px,4vw,28px)!important}
+.site-footer .sf-brands>*>img,.site-footer .sf-brands a>img{height:clamp(120px,28vw,180px)!important;width:auto!important}
 .site-footer .sf-bottom{flex-direction:column;align-items:flex-start}
 }
 :is(.dc-root,.dc-chrome) .header-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}

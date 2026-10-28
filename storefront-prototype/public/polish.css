@@ -316,6 +316,6 @@ html body .site-footer .sf-pay__badge{background:rgba(239,229,199,.94)!important
 html body #dc-top-menu .menu-brand-mark img.brand-seal,html body :is(.dc-root,.dc-chrome) .header-brand-emblem img.brand-seal,html body .menu-brand-mark img.brand-seal{position:static!important;width:100%!important;height:100%!important;max-width:100%!important;left:auto!important;top:auto!important;object-fit:contain!important;opacity:1!important;filter:none!important}
 html body .ty-mark.brand-seal,html body .ty-card img.brand-seal{width:92px!important;height:92px!important;max-width:92px!important;max-height:92px!important;margin:0 auto 18px!important;display:block!important;object-fit:contain!important}
 html body :is(.header-brand-emblem,.menu-brand-mark){overflow:visible!important;border-radius:0!important}
-html body footer img.brand-seal{width:auto!important;height:clamp(80px,7vw,108px)!important}
-html body [data-menu-brand] img.brand-seal{width:72px!important;height:72px!important}
+html body footer img.brand-seal{width:auto!important;height:clamp(200px,21vw,290px)!important;max-width:100%!important;object-fit:contain!important}
+html body [data-menu-brand] img.brand-seal{width:84px!important;height:84px!important;object-fit:contain!important}
 html.ana-menu-open .lh-top__menu,html.ana-menu-open .legacy-shell>.dc-chrome:first-child>header{visibility:hidden!important;pointer-events:none!important}
