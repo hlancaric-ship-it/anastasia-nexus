@@ -1195,7 +1195,7 @@ async function vProducts(view) {
     </div>
     <div class="ot-bulk" id="p-bulk" hidden><span class="muted" id="p-bulk-info">Žiadny označený produkt</span>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn ghost sm" id="p-bulk-publish">Zverejniť</button>
+        <button type="button" class="btn success sm" id="p-bulk-publish">Zverejniť</button>
         <button type="button" class="btn ghost sm" id="p-bulk-draft">Uložiť ako koncept</button>
         <button type="button" class="btn ghost sm" id="p-bulk-clear">Zrušiť označenie</button>
       </div></div>
@@ -1329,11 +1329,17 @@ async function vProductNew(view) {
   let profiles = []; try { profiles = (await api('/admin/shipping-profiles?limit=50&fields=id,name,type')).shipping_profiles || []; } catch (e) { if (e.message === '401') throw e; }
   view.innerHTML = `<div class="card"><div class="card-h">Nový produkt<button class="btn ghost" id="pn-back">Späť</button></div><div class="card-b">
     <div id="pnmsg"></div>
-    <label>Názov</label><input id="pn-title" placeholder="napr. Konzultačný balík">
-    <div class="row"><div><label>Cena (EUR)</label><input id="pn-price" type="number" step="0.01" placeholder="0.00"></div>
-    <div><label>Stav</label><select id="pn-status"><option value="draft">Koncept</option><option value="published">Zverejnený</option></select></div></div>
-    <label>Kód produktu (SKU)</label><input id="pn-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">
-    <label>Typ produktu</label><select id="pn-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}">${esc(shipLabel(sp))}</option>`).join('')}</select>
+    <div class="row">
+      <div><label>Názov</label><input id="pn-title" placeholder="napr. Konzultačný balík"></div>
+      <div><label>Kód produktu (SKU)</label><input id="pn-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off"></div>
+    </div>
+    <div class="row">
+      <div><label>Cena (EUR)</label><input id="pn-price" type="number" step="0.01" placeholder="0.00"></div>
+      <div><label>Stav</label><select id="pn-status"><option value="draft">Koncept</option><option value="published">Zverejnený</option></select></div>
+    </div>
+    <div class="row">
+      <div><label>Typ produktu</label><select id="pn-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}">${esc(shipLabel(sp))}</option>`).join('')}</select></div>
+    </div>
     <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť produkt</button></div>
     <p class="muted" style="margin-top:10px;font-size:12px">Produkt vznikne s jedným variantom a cenou v EUR. Typ produktu určuje dopravu v pokladni. Obrázky, sklad, predajné kanály, popis a kategórie doplníte v úprave.</p>
   </div></div>`;
@@ -1385,10 +1391,14 @@ async function vProductDetail(view, id, opts = {}) {
   let images = (p.images || []).map(i => i.url).filter(Boolean), thumb = p.thumbnail || images[0] || null;
   const sale = (p.metadata && p.metadata.vyprodej) || {};
   const saleOn = !!sale.active;
-  const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
-    <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>
-    <label>Štítky v obchode</label><div>${PRODUCT_FLAGS.map(([k, label]) => `<label style="display:inline-flex;gap:6px;margin:4px 14px 4px 0;align-items:center"><input type="checkbox" data-flag="${k}" ${productFlagsOf(p).some(([f]) => f === k) ? 'checked' : ''} style="width:auto"> ${label}</label>`).join('')}</div>
-    <p class="muted" style="font-size:12px;margin-top:4px">Štítok sa zobrazí na karte a v detaile produktu. Štítok Akcia sa pridá sám, keď má produkt akčnú cenu.</p>`;
+  const zakladne = `<div class="row">
+      <div><label>Názov</label><input id="p-title" value="${esc(p.title)}"></div>
+      <div><label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select></div>
+    </div>
+    <div class="row">
+      <div style="grid-column:1/-1"><label>Štítky v obchode</label><div>${PRODUCT_FLAGS.map(([k, label]) => `<label style="display:inline-flex;gap:6px;margin:4px 14px 4px 0;align-items:center"><input type="checkbox" data-flag="${k}" ${productFlagsOf(p).some(([f]) => f === k) ? 'checked' : ''} style="width:auto"> ${label}</label>`).join('')}</div>
+      <p class="muted" style="font-size:12px;margin-top:4px">Štítok sa zobrazí na karte a v detaile produktu. Štítok Akcia sa pridá sám, keď má produkt akčnú cenu.</p></div>
+    </div>`;
   const cena = isOwner() ? `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
     <div><label>Akcia</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:auto"> Vo výpredaji / akcia</label></div></div>
     <div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">
@@ -1609,11 +1619,15 @@ async function vCategoryDetail(view, id) {
   const descendant = candidate => { const seen = new Set(); let current = candidate; while (current) { if (current === id || seen.has(current)) return true; seen.add(current); current = all.find(x => x.id === current)?.parent_category_id; } return false; };
   view.innerHTML = `<div class="card"><div class="card-h">${id ? 'Úprava kategórie' : 'Nová kategória'}<button class="btn ghost" id="c-back">Späť</button></div><div class="card-b">
     <div id="cmsg"></div>
-    <label>Názov</label><input id="c-name" value="${esc(c.name)}">
-    <label>Adresa kategórie</label><input id="c-handle" value="${esc(c.handle || '')}" placeholder="napr. bio-kozmetika">
-    <label for="c-parent">Nadradená kategória</label><select id="c-parent"><option value="">Hlavná kategória</option>${all.filter(x => !descendant(x.id)).map(x => `<option value="${esc(x.id)}"${x.id === c.parent_category_id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
-    <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="c-active" ${c.is_active !== false ? 'checked' : ''} style="width:auto"> Aktívna</label>
-    <div style="margin-top:16px"><button class="btn gold" id="c-save">Uložiť</button>${id ? ' <button class="btn ghost" id="c-delete">Odstrániť kategóriu</button>' : ''}</div>
+    <div class="row">
+      <div><label>Názov</label><input id="c-name" value="${esc(c.name)}"></div>
+      <div><label>Adresa kategórie</label><input id="c-handle" value="${esc(c.handle || '')}" placeholder="napr. bio-kozmetika"></div>
+    </div>
+    <div class="row">
+      <div><label for="c-parent">Nadradená kategória</label><select id="c-parent"><option value="">Hlavná kategória</option>${all.filter(x => !descendant(x.id)).map(x => `<option value="${esc(x.id)}"${x.id === c.parent_category_id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
+      <div><label>Stav</label><label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="c-active" ${c.is_active !== false ? 'checked' : ''} style="width:auto"> Aktívna</label></div>
+    </div>
+    <div style="margin-top:16px"><button class="btn gold" id="c-save">Uložiť</button>${id ? ' <button class="btn ghost danger" id="c-delete">Odstrániť kategóriu</button>' : ''}</div>
   </div></div>`;
   view.querySelector('#c-back').onclick = () => vCategories(view);
   const deleteButton = view.querySelector('#c-delete');
@@ -1924,12 +1938,12 @@ async function vOrderDetail(view, id, notice) {
       <span class="rc-f"><em>Kusov</em>${it.quantity}</span><span class="rc-f"><em>Suma</em>${fmtEur(it.total)}</span>
       <span class="rc-f"><em>Pripravené</em>${Number(it.detail?.fulfilled_quantity || 0)} / ${it.quantity}</span>
       <span class="rc-f"><em>Odoslané</em>${Number(it.detail?.shipped_quantity || 0)} / ${it.quantity}</span></div></div></div>`).join('') || '<div class="empty">Žiadne položky.</div>'}</div>`;
-  const odoslanie = `${!canceled && toFulfill.length ? `<div class="task"><div><b>Pripraviť na odoslanie</b><p class="muted">${toFulfill.map(x => `${esc(x.title)} × ${x.quantity}`).join(', ')}</p></div><button class="btn gold" id="o-ful">Pripraviť</button></div>` : ''}
+  const odoslanie = `${!canceled && toFulfill.length ? `<div class="task"><div><b>Pripraviť na odoslanie</b><p class="muted">${toFulfill.map(x => `${esc(x.title)} × ${x.quantity}`).join(', ')}</p></div><button class="btn success" id="o-ful">Pripraviť</button></div>` : ''}
     ${fulfillments.map(f => `<div class="task"><div><b>Zásielka ${fmtDate(f.created_at)}</b>
       <p class="muted">${(f.items || []).map(x => `${esc(x.title || '')} × ${x.quantity}`).join(', ')}</p>
       ${f.shipped_at ? `<span class="pill ok">odoslaná ${fmtDate(f.shipped_at)}</span>${(f.labels || []).map(l => ` <span class="muted">${l.tracking_url ? `<a href="${esc(l.tracking_url)}" target="_blank" rel="noopener">${esc(l.tracking_number || 'sledovať')}</a>` : esc(l.tracking_number || '')}</span>`).join('')}`
         : `<div class="row" style="margin-top:6px"><div><label>Číslo zásielky (voliteľné)</label><input data-trk="${esc(f.id)}" placeholder="napr. Z123456789"></div><div><label>Odkaz na sledovanie (voliteľné)</label><input data-trkurl="${esc(f.id)}" placeholder="https://…"></div></div>`}
-      </div>${f.shipped_at ? '' : `<button class="btn gold" data-ship="${esc(f.id)}">Označiť ako odoslanú</button>`}</div>`).join('')}
+      </div>${f.shipped_at ? '' : `<button class="btn success" data-ship="${esc(f.id)}">Označiť ako odoslanú</button>`}</div>`).join('')}
     ${!toFulfill.length && !fulfillments.length ? '<p class="muted">Nie je čo pripraviť.</p>' : ''}
     <p class="muted" style="font-size:12px;margin-top:10px">Po označení odoslania jadro pošle zákazníkovi e-mail o odoslaní.</p>`;
   const platby = `${payments.map(p => { const cap = sum(p.captures), ref = sum(p.refunds), left = Math.round((cap - ref) * 100) / 100;
@@ -1939,7 +1953,7 @@ async function vOrderDetail(view, id, notice) {
         <div><label>Dôvod vrátenia (povinný)</label><input data-refreason="${esc(p.id)}" maxlength="500" placeholder="napr. reklamácia – zákazník vracia tovar"></div>
         <div><label style="display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-refrestock="${esc(p.id)}" style="width:auto"> Vrátiť tovar na sklad</label>
           <p class="muted" style="font-size:12px;margin:4px 0 0">Zapnuté, ak tovar fyzicky vraciate späť do skladu.</p></div></div>` : ''}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn success" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost danger" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
   view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<div class="card-h-act">
       <button type="button" class="btn ghost" id="o-print-label">Vytlačiť štítok</button>
@@ -1956,11 +1970,11 @@ async function vOrderDetail(view, id, notice) {
       }).join('')}</div>
       <p class="muted" style="font-size:12px;margin-top:10px">Kód je maskovaný – plný kód dostal každý obdarovaný e-mailom. Hodnotu a platnosť overuje backend.</p></div></div>` : ''}
     ${!canceled && !archived && !anyShipped ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px">
-      <button class="btn ghost" id="o-cancel">Zrušiť objednávku</button>
+      <button class="btn ghost danger" id="o-cancel">Zrušiť objednávku</button>
       <div id="o-cancel-box" hidden style="margin-top:12px">
         <label for="o-cancel-reason">Dôvod zrušenia (povinný)</label>
         <textarea id="o-cancel-reason" rows="2" maxlength="500" placeholder="napr. zákazník zrušil objednávku telefonicky"></textarea>
-        <div class="row" style="margin-top:8px"><button type="button" class="btn gold" id="o-cancel-go">Zrušiť objednávku</button><span class="muted" style="font-size:12px">Zaplatená suma sa zákazníkovi vráti cez platobnú bránu. Dôvod zostane v objednávke.</span></div>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn danger" id="o-cancel-go">Zrušiť objednávku</button><span class="muted" style="font-size:12px">Zaplatená suma sa zákazníkovi vráti cez platobnú bránu. Dôvod zostane v objednávke.</span></div>
       </div></div>` : ''}
   </div></div><aside class="detail-help panel" aria-label="Nápoveda k objednávke"><div class="panel-head"><h2>Ako postupovať</h2></div><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
   wireTabs(view);
@@ -2361,7 +2375,7 @@ async function vCouponNew(view) {
   try { products = ((await api('/admin/products?limit=200&fields=id,title')).products || []).map((p) => ({ id: p.id, title: p.title })); } catch {}
   view.innerHTML = `<div class="card"><div class="card-h">Nový kupón<button class="btn ghost" id="pn-back">Späť</button></div><div class="card-b">
     <div id="pnmsg"></div>
-    <label for="pn-code">Kód</label><input id="pn-code" placeholder="napr. JAR26" autocomplete="off">
+    <div class="row"><div><label for="pn-code">Kód</label><input id="pn-code" placeholder="napr. JAR26" autocomplete="off"></div></div>
     ${couponFieldsHtml('pn', { type: 'percentage', value: 10 }, { products })}
     <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť</button></div>
     <p class="muted" style="margin-top:10px">Kupón vytvoríte tu, QR kód k nemu pridáte v záložke QR kódy. Košík uplatní zľavu, keď je kód zadaný v košíku.</p>
@@ -2684,7 +2698,7 @@ function vBookingDetail(view, b, back) {
     ${inOrder && b.status === 'held' ? '<p class="muted">Zákazník má termín v rozpracovanej pokladni. Ak nezaplatí, termín sa sám uvoľní.</p>' : ''}
     ${b.canceled_at ? `<p class="muted">Zrušená ${fmtDate(b.canceled_at)}${b.cancel_reason ? ': ' + esc(b.cancel_reason) : ''}</p>` : ''}
     ${active ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><label>Dôvod zrušenia (voliteľné)</label><input id="b-reason" maxlength="500">
-      <div style="margin-top:10px"><button class="btn ghost" id="b-cancel">Zrušiť termín</button></div>
+      <div style="margin-top:10px"><button class="btn ghost danger" id="b-cancel">Zrušiť termín</button></div>
       <p class="muted" style="font-size:12px;margin-top:8px">${b.status === 'confirmed' ? 'Zákazníkovi odíde e-mail o zrušení. Peniaze vrátite v detaile objednávky.' : 'Termín sa uvoľní pre ostatných zákazníkov.'}</p></div>` : ''}
   </div></div>`;
   view.querySelector('#b-back').onclick = back;

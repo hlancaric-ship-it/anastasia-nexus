@@ -236,12 +236,209 @@ html[data-theme=dark] .kpi-label,html[data-theme=dark] .dash-title h1,html[data-
 .cp-live iframe{flex:1;width:100%;border:0;background:#fff}
 @media(max-width:1150px){.cp-layout.has-live{grid-template-columns:minmax(0,1fr)}.cp-live{position:static;height:70vh}}
 .avatar.has-photo{background-position:center;background-size:cover;background-repeat:no-repeat;color:transparent}
-/* Jednotná tlačidlá podľa schváleného štýlu (Zakúpený obsah) */
-.btn,.btn.ghost,.btn.gold,.btn.wine,.btn.primary,.side-card .btn,.side-card .btn.ghost,.side-card .btn.primary{background:#f3edf8;color:#49305e;border:1px solid #cfb7df;box-shadow:none;font-weight:500}
-.btn:hover:not(:disabled),.btn.ghost:hover:not(:disabled),.btn.gold:hover:not(:disabled),.btn.wine:hover:not(:disabled),.btn.primary:hover:not(:disabled),.side-card .btn:hover{background:#e8ddf1;border-color:#b9a3cf;color:#3b2550}
-.btn.primary,.btn.gold,.side-card .btn.primary{border-color:#a993c4;font-weight:600}
-.btn.danger,.btn.danger:hover:not(:disabled){background:transparent;color:#a3423a;border-color:#e3b9b3}
-.btn:disabled{opacity:.45;cursor:default}
+/* Sémantické odlíšenie tlačidiel (Lucky 28. 10.):
+   - ČERVENÉ: mazanie, odstraňovanie, rušenie, výmaz
+   - ZELENÉ: potvrdenie, schválenie, zverejnenie, odoslanie, prijatie platby
+   - FIALOVÉ: ukladanie, vytváranie, pridávanie (co bolo doteraz)
+   - ČIERNE: všetko ostatné (otvoriť, späť, filtre, tlač, export, navigácia) */
+
+/* 1. ČIERNE: základ pre všetko ostatné */
+.btn,
+.btn.ghost,
+.side-card .btn,
+.side-card .btn.ghost {
+  background: #1F241E!important;
+  color: #F7F3EC!important;
+  border: 1px solid #141813!important;
+  box-shadow: 0 1px 3px rgba(20,24,19,.15)!important;
+  font-weight: 500!important;
+}
+.btn:hover:not(:disabled),
+.btn.ghost:hover:not(:disabled),
+.side-card .btn:hover:not(:disabled) {
+  background: #343B32!important;
+  border-color: #262D24!important;
+  color: #FFFFFF!important;
+}
+
+/* 2. FIALOVÉ: ukladanie a vytváranie nových položiek */
+.btn.primary,
+.btn.gold,
+.btn.wine,
+.btn.save,
+.side-card .btn.primary,
+#p-save,
+#pn-save,
+#c-save,
+#cu-save,
+#pd-save,
+#vs-save,
+#ct-save,
+#e-save,
+#pt-save,
+#av-save,
+#o-addr-save,
+#o-note-save,
+#p-new,
+#cat-new {
+  background: #7E63A8!important;
+  color: #FFFFFF!important;
+  border: 1px solid #6A4F94!important;
+  box-shadow: 0 1px 3px rgba(106,79,148,.25)!important;
+  font-weight: 600!important;
+}
+.btn.primary:hover:not(:disabled),
+.btn.gold:hover:not(:disabled),
+.btn.wine:hover:not(:disabled),
+.btn.save:hover:not(:disabled),
+#p-save:hover:not(:disabled),
+#pn-save:hover:not(:disabled),
+#c-save:hover:not(:disabled),
+#cu-save:hover:not(:disabled),
+#pd-save:hover:not(:disabled),
+#vs-save:hover:not(:disabled),
+#ct-save:hover:not(:disabled),
+#e-save:hover:not(:disabled),
+#pt-save:hover:not(:disabled),
+#av-save:hover:not(:disabled),
+#o-addr-save:hover:not(:disabled),
+#o-note-save:hover:not(:disabled),
+#p-new:hover:not(:disabled),
+#cat-new:hover:not(:disabled) {
+  background: #684E91!important;
+  border-color: #553D78!important;
+  color: #FFFFFF!important;
+}
+
+/* 3. ZELENÉ: potvrdenie, schválenie, zverejnenie, odoslanie, prijatie platby */
+.btn.success,
+.btn.confirm,
+.btn-confirm,
+#p-bulk-publish,
+[data-cap],
+#o-ful,
+#nm-send,
+#bt-arch,
+.mp-ok {
+  background: #2D6A4F!important;
+  color: #FFFFFF!important;
+  border: 1px solid #20503B!important;
+  box-shadow: 0 1px 3px rgba(32,80,59,.25)!important;
+  font-weight: 600!important;
+}
+.btn.success:hover:not(:disabled),
+.btn.confirm:hover:not(:disabled),
+.btn-confirm:hover:not(:disabled),
+#p-bulk-publish:hover:not(:disabled),
+[data-cap]:hover:not(:disabled),
+#o-ful:hover:not(:disabled),
+#nm-send:hover:not(:disabled),
+#bt-arch:hover:not(:disabled),
+.mp-ok:hover:not(:disabled) {
+  background: #1B4332!important;
+  border-color: #143225!important;
+  color: #FFFFFF!important;
+}
+
+/* 4. ČERVENÉ: mazanie, odstraňovanie, rušenie, výmaz */
+.btn.danger,
+.btn-danger,
+button.danger,
+a.danger,
+.btn[data-delete],
+.btn[data-del],
+.btn[data-rm],
+.btn[data-erasure],
+#p-delete,
+#c-delete,
+#bt-delete,
+#o-cancel,
+#o-cancel-go,
+#b-cancel {
+  background: #C93B2B!important;
+  color: #FFFFFF!important;
+  border: 1px solid #B02A1C!important;
+  box-shadow: 0 1px 3px rgba(176,42,28,.25)!important;
+  font-weight: 600!important;
+}
+.btn.danger:hover:not(:disabled),
+.btn-danger:hover:not(:disabled),
+button.danger:hover:not(:disabled),
+a.danger:hover:not(:disabled),
+.btn[data-delete]:hover:not(:disabled),
+.btn[data-del]:hover:not(:disabled),
+.btn[data-rm]:hover:not(:disabled),
+.btn[data-erasure]:hover:not(:disabled),
+#p-delete:hover:not(:disabled),
+#c-delete:hover:not(:disabled),
+#bt-delete:hover:not(:disabled),
+#o-cancel:hover:not(:disabled),
+#o-cancel-go:hover:not(:disabled),
+#b-cancel:hover:not(:disabled) {
+  background: #A82416!important;
+  border-color: #8C1C10!important;
+  color: #FFFFFF!important;
+}
+
+.btn:disabled{opacity:.45!important;cursor:default!important}
+.btn svg.i{stroke:currentColor!important}
+
+/* Sjednotenie formulárov (Lucky 28. 10.): žiadne polia natiahnuté cez celú šírku */
+.card:has(input,select,textarea),
+.panel:has(input,select,textarea),
+.editor-section,
+.pe-sec,
+.vs-layout {
+  max-width: 1040px!important;
+}
+.row {
+  display: grid!important;
+  grid-template-columns: repeat(2, minmax(0, 1fr))!important;
+  gap: 16px 24px!important;
+  max-width: 1040px!important;
+  margin-bottom: 12px!important;
+}
+.row > div {
+  min-width: 0!important;
+  display: flex!important;
+  flex-direction: column!important;
+}
+.row label {
+  margin: 10px 0 6px!important;
+}
+.row input,
+.row select,
+.row textarea {
+  width: 100%!important;
+  max-width: 100%!important;
+}
+.card-b > input:not([type=checkbox]):not([type=radio]),
+.card-b > select,
+.card-b > textarea,
+.panel > input:not([type=checkbox]):not([type=radio]),
+.panel > select,
+.panel > textarea,
+.editor-section input:not([type=checkbox]):not([type=radio]),
+.editor-section select,
+.editor-section textarea,
+.pe-sec > input:not([type=checkbox]):not([type=radio]),
+.pe-sec > select,
+.pe-sec > textarea,
+.fld input, .fld select, .fld textarea,
+form input:not([type=checkbox]):not([type=radio]):not([type=file]):not(.top-search input),
+form select,
+form textarea {
+  max-width: 580px!important;
+}
+.wysi {
+  max-width: 960px!important;
+}
+@media (max-width: 760px) {
+  .row {
+    grid-template-columns: 1fr!important;
+    gap: 12px!important;
+  }
+}
 /* Zakúpený obsah: tri položky vedľa seba */
 .library-files{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding-left:0;list-style:none;counter-reset:none}
 .library-files>li{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid #e4d9ee;border-radius:10px;background:rgba(255,252,255,.7);margin:0}
