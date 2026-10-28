@@ -62,7 +62,7 @@ describe('ops-ingest (Worker -> Medusa ops_event)', () => {
         const { calls, impl } = fakeFetch();
         await flushOpsEvents(ENV, impl, NOW);
         expect(calls).toHaveLength(1);
-        expect(calls[0]!.init.redirect).toBe('error');
+        expect(calls[0]!.init.redirect).toBe('manual');
         const headers = calls[0]!.init.headers as Record<string, string>;
         const ts = headers['x-nexus-timestamp'];
         expect(ts).toBe(String(NOW / 1000));

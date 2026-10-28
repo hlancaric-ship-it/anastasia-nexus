@@ -111,7 +111,8 @@ export async function flushOpsEvents(env: OpsIngestEnv, fetchImpl: typeof fetch 
             method: 'POST',
             headers: { 'content-type': 'application/json', 'x-nexus-timestamp': ts, 'x-nexus-signature': signature },
             body,
-            redirect: 'error',
+            // Workers nepodporují redirect 'error'; 3xx se vrátí jako !ok.
+            redirect: 'manual',
             signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
         });
         if (!response.ok) console.warn(JSON.stringify({ level: 'warn', event: 'ops.ingest_failed', status: response.status, count: events.length }));

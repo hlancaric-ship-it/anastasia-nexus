@@ -38,7 +38,8 @@ async function requestState(config: NonNullable<ReturnType<typeof configuration>
     const timestamp = String(Math.floor(Date.now() / 1000));
     const key = await crypto.subtle.importKey('raw', encoder.encode(config.secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const signature = hex(await crypto.subtle.sign('HMAC', key, encoder.encode(`${timestamp}.${body}`)));
-    const response = await fetchImpl(config.url, { method: 'POST', body, redirect: 'error', signal: AbortSignal.timeout(3000),
+    // Workers nepodporují redirect 'error' (TypeError); 'manual' vrátí 3xx jako !ok a to selže níž.
+    const response = await fetchImpl(config.url, { method: 'POST', body, redirect: 'manual', signal: AbortSignal.timeout(3000),
         headers: { 'content-type': 'application/json', 'x-nexus-timestamp': timestamp, 'x-nexus-signature': signature } });
     if (!response.ok) { await response.body?.cancel().catch(() => {}); throw new Error('BOOKING_SOURCE_UNVERIFIED'); }
     const reader = response.body?.getReader();

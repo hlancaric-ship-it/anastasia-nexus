@@ -21,7 +21,7 @@ async function fixture(eventType = 'order.placed') {
         ...(eventType === 'payment.captured' ? { version: 2, eventType, targetId: order, orderId: 'order_resolved' } : { version: 1, orderId: order }),
         tenantId: tenant, operationId: id, synchronized, result: synchronized ? eventType === 'order.canceled' ? 'CANCELED' : 'CONFIRMED' : 'MISMATCH', ...body }));
     const request = vi.fn(async (_url: unknown, options: RequestInit) => {
-        expect(options.redirect).toBe('error'); expect(options.signal).toBeDefined();
+        expect(options.redirect).toBe('manual'); expect(options.signal).toBeDefined();
         const body = JSON.parse(options.body as string);
         expect(body).toMatchObject({ tenantId: tenant, operationId: id,
             ...(eventType === 'payment.captured' ? { version: 2, eventType, targetId: order } : { version: 1, orderId: order }) });

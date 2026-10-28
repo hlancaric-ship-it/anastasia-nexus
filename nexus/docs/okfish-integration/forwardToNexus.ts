@@ -123,7 +123,7 @@ export async function forwardToNexus(
             body: rawBody,
             signal: controller.signal,
             // Redirect by mohl token poslat na cizí host.
-            redirect: 'error',
+            redirect: 'manual',
         });
 
         if (!response.ok) {
