@@ -453,8 +453,8 @@ function introHtml(intro: string, signature: string, asset: string): string {
   const image = part.image ? `<img src="${part.image.src}" alt="${part.image.alt}" width="300" style="display:block;width:100%;max-width:300px;height:auto;border:0;border-radius:14px;margin:4px 0 16px">` : ""
   const buttons = part.buttons.map(b => buttonHtml(b, "light", "6px 0 18px")).join("")
   const sign = `<p style="margin:10px 0 0">${signature || "S láskou,"}</p>
-<div style="padding:30px 0 0 120px;font-family:${SCRIPT};font-size:44px;line-height:1.2;font-weight:400;color:${BRAND.goldInk}">Lucia Rogožanová</div>
-<div style="padding:8px 0 0 124px;font-family:${SANS};font-size:10px;letter-spacing:2.2px;white-space:nowrap;text-transform:uppercase;color:${BRAND.text}">Farmaceutka • Tvorkyňa ANASTASIA</div>`
+<div class="nl-sig" style="padding:30px 0 0 120px;font-family:${SCRIPT};font-size:44px;line-height:1.2;font-weight:400;color:${BRAND.goldInk}">Lucia Rogožanová</div>
+<div class="nl-sig nl-sig-t" style="padding:8px 0 0 124px;font-family:${SANS};font-size:10px;letter-spacing:2.2px;white-space:nowrap;text-transform:uppercase;color:${BRAND.text}">Farmaceutka • Tvorkyňa ANASTASIA</div>`
   // Linka pod hlavičkou je v ľavej bunke a priamo v obrázku, aby ju prstenec pretínal ako v návrhu.
   return `<tr><td style="padding:0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="nl-c" width="46%" valign="top" style="padding:0"><div style="height:6px;font-size:0;line-height:0"></div><div style="height:0;border-top:1px solid ${BRAND.line};font-size:0;line-height:0"></div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -493,7 +493,7 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
   const rows = layout.sections.map(section => sectionHtml(section, asset)).join("\n")
   const hasIntro = Boolean(layout.intro || !layout.sections.length)
   const icons = newsletterSocialLinks().map((link, index) =>
-    `<td align="center" style="padding:6px 38px;${index ? "border-left:1px solid #d9c7a3" : ""}"><a href="${escapeHtml(link.href)}" title="${link.label}"><img src="${asset}/assets/newsletter-ic-${link.icon}.png" width="34" height="34" alt="${link.label}" style="display:block;width:34px;height:34px;border:0"></a></td>`).join("")
+    `<td class="nl-ic" align="center" style="padding:6px 38px;${index ? "border-left:1px solid #d9c7a3" : ""}"><a href="${escapeHtml(link.href)}" title="${link.label}"><img src="${asset}/assets/newsletter-ic-${link.icon}.png" width="34" height="34" alt="${link.label}" style="display:block;width:34px;height:34px;border:0"></a></td>`).join("")
   const unsubscribeLine = unsubscribe
     ? `<a href="${escapeHtml(unsubscribe)}" style="color:${BRAND.text};text-decoration:underline">Odhlásiť sa</a>`
     : `Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.`
@@ -510,7 +510,7 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Pinyon+Script" rel="stylesheet">
-<style>@media (max-width:620px){.nl-s{padding-left:22px!important}.nl-o{padding-left:8px!important;padding-right:8px!important}.nl-c{display:block!important;width:100%!important;box-sizing:border-box}.nl-h{display:none!important}.nl-r{text-align:left!important;border-left:0!important;padding:16px 0 0!important}}</style>
+<style>@media (max-width:620px){.nl-s{padding-left:22px!important;padding-right:22px!important}.nl-ic{padding:6px 22px!important}.nl-o{padding-left:8px!important;padding-right:8px!important}.nl-c{display:block!important;width:100%!important;box-sizing:border-box}.nl-h{display:none!important}.nl-r{text-align:left!important;border-left:0!important;padding:16px 0 0!important}.nl-sig{padding-left:24px!important;font-size:38px!important}.nl-sig-t{padding-left:28px!important;font-size:9px!important;letter-spacing:1.6px!important;white-space:normal!important}}</style>
 </head>
 <body style="margin:0;padding:0;background:${BRAND.cream}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>
