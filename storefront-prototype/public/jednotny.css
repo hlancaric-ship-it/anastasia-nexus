@@ -995,6 +995,13 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 /* Ďakovná stránka: sklenená karta na kréme s aurou línií, pečať v matnom zlate. */
 #page-shell#page-shell.kc-unified .legacy-main .ty-page{display:grid;place-items:center;min-height:calc(100svh - 120px);padding:clamp(48px,8vw,104px) 16px clamp(96px,10vw,128px)!important;background:transparent!important}
 #page-shell#page-shell.kc-unified .legacy-main .ty-card{position:relative;width:min(640px,100%);padding:clamp(28px,5vw,56px)!important;border-radius:28px!important;background:rgba(253,251,247,.82)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(176,141,87,.28)!important;box-shadow:0 30px 80px -40px rgba(30,38,29,.35)!important;text-align:center}
+#page-shell#page-shell.kc-unified .legacy-main .ty-card:has(.ty-bank){width:min(1060px,100%)!important;max-width:1060px!important}
+@media(min-width:860px){
+  #page-shell#page-shell.kc-unified .legacy-main #ty-view:has(.ty-bank){display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(0,0.92fr)!important;gap:36px!important;align-items:start!important;text-align:left!important;margin-top:24px!important}
+  #page-shell#page-shell.kc-unified .legacy-main #ty-view:has(.ty-bank) .ty-lines{margin-top:0!important}
+  #page-shell#page-shell.kc-unified .legacy-main #ty-view:has(.ty-bank) .ty-bank{margin-top:0!important;position:sticky!important;top:24px!important}
+  #page-shell#page-shell.kc-unified .legacy-main .ty-card:has(.ty-bank) .ty-actions{margin-top:36px!important}
+}
 #page-shell#page-shell.kc-unified .legacy-main .ty-mark{display:block;margin:0 auto 18px;width:88px;height:88px;filter:drop-shadow(0 0 18px rgba(201,163,85,.35))}
 #page-shell#page-shell.kc-unified .legacy-main .ty-card .eyebrow{color:#9C7B45!important;letter-spacing:.18em}
 #page-shell#page-shell.kc-unified .legacy-main .ty-card h1{margin:6px 0 10px!important;font-family:Fraunces,Georgia,serif!important;font-weight:300!important;font-size:clamp(44px,7vw,72px)!important;line-height:1!important;color:#1E261D!important}
@@ -1190,11 +1197,17 @@ html body select:-webkit-autofill{
 @layer jednotny{html body .lg-seal img.brand-seal{filter:none!important}}
 
 /* Poďakovanie: platba prevodom s QR kódom. */
-.ty-bank{margin-top:28px;padding:22px;border:1px solid rgba(176,141,87,.32);border-radius:22px;background:rgba(255,255,255,.72)}
-.ty-qr{margin:18px 0 0;text-align:center}
-.ty-qr__code svg{width:min(240px,70vw);height:auto;display:block;margin:0 auto;border-radius:12px}
-.ty-qr figcaption{font-size:13px;margin-top:10px;color:#686868}
-.ty-qr-cz{margin-top:16px;text-align:center}.ty-qr-cz summary{cursor:pointer;font-size:13px;color:#686868}.ty-qr-cz .ty-qr__code{margin-top:10px}
+.ty-bank{margin-top:28px;padding:26px 28px;border:1px solid rgba(176,141,87,.32);border-radius:24px;background:rgba(255,255,255,.82);box-shadow:0 14px 40px -20px rgba(45,44,74,.15)}
+.ty-bank .eyebrow{color:#9C7B45!important;letter-spacing:.16em;margin:0 0 14px!important;font-weight:600}
+.ty-bank .ty-total{margin:0 0 18px!important;display:grid;gap:8px}
+.ty-bank .ty-total div{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px dashed rgba(176,141,87,.22);font-size:14px}
+.ty-bank .ty-total div:last-child{border-bottom:0;padding-top:10px}
+.ty-qr{margin:18px 0 0;text-align:center;padding:16px;border-radius:18px;background:#fff;border:1px solid rgba(176,141,87,.2)}
+.ty-qr__code svg{width:min(210px,65vw);height:auto;display:block;margin:0 auto;border-radius:10px}
+.ty-qr figcaption{font-size:12px;margin-top:10px;color:#6B6F5E;line-height:1.4}
+.ty-qr-cz{margin-top:14px;text-align:center}
+.ty-qr-cz summary{cursor:pointer;font-size:13px;color:#73729C;font-weight:500}
+.ty-qr-cz .ty-qr__code{margin-top:10px;padding:14px;border-radius:16px;background:#fff;border:1px solid rgba(176,141,87,.2)}
 
 /* Přihlášení: béžové pozadí se na pravém okraji plynule rozpustí do bílé krémové, bez ostré hrany. */
 @layer shopv2{
