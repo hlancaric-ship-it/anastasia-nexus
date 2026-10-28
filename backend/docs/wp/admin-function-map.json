@@ -1415,7 +1415,7 @@
       ],
       "feature": "newsletter",
       "source": "backend/src/api/admin/newsletter/campaigns/[id]/send-test/route.ts",
-      "sha256": "f4156d132fa543fc1eff4cd6b665e97dbbecd9551f5b95cdf0475663c9c45302"
+      "sha256": "ee1a4181bb52ea49a434e03ed93c59b4663af0353487ca0cc19cc2d4f5e84d27"
     },
     {
       "path": "/admin/newsletter/preview",
