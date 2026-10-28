@@ -62,6 +62,7 @@
 /* výsuvný panel */
 .nv-tab{position:fixed;top:300px;right:0;z-index:60;writing-mode:vertical-rl;background:var(--nv-gold);color:#fff;padding:22px 11px;border:0;border-radius:22px 0 0 22px;font:inherit;font-size:12px;letter-spacing:.16em;text-transform:uppercase;box-shadow:-6px 8px 24px #c9a55c50;cursor:pointer}
 .nv-tab[hidden],.nv-dock[hidden]{display:none}
+html.ana-menu-open .nv-tab,html.ana-menu-open .nv-dock{visibility:hidden!important;pointer-events:none!important}
 .nv-dock{position:fixed;top:76px;right:0;bottom:24px;width:380px;z-index:70;display:flex;flex-direction:column;gap:12px;transform:translateX(0);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
 .nv-dock.is-closed{transform:translateX(110%)}
 .nv-leafp{flex:1 1 0;min-height:0;display:flex;flex-direction:column;position:relative;background:linear-gradient(160deg,#dfe6f0c4 0%,#e8e9eeb0 42%,#efe2c0b0 78%,#dcc07cc4 100%);backdrop-filter:blur(22px) saturate(1.2);-webkit-backdrop-filter:blur(22px) saturate(1.2);border:1px solid #ffffffa6;border-right:0;border-radius:200px 0 0 40px;box-shadow:-18px 20px 60px #73729c30;overflow:hidden}

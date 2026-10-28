@@ -189,7 +189,7 @@ body:has(.cookie-banner:not([hidden])) .ana-mobile-dock{display:none!important}
 /* mobilné menu: logo s nápisom, výrazný účet a kontakt, košík a jazyk s vlajkami v strede */
 #dc-top-menu .menu-quick{display:none!important}
 @media(max-width:760px){
-  #dc-top-menu .menu-brand-mark img{filter:brightness(0) saturate(100%) invert(47%) sepia(14%) saturate(1046%) hue-rotate(204deg) brightness(92%) contrast(88%)!important;opacity:1!important}
+  #dc-top-menu .menu-brand-mark img{filter:none!important;opacity:1!important}
   #dc-top-menu .menu-brand-mark+div{display:flex!important}
   #dc-top-menu .menu-brand-mark+div>span:first-child{font-size:17px!important;letter-spacing:4px!important;color:#403f62!important;font-weight:500!important}
   #dc-top-menu .menu-brand-mark+div>span:last-child{display:none!important}
@@ -297,7 +297,7 @@ html body .site-footer .sf-brands{border-color:var(--ft-line)!important;border-t
 html body .site-footer .sf-bottom{border-color:var(--ft-line)!important;color:rgba(239,229,199,.55)!important}
 html body .site-footer .sf-bottom :is(a,span){color:rgba(239,229,199,.6)!important}
 html body .site-footer .sf-bottom a:hover{color:var(--ft-lav)!important}
-html body .site-footer .sf-brands>*>img,html body .site-footer .sf-brands>*>div img{filter:brightness(0) invert(72%) sepia(28%) saturate(520%) hue-rotate(4deg) brightness(92%) contrast(86%)!important;opacity:.92}
+html body .site-footer .sf-brands>*>img,html body .site-footer .sf-brands>*>div img{filter:none!important;opacity:1!important}
 html body .site-footer .sf-brands span{color:var(--ft-gold)!important}
 html body .site-footer .sf-brands>a>div>span:nth-child(2),html body .site-footer .sf-brands>a>div>span:only-of-type{color:var(--ft-cream)!important}
 html body .site-footer .sf-brands>a>div>span[style*="height:1px"],html body .site-footer .sf-brands>a>div>span>span{background:var(--ft-gold)!important}

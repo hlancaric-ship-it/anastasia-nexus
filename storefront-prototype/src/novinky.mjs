@@ -4,7 +4,7 @@ import {NOVINKY_SAMPLE} from './novinky-data.mjs';
 const json=v=>JSON.stringify(v).replace(/</g,'\\u003c');
 const LEAF='<svg class="nv-leaf" viewBox="0 0 120 160" fill="none" stroke="#C9A55C" stroke-width="1.1" stroke-linecap="round" aria-hidden="true"><path d="M60 158C58 110 62 60 78 8"/><path d="M60 128C42 120 28 104 24 84c20 4 34 22 36 44z"/><path d="M62 100C80 94 94 78 98 58c-20 2-34 20-36 42z"/><path d="M60 70C46 62 36 48 34 30c16 4 26 18 26 40z"/><path d="M70 44C82 38 90 26 92 12c-14 2-22 14-22 32z"/></svg>';
 export const novinky=()=>`<link rel="stylesheet" href="/novinky.css"><div class="nv" id="nv">
-<section class="nv-hero"><img class="nv-logo" src="/img/novinky/logo-gold.png" alt="" aria-hidden="true"><div class="nv-w"><p class="nv-k" id="nv-eyebrow"></p><h1 id="nv-title"></h1><p class="nv-lead" id="nv-intro"></p><div class="nv-chips" id="nv-chips" role="group" aria-label="Rubriky"></div></div></section>
+<section class="nv-hero"><div class="nv-w"><p class="nv-k" id="nv-eyebrow"></p><h1 id="nv-title"></h1><p class="nv-lead" id="nv-intro"></p><div class="nv-chips" id="nv-chips" role="group" aria-label="Rubriky"></div></div></section>
 <section class="nv-feat" id="nv-feat" hidden></section>
 <section class="nv-reel-sec"><div class="nv-w"><p class="nv-tag">Najnovšie</p><h2>Čerstvé <em>príspevky</em></h2></div>
 <div class="nv-reel" id="nv-reel" tabindex="0" aria-label="Príspevky, potiahnite myšou alebo použite šípky"><div class="nv-track" id="nv-track"></div></div>

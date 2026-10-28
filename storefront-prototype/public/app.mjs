@@ -8,7 +8,7 @@ import {loadContent,applyContent,contentPageKeys} from '/content.mjs';
 import {availablePaymentMethods,defaultPaymentMethod,nextButtonState} from '/checkout-ui.mjs';
 import {escape as e,card,shopCard,shopOrder,arrow,button} from '/components.mjs';
 import {createAmbient} from '/ambient.mjs';
-import {init as i18nInit,DICT} from '/i18n.mjs';
+import {init as i18nInit,apply as i18nApply,getLang,DICT} from '/i18n.mjs';
 import {initWithdrawalForm} from '/withdrawal-form.mjs';
 import {initResetZone} from '/reset-zone.mjs';
 import {setAccountLink,setAccountVisibility,customerDisplayName} from '/account-links.mjs';
@@ -329,11 +329,11 @@ function mountMenuQuick(){
   if(menu&&lang&&head){
     const home=lang.parentElement,narrow=matchMedia('(max-width:760px)');
     const quick=document.createElement('div');quick.className='menu-quick';
-    quick.innerHTML=`<nav class="menu-quick__links" aria-label="${e(shopText('Účet'))}"><a href="/nova-registracia?mode=register" data-register-link data-menu-close>${e(shopText('Zaregistrovať sa'))}</a><a href="/prihlasenie" data-menu-account data-menu-close>${e(shopText('Prihlásiť sa'))}</a><a href="/kontakt" data-menu-close>${e(shopText('Kontakt'))}</a></nav><div class="menu-quick__row"><a class="menu-quick__cart" href="/kosik" data-menu-close>${e(shopText('Košík'))} <span class="cart-count">0</span></a></div>`;
+    quick.innerHTML=`<nav class="menu-quick__links" aria-label="Účet"><a href="/nova-registracia?mode=register" data-register-link data-menu-close>Zaregistrovať sa</a><a href="/prihlasenie" data-menu-account data-menu-close>Prihlásiť sa</a><a href="/kontakt" data-menu-close>Kontakt</a></nav><div class="menu-quick__row"><a class="menu-quick__cart" href="/kosik" data-menu-close><span>Košík</span> <span class="cart-count">0</span></a></div>`;
     {const logged=customerLogged();setAccountLink(quick.querySelector('[data-menu-account]'),logged);quick.querySelector('[data-register-link]').hidden=logged;}
     lang.classList.add('menu-lang');
     lang.querySelectorAll('[data-i18n-switch]').forEach(el=>el.dataset.flag=el.textContent.trim().toLowerCase());
-    const place=()=>{if(narrow.matches){if(!quick.isConnected)head.append(quick);quick.querySelector('.menu-quick__row').append(lang);}else{home.append(lang);quick.remove();}};
+    const place=()=>{if(narrow.matches){if(!quick.isConnected)head.append(quick);quick.querySelector('.menu-quick__row').append(lang);i18nApply(getLang());}else{home.append(lang);quick.remove();}};
     place();narrow.addEventListener('change',place);
     updateCount().catch(()=>{});
   }
