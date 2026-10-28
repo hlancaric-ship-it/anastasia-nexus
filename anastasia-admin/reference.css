@@ -278,3 +278,11 @@ html[data-theme=dark] .kpi-label,html[data-theme=dark] .dash-title h1,html[data-
  .is-dashboard .banner{height:78px}
  .is-dashboard .banner-lav .banner-art{height:78px}
 }
+
+/* Zlaté logo ANASTASIA od Lucie (krúžok a nápis s tieňom), rovnaké ako v newsletteri. */
+.brand img.brand-ring,.brand img.brand-word,.mobile-head img.brand-ring,.mobile-head img.brand-word{filter:none}
+.brand img.brand-ring{width:67px;height:64px;flex:none;object-fit:contain}
+.brand img.brand-word{display:block;width:156px;height:auto;margin-left:-3px}
+.brand small{margin:2px 0 0 4px;color:#a8823f}
+.mobile-head .brand-ring{width:34px;height:32px;flex:none}
+.mobile-head .brand-word{width:104px;height:auto}

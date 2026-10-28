@@ -397,7 +397,8 @@
         "backend/src/jobs/newsletter-send.ts",
         "backend/src/modules/legal/service.ts",
         "anastasia-admin/newsletter.mjs",
-        "backend/docs/wp/newsletter-kampane-HOTOVO.md"
+        "backend/docs/wp/newsletter-kampane-HOTOVO.md",
+        "backend/src/api/admin/newsletter/preview/route.ts"
       ],
       "remaining": "Backend a admin API sú hotové (koncept, test, fronta, odosielanie s limitom, odhlásenie podpísaným odkazom). Admin obrazovka je v samostatnom súbore anastasia-admin/newsletter.mjs a do app.mjs sa zapája jedným importom a jedným volaním; zapojenie zatiaľ nebolo vykonané. Migrácia nebola spustená proti reálnej DB a odosielanie nebolo overené proti živému poskytovateľovi.",
       "acceptance": "Kampaň sa odošle len prihláseným súhlasom a po opätovnej kontrole pred každým e-mailom; bez NEWSLETTER_UNSUBSCRIBE_SECRET sa neodošle nič; test ide len na @l-code-dynamics.com; denný limit a dávka sa dodržia; odhlasovací odkaz má podpis overený v konštantnom čase a jednoklikové odhlásenie funguje; obsah sa pred uložením sanitizuje a nedá sa prepašovať skript ani cudzia URL."
@@ -1398,6 +1399,15 @@
       "feature": "newsletter",
       "source": "backend/src/api/admin/newsletter/campaigns/[id]/test/route.ts",
       "sha256": "f4156d132fa543fc1eff4cd6b665e97dbbecd9551f5b95cdf0475663c9c45302"
+    },
+    {
+      "path": "/admin/newsletter/preview",
+      "methods": [
+        "POST"
+      ],
+      "feature": "newsletter",
+      "source": "backend/src/api/admin/newsletter/preview/route.ts",
+      "sha256": "bde06e75298cfa811ce1882110b1bb3bc4c4f8872efa57c1d1dec7eec193af4d"
     },
     {
       "path": "/admin/nexus-auth/logout",

@@ -2,6 +2,8 @@
 // Ceny, zľavy ani obchodné údaje sa tu nepočítajú. Obsah sa ukladá na serveri (sanitizovaný),
 // e-maily odosiela backendový job podľa denného limitu.
 
+import { cropPhoto, cropShape, fileToDataUrl } from './photo-crop.mjs';
+
 const NL_STATUS = {
   draft: ['koncept', 'warn'],
   queued: ['v poradí', 'warn'],
@@ -10,19 +12,51 @@ const NL_STATUS = {
   cancelled: ['zrušená', 'off'],
 };
 
-const NL_BLANK = () => ({ id: null, mode: 'sablona', form: { sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' }, subject: '', preheader: '', body_html: '', status: 'draft', recipients_count: 0, sent_count: 0, failed_count: 0, created_at: null, queued_at: null, sent_at: null });
+// Štýly sekcií ako v návrhu newslettera. Prázdny = striedajú sa automaticky (tmavý, svetlý, olivový).
+const NL_STYLES = [
+  ['', 'Automaticky'],
+  ['dark', 'Tmavý panel s citátom'],
+  ['light', 'Svetlá s fotografiou'],
+  ['olive', 'Olivový pás s tlačidlom'],
+];
+const NL_LINK = (kind = 'button') => ({ kind, label: '', url: '' });
+const NL_SECTION = (style = '') => ({ style, eyebrow: '', title: '', accent: '', image: '', alt: '', text: '', quote: '', links: [NL_LINK()] });
+const NL_INTRO = () => ({ eyebrow: '', title: '', accent: '', text: '' });
+const NL_FORM = () => ({ intro: NL_INTRO(), sections: [NL_SECTION()], signature: 'S láskou,' });
+
+// Hotový newsletter podľa schváleného návrhu. Nová kampaň začína z neho, Lucia len prepíše texty a fotky.
+const NL_SAMPLE_PHOTO = 'https://anastasia-test.l-code-dynamics.com/assets/newsletter-sample-product.jpg';
+const NL_SAMPLE_TIP = 'https://anastasia-test.l-code-dynamics.com/assets/newsletter-tip.jpg';
+const NL_TEMPLATE = () => ({
+  intro: {
+    eyebrow: 'Milá priateľka,',
+    title: 'Teším sa,',
+    accent: 'že si tu.',
+    text: 'V dnešnom newsletteri sa s tebou chcem podeliť o niekoľko myšlienok, ktoré mi v poslednom čase prinášajú pokoj, rovnováhu a viac ľahkosti do každodenného života.\n\nVerím, že ťa inšpirujú rovnako ako mňa a prinesú ti viac energie, zdravia a radosti.',
+  },
+  sections: [
+    { ...NL_SECTION('dark'), eyebrow: 'Tip pre vás', title: 'Malý rituál', accent: 'pre viac pokoja', text: 'Skúste si každý večer dopriať pár minút ticha, vedomého dýchania a vďačnosti. Uvidíte, ako aj malé okamihy môžu priniesť veľkú zmenu vo vašej energii a kvalite spánku.', image: NL_SAMPLE_TIP, alt: 'Program Reset 40', links: [{ kind: 'button', label: 'Prečítať tip', url: 'https://anastasiaoz.eu/blog' }] },
+    { ...NL_SECTION('light'), eyebrow: 'Novinka', title: 'Kráľovna svojho', accent: 'života', image: NL_SAMPLE_PHOTO, alt: 'Pleťová voda Kráľovna svojho života', text: 'Jemná pleťová voda, ktorá podporuje prirodzenú rovnováhu pleti a prináša sviežosť každý deň. Vznikla s rešpektom k prírode, vede a ženám, ktoré sa starajú o seba vedome.', links: [{ kind: 'button', label: 'Viac o produkte', url: 'https://anastasiaoz.eu/eshop' }] },
+    { ...NL_SECTION('olive'), eyebrow: 'Pozvánka', title: 'Online', accent: 'konzultácie', text: 'Individuálny prístup, osobné protokoly a podpora na vašej ceste k zdravšiemu a harmonickejšiemu životu.', links: [{ kind: 'button', label: 'Rezervovať termín', url: 'https://anastasiaoz.eu/konzultacie' }] },
+  ],
+  signature: 'S láskou,',
+});
+const NL_BLANK = () => {
+  const form = NL_TEMPLATE();
+  return { id: null, mode: 'sablona', form, subject: 'Novinky z ANASTASIA', preheader: 'Malý rituál pre viac pokoja, novinka a online konzultácie', body_html: nlBuildBody(form), status: 'draft', recipients_count: 0, sent_count: 0, failed_count: 0, created_at: null, queued_at: null, sent_at: null };
+};
 
 const NL_CSV_PAGE = 100;
 const NL_CSV_MAX_PAGES = 50;
 
-// Kampaň zo servera: ak sa dá poskladať späť na šablónu Dopis, otvorí sa vo formulári, inak ako HTML.
+// Kampaň zo servera: ak sa dá poskladať späť na šablónu, otvorí sa vo formulári, inak ako HTML.
 function nlAdopt(campaign, keepMode) {
   const parsed = nlParseForm(campaign && campaign.body_html);
   const mode = keepMode === 'html' ? 'html' : (parsed ? 'sablona' : 'html');
-  return { ...campaign, mode, form: parsed || { sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' } };
+  return { ...campaign, mode, form: parsed || NL_FORM() };
 }
 
-export function newsletterView({ api, esc, fmtDate, freshView }) {
+export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, uploadImage }) {
   return async function openNewsletter(view) {
     view = freshView(view);
     const state = {
@@ -74,20 +108,37 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       if (state.editing.mode === 'sablona') {
         const form = state.editing.form;
         view.querySelectorAll('[data-sec]').forEach(el => {
-          const idx = Number(el.dataset.sec), field = el.dataset.f;
-          if (form.sections[idx]) form.sections[idx][field] = el.value;
+          const idx = Number(el.dataset.sec), field = el.dataset.f, sec = form.sections[idx];
+          if (!sec) return;
+          if (el.dataset.link !== undefined) { const link = sec.links[Number(el.dataset.link)]; if (link) link[field] = el.value; }
+          else sec[field] = el.value;
         });
-        const cl = view.querySelector('#nl-cta-label'), cu = view.querySelector('#nl-cta-url'), sg = view.querySelector('#nl-sign');
-        if (cl) form.ctaLabel = cl.value;
-        if (cu) form.ctaUrl = cu.value;
+        view.querySelectorAll('[data-intro]').forEach(el => { form.intro[el.dataset.intro] = el.value; });
+        const sg = view.querySelector('#nl-sign');
         if (sg) form.signature = sg.value;
         state.editing.body_html = nlBuildBody(form);
       } else if (body) state.editing.body_html = body.value;
     }
 
-    function preview() {
+    // Náhľad vykresľuje server rovnakou šablónou, akou e-mail odíde. Pri písaní s krátkym oneskorením.
+    let previewTimer = null, previewSeq = 0, previewHtml = '';
+    function preview(immediate = false) {
+      clearTimeout(previewTimer);
       const frame = view.querySelector('#nl-preview');
-      if (frame) frame.srcdoc = emailHtml(state.editing);
+      if (frame && previewHtml && !frame.srcdoc) frame.srcdoc = previewHtml;
+      previewTimer = setTimeout(async () => {
+        const seq = ++previewSeq;
+        try {
+          const data = await api('/admin/newsletter/preview', { method: 'POST', body: { subject: state.editing.subject, preheader: state.editing.preheader, body_html: state.editing.body_html } });
+          if (seq !== previewSeq || !data || typeof data.html !== 'string') return;
+          previewHtml = data.html;
+          const current = view.querySelector('#nl-preview');
+          if (current) current.srcdoc = previewHtml;
+        } catch {
+          const current = view.querySelector('#nl-preview');
+          if (current && seq === previewSeq && !previewHtml) current.srcdoc = '<p style="font:14px sans-serif;color:#777;padding:24px">Náhľad sa nepodarilo načítať. Skúste to o chvíľu.</p>';
+        }
+      }, immediate ? 0 : 450);
     }
 
     function render() {
@@ -107,15 +158,26 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
         .nl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
         .nl-sec{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px;background:rgba(255,255,255,.6)}
         .nl-sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+        .nl-sec-tools{display:flex;gap:6px}
+        .nl-sec-tools .btn{padding:6px 10px;min-height:32px}
+        .nl-link{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(0,1.3fr) auto;gap:8px;align-items:center;margin:0 0 8px}
+        .nl-link .btn{padding:8px 12px;min-height:36px}
+        .nl-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px}
+        .nl-photo{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;align-items:start;margin:4px 0 6px}
+        .nl-photo img,.nl-photo-empty{width:132px;height:96px;object-fit:cover;border-radius:44px 8px 8px 8px;background:#eeecf5;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
+        .nl-photo-act{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+        .nl-photo-act .btn{padding:8px 12px;min-height:36px;cursor:pointer}
+        .nl-photo-act label[for],.nl-photo-act input{flex:1 1 100%}
+        .nl-photo-act label[for]{margin-bottom:0}
         .nl-tools .btn{padding:8px 12px;min-height:36px}
         .nl-editor textarea{width:100%;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
-        .nl-preview{width:100%;height:720px;border:1px solid var(--line);border-radius:12px;background:#fbf8f2}
+        .nl-preview{width:100%;height:1100px;border:1px solid var(--line);border-radius:12px;background:#fbf8f2}
         .nl-note{font-size:12px;color:var(--muted);line-height:1.6}
         .nl-tabs{display:flex;gap:20px;border-bottom:1px solid var(--line);margin:2px 0 18px}
         .nl-tabs .tab{background:none;border:0;border-bottom:2px solid transparent;padding:0 0 12px;min-height:44px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}
         .nl-tabs .tab.active{border-bottom-color:var(--gold);color:var(--primary)}
         .nl-row{cursor:pointer}
-        @media(max-width:900px){.nl-stats,.nl-grid{grid-template-columns:1fr}.nl-preview{height:560px}}
+        @media(max-width:900px){.nl-stats,.nl-grid,.nl-2,.nl-link{grid-template-columns:1fr}.nl-preview{height:560px}}
       </style>
       <div class="nl-wrap">
         <div class="rc-grid nl-stats">
@@ -147,7 +209,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
               </div>` : ''}
               <textarea id="nl-body" rows="14" ${editable ? '' : 'disabled'} placeholder="Napíšte text kampane. Povolené je základné formátovanie.">${esc(editing.body_html)}</textarea>
               <p class="muted nl-note">Povolené sú odseky, nadpisy, tučné a kurzívne písmo, odrážky, odkazy a obrázky len cez https. Ostatné značky server pri uložení odstráni.</p>
-              ${editable && !editing.id ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="sablona">Použiť šablónu Dopis</button></p>' : ''}`}
+              ${editable ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="sablona">Späť do formulára</button> <button type="button" class="btn ghost" data-mode="vzor">Začať znova podľa návrhu</button></p>' : ''}`}
               <div class="row" style="margin-top:14px">
                 ${editable ? '<button type="button" class="btn gold" data-save>Uložiť koncept</button>' : ''}
                 ${editable && editing.id ? '<button type="button" class="btn ghost" data-delete>Zmazať koncept</button>' : ''}
@@ -182,31 +244,86 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
         </section>
       </div>`;
 
-      preview();
+      preview(true);
       wire();
     }
 
+    // Fotografia: náhľad, výber z mediálnej banky, nahratie z počítača a popis pre čítačky.
+    function photoHtml(key, src, alt, editable, altId, altAttrs) {
+      const dis = editable ? '' : 'disabled';
+      return `<div class="nl-photo">
+        ${src ? `<img src="${esc(src)}" alt="">` : '<div class="nl-photo-empty">Bez fotografie</div>'}
+        <div class="nl-photo-act">
+          ${editable ? `<button type="button" class="btn ghost" data-photo-pick="${key}">Vybrať z médií</button>
+          <label class="btn ghost">Nahrať z počítača<input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-photo-file="${key}"></label>
+          ${src ? `<button type="button" class="btn ghost" data-photo-crop="${key}">Upraviť výrez</button>
+          <button type="button" class="btn ghost danger" data-photo-del="${key}">Odstrániť</button>` : ''}` : ''}
+          ${src ? `<label for="${altId}">Popis fotografie (pre nevidiacich a keď sa obrázky nenačítajú)</label>
+          <input id="${altId}" ${altAttrs} maxlength="200" value="${esc(alt)}" ${dis} placeholder="Napríklad Ranný les v hmle">` : ''}
+        </div>
+      </div>`;
+    }
+
+    function headingHtml(prefix, data, dis, idAttr) {
+      return `<div class="nl-2">
+          <div><label for="${prefix}-t">Nadpis</label>
+          <input id="${prefix}-t" ${idAttr('title')} maxlength="120" value="${esc(data.title)}" ${dis} placeholder="Napríklad Malý rituál"></div>
+          <div><label for="${prefix}-ac">Zvýraznené slová (fialová kurzíva)</label>
+          <input id="${prefix}-ac" ${idAttr('accent')} maxlength="80" value="${esc(data.accent)}" ${dis} placeholder="Napríklad viac pokoja"></div>
+        </div>`;
+    }
+
     function templateFormHtml(editing, editable) {
-      const form = editing.form, dis = editable ? '' : 'disabled';
-      const sections = form.sections.map((sec, i) => `<div class="nl-sec">
-        <div class="nl-sec-h"><b>Sekcia ${i + 1}</b>${editable && form.sections.length > 1 ? `<button type="button" class="btn ghost" data-sec-del="${i}">Odstrániť</button>` : ''}</div>
-        <label for="nl-sec-t-${i}">Nadpis sekcie</label>
-        <input id="nl-sec-t-${i}" data-sec="${i}" data-f="title" maxlength="120" value="${esc(sec.title)}" ${dis} placeholder="Napríklad Pokoj v tmavších dňoch">
+      const form = editing.form, dis = editable ? '' : 'disabled', last = form.sections.length - 1;
+      const intro = form.intro;
+      const sections = form.sections.map((sec, i) => {
+        const field = f => `data-sec="${i}" data-f="${f}"`;
+        return `<div class="nl-sec">
+        <div class="nl-sec-h"><b>Sekcia ${i + 1}</b>${editable ? `<span class="nl-sec-tools">
+          ${i > 0 ? `<button type="button" class="btn ghost" data-sec-up="${i}" aria-label="Posunúť sekciu ${i + 1} vyššie">↑</button>` : ''}
+          ${i < last ? `<button type="button" class="btn ghost" data-sec-down="${i}" aria-label="Posunúť sekciu ${i + 1} nižšie">↓</button>` : ''}
+          <button type="button" class="btn ghost" data-sec-del="${i}">Odstrániť</button></span>` : ''}</div>
+        <div class="nl-2">
+          <div><label for="nl-sec-s-${i}">Vzhľad sekcie</label>
+          <select id="nl-sec-s-${i}" ${field('style')} ${dis}>${NL_STYLES.map(([v, l]) => `<option value="${v}" ${sec.style === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
+          <div><label for="nl-sec-e-${i}">Nadtitulok (malý text nad nadpisom)</label>
+          <input id="nl-sec-e-${i}" ${field('eyebrow')} maxlength="60" value="${esc(sec.eyebrow)}" ${dis} placeholder="Napríklad Tip pre vás"></div>
+        </div>
+        ${headingHtml(`nl-sec-${i}`, sec, dis, field)}
         <label for="nl-sec-x-${i}">Text (prázdny riadok = nový odsek)</label>
-        <textarea id="nl-sec-x-${i}" data-sec="${i}" data-f="text" rows="6" ${dis} placeholder="Napíšte text sekcie.">${esc(sec.text)}</textarea>
-      </div>`).join('');
-      return `<p class="muted nl-note" style="margin-top:0">Každá sekcia je v e-maile na vlastnom farebnom podklade, ako na webe.</p>
+        <textarea id="nl-sec-x-${i}" ${field('text')} rows="5" ${dis} placeholder="Napíšte text sekcie.">${esc(sec.text)}</textarea>
+        <label>Fotografia (v tmavom paneli sa ukáže, len ak nie je citát)</label>
+        ${photoHtml(`s${i}`, sec.image, sec.alt, editable, `nl-sec-a-${i}`, field('alt'))}
+        <label for="nl-sec-q-${i}">Citát vpravo (len tmavý panel, nepovinné)</label>
+        <input id="nl-sec-q-${i}" ${field('quote')} maxlength="160" value="${esc(sec.quote)}" ${dis} placeholder="Napríklad Pokoj začína v malých okamihoch.">
+        <label>Tlačidlá a odkazy</label>
+        ${sec.links.map((link, j) => {
+          const lf = f => `data-sec="${i}" data-link="${j}" data-f="${f}"`;
+          return `<div class="nl-link">
+          <select id="nl-sec-lk-${i}-${j}" ${lf('kind')} ${dis} aria-label="Druh odkazu ${j + 1}"><option value="button" ${link.kind !== 'link' ? 'selected' : ''}>Tlačidlo</option><option value="link" ${link.kind === 'link' ? 'selected' : ''}>Odkaz v texte</option></select>
+          <input id="nl-sec-ll-${i}-${j}" ${lf('label')} maxlength="80" value="${esc(link.label)}" ${dis} placeholder="Text, napríklad Rezervovať termín" aria-label="Text odkazu ${j + 1}">
+          <input id="nl-sec-lu-${i}-${j}" ${lf('url')} maxlength="500" value="${esc(link.url)}" ${dis} placeholder="https://anastasiaoz.eu/..." aria-label="Adresa odkazu ${j + 1}">
+          ${editable ? `<button type="button" class="btn ghost" data-link-del="${i}:${j}" aria-label="Odstrániť odkaz ${j + 1}">Odstrániť</button>` : ''}
+        </div>`;
+        }).join('') || '<p class="muted nl-note" style="margin:0 0 8px">Sekcia nemá tlačidlo ani odkaz.</p>'}
+        ${editable ? `<p style="margin:6px 0 0"><button type="button" class="btn ghost" data-link-add="${i}">Pridať tlačidlo alebo odkaz</button></p>` : ''}
+      </div>`;
+      }).join('');
+      const introField = f => `data-intro="${f}"`;
+      return `<p class="muted nl-note" style="margin-top:14px">Newsletter je pripravený podľa návrhu. Stačí prepísať texty, vymeniť fotografie a odkazy. Fotografia Lucie hore je stála.</p>
+        <div class="nl-sec">
+          <div class="nl-sec-h"><b>Úvod vedľa fotografie Lucie</b></div>
+          <label for="nl-in-e">Oslovenie (malý text nad nadpisom)</label>
+          <input id="nl-in-e" ${introField('eyebrow')} maxlength="60" value="${esc(intro.eyebrow)}" ${dis} placeholder="Napríklad Milá priateľka,">
+          ${headingHtml('nl-in', intro, dis, introField)}
+          <label for="nl-in-x">Text (prázdny riadok = nový odsek)</label>
+          <textarea id="nl-in-x" ${introField('text')} rows="5" ${dis} placeholder="Napíšte úvodný text.">${esc(intro.text)}</textarea>
+          <label for="nl-sign">Pozdrav pred podpisom</label>
+          <input id="nl-sign" maxlength="80" value="${esc(form.signature)}" ${dis} placeholder="S láskou,">
+          <p class="muted nl-note" style="margin:6px 0 0">Pod pozdravom je vždy podpis Lucia Rogožanová, Farmaceutka • Tvorkyňa ANASTASIA.</p>
+        </div>
         ${sections}
         ${editable ? '<p><button type="button" class="btn ghost" data-sec-add>Pridať sekciu</button></p>' : ''}
-        <div class="nl-sec">
-          <div class="nl-sec-h"><b>Jedno tlačidlo s odkazom</b></div>
-          <label for="nl-cta-label">Text tlačidla</label>
-          <input id="nl-cta-label" maxlength="80" value="${esc(form.ctaLabel)}" ${dis} placeholder="Napríklad Pozrieť konzultácie">
-          <label for="nl-cta-url">Adresa odkazu (musí začínať https://)</label>
-          <input id="nl-cta-url" maxlength="500" value="${esc(form.ctaUrl)}" ${dis} placeholder="https://">
-          <label for="nl-sign">Podpis</label>
-          <input id="nl-sign" maxlength="80" value="${esc(form.signature)}" ${dis} placeholder="Lucia">
-        </div>
         ${editable ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="html">Upraviť ako HTML (pokročilé)</button></p>' : ''}`;
     }
 
@@ -261,14 +378,90 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       if (subject) subject.oninput = syncPreview;
       if (preheader) preheader.oninput = syncPreview;
       if (body) body.oninput = syncPreview;
-      view.querySelectorAll('[data-sec],#nl-cta-label,#nl-cta-url,#nl-sign').forEach(el => { el.oninput = syncPreview; });
+      view.querySelectorAll('[data-sec],[data-intro],#nl-sign').forEach(el => { el.oninput = syncPreview; if (el.tagName === 'SELECT') el.onchange = syncPreview; });
       const secAdd = view.querySelector('[data-sec-add]');
-      if (secAdd) secAdd.onclick = () => { sync(); state.editing.form.sections.push({ title: '', text: '' }); render(); };
+      if (secAdd) secAdd.onclick = () => { sync(); state.editing.form.sections.push(NL_SECTION()); sync(); render(); };
+      const moveSec = (from, to) => { sync(); const list = state.editing.form.sections; if (to < 0 || to >= list.length) return; list.splice(to, 0, list.splice(from, 1)[0]); sync(); render(); };
+      view.querySelectorAll('[data-sec-up]').forEach(btn => btn.onclick = () => moveSec(Number(btn.dataset.secUp), Number(btn.dataset.secUp) - 1));
+      view.querySelectorAll('[data-sec-down]').forEach(btn => btn.onclick = () => moveSec(Number(btn.dataset.secDown), Number(btn.dataset.secDown) + 1));
+      const setPhoto = (key, url) => {
+        const form = state.editing.form;
+        { const sec = form.sections[Number(key.slice(1))]; if (!sec) return; sec.image = url; if (!url) sec.alt = ''; }
+      };
+      const usable = url => /^https:\/\//i.test(String(url || ''));
+      const shapeOf = key => cropShape(state.editing.form.sections[Number(key.slice(1))]?.style);
+      // Orezaná fotografia sa nahrá ako nový súbor do Médií. Pri zrušení okna sa nič nemení.
+      const cropAndUpload = async (key, src) => {
+        const file = await cropPhoto(src, shapeOf(key), { esc, name: `newsletter-${key}-${Date.now()}` });
+        if (!file) return false;
+        const url = await uploadImage(file);
+        if (!usable(url)) throw new Error('Nahratá fotografia nemá verejnú adresu https, do e-mailu sa nedá použiť.');
+        setPhoto(key, url);
+        state.message = { text: 'Fotografia je orezaná a nahratá aj v Médiách. Nezabudnite uložiť koncept.', error: false };
+        sync(); render();
+        return true;
+      };
+      view.querySelectorAll('[data-photo-pick]').forEach(btn => btn.onclick = async () => {
+        sync();
+        const key = btn.dataset.photoPick;
+        const [url] = await pickMedia([]);
+        if (!url) return;
+        if (!usable(url)) { state.message = { text: 'Táto fotografia nemá verejnú adresu https, do e-mailu sa nedá použiť.', error: true }; render(); return; }
+        try {
+          await cropAndUpload(key, url);
+        } catch {
+          // Médiá bez CORS sa nedajú orezať v prehliadači, fotografia sa použije celá.
+          setPhoto(key, url);
+          state.message = { text: 'Fotografia je vložená celá. Ak ju chcete orezať, nahrajte ju z počítača.', error: false };
+          sync(); render();
+        }
+      });
+      view.querySelectorAll('[data-photo-file]').forEach(input => input.onchange = () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        sync();
+        run(async () => {
+          if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 15 * 1024 * 1024) throw new Error(`${file.name}: povolené sú JPG, PNG a WebP do 15 MB.`);
+          await cropAndUpload(input.dataset.photoFile, await fileToDataUrl(file));
+        });
+      });
+      view.querySelectorAll('[data-photo-crop]').forEach(btn => btn.onclick = () => {
+        sync();
+        const key = btn.dataset.photoCrop;
+        const sec = state.editing.form.sections[Number(key.slice(1))];
+        if (!sec?.image) return;
+        run(async () => {
+          try { await cropAndUpload(key, sec.image); }
+          catch { throw new Error('Túto fotografiu nie je možné orezať v prehliadači. Nahrajte ju znova z počítača.'); }
+        });
+      });
+      view.querySelectorAll('[data-photo-del]').forEach(btn => btn.onclick = () => { sync(); setPhoto(btn.dataset.photoDel, ''); sync(); render(); });
+      view.querySelectorAll('[data-link-add]').forEach(btn => btn.onclick = () => {
+        sync();
+        const sec = state.editing.form.sections[Number(btn.dataset.linkAdd)];
+        if (!sec) return;
+        sec.links.push(NL_LINK(sec.links.some(l => l.kind !== 'link') ? 'link' : 'button'));
+        sync(); render();
+      });
+      view.querySelectorAll('[data-link-del]').forEach(btn => btn.onclick = () => {
+        sync();
+        const [i, j] = btn.dataset.linkDel.split(':').map(Number);
+        const sec = state.editing.form.sections[i];
+        if (sec) sec.links.splice(j, 1);
+        sync(); render();
+      });
       view.querySelectorAll('[data-sec-del]').forEach(btn => btn.onclick = () => { sync(); state.editing.form.sections.splice(Number(btn.dataset.secDel), 1); sync(); render(); });
       view.querySelectorAll('[data-mode]').forEach(btn => btn.onclick = () => {
         sync();
         if (btn.dataset.mode === 'html') state.editing.mode = 'html';
-        else { state.editing.mode = 'sablona'; state.editing.form = nlParseForm(state.editing.body_html) || { sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' }; sync(); }
+        else if (btn.dataset.mode === 'vzor') {
+          if (!confirm('Nahradiť obsah kampane hotovým newsletterom podľa návrhu? Terajší text sa stratí.')) return;
+          state.editing.mode = 'sablona'; state.editing.form = NL_TEMPLATE(); state.editing.body_html = nlBuildBody(state.editing.form);
+        } else {
+          const parsed = nlParseForm(state.editing.body_html);
+          if (!parsed) { state.message = { text: 'Tento obsah sa nedá zobraziť vo formulári. Upravte ho ako HTML alebo začnite znova podľa návrhu.', error: true }; render(); return; }
+          state.editing.mode = 'sablona'; state.editing.form = parsed; sync();
+        }
         render();
       });
 
@@ -417,108 +610,81 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
   };
 }
 
-// --- Rovnaká šablóna „Dopis“ ako backend (policy.ts), len s ukážkovým odkazom na odhlásenie. ---
-const NL_PANELS = [
-  { bg: '#e9e9f2', ink: '#2b2a3a', head: '#2f3424', link: '#73729c', dark: false },
-  { bg: '#e4e6d6', ink: '#2b2a3a', head: '#2f3424', link: '#73729c', dark: false },
-  { bg: '#2f3424', ink: '#e9eadf', head: '#f7f4ec', link: '#c9a55c', dark: true },
-  { bg: '#f3e9d0', ink: '#2b2a3a', head: '#2f3424', link: '#8a6d2e', dark: false },
-];
-const NL_ASSET = 'https://anastasia-test.l-code-dynamics.com';
+// --- Šablóna podľa návrhu: úvod vedľa stálej fotky, sekcie (vzhľad, nadpis, fotka, text, citát, tlačidlo) a pozdrav.
+// Z formulára sa skladá HTML obsahu s rolami data-nl, ktoré pozná serverová šablóna (policy.ts).
+const NL_STYLE_VALUES = new Set(['dark', 'light', 'olive']);
 
-function ctaButtons(html, dark) {
-  const fill = dark ? '#f7f4ec' : '#2f3424';
-  const ink = dark ? '#2f3424' : '#f7f4ec';
-  return html.replace(/<p>\s*<a [^>]*href="([^"]+)"[^>]*>([^<]{1,80})<\/a>\s*<\/p>/gi, (_m, href, label) =>
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 14px"><tr><td align="center" bgcolor="${fill}" style="border-radius:999px;background:${fill}"><a data-cta="1" href="${href}" style="display:inline-block;padding:17px 38px;font-family:Figtree,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;color:${ink};text-decoration:none;border-radius:999px">${label}</a></td></tr></table>`);
-}
-
-function emailHtml(d) {
-  const serif = "Fraunces,Georgia,'Times New Roman',serif", sans = "Figtree,Helvetica,Arial,sans-serif";
-  const preheader = String(d.preheader || '').trim();
-  const body = String(d.body_html || '') || '<h2>Nadpis</h2><p>Obsah e-mailu sa zobrazí tu.</p>';
-  const styleBlock = (html, panel) => ctaButtons(html, panel.dark)
-    .replace(/<a href=/gi, `<a style="color:${panel.link};text-decoration:underline" href=`)
-    .replace(/<h2>/gi, `<h2 style="margin:0 0 20px;font-family:${serif};font-size:32px;line-height:1.15;font-weight:300;letter-spacing:-.01em;color:${panel.head}">`)
-    .replace(/<h3>/gi, `<h3 style="margin:26px 0 10px;font-family:${serif};font-size:21px;line-height:1.25;font-weight:400;color:${panel.link}">`)
-    .replace(/<p>/gi, '<p style="margin:0 0 18px">')
-    .replace(/<ul>/gi, '<ul style="margin:0 0 18px;padding-left:22px">')
-    .replace(/<ol>/gi, '<ol style="margin:0 0 18px;padding-left:22px">')
-    .replace(/<li>/gi, '<li style="margin:0 0 8px">')
-    .replace(/<img /gi, '<img style="display:block;width:100%;max-width:520px;height:auto;border-radius:16px;margin:8px 0 22px" ')
-    .replace(/ data-cta="1"/g, '');
-  const sections = body.split(/(?=<h2>)/i).filter(part => part.trim());
-  const rows = sections.map((part, index) => {
-    const panel = NL_PANELS[index % NL_PANELS.length];
-    return `<tr><td bgcolor="${panel.bg}" style="padding:44px 48px 36px;background:${panel.bg};font-family:${sans};font-size:16px;line-height:1.8;color:${panel.ink}">${styleBlock(part, panel)}</td></tr>`;
-  }).join('');
-  return `<!doctype html>
-<html lang="sk">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(d.subject || 'Nová kampaň')}</title></head>
-<body style="margin:0;padding:0;background:#e9e9f2">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#e9e9f2" style="background:#e9e9f2">
-<tr><td align="center" background="${NL_ASSET}/assets/email-lines.png" style="padding:36px 16px 44px;background:#e9e9f2 url(${NL_ASSET}/assets/email-lines.png) center top repeat-y;background-size:1200px auto">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;background:#fdfbf7;border-radius:28px;overflow:hidden">
-<tr><td align="center" style="padding:44px 40px 26px;background:#f7f4ec">
-<img src="${NL_ASSET}/assets/lucia-koule.png" width="64" height="64" alt="ANASTASIA" style="display:block;width:64px;height:64px;margin:0 auto 16px;border:0">
-<div style="font-family:${serif};font-size:26px;font-weight:300;letter-spacing:9px;color:#2f3424;text-transform:uppercase">ANASTASIA</div>
-<div style="font-family:${sans};font-size:10px;letter-spacing:4px;color:#c9a55c;text-transform:uppercase;padding-top:10px">Light for the future</div>
-</td></tr>
-<tr><td height="3" bgcolor="#c9a55c" style="height:3px;background:#c9a55c;line-height:3px;font-size:3px"></td></tr>
-${rows}
-<tr><td style="padding:34px 48px 36px;background:#2f3424">
-<p style="margin:0 0 10px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
-<p style="margin:0 0 6px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
-<p style="margin:0"><a href="#" style="font-family:${sans};font-size:12px;line-height:1.7;color:#c9a55c;text-decoration:underline">Odhlásiť sa z odberu</a></p>
-<p style="margin:18px 0 0;font-family:${serif};font-size:11px;letter-spacing:3px;color:#c9a55c;text-transform:uppercase">ANASTASIA · Light for the future</p>
-</td></tr>
-</table>
-</td></tr>
-</table>
-</body>
-</html>`;
-}
-
-// --- Šablóna Dopis: sekcie (nadpis + text), jedno tlačidlo a podpis. Z formulára sa skladá HTML obsahu. ---
 function nlBuildBody(form) {
+  const https = v => /^https:\/\//i.test(String(v || '').trim());
+  const clean = v => String(v || '').trim();
   const paragraphs = text => String(text || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean)
     .map(t => `<p>${escapeHtml(t).replace(/\n/g, '<br>')}</p>`).join('');
+  const heading = d => {
+    const title = clean(d.title), accent = clean(d.accent);
+    if (!title && !accent) return '';
+    return `<h2>${escapeHtml(title)}${title && accent ? ' ' : ''}${accent ? `<em>${escapeHtml(accent)}</em>` : ''}</h2>`;
+  };
+  const eyebrow = v => clean(v) ? `<p data-nl="eyebrow">${escapeHtml(clean(v))}</p>` : '';
+  const intro = form.intro || NL_INTRO();
+  const introHtml = eyebrow(intro.eyebrow) + heading(intro) + paragraphs(intro.text);
   const parts = (form.sections || []).map(sec => {
-    const title = String(sec.title || '').trim();
-    const text = paragraphs(sec.text);
-    return (title ? `<h2>${escapeHtml(title)}</h2>` : '') + text;
-  }).filter(Boolean);
-  let html = parts.join('');
-  const label = String(form.ctaLabel || '').trim(), url = String(form.ctaUrl || '').trim();
-  if (label && /^https:\/\//i.test(url)) html += `<p><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></p>`;
-  const sign = String(form.signature || '').trim();
-  if (sign) html += `<p><em>${escapeHtml(sign)}</em></p>`;
-  return html;
+    const links = (sec.links || []).map(l => ({ kind: l.kind === 'link' ? 'link' : 'button', label: clean(l.label), url: clean(l.url) }))
+      .filter(l => l.label && https(l.url))
+      .map(l => `<p${l.kind === 'link' ? ' data-nl="link"' : ''}><a href="${escapeHtml(l.url)}">${escapeHtml(l.label)}</a></p>`).join('');
+    const content = eyebrow(sec.eyebrow) + heading(sec)
+      + (https(sec.image) ? `<img src="${escapeHtml(clean(sec.image))}" alt="${escapeHtml(clean(sec.alt))}">` : '')
+      + paragraphs(sec.text)
+      + links
+      + (clean(sec.quote) ? `<p data-nl="quote">${escapeHtml(clean(sec.quote))}</p>` : '');
+    if (!content) return '';
+    return (NL_STYLE_VALUES.has(sec.style) ? `<hr data-nl="${sec.style}">` : '<hr>') + content;
+  }).join('');
+  const sign = clean(form.signature);
+  return introHtml + parts + (sign ? `<p data-nl="sign">${escapeHtml(sign)}</p>` : '');
 }
 
+// Spätné poskladanie formulára z uloženého HTML. Ak obsah nezodpovedá šablóne, vráti null (otvorí sa ako HTML).
 function nlParseForm(html) {
   const source = String(html || '').trim();
-  const blank = () => ({ sections: [{ title: '', text: '' }], ctaLabel: '', ctaUrl: '', signature: 'Lucia' });
-  if (!source) return blank();
+  if (!source) return NL_TEMPLATE();
   const doc = new DOMParser().parseFromString(`<body>${source}</body>`, 'text/html');
-  const form = { sections: [], ctaLabel: '', ctaUrl: '', signature: '' };
-  let current = null;
   const nodes = [...doc.body.children];
-  for (let index = 0; index < nodes.length; index++) {
-    const node = nodes[index], tag = node.tagName.toLowerCase();
-    if (tag === 'h2') { current = { title: node.textContent, text: '' }; form.sections.push(current); continue; }
+  if (nodes.some(n => n.tagName === 'H2') && !nodes.some(n => n.tagName === 'HR')) return null;
+  const form = { intro: NL_INTRO(), sections: [], signature: '' };
+  let current = form.intro, isIntro = true;
+  const only = (node, tag) => node.children.length === 1 && node.firstElementChild.tagName === tag && node.textContent === node.firstElementChild.textContent ? node.firstElementChild : null;
+  for (const node of nodes) {
+    const tag = node.tagName.toLowerCase(), role = node.getAttribute('data-nl') || '';
+    if (tag === 'hr') { current = { ...NL_SECTION(NL_STYLE_VALUES.has(role) ? role : ''), links: [] }; form.sections.push(current); isIntro = false; continue; }
+    if (tag === 'img') {
+      if (isIntro || current.image) return null;
+      current.image = node.getAttribute('src') || ''; current.alt = node.getAttribute('alt') || '';
+      continue;
+    }
+    if (tag === 'h2') {
+      if (current.title || current.accent) return null;
+      const kids = [...node.childNodes];
+      const emIndex = kids.findIndex(n => n.nodeName === 'EM');
+      if (kids.some((n, i) => n.nodeType === 1 && i !== emIndex) || (emIndex >= 0 && kids.slice(emIndex + 1).some(n => n.textContent.trim()))) return null;
+      if (emIndex >= 0 && kids[emIndex].children.length) return null;
+      current.title = kids.slice(0, emIndex >= 0 ? emIndex : kids.length).map(n => n.textContent).join('').trim();
+      current.accent = emIndex >= 0 ? kids[emIndex].textContent.trim() : '';
+      continue;
+    }
     if (tag !== 'p') return null;
-    const link = node.children.length === 1 && node.firstElementChild.tagName === 'A' && node.textContent === node.firstElementChild.textContent ? node.firstElementChild : null;
-    if (link) { form.ctaLabel = link.textContent; form.ctaUrl = link.getAttribute('href') || ''; continue; }
-    const em = node.children.length === 1 && node.firstElementChild.tagName === 'EM' && node.textContent === node.firstElementChild.textContent ? node.firstElementChild : null;
-    if (em && index === nodes.length - 1) { form.signature = em.textContent; continue; }
+    if (role === 'sign') { form.signature = node.textContent; continue; }
+    if (role === 'eyebrow') { if (current.eyebrow) return null; current.eyebrow = node.textContent; continue; }
+    if (role === 'quote') { if (isIntro || current.quote) return null; current.quote = node.textContent; continue; }
+    const link = only(node, 'A');
+    if (link) {
+      if (isIntro) return null;
+      current.links.push({ kind: role === 'link' ? 'link' : 'button', label: link.textContent, url: link.getAttribute('href') || '' });
+      continue;
+    }
     if (node.children.length && [...node.children].some(c => c.tagName !== 'BR')) return null;
-    if (!current) { current = { title: '', text: '' }; form.sections.push(current); }
     const text = [...node.childNodes].map(n => n.nodeName === 'BR' ? '\n' : n.textContent).join('');
     current.text += (current.text ? '\n\n' : '') + text;
   }
-  if (!form.sections.length) form.sections.push({ title: '', text: '' });
   return form;
 }
 

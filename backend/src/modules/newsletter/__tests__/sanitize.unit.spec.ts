@@ -37,4 +37,12 @@ describe("sanitizácia obsahu kampane", () => {
     expect(campaignFields({ subject: "Téma\nskryté", preheader: "Úvod", body_html: "<p>x</p>" }))
       .toEqual({ subject: "Téma skryté", preheader: "Úvod", body_html: "<p>x</p>" })
   })
+
+  it("prenáša len roly šablóny data-nl a oddeľovač hr", () => {
+    expect(sanitizeCampaignHtml('<p data-nl="eyebrow">Nadtitulok</p><hr data-nl="dark"><p data-nl="quote">Citát</p><hr data-nl="olive"><p data-nl="sign">S láskou,</p><p data-nl="link">L</p>'))
+      .toBe('<p data-nl="eyebrow">Nadtitulok</p><hr data-nl="dark"><p data-nl="quote">Citát</p><hr data-nl="olive"><p data-nl="sign">S láskou,</p><p data-nl="link">L</p>')
+    expect(sanitizeCampaignHtml('<img data-nl="hero" src="https://cdn.example.test/a.jpg" alt=""><hr data-nl="sign"><h2 data-nl="eyebrow">T</h2><p data-nl="x&quot; onclick=&quot;1">y</p>'))
+      .toBe('<img src="https://cdn.example.test/a.jpg" alt=""><hr><h2>T</h2><p>y</p>')
+    expect(sanitizeCampaignHtml('<hr style="border:5px solid red" onclick="x">')).toBe("<hr>")
+  })
 })

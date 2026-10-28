@@ -1104,3 +1104,12 @@ dialog.mp::backdrop{background:rgba(47,59,42,.35);backdrop-filter:blur(3px)}
 /* Štítky produktu v tvare listu (zhodné s obchodom). */
 .pill.leaf{display:inline-flex;align-items:center;gap:5px;border-radius:12px 2px 12px 2px;background:#f1efe2;color:#55603a;border:1px solid #c9cdb0}
 .pill.leaf::before{content:'';width:6px;height:9px;border-radius:0 100% 0 100%;background:currentColor;opacity:.7;transform:rotate(18deg)}
+/* Newsletter: orezanie fotografie do výrezu šablóny */
+.pc{width:min(820px,calc(100vw - 32px))}
+.pc-body{display:flex;gap:28px;align-items:center;flex-wrap:wrap;padding:18px 22px 22px}
+.pc-stage{position:relative;flex:none;overflow:hidden;cursor:grab;touch-action:none;outline-offset:4px;box-shadow:0 0 0 1px var(--line)}
+.pc-stage:active{cursor:grabbing}
+.pc-ctl{flex:1 1 220px;display:flex;flex-direction:column;gap:10px}
+.pc-ctl input[type=range]{width:100%;accent-color:var(--gold)}
+.pc-err{color:#9b3d2e}
+.pc-ctl .pc-reset{align-self:flex-start}

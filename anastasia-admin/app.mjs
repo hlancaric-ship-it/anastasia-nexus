@@ -169,7 +169,7 @@ const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${
 const LOGO = './assets/lucia-logo.png';
 // Web k administrácii: anastasia-test-admin.X → anastasia-test.X, admin.X → X.
 const SITE_ORIGIN = `${location.protocol}//${location.hostname.replace(/-admin\./, '.').replace(/^admin\./, '')}`;
-const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><span class="brand-symbol" aria-hidden="true"></span><div><div class="brand-name">ANASTASIA</div><small>Light for the future</small></div></${tag}>`;
+const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img class="brand-ring" src="./assets/brand-ring.png" alt="" width="67" height="64"><div><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="156" height="27"><small>Light for the future</small></div></${tag}>`;
 
 // --- dekor: jemné botanické kresby (olivová a levandulová vetvička) ako inline SVG ---
 // Kresba je linková, v šalvějovej farbe s nízkou priehľadnosťou – žiadne stiahnuté fotky.
@@ -270,7 +270,7 @@ function shell(active, title, sub) {
     <div class="workspace">
       <header class="topbar">
         ${BOTANIC_OLIVE}
-        <div class="mobile-head"><button type="button" id="nav-toggle" aria-label="Otvoriť navigáciu" aria-expanded="false" aria-controls="sidebar">${navIcon('menu')}</button><span class="brand-symbol" aria-hidden="true"></span><span>ANASTASIA</span></div>
+        <div class="mobile-head"><button type="button" id="nav-toggle" aria-label="Otvoriť navigáciu" aria-expanded="false" aria-controls="sidebar">${navIcon('menu')}</button><img class="brand-ring" src="./assets/brand-ring.png" alt="" width="34" height="32"><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="104" height="18"></div>
         <div class="top-search">
           ${navIcon('search')}
           <input type="search" id="side-q" placeholder="Hľadať produkty, objednávky, zákazníkov…" aria-label="Hľadať v celom obchode" autocomplete="off">
@@ -3150,7 +3150,7 @@ async function vEmailDetail(view, t) {
 // Newsletter: kampane, test a rozosielanie. Obrazovka je v samostatnom module.
 let newsletterScreen;
 function vNewsletter(view) {
-  newsletterScreen ||= newsletterView({ api, esc, fmtDate, freshView });
+  newsletterScreen ||= newsletterView({ api, esc, fmtDate, freshView, pickMedia, uploadImage: uploadMediaImage });
   return newsletterScreen(view);
 }
 // --- Obsah → Stránky a texty: texty webových stránok editovateľné v rich texte ---
@@ -3274,6 +3274,20 @@ function pickMedia(assigned = []) {
     api('/admin/media').then(d => { files = (d.files || []).filter(f => /^image\//.test(f.content_type || 'image/') && f.url).sort((a, b) => String(b.uploaded_at).localeCompare(String(a.uploaded_at))); draw(); })
       .catch(e => { grid.innerHTML = `<div class="err">${esc(e.message === '401' ? 'Prihlásenie vypršalo. Obnovte stránku.' : e.message)}</div>`; });
   });
+}
+
+// Jedna fotografia z počítača: nahrá sa na server a zapíše do Médií. Vráti jej verejnú adresu.
+async function uploadMediaImage(file) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5 * 1024 * 1024) throw new Error(`${file.name}: povolené sú JPG, PNG a WebP do 5 MB.`);
+  const fd = new FormData(); fd.append('files', file);
+  const res = await fetch(API + '/admin/uploads', { method: 'POST', headers: token ? { authorization: 'Bearer ' + token } : {}, body: fd });
+  if (res.status === 401) { token = ''; localStorage.removeItem('ana_token'); renderLogin('Prihlásenie vypršalo.'); throw new Error('401'); }
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(d?.message || 'Nahratie zlyhalo.');
+  const f = (d.files || [])[0];
+  if (!f || !f.url) throw new Error('Nahratie zlyhalo. Skúste to znova.');
+  await api('/admin/media', { method: 'POST', body: { files: [{ key: f.key || f.url.split('/').pop(), url: f.url, name: f.name || file.name, size: f.size || file.size, content_type: f.content_type || f.mimetype || file.type }] } });
+  return f.url;
 }
 
 async function vMediaLibrary(view) {
