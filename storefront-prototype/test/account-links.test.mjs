@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {setAccountLink,setAccountVisibility,ACCOUNT_HREF,ACCOUNT_LABEL} from '../public/account-links.mjs';
+import {setAccountLink,setAccountVisibility,ACCOUNT_HREF,ACCOUNT_LABEL,customerDisplayName} from '../public/account-links.mjs';
 
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 
@@ -114,4 +114,13 @@ test('mobil: bočný panel účtu sa nemení (rol a lepenie len na desktope)', a
     assert.equal(mobile.filter(block => /\.center-sidebar\{[^}]*overflow-y:auto/.test(block)).length, 0, file + ': mobil sa nemení');
     assert.equal(mobile.filter(block => /\.center-sidebar>a\[data-sign-out\]\{[^}]*position:sticky/.test(block)).length, 0, file + ': mobil sa nemení');
   }
+});
+
+
+test('meno zákazníka vychádza z profilu, normalizuje medzery a bezpečne nahradí chýbajúce údaje', () => {
+  assert.equal(customerDisplayName({firstName:'  Anna ',lastName:'Nováková  ',name:'Staré meno'}),'Anna Nováková');
+  assert.equal(customerDisplayName({firstName:'Anna',lastName:''}),'Anna');
+  assert.equal(customerDisplayName({name:' Jana  Nová '}),'Jana Nová');
+  assert.equal(customerDisplayName({email:'codex+profile@l-code-dynamics.com'}),'codex+profile@l-code-dynamics.com');
+  assert.equal(customerDisplayName({firstName:' ',lastName:' '}),'Môj účet');
 });

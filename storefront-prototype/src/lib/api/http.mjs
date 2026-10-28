@@ -971,11 +971,11 @@ export function createHttpApi(storage, config) {
     },
     async getCustomerCenter() {
       if (!loggedIn()) return { ok: false, bookings: [], materials: [], reorder: [], profile: null };
-      const [me, bk] = await Promise.all([call('/store/customers/me?fields=first_name,last_name,email,phone,metadata'), call('/store/bookings')]);
+      const [me, bk] = await Promise.all([call('/store/customers/me?fields=first_name,last_name,email,phone,metadata'), call('/store/bookings').catch(()=>({ok:false,data:null}))]);
       if (!me.ok) return { ok: false, bookings: [], materials: [], reorder: [], profile: null };
       const c = me.data?.customer || {};
       const md = c.metadata || {};
-      const reorder = (await self.getProducts()).slice(0, 3);
+      const reorder = (await self.getProducts().catch(()=>[])).slice(0, 3);
       // Rezervácie: len zaplatené alebo práve držané termíny; názov konzultácie podľa produktu.
       const raw = (bk.data?.bookings || []).filter(b => b.status === 'confirmed' || b.status === 'completed' || (b.status === 'held' && b.order_id));
       const ids = [...new Set(raw.map(b => b.product_id))];
@@ -1012,7 +1012,7 @@ export function createHttpApi(storage, config) {
         metadata: { birth_date: profile.birthDate || '', birth_time: profile.birthTime || '', birth_place: profile.birthPlace || '', street: profile.street || '', city: profile.city || '', postal_code: profile.postalCode || '' },
       };
       const r = await call('/store/customers/me', { method: 'POST', body });
-      return r.ok ? { ok: true, message: 'Údaje boli uložené.' } : { ok: false, message: 'Údaje sa nepodarilo uložiť.' };
+      return r.ok ? { ok: true, message: 'Údaje boli uložené.', ...(r.data?.customer ? { profile: { firstName: r.data.customer.first_name || '', lastName: r.data.customer.last_name || '', email: r.data.customer.email || '' } } : {}) } : { ok: false, message: 'Údaje sa nepodarilo uložiť.' };
     },
 
     // Chat (Fáza 2 – AI asistent chat volá tieto routy). Reálne napojenie na /store/chat/*.

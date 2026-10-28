@@ -25,3 +25,9 @@ export function setAccountVisibility(link, logged) {
   link.hidden = !logged;
   return link;
 }
+
+// Meno patrí prihlásenému zákazníkovi; pri chýbajúcich údajoch žiadne ukážkové meno.
+export function customerDisplayName(profile = {}) {
+  const clean=value=>typeof value==='string'?value.trim().replace(/\s+/g,' '):'';
+  return [clean(profile.firstName),clean(profile.lastName)].filter(Boolean).join(' ') || clean(profile.name) || clean(profile.email) || 'Môj účet';
+}

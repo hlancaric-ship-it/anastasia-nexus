@@ -11,7 +11,7 @@ import {createAmbient} from '/ambient.mjs';
 import {init as i18nInit,DICT} from '/i18n.mjs';
 import {initWithdrawalForm} from '/withdrawal-form.mjs';
 import {initResetZone} from '/reset-zone.mjs';
-import {setAccountLink,setAccountVisibility} from '/account-links.mjs';
+import {setAccountLink,setAccountVisibility,customerDisplayName} from '/account-links.mjs';
 import {JWT_KEY} from '/lib/api/http.mjs';
 // Prihlásenie (JWT) je v localStorage, aby prežilo zatvorenie prehliadača. Košík a ostatné ostávajú v karte.
 let storage;try{
@@ -96,8 +96,8 @@ if(customerCenter){
   const setTheme=id=>{if(!themeIds.includes(id))id=themeIds[0];if(id===themeIds[0])delete document.documentElement.dataset.centerTheme;else document.documentElement.dataset.centerTheme=id;markTheme(id);try{if(id===themeIds[0])localStorage.removeItem('ana-center-theme');else localStorage.setItem('ana-center-theme',id);}catch{}};
   markTheme(document.documentElement.dataset.centerTheme||themeIds[0]);
   $$('[data-center-theme-pick]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.centerThemePick)));
-  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moja knižnica.',reset:'RESET 40+.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',poukazy:'Darčekové poukazy.',profil:'Môj profil.'};
-  const show=id=>{if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];requestAnimationFrame(()=>{const active=$('.center-sidebar [aria-current=page]',customerCenter),nav=active?.parentElement;if(active&&nav&&nav.scrollWidth>nav.clientWidth){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect(),style=getComputedStyle(nav),left=n.left+parseFloat(style.paddingLeft),right=n.right-parseFloat(style.paddingRight);if(a.left<left)nav.scrollLeft+=a.left-left;else if(a.right>right)nav.scrollLeft+=a.right-right;}});return id;};
+  const titles={prehlad:'Vitajte vo svojom priestore.',programy:'Moja knižnica.',konzultacie:'Konzultácie.',chat:'Chat s Luciou.',objednavky:'Objednávky.',poukazy:'Darčekové poukazy.',profil:'Môj profil.'};
+  const show=id=>{if(id==='reset'){id='programy';history.replaceState(null,'','/ucet#programy');}if(!Object.hasOwn(titles,id))id='prehlad';$$('[data-account-panel]',customerCenter).forEach(panel=>{panel.hidden=panel.dataset.accountPanel!==id;});$$('.center-sidebar [data-account-go]',customerCenter).forEach(btn=>btn.setAttribute('aria-current',btn.dataset.accountGo===id?'page':'false'));$('#account-title').textContent=titles[id];requestAnimationFrame(()=>{const active=$('.center-sidebar [aria-current=page]',customerCenter),nav=active?.parentElement;if(active&&nav&&nav.scrollWidth>nav.clientWidth){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect(),style=getComputedStyle(nav),left=n.left+parseFloat(style.paddingLeft),right=n.right-parseFloat(style.paddingRight);if(a.left<left)nav.scrollLeft+=a.left-left;else if(a.right>right)nav.scrollLeft+=a.right-right;}});return id;};
   show(location.hash.slice(1)||(new URLSearchParams(location.search).has('objednavka')?'objednavky':''));
   $$('[data-account-go]',customerCenter).forEach(btn=>btn.addEventListener('click',()=>{const id=show(btn.dataset.accountGo);history.pushState(null,'',`/ucet#${id}`);$('#account-title').focus({preventScroll:!btn.closest('.center-content')});}));
   addEventListener('popstate',()=>show(location.hash.slice(1)));
@@ -116,18 +116,19 @@ if(customerCenter){
       catch{status.textContent='Heslo sa nepodarilo uložiť. Skúste to znova.';}finally{send.disabled=false;}});
     const all=$('[data-sign-out-everywhere]',pw),sessionStatus=$('[data-session-status]',pw);all?.addEventListener('click',async()=>{all.disabled=true;sessionStatus.textContent='Odhlasujem všetky relácie…';try{const r=await api.signOutEverywhere();if(r.ok){sessionStatus.textContent='Všetky relácie sú odhlásené.';setTimeout(()=>location.assign('/prihlasenie'),500);}else sessionStatus.textContent=r.message;}catch{sessionStatus.textContent='Odhlásenie sa nepodarilo. Skúste to znova.';}finally{all.disabled=false;}});
   }}
-  $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{$('.form-status',form).textContent=(await api.saveCustomerProfile(Object.fromEntries(new FormData(form)))).message;}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
+  $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{const result=await api.saveCustomerProfile(Object.fromEntries(new FormData(form)));$('.form-status',form).textContent=result.message;if(result.ok&&result.profile)$('#center-name').textContent=customerDisplayName(result.profile);}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
   // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.
   (async()=>{
     const put=(sel,html)=>$$(sel,customerCenter).forEach(el=>{el.innerHTML=html;});
     const note=text=>`<p class="form-status">${e(text)}</p>`;
     // Stráž účtu: bez tokenu účet neexistí, zákazník pokračuje na prihlásenie.
     if(!(typeof api.isLoggedIn==='function'&&await api.isLoggedIn())){location.replace('/prihlasenie');return;}
-    let account,data;
-    try{[account,data]=await Promise.all([api.getAccount(),api.getCustomerCenter()]);}catch{account={ok:false,orders:[]};data={ok:false,bookings:[],reorder:[]};}
+    const [accountResult,profileResult]=await Promise.allSettled([api.getAccount(),api.getCustomerCenter()]);
+    const account=accountResult.status==='fulfilled'?accountResult.value:{ok:false,orders:[]};
+    const data=profileResult.status==='fulfilled'?profileResult.value:{ok:false,bookings:[],reorder:[]};
     const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');
     if(data.ok&&data.profile){
-      const pr=data.profile;$('#center-name').textContent=pr.name||pr.email;
+      const pr=data.profile;$('#center-name').textContent=customerDisplayName(pr);
       const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});{const u=$('#center-password [name=username]');if(u&&pr.email)u.value=pr.email;}
       const birth=[pr.birthDate&&new Date(`${pr.birthDate}T00:00:00`).toLocaleDateString('sk-SK'),pr.birthTime,pr.birthPlace].filter(Boolean);
       if(birth.length)put('#center-birth-summary',e(birth.join(' · ')));

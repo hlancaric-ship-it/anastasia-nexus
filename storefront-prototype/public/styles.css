@@ -659,3 +659,26 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 #ana-rail#ana-rail#ana-rail [data-rail-tone="light"],#ana-rail#ana-rail#ana-rail [data-rail-tone="light"] :is(span,svg){color:#1E261D!important}
 #ana-rail#ana-rail#ana-rail [data-rail-tone="dark"],#ana-rail#ana-rail#ana-rail [data-rail-tone="dark"] :is(span,svg){color:#EFE5C7!important}
 #ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible),#ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible) :is(span,svg){color:#B08D57!important}
+
+/* Môj účet: čitateľný panel vo všetkých farbách, rovnaká knižnica pre zakúpené programy. */
+.customer-center .center-sidebar{color:#FBF9F3;background:var(--center-main)}
+.customer-center .center-sidebar>.eyebrow{display:block;color:#EDE9F5!important;font-size:11px;letter-spacing:.16em}
+.customer-center .center-sidebar>#center-name{display:block;color:#FBF9F3!important;font:500 25px/1.3 Fraunces,Georgia,serif;letter-spacing:-.02em;overflow-wrap:anywhere;margin:12px 28px 0;padding:0 0 24px}
+.customer-center .center-sidebar nav{margin:0 16px 20px;padding:12px 0;gap:5px;border-color:#ffffff26}
+.customer-center .center-sidebar nav button{color:#FBF9F3;font:500 14px/1.4 Figtree,sans-serif;padding:13px 16px;border:1px solid transparent;border-radius:12px;min-height:46px}
+.customer-center .center-sidebar nav button:hover{background:#ffffff14}
+.customer-center .center-sidebar nav button[aria-current=page]{background:#FBF9F3;color:var(--center-main);border-color:#FBF9F3;box-shadow:0 3px 12px #00000012}
+.customer-center .center-sidebar :is(button,a):focus-visible{outline:2px solid #FBF9F3;outline-offset:3px}
+.customer-center .center-sidebar .center-theme{margin:0 28px 24px}
+.customer-center .center-sidebar .center-theme p{color:#EDE9F5}
+.customer-center .center-sidebar>a{color:#FBF9F3}
+.customer-center .center-sidebar>a[data-sign-out]{color:#FBF9F3;background:var(--center-main);border-top:1px solid #ffffff26}
+.acc-reset-journal{margin:24px 0;border:1px solid var(--center-line);border-radius:16px;padding:18px 22px}
+.acc-reset-journal>summary{cursor:pointer;font-weight:600;min-height:30px}
+.acc-reset-journal[open]>summary{margin-bottom:18px}
+@media(max-width:999.98px){
+ .customer-center .center-sidebar>.eyebrow{margin:0 20px}
+ .customer-center .center-sidebar>#center-name{margin:8px 20px 0;padding-bottom:12px;font-size:22px}
+ .customer-center .center-sidebar nav{margin:0;padding:8px 20px 16px;gap:6px!important;mask-image:none;-webkit-mask-image:none}
+ .customer-center .center-sidebar nav button{padding:10px 14px;font-size:13px}
+}
