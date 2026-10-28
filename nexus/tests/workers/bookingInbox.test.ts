@@ -51,13 +51,13 @@ it('concurrent scheduled consumers never synchronize the same operation twice', 
     expect(f.request.mock.calls.filter(([,o]) => JSON.parse(o.body as string).mode === 'synchronize')).toHaveLength(1);
     expect(await f.inbox()).toMatchObject({ processing_state: 'PROCESSED' });
 });
-it('a lost response remains UNKNOWN and is recovered by a read only, without another write', async () => {
+it('a lost response remains UNKNOWN and is recovered by an idempotent re-sync verified by read-back', async () => {
     const f = await fixture();
     f.request.mockRejectedValueOnce(new Error('synthetic-lost-response-after-write'));
     await consumeBookingInbox(f.config,now,f.request as typeof fetch);
     expect(await f.store.findById(f.tenant,f.id)).toMatchObject({ state: 'UNKNOWN' });
     await consumeBookingInbox(f.config,now+1000,f.request as typeof fetch);
-    expect(f.request.mock.calls.map(([,o]) => JSON.parse(o.body as string).mode)).toEqual(['synchronize','inspect']);
+    expect(f.request.mock.calls.map(([,o]) => JSON.parse(o.body as string).mode)).toEqual(['synchronize','synchronize','inspect']);
     expect(await f.inbox()).toMatchObject({ processing_state: 'PROCESSED' });
 });
 it('never treats HTTP success as a confirmed booking without matching state', async () => {
@@ -67,15 +67,17 @@ it('never treats HTTP success as a confirmed booking without matching state', as
     expect(await f.store.findById(f.tenant,f.id)).toMatchObject({ state: 'UNKNOWN' });
     await consumeBookingInbox(f.config,now+1000,f.request as typeof fetch);
     expect(await f.inbox()).toMatchObject({ processing_state: 'NEEDS_REVIEW' });
-    expect(f.request.mock.calls.filter(([,o]) => JSON.parse(o.body as string).mode === 'synchronize')).toHaveLength(1);
+    expect(f.request.mock.calls.filter(([,o]) => JSON.parse(o.body as string).mode === 'synchronize')).toHaveLength(2);
+    await consumeBookingInbox(f.config,now+2000,f.request as typeof fetch);
+    expect(f.request).toHaveBeenCalledTimes(4);
 });
-it('recovers a process crash with expired EXECUTING by inspection, not re-execution', async () => {
+it('recovers a process crash with expired EXECUTING through UNKNOWN and a verified re-sync', async () => {
     const f = await fixture();
     await f.store.plan(f.context,{ id:f.id,decisionId:f.event,domain:'booking',connectorType:'medusa',operation:'SYNC_ORDER_BOOKING',targetRef:f.order,
         payload:{eventId:f.event,orderId:f.order},expectedState:{synchronized:true},idempotencyKey:f.id,plannedAt:T0 });
     await f.store.claimForExecution(f.context,f.id,T0);
     await consumeBookingInbox(f.config,now+90_001,f.request as typeof fetch);
-    expect(f.request.mock.calls.map(([,o]) => JSON.parse(o.body as string).mode)).toEqual(['inspect']);
+    expect(f.request.mock.calls.map(([,o]) => JSON.parse(o.body as string).mode)).toEqual(['synchronize','inspect']);
     expect(await f.inbox()).toMatchObject({ processing_state:'PROCESSED' });
 });
 it.each([{tenantId:'other'},{operationId:'other'},{orderId:'other'},{version:2},{synchronized:true,result:'MISMATCH'}])('rejects a mismatched receipt %j', async patch => {
@@ -128,7 +130,7 @@ it('does not let a stale completion overwrite a reconciled execution', async () 
         await consumeBookingInbox(f.config,now+90_001,f.request as typeof fetch);
     } finally { release(); }
     await old;
-    expect(f.request.mock.calls.filter(([,o]) => JSON.parse(o.body as string).mode === 'synchronize')).toHaveLength(1);
+    expect(f.request.mock.calls.filter(([,o]) => JSON.parse(o.body as string).mode === 'synchronize')).toHaveLength(2);
     expect(await f.store.findById(f.tenant,f.id)).toMatchObject({state:'EXECUTED',confirmationQuality:'SYSTEM_CONFIRMED'});
     expect(await f.inbox()).toMatchObject({processing_state:'PROCESSED'});
 });
@@ -186,4 +188,36 @@ it('processes a fresh event before older unresolved retries', async () => {
     });
     await consumeBookingInbox(f.config,now,f.request as typeof fetch);
     expect(await f.inbox()).toMatchObject({ processing_state: 'PROCESSED', operation_id: f.id });
+});
+const missingOrder = () => new Response(JSON.stringify({ error: 'BOOKING_SYNC_UNVERIFIED' }), { status: 404 });
+it('moves an order still missing in Medusa after the grace period to NEEDS_REVIEW', async () => {
+    const f = await fixture();
+    f.request.mockImplementation(async () => missingOrder());
+    await consumeBookingInbox(f.config,now,f.request as typeof fetch);
+    expect(await f.store.findById(f.tenant,f.id)).toMatchObject({ state: 'UNKNOWN' });
+    await consumeBookingInbox(f.config,now+60_000,f.request as typeof fetch);
+    expect(await f.inbox()).toMatchObject({ processing_state: 'PROCESSING' });
+    await consumeBookingInbox(f.config,now+15*60_000,f.request as typeof fetch);
+    expect(await f.inbox()).toMatchObject({ processing_state: 'NEEDS_REVIEW' });
+    const calls = f.request.mock.calls.length;
+    await consumeBookingInbox(f.config,now+16*60_000,f.request as typeof fetch);
+    expect(f.request).toHaveBeenCalledTimes(calls);
+});
+it.each([
+    () => new Response('<html>Not Found</html>', { status: 404 }),
+    () => new Response(JSON.stringify({ error: 'OTHER' }), { status: 404 }),
+])('keeps retrying a 404 that is not the booking route missing-order reply', async response => {
+    const f = await fixture();
+    f.request.mockImplementation(async () => response());
+    await consumeBookingInbox(f.config,now,f.request as typeof fetch);
+    await consumeBookingInbox(f.config,now+30*60_000,f.request as typeof fetch);
+    expect(await f.inbox()).toMatchObject({ processing_state: 'PROCESSING' });
+});
+it('confirms an UNKNOWN event once the order appears in Medusa', async () => {
+    const f = await fixture();
+    f.request.mockImplementationOnce(async () => missingOrder());
+    await consumeBookingInbox(f.config,now,f.request as typeof fetch);
+    await consumeBookingInbox(f.config,now+60_000,f.request as typeof fetch);
+    expect(await f.inbox()).toMatchObject({ processing_state: 'PROCESSED' });
+    expect(await f.store.findById(f.tenant,f.id)).toMatchObject({ state: 'EXECUTED', confirmationQuality: 'SYSTEM_CONFIRMED' });
 });

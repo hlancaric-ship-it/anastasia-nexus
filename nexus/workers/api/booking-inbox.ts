@@ -7,7 +7,9 @@ const OPERATION = 'SYNC_ORDER_BOOKING';
 const encoder = new TextEncoder();
 const hex = (bytes: ArrayBuffer) => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
 const ID = /^[A-Za-z0-9_-]{1,128}$/;
-type Row = { event_type: string; event_id: string; target_id: string; operation_id: string | null };
+type Row = { event_type: string; event_id: string; target_id: string; operation_id: string | null; received_at: string };
+// Objednávka chybí v Medusě i po této době: opakování nic nevyřeší, patří operátorovi.
+const MISSING_ORDER_REVIEW_MS = 15 * 60_000;
 type Receipt = { synchronized: boolean; result: string };
 
 export async function bookingOperationId(tenantId: string, eventId: string, targetId: string) {
@@ -41,6 +43,11 @@ async function requestState(config: NonNullable<ReturnType<typeof configuration>
     // Workers nepodporují redirect 'error' (TypeError); 'manual' vrátí 3xx jako !ok a to selže níž.
     const response = await fetchImpl(config.url, { method: 'POST', body, redirect: 'manual', signal: AbortSignal.timeout(3000),
         headers: { 'content-type': 'application/json', 'x-nexus-timestamp': timestamp, 'x-nexus-signature': signature } });
+    if (response.status === 404) {
+        // Jen 404 z booking route (její vlastní tělo), ne neznámá cesta nebo cizí server.
+        const missing = await response.text().then(text => text.length <= 256 && JSON.parse(text)?.error === 'BOOKING_SYNC_UNVERIFIED').catch(() => false);
+        throw new Error(missing ? 'BOOKING_ORDER_NOT_FOUND' : 'BOOKING_SOURCE_UNVERIFIED');
+    }
     if (!response.ok) { await response.body?.cancel().catch(() => {}); throw new Error('BOOKING_SOURCE_UNVERIFIED'); }
     const reader = response.body?.getReader();
     if (!reader) throw new Error('BOOKING_SOURCE_UNVERIFIED');
@@ -71,7 +78,7 @@ async function requestState(config: NonNullable<ReturnType<typeof configuration>
     return { synchronized: value.synchronized, result: String(value.result) };
 }
 
-/** One bounded pass: two events, at most four 3-second HTTP requests. No blind retry of an uncertain write. */
+/** One bounded pass: two events, at most four 3-second HTTP requests. Uncertain writes are retried only because the Medusa route is idempotent and every write is verified by inspect. */
 export async function consumeBookingInbox(env: Env, scheduledTime: number, fetchImpl: typeof fetch = fetch): Promise<void> {
     const config = configuration(env);
     if (!config) return;
@@ -80,7 +87,7 @@ export async function consumeBookingInbox(env: Env, scheduledTime: number, fetch
     const context = { tenantId: config.tenantId, platform: 'medusa' as const };
     const store = new D1ExecutionIntentStore(env.DB);
     // Nové události mají přednost: neřešitelné UNKNOWN řádky se jinak točí dokola a blokují čerstvé rezervace.
-    const rows = await env.DB.prepare(`SELECT event_type, event_id, target_id, operation_id FROM medusa_webhook_inbox
+    const rows = await env.DB.prepare(`SELECT event_type, event_id, target_id, operation_id, received_at FROM medusa_webhook_inbox
         WHERE tenant_id = ? AND event_type IN ('order.placed', 'order.canceled', 'payment.captured') AND processing_state IN ('RECEIVED', 'PROCESSING')
         AND julianday(received_at) <= julianday(?)
         ORDER BY CASE processing_state WHEN 'RECEIVED' THEN 0 ELSE 1 END, julianday(COALESCE(processing_updated_at, received_at)), event_id LIMIT 2`).bind(config.tenantId, at).all<Row>();
@@ -109,7 +116,16 @@ export async function consumeBookingInbox(env: Env, scheduledTime: number, fetch
                 intent = (await store.findById(config.tenantId, id))!;
             }
             if (intent.state === 'UNKNOWN') {
-                const actual = await requestState(config, row, id, 'inspect', fetchImpl);
+                let actual: Receipt;
+                try {
+                    // Medusa route je idempotentní (inspect-before-write), opakovaný zápis je bezpečný; výsledek rozhoduje až inspect.
+                    await requestState(config, row, id, 'synchronize', fetchImpl);
+                    actual = await requestState(config, row, id, 'inspect', fetchImpl);
+                } catch (error) {
+                    if (!(error instanceof Error && error.message === 'BOOKING_ORDER_NOT_FOUND' &&
+                        Date.parse(row.received_at) + MISSING_ORDER_REVIEW_MS <= scheduledTime)) throw error;
+                    actual = { synchronized: false, result: 'MISSING_ORDER' };
+                }
                 if (actual.synchronized) {
                     await store.recordReconciliation(context, { intentId: id, expectedState: intent.state, expectedAttempt: intent.attempt,
                         expectedUpdatedAt: intent.updatedAt, outcome: 'CONFIRMED', recordedAt: at });
