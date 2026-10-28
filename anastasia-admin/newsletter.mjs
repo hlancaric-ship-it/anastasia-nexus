@@ -72,12 +72,26 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
     const msg = (text, error = false) => `<div class="${error ? 'err' : 'notice'}" role="${error ? 'alert' : 'status'}">${esc(text)}</div>`;
     const fail = (error) => {
       if (error && error.message === '401') return;
-      state.message = { text: (error && error.message) || 'Spojenie zlyhalo. Skúste to znova.', error: true };
+      const network = /failed to fetch|networkerror|load failed/i.test(String(error && error.message));
+      state.message = { text: network ? 'Spojenie so serverom zlyhalo. Skontrolujte pripojenie a skúste to znova.' : ((error && error.message) || 'Spojenie zlyhalo. Skúste to znova.'), error: true };
       render();
     };
     const busy = (on) => { view.querySelectorAll('button').forEach(b => { if (b.dataset.nobusy !== '1') b.disabled = on; }); };
 
-    async function run(work) {
+    // Hláška sa ukáže pri tlačidle, ktoré ju vyvolalo, a stránka sa k nej posunie.
+    let messageAt = 'top', shownMessage = null;
+    const slot = (at) => state.message && messageAt === at ? `<div class="nl-msg" data-msg>${msg(state.message.text, state.message.error)}</div>` : '';
+    function revealMessage() {
+      if (!state.message || state.message === shownMessage) return;
+      shownMessage = state.message;
+      const box = view.querySelector('[data-msg]');
+      if (!box) return;
+      const r = box.getBoundingClientRect();
+      if (r.top < 80 || r.bottom > window.innerHeight - 20) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function run(work, at = 'top') {
+      messageAt = at;
       busy(true);
       try { await work(); }
       catch (error) { fail(error); }
@@ -191,15 +205,26 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         .nl-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
         .nl-k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
         .nl-v{font:500 30px/1.15 Georgia,'Times New Roman',serif;color:var(--primary);margin:6px 0 4px}
-        .nl-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+        .nl-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;width:100%;max-width:1120px;margin:0 auto}
         .nl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
-        .nl-sec{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px;background:rgba(255,255,255,.6)}
+        .nl-sec{border:1px solid var(--line);border-radius:14px;padding:12px 16px 14px;margin:0 0 12px;background:rgba(255,255,255,.6)}
         .nl-sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
         .nl-sec-tools{display:flex;gap:6px}
         .nl-sec-tools .btn{padding:6px 10px;min-height:32px}
         .nl-link{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(0,1.3fr) auto;gap:8px;align-items:center;margin:0 0 8px}
         .nl-link .btn{padding:8px 12px;min-height:36px}
         .nl-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px}
+        .nl-3{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr) minmax(0,1fr);gap:0 12px}
+        .nl-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 12px}
+        .nl-act{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 0}
+        .nl-act .btn{width:auto;flex:0 0 auto}
+        .nl-msg{margin:12px 0 0}.nl-msg>*{margin:0}
+        .nl-act input{flex:0 1 320px;width:auto}
+        .nl-editor label{margin:12px 0 5px;font-size:12.5px}
+        .nl-editor input,.nl-editor select{min-height:38px;padding:7px 12px;font-size:13.5px}
+        .nl-editor .btn{min-height:38px;padding:8px 14px;font-size:13px}
+        .nl-sec textarea{font:inherit;font-size:13.5px;line-height:1.6}
+        .nl-sec .nl-note{margin:6px 0 0}
         .nl-photo{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;align-items:start;margin:4px 0 6px}
         .nl-photo img,.nl-photo-empty{width:132px;height:96px;object-fit:cover;border-radius:44px 8px 8px 8px;background:#eeecf5;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
         .nl-photo-act{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -217,7 +242,8 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         .nl-tabs .tab{background:none;border:0;border-bottom:2px solid transparent;padding:0 0 12px;min-height:44px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}
         .nl-tabs .tab.active{border-bottom-color:var(--gold);color:var(--primary)}
         .nl-row{cursor:pointer}
-        @media(max-width:900px){.nl-stats,.nl-grid,.nl-2,.nl-link{grid-template-columns:1fr}}
+        @media(max-width:1100px){.nl-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:900px){.nl-stats,.nl-grid,.nl-2,.nl-3,.nl-4,.nl-link{grid-template-columns:1fr}}
       </style>
       <div class="nl-wrap">
         <div class="rc-grid nl-stats">
@@ -234,7 +260,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
               <div class="card-h-act"><button type="button" class="btn ghost" data-new>Nová kampaň</button></div>
             </div>
             <div class="card-b">
-              ${state.message ? msg(state.message.text, state.message.error) : ''}
+              ${slot('top')}
               <div class="nl-2">
                 <div><label for="nl-subject">Predmet</label>
                 <input id="nl-subject" maxlength="200" value="${esc(editing.subject)}" ${editable ? '' : 'disabled'} placeholder="Napríklad Novinky z ateliéru ANASTASIA"></div>
@@ -252,16 +278,19 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
               <textarea id="nl-body" rows="14" ${editable ? '' : 'disabled'} placeholder="Napíšte text kampane. Povolené je základné formátovanie.">${esc(editing.body_html)}</textarea>
               <p class="muted nl-note">Povolené sú odseky, nadpisy, tučné a kurzívne písmo, odrážky, odkazy a obrázky len cez https. Ostatné značky server pri uložení odstráni.</p>
               ${editable ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="sablona">Späť do formulára</button> <button type="button" class="btn ghost" data-mode="vzor">Začať znova podľa návrhu</button></p>' : ''}`}
-              <div class="row" style="margin-top:14px">
+              <div class="nl-act">
                 ${editable ? '<button type="button" class="btn gold" data-save>Uložiť koncept</button>' : ''}
                 ${editable && editing.id ? '<button type="button" class="btn ghost" data-delete>Zmazať koncept</button>' : ''}
                 ${editing.status === 'queued' || editing.status === 'sending' ? '<button type="button" class="btn ghost" data-cancel>Zrušiť odosielanie</button>' : ''}
               </div>
+              ${slot('save')}
               <hr style="border:0;border-top:1px solid var(--line-soft);margin:22px 0">
               <label for="nl-test">Testovací e-mail</label>
-              <div class="row"><input id="nl-test" type="email" maxlength="254" placeholder="meno@l-code-dynamics.com" ${editable ? '' : 'disabled'}><button type="button" class="btn ghost" data-test ${editable ? '' : 'disabled'}>Poslať test</button></div>
+              <div class="nl-act" style="margin-top:0"><input id="nl-test" type="email" maxlength="254" placeholder="meno@l-code-dynamics.com" ${editable ? '' : 'disabled'}><button type="button" class="btn ghost" data-test ${editable ? '' : 'disabled'}>Poslať test</button></div>
+              ${slot('test')}
               <p class="muted nl-note">Test odchádza len na adresy @l-code-dynamics.com. Odkaz na odhlásenie sa pridá, ak pre adresu existuje prihlásený súhlas.</p>
-              ${editable ? `<div class="row" style="margin-top:16px"><button type="button" class="btn gold" data-send>Odoslať všetkým</button><span class="muted nl-note">Prihlásených teraz: ${esc(state.stats.subscribed ?? 0)}</span></div>
+              ${editable ? `<div class="nl-act" style="margin-top:16px"><button type="button" class="btn gold" data-send>Odoslať všetkým</button><span class="muted nl-note">Prihlásených teraz: ${esc(state.stats.subscribed ?? 0)}</span></div>
+                ${slot('send')}
                 <p class="muted nl-note">Po potvrdení sa vytvorí zoznam príjemcov a e-maily odchádzajú postupne. Denný limit chráni doručiteľnosť.</p>` : ''}
             </div>
           </section>
@@ -295,6 +324,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
       watchPreview();
       preview(true);
       wire();
+      revealMessage();
     }
 
     // Fotografia: náhľad, výber z mediálnej banky, nahratie z počítača a popis pre čítačky.
@@ -313,8 +343,8 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
       </div>`;
     }
 
-    function headingHtml(prefix, data, dis, idAttr) {
-      return `<div class="nl-2">
+    function headingHtml(prefix, data, dis, idAttr, before = '', cls = 'nl-2') {
+      return `<div class="${cls}">${before}
           <div><label for="${prefix}-t">Nadpis</label>
           <input id="${prefix}-t" ${idAttr('title')} maxlength="120" value="${esc(data.title)}" ${dis} placeholder="Napríklad Malý rituál"></div>
           <div><label for="${prefix}-ac">Zvýraznené slová (fialová kurzíva)</label>
@@ -332,19 +362,19 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
           ${i > 0 ? `<button type="button" class="btn ghost" data-sec-up="${i}" aria-label="Posunúť sekciu ${i + 1} vyššie">↑</button>` : ''}
           ${i < last ? `<button type="button" class="btn ghost" data-sec-down="${i}" aria-label="Posunúť sekciu ${i + 1} nižšie">↓</button>` : ''}
           <button type="button" class="btn ghost" data-sec-del="${i}">Odstrániť</button></span>` : ''}</div>
-        <div class="nl-2">
+        ${headingHtml(`nl-sec-${i}`, sec, dis, field, `
           <div><label for="nl-sec-s-${i}">Vzhľad sekcie</label>
           <select id="nl-sec-s-${i}" ${field('style')} ${dis}>${NL_STYLES.map(([v, l]) => `<option value="${v}" ${sec.style === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
           <div><label for="nl-sec-e-${i}">Nadtitulok (malý text nad nadpisom)</label>
-          <input id="nl-sec-e-${i}" ${field('eyebrow')} maxlength="60" value="${esc(sec.eyebrow)}" ${dis} placeholder="Napríklad Tip pre vás"></div>
-        </div>
-        ${headingHtml(`nl-sec-${i}`, sec, dis, field)}
+          <input id="nl-sec-e-${i}" ${field('eyebrow')} maxlength="60" value="${esc(sec.eyebrow)}" ${dis} placeholder="Napríklad Tip pre vás"></div>`, 'nl-4')}
         <label for="nl-sec-x-${i}">Text (prázdny riadok = nový odsek)</label>
-        <textarea id="nl-sec-x-${i}" ${field('text')} rows="5" ${dis} placeholder="Napíšte text sekcie.">${esc(sec.text)}</textarea>
-        <label>Fotografia (v tmavom paneli sa ukáže, len ak nie je citát)</label>
-        ${photoHtml(`s${i}`, sec.image, sec.alt, editable, `nl-sec-a-${i}`, field('alt'))}
-        <label for="nl-sec-q-${i}">Citát vpravo (len tmavý panel, nepovinné)</label>
-        <input id="nl-sec-q-${i}" ${field('quote')} maxlength="160" value="${esc(sec.quote)}" ${dis} placeholder="Napríklad Pokoj začína v malých okamihoch.">
+        <textarea id="nl-sec-x-${i}" ${field('text')} rows="4" ${dis} placeholder="Napíšte text sekcie.">${esc(sec.text)}</textarea>
+        <div class="nl-2">
+          <div><label>Fotografia (v tmavom paneli sa ukáže, len ak nie je citát)</label>
+          ${photoHtml(`s${i}`, sec.image, sec.alt, editable, `nl-sec-a-${i}`, field('alt'))}</div>
+          <div><label for="nl-sec-q-${i}">Citát vpravo (len tmavý panel, nepovinné)</label>
+          <input id="nl-sec-q-${i}" ${field('quote')} maxlength="160" value="${esc(sec.quote)}" ${dis} placeholder="Napríklad Pokoj začína v malých okamihoch."></div>
+        </div>
         <label>Tlačidlá a odkazy</label>
         ${sec.links.map((link, j) => {
           const lf = f => `data-sec="${i}" data-link="${j}" data-f="${f}"`;
@@ -355,25 +385,26 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
           ${editable ? `<button type="button" class="btn ghost" data-link-del="${i}:${j}" aria-label="Odstrániť odkaz ${j + 1}">Odstrániť</button>` : ''}
         </div>`;
         }).join('') || '<p class="muted nl-note" style="margin:0 0 8px">Sekcia nemá tlačidlo ani odkaz.</p>'}
-        ${editable ? `<p style="margin:6px 0 0"><button type="button" class="btn ghost" data-link-add="${i}">Pridať tlačidlo alebo odkaz</button></p>` : ''}
+        ${editable ? `<p style="margin:4px 0 0"><button type="button" class="btn ghost" data-link-add="${i}">Pridať tlačidlo alebo odkaz</button></p>` : ''}
       </div>`;
       }).join('');
       const introField = f => `data-intro="${f}"`;
       return `<p class="muted nl-note" style="margin-top:14px">Newsletter je pripravený podľa návrhu. Stačí prepísať texty, vymeniť fotografie a odkazy. Fotografia Lucie hore je stála.</p>
         <div class="nl-sec">
           <div class="nl-sec-h"><b>Úvod vedľa fotografie Lucie</b></div>
-          <label for="nl-in-e">Oslovenie (malý text nad nadpisom)</label>
-          <input id="nl-in-e" ${introField('eyebrow')} maxlength="60" value="${esc(intro.eyebrow)}" ${dis} placeholder="Napríklad Milá priateľka,">
-          ${headingHtml('nl-in', intro, dis, introField)}
+          ${headingHtml('nl-in', intro, dis, introField, `
+          <div><label for="nl-in-e">Oslovenie (malý text nad nadpisom)</label>
+          <input id="nl-in-e" ${introField('eyebrow')} maxlength="60" value="${esc(intro.eyebrow)}" ${dis} placeholder="Napríklad Milá priateľka,"></div>`, 'nl-3')}
           <label for="nl-in-x">Text (prázdny riadok = nový odsek)</label>
-          <textarea id="nl-in-x" ${introField('text')} rows="5" ${dis} placeholder="Napíšte úvodný text.">${esc(intro.text)}</textarea>
-          <label for="nl-sign">Pozdrav pred podpisom</label>
-          <input id="nl-sign" maxlength="80" value="${esc(form.signature)}" ${dis} placeholder="S láskou,">
-          <p class="muted nl-note" style="margin:6px 0 0">Pod pozdravom je vždy podpis Lucia Rogožanová, Farmaceutka • Tvorkyňa ANASTASIA.</p>
+          <textarea id="nl-in-x" ${introField('text')} rows="4" ${dis} placeholder="Napíšte úvodný text.">${esc(intro.text)}</textarea>
+          <div class="nl-2" style="align-items:end">
+            <div><label for="nl-sign">Pozdrav pred podpisom</label>
+            <input id="nl-sign" maxlength="80" value="${esc(form.signature)}" ${dis} placeholder="S láskou,"></div>
+            <p class="muted nl-note" style="margin:0 0 10px">Pod pozdravom je vždy podpis Lucia Rogožanová, Farmaceutka • Tvorkyňa ANASTASIA.</p>
+          </div>
         </div>
         ${sections}
-        ${editable ? '<p><button type="button" class="btn ghost" data-sec-add>Pridať sekciu</button></p>' : ''}
-        ${editable ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="html">Upraviť ako HTML (pokročilé)</button></p>' : ''}`;
+        ${editable ? '<div class="nl-act" style="margin:0"><button type="button" class="btn ghost" data-sec-add>Pridať sekciu</button><button type="button" class="btn ghost" data-mode="html">Upraviť ako HTML (pokročilé)</button></div>' : ''}`;
     }
 
     function campaignsHtml() {
@@ -452,7 +483,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         const url = await uploadImage(file);
         if (!usable(url)) throw new Error('Nahratá fotografia nemá verejnú adresu https, do e-mailu sa nedá použiť.');
         setPhoto(key, url);
-        state.message = { text: 'Fotografia je orezaná a nahratá aj v Médiách. Nezabudnite uložiť koncept.', error: false };
+        messageAt = 'top'; state.message = { text: 'Fotografia je orezaná a nahratá aj v Médiách. Nezabudnite uložiť koncept.', error: false };
         sync(); render();
         return true;
       };
@@ -461,13 +492,13 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         const key = btn.dataset.photoPick;
         const [url] = await pickMedia([]);
         if (!url) return;
-        if (!usable(url)) { state.message = { text: 'Táto fotografia nemá verejnú adresu https, do e-mailu sa nedá použiť.', error: true }; render(); return; }
+        if (!usable(url)) { messageAt = 'top'; state.message = { text: 'Táto fotografia nemá verejnú adresu https, do e-mailu sa nedá použiť.', error: true }; render(); return; }
         try {
           await cropAndUpload(key, url);
         } catch {
           // Médiá bez CORS sa nedajú orezať v prehliadači, fotografia sa použije celá.
           setPhoto(key, url);
-          state.message = { text: 'Fotografia je vložená celá. Ak ju chcete orezať, nahrajte ju z počítača.', error: false };
+          messageAt = 'top'; state.message = { text: 'Fotografia je vložená celá. Ak ju chcete orezať, nahrajte ju z počítača.', error: false };
           sync(); render();
         }
       });
@@ -514,7 +545,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
           state.editing.mode = 'sablona'; state.editing.form = NL_TEMPLATE(); state.editing.body_html = nlBuildBody(state.editing.form);
         } else {
           const parsed = nlParseForm(state.editing.body_html);
-          if (!parsed) { state.message = { text: 'Tento obsah sa nedá zobraziť vo formulári. Upravte ho ako HTML alebo začnite znova podľa návrhu.', error: true }; render(); return; }
+          if (!parsed) { messageAt = 'top'; state.message = { text: 'Tento obsah sa nedá zobraziť vo formulári. Upravte ho ako HTML alebo začnite znova podľa návrhu.', error: true }; render(); return; }
           state.editing.mode = 'sablona'; state.editing.form = parsed; sync();
         }
         render();
@@ -524,15 +555,15 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
       const newButton = view.querySelector('[data-new]');
       if (newButton) newButton.onclick = () => { state.editing = NL_BLANK(); state.message = null; state.tab = 'campaigns'; render(); };
       const saveButton = view.querySelector('[data-save]');
-      if (saveButton) saveButton.onclick = () => run(async () => { await save(); });
+      if (saveButton) saveButton.onclick = () => run(async () => { await save(); }, 'save');
       const deleteButton = view.querySelector('[data-delete]');
-      if (deleteButton) deleteButton.onclick = () => run(removeCampaign);
+      if (deleteButton) deleteButton.onclick = () => run(removeCampaign, 'save');
       const testButton = view.querySelector('[data-test]');
-      if (testButton) testButton.onclick = () => run(sendTest);
+      if (testButton) testButton.onclick = () => run(sendTest, 'test');
       const sendButton = view.querySelector('[data-send]');
-      if (sendButton) sendButton.onclick = () => run(sendAll);
+      if (sendButton) sendButton.onclick = () => run(sendAll, 'send');
       const cancelButton = view.querySelector('[data-cancel]');
-      if (cancelButton) cancelButton.onclick = () => run(cancelCampaign);
+      if (cancelButton) cancelButton.onclick = () => run(cancelCampaign, 'save');
       const exportButton = view.querySelector('[data-export]');
       if (exportButton) exportButton.onclick = () => run(exportCsv);
     }
@@ -593,7 +624,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
       if (!email) throw new Error('Zadajte e-mail, na ktorý sa má poslať test.');
       if (!email.endsWith('@l-code-dynamics.com')) throw new Error('Testovací e-mail sa posiela len na adresy @l-code-dynamics.com.');
       if (!state.editing.id) await save();
-      await api(`/admin/newsletter/campaigns/${encodeURIComponent(state.editing.id)}/test`, { method: 'POST', body: { email } });
+      await api(`/admin/newsletter/campaigns/${encodeURIComponent(state.editing.id)}/send-test`, { method: 'POST', body: { email } });
       state.message = { text: 'Testovací e-mail je prijatý na odoslanie. Skontrolujte schránku.', error: false };
       render();
     }
