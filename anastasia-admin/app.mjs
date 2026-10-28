@@ -1426,7 +1426,7 @@ async function vProductDetail(view, id, opts = {}) {
         <h1 class="pe-title">${esc(p.title)}</h1>
         <div class="pe-price"><b>${priceTxt}</b><small>EUR</small>${saleOn && sale.akcna_cena ? `<em>akcia ${esc(String(sale.akcna_cena))} €</em>` : ''}</div>
         <div id="p-checks" class="pe-checks"></div>
-        <div class="pe-act"><button class="btn ghost" id="p-back">Späť na produkty</button><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
+        <div class="pe-act"><button class="btn ghost" id="p-back">Späť na produkty</button><button class="btn ghost danger" id="p-delete">Zmazať</button><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
       </div>
     </article>
     <nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" data-jump="${k}">${esc(l)}</button>`).join('')}</nav>
@@ -1456,6 +1456,13 @@ async function vProductDetail(view, id, opts = {}) {
   view.querySelector('#p-category').onchange = e => { if (e.target.value) inC.add(e.target.value); e.target.value = ''; drawCategories(); renderChecks(); };
   drawCategories();
   view.querySelector('#p-back').onclick = () => vProducts(view);
+  // Server zmazanie odmietne, ak zákazníci majú k produktu aktívny prístup alebo budúcu rezerváciu.
+  view.querySelector('#p-delete').onclick = async () => {
+    if (!confirm(`Zmazať produkt „${p.title}“? Zmizne z obchodu aj z administrácie. Staré objednávky ostanú zachované.`)) return;
+    const msg = view.querySelector('#pmsg'), btn = view.querySelector('#p-delete'); msg.innerHTML = ''; btn.disabled = true;
+    try { await api(`/admin/products/${encodeURIComponent(id)}`, { method: 'DELETE' }); await vProducts(view); }
+    catch (e) { if (e.message === '401') return; btn.disabled = false; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
   // Fotky produktu: poradie pretiahnutím alebo šípkami, hlavná fotka, odobratie bez zmazania z mediálnej banky.
   const move = (from, to) => { if (to < 0 || to >= images.length || from === to) return; images.splice(to, 0, images.splice(from, 1)[0]); drawImgs(); };
   const drawImgs = () => {
@@ -2719,7 +2726,7 @@ function vBookingTypeForm(view, t) {
       </div>
       ${t.archived ? '' : `<label style="margin-top:12px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="bt-active" style="width:auto" ${t.active ? 'checked' : ''}> V ponuke na webe</label>`}
       <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" type="submit">${isNew ? 'Vytvoriť' : 'Uložiť'}</button>
-        ${isNew ? '' : `<button class="btn ghost" type="button" id="bt-arch">${t.archived ? 'Obnoviť z archívu' : 'Archivovať'}</button>`}</div>
+        ${isNew ? '' : `<button class="btn ghost" type="button" id="bt-arch">${t.archived ? 'Obnoviť z archívu' : 'Archivovať'}</button><button class="btn ghost danger" type="button" id="bt-delete">Zmazať</button>`}</div>
       ${isNew ? '' : '<p class="muted" style="font-size:12px;margin-top:8px">Zmena ceny platí pre nové rezervácie. Archivovaný typ zmizne z webu; existujúce termíny ostávajú platné.</p>'}
     </form>
   </div></div>`;
@@ -2749,6 +2756,14 @@ function vBookingTypeForm(view, t) {
     ab.disabled = true;
     try { await api(`/admin/booking/types/${encodeURIComponent(t.id)}`, { method: 'POST', body: t.archived ? { archived: false, active: true } : { archived: true } }); back(t.archived ? 'Typ je obnovený a znova v ponuke.' : 'Typ je archivovaný.'); }
     catch (err) { fail(ab, err); }
+  };
+  // Typ konzultácie je produkt; s budúcou rezerváciou alebo čakajúcou žiadosťou ho server nezmaže (ostáva archivácia).
+  const db = view.querySelector('#bt-delete');
+  if (db) db.onclick = async () => {
+    if (!confirm(`Zmazať typ konzultácie „${t.title}“? Zmizne z webu aj z administrácie. Ak má budúce rezervácie, použite Archivovať.`)) return;
+    db.disabled = true;
+    try { await api(`/admin/products/${encodeURIComponent(t.id)}`, { method: 'DELETE' }); back('Typ konzultácie je zmazaný.'); }
+    catch (err) { fail(db, err); }
   };
 }
 

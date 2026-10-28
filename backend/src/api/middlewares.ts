@@ -22,6 +22,7 @@ import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
 import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
 import { customerCreateMiddlewares } from "./store/customers/create-guard"
 import { adminCapabilityMiddlewares } from "./admin-capability-middlewares"
+import { adminProductDeleteMiddlewares } from "./admin-product-delete-guard"
 import { abuseGuardMiddlewares } from "./abuse-guard-middlewares"
 import { protectedMediaRedactionMiddlewares } from "./protected-media-redaction-middlewares"
 import { adminUploadGuardMiddlewares } from "./admin/upload-guard"
@@ -91,6 +92,8 @@ export default defineMiddlewares({
     ...contentAdminMiddlewares,
     // Serverová hranica rolí: asistent nemení ceny, kupóny, poukazy, prístupy ani API kľúče.
     ...adminCapabilityMiddlewares,
+    // Produkt s aktívnym prístupom zákazníkov alebo budúcou rezerváciou sa nezmaže.
+    ...adminProductDeleteMiddlewares,
     // Verejné nahrávanie len obrázkov a videí overených podľa obsahu.
     ...adminUploadGuardMiddlewares,
     // Rola administrátora (metadata.anastasia_role) a zakladanie nových účtov:
