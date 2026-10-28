@@ -120,6 +120,7 @@ export const DICT = {
   'Darčekový poukaz': ['Gift voucher', 'Подарочный сертификат'],
   'Darčekové poukazy': ['Gift vouchers', 'Подарочные сертификаты'],
   'Novinky': ['New', 'Новинки'],
+  'Novinky a tipy': ['News and tips', 'Новости и советы'],
   'Bestsellery': ['Bestsellers', 'Хиты продаж'],
   'Kozmetika': ['Cosmetics', 'Косметика'],
   'Výživa': ['Nutrition', 'Питание'],
