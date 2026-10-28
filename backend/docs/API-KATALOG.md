@@ -123,7 +123,7 @@ Vyžaduje prihlásenie typu `user`; zákaznícky token sem nemá prístup. **77 
 | GET | `/admin/newsletter` | Zoznam súhlasov s newsletterom (voliteľne export CSV). | `src/api/admin/newsletter/route.ts` |
 | GET, POST | `/admin/newsletter/campaigns` | Zoznam kampaní s číslami pre prehľad; POST vytvorí koncept (obsah sa sanitizuje). | `src/api/admin/newsletter/campaigns/route.ts` |
 | GET, POST, DELETE | `/admin/newsletter/campaigns/:id` | Detail kampane, úprava len v stave konceptu, zmazanie konceptu. | `src/api/admin/newsletter/campaigns/[id]/route.ts` |
-| POST | `/admin/newsletter/campaigns/:id/test` | Testovacia kópia kampane, len na adresy @l-code-dynamics.com. | `src/api/admin/newsletter/campaigns/[id]/test/route.ts` |
+| POST | `/admin/newsletter/campaigns/:id/send-test` | Testovacia kópia kampane, len na adresy @l-code-dynamics.com. | `src/api/admin/newsletter/campaigns/[id]/send-test/route.ts` |
 | POST | `/admin/newsletter/campaigns/:id/send` | Zafrontovanie kampane: snapshot prihlásených súhlasov a stav `queued`. | `src/api/admin/newsletter/campaigns/[id]/send/route.ts` |
 | POST | `/admin/newsletter/campaigns/:id/cancel` | Zrušenie odosielania, zvyšné pending doručenia sa označia ako skipped. | `src/api/admin/newsletter/campaigns/[id]/cancel/route.ts` |
 | POST | `/admin/nexus/customers/:id/tier` | Ručné priradenie vernostnej úrovne zákazníkovi (alebo zrušenie ručného zámku a automatický prepočet). | `src/api/admin/nexus/customers/[id]/tier/route.ts` |

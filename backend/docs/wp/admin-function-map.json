@@ -381,7 +381,7 @@
         "backend/src/api/store/newsletter/unsubscribe/route.ts",
         "backend/src/api/admin/newsletter/campaigns/route.ts",
         "backend/src/api/admin/newsletter/campaigns/[id]/route.ts",
-        "backend/src/api/admin/newsletter/campaigns/[id]/test/route.ts",
+        "backend/src/api/admin/newsletter/campaigns/[id]/send-test/route.ts",
         "backend/src/api/admin/newsletter/campaigns/[id]/send/route.ts",
         "backend/src/api/admin/newsletter/campaigns/[id]/cancel/route.ts",
         "backend/src/api/store/newsletter/unsubscribe/link/route.ts",
@@ -1409,12 +1409,12 @@
       "sha256": "c5cc1394f242f50f15d68080746291ac02c9ad736972604baba782100562fee4"
     },
     {
-      "path": "/admin/newsletter/campaigns/:id/test",
+      "path": "/admin/newsletter/campaigns/:id/send-test",
       "methods": [
         "POST"
       ],
       "feature": "newsletter",
-      "source": "backend/src/api/admin/newsletter/campaigns/[id]/test/route.ts",
+      "source": "backend/src/api/admin/newsletter/campaigns/[id]/send-test/route.ts",
       "sha256": "f4156d132fa543fc1eff4cd6b665e97dbbecd9551f5b95cdf0475663c9c45302"
     },
     {

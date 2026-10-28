@@ -7,7 +7,7 @@ import { legalService, newsletterService, requireAdmin, sendNewsletterError } fr
 const TEST_DOMAIN = "@l-code-dynamics.com"
 
 /**
- * POST /admin/newsletter/campaigns/:id/test {email}
+ * POST /admin/newsletter/campaigns/:id/send-test {email}
  * Pošle jednu testovaciu kópiu. V testovacom režime smie len na @l-code-dynamics.com.
  * Odkaz na odhlásenie sa podpisuje len vtedy, keď pre adresu existuje prihlásený súhlas.
  */

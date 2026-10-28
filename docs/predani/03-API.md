@@ -245,7 +245,7 @@ Kupóny a zľavy sa zakladajú štandardnými trasami Medusy pre promotions.
 | Obsah webu | `/admin/content`, `/admin/content/reset`, `/admin/pages`, `/admin/pages/:slug` |
 | Program RESET 40+ (len čítanie) | `/admin/reset-program` |
 | E-mailové šablóny | `/admin/email-templates`, `/admin/email-templates/:template`, `/admin/email-templates/:template/preview` |
-| Newsletter | `/admin/newsletter`, `/admin/newsletter/campaigns`, `/admin/newsletter/campaigns/:id`, `/admin/newsletter/campaigns/:id/test`, `/admin/newsletter/campaigns/:id/send`, `/admin/newsletter/campaigns/:id/cancel` |
+| Newsletter | `/admin/newsletter`, `/admin/newsletter/campaigns`, `/admin/newsletter/campaigns/:id`, `/admin/newsletter/campaigns/:id/send-test`, `/admin/newsletter/campaigns/:id/send`, `/admin/newsletter/campaigns/:id/cancel` |
 
 Trasa `/admin/reset-program` je zámerne iba na čítanie. Ukáže, aké hodnotenia a akú štruktúru programu zákazník uvidí. Záznamy Zrkadielka sa tu neukazujú, patria zákazníkovi.
 

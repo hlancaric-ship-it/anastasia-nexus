@@ -91,7 +91,7 @@ const vObsah = (view) => subnav(view, [
 | GET | `/admin/newsletter/campaigns/:id` | `{ campaign }` |
 | POST | `/admin/newsletter/campaigns/:id` | `{ campaign }` (len `draft`) |
 | DELETE | `/admin/newsletter/campaigns/:id` | `{ deleted: true }` (len `draft`) |
-| POST | `/admin/newsletter/campaigns/:id/test` | `{ sent: true, to }` |
+| POST | `/admin/newsletter/campaigns/:id/send-test` | `{ sent: true, to }` |
 | POST | `/admin/newsletter/campaigns/:id/send` | `{ campaign }` so stavom `queued` |
 | POST | `/admin/newsletter/campaigns/:id/cancel` | `{ campaign }` so stavom `cancelled` |
 | GET | `/admin/newsletter?format=csv&limit=&offset=` | CSV súhlasov (existujúca trasa) |
