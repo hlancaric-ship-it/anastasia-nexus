@@ -22,6 +22,7 @@ import { voucherHtml, voucherListHtml, VOUCHER_CSS } from './voucher.mjs';
 import { contentPages, contentPage, wireContentPage } from './content.mjs';
 import { securityView } from './security.mjs';
 import { newsletterView } from './newsletter.mjs';
+import { novinkyView } from './novinky.mjs';
 import { csvCell } from './csv.mjs';
 
 // --- Rola administrátora: vlastník (všetko) alebo asistent (denná práca bez peňazí a rolí) ---
@@ -205,6 +206,7 @@ const NAV = [
   { k: 'spravy', label: 'Správy', icon: 'chat', ready: true, badge: 'messages', group: 'obsah' },
   { k: 'obsah/2', label: 'Stránky a texty', icon: 'doc', ready: true, group: 'obsah' },
   { k: 'obsah/3', label: 'Médiá', icon: 'box', ready: true, group: 'obsah' },
+  { k: 'obsah/5', label: 'Novinky', icon: 'star', ready: true, group: 'obsah' },
   { k: 'ambasadori', label: 'Ambasádori', icon: 'star', ready: true, phase2: true, group: 'marketing' },
   { k: 'obsah/1', label: 'Newsletter', icon: 'mail', ready: true, group: 'marketing' },
   { k: 'poukazy', label: 'Zľavy a kupóny', icon: 'gift', ready: true, group: 'marketing' },
@@ -2598,7 +2600,7 @@ async function vVoucherSettings(view, notice) {
     <div style="margin-top:18px"><button class="btn gold" id="vs-save">Uložiť nastavenie</button></div>
   </div></div>
   <div class="card vs-preview"><div class="card-h">Takto vyzerá poukaz</div><div class="card-b"><style>${VOUCHER_CSS.replace(/(^|\n)\s*(\*|body)\{[^}]*\}/g, '').replace(/@media print\{.*\}\}/, '')}</style><div id="vs-card"></div>
-    <p class="muted" style="margin-top:12px">Rovnaký dizajn dostane obdarovaný e-mailom a dá sa vytlačiť. Kód je tu len ukážka.</p></div></div></div>`;
+    <p class="muted" style="margin-top:12px">Rovnaký dizajn ako na webe, dá sa aj vytlačiť. Kód je tu len ukážka.</p></div></div></div>`;
   const $ = (q) => view.querySelector(q), msg = $('#vsmsg');
   const drawCard = () => {
     const first = Number(String($('#vs-values').value.split(/[;\s]+/).filter(Boolean)[0] || '').replace(',', '.')) || s.values[0] || 0;
@@ -3153,6 +3155,12 @@ function vNewsletter(view) {
   newsletterScreen ||= newsletterView({ api, esc, fmtDate, freshView, pickMedia, uploadImage: uploadMediaImage });
   return newsletterScreen(view);
 }
+// Novinky: príspevky, reklamy partnerov a výsuvný panel webu. Obrazovka je v samostatnom module.
+let novinkyScreen;
+function vNovinky(view) {
+  novinkyScreen ||= novinkyView({ api, esc, fmtDate, freshView, pickMedia, uploadImage: uploadMediaImage });
+  return novinkyScreen(view);
+}
 // --- Obsah → Stránky a texty: texty webových stránok editovateľné v rich texte ---
 async function vPageTexts(view) {
   view = freshView(view);
@@ -3404,6 +3412,7 @@ const vObsah = (view) => subnav(view, [
   { label: 'Stránky a texty', run: vPageTexts },
   { label: 'Médiá', run: vMediaLibrary },
   { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
+  { label: 'Novinky', run: vNovinky },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
 const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (poplatok je v cene dopravy „Kuriér – dobierka“)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta', pp_membership_stripe_membership: 'Platobná karta – predplatné Klubu', manual_manual: 'Vlastná doprava' };
@@ -4339,10 +4348,11 @@ function renderLogin(msg, challenge) {
   };
 }
 // Formuláre: dvojica popis + pole ide do rovnakých stĺpcov (3 vedľa seba), nie riadky cez celú šírku obrazovky.
+// Obrazovky s vlastným rozložením (data-no-fgrid) sa nemenia.
 const FORM_FIELDS = new Set(['INPUT', 'SELECT', 'TEXTAREA']);
 function gridForms(root) {
   root.querySelectorAll('label').forEach(l => {
-    if (l.closest('.fld') || l.querySelector('input,select,textarea')) return;
+    if (l.closest('.fld,[data-no-fgrid]') || l.querySelector('input,select,textarea')) return;
     const f = l.nextElementSibling, parent = l.parentElement;
     if (!f || !parent || !FORM_FIELDS.has(f.tagName) || ['checkbox', 'radio', 'hidden', 'file', 'color', 'range'].includes(f.type)) return;
     if (!parent.classList.contains('fgrid')) {
