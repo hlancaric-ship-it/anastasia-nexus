@@ -191,7 +191,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         .nl-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
         .nl-k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
         .nl-v{font:500 30px/1.15 Georgia,'Times New Roman',serif;color:var(--primary);margin:6px 0 4px}
-        .nl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+        .nl-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
         .nl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
         .nl-sec{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px;background:rgba(255,255,255,.6)}
         .nl-sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
@@ -208,7 +208,7 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         .nl-photo-act label[for]{margin-bottom:0}
         .nl-tools .btn{padding:8px 12px;min-height:36px}
         .nl-editor textarea{width:100%;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
-        .nl-pv{position:relative;width:100%;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fbf8f2;min-height:320px}
+        .nl-pv{position:relative;width:100%;max-width:1198px;margin:0 auto;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fbf8f2;min-height:320px}
         .nl-pv.mobile{max-width:392px;margin:0 auto}
         .nl-preview{display:block;border:0;transform-origin:0 0;background:#fbf8f2}
         .nl-pv-mode{display:flex;gap:6px}.nl-pv-mode .btn{padding:6px 12px;min-height:32px;font-size:12.5px}.nl-pv-mode .btn.on{border-color:var(--gold);color:var(--primary)}
