@@ -45,3 +45,13 @@ Seznam agend vychází z `../backend/docs/wp/ADMIN-FUNKCE-A-POKRYTI.md`.
 
 ## Design
 Barevné tokeny v `styles.css` (`--forest`, `--gold`, `--cream`…) — přebarvitelné, aby si Lucia mohla admin upravit sama.
+
+
+## Regrese newsletteru
+
+S lokálním náhledem na portu 4178 spusťte
+`node anastasia-admin/test/browser-newsletter.mjs`. Test používá syntetické
+API a skutečnou serverovou šablonu e-mailu, ověřuje typografii, přetečení,
+náhled Mobil a umístění hlášky u tlačítka na 1440 a 390 px.
+Žádný e-mail neposílá. Cestu k Playwrightu lze předat přes `PLAYWRIGHT_MODULE`;
+screenshoty jsou v systémové dočasné složce.
