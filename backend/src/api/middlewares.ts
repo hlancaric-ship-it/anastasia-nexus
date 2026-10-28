@@ -34,6 +34,7 @@ import { protectAdminRoleMetadata, protectAdminUserCreation, requireInviteEmail 
 import { pageAdminMiddlewares } from "./admin/pages/middlewares"
 import { mediaAdminMiddlewares } from "./admin/media/middlewares"
 import { contentAdminMiddlewares } from "./admin/content/middlewares"
+import { novinkyMiddlewares } from "./admin/novinky/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -90,6 +91,8 @@ export default defineMiddlewares({
     ...pageAdminMiddlewares,
     ...mediaAdminMiddlewares,
     ...contentAdminMiddlewares,
+    // Novinky: správa len pre správcu, hlasovanie a kliknutia s brzdou na IP.
+    ...novinkyMiddlewares,
     // Serverová hranica rolí: asistent nemení ceny, kupóny, poukazy, prístupy ani API kľúče.
     ...adminCapabilityMiddlewares,
     // Produkt s aktívnym prístupom zákazníkov alebo budúcou rezerváciou sa nezmaže.

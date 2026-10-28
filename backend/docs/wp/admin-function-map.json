@@ -936,6 +936,23 @@
       ],
       "remaining": "Storefront zatiaľ obsah nenačítava (trasa GET /store/content/:page je pripravená); jazyky EN/RU sú v modeli vyhradené, ale zatiaľ prázdne.",
       "acceptance": "Úprava poľa sa uloží, vráti sa vo verejnej trase, pôvodné znenie sa dá obnoviť a staršiu verziu vrátiť."
+    },
+    {
+      "id": "novinky",
+      "label_sk": "Novinky",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia spravuje stránku Novinky a výsuvný panel: príspevky (foto, video, YouTube, text, anketa) s rubrikou, plánovaním a hlavným príspevkom, tri reklamné plochy partnerov a texty stránky; server validuje obsah (bez HTML, len https, médiá len z nášho úložiska), počíta hlasy a kliknutia.",
+      "sources": [
+        "backend/src/lib/novinky/policy.ts",
+        "backend/src/lib/novinky/store.ts",
+        "backend/src/api/admin/novinky/route.ts",
+        "backend/src/api/store/novinky/route.ts"
+      ],
+      "remaining": "Overenie na testovacom backende po nasadení; web stránka Noviniek je na strane frontendu.",
+      "acceptance": "Uložený príspevok sa po zverejnení zobrazí v GET /store/novinky, skrytý a naplánovaný nie; hlas z jednej IP sa započíta raz."
     }
   ],
   "custom_routes": [
@@ -1540,6 +1557,16 @@
       "source": "backend/src/api/admin/nexus/tour-state/route.ts",
       "feature": "admin-account",
       "sha256": "a555dc28f4a932b4e6a8386f93779e2755cba4de4996daca895f309e0893e5d7"
+    },
+    {
+      "path": "/admin/novinky",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "feature": "novinky",
+      "source": "backend/src/api/admin/novinky/route.ts",
+      "sha256": "ca31ab33af087cba8ca73fddbc60c1a6d7c1e5a0631ac533e6c6d06e8d8ef0b3"
     },
     {
       "path": "/admin/ops/audit",
@@ -2223,6 +2250,33 @@
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/options/route.ts",
       "sha256": "e7fbedf4cf4986081edffa5afa609cd58f1f2f63f946101b81f4ece563aa19bb"
+    },
+    {
+      "path": "/store/novinky",
+      "methods": [
+        "GET"
+      ],
+      "feature": "novinky",
+      "source": "backend/src/api/store/novinky/route.ts",
+      "sha256": "07de0b4666a6c920dd6eb67b887106e4b25b81c5758dc145aef18d4fc930ab2f"
+    },
+    {
+      "path": "/store/novinky/ads/:slot/click",
+      "methods": [
+        "POST"
+      ],
+      "feature": "novinky",
+      "source": "backend/src/api/store/novinky/ads/[slot]/click/route.ts",
+      "sha256": "4102e7ee5e1e88b0608a110fb55a206e20bd63de4a238293f4788fa2161c62ce"
+    },
+    {
+      "path": "/store/novinky/polls/:postId/vote",
+      "methods": [
+        "POST"
+      ],
+      "feature": "novinky",
+      "source": "backend/src/api/store/novinky/polls/[postId]/vote/route.ts",
+      "sha256": "7757a1ce0805e795a91f67f3bd4082c83ee2b59ea7b92a7f0ccab3836185ea0a"
     },
     {
       "path": "/store/orders/:id/cancel",
