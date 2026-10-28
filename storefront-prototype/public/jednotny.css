@@ -1119,7 +1119,9 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 .site-footer .sf-bottom :is(a,span){color:rgba(255,255,255,.72)!important;opacity:1!important}
 .cookie-banner .cookie-banner-text{max-width:60ch!important;margin-inline:auto!important;text-wrap:pretty}
 #ana-rail .dch0 span,#ana-rail>a span{font-size:11px!important}
-#dc-side-menu>div:last-child a,#dc-side-menu>div:last-child a span{font-size:12px!important;line-height:1.3!important;letter-spacing:.12em!important;transform:none!important;display:inline-flex!important;align-items:center!important}
+#dc-side-menu{overflow-x:hidden!important}
+#dc-side-menu>div:last-child{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;flex-wrap:nowrap!important}
+#dc-side-menu>div:last-child a,#dc-side-menu>div:last-child a span{font:400 12px/1.3 Figtree,sans-serif!important;letter-spacing:0!important;padding:4px 0!important;min-height:0!important;transform:none!important;white-space:nowrap!important}
 
 /* Prehliadka stacionára (26. 10.): rovnaké panely ako konzultácie, na celú šírku. */
 #page-shell#page-shell.kc-unified .legacy-main .ds-tour{width:100cqw;max-width:none;margin:0 calc(50% - 50cqw)!important;box-sizing:border-box}

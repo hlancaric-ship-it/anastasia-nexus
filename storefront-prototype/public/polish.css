@@ -299,7 +299,7 @@ html body .site-footer .sf-bottom :is(a,span){color:rgba(239,229,199,.6)!importa
 html body .site-footer .sf-bottom a:hover{color:var(--ft-lav)!important}
 html body .site-footer .sf-brands>*>img,html body .site-footer .sf-brands>*>div img{filter:none!important;opacity:1!important}
 html body .site-footer .sf-brands span{color:var(--ft-gold)!important}
-html body .site-footer .sf-brands>a>div>span:nth-child(2),html body .site-footer .sf-brands>a>div>span:only-of-type{color:var(--ft-cream)!important}
+html body .site-footer .sf-brands>a>div>span:nth-child(2),html body .site-footer .sf-brands>a>div>span:only-of-type,html body .site-footer .sf-brands>*>span>span:first-child{color:var(--ft-cream)!important}
 html body .site-footer .sf-brands>a>div>span[style*="height:1px"],html body .site-footer .sf-brands>a>div>span>span{background:var(--ft-gold)!important}
 html body .site-footer .sf-brands>a>div>span[style*="height:46px"]{background:linear-gradient(180deg,rgba(191,162,106,0),var(--ft-gold))!important}
 html body .site-footer .sf-brands>a:hover span{color:var(--ft-lav)!important}
@@ -315,4 +315,6 @@ html body .site-footer .sf-pay__badge{background:rgba(239,229,199,.94)!important
 /* Zlatá pečať ANASTASIA namiesto starého kruhového loga: matné zlato #C5A880, šampanský svit, bez orezu a filtrov (Lucky 26. 10.). */
 html body img.brand-seal,html body #dc-top-menu .menu-brand-mark img.brand-seal,html body :is(.dc-root,.dc-chrome) .header-brand-emblem img.brand-seal,html body .menu-brand-mark img.brand-seal{position:static!important;width:100%!important;height:100%!important;max-width:100%!important;left:auto!important;top:auto!important;object-fit:contain!important;opacity:1!important;filter:none!important}
 html body :is(.header-brand-emblem,.menu-brand-mark){overflow:visible!important;border-radius:0!important}
-html body footer img.brand-seal,html body [data-menu-brand] img.brand-seal{width:auto!important}
+html body footer img.brand-seal{width:auto!important;height:clamp(80px,7vw,108px)!important}
+html body [data-menu-brand] img.brand-seal{width:72px!important;height:72px!important}
+html.ana-menu-open .lh-top__menu,html.ana-menu-open .legacy-shell>.dc-chrome:first-child>header{visibility:hidden!important;pointer-events:none!important}
