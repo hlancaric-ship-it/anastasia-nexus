@@ -16,6 +16,7 @@ const escapeHtml=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>'
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
 import {libraryPage} from './src/library-page.mjs';
+import {novinky} from './src/novinky.mjs';
 import {centerThemeCss,centerThemeBoot} from './src/center-themes.mjs';
 import {siteThemes,siteThemeCss,siteThemeBoot,tokenizeColors} from './src/site-themes.mjs';
 import {accountGuardBoot} from './src/account-guard.mjs';
@@ -111,6 +112,7 @@ for(const [path,page] of Object.entries(legacyContent)){
 const reviewsPath='/ai-anastasia/recenzie-zakaznikov-ai-anastasia-com';
 if(routes.has(reviewsPath))routes.set('/ai-anastasia/recenzie-zakaznikov',routes.get(reviewsPath));
 add('/zdravy-svet','Zdravý svet',views.zdravySvet());
+add('/novinky','Novinky',novinky());
 add2('/o-lucii','O Lucii',aboutSections()+aboutPhotos,'about');
 // Koncept nového úvodu na schválenie (noindex ako celý test), so spoločnou lištou a pätičkou webu.
 add2('/koncept','ANASTASIA',konceptHome,'about');
@@ -215,6 +217,6 @@ await writeFile(join(out,'robots.txt'),'User-agent: *\nDisallow: /\n');
 const apiOrigin=process.env.ANASTASIA_API_ORIGIN||'http://127.0.0.1:9100';
 // Admin ukazuje stránky v náhľade vedľa editora textov.
 const adminOrigin=process.env.ANASTASIA_ADMIN_ORIGIN||apiOrigin.replace('-api.','-admin.');
-await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Strict-Transport-Security: max-age=31536000; includeSubDomains\n  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' ${mediaOrigin} https://*.stripe.com data:; media-src 'self' ${mediaOrigin}; font-src 'self'; connect-src 'self' ${apiOrigin} ${mediaOrigin} https://api.stripe.com https://cloudflareinsights.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors ${adminOrigin}; base-uri 'none'; form-action 'self'\n`);
+await writeFile(join(out,'_headers'),`/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  X-Content-Type-Options: nosniff\n  Strict-Transport-Security: max-age=31536000; includeSubDomains\n  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://js.stripe.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' ${mediaOrigin} https://*.stripe.com data:; media-src 'self' ${mediaOrigin}; font-src 'self'; connect-src 'self' ${apiOrigin} ${mediaOrigin} https://api.stripe.com https://cloudflareinsights.com; frame-src https://js.stripe.com https://hooks.stripe.com https://www.youtube-nocookie.com; frame-ancestors ${adminOrigin}; base-uri 'none'; form-action 'self'\n`);
 await writeFile(join(out,'routes.json'),JSON.stringify([...routes.keys()],null,2));
 console.log(`Built ${routes.size} static pages; all 34 legacy target paths covered (trailing slash variants normalized). ${process.env.ANASTASIA_PUBLISHABLE_KEY?'Real catalog loaded from Medusa.':'No backend calls.'}`);
