@@ -123,3 +123,28 @@ Výchozí adresa zůstává pouze lokální `127.0.0.1`. Veřejné nasazení tí
 
 Pokud dodaná složka videa už není dostupná, příprava použije existující kopie
 v `public/media/`. Bez zdroje i bez těchto kopií skončí chybou; média se nevyrábějí.
+
+## Regrese menu a Novinek (28. 10. 2026)
+
+Po `node storefront-prototype/build.mjs` spusťte celou sadu:
+
+```sh
+node --test storefront-prototype/test/*.test.mjs
+```
+
+Test `intro-chrome` si při chybějícím `STOREFRONT_URL` spustí vlastní lokální
+server na volném portu a po testu ukončí server i prohlížeč. Playwright lze
+předat přes `PLAYWRIGHT_MODULE` (ES module URL).
+
+Pro kontrolu Novinek na 1440 a 390 px spusťte lokální náhled a:
+
+```sh
+node storefront-prototype/test/browser-novinky.mjs
+```
+
+Test nahrazuje jen API Novinek a blokuje ostatní externí požadavky. Ověřuje
+ukázkový obsah při prázdném/nedostupném API, přednost živého obsahu, vypnutí
+panelu v adminu, otevření/zavření panelu a skutečné rozměry vlajek v menu.
+Screenshoty ukládá do dočasné složky `anastasia-novinky` (nebo `SCREENSHOT_DIR`).
+Ukázka je podle zadání zachována při prázdném obsahu; explicitní vypnutí
+panelu v administraci zůstává platné.

@@ -222,3 +222,15 @@ Zadání `docs/ZADANI-ZABEZPECENI-UTOKY.md`. Důkaz: `npx tsc --noEmit` OK, `npm
 | S1-06 kupón s limitem (C8) | předkontrola vyčerpání před zamknutím košíku, chyba zámku → 409 `COUPON_LIMIT_EXHAUSTED`/`CHECKOUT_IN_PROGRESS`; autoritativní zůstává atomická `reserveUsage` | `coupon-usage.unit.spec.ts`, `route-errors.unit.spec.ts` | unit VERIFIED, Cloud UNVERIFIED |
 
 Otevřené: N1 limit kupónu ignoruje budget kampaně, N2 rezervace `reserved` po pádu procesu nevyprší, CAPTCHA (Turnstile) a CVE závislostí čekají na rozhodnutí Luckyho. T1-7 zůstává NOT_IMPLEMENTED do externího pentestu.
+
+
+## Převzetí po Opusovi — 28. 10. 2026 (Codex)
+
+| Oblast | Ověřený důkaz | Stav |
+|---|---|---|
+| Novinky a tipy: ukázka při prázdném/nedostupném API, živá data mají přednost, vypnutí panelu v adminu platí | `storefront-prototype/test/browser-novinky.mjs`, skutečný Chrome, 1440 a 390 px, syntetické API, žádné externí zápisy | VERIFIED lokálně; skutečné hlasování/reklamní kliky na testu zatím UNVERIFIED |
+| Menu: vlajky a velikost účtu, odkazy, běžné odhlášení oddělené od logout-all | 182/182 storefront testů bez globálního timeoutu; browser regrese skutečných rozměrů a CSS | VERIFIED lokálně |
+| NEXUS booking inbox, sync commity `ed3ef07`, `dcdd538`, `1535b31` | všechny tři commity jsou v remote větvi; [izolovaný Linux CI běh 40665487030](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/40665487030) | booking inbox PASS; celý worker suite 156/159 PASS, **3 FAIL** (`aiGateway`, `medusaWebhook`, `pricingPolicy`), navazující persistence job přeskočen |
+| Newsletter / role / platby / logout-all přes živý testovací admin | přihlášená karta nalezena, Chrome vrací chybu 12: JavaScript z událostí Apple je vypnutý; žádné testovací účty ani objednávky nově nevytvořeny | E2E BLOCKED do zpřístupnění ovládání karty; dosavadní unit důkazy výše se tím nemění |
+
+CI selhání nejsou označena jako úspěch: chybějící AI binding propaguje `ApiError`, webhook nyní volá `waitUntil`, pricing test nedostává `calculated`. Tato kontrola NEXUS kód nemění.

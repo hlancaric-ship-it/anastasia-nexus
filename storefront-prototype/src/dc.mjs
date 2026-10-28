@@ -394,7 +394,7 @@ html,body{overflow-x:clip}
 #dc-top-menu>div:nth-child(5)>div:nth-child(2){display:none!important}
 #dc-top-menu>div:nth-child(5) a[style*="font-size:30px"]{font-size:21px!important}}
 :is(.dc-root,.dc-chrome) .header-account svg{width:16px;height:16px}
-:is(.dc-root,.dc-chrome) [role="dialog"] a[aria-label="Môj účet"]>span{transform:scale(.8)}
+:is(.dc-root,.dc-chrome) [role="dialog"] a[aria-label="Môj účet"]:not(.dch6)>span{transform:scale(.8)}
 @media(max-width:999.98px){:is(.dc-root,.dc-chrome) header:has([data-menu-open]){height:60px!important;min-height:60px!important}}
 /* Mobil: úpravy rytmu sekcí (bez centrování – Lucky 2026-10-14) */
 @media(max-width:699.98px){

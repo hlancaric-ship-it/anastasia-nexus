@@ -138,11 +138,14 @@ reel.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();
 const step=d=>{const c=track.firstElementChild;if(c)reel.scrollBy({left:d*(c.offsetWidth+28),behavior:reduce?'auto':'smooth'})};
 $('nv-next').onclick=()=>step(1);$('nv-prev').onclick=()=>step(-1);
 new IntersectionObserver(([en])=>visible=en.isIntersecting).observe(reel);
-// Najprv živé dáta z API; ukážka sa ukáže len keď API neodpovie (žiadne mihnutie falošného obsahu).
+// Najprv živé dáta z API; ukážka ostáva pri prázdnom obsahu alebo výpadku (Lucky 28. 10.).
 (async()=>{
  try{
   const r=await fetch(`${config.apiBaseUrl}/store/novinky`,{headers:{'x-publishable-api-key':config.publishableKey}});
-  if(r.ok){const j=await r.json();if(j&&Array.isArray(j.posts)&&Array.isArray(j.ads))data=j}
+  if(r.ok){const j=await r.json();if(j&&Array.isArray(j.posts)&&Array.isArray(j.ads)){
+   // Kým admin nemá žiadny obsah, ostáva ukážka (Lucky 28. 10.); vypnutý panel v admine platí vždy.
+   const empty=!j.featured&&!j.posts.length&&!j.ads.length;
+   data=empty?{...data,panel:j.panel?.enabled===false?j.panel:data.panel}:j}}
  }catch{/* ostáva ukážka */}
  render();requestAnimationFrame(()=>{reel.scrollLeft=1;requestAnimationFrame(tick)});
 })();
