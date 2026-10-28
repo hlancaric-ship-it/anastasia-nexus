@@ -24,6 +24,9 @@ smoke() {
     grep -qi '^HTTP/[0-9.]* 200' <<<"$headers" || { echo "FAIL $url není 200"; ok=0; }
     grep -qi '^x-robots-tag: noindex' <<<"$headers" || { echo "FAIL $url chybí X-Robots-Tag noindex"; ok=0; }
     grep -qi '^content-security-policy:' <<<"$headers" || { echo "FAIL $url chybí CSP"; ok=0; }
+    while IFS= read -r required_media_origin; do
+      grep -Fiq "$required_media_origin" <<<"$headers" || { echo "FAIL $url CSP nepovoluje $required_media_origin"; ok=0; }
+    done < <(node -p 'require(process.argv[1]).join("\n")' "$HERE/public-media-origins.json")
   done
   for host in "$WEB_HOST" "$ADMIN_HOST"; do
     curl -fsS --max-time 20 "https://$host/robots.txt" | grep -q '^Disallow: /$' || { echo "FAIL $host/robots.txt neblokuje indexaci"; ok=0; }
@@ -52,8 +55,16 @@ for v in "$ANASTASIA_API_ORIGIN" "${ANASTASIA_MEDIA_ORIGIN:-}"; do
   [[ "$v" == *anastasiaoz* ]] && fail "testovací předání nesmí používat doménu Lucie ($v)"
 done
 
+# Chýbajúce gitignored médiá by pri deployi zmazali video a zvuk z webu.
+for required_media in hero-1080p.mp4 nature-ambient.mp3; do
+  [ -s "$ROOT/storefront-prototype/public/media/$required_media" ] || fail "chybí public/media/$required_media"
+done
+
 # --- Build ---
-export ANASTASIA_MEDIA_ORIGIN="${ANASTASIA_MEDIA_ORIGIN:-$ANASTASIA_API_ORIGIN}"
+# Verejné R2 obrázky a NEXUS médiá musia zostať v CSP aj bez ručne zadanej konfigurácie.
+DEFAULT_MEDIA_ORIGINS="$(node -p 'require(process.argv[1]).join(" ")' "$HERE/public-media-origins.json")"
+export ANASTASIA_MEDIA_ORIGIN="${ANASTASIA_MEDIA_ORIGIN:-$DEFAULT_MEDIA_ORIGINS}"
+export ANASTASIA_WEB_ORIGIN="${ANASTASIA_WEB_ORIGIN:-https://$WEB_HOST}"
 export ANASTASIA_ADMIN_URL="${ANASTASIA_ADMIN_URL:-https://anastasia-test-admin.l-code-dynamics.com}"
 (cd "$ROOT/storefront-prototype" && node build.mjs)
 (cd "$ROOT/anastasia-admin" && node build.mjs)
