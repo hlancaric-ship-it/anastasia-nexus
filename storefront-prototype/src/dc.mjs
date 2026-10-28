@@ -19,7 +19,7 @@ const EXTERNAL = {
 // Cílové routy podle textu odkazu (návrh má většinou href="#").
 const ROUTES = {
   'ANASTASIA': '/', 'SK': '/', 'LIGHT FOR THE FUTURE': '/', '← Na úvod': '/',
-  'Všetky produkty': '/eshop', 'Kategórie': '/eshop/kategorie', 'Novinky': '/eshop?filter=novinky', 'Bestsellery': '/eshop?filter=bestsellery',
+  'Všetky produkty': '/eshop', 'Kategórie': '/eshop/kategorie', 'Novinky': '/eshop?filter=novinky', 'Bestsellery': '/eshop?filter=bestsellery', 'Odporúčame': '/eshop?filter=odporucame',
   'Celý obchod': '/eshop', 'Obchod': '/eshop',
   'AI ANASTASIA ACADEMY': '/eshop?category=sebarozvoj', 'BIOKOZMETIKA': '/eshop?category=bio-kozmetika-bez-chemie', 'Zdravé doplnky výživy': '/eshop?category=zdrave-doplnky-vyzivy', 'Programy a služby': '/eshop?category=sebarozvoj', 'Biokozmetika': '/eshop?category=bio-kozmetika-bez-chemie',
   'RESET 40+': '/reset-40', 'Objaviť RESET 40+': '/reset-40', 'Programy': '/eshop?category=sebarozvoj',

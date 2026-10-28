@@ -179,6 +179,10 @@ const BOTANIC_OLIVE = '<span class="botanic botanic-olive" aria-hidden="true"></
 const BOTANIC_LAVENDER = '<span class="botanic botanic-lav" aria-hidden="true"></span>';
 const LAVENDER_ART = '<span class="lavender-photo" aria-hidden="true"></span>';
 
+// Štítky produktu v obchode (metadata.flags). Akcia sa neoznačuje tu, vzniká z akčnej ceny.
+const PRODUCT_FLAGS = [['novinka', 'Novinka'], ['odporucame', 'Odporúčame'], ['bestseller', 'Bestseller']];
+const productFlagsOf = (p) => { const raw = Array.isArray(p?.metadata?.flags) ? p.metadata.flags : []; return PRODUCT_FLAGS.filter(([k]) => raw.includes(k)); };
+
 const FLAG_SK = `<svg class="flag" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" fill="#fff"/><rect y="5.34" width="24" height="5.33" fill="#0B4EA2"/><rect y="10.67" width="24" height="5.33" fill="#EE1C25"/><path d="M5.2 4.2h6.2v1.5H9.7v2.1h1.9v1.3H9.7v2.1h1.7v1.5H5.2v-1.5h1.8v-2.1H5.1V7.8h1.9V5.7H5.2Z" fill="#fff" stroke="#EE1C25" stroke-width=".45"/></svg>`;
 
 // --- navigácia (štruktúra podľa schváleného návrhu admin-design-overview) ---
@@ -1167,6 +1171,7 @@ async function vProducts(view) {
       <td data-label="Typ">${fallback ? '<span class="muted">—</span>' : p.digital ? '<span class="pill ok">digitálny</span>' : '<span class="muted">fyzický</span>'}</td>
       <td data-label="Cena">${fmtEur(basePrice(p.variants?.[0])?.amount)}</td>
       <td data-label="Sklad">${stock === null ? '<span class="muted">—</span>' : stock <= 0 ? '<span class="pill off">vypredané</span>' : stock <= 5 ? `<span class="pill warn">${stock} ks</span>` : `<span>${stock} ks</span>`}</td>
+      <td data-label="Štítky">${productFlagsOf(p).map(([, label]) => `<span class="pill leaf">${label}</span>`).join(' ') || '<span class="muted">—</span>'}</td>
       <td data-label="Akcia">${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
       <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
   };
@@ -1192,14 +1197,14 @@ async function vProducts(view) {
         <button type="button" class="btn ghost sm" id="p-bulk-draft">Uložiť ako koncept</button>
         <button type="button" class="btn ghost sm" id="p-bulk-clear">Zrušiť označenie</button>
       </div></div>
-    <div class="ot-wrap"><table class="ot lv agenda-grid product-grid"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena s DPH</th><th>Sklad</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
+    <div class="ot-wrap"><table class="ot lv agenda-grid product-grid"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena s DPH</th><th>Sklad</th><th>Štítky</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="p-range"></span><span class="muted" id="p-note" hidden></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('#p-body');
   const load = async () => {
     // Ak už beží požiadavka, nezahadzujeme novú – po skončení sa zopakuje s poslednými údajmi.
     if (busy) { pending = true; return; }
-    busy = true; body.innerHTML = '<tr><td colspan="7" class="empty">Načítavam…</td></tr>';
+    busy = true; body.innerHTML = '<tr><td colspan="10" class="empty">Načítavam…</td></tr>';
     try {
       const params = new URLSearchParams({ limit: String(PRODUCT_PAGE_SIZE), offset: String(offset) });
       if (query) params.set('q', query);
@@ -1232,7 +1237,7 @@ async function vProducts(view) {
       fallback = !!data.fallback;
       count = Number(data.count) || 0;
       stockBySku = new Map((inv?.inventory_items || []).map(i => [i.sku, (i.location_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0)]));
-      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="9" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
+      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="10" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
       body.querySelectorAll('tr[data-id]').forEach(tr => {
         const open = () => vProductDetail(view, tr.dataset.id);
         tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
@@ -1379,7 +1384,9 @@ async function vProductDetail(view, id, opts = {}) {
   const sale = (p.metadata && p.metadata.vyprodej) || {};
   const saleOn = !!sale.active;
   const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
-    <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>`;
+    <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>
+    <label>Štítky v obchode</label><div>${PRODUCT_FLAGS.map(([k, label]) => `<label style="display:inline-flex;gap:6px;margin:4px 14px 4px 0;align-items:center"><input type="checkbox" data-flag="${k}" ${productFlagsOf(p).some(([f]) => f === k) ? 'checked' : ''} style="width:auto"> ${label}</label>`).join('')}</div>
+    <p class="muted" style="font-size:12px;margin-top:4px">Štítok sa zobrazí na karte a v detaile produktu. Štítok Akcia sa pridá sám, keď má produkt akčnú cenu.</p>`;
   const cena = isOwner() ? `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
     <div><label>Akcia</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:auto"> Vo výpredaji / akcia</label></div></div>
     <div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">
@@ -1562,7 +1569,7 @@ async function vProductDetail(view, id, opts = {}) {
         if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
         else { await clearVariantSale(ref); saleMeta = { active: false }; }
       }
-      const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
+      const metadata = { ...(p.metadata || {}), vyprodej: saleMeta, flags: [...view.querySelectorAll('[data-flag]')].filter(cb => cb.checked).map(cb => cb.dataset.flag) };
       // Registry changes use the revision-checked endpoint; never overwrite it from a stale product snapshot.
       delete metadata.protected_media;
       const body = { title: view.querySelector('#p-title').value.trim(), status: wantStatus, description: desc, categories: chosen, metadata, images: images.map(url => ({ url })), thumbnail: thumb };

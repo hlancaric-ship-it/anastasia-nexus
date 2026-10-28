@@ -1,3 +1,4 @@
+import {productFlags} from '../product-flags.mjs';
 import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES, shopCategoryName, VOUCHER_CATEGORY, VOUCHER_CATEGORY_HANDLE, VOUCHER_IMAGE, voucherAmountFromSlug, voucherSlug} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
@@ -53,6 +54,7 @@ function mapProduct(p,apiBase='') {
   const media=value=>{if(typeof value!=='string')return value;try{const u=new URL(value),base=new URL(apiBase);const localStatic=['http://localhost:9000','http://127.0.0.1:9000'].includes(u.origin);if((u.origin===base.origin||localStatic)&&u.pathname.startsWith('/static/'))return '/backend-media'+decodeURIComponent(decodeURIComponent(u.pathname))+u.search;}catch{}return value;};
   const variant = (p.variants || [])[0] || {};
   const cp = variant.calculated_price || {};
+  const flags = productFlags(p.metadata);
   const category = (p.categories||[]).map(c=>shopCategoryName(c.name)).find(n=>SHOP_CATEGORIES.includes(n)) || shopCategoryName((p.categories||[])[0]?.name || '');
   return {
     slug: p.handle,
@@ -66,8 +68,12 @@ function mapProduct(p,apiBase='') {
     longDescription: p.metadata?.description_text || '',
     images: (p.images || []).map(image => image.url).filter(url=>!isEditorialOnlyAsset(url)).map(media).filter(Boolean),
     availability: 'Dostupné',
-    isNew: false,
-    isBestseller: false,
+    flags,
+    isNew: flags.includes('novinka'),
+    isRecommended: flags.includes('odporucame'),
+    isBestseller: flags.includes('bestseller'),
+    // Akcia len podľa ceny vypočítanej serverom (cenník výpredaja), nie podľa metadát.
+    onSale: Number.isFinite(Number(cp.original_amount)) && Number.isFinite(Number(cp.calculated_amount)) && Number(cp.calculated_amount) < Number(cp.original_amount),
     image: isEditorialOnlyAsset(p.thumbnail) ? '/assets/product-placeholder.svg' : media(p.thumbnail) || '/assets/product-placeholder.svg',
     _variantId: variant.id,
     booking: Boolean(p.metadata?.booking),
@@ -397,6 +403,7 @@ export function createHttpApi(storage, config) {
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
       if (filter === 'novinky') items = items.filter(p => p.isNew);
       if (filter === 'bestsellery') items = items.filter(p => p.isBestseller);
+      if (filter === 'odporucame') items = items.filter(p => p.isRecommended);
       return items;
     },
     async getProduct(slug) {

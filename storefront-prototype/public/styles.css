@@ -333,6 +333,15 @@ input[type=checkbox],input[type=radio]{accent-color:var(--field-ink,var(--ink))}
 
 /* Štítok NOVINKA na karte produktu. */
 .product-badge{display:inline-block;margin:0 0 8px;padding:4px 10px;border:1px solid var(--olive);border-radius:2px;color:var(--olive);font-size:10px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;line-height:1.5}
+.product-flags{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.product-flag{display:inline-flex;align-items:center;gap:6px;padding:5px 13px 5px 10px;border:1px solid var(--olive);border-radius:16px 2px 16px 2px;background:rgba(255,253,248,.92);color:var(--olive);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;line-height:1.4}
+.product-flag::before{content:'';flex:none;width:7px;height:11px;border-radius:0 100% 0 100%;background:currentColor;opacity:.75;transform:rotate(18deg)}
+.product-flag--isRecommended{border-color:#8a7fc0;color:#5d5294}
+.product-flag--isBestseller{border-color:#b08a3e;color:#7a5f2e}
+.product-flag--onSale{border-color:#a8473a;background:#a8473a;color:#fff}
+.product-flag--onSale::before{opacity:.9}
+.product-flags--over{position:absolute;top:12px;left:12px;right:12px;z-index:2;margin:0;pointer-events:none}
+.shop-card__image{position:relative}
 /* KÓD produktu a audio ukážka „Nič nemusíš“. */
 .pd-sku{margin:6px 0 0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#69705e}
 .pd-audio-sample{margin:22px 0;padding:20px;border:1px solid var(--line);border-radius:2px}
