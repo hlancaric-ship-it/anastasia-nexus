@@ -476,3 +476,144 @@ table.product-grid tbody .ot-act .btn {
   height: 32px!important;
   min-height: 32px!important;
 }
+
+/* Globálne vrátenie tabuliek z neprehľadných kariet na kompaktné tabuľky */
+.ot-wrap:has(.agenda-grid) {
+  padding: 0!important;
+  overflow-x: auto!important;
+}
+table.agenda-grid,
+table.product-grid,
+table.customer-grid,
+table.ot-orders {
+  display: table!important;
+  width: 100%!important;
+  border-collapse: collapse!important;
+  table-layout: auto!important;
+}
+table.agenda-grid thead,
+table.product-grid thead,
+table.customer-grid thead,
+table.ot-orders thead,
+table.agenda-grid:has(#p-pick-all) thead {
+  display: table-header-group!important;
+  position: static!important;
+  clip-path: none!important;
+  width: auto!important;
+  height: auto!important;
+  margin: 0!important;
+}
+table.agenda-grid thead tr,
+table.product-grid thead tr,
+table.customer-grid thead tr,
+table.ot-orders thead tr {
+  display: table-row!important;
+}
+table.agenda-grid thead th,
+table.product-grid thead th,
+table.customer-grid thead th,
+table.ot-orders thead th {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  font-size: 11px!important;
+  letter-spacing: .08em!important;
+  text-transform: uppercase!important;
+  color: var(--muted, #666)!important;
+  background: var(--surface-2, #faf7fc)!important;
+  border-bottom: 1px solid var(--line, #e2dbe8)!important;
+  white-space: nowrap!important;
+  vertical-align: middle!important;
+}
+table.agenda-grid:has(#p-pick-all) th.ot-check:after {
+  display: none!important;
+}
+table.agenda-grid tbody,
+table.product-grid tbody,
+table.customer-grid tbody,
+table.ot-orders tbody {
+  display: table-row-group!important;
+}
+table.agenda-grid tbody tr[data-id],
+table.product-grid tbody tr[data-id],
+table.customer-grid tbody tr[data-id],
+table.ot-orders tbody tr[data-id] {
+  display: table-row!important;
+  padding: 0!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  box-shadow: none!important;
+  cursor: pointer!important;
+  transition: background .15s ease!important;
+}
+table.agenda-grid tbody tr[data-id]:hover,
+table.product-grid tbody tr[data-id]:hover,
+table.customer-grid tbody tr[data-id]:hover,
+table.ot-orders tbody tr[data-id]:hover {
+  background: var(--soft, #f6f0fb)!important;
+  border-color: transparent!important;
+}
+table.agenda-grid tbody td,
+table.product-grid tbody td,
+table.customer-grid tbody td,
+table.ot-orders tbody td {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  vertical-align: middle!important;
+  font-size: 13.5px!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  white-space: nowrap!important;
+}
+table.agenda-grid tbody td[data-label] {
+  display: table-cell!important;
+  grid-template-columns: none!important;
+  gap: 0!important;
+}
+table.agenda-grid tbody td[data-label]:before {
+  display: none!important;
+}
+table.agenda-grid tbody td.lv-title {
+  white-space: normal!important;
+  max-width: 280px!important;
+  font-size: 14px!important;
+  font-weight: 500!important;
+  padding-right: 14px!important;
+}
+table.agenda-grid tbody .ot-check {
+  position: static!important;
+  width: 38px!important;
+  text-align: center!important;
+  padding-left: 14px!important;
+}
+table.agenda-grid tbody .ot-check input {
+  margin: 0!important;
+}
+table.agenda-grid tbody .ot-img {
+  width: 50px!important;
+  padding: 6px 4px 6px 0!important;
+}
+table.agenda-grid tbody .ot-img .thumb {
+  width: 38px!important;
+  height: 38px!important;
+  border-radius: 8px!important;
+  object-fit: cover!important;
+  border: 1px solid var(--line-soft, #eee)!important;
+  display: block!important;
+  background: #fdfdfd!important;
+}
+table.agenda-grid tbody .ot-act {
+  margin: 0!important;
+  padding: 6px 14px!important;
+  border: 0!important;
+  text-align: right!important;
+  display: table-cell!important;
+}
+table.agenda-grid tbody .ot-act .btn {
+  min-width: 0!important;
+  padding: 6px 12px!important;
+  font-size: 12px!important;
+  height: 32px!important;
+  min-height: 32px!important;
+}
