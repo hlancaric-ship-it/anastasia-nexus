@@ -253,8 +253,8 @@ export function chrome(page) {
       const base=`global__menu-${slug(group.title)}`;
       let field=groupOffsets[index-1];
       const link=(label,href,heading=false,keyIndex=field++)=>{// Položky menu idú zo zoznamu kategórií, nie z textov v administrácii (staré texty tam nesedeli na odkazy).
-        const content='';return `<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};padding:4px 0;${heading?'margin-bottom:6px;':''}" style-hover="color:#C9A355"${content}>${escape(label)}</a>`;};
-      const title=group.title==='Obchod'?link(group.title,group.href,true,field++):`<span style="font-size:${large?25:19}px;color:#C9A355;margin-bottom:6px"${(field++,"")}>${escape(group.title)}</span>`;
+        const content='';return `<a href="${escape(href)}" onClick="{{ closeMenu }}" style="font-size:${heading?(large?25:19):(large?14:12)}px;color:${heading?'#C9A355':'#EFE5C7'};${heading?'line-height:1.2;margin-bottom:6px;padding:0;':'padding:4px 0;'}" style-hover="color:#C9A355"${content}>${escape(label)}</a>`;};
+      const title=group.title==='Obchod'?link(group.title,group.href,true,field++):`<span style="font-size:${large?25:19}px;color:#C9A355;line-height:1.2;margin-bottom:6px;display:block"${(field++,"")}>${escape(group.title)}</span>`;
       return wrapper+title+group.links.map(item=>{if(!item){field++;return '';}const [label,href]=item;return link(label,href);}).join('')+'</div>';
     });
     // Dekorativní fotka lesa a poznámka „už čoskoro“ v dolní části menu se nevykreslují.
@@ -385,10 +385,10 @@ html,body{overflow-x:clip}
 #dc-top-menu>div:nth-child(3)>div:last-child{gap:2px!important;flex-shrink:0}
 #dc-top-menu>div:nth-child(4)>div,#dc-top-menu>div:nth-child(4) a{min-width:0;overflow-wrap:break-word;white-space:normal!important}
 #dc-top-menu>div:nth-child(4) a span{max-width:100%;white-space:normal!important}
-#dc-top-menu>div:nth-child(4){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;row-gap:14px!important;column-gap:18px!important}
-#dc-top-menu>div:nth-child(4)>div{padding:0!important;border:0!important;gap:0!important}
-#dc-top-menu>div:nth-child(4) [style*="font-size:25px"]{font-size:19px!important;margin-bottom:2px!important}
-#dc-top-menu>div:nth-child(4) a[style*="font-size:14px"]{padding:5px 0!important}
+#dc-top-menu>div:nth-child(4){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;row-gap:20px!important;column-gap:20px!important;align-items:start!important}
+#dc-top-menu>div:nth-child(4)>div{padding:0!important;border:0!important;gap:2px!important;display:flex!important;flex-direction:column!important}
+#dc-top-menu>div:nth-child(4)>div> :is(a,span):first-child{font-size:18px!important;line-height:24px!important;min-height:26px!important;margin:0 0 6px 0!important;padding:0!important;display:block!important;letter-spacing:-0.2px!important;font-weight:400!important}
+#dc-top-menu>div:nth-child(4) a[style*="font-size:14px"]{font-size:13.5px!important;line-height:1.35!important;padding:4px 0!important;min-height:28px!important;display:flex!important;align-items:center!important}
 #dc-top-menu>div:nth-child(5){grid-template-columns:1fr!important;gap:10px!important;padding-top:12px!important}
 #dc-top-menu>div:nth-child(5)>div:first-child{gap:10px!important}
 #dc-top-menu>div:nth-child(5)>div:nth-child(2){display:none!important}

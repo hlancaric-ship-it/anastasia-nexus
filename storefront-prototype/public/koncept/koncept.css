@@ -233,11 +233,14 @@ html:has(.kc){overflow-x:clip}
   .kc-top__nav{display:none}
   .kc-open{height:220vh}
   .kc-open__drop{width:40vw}
-  .kc-open__title{font-size:clamp(40px,14.5vw,80px)}
+  .kc-open__title{font-size:clamp(36px,13.5vw,72px);white-space:nowrap}
+  .kc-open .kc-l{transform:none!important;opacity:calc(1 - var(--p,0) * 2)!important}
   .kc-open__mark{top:calc(50% - 130px)}
   .kc-open__kicker{top:calc(50% + 70px);letter-spacing:.42em}
-  .kc-open__lead{bottom:auto;top:96px;left:50%;transform:translateX(-50%);text-align:center;font-size:14px}
+  .kc-open__lead{bottom:auto;top:108px;left:50%;transform:translateX(-50%);text-align:center;font-size:13.5px;line-height:1.45;width:min(320px,calc(100% - 40px))}
+  .kc-pre{display:none!important}
   .kc-open__scroll{display:none}
+  .kc-enter{bottom:calc(28px + env(safe-area-inset-bottom))!important;z-index:10!important}
   .kc-mani{height:200vh}
   .kc-mani__foot{grid-template-columns:1fr;gap:24px}
   .kc-mani__foot p{font-size:15px}

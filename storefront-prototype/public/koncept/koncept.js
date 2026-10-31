@@ -84,7 +84,7 @@ function frame() {
     const rad = (999 * (1 - e)).toFixed(1), ix = ((W - w) / 2).toFixed(1), iy = ((vh - h) / 2).toFixed(1);
     put(drop, 'clipPath', `inset(${iy}px ${ix}px round ${rad}px ${rad}px ${rad}px 0)`);
     put(open, '--p', e.toFixed(3));
-    open.classList.toggle('is-in', p > .04);
+    open.classList.toggle('is-in', p > (mobile() ? .14 : .04));
     const dy0 = mobile() ? vh * .26 : top0 + h0 / 2 - vh / 2;
     put(drop, '--dy', `${(dy0 * (1 - e)).toFixed(1)}px`);
     put(drop, '--veil', clamp((p - .45) / .3).toFixed(3));
