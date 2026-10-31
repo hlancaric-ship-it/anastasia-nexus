@@ -291,7 +291,8 @@ export function createHttpApi(storage, config) {
     // Prepočet ceny/kupónu robí server, aj pre hosťa (nákup bez registrácie).
     const id = get(CART); if (!id) return;
     const coupon = get(COUPON) || undefined;
-    await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: coupon } });
+    const ref = get('anastasia.ref') || undefined;
+    await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: coupon, referral_code: ref } });
   }
 
   // Server vracia čísla v eurách (amount, balance); košík zobrazuje popisky.

@@ -13,6 +13,7 @@ import { syncGiftVoucherCredit, type CreditState } from "../../../modules/gift-v
 import { recordEvent } from "../../../lib/observability/events"
 import { requestIdHeaders } from "../../../lib/observability/log"
 import { productRequiresShipping } from "../../../lib/checkout/product-delivery"
+import { findActiveAmbassadorByCode } from "../../../lib/ambassador/service"
 
 type PriceResponse = {
   ok: true
@@ -149,7 +150,7 @@ async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  * `guest`: nákup bez registrácie (HTTP handler bez prihláseného zákazníka). Host smie
  * len košík bez účtu, viz `canAccessCart`.
  */
-export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null, expectedCustomerId?: string, guest = false) {
+export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null, expectedCustomerId?: string, guest = false, referralCodeInput?: string | null) {
   if (!cartId || typeof cartId !== "string") throw new Error("INVALID_CART_ID")
   const query: any = scope.resolve(ContainerRegistrationKeys.QUERY)
   const { data } = await query.graph({
@@ -164,6 +165,26 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const cart = data?.[0]
   if (!cart) throw new Error("CART_NOT_FOUND")
   if (guest || expectedCustomerId) assertCartAccess(cart, expectedCustomerId)
+
+  if (referralCodeInput && typeof referralCodeInput === "string") {
+    const amb = await findActiveAmbassadorByCode(scope, referralCodeInput)
+    if (amb) {
+      const currentMeta = (cart.metadata || {}) as Record<string, unknown>
+      if (!currentMeta.ambassador || (currentMeta.ambassador as any).code !== amb.code) {
+        const metadata = {
+          ...currentMeta,
+          ambassador: {
+            customer_id: amb.customer_id,
+            code: amb.code,
+            commission_percent: amb.commission_percent,
+            source: "link",
+            captured_at: new Date().toISOString(),
+          },
+        }
+        await updateCartWorkflow(scope).run({ input: { id: cartId, metadata } })
+      }
+    }
+  }
   const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput)
   const tenantId = process.env.NEXUS_TENANT_ID
   const pricingUrl = process.env.NEXUS_PRICING_URL
@@ -312,11 +333,11 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const actorId = customerActor(req)
   try {
-    const { cart_id: cartId, couponCode } = req.body as { cart_id?: string; couponCode?: string | null }
+    const { cart_id: cartId, couponCode, referral_code } = req.body as { cart_id?: string; couponCode?: string | null; referral_code?: string | null }
     if (couponCode !== undefined && couponCode !== null && typeof couponCode !== "string") {
       return res.status(400).json({ ok: false, error: "VALIDATION_ERROR" })
     }
-    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode, actorId, !actorId)
+    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode, actorId, !actorId, referral_code)
     await recordEvent(req.scope, "info", "pricing", "repriced", {
       cart_id: cartId, tenant_id: pricing.tenantId, lines: pricing.items.length, prices_changed: pricing.pricesChanged,
       coupon_applied: Boolean(pricing.coupon), gift_voucher_applied: Boolean(pricing.gift_voucher),

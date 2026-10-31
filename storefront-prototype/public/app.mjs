@@ -21,6 +21,12 @@ let storage;try{
   storage={getItem:k=>pick(k).getItem(k),setItem:(k,v)=>pick(k).setItem(k,v),removeItem:k=>pick(k).removeItem(k)};
 }catch{}
 const api=createApi(storage);
+try {
+  const refParam = new URLSearchParams(window.location.search).get('ref') || new URLSearchParams(window.location.search).get('ambassador');
+  if (refParam && /^[A-Za-z0-9_-]{3,24}$/.test(refParam.trim())) {
+    try { window.localStorage.setItem('anastasia.ref', refParam.trim().toUpperCase()); } catch {}
+  }
+} catch {}
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
 // Product media can be temporarily unavailable while catalogue URLs are repaired.
 // Keep the designed local placeholder visible and never paint the browser's alt text.

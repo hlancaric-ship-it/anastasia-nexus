@@ -1,5 +1,5 @@
 import { MedusaResponse, AuthenticatedMedusaRequest } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { repriceCart } from "../nexus-cart/route"
 import { SafeOrderError } from "./safeorder"
@@ -60,11 +60,32 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const { data } = await query.graph({
       entity: "order",
-      fields: ["id", "display_id", "currency_code", "total", "payment_collections.payments.captured_at", "payment_collections.payments.status", "payment_collections.payments.provider_id", "shipping_methods.name", "shipping_methods.shipping_option_id"],
+      fields: ["id", "display_id", "currency_code", "total", "metadata", "payment_collections.payments.captured_at", "payment_collections.payments.status", "payment_collections.payments.provider_id", "shipping_methods.name", "shipping_methods.shipping_option_id"],
       filters: { id: (result.result as any).id },
     })
     const order = data?.[0]
     if (!order) throw new Error("ORDER_NOT_FOUND_AFTER_COMPLETION")
+
+    // Atribúcia objednávky ambasádorovi, ak bol košík privedený cez odporúčací kód
+    const { data: cartData } = await query.graph({ entity: "cart", fields: ["id", "metadata"], filters: { id: cartId } })
+    const amb = cartData?.[0]?.metadata?.ambassador as any
+    if (amb && typeof amb === "object" && typeof amb.code === "string") {
+      const commPercent = Number(amb.commission_percent) || 10
+      const commAmount = Math.round(Number(order.total || 0) * (commPercent / 100) * 100) / 100
+      const orderModule = req.scope.resolve(Modules.ORDER) as any
+      const orderMetadata = {
+        ...(order.metadata || {}),
+        ambassador: {
+          customer_id: amb.customer_id,
+          code: amb.code,
+          commission_percent: commPercent,
+          commission_amount: commAmount,
+          source: amb.source || "link",
+          captured_at: new Date().toISOString(),
+        },
+      }
+      await orderModule.updateOrders(order.id, { metadata: orderMetadata })
+    }
     const payment = order.payment_collections?.flatMap((collection: any) => collection.payments || []) || []
     const isPaid = payment.some((entry: any) => entry?.captured_at || entry?.status === "captured")
     const method = paymentMethodByProvider(payment.find((entry: any) => entry?.provider_id)?.provider_id)

@@ -801,14 +801,18 @@
       "id": "ambassadors",
       "label_sk": "Ambasádorky a provízie",
       "delivery_lane": "PHASE2",
-      "backend_layer": "missing",
-      "backend_status": "NOT_IMPLEMENTED",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "backend_layer": "core-only",
+      "backend_status": "IMPLEMENTED",
+      "new_admin_status": "IMPLEMENTED",
       "request": "Osobní QR/odkazy, atribuce objednávek a přehled provizí.",
       "sources": [
+        "backend/src/api/admin/ambassadors/route.ts",
+        "backend/src/api/admin/ambassadors/[id]/route.ts",
+        "backend/src/api/admin/ambassadors/settings/route.ts",
+        "backend/src/api/admin/ambassadors/commissions/route.ts",
         "backend/src/api/admin/coupon-links/route.ts"
       ],
-      "remaining": "Generátor kupónu není atribuce ani provizní účetnictví; doplnit doménu a pravidla ve fázi 2.",
+      "remaining": "Hotovo: správa ambasádorov, nastavenie provízií, atribúcia v košíku a objednávke, výplaty v administrácii.",
       "acceptance": "Objednávka má jedno doložené přiřazení; storno/refund upraví nárok dle schválené politiky; replay bez dvojí provize."
     },
     {
@@ -938,6 +942,45 @@
     }
   ],
   "custom_routes": [
+    {
+      "path": "/admin/ambassadors",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/route.ts",
+      "sha256": "b863eb37af78b64c73c6dc2f6ab54ea93e2d8171de6b14ec805f30ef5e62bd99"
+    },
+    {
+      "path": "/admin/ambassadors/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/[id]/route.ts",
+      "sha256": "c9495a6b1d3a3f08b5f5453882369c965ad0c46655b71f8f2f4e538727136ba5"
+    },
+    {
+      "path": "/admin/ambassadors/commissions",
+      "methods": [
+        "GET"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/commissions/route.ts",
+      "sha256": "466496d81695e9869a8b54b02e298263d6fd763d817403ab101f6c5cc357403a"
+    },
+    {
+      "path": "/admin/ambassadors/settings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/settings/route.ts",
+      "sha256": "67af6a64619c8e2be05fac04639a62750b6c32ac36ddec49d351776bfe710c9c"
+    },
     {
       "path": "/admin/booking-requests",
       "methods": [
@@ -2184,7 +2227,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "0e3f05560c37326fb7ddf57e0fda61533566eb812b13137093192974131187f9"
+      "sha256": "6ef22988c45a7e235f418fa15c4a7d40207efb344745d86e405545cf60f900f1"
     },
     {
       "path": "/store/nexus-checkout",
@@ -2193,7 +2236,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "733d6ab7d13fd930031f03de0ba42df4e35c98a9215e4f755b1439d4495d7fa3"
+      "sha256": "516723c3d61a2e8add5bf96e3a92d899b213ded988dd589e58ded09a8795b133"
     },
     {
       "path": "/store/nexus-checkout/free-shipping",

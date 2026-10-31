@@ -201,7 +201,7 @@ const NAV = [
   { k: 'spravy', label: 'Správy', icon: 'chat', ready: true, badge: 'messages', group: 'obsah' },
   { k: 'obsah/2', label: 'Stránky a texty', icon: 'doc', ready: true, group: 'obsah' },
   { k: 'obsah/3', label: 'Médiá', icon: 'box', ready: true, group: 'obsah' },
-  { k: 'ambasadori', label: 'Ambasádori', icon: 'star', ready: true, phase2: true, group: 'marketing' },
+  { k: 'ambasadori', label: 'Ambasádori', icon: 'star', ready: true, group: 'marketing' },
   { k: 'obsah/1', label: 'Newsletter', icon: 'mail', ready: true, group: 'marketing' },
   { k: 'poukazy', label: 'Zľavy a kupóny', icon: 'gift', ready: true, group: 'marketing' },
   { k: 'nastavenia/2', label: 'Doprava a platby', icon: 'bag', ready: true, group: 'nastavenia' },
@@ -3328,39 +3328,396 @@ async function vMediaLibrary(view) {
     }
   };
 }
-// --- Ambasádori: Fáza 2 – pripravujeme (UI nad prázdnymi dátami, backend ešte nemá) ---
-const AMBASSADOR_PHASE = 'Fáza 2 – pripravujeme';
-const AMBASSADOR_STATUS = { active: ['aktívny', 'ok'], invited: ['pozvaný', 'warn'], paused: ['pozastavený', 'off'], draft: ['rozpracovaný', 'off'] };
-const AMBASSADOR_COLUMNS = [['Meno', 'Meno'], ['E-mail', 'E-mail'], ['Kód / odkaz', 'Kód / odkaz'], ['Provízia', 'Provízia'], ['Obrat', 'Obrat'], ['Stav', 'Stav']];
+// --- Ambasádori: program odporúčania zákazníkov za províziu ---
+const AMBASSADOR_STATUS = { active: ['aktívny', 'ok'], paused: ['pozastavený', 'off'], draft: ['rozpracovaný', 'off'] };
 async function vAmbasadori(view) {
   view = freshView(view);
-  // Jadro endpointy ambasádorov dodá až vo Fáze 2, dovtedy sa nič nevolá (inak chyby v konzole).
-  const list = [];
-  const commission = '';
-  view.innerHTML = `<div class="card" style="margin-bottom:16px"><div class="card-h">Ambasádori<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span></div></div><div class="card-b">
-    <p class="muted" style="margin-top:0">Ambasadorský režim (odporúčanie zákazníkov za províziu) pripravujeme. Zatiaľ sa na webe nič nezapína a žiadne provízie sa nevyplácajú.
-    Návrh dátového modelu máme pripravený, režim zapneme v druhej fáze.</p>
-    ${list.length ? `<div class="ot-wrap"><table class="ot lv"><thead><tr>${AMBASSADOR_COLUMNS.map(([, h]) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
-      ${list.map(a => `<tr data-id="${esc(a.id)}" tabindex="0" role="link">${AMBASSADOR_COLUMNS.map(([key]) => `<td>${esc(a[key] ?? '—')}</td>`).join('')}</tr>`).join('')}
-    </tbody></table></div>` : '<div class="empty">Zatiaľ nemáme žiadnych ambasádorov – režim sa pripravuje.</div>'}
-  </div></div>
-  <div class="card"><div class="card-h">Nastavenie provízie</div><div class="card-b">
-    <p class="muted" style="margin-top:0">Provízia sa počíta z výšky objednávky, ktorú ambasádor priviedol, a vypláca sa mu podľa dohodnutého cyklu. Percento ani výplaty sa zatiaľ nemenia.</p>
-    <div class="row"><div><label>Provízia (%)</label><input id="am-commission" type="number" min="0" max="100" step="1" value="${esc(String(commission))}" placeholder="nastavíte vo Fáze 2" disabled></div>
-    <div><label>Stav režimu</label><div><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span></div></div></div>
-    <p class="muted" style="font-size:12px;margin-top:10px">Ovládanie bude aktívne, keď backend dodá atribúcie objednávok a prevádzku provízie.</p>
-  </div></div>`;
-  view.querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () => vAmbasadorDetail(view, { id: tr.dataset.id, ...(list.find(x => x.id === tr.dataset.id) || {}) }));
+  view.innerHTML = '<div class="card"><div class="card-b"><p class="muted">Načítavam zoznam ambasádorov…</p></div></div>';
+  let data = { ambassadors: [], count: 0, totals: {} };
+  let settings = { enabled: true, default_percent: 10, cookie_days: 30 };
+  try {
+    const [resAmb, resSet] = await Promise.all([
+      api('/admin/ambassadors'),
+      api('/admin/ambassadors/settings').catch(() => ({ settings: { enabled: true, default_percent: 10, cookie_days: 30 } })),
+    ]);
+    data = resAmb;
+    settings = resSet.settings || settings;
+  } catch (err) {
+    view.innerHTML = `<div class="card"><div class="card-h">Ambasádori</div><div class="card-b"><div class="err">${esc(err.message)}</div><button class="btn" id="am-retry">Skúsiť znova</button></div></div>`;
+    view.querySelector('#am-retry').onclick = () => vAmbasadori(view);
+    return;
+  }
+
+  const { ambassadors = [], totals = {} } = data;
+
+  const kpis = `
+    <div class="grid-4" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:16px">
+      <div class="card card-kpi"><div class="card-b"><div class="kpi-num">${totals.total_ambassadors ?? 0}</div><div class="kpi-label">Ambasádori celkom</div><small class="muted">${totals.active_ambassadors ?? 0} aktívnych</small></div></div>
+      <div class="card card-kpi"><div class="card-b"><div class="kpi-num">${fmtEur(totals.total_revenue ?? 0)}</div><div class="kpi-label">Obrat z odporúčaní</div><small class="muted">${totals.total_orders ?? 0} objednávok</small></div></div>
+      <div class="card card-kpi"><div class="card-b"><div class="kpi-num" style="color:var(--c-primary, #7E63A8)">${fmtEur(totals.total_commission ?? 0)}</div><div class="kpi-label">Celková provízia</div><small class="muted">za celú dobu</small></div></div>
+      <div class="card card-kpi"><div class="card-b"><div class="kpi-num" style="color:${(totals.total_pending ?? 0) > 0 ? 'var(--c-danger, #B42318)' : 'inherit'}">${fmtEur(totals.total_pending ?? 0)}</div><div class="kpi-label">Na vyplatenie</div><small class="muted">zatiaľ nevyplatené</small></div></div>
+    </div>
+  `;
+
+  view.innerHTML = `
+    ${kpis}
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-h">
+        Ambasádori
+        <div class="card-h-act">
+          <button class="btn primary" id="am-btn-new">+ Nový ambasádor</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <p class="muted" style="margin-top:0">Ambasadorský program umožňuje partnerom a spokojným zákazníkom odporúčať produkty ANASTASIA cez osobný odkaz a získavať províziu z privedených nákupov.</p>
+        
+        <div id="am-new-box" class="side-card" style="display:none;margin-bottom:16px;background:var(--bg-subtle, #FAF7F2);border:1px solid var(--b-subtle, #E4DDD3);border-radius:12px;padding:16px">
+          <h3 style="margin-top:0">Nový ambasádor</h3>
+          <div class="row">
+            <div><label>Meno a priezvisko</label><input type="text" id="am-new-name" placeholder="napr. Mária Kováčová" maxlength="100"></div>
+            <div><label>E-mail *</label><input type="email" id="am-new-email" placeholder="maria@priklad.sk" required maxlength="120"></div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <div><label>Kód odporúčania *</label><input type="text" id="am-new-code" placeholder="napr. MARIA10" maxlength="24" style="text-transform:uppercase" required><small class="muted">Tento kód bude v odkaze ?ref=KÓD</small></div>
+            <div><label>Výška provízie (%)</label><input type="number" id="am-new-commission" min="0" max="100" step="1" value="${settings.default_percent}"></div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <div><label>Interná poznámka</label><input type="text" id="am-new-note" placeholder="napr. Inštruktorka jogy, kontakt z Instagramu" maxlength="250"></div>
+            <div><label>Stav</label><select id="am-new-status"><option value="active">Aktívny</option><option value="paused">Pozastavený</option></select></div>
+          </div>
+          <div id="am-new-msg" style="margin-top:10px"></div>
+          <div style="margin-top:14px;display:flex;gap:8px">
+            <button class="btn primary" id="am-new-submit">Uložiť ambasádora</button>
+            <button class="btn ghost" id="am-new-cancel">Zrušiť</button>
+          </div>
+        </div>
+
+        ${ambassadors.length ? `
+          <div class="ot-wrap">
+            <table class="ot lv">
+              <thead>
+                <tr>
+                  <th>Meno a kontakt</th>
+                  <th>Kód odporúčania</th>
+                  <th>Provízia (%)</th>
+                  <th>Objednávky</th>
+                  <th>Obrat</th>
+                  <th>Provízia spolu</th>
+                  <th>K výplate</th>
+                  <th>Stav</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${ambassadors.map(a => `
+                  <tr data-id="${esc(a.id)}" tabindex="0" role="link">
+                    <td><b>${esc(a.name)}</b><br><small class="muted">${esc(a.email)}</small></td>
+                    <td><code>${esc(a.code)}</code></td>
+                    <td>${esc(String(a.commission_percent))}&nbsp;%</td>
+                    <td>${a.orders_count}</td>
+                    <td>${fmtEur(a.revenue)}</td>
+                    <td>${fmtEur(a.commission_total)}</td>
+                    <td style="font-weight:600;color:${a.commission_pending > 0 ? 'var(--c-danger, #B42318)' : 'inherit'}">${fmtEur(a.commission_pending)}</td>
+                    <td>${statusPill(AMBASSADOR_STATUS, a.status || 'draft')}</td>
+                    <td style="text-align:right"><button class="btn ghost" style="padding:4px 8px;font-size:12px" data-open="${esc(a.id)}">Detail →</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<div class="empty">Zatiaľ nemáte žiadnych ambasádorov. Kliknite na <b>+ Nový ambasádor</b> a pridajte prvého.</div>'}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Nastavenie ambasadorského programu</div>
+      <div class="card-b">
+        <p class="muted" style="margin-top:0">Tieto pravidlá platia pre všetkých novovzniknutých ambasádorov a pre výpočet platnosti kliknutia na partnerský odkaz.</p>
+        <div class="row">
+          <div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input type="checkbox" id="am-set-enabled" ${settings.enabled ? 'checked' : ''}>
+              <span>Zapnúť ambasadorský program (priraďovanie odporúčaní)</span>
+            </label>
+          </div>
+          <div></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div>
+            <label>Predvolená provízia (%)</label>
+            <input type="number" id="am-set-percent" min="0" max="100" step="1" value="${settings.default_percent}">
+            <small class="muted">Nastaví sa automaticky novým ambasádorom (dá sa upraviť individuálne).</small>
+          </div>
+          <div>
+            <label>Platnosť odporúčania (dni)</label>
+            <input type="number" id="am-set-days" min="1" max="365" step="1" value="${settings.cookie_days}">
+            <small class="muted">Koľko dní od kliknutia na odkaz sa nákup pripočíta ambasádorovi.</small>
+          </div>
+        </div>
+        <div id="am-set-msg" style="margin-top:10px"></div>
+        <div style="margin-top:14px">
+          <button class="btn primary" id="am-set-save">Uložiť nastavenia</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Bind new ambassador toggle and save
+  const newBox = view.querySelector('#am-new-box');
+  const btnNew = view.querySelector('#am-btn-new');
+  btnNew.onclick = () => {
+    newBox.style.display = newBox.style.display === 'none' ? 'block' : 'none';
+    if (newBox.style.display === 'block') view.querySelector('#am-new-name').focus();
+  };
+  view.querySelector('#am-new-cancel').onclick = () => { newBox.style.display = 'none'; };
+
+  const codeInput = view.querySelector('#am-new-code');
+  codeInput.oninput = () => { codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''); };
+
+  view.querySelector('#am-new-submit').onclick = async () => {
+    const name = view.querySelector('#am-new-name').value.trim();
+    const email = view.querySelector('#am-new-email').value.trim();
+    const code = codeInput.value.trim().toUpperCase();
+    const comm = Number(view.querySelector('#am-new-commission').value);
+    const note = view.querySelector('#am-new-note').value.trim();
+    const status = view.querySelector('#am-new-status').value;
+    const msg = view.querySelector('#am-new-msg');
+
+    if (!email) { msg.innerHTML = '<div class="err">Zadajte e-mail ambasádora.</div>'; return; }
+    if (!code || code.length < 3) { msg.innerHTML = '<div class="err">Zadajte kód (aspoň 3 znaky).</div>'; return; }
+
+    msg.innerHTML = '<div class="muted">Ukladám…</div>';
+    try {
+      await api('/admin/ambassadors', {
+        method: 'POST',
+        body: { name, email, code, commission_percent: comm, note, status },
+      });
+      vAmbasadori(view);
+    } catch (err) {
+      msg.innerHTML = `<div class="err">${esc(err.message)}</div>`;
+    }
+  };
+
+  // Bind settings save
+  view.querySelector('#am-set-save').onclick = async () => {
+    const enabled = view.querySelector('#am-set-enabled').checked;
+    const default_percent = Number(view.querySelector('#am-set-percent').value);
+    const cookie_days = Number(view.querySelector('#am-set-days').value);
+    const msg = view.querySelector('#am-set-msg');
+
+    msg.innerHTML = '<div class="muted">Ukladám nastavenia…</div>';
+    try {
+      await api('/admin/ambassadors/settings', {
+        method: 'POST',
+        body: { enabled, default_percent, cookie_days },
+      });
+      msg.innerHTML = '<div class="ok">Nastavenia ambasadorského programu boli úspešne uložené.</div>';
+      setTimeout(() => { if (msg.innerHTML.includes('úspešne')) msg.innerHTML = ''; }, 3500);
+    } catch (err) {
+      msg.innerHTML = `<div class="err">${esc(err.message)}</div>`;
+    }
+  };
+
+  // Click on row to open detail
+  view.querySelectorAll('[data-id]').forEach(row => {
+    row.onclick = (e) => {
+      if (e.target.closest('button')) return;
+      vAmbasadorDetail(view, row.dataset.id);
+    };
+  });
+  view.querySelectorAll('[data-open]').forEach(btn => {
+    btn.onclick = () => vAmbasadorDetail(view, btn.dataset.open);
+  });
 }
-function vAmbasadorDetail(view, a) {
+
+async function vAmbasadorDetail(view, id) {
   view = freshView(view);
-  view.innerHTML = `<div class="card"><div class="card-h">Ambasádor<div class="card-h-act"><span class="pill warn">${esc(AMBASSADOR_PHASE)}</span><button class="btn ghost" id="am-back">Späť</button></div></div><div class="card-b">
-    <div class="row"><div><label>Meno</label><div>${esc(a.name || a.customer_label || '—')}</div></div><div><label>E-mail</label><div>${esc(a.email || '—')}</div></div></div>
-    <div class="row"><div><label>Kód / odkaz</label><div>${esc(a.code || a.referral_code || '—')}</div></div><div><label>Provízia</label><div>${esc(String(a.commission_percent ?? '—'))} %</div></div></div>
-    <div class="row"><div><label>Obrat</label><div>${esc(a.revenue != null ? fmtEur(a.revenue) : '—')}</div></div><div><label>Stav</label><div>${statusPill(AMBASSADOR_STATUS, a.status || 'draft')}</div></div></div>
-    <p class="muted" style="font-size:12px;margin-top:12px">Detail ambasadora bude obsahovať odkaz na odporúčanie, zoznam privedených objednávok a prehľad výplat.</p>
-  </div></div>`;
+  view.innerHTML = '<div class="card"><div class="card-b"><p class="muted">Načítavam detail ambasádora…</p></div></div>';
+  let data;
+  try {
+    data = await api(`/admin/ambassadors/${id}`);
+  } catch (err) {
+    view.innerHTML = `<div class="card"><div class="card-h">Ambasádor</div><div class="card-b"><div class="err">${esc(err.message)}</div><button class="btn" id="am-back">Späť na zoznam</button></div></div>`;
+    view.querySelector('#am-back').onclick = () => vAmbasadori(view);
+    return;
+  }
+
+  const { ambassador: a, orders = [] } = data;
+  const storefrontOrigin = (typeof window !== 'undefined' && window.location.hostname.includes('test'))
+    ? 'https://anastasia-test.l-code-dynamics.com'
+    : 'https://anastasiaoz.eu';
+  const referralLink = `${storefrontOrigin}/?ref=${encodeURIComponent(a.code)}`;
+
+  view.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-h">
+        ${esc(a.name)}
+        <div class="card-h-act">
+          ${statusPill(AMBASSADOR_STATUS, a.status || 'draft')}
+          <button class="btn ghost" id="am-back">← Späť na zoznam</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="row">
+          <div><label>E-mail</label><div>${esc(a.email || '—')}</div></div>
+          <div><label>Dátum registrácie</label><div>${fmtDate(a.joined_at)}</div></div>
+        </div>
+        
+        <div style="margin-top:16px;background:var(--bg-subtle, #FAF7F2);border:1px solid var(--b-subtle, #E4DDD3);border-radius:12px;padding:16px">
+          <label style="font-weight:600">Odkaz na odporúčanie pre tohto ambasádora</label>
+          <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+            <input type="text" id="am-link-input" value="${esc(referralLink)}" readonly style="flex:1;background:#fff;cursor:text">
+            <button class="btn primary" id="am-copy-btn">Kopírovať odkaz</button>
+          </div>
+          <div id="am-copy-msg" style="margin-top:4px;font-size:12px"></div>
+        </div>
+
+        <div class="grid-4" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:16px;margin-top:16px">
+          <div class="card card-kpi" style="border:1px solid var(--b-subtle, #E4DDD3)"><div class="card-b"><div class="kpi-num">${fmtEur(a.revenue)}</div><div class="kpi-label">Celkový obrat</div><small class="muted">${a.orders_count} objednávok</small></div></div>
+          <div class="card card-kpi" style="border:1px solid var(--b-subtle, #E4DDD3)"><div class="card-b"><div class="kpi-num" style="color:var(--c-primary, #7E63A8)">${fmtEur(a.commission_total)}</div><div class="kpi-label">Provízia celkom</div><small class="muted">${a.commission_percent}&nbsp;% z nákupu</small></div></div>
+          <div class="card card-kpi" style="border:1px solid var(--b-subtle, #E4DDD3)"><div class="card-b"><div class="kpi-num" style="color:var(--c-success, #2D6A4F)">${fmtEur(a.commission_paid)}</div><div class="kpi-label">Vyplatené</div><small class="muted">${(a.payouts || []).length} výplat</small></div></div>
+          <div class="card card-kpi" style="border:1px solid var(--b-subtle, #E4DDD3)"><div class="card-b"><div class="kpi-num" style="color:${a.commission_pending > 0 ? 'var(--c-danger, #B42318)' : 'inherit'}">${fmtEur(a.commission_pending)}</div><div class="kpi-label">Zostáva k výplate</div><small class="muted">nevyrovnaný zostatok</small></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:16px;margin-bottom:16px">
+      <div class="card">
+        <div class="card-h">Úprava ambasádora</div>
+        <div class="card-b">
+          <div><label>Kód odporúčania</label><input type="text" id="am-edit-code" value="${esc(a.code)}" style="text-transform:uppercase" maxlength="24"></div>
+          <div style="margin-top:12px"><label>Provízia (%)</label><input type="number" id="am-edit-comm" min="0" max="100" step="1" value="${a.commission_percent}"></div>
+          <div style="margin-top:12px"><label>Stav</label><select id="am-edit-status"><option value="active" ${a.status === 'active' ? 'selected' : ''}>Aktívny</option><option value="paused" ${a.status === 'paused' ? 'selected' : ''}>Pozastavený</option></select></div>
+          <div style="margin-top:12px"><label>Interná poznámka</label><input type="text" id="am-edit-note" value="${esc(a.note || '')}" maxlength="250"></div>
+          <div id="am-edit-msg" style="margin-top:10px"></div>
+          <div style="margin-top:14px"><button class="btn primary" id="am-edit-submit">Uložiť zmeny</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">Zaznamenať výplatu provízie</div>
+        <div class="card-b">
+          <p class="muted" style="margin-top:0">Po odoslaní peňazí na účet ambasádora zaznamenajte výplatu, aby sa znížila suma k výplate.</p>
+          <div><label>Suma výplaty (€)</label><input type="number" id="am-pay-amount" min="0.01" step="0.01" value="${a.commission_pending > 0 ? a.commission_pending : ''}" placeholder="0,00"></div>
+          <div style="margin-top:12px"><label>Obdobie / Variabilný symbol / Poznámka</label><input type="text" id="am-pay-period" placeholder="napr. Provízia 10/2026, prevod VÚB" maxlength="150"></div>
+          <div id="am-pay-msg" style="margin-top:10px"></div>
+          <div style="margin-top:14px"><button class="btn success" id="am-pay-submit">Zaznamenať vyplatenie</button></div>
+          
+          ${(a.payouts && a.payouts.length) ? `
+            <div style="margin-top:16px;border-top:1px solid var(--b-subtle, #E4DDD3);padding-top:12px">
+              <label style="font-weight:600">História výplat</label>
+              <ul style="margin:8px 0 0;padding-left:18px;font-size:13px">
+                ${a.payouts.map(p => `
+                  <li style="margin-bottom:6px">
+                    <b>${fmtEur(p.amount)}</b> · ${fmtDate(p.created_at)}
+                    ${p.period ? `<br><small class="muted">${esc(p.period)}</small>` : ''}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Privedené objednávky (${orders.length})</div>
+      <div class="card-b">
+        ${orders.length ? `
+          <div class="ot-wrap">
+            <table class="ot lv">
+              <thead>
+                <tr>
+                  <th>Objednávka</th>
+                  <th>Dátum</th>
+                  <th>Zákazník</th>
+                  <th>Suma</th>
+                  <th>Provízia</th>
+                  <th>Stav objednávky</th>
+                  <th>Stav platby</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${orders.map(o => `
+                  <tr>
+                    <td><b>#${esc(String(o.display_id || o.id))}</b></td>
+                    <td>${fmtDate(o.created_at)}</td>
+                    <td>${esc(o.customer_name)}</td>
+                    <td>${fmtEur(o.total)}</td>
+                    <td style="font-weight:600;color:var(--c-primary, #7E63A8)">${fmtEur(o.commission_amount)}</td>
+                    <td><span class="pill ${o.order_status === 'canceled' ? 'err' : 'ok'}">${esc(o.order_status)}</span></td>
+                    <td><span class="pill ${o.payment_status === 'captured' ? 'ok' : 'warn'}">${esc(o.payment_status)}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<div class="empty">Zatiaľ cez tohto ambasádora neprebehla žiadna objednávka. Akonáhle niekto nakúpi cez jeho odkaz, objednávka sa zobrazí tu.</div>'}
+      </div>
+    </div>
+  `;
+
   view.querySelector('#am-back').onclick = () => vAmbasadori(view);
+
+  // Copy referral link
+  view.querySelector('#am-copy-btn').onclick = async () => {
+    const input = view.querySelector('#am-link-input');
+    const msg = view.querySelector('#am-copy-msg');
+    try {
+      await navigator.clipboard.writeText(input.value);
+      msg.innerHTML = '<span class="ok">Odkaz bol skopírovaný do schránky!</span>';
+    } catch {
+      input.select();
+      document.execCommand('copy');
+      msg.innerHTML = '<span class="ok">Odkaz skopírovaný!</span>';
+    }
+    setTimeout(() => { msg.innerHTML = ''; }, 3000);
+  };
+
+  // Edit ambassador
+  const editCode = view.querySelector('#am-edit-code');
+  editCode.oninput = () => { editCode.value = editCode.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''); };
+  view.querySelector('#am-edit-submit').onclick = async () => {
+    const code = editCode.value.trim().toUpperCase();
+    const comm = Number(view.querySelector('#am-edit-comm').value);
+    const status = view.querySelector('#am-edit-status').value;
+    const note = view.querySelector('#am-edit-note').value.trim();
+    const msg = view.querySelector('#am-edit-msg');
+
+    msg.innerHTML = '<div class="muted">Ukladám…</div>';
+    try {
+      await api(`/admin/ambassadors/${id}`, {
+        method: 'POST',
+        body: { code, commission_percent: comm, status, note },
+      });
+      vAmbasadorDetail(view, id);
+    } catch (err) {
+      msg.innerHTML = `<div class="err">${esc(err.message)}</div>`;
+    }
+  };
+
+  // Record payout
+  view.querySelector('#am-pay-submit').onclick = async () => {
+    const amount = Number(view.querySelector('#am-pay-amount').value);
+    const period = view.querySelector('#am-pay-period').value.trim();
+    const msg = view.querySelector('#am-pay-msg');
+
+    if (!amount || amount <= 0) {
+      msg.innerHTML = '<div class="err">Zadajte platnú sumu výplaty.</div>';
+      return;
+    }
+
+    msg.innerHTML = '<div class="muted">Ukladám výplatu…</div>';
+    try {
+      await api(`/admin/ambassadors/${id}`, {
+        method: 'POST',
+        body: { action: 'payout', amount, period },
+      });
+      vAmbasadorDetail(view, id);
+    } catch (err) {
+      msg.innerHTML = `<div class="err">${esc(err.message)}</div>`;
+    }
+  };
 }
 const vObsah = (view) => subnav(view, [
   { label: 'E-maily', run: vEmaily },
@@ -4180,7 +4537,7 @@ const ROUTES = {
   'spravy': ['Správy', 'Konverzácie so zákazníkmi a šablóny odpovedí', vSpravyMenu],
   'poukazy': ['Poukazy a zľavy', 'Kupóny, QR a darčekové poukazy', vPoukazy],
   'obsah': ['Obsah a e-maily', 'Stránky, texty, médiá a preklady', vObsah],
-  'ambasadori': ['Ambasádori', 'Odporúčanie zákazníkov za províziu – Fáza 2, pripravujeme', vAmbasadori],
+  'ambasadori': ['Ambasádori', 'Odporúčanie zákazníkov za províziu, sledovanie privedených objednávok a výplaty', vAmbasadori],
   'nastavenia': ['Nastavenia', 'Vzhľad, doprava, platby, používatelia a fakturácia', vNastavenia],
   'pomoc': ['Potrebujete poradiť?', 'Návody krok za krokom: prečo daná funkcia existuje, ako ju použiť a čo sa stane potom', vPomoc],
 };
