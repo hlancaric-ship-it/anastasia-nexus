@@ -24,3 +24,14 @@ Backend/Cloud main se nepushuje; frontend a admin jen na testovací subdomény.
 ## Zbývá
 
 Společné nasazení balíku účtu a opravy médií je hotové: web `000d9050`, admin `1c1bc472`, smoke PASS, hero/audio 200, všech 14 obrázků e-shopu i R2 obrázek v čerstvém adminu načtené. Nasazený účet prošel stejným browser testem 1440/390 px se syntetickým API. Zákaznický magic-link/logout-all, reálné testovací nákupy a kupónový E2E zůstávají UNVERIFIED. Přehled skutečně vytvořených testovacích dat je v hlavním handoffu, bez hesel a tokenů.
+
+
+## Navazující živé ověření — 31. 10. 2026 (Codex)
+
+Starší oddíl „Zbývá“ popisuje stav k 28. 10.; následné dokončení B6, B10 a C13 ostatními agenty je zaznamenané v hlavní předávce a v matici požadavků.
+
+B8/C8 je nově ověřené také na nasazeném testovacím backendu. Původní syntetický druhý košík `cart_01M610QGZ31EEKE9FH5Z6NK2ZN` s kódem `CODEX-C8-20261028` vrátil při checkoutu 409 `COUPON_LIMIT_EXHAUSTED`, bez objednávky. Odebrání přes `couponCode: null` vrátilo 200 a nezávislý GET potvrdil null v metadatech. Po nové přípravě platby převodem (200) šel stejný košík dokončit (200) bez slevy za 38 EUR.
+
+Vznikla syntetická objednávka **#85** `order_01M69NW5CWRMH6H0ENZKGHA8KY`, `PENDING`, s bankovními instrukcemi. Zákazník byl již existující `cus_01M610RY6JZ6QTBDXZ5NP639NJ`, e-mail `ceo+codex-c8-second-20261028@l-code-dynamics.com`. Žádná karta nebyla účtována; objednávka není zrušená ani smazaná. ID je zapsané do hlavní předávky.
+
+Produktové obrázky byly ověřené znovu na čerstvém Chrome proti testovacímu webu: na desktopu 1440 px se po rozbalení katalogu načetlo všech 14 R2 obrázků, bez selhaných požadavků na obrázky. Na mobilu 390 px bylo po rozbalení načtených všech 17 obrázků katalogu (z toho 14 R2). Aktuální CSP webu i adminu obsahuje oba R2 originy; hero MP4 a ambient MP3 vrací 200. V tomto pokračování se nic nenasazovalo a backendový kód se neměnil.
