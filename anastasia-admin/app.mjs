@@ -1378,6 +1378,29 @@ async function vProductDetail(view, id, opts = {}) {
   let images = (p.images || []).map(i => i.url).filter(Boolean), thumb = p.thumbnail || images[0] || null;
   const sale = (p.metadata && p.metadata.vyprodej) || {};
   const saleOn = !!sale.active;
+  const trans = (p.metadata && p.metadata.translations) || { en: {}, ru: {} };
+  const enTrans = trans.en || {};
+  const ruTrans = trans.ru || {};
+  const jazyky = `<div class="row">
+      <div>
+        <h4 style="margin:0 0 10px;color:var(--text);font-size:14px;display:flex;align-items:center;gap:6px">🇬🇧 Anglická verzia (EN)</h4>
+        <label>Názov (EN)</label>
+        <input id="p-title-en" value="${esc(enTrans.title || '')}" placeholder="English product title">
+        <label>Podtitul (EN)</label>
+        <input id="p-sub-en" value="${esc(enTrans.subtitle || '')}" placeholder="Short English subtitle">
+        <label>Popis (EN)</label>
+        <textarea id="p-desc-en" rows="3" style="width:100%;box-sizing:border-box" placeholder="English detailed description">${esc(enTrans.description || '')}</textarea>
+      </div>
+      <div>
+        <h4 style="margin:0 0 10px;color:var(--text);font-size:14px;display:flex;align-items:center;gap:6px">🇷🇺 Ruská verzia (RU)</h4>
+        <label>Názov (RU)</label>
+        <input id="p-title-ru" value="${esc(ruTrans.title || '')}" placeholder="Русское название продукта">
+        <label>Podtitul (RU)</label>
+        <input id="p-sub-ru" value="${esc(ruTrans.subtitle || '')}" placeholder="Краткое описание на русском">
+        <label>Popis (RU)</label>
+        <textarea id="p-desc-ru" rows="3" style="width:100%;box-sizing:border-box" placeholder="Подробное описание на русском">${esc(ruTrans.description || '')}</textarea>
+      </div>
+    </div>`;
   const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
     <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>`;
   const cena = isOwner() ? `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
@@ -1415,7 +1438,7 @@ async function vProductDetail(view, id, opts = {}) {
   const renderChecks = () => { const box = view.querySelector('#p-checks'); if (!box) return;
     box.innerHTML = completeness().map(c => `<span class="pill ${c.ok ? 'ok' : c.block ? 'off' : 'warn'}" style="margin:0 6px 6px 0">${c.ok ? '✓' : c.block ? '✕' : '!'} ${esc(c.t)}</span>`).join(''); };
   // Editor na jednej stránke: všetky sekcie pod sebou, horné kotvy len posúvajú na sekciu.
-  const SECTIONS = [['zaklad', 'Základ a cena'], ['popis', 'Popis'], ['foto', 'Fotografie'], ['predaj', 'Kategórie a predaj'], ['varianty', 'Varianty'], ['sklad', 'Sklad'], ['obsah', 'Zakúpený obsah']];
+  const SECTIONS = [['zaklad', 'Základ a cena'], ['popis', 'Popis'], ['foto', 'Fotografie'], ['predaj', 'Kategórie a predaj'], ['varianty', 'Varianty'], ['sklad', 'Sklad'], ['obsah', 'Zakúpený obsah'], ['jazyky', 'Jazykové mutácie']];
   const sec = (key, n, title, html, wide) => `<section class="pe-sec${wide ? ' wide' : ''}" id="pe-${key}"><header><span class="pe-n">${n}</span><h2>${esc(title)}</h2></header>${html}</section>`;
   const priceTxt = price?.amount != null ? new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(price.amount) : '–';
   view.innerHTML = `<div class="pe">
@@ -1441,6 +1464,7 @@ async function vProductDetail(view, id, opts = {}) {
       ${sec('varianty', '07', 'Voľby a varianty', '<div id="p-variants"></div>', true)}
       ${sec('sklad', '08', 'Sklad', sklad, true)}
       ${sec('obsah', '09', 'Zakúpený obsah', '<div id="p-library"></div>', true)}
+      ${sec('jazyky', '10', 'Jazykové mutácie (EN / RU)', jazyky, true)}
     </div>
   </div>`;
   view.querySelectorAll('.pe-nav [data-jump]').forEach(b => b.onclick = () => view.querySelector(`#pe-${b.dataset.jump}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -1555,7 +1579,19 @@ async function vProductDetail(view, id, opts = {}) {
         if (wantSale && variant && sp !== '') { ref = await applyVariantSale(variant.id, sp, ref); saleMeta = { active: true, akcna_cena: Number(sp), do: view.querySelector('#p-sale-to').value || null, ...ref }; }
         else { await clearVariantSale(ref); saleMeta = { active: false }; }
       }
-      const metadata = { ...(p.metadata || {}), vyprodej: saleMeta };
+      const updatedTranslations = {
+        en: {
+          title: (view.querySelector('#p-title-en')?.value || '').trim(),
+          subtitle: (view.querySelector('#p-sub-en')?.value || '').trim(),
+          description: (view.querySelector('#p-desc-en')?.value || '').trim()
+        },
+        ru: {
+          title: (view.querySelector('#p-title-ru')?.value || '').trim(),
+          subtitle: (view.querySelector('#p-sub-ru')?.value || '').trim(),
+          description: (view.querySelector('#p-desc-ru')?.value || '').trim()
+        }
+      };
+      const metadata = { ...(p.metadata || {}), vyprodej: saleMeta, translations: updatedTranslations };
       // Registry changes use the revision-checked endpoint; never overwrite it from a stale product snapshot.
       delete metadata.protected_media;
       const body = { title: view.querySelector('#p-title').value.trim(), status: wantStatus, description: desc, categories: chosen, metadata, images: images.map(url => ({ url })), thumbnail: thumb };
@@ -3719,12 +3755,108 @@ async function vAmbasadorDetail(view, id) {
     }
   };
 }
+
+// --- Obsah → Preklady: Správca jazykových mutácií (SK / EN / RU) ---
+async function vTranslationsManager(view) {
+  view = freshView(view);
+  view.innerHTML = '<div class="muted">Načítavam preklady produktov a webu…</div>';
+  let products = [];
+  try {
+    const res = await api('/admin/products?limit=100&fields=id,title,status,thumbnail,metadata');
+    products = res.products || [];
+  } catch (e) {
+    if (e.message === '401') throw e;
+    view.innerHTML = `<div class="err">Nepodarilo sa načítať produkty: ${esc(e.message)}</div>`;
+    return;
+  }
+
+  let filter = 'all'; // all, missing_en, missing_ru
+
+  const render = () => {
+    const filtered = products.filter(p => {
+      const tr = p.metadata?.translations || {};
+      const hasEn = !!(tr.en?.title || tr.en?.subtitle);
+      const hasRu = !!(tr.ru?.title || tr.ru?.subtitle);
+      if (filter === 'missing_en') return !hasEn;
+      if (filter === 'missing_ru') return !hasRu;
+      return true;
+    });
+
+    const total = products.length;
+    const withEn = products.filter(p => !!(p.metadata?.translations?.en?.title)).length;
+    const withRu = products.filter(p => !!(p.metadata?.translations?.ru?.title)).length;
+
+    view.innerHTML = `
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-h">
+          <div>
+            <h2 style="margin:0;font-size:18px">Jazykové mutácie e-shopu a katalógu</h2>
+            <p class="muted" style="margin:4px 0 0;font-size:13px">Správa anglických a ruských názvov, podtitulov a popisov produktov.</p>
+          </div>
+          <div class="card-h-act">
+            <span class="pill ok">SK 100%</span>
+            <span class="pill ${withEn === total ? 'ok' : 'warn'}">EN ${withEn}/${total}</span>
+            <span class="pill ${withRu === total ? 'ok' : 'warn'}">RU ${withRu}/${total}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <button type="button" class="btn ${filter === 'all' ? 'gold' : 'ghost'} sm" data-f="all">Všetky produkty (${total})</button>
+          <button type="button" class="btn ${filter === 'missing_en' ? 'gold' : 'ghost'} sm" data-f="missing_en">Chýba EN (${total - withEn})</button>
+          <button type="button" class="btn ${filter === 'missing_ru' ? 'gold' : 'ghost'} sm" data-f="missing_ru">Chýba RU (${total - withRu})</button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:48px"></th>
+              <th>Produkt (SK)</th>
+              <th>Anglický názov (EN)</th>
+              <th>Ruský názov (RU)</th>
+              <th style="text-align:right">Akcia</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(p => {
+              const tr = p.metadata?.translations || {};
+              const enTitle = tr.en?.title || '';
+              const ruTitle = tr.ru?.title || '';
+              return `
+                <tr>
+                  <td>${p.thumbnail ? `<img src="${esc(p.thumbnail)}" alt="" style="width:36px;height:36px;border-radius:6px;object-fit:cover">` : '<div style="width:36px;height:36px;background:var(--border);border-radius:6px"></div>'}</td>
+                  <td><b>${esc(p.title)}</b></td>
+                  <td>${enTitle ? `<span style="color:var(--text)">${esc(enTitle)}</span>` : '<span class="pill off">chýba</span>'}</td>
+                  <td>${ruTitle ? `<span style="color:var(--text)">${esc(ruTitle)}</span>` : '<span class="pill off">chýba</span>'}</td>
+                  <td style="text-align:right">
+                    <button type="button" class="btn ghost sm" data-edit-trans="${esc(p.id)}">Upraviť preklad</button>
+                  </td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="5" class="empty">Žiadne produkty nezodpovedajú filtru.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    view.querySelectorAll('[data-f]').forEach(b => {
+      b.onclick = () => { filter = b.dataset.f; render(); };
+    });
+
+    view.querySelectorAll('[data-edit-trans]').forEach(b => {
+      b.onclick = () => vProductDetail(view, b.dataset.editTrans, { tab: 'jazyky' });
+    });
+  };
+
+  render();
+}
+
 const vObsah = (view) => subnav(view, [
   { label: 'E-maily', run: vEmaily },
   { label: 'Newsletter', run: vNewsletter },
   { label: 'Stránky a texty', run: vPageTexts },
   { label: 'Médiá', run: vMediaLibrary },
-  { label: 'Preklady', run: (v) => stub(v, 'Preklady', `Anglickú a ruskú verziu webu pripravujeme my. Texty píšete po slovensky a preklad vám dodáme na schválenie. Pri zmene textu nám napíšte na ${SUPPORT_EMAIL}.`) },
+  { label: 'Preklady', run: vTranslationsManager },
 ]);
 // --- Doprava a platby: prehľad z jadra len na čítanie (žiadne kľúče, žiadne tajomstvá) ---
 const PROVIDER_LABEL = { pp_system_default: 'Manuálna platba (bez brány)', pp_cod_cod: 'Na dobierku (poplatok je v cene dopravy „Kuriér – dobierka“)', pp_bank_transfer_bank_transfer: 'Prevodom na účet', pp_stripe_stripe: 'Platobná karta', pp_membership_stripe_membership: 'Platobná karta – predplatné Klubu', manual_manual: 'Vlastná doprava' };
