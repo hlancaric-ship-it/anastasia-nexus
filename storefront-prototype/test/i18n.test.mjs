@@ -45,7 +45,7 @@ function translate(text, lang) {
 }
 
 // Značky a názvy značek smí zůstat latinkou i v RU verzi.
-const ALLOWED_LATIN = /\b(ANASTASIA|ACADEMY|RESET|LIGHT|FOR|THE|FUTURE|OZ|Facebook|YouTube|Pharmanews|GDPR|EMA|AI|SK|EN|RU|Cookies?|cookie)\b|[\w.+-]+@[\w-]+\.[\w.]+/gi;
+const ALLOWED_LATIN = /\b(ANASTASIA|ACADEMY|RESET|LIGHT|FOR|THE|FUTURE|OZ|Facebook|YouTube|Pharmanews|GDPR|EMA|AI|SK|EN|RU|Cookies?|cookie|MINERAL|PROTECT|Teams|Zoom)\b|[\w.+-]+@[\w-]+\.[\w.]+/gi;
 const SK_DIACRITICS = /[ľĺŕňťďľĺŕňťďšžýáíéúóäôč]/i;
 const UNTRANSLATED_NAMES = new Set([
   'RESET 40+', 'AI ANASTASIA', 'Pharmanews', 'AI ANASTASIA Academy',
@@ -53,6 +53,7 @@ const UNTRANSLATED_NAMES = new Set([
   'AI ANASTASIA ACADEMY', 'ACADEMY', 'ANASTASIA OZ', 'ANASTASIA.ACADEMY',
   'ANASTASIA OZ — Light for the Future', 'ANASTASIA — Light for the Future',
   'ANASTASIA ACADEMY', 'Facebook', 'YouTube', 'Lucia', 'Cookies', '© 2026 ANASTASIA · Light for the Future',
+  'MINERAL PROTECT 200ml', 'Teams, Zoom',
 ]);
 
 test('dictionary is complete for all three languages', () => {
