@@ -278,3 +278,82 @@ html[data-theme=dark] .kpi-label,html[data-theme=dark] .dash-title h1,html[data-
  .is-dashboard .banner{height:78px}
  .is-dashboard .banner-lav .banner-art{height:78px}
 }
+
+/* Fix checkbox and radio widths and wrapping */
+input[type=checkbox], input[type=radio] {
+  width: 16px!important;
+  min-width: 16px!important;
+  max-width: 16px!important;
+  height: 16px!important;
+  flex: none!important;
+  margin: 0!important;
+  vertical-align: middle;
+}
+label:has(input[type=checkbox]), label:has(input[type=radio]),
+.pe-sec label:has(input[type=checkbox]), .row label:has(input[type=checkbox]) {
+  display: inline-flex!important;
+  flex-direction: row!important;
+  align-items: center!important;
+  gap: 8px!important;
+  width: auto!important;
+  max-width: 100%!important;
+  white-space: nowrap!important;
+  margin: 8px 14px 4px 0!important;
+  cursor: pointer;
+}
+
+/* Ergonomický a kompaktný layout editora a detailu – žiadne prázdne plochy */
+.pe {
+  display: grid!important;
+  gap: 16px!important;
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  width: 100%!important;
+}
+.pe-hero {
+  grid-template-columns: 240px minmax(0, 1fr)!important;
+  border-radius: 20px!important;
+  box-shadow: 0 10px 25px -10px rgba(47,52,36,.25)!important;
+}
+.pe-hero-img {
+  min-height: 200px!important;
+  max-height: 220px!important;
+}
+.pe-hero-body {
+  padding: 20px 24px!important;
+  gap: 10px!important;
+}
+.pe-title {
+  font-size: clamp(22px, 2.2vw, 32px)!important;
+}
+.pe-price b {
+  font-size: clamp(28px, 3vw, 40px)!important;
+}
+.pe-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr))!important;
+  gap: 16px!important;
+}
+.pe-sec {
+  padding: 18px 20px!important;
+  border-radius: 16px!important;
+}
+.pe-sec h2 {
+  font-size: 19px!important;
+}
+.pe-sec.wide {
+  grid-column: 1 / -1!important;
+}
+.detail-layout {
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  gap: 16px!important;
+}
+.row {
+  gap: 14px 18px!important;
+}
+.row label {
+  margin: 10px 0 4px!important;
+}
+input, select, textarea {
+  min-height: 40px!important;
+}

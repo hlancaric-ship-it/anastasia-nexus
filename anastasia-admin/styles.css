@@ -1100,3 +1100,63 @@ dialog.mp::backdrop{background:rgba(47,59,42,.35);backdrop-filter:blur(3px)}
 .ve-unl{display:inline-flex;align-items:center;gap:6px;margin:0;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer}
 .ve-unl input{width:auto;margin:0}
 @media(max-width:720px){.ve-row{grid-template-columns:1fr 1fr}.ve-stock{grid-column:1/-1}}
+
+/* Fix checkbox and radio widths and wrapping */
+input[type=checkbox], input[type=radio] {
+  width: 16px!important;
+  min-width: 16px!important;
+  max-width: 16px!important;
+  height: 16px!important;
+  flex: none!important;
+  margin: 0!important;
+  vertical-align: middle;
+}
+label:has(input[type=checkbox]), label:has(input[type=radio]),
+.pe-sec label:has(input[type=checkbox]), .row label:has(input[type=checkbox]) {
+  display: inline-flex!important;
+  flex-direction: row!important;
+  align-items: center!important;
+  gap: 8px!important;
+  width: auto!important;
+  max-width: 100%!important;
+  white-space: nowrap!important;
+  margin: 8px 14px 4px 0!important;
+  cursor: pointer;
+}
+
+/* Ergonomický a kompaktný layout editora a detailu */
+.pe {
+  display: grid!important;
+  gap: 16px!important;
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  width: 100%!important;
+}
+.pe-hero {
+  grid-template-columns: 240px minmax(0, 1fr)!important;
+  border-radius: 20px!important;
+}
+.pe-hero-img {
+  min-height: 200px!important;
+  max-height: 220px!important;
+}
+.pe-hero-body {
+  padding: 20px 24px!important;
+  gap: 10px!important;
+}
+.pe-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr))!important;
+  gap: 16px!important;
+}
+.pe-sec {
+  padding: 18px 20px!important;
+  border-radius: 16px!important;
+}
+.pe-sec.wide {
+  grid-column: 1 / -1!important;
+}
+.detail-layout {
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  gap: 16px!important;
+}

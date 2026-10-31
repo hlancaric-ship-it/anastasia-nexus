@@ -1404,7 +1404,7 @@ async function vProductDetail(view, id, opts = {}) {
   const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
     <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>`;
   const cena = isOwner() ? `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
-    <div><label>Akcia</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:auto"> Vo výpredaji / akcia</label></div></div>
+    <div><label>Akcia</label><label style="display:inline-flex;gap:8px;align-items:center;white-space:nowrap;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:16px!important;flex:none"> Vo výpredaji / akcia</label></div></div>
     <div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">
       <div class="row"><div><label>Akčná cena (EUR)</label><input id="p-sale-price" type="number" step="0.01" value="${sale.akcna_cena ?? ''}"></div>
       <div><label>Platí do (voliteľné)</label><input id="p-sale-to" type="date" value="${esc(sale.do || '')}"></div></div>
@@ -1957,7 +1957,7 @@ async function vOrderDetail(view, id, notice) {
       <p class="muted">Prijaté ${fmtEur(cap)} · vrátené ${fmtEur(ref)}</p>
       ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div>
         <div><label>Dôvod vrátenia (povinný)</label><input data-refreason="${esc(p.id)}" maxlength="500" placeholder="napr. reklamácia – zákazník vracia tovar"></div>
-        <div><label style="display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-refrestock="${esc(p.id)}" style="width:auto"> Vrátiť tovar na sklad</label>
+        <div style="grid-column:1/-1;margin-top:8px"><label style="display:inline-flex;gap:8px;align-items:center;white-space:nowrap;margin:0"><input type="checkbox" data-refrestock="${esc(p.id)}" style="width:16px!important;flex:none"> Vrátiť tovar na sklad</label>
           <p class="muted" style="font-size:12px;margin:4px 0 0">Zapnuté, ak tovar fyzicky vraciate späť do skladu.</p></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
