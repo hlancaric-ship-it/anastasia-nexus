@@ -205,7 +205,8 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         .nl-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
         .nl-k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
         .nl-v{font:500 30px/1.15 Georgia,'Times New Roman',serif;color:var(--primary);margin:6px 0 4px}
-        .nl-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;width:100%;max-width:1120px;margin:0 auto}
+        .nl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start;width:100%;max-width:100%;margin:0 auto}
+        @media(max-width:1100px){.nl-grid{grid-template-columns:minmax(0,1fr);max-width:960px;margin:0 auto}}
         .nl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
         .nl-sec{border:1px solid var(--line);border-radius:14px;padding:12px 16px 14px;margin:0 0 12px;background:rgba(255,255,255,.6)}
         .nl-sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}

@@ -169,7 +169,9 @@ const ids = html => html
   .replace('<aside id="ana-rail" data-screen-label="Rail"', '<aside id="ana-rail" data-screen-label="Rail" aria-label="Jazyk, menu a kontakt"')
   .replace('<aside data-lenis-prevent="true" role="dialog" aria-label="Menu"', '<aside id="dc-side-menu" data-lenis-prevent="true" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden="true" inert')
   .replace('<aside data-lenis-prevent="true" role="dialog" aria-label="Hlavné menu"', '<aside id="dc-top-menu" data-lenis-prevent="true" role="dialog" aria-modal="true" aria-label="Hlavné menu" aria-hidden="true" inert')
-  .replace(/^<div /, '<div data-menu-overlay ');
+  .replace(/^<div /, '<div data-menu-overlay ')
+  .replace(/top:\s*37px/g, 'top: 0')
+  .replace(/left:\s*-5px/g, 'left: 0');
 
 // Patička: skupiny odkazů bez duplicit (AI ANASTASIA a Academy vedou z log značek, podstránky konzultácií nejsou vedle rozcestníku).
 const FOOTER_GROUPS = {

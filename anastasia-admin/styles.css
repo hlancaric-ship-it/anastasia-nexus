@@ -960,10 +960,10 @@ input[readonly]{background:var(--surface-3);color:var(--muted)}
   display: flex!important;
   flex-direction: column!important;
 }
-.row label {
+.row label:not(:has(input[type=checkbox])):not(:has(input[type=radio])) {
   margin: 10px 0 6px!important;
 }
-.row input,
+.row input:not([type=checkbox]):not([type=radio]),
 .row select,
 .row textarea {
   width: 100%!important;

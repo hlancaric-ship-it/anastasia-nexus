@@ -170,7 +170,7 @@ const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${
 const LOGO = './assets/lucia-logo.png';
 // Web k administrácii: anastasia-test-admin.X → anastasia-test.X, admin.X → X.
 const SITE_ORIGIN = `${location.protocol}//${location.hostname.replace(/-admin\./, '.').replace(/^admin\./, '')}`;
-const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img class="brand-ring" src="./assets/brand-ring.png" alt="" width="67" height="64"><div><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="156" height="27"><small>Light for the future</small></div></${tag}>`;
+const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img class="brand-ring" src="./assets/brand-ring.png" alt="" width="56" height="53" style="height:54px;width:auto;flex:none;object-fit:contain;display:block;filter:none"><div class="brand-text" style="display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0"><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="160" height="28" style="height:22px;width:auto;object-fit:contain;display:block;filter:none"><small style="font-size:8.5px;letter-spacing:0.26em;text-transform:uppercase;color:#95723E;font-weight:600;display:block;margin-top:2px;white-space:nowrap">LIGHT FOR THE FUTURE</small></div></${tag}>`;
 
 // --- dekor: jemné botanické kresby (olivová a levandulová vetvička) ako inline SVG ---
 // Kresba je linková, v šalvějovej farbe s nízkou priehľadnosťou – žiadne stiahnuté fotky.
@@ -1396,11 +1396,11 @@ async function vProductDetail(view, id, opts = {}) {
       <div><label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select></div>
     </div>
     <div class="row">
-      <div style="grid-column:1/-1"><label>Štítky v obchode</label><div>${PRODUCT_FLAGS.map(([k, label]) => `<label style="display:inline-flex;gap:6px;margin:4px 14px 4px 0;align-items:center"><input type="checkbox" data-flag="${k}" ${productFlagsOf(p).some(([f]) => f === k) ? 'checked' : ''} style="width:auto"> ${label}</label>`).join('')}</div>
+      <div style="grid-column:1/-1"><label>Štítky v obchode</label><div>${PRODUCT_FLAGS.map(([k, label]) => `<label style="display:inline-flex;gap:6px;margin:4px 14px 4px 0;align-items:center;white-space:nowrap"><input type="checkbox" data-flag="${k}" ${productFlagsOf(p).some(([f]) => f === k) ? 'checked' : ''} style="width:16px!important;height:16px!important;flex:none"> ${label}</label>`).join('')}</div>
       <p class="muted" style="font-size:12px;margin-top:4px">Štítok sa zobrazí na karte a v detaile produktu. Štítok Akcia sa pridá sám, keď má produkt akčnú cenu.</p></div>
     </div>`;
   const cena = isOwner() ? `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
-    <div><label>Akcia</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:auto"> Vo výpredaji / akcia</label></div></div>
+    <div><label>Akcia</label><label style="display:inline-flex;gap:8px;align-items:center;white-space:nowrap;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:16px!important;height:16px!important;flex:none"> Vo výpredaji / akcia</label></div></div>
     <div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">
       <div class="row"><div><label>Akčná cena (EUR)</label><input id="p-sale-price" type="number" step="0.01" value="${sale.akcna_cena ?? ''}"></div>
       <div><label>Platí do (voliteľné)</label><input id="p-sale-to" type="date" value="${esc(sale.do || '')}"></div></div>
@@ -1951,7 +1951,7 @@ async function vOrderDetail(view, id, notice) {
       <p class="muted">Prijaté ${fmtEur(cap)} · vrátené ${fmtEur(ref)}</p>
       ${left > 0 ? `<div class="row" style="margin-top:6px"><div><label>Suma na vrátenie (EUR)</label><input type="number" step="0.01" min="0.01" max="${left}" data-refamt="${esc(p.id)}" value="${left}"></div>
         <div><label>Dôvod vrátenia (povinný)</label><input data-refreason="${esc(p.id)}" maxlength="500" placeholder="napr. reklamácia – zákazník vracia tovar"></div>
-        <div><label style="display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-refrestock="${esc(p.id)}" style="width:auto"> Vrátiť tovar na sklad</label>
+        <div style="grid-column:1/-1;margin-top:6px"><label style="display:inline-flex;gap:8px;align-items:center;white-space:nowrap;margin:0"><input type="checkbox" data-refrestock="${esc(p.id)}" style="width:16px!important;height:16px!important;flex:none"> Vrátiť tovar na sklad</label>
           <p class="muted" style="font-size:12px;margin:4px 0 0">Zapnuté, ak tovar fyzicky vraciate späť do skladu.</p></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn success" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost danger" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;

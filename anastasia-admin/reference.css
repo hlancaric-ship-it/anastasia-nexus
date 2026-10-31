@@ -10,7 +10,7 @@ html,body{overflow-x:visible}
 .side-promo{margin-top:auto;min-height:78px;border-radius:8px;overflow:hidden;background:transparent}.side-promo-txt b{font-family:inherit;font-size:12px;color:var(--ink);letter-spacing:0}.side-promo-art{width:56px;height:78px;background:none}.side-promo-art:after{display:none}.lavender-photo{position:absolute;bottom:0;left:-10px;display:block;width:66px;height:95px;mix-blend-mode:multiply;background:url('./assets/design-reference.png') -25px -912px /1536px 1024px;mask-image:linear-gradient(to right,#000 45%,transparent 88%);-webkit-mask-image:linear-gradient(to right,#000 45%,transparent 88%)}
 .workspace{padding-top:78px}.topbar{position:absolute;top:0;left:305px;right:0;height:78px;min-height:78px;padding:14px 25px 14px 12px;background:var(--cream);gap:24px}.top-search{height:46px;max-width:642px;border-radius:9px;background:transparent;padding:0 16px;min-width:0}.top-search input{font-size:13px;min-width:0}.top-btn{height:38px;border-radius:10px;border:0;background:var(--surface)}.top-btn.icon{width:38px}.top-actions{gap:16px}.avatar{width:44px;height:44px}.user-btn{gap:12px}.user-txt{min-width:70px}.user-txt strong{font-size:14px}
 .botanic-olive{background:url('./assets/design-reference.png') -1000px 0 /1536px 1024px;width:184px;height:157px;top:0;right:350px;opacity:1;mask-image:linear-gradient(#000 80%,transparent);z-index:0}.top-search,.top-actions{z-index:1}.content>.botanic-lav{display:none}
-.content{max-width:1700px;padding:22px 20px 18px;min-width:0}.eyebrow{font-size:10px;letter-spacing:.16em;color:#8b7b5b;margin-bottom:8px}.heading h1{font-size:44px;color:var(--ink);font-weight:400}.intro{font-weight:300;color:#625e55}
+.content{width:100%!important;max-width:1720px!important;margin:0 auto!important;padding:22px 28px 24px!important;min-width:0!important;box-sizing:border-box!important}.eyebrow{font-size:10px;letter-spacing:.16em;color:#8b7b5b;margin-bottom:8px}.heading h1{font-size:44px;color:var(--ink);font-weight:400}.intro{font-weight:300;color:#625e55}
 .is-dashboard .content{padding-top:20px}.is-dashboard .eyebrow,.dash-head{margin-right:280px}.dash-head{height:82px;margin-bottom:12px;position:relative;display:block}.dash-title h1{font-size:48px;line-height:1.05;font-weight:400;letter-spacing:-.025em}.dash-title .intro{font-size:16px;max-width:none;margin-top:6px}.dash-meta{position:absolute;right:0;top:60px;min-width:0;padding:0}.quote{position:absolute;right:230px;bottom:24px;width:230px;font-size:27px;line-height:1.15;text-align:center;font-weight:400}.select-box{height:36px;border-radius:6px;background:var(--surface);border-color:var(--line)}.select-box .rc-select{font-size:11px;height:34px;min-height:34px}
 .dash{grid-template-columns:minmax(0,1fr) 262px;gap:14px}.dash-main{gap:16px}.dash-side{gap:18px;margin-top:-118px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.kpi{min-height:145px;padding:16px;border:0}.kpi-label{font-size:12px;color:#242520;min-height:23px;padding-right:54px;line-height:1.5}.kpi-ic{width:50px;height:50px;top:17px;right:18px}.kpi-ic svg.i{width:24px;height:24px;stroke-width:1.2}.kpi-ic.lav{background:#e9dff1;color:#69418d}.kpi-ic.sage{background:#e6e9de;color:#294a30}.kpi-value{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:29px;margin-top:5px;line-height:1.2}.kpi-foot{min-height:38px}.kpi-delta{position:relative;z-index:1}.kpi-delta b{color:#21813b;font-weight:400}.kpi-delta small{font-size:10px}.spark{position:absolute;right:16px;bottom:15px;width:92px;height:43px;opacity:.8}
 .dash-row{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:stretch}.dash-card{border:0;min-width:0}.dash-card-head{padding:14px 17px 8px;min-height:48px;gap:8px}.dash-card-head h2{font-family:inherit;font-size:15px;font-weight:500;white-space:normal;line-height:1.25}.dash-row:first-of-type .dash-card:first-child h2{font-family:'Fraunces',serif;font-size:19px}.dash-card-head .select-box{height:30px;padding:0 8px}.dash-card-head .rc-select{font-size:10px;min-height:28px;height:28px;max-width:128px}.dash-card-body{padding:4px 17px 15px}.chart{height:150px}.donut{width:155px;height:155px}.donut-wrap{gap:15px;min-height:164px}.legend{gap:15px}.legend-row{font-size:10px;gap:7px}.legend-row span.n{font-size:11px;color:var(--ink)}.legend-dot{border-radius:50%;width:12px;height:12px}.dn-n{font-weight:400}.link-lav{font-size:10px}
@@ -80,9 +80,12 @@ html,body{overflow-x:visible}
 .app{position:relative;isolation:isolate;background:#f4f0f2}
 .app:before{content:"";position:fixed;z-index:-1;pointer-events:none;top:0;right:12%;width:min(66vw,1080px);height:85vh;background:url('./assets/design-reference.png') -5500px 0 /8448px 5632px no-repeat;mask-image:linear-gradient(to right,transparent,#000 12%,#000 80%,transparent),linear-gradient(to bottom,#000 65%,transparent);mask-composite:intersect;opacity:.85}
 .sidebar{background:rgba(229,216,240,.83);border-right:1px solid #d8c6e6;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.sidebar>.brand{background:#eee5f4;border-color:#d8c6e6}
-.brand img,.mobile-head img{filter:brightness(0) saturate(100%) invert(18%) sepia(19%) saturate(1748%) hue-rotate(231deg) brightness(92%) contrast(90%)}
-.brand img{object-fit:contain;width:58px;height:70px}
+.sidebar>.brand,.brand{background:#eee5f4!important;border-color:#d8c6e6!important;display:flex!important;align-items:center!important;gap:12px!important;padding:12px 16px!important;text-decoration:none!important}
+.brand img,.mobile-head img,.brand .brand-ring,.brand .brand-word{filter:none!important}
+.brand .brand-ring{object-fit:contain;height:54px!important;width:auto!important;flex:none!important}
+.brand .brand-word{object-fit:contain;height:22px!important;width:auto!important}
+.brand-text{display:flex!important;flex-direction:column!important;justify-content:center!important;gap:2px!important;min-width:0!important}
+.brand-text small{font-size:8.5px!important;letter-spacing:0.24em!important;text-transform:uppercase!important;color:#95723E!important;font-weight:600!important;white-space:nowrap!important}
 .brand-name,.brand small{color:#49305e}
 .nav-item{color:#40314e}.nav-item svg.i{stroke:#554064}.nav-item.active{background:rgba(194,170,218,.47);color:#382248;box-shadow:inset 0 0 0 1px #cdb7de}.nav-item:hover{background:#e0cfea}.nav-title{color:#705784}.side-promo{border-color:#cfbadd;background:rgba(255,255,255,.22)}
 .topbar{background:rgba(248,243,250,.55);border-color:#dfd1e7;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -137,69 +140,164 @@ html,body{overflow-x:visible}
 .rc-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
 .rc-grid>.rc{height:100%;align-items:stretch}.rc-grid .rc-body{display:flex;flex-direction:column}.rc-grid .rc-fields{flex:1}.rc-grid .rc-body>div:last-child:has(>.btn){margin-top:auto;padding-top:12px}
 .card-b>p{max-width:85ch}.card-h,.ot-head{min-height:56px}.ot-head h2{font-family:inherit;font-size:16px}.ot-head-act{gap:10px}.ot-head-act .rc-search{width:clamp(200px,24vw,360px)}
-/* Orders retain their data and handlers, laid out as equal-width, readable cards. */
-.ot-wrap:has(.ot-orders){overflow:visible;contain:none;padding:16px;background:transparent}
-.ot-orders,.ot-orders tbody{display:block;width:100%}
-.ot-orders thead{display:block}.ot-orders thead tr{display:flex;align-items:center;padding:0 0 12px}.ot-orders thead th{display:none}.ot-orders thead .ot-check{display:flex;width:auto!important;border:0;background:none;padding:0!important;align-items:center;gap:9px}.ot-orders thead .ot-check:after{content:'Označiť všetky';font:500 12px 'Figtree',sans-serif;letter-spacing:0;text-transform:none}
-.ot-orders tbody{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,365px),1fr));gap:16px}
-.ot-orders tbody tr[data-id]{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px 12px;align-content:start;padding:18px;background:rgba(255,252,255,.65);border:1px solid #d9c8e5;border-radius:10px;box-shadow:0 4px 14px #76548a0b;cursor:pointer}
-.ot-orders tbody tr[data-id]:hover{background:rgba(249,243,253,.9);border-color:#ae90c3}
-.ot-orders tbody td:nth-child(n){display:block;width:auto;min-width:0;max-width:none;padding:0;border:0;background:transparent;text-align:left}
-.ot-orders tbody .ot-check{position:absolute;right:16px;top:18px;width:16px!important}
-.ot-orders tbody .ot-img{grid-column:1;grid-row:1/span 2}.ot-orders .ot-img img,.ot-orders .ot-noimg{width:44px;height:44px;border-radius:7px}
-.ot-orders tbody td:nth-child(3){grid-column:2;grid-row:1;padding-right:12px}.ot-orders tbody td:nth-child(3) b{font-size:15px}.ot-orders tbody td:nth-child(3) small{font-size:10px}
-.ot-orders tbody .ot-cust{grid-column:2/-1;grid-row:2;font-size:13px}.ot-orders tbody .ot-cust small{max-width:none;white-space:normal;overflow-wrap:anywhere;font-size:11px}
-.ot-orders tbody .ot-items{grid-column:1/-1;grid-row:3;min-height:36px;font-weight:500;line-height:1.5;padding:8px 0;border-top:1px solid var(--line-soft)}
-.ot-orders tbody .ot-num{grid-column:1/-1;grid-row:4;font-size:20px;font-weight:500;line-height:1.3}
-.ot-orders tbody td:nth-child(8){grid-column:1/3;grid-row:5}.ot-orders tbody td:nth-child(9){grid-column:3;grid-row:5;text-align:right;max-width:150px}
-.ot-orders tbody .ot-dor{grid-column:1/-1;grid-row:6;font-size:12px;color:var(--muted)}.ot-orders tbody .ot-dor small{display:inline;margin-left:8px}
-.ot-orders tbody .ot-act{display:block;grid-column:1/-1;grid-row:7;padding-top:12px;border-top:1px solid var(--line-soft)}
-.ot-orders .ot-acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.ot-orders .ot-acts .btn{justify-content:center;min-height:34px;padding:6px;font-size:11px}.ot-orders .ot-act-print .open{display:inline-flex}
-.ot-orders tbody>tr:not([data-id]){grid-column:1/-1}.ot-orders tbody .pill{white-space:normal;font-size:11px}
-@media(min-width:1700px){.ot-orders tbody{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:800px){.app:not(.is-dashboard) .head-actions{gap:10px}.app:not(.is-dashboard) .head-actions #actions{flex-basis:100%;min-width:0}.ot-orders tbody{grid-template-columns:minmax(0,1fr)}.ot-wrap:has(.ot-orders){padding:12px}.ot-orders tbody tr[data-id]{padding:14px}.ot-orders .ot-acts{grid-template-columns:repeat(3,minmax(0,1fr))}.rc-grid{grid-template-columns:minmax(0,1fr)}}
+/* Clean, unified, structured data tables (Objednávky, Produkty, Zákazníci, Kategórie) */
+.ot-wrap {
+  width: 100%!important;
+  max-width: 100%!important;
+  margin: 0 auto!important;
+  overflow-x: auto!important;
+  background: var(--surface)!important;
+  border: 1px solid var(--line)!important;
+  border-radius: 12px!important;
+  box-shadow: 0 4px 18px rgba(92, 62, 112, 0.04)!important;
+}
+.ot, .ot-orders, .agenda-grid {
+  display: table!important;
+  width: 100%!important;
+  border-collapse: collapse!important;
+  table-layout: auto!important;
+  background: transparent!important;
+}
+.ot thead, .ot-orders thead, .agenda-grid thead {
+  display: table-header-group!important;
+  position: static!important;
+  width: auto!important;
+  height: auto!important;
+  overflow: visible!important;
+  clip-path: none!important;
+}
+.ot thead tr, .ot-orders thead tr, .agenda-grid thead tr {
+  display: table-row!important;
+  background: var(--surface-2)!important;
+}
+.ot th, .ot-orders th, .agenda-grid th {
+  display: table-cell!important;
+  padding: 12px 14px!important;
+  font-size: 11.5px!important;
+  font-weight: 600!important;
+  letter-spacing: 0.08em!important;
+  text-transform: uppercase!important;
+  color: var(--muted)!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line)!important;
+  white-space: nowrap!important;
+  text-align: left!important;
+}
+.ot tbody, .ot-orders tbody, .agenda-grid tbody {
+  display: table-row-group!important;
+  width: 100%!important;
+}
+.ot tbody tr, .ot-orders tbody tr, .agenda-grid tbody tr {
+  display: table-row!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft)!important;
+  background: transparent!important;
+  box-shadow: none!important;
+  border-radius: 0!important;
+  transition: background .12s!important;
+}
+.ot tbody tr:hover, .ot-orders tbody tr:hover, .agenda-grid tbody tr:hover {
+  background: rgba(246, 240, 251, 0.75)!important;
+}
+.ot td, .ot-orders td, .agenda-grid td {
+  display: table-cell!important;
+  padding: 13px 18px!important;
+  vertical-align: middle!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft)!important;
+  background: transparent!important;
+  font-size: 13.5px!important;
+  color: var(--ink)!important;
+  overflow-wrap: normal!important;
+}
+.ot td.lv-title, .agenda-grid td.lv-title {
+  min-width: 220px!important;
+  white-space: nowrap!important;
+  overflow: hidden!important;
+  text-overflow: ellipsis!important;
+  font-weight: 500!important;
+}
+.ot .ot-check, .ot-orders .ot-check, .agenda-grid .ot-check {
+  width: 44px!important;
+  max-width: 44px!important;
+  min-width: 44px!important;
+  padding: 11px 0 11px 16px!important;
+  text-align: center!important;
+  position: static!important;
+}
+.ot .ot-check input, .ot-orders .ot-check input, .agenda-grid .ot-check input {
+  margin: 0!important;
+}
+.ot .ot-img, .ot-orders .ot-img, .agenda-grid .ot-img {
+  width: 54px!important;
+  min-width: 54px!important;
+  padding: 8px 10px 8px 8px!important;
+}
+.ot .ot-img img, .ot-orders .ot-img img, .agenda-grid .ot-img img {
+  width: 44px!important;
+  height: 44px!important;
+  border-radius: 8px!important;
+  object-fit: cover!important;
+}
+.ot .ot-num, .ot-orders .ot-num, .agenda-grid .ot-num {
+  text-align: right!important;
+  white-space: nowrap!important;
+  font-variant-numeric: tabular-nums!important;
+  font-weight: 500!important;
+  font-size: 14px!important;
+}
+.ot .ot-act, .ot-orders .ot-act, .agenda-grid .ot-act {
+  width: 1%!important;
+  white-space: nowrap!important;
+  text-align: right!important;
+  padding-right: 16px!important;
+}
+.ot .ot-acts, .ot-orders .ot-acts {
+  display: flex!important;
+  gap: 6px!important;
+  align-items: center!important;
+  justify-content: flex-end!important;
+  flex-wrap: nowrap!important;
+}
+.ot .ot-acts .btn, .ot-orders .ot-acts .btn {
+  height: 32px!important;
+  min-height: 32px!important;
+  padding: 4px 10px!important;
+  font-size: 11.5px!important;
+  white-space: nowrap!important;
+  border-radius: 7px!important;
+}
+.customer-grid .lv-title {
+  min-width: 180px!important;
+  max-width: 240px!important;
+  white-space: nowrap!important;
+  overflow: hidden!important;
+  text-overflow: ellipsis!important;
+}
+.customer-grid td[data-label="E-mail"] {
+  min-width: 200px!important;
+  white-space: nowrap!important;
+}
+.customer-grid td[data-label="ID"] {
+  min-width: 130px!important;
+  font-family: monospace!important;
+  font-size: 12px!important;
+}
+.customer-grid td[data-label="Od"] {
+  min-width: 130px!important;
+  white-space: nowrap!important;
+}
 /* Full-resolution botanical asset, no enlarged UI screenshot. */
 .app:before{top:78px;right:3%;width:75vw;height:calc(100dvh - 78px);background:url('./assets/olive-background.png') right top /cover no-repeat;opacity:.5;mask-image:linear-gradient(to right,transparent,#000 18%,#000 90%,transparent);mask-composite:add}
 .ctx-help{top:78px;bottom:0;height:calc(100dvh - 78px);max-height:calc(100dvh - 78px);z-index:45;border-radius:0;padding:22px;background:rgba(251,247,254,.96);overflow:auto}
 .ctx-help .ctx-close{flex:none;position:relative;z-index:1}
 @media(max-width:800px){.app:before{top:116px;width:100vw;height:calc(100dvh - 116px);background-size:auto 100%}.ctx-help{top:116px;height:calc(100dvh - 116px);max-height:calc(100dvh - 116px);padding:18px}}
-/* Release layout: compact, consistent cards for catalogues and administrative lists. */
-.ot-wrap:has(.agenda-grid){padding:16px;overflow:visible;contain:none}
-.agenda-grid,.agenda-grid tbody{display:block;width:100%}
-.agenda-grid thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.agenda-grid:has(#p-pick-all) thead{position:static;width:auto;height:auto;clip-path:none;margin-bottom:12px}
-.agenda-grid:has(#p-pick-all) thead tr{display:block}.agenda-grid:has(#p-pick-all) th{display:none}.agenda-grid:has(#p-pick-all) th.ot-check{display:flex;gap:9px;align-items:center;width:auto;background:none;border:0;padding:0!important}.agenda-grid:has(#p-pick-all) th.ot-check:after{content:'Označiť všetky';font:500 12px 'Figtree',sans-serif;text-transform:none;letter-spacing:0}
-.agenda-grid tbody{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;align-items:stretch}
-.agenda-grid tbody tr[data-id]{display:flex;flex-direction:column;gap:10px;position:relative;padding:18px;border:1px solid #d8c5e5;border-radius:10px;background:rgba(255,252,255,.65);box-shadow:0 4px 14px #76548a0b;min-width:0}
-.agenda-grid tbody tr[data-id]:hover{background:rgba(249,243,253,.94);border-color:#ae90c3}
-.agenda-grid tbody td{display:block;padding:0;border:0;width:auto;min-width:0;max-width:100%;background:transparent!important;font-size:13px;overflow-wrap:anywhere;white-space:normal}
-.agenda-grid tbody .lv-title{font-size:16px;font-weight:500;line-height:1.4;white-space:normal;padding-right:20px;overflow:visible;max-width:none}
-.agenda-grid tbody td[data-label]{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:baseline}
-.agenda-grid tbody td[data-label]:before{content:attr(data-label);color:var(--muted);font-size:11px;font-weight:400}
-.agenda-grid tbody .ot-check{position:absolute;right:16px;top:18px;width:16px;z-index:1}
-.agenda-grid tbody .ot-img{padding:0}.agenda-grid .ot-img .thumb{width:54px;height:54px;object-fit:contain}
-.agenda-grid tbody .ot-act{margin-top:auto;padding-top:12px;border-top:1px solid var(--line-soft);text-align:right;display:flex;justify-content:flex-end}
-.agenda-grid tbody .ot-act .btn{min-width:104px;justify-content:center}
-.agenda-grid tbody>tr:not([data-id]){grid-column:1/-1}.agenda-grid td.empty{padding:24px}
-.agenda-grid .rc-code{padding:0;background:none;border:0;font-size:11px;word-break:break-all}
 .product-editor,.detail-layout{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
 .product-editor>.editor-section,.product-editor>div>.editor-section{height:100%}
 .pe-tabs{display:flex;flex-wrap:wrap;gap:8px 22px;overflow:visible}.pe-tabs button{padding:9px 0;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;font-weight:600;color:#776284}.pe-tabs button[aria-selected=true]{background:none;color:#31563d;border-bottom-color:#31563d}
 .card-h-act{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-left:auto}
-.card-b>.row{max-width:1100px}.editor-section .row{max-width:none}.editor-section p,.guide p{max-width:80ch}
-@media(min-width:1700px){.agenda-grid tbody{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.card-b>.row{max-width:none!important}.editor-section .row{max-width:none}.editor-section p,.guide p{max-width:80ch}
 @media(max-width:1100px){.product-editor,.detail-layout{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:600px){.agenda-grid tbody{grid-template-columns:minmax(0,1fr)}.ot-wrap:has(.agenda-grid){padding:12px}.agenda-grid tbody tr[data-id]{padding:16px}.card-h-act{margin-left:0;max-width:100%}.ot-foot{padding:12px;gap:12px}.ot-foot>div{flex-wrap:wrap}.pe-tabs{gap:4px 16px}}
-/* Neutralize inherited table cell sizing inside the card layouts. */
-.agenda-grid tbody .ot-act{width:100%;max-width:none;align-self:stretch}
-.agenda-grid tbody tr[data-id]{gap:7px;padding:16px}
-.agenda-grid tbody td[data-label]{grid-template-columns:76px minmax(0,1fr);line-height:1.4}
-.agenda-grid tbody .ot-act{padding-top:10px}
-.ot-orders tbody tr[data-id]{gap:7px 12px;padding:15px}
-.ot-orders tbody td:nth-child(n){background:transparent!important}
-.ot-orders tbody .ot-items{min-height:30px;padding:6px 0}
-.ot-orders tbody .ot-num{font-size:18px}
-.ot-orders tbody .ot-act{padding-top:9px}
 .tabs{flex-wrap:wrap;overflow:visible;gap:4px 22px}.tab{white-space:normal;padding:8px 0;min-height:36px}
 @media(max-width:600px){.tabs{gap:4px 16px}.tab{font-size:12px}}
 /* Existing optional dark mode keeps the same hierarchy and readable surfaces. */
@@ -242,23 +340,23 @@ html[data-theme=dark] .kpi-label,html[data-theme=dark] .dash-title h1,html[data-
    - FIALOVÉ: ukladanie, vytváranie, pridávanie (co bolo doteraz)
    - ČIERNE: všetko ostatné (otvoriť, späť, filtre, tlač, export, navigácia) */
 
-/* 1. ČIERNE: základ pre všetko ostatné */
+/* 1. SEKUNDÁRNE / GHOST: čisté, elegantné pastelové tlačidlá s decentným orámovaním */
 .btn,
 .btn.ghost,
 .side-card .btn,
 .side-card .btn.ghost {
-  background: #1F241E!important;
-  color: #F7F3EC!important;
-  border: 1px solid #141813!important;
-  box-shadow: 0 1px 3px rgba(20,24,19,.15)!important;
+  background: #FFFFFF!important;
+  color: #382B44!important;
+  border: 1px solid #D6C7E2!important;
+  box-shadow: 0 1px 3px rgba(60, 40, 80, 0.05)!important;
   font-weight: 500!important;
 }
 .btn:hover:not(:disabled),
 .btn.ghost:hover:not(:disabled),
 .side-card .btn:hover:not(:disabled) {
-  background: #343B32!important;
-  border-color: #262D24!important;
-  color: #FFFFFF!important;
+  background: #F6F0FB!important;
+  border-color: #B496C9!important;
+  color: #20142C!important;
 }
 
 /* 2. FIALOVÉ: ukladanie a vytváranie nových položiek */
@@ -403,14 +501,42 @@ a.danger:hover:not(:disabled),
   display: flex!important;
   flex-direction: column!important;
 }
-.row label {
+.row label:not(:has(input[type=checkbox])):not(:has(input[type=radio])) {
   margin: 10px 0 6px!important;
 }
-.row input,
+.row input:not([type=checkbox]):not([type=radio]),
 .row select,
 .row textarea {
   width: 100%!important;
   max-width: 100%!important;
+}
+input[type=checkbox],
+input[type=radio] {
+  width: 16px!important;
+  min-width: 16px!important;
+  max-width: 16px!important;
+  height: 16px!important;
+  min-height: 16px!important;
+  max-height: 16px!important;
+  flex: 0 0 16px!important;
+  margin: 0!important;
+  padding: 0!important;
+  display: inline-block!important;
+  vertical-align: middle!important;
+}
+label:has(input[type=checkbox]),
+label:has(input[type=radio]),
+.row label:has(input[type=checkbox]),
+.row label:has(input[type=radio]) {
+  display: inline-flex!important;
+  flex-direction: row!important;
+  align-items: center!important;
+  gap: 8px!important;
+  width: auto!important;
+  max-width: 100%!important;
+  white-space: nowrap!important;
+  cursor: pointer!important;
+  margin: 6px 14px 6px 0!important;
 }
 .card-b > input:not([type=checkbox]):not([type=radio]),
 .card-b > select,
