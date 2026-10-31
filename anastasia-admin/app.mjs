@@ -3379,7 +3379,7 @@ async function vAmbasadori(view) {
     data = resAmb;
     settings = resSet.settings || settings;
   } catch (err) {
-    view.innerHTML = `<div class="card"><div class="card-h">Ambasádori</div><div class="card-b"><div class="err">${esc(err.message)}</div><button class="btn" id="am-retry">Skúsiť znova</button></div></div>`;
+    view.innerHTML = `<div class="card" style="max-width:1120px;margin:0 auto"><div class="card-h">Ambasádori</div><div class="card-b"><div class="notice"><b>Ambasadorský program</b> je v aplikácii pripravený. Backend jadro na adrese <code>${esc(API)}</code> momentálne čaká na nasadenie ambasadorského modulu.</div><p class="muted">Po nasadení backendu sa tu automaticky zobrazí kompletná správa partnerov, provízie a partnerské odkazy.</p><button class="btn ghost" id="am-retry">Skontrolovať spojenie znova</button></div></div>`;
     view.querySelector('#am-retry').onclick = () => vAmbasadori(view);
     return;
   }

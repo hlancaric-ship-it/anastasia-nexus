@@ -35,7 +35,7 @@ await writeFile(join(out, '_headers'), `/*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: ${api}${media ? ' ' + media : ''}; connect-src 'self' ${api}; frame-src ${web}; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: ${api} https://pub-e3ec1b5623e544bb8f2907db2e7cbda1.r2.dev https://pub-6866a8f6035b49869a059794d41f744f.r2.dev https://anastasia-test-nexus.l-code-dynamics.com${media ? ' ' + media : ''}; connect-src 'self' ${api}; frame-src ${web}; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
 `);
 await writeFile(join(out, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 console.log(`Admin build: dist/ → jadro ${api}${media ? `, médiá ${media}` : ''}`);
