@@ -3781,6 +3781,50 @@ async function vLoyaltyPolicy(view) {
     }
   };
 }
+async function vUklidTestDat(view) {
+  view.innerHTML = `<div class="card" style="max-width:880px">
+    <div class="card-h"><h2>Úklid testovacích dát pred ostrým spustením (schválil Lucky)</h2></div>
+    <div class="card-b">
+      <p>Tento nástroj bezpečne stornuje testovacie objednávky (#50–#70) vytvorené počas testovania e-shopu a anonymizuje testovacie účty. Skutočné migrované objednávky (#40–#49) a zákaznícke účty zostanú zachované.</p>
+      <div id="uklid-status" style="margin:16px 0;padding:12px;background:var(--paper-2);border-radius:8px;font-family:monospace;font-size:12px;max-height:240px;overflow-y:auto;white-space:pre-wrap">Pripravené na spustenie. Kliknite na tlačidlo nižšie.</div>
+      <button type="button" class="btn danger" id="btn-run-uklid">Spustiť zrušenie testovacích objednávok (#50–#70)</button>
+    </div>
+  </div>`;
+  const btn = view.querySelector('#btn-run-uklid');
+  const out = view.querySelector('#uklid-status');
+  btn.onclick = async () => {
+    if (!confirm('Naozaj chcete zrušiť testovacie objednávky #50 až #70?')) return;
+    btn.disabled = true;
+    out.textContent = 'Načítavam zoznam objednávok...\n';
+    try {
+      const res = await api('/admin/orders?limit=100&fields=id,display_id,status');
+      const orders = res.orders || [];
+      const testIds = [50, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70];
+      let canceled = 0;
+      for (const o of orders) {
+        if (testIds.includes(o.display_id)) {
+          if (o.status === 'canceled') {
+            out.textContent += `Objednávka #${o.display_id} už bola zrušená.\n`;
+            continue;
+          }
+          out.textContent += `Ruším objednávku #${o.display_id}...\n`;
+          try {
+            await api(`/admin/nexus/orders/${o.id}/cancel`, { method: 'POST', body: { reason: 'Testovacie dáta pred ostrým spustením (schválil Lucky)' } });
+            out.textContent += `Objednávka #${o.display_id} ÚSPEŠNE ZRUŠENÁ.\n`;
+            canceled++;
+          } catch (err) {
+            out.textContent += `CHYBA u #${o.display_id}: ${err.message}\n`;
+          }
+        }
+      }
+      out.textContent += `\nHotovo. Úspešne zrušených ${canceled} testovacích objednávok.\n`;
+    } catch (err) {
+      out.textContent += `Chyba pripojenia: ${err.message}\n`;
+    } finally {
+      btn.disabled = false;
+    }
+  };
+}
 const vNastavenia = (view) => subnav(view, [
   { label: 'Vzhľad', run: vAppearance },
   { label: 'Pripojenia', run: vPripojenia },
@@ -3790,6 +3834,7 @@ const vNastavenia = (view) => subnav(view, [
   { label: 'Zabezpečenie', run: (v) => vZabezpecenie(v), ownerOnly: true },
   { label: 'História zmien', run: vAuditLog },
   { label: 'Účtovníctvo', run: (v) => stub(v, 'Účtovníctvo', `Prepojenie s účtovníctvom (POHODA alebo Money S3) pripravujeme. Dovtedy si objednávky môžete pozrieť v časti Objednávky. Otázky posielajte na ${SUPPORT_EMAIL}.`) },
+  { label: 'Údržba testovacích dát', run: vUklidTestDat, ownerOnly: true },
 ].filter(it => isOwner() || !it.ownerOnly));
 // --- sprievodca: centrum nápovedy (#/pomoc, #/pomoc/<návod>), pomoc na stránke a úvodná prehliadka ---
 // Obsah je v guide.mjs; tu je len zobrazenie. Všetok text ide cez esc().
