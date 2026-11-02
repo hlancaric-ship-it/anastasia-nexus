@@ -61,3 +61,14 @@ Newsletter a jeho schválený vzhled jsou samostatný otevřený požadavek: dva
 Do vlastní větve B sloučen master `797e2b1` (objednávky/kupóny/QR od A), merge `32e6ddc`. Zachovány oba rozsahy. Opakované cílené UI kontroly společného výsledku: 48/48 PASS.
 
 Newsletter při prvním načtení nyní otevře nejnovější uložený koncept podle updated_at/created_at; nový prázdný dopis vzniká explicitním tlačítkem Nová kampaň. S uloženou grafikou, logem ani obsahem se v této opravě nemanipuluje. `node /private/tmp/codex-newsletter-draft-check.mjs`: 6/6 PASS pro výběr nejnovějšího konceptu z více záznamů, zachování textu, explicitní nový koncept, otevření starší kampaně klávesnicí a nepřítomnost JS výjimek. První pokus kontroloval HTML textarea i u kampaně, kterou existující parser otevírá jako formulář; ověřovací selektor byl opraven podle skutečného režimu. Toto není dokončení požadavku na správný design newsletteru.
+
+
+## Objednávky — urgentní oprava a nasazení 2026-11-02
+
+Na přímý pokyn Luckyho „hned to poslete na worker“ opraveny checkboxy objednávek. Původní pravidlo kartového layoutu `position:absolute;right:16px` přetrvávalo i při tabulkovém zobrazení. Cílený override vrací buňce výběru statickou pozici a tabulkové chování, odstraňuje kartový pseudo-popisek v hlavičce a skládá akce do lokálně zalamovaného flex řádku. Commit `daf96a6`, výchozí společný základ obsahuje master `3f4db30`.
+
+`node /private/tmp/orders-checkbox-check.mjs`: 16/16 PASS na 1896/1440/390 px; checkbox uvnitř první buňky, správná hlavička, žádný overflow dokumentu, označení/odznačení celé stránky, bez JS výjimek. Vizuálně zkontrolován desktopový snímek. `git diff --check` PASS.
+
+Nasazen pouze worker `anastasia-test-admin`, žádný backend ani produkce. Finální build používá koordinátorem potvrzené API i media `https://anastasia-api.medusajs.app`; web `https://anastasia-test.l-code-dynamics.com`. Příkaz `wrangler deploy --config ops/test-predani/admin.wrangler.jsonc`, finální verze `4b132c5e-c912-4394-865d-7b4f9bd17c51`. První upload proběhl před obdržením upřesnění aktuálního API, proto byl build zopakován s potvrzenou konfigurací a znovu nasazen.
+
+Skutečný otevřený Chrome tab objednávek obnoven a přes DOM ověřeno: API `https://anastasia-api.medusajs.app`, 6 řádků, všechny checkboxy v první buňce, pseudo-popisek `none`. Žádná zákaznická data nebyla vypisována. `bash ops/test-predani/deploy.sh --smoke`: `SMOKE_OK`.
