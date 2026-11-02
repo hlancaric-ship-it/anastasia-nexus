@@ -32,6 +32,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       consents: [],
       consentCount: 0,
       editing: NL_BLANK(),
+      initialized: false,
       message: null,
     };
 
@@ -59,6 +60,12 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       state.stats = list.stats || state.stats;
       state.consents = consents.consents || [];
       state.consentCount = Number(consents.count) || state.consents.length;
+      if (!state.initialized) {
+        state.initialized = true;
+        const draft = state.campaigns.filter(c => c.status === 'draft')
+          .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))[0];
+        if (draft) state.editing = nlAdopt(draft);
+      }
       if (state.editing.id) {
         const fresh = state.campaigns.find(c => c.id === state.editing.id);
         if (fresh) state.editing = nlAdopt(fresh, state.editing.mode);

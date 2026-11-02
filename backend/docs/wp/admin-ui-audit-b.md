@@ -54,3 +54,10 @@ Příčina: desktopový `.dash` měl implicitní grid řádek odvozený z obsahu
 Ověření: `node /private/tmp/codex-compact-ui-check.mjs` — 48/48 PASS na 1896/1280/390 px (7 obrazovek, včetně editoru obsahu, naplněných médií, poukazů a dlouhých jmen). `node /private/tmp/codex-compact-preview-check.mjs` — 6/6 PASS: panel startuje zavřený, lze otevřít/zavřít a nabízí samostatný odkaz; vzdálený obsah iframe neověřen. `node --check` pro app.mjs, content.mjs, security.mjs a `git diff --check` PASS. Vizuálně kontrolovány snímky zákazníků, poukazů a celého produktu; důkazy `/private/tmp/codex-compact-ui/`. Data jsou syntetická a nebyly volány produkční služby.
 
 Newsletter a jeho schválený vzhled jsou samostatný otevřený požadavek: dva starší obrazové návrhy nalezeny v `Desktop/Zastupce/Downloads/images/`; čeká se na identifikaci správné reference. Tento commit newsletter nemění. Účetnictví a kupóny byly předány koordinátorovi A; tento commit je neimplementuje.
+
+
+## Integrace a načtení newsletterového konceptu
+
+Do vlastní větve B sloučen master `797e2b1` (objednávky/kupóny/QR od A), merge `32e6ddc`. Zachovány oba rozsahy. Opakované cílené UI kontroly společného výsledku: 48/48 PASS.
+
+Newsletter při prvním načtení nyní otevře nejnovější uložený koncept podle updated_at/created_at; nový prázdný dopis vzniká explicitním tlačítkem Nová kampaň. S uloženou grafikou, logem ani obsahem se v této opravě nemanipuluje. `node /private/tmp/codex-newsletter-draft-check.mjs`: 6/6 PASS pro výběr nejnovějšího konceptu z více záznamů, zachování textu, explicitní nový koncept, otevření starší kampaně klávesnicí a nepřítomnost JS výjimek. První pokus kontroloval HTML textarea i u kampaně, kterou existující parser otevírá jako formulář; ověřovací selektor byl opraven podle skutečného režimu. Toto není dokončení požadavku na správný design newsletteru.
