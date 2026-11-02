@@ -980,7 +980,7 @@ function wireShortcuts() {
 // Zoznamy ako prehľadná tabuľka (miniatúra, stĺpce, stavy, akcia). Stránky dodávajú buď `cols`, alebo `card(r)`
 // v tvare .rc-media / .rc-title / .rc-f(em = názov stĺpca); z karty sa poskladá riadok tabuľky, takže všetky zoznamy
 // vyzerajú rovnako ako Objednávky.
-function listView(view, { cols, rows, title, onRow, empty, card, search = true, compact = false }) {
+function listView(view, { cols, rows, title, onRow, empty, card, search = true, compact = false, className = '' }) {
   const genCard = (r) => {
     const cells = cols.map(c => ({ h: c.h, v: c.v(r) }));
     const head = cells.find(c => c.h) || cells[0] || { v: '' };
@@ -1006,7 +1006,7 @@ function listView(view, { cols, rows, title, onRow, empty, card, search = true, 
   const render = (list) => list.length ? list.map(rowHtml).join('') : `<tr><td colspan="${colCount}" class="empty">${esc(empty || 'Zatiaľ tu nič nie je.')}</td></tr>`;
   view.innerHTML = `<section class="card ot-card"><div class="ot-head"><h2>${esc(title)} <span class="muted">(${rows.length})</span></h2>
     ${search && rows.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať…" aria-label="Hľadať">' : ''}</div>
-    <div class="ot-wrap"><table class="ot lv ${compact ? 'lv-compact' : 'agenda-grid'}"><thead><tr>${hasMedia ? '<th class="ot-img"><span class="sr-only">Obrázok</span></th>' : ''}<th>${esc(titleHead)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}${onRow ? '<th class="ot-act"><span class="sr-only">Akcia</span></th>' : ''}</tr></thead><tbody id="rc-wrap">${render(parsed)}</tbody></table></div></section>`;
+    <div class="ot-wrap"><table class="ot lv ${compact ? 'lv-compact' : 'agenda-grid'} ${className}"><thead><tr>${hasMedia ? '<th class="ot-img"><span class="sr-only">Obrázok</span></th>' : ''}<th>${esc(titleHead)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}${onRow ? '<th class="ot-act"><span class="sr-only">Akcia</span></th>' : ''}</tr></thead><tbody id="rc-wrap">${render(parsed)}</tbody></table></div></section>`;
   const wire = () => { if (onRow) view.querySelectorAll('#rc-wrap tr[data-id]').forEach(tr => { const open = () => onRow(rows.find(x => String(x.id) === tr.dataset.id) || rows[0]); tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }; }); };
   wire();
   const s = view.querySelector('.rc-search');
@@ -2308,7 +2308,7 @@ async function vCoupons(view) {
   const { promotions } = await api('/admin/promotions?limit=100&fields=id,code,status,limit,used,*application_method');
   setActions('<button class="btn gold" id="promo-new">+ Nový kupón</button>');
   const nb = document.querySelector('#promo-new'); if (nb) nb.onclick = () => vCouponNew(view);
-  listView(view, { title: 'Kupóny a zľavy', rows: promotions, onRow: p => vCouponDetail(view, p.id), empty: 'Zatiaľ žiadne kupóny.', cols: [
+  listView(view, { title: 'Kupóny a zľavy', rows: promotions, onRow: p => vCouponDetail(view, p.id), empty: 'Zatiaľ žiadne kupóny.', className: 'coupon-grid', cols: [
     { h: 'Kód', v: p => `<b>${esc(p.code)}</b>` }, { h: 'Stav', v: p => `<span class="pill ${p.status === 'active' ? 'ok' : p.status === 'inactive' ? 'off' : 'warn'}">${esc({ active: 'aktívny', inactive: 'vypnutý', draft: 'rozpracovaný' }[p.status] || p.status)}</span>` },
     { h: 'Zľava', v: p => { const m = p.application_method; return m ? (m.type === 'percentage' ? m.value + ' %' : fmtEur(m.value)) : '—'; } },
     { h: 'Použitie', v: p => { const used = Number(p.used || 0); const limit = p.limit == null ? null : Number(p.limit); return `${used}${limit === null ? ' z neobmedzeného počtu' : ` z ${limit}`}`; } }] });

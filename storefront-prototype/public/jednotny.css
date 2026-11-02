@@ -1313,3 +1313,9 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
 #page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-story>.cv2-chap:nth-child(6n+6){background:#E8D5A6!important}
 @media (max-width:900px){#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-story>.cv2-chap:has(h2)>div{grid-template-columns:1fr}#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-story>.cv2-chap:has(h2)>div>h2,#page-shell#page-shell.kc-unified .legacy-main .cv2 .cv2-story>.cv2-chap:has(h2)>div>:not(h2){grid-column:1;grid-row:auto;position:static}}
 }
+
+/* Mobil: tlačidlo Menu zostáva v pravom hornom rohu na každej stránke. */
+@media(max-width:999px){
+#lh-top.lh-top{left:0!important;right:0!important;justify-content:flex-end!important;padding-left:0!important;padding-right:16px!important}
+#lh-top.lh-top .lh-top__side .lh-top__menu{left:auto!important;right:0!important}
+}

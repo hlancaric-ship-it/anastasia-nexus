@@ -164,7 +164,7 @@
 /* mobil: Menu blíž k pravému okraju */
 @media(max-width:760px){
   .dc-chrome header.lh-top{right:0!important;padding-right:12px!important}
-  .lh-top__side .lh-top__menu{position:relative;left:24px}
+  .lh-top__side .lh-top__menu{position:relative;left:auto;right:0}
   .shop-shortcuts{display:none!important}
 }
 /* voľby produktu a hodnoty poukazu ako tlačidlá */
