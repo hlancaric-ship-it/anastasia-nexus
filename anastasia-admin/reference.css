@@ -617,3 +617,19 @@ table.agenda-grid tbody .ot-act .btn {
   height: 32px!important;
   min-height: 32px!important;
 }
+
+
+/* Small forms stay readable; data lists retain their available width. */
+#view .card.compact-form { width:100%; max-width:800px; margin-inline:auto; }
+table.agenda-grid.category-grid tbody td.lv-title {
+  min-width:160px; overflow-wrap:anywhere; word-break:normal;
+}
+.translation-wrap { max-width:100%; overflow-x:auto; }
+.translation-table { width:100%; min-width:680px; border-collapse:collapse; }
+.translation-table th,.translation-table td { padding:12px 14px; text-align:left; }
+.translation-table td:nth-child(2) { min-width:180px; overflow-wrap:anywhere; }
+.translation-table td:last-child { text-align:right; }
+.translation-table [data-edit-trans] { white-space:nowrap; }
+.translation-table { font-size:13.5px; }
+.translation-table th { background:var(--surface-2); color:var(--muted); font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.06em; }
+.translation-table td { border-bottom:1px solid var(--line-soft); overflow-wrap:anywhere; }
