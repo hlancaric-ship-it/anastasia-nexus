@@ -1459,8 +1459,8 @@ async function vProductDetail(view, id, opts = {}) {
       ${sec('cena', '02', 'Cena a akcia', cena)}
       ${sec('popis', '03', 'Popis produktu', popis, true)}
       ${sec('foto', '04', 'Fotografie', obrazky, true)}
-      ${sec('predaj', '05', 'Kategórie', kategorie)}
-      ${sec('dorucenie', '06', 'Predaj a doručenie', predaj)}
+      ${sec('predaj', '05', 'Kategórie', kategorie, true)}
+      ${sec('dorucenie', '06', 'Predaj a doručenie', predaj, true)}
       ${sec('varianty', '07', 'Voľby a varianty', '<div id="p-variants"></div>', true)}
       ${sec('sklad', '08', 'Sklad', sklad, true)}
       ${sec('obsah', '09', 'Zakúpený obsah', '<div id="p-library"></div>', true)}
@@ -2528,18 +2528,18 @@ async function vVouchers(view, st = {}) {
   try { d = await api(`/admin/vouchers?limit=${PAGE_LIMIT}&offset=${offset}${status ? '&status=' + status : ''}`); }
   catch (e) { return loadError(view, e, () => go({})); }
   const items = d.vouchers || [];
-  view.innerHTML = pagedHtml({ tabs: V_TABS, active: status, items, count: d.count || 0, offset, empty: 'Zatiaľ neboli vydané žiadne darčekové poukazy. Po kúpe poukazu sa tu objaví.',
+  view.innerHTML = '<div class="voucher-agenda">' + pagedHtml({ tabs: V_TABS, active: status, items, count: d.count || 0, offset, empty: 'Zatiaľ neboli vydané žiadne darčekové poukazy. Po kúpe poukazu sa tu objaví.',
     card: v => `<div class="rc-body"><div class="rc-title">${esc(v.code)}</div><div class="rc-fields">
       <span class="rc-f"><em>Zostatok</em>${fmtEur(v.balance)} z ${fmtEur(v.initial_amount)}</span>
       <span class="rc-f"><em>Stav</em>${statusPill(V_STATUS, v.status)}</span>
       <span class="rc-f"><em>Platí do</em>${v.expires_at ? fmtDate(v.expires_at) : '—'}</span></div></div>` })
-    + `<div class="card" style="margin-top:20px"><div class="card-h">Vrátiť peniaze na poukaz</div><div class="card-b">
+    + `<div class="card voucher-refund" style="margin-top:20px"><div class="card-h">Vrátiť peniaze na poukaz</div><div class="card-b">
       <p class="muted">Ak zákazník zaplatil objednávku darčekovým poukazom, môžete sumu vrátiť späť na jeho poukaz. Systém nepustí vrátiť viac, než bolo poukazom zaplatené.</p>
       <div id="vrmsg"></div>
       <form id="vr" class="row"><div><label>ID objednávky</label><input id="vr-o" placeholder="order_…" required></div>
       <div><label>Suma (EUR)</label><input id="vr-a" type="number" step="0.01" min="0.01" required></div>
       <div><label>Poznámka (voliteľné)</label><input id="vr-n" maxlength="300"></div>
-      <div style="align-self:end"><button class="btn gold" type="submit">Vrátiť na poukaz</button></div></form></div></div>`;
+      <div style="align-self:end"><button class="btn gold" type="submit">Vrátiť na poukaz</button></div></form></div></div></div>`;
   wirePaged(view, { items, offset, go, open: v => vVoucherDetail(view, v, () => go({})) });
   const key = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)).replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
   view.querySelector('#vr').onsubmit = async (e) => {
@@ -3298,7 +3298,7 @@ async function vMediaLibrary(view) {
   try { files = (await api('/admin/media')).files || []; }
   catch (e) { if (e.message === '401') throw e; view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
   const kb = (n) => (Number(n) / 1024).toFixed(0) + ' kB';
-  view.innerHTML = `<div class="card"><div class="card-h">Knihovna obrázkov</div><div class="card-b">
+  view.innerHTML = `<div class="card media-library"><div class="card-h">Knihovna obrázkov</div><div class="card-b">
     <div id="md-msg"></div>
     <p class="muted" style="margin-top:0">Obrázky, ktoré tu nahráte, sa uložia na server a môžete ich použiť na webe aj v e-mailoch.
     Kliknutím na „Kopírovať URL“ skopírujete priamu adresu obrázka.</p>

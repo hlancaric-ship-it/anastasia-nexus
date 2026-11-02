@@ -40,3 +40,17 @@ Opakovaný plný průchod `node /private/tmp/codex-admin-audit-b.mjs`: 34/34 sta
 Příčina: desktopový `.dash` měl implicitní grid řádek odvozený z obsahu. Vnitřní `.dash-main` tak měřil 639,5 px i při přidělené výšce rodiče jen 467,5–567,5 px a překrýval bannery. Doplněn `grid-template-rows:minmax(0,1fr)` pro existující desktopový režim; notifikace dostaly omezení minimální výšky a vlastní scroll. Tlačítko `.dash-table .dots-btn` nyní respektuje šířku své buňky; původní pevná šířka 32 px způsobovala přetečení tabulky až o 19 px.
 
 `node /private/tmp/codex-dashboard-check.mjs`: 19/19 PASS na 1896×860 (rozměr obsahu screenshotu), 1440×812, 1280×760, 1024×768 a 390×844. Kontroly: bannery nepřekrývají hlavní ani boční obsah, tabulka nemá vodorovné přetečení, poslední objednávka je dosažitelná, desktop nemá přetečení výšky dokumentu, žádné JS výjimky. Menší desktop používá lokální vertikální scroll seznamů. `git diff --check` PASS. Snímky `/private/tmp/codex-admin-audit-b/dashboard-*.png`; vizuálně prohlédnut opravený 1896px desktop. Lokální syntetická data, externí síť blokovaná, nenasazeno.
+
+
+## Kompaktní rozložení podle screenshotů 11:24–11:32
+
+- Produkt: kategorie a prodej/doručení jsou samostatné plné řádky, takže nižší panel nenechává prázdnou půlku před variantami. Mobilní hero i sekce mají jeden sloupec; editor popisu má minimální výšku 180 px.
+- Kategorie a zákazníci: pevné proporce hlavičkových sloupců, čitelný prostor pro jméno i dlouhý e-mail, lokální vodorovný posun na mobilu. Testováno na dlouhých syntetických identitách.
+- Poukazy: agenda max. 1040 px uprostřed, jednotlivé karty max. 320 px; refundace ve dvou vyvážených sloupcích, na mobilu jeden sloupec. Backendová refundace beze změny.
+- Média: karta max. 1200 px a pravidelná mřížka s minimální šířkou položky 240 px, stejné rozestupy akcí.
+- Texty: editor max. 1120 px; externí živý náhled je volitelný rozbalovací panel s odkazem na samostatné okno. Vlastní textový náhled a editace zůstávají. Neprohlašujeme opravu příčiny šedého vzdáleného iframe: jeho obsah není součástí lokálního testu.
+- Typografie: administrátorské nadpisy sjednoceny na Figtree; importované zabezpečení používá stejné nadpisy 17 px a centrovanou agendu max. 1040 px. Ověření 2FA/role se v tomto kroku neměnilo.
+
+Ověření: `node /private/tmp/codex-compact-ui-check.mjs` — 48/48 PASS na 1896/1280/390 px (7 obrazovek, včetně editoru obsahu, naplněných médií, poukazů a dlouhých jmen). `node /private/tmp/codex-compact-preview-check.mjs` — 6/6 PASS: panel startuje zavřený, lze otevřít/zavřít a nabízí samostatný odkaz; vzdálený obsah iframe neověřen. `node --check` pro app.mjs, content.mjs, security.mjs a `git diff --check` PASS. Vizuálně kontrolovány snímky zákazníků, poukazů a celého produktu; důkazy `/private/tmp/codex-compact-ui/`. Data jsou syntetická a nebyly volány produkční služby.
+
+Newsletter a jeho schválený vzhled jsou samostatný otevřený požadavek: dva starší obrazové návrhy nalezeny v `Desktop/Zastupce/Downloads/images/`; čeká se na identifikaci správné reference. Tento commit newsletter nemění. Účetnictví a kupóny byly předány koordinátorovi A; tento commit je neimplementuje.
