@@ -25,9 +25,10 @@ describe("šablóna newslettera Dopis", () => {
   })
   it("e-mail má logo, nadpis, tlačidlo, odhlásenie a pätičku", () => {
     const { html, text } = renderCampaignEmail({ subject: "Jeseň", preheader: "Krátky úvod", bodyHtml: BODY, unsubscribeUrl: "https://api.example.test/u?c=1&s=ab" })
-    expect(html).toContain("/assets/lucia-koule.png")
-    expect(html).toContain("/assets/email-lines.png")
-    for (const c of ["#e9e9f2", "#e4e6d6", "#2f3424", "#f3e9d0"]) expect(html).toContain(`bgcolor="${c}"`)
+    expect(html).toContain("/assets/anastasia-oz-logo.png")
+    expect(html).toContain("/assets/lucia-portrait.jpg")
+    expect(html).toContain("Lucia Rogožanová")
+    for (const c of ["#eeebf1", "#f7f4ec", "#2f3424"]) expect(html).toContain(`bgcolor="${c}"`)
     expect(html).toContain("Dobré ráno, priatelia")
     expect(html).toContain("Pozrieť konzultácie")
     expect(html).toContain("Odhlásiť sa z odberu")

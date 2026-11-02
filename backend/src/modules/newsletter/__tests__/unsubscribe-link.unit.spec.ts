@@ -61,16 +61,16 @@ describe("limity dávky", () => {
 })
 
 describe("šablóna e-mailu", () => {
-  it("použije levanduľovú paletu a odkaz na odhlásenie", () => {
+  it("použije schválený list s Luciou a zachová odkaz na odhlásenie", () => {
     const link = "https://api.example.test/store/newsletter/unsubscribe/link?c=lgl_1&s=abc"
     const { html, text } = renderCampaignEmail({ subject: "Novinky", preheader: "Krátky úvod", bodyHtml: "<p>Dobrý deň</p>", unsubscribeUrl: link })
-    expect(html).toContain("background:#e9e9f2")
+    expect(html).toContain("background:#2f3424")
     expect(html).toContain("#2f3424")
-    expect(html).toContain("#c9a55c")
-    expect(html).toContain("#2b2a3a")
+    expect(html).toContain("/assets/lucia-portrait.jpg")
+    expect(html).toContain("/assets/anastasia-oz-logo.png")
     expect(html).not.toContain("#5f7a5a")
     expect(html).toContain("ANASTASIA")
-    expect(html).toContain("Light for the future")
+    expect(html).toContain("LIGHT FOR THE FUTURE")
     expect(html).toContain('href="https://api.example.test/store/newsletter/unsubscribe/link?c=lgl_1&amp;s=abc"')
     expect(html).toContain("Odhlásiť sa z odberu")
     expect(text).toContain("Dobrý deň")

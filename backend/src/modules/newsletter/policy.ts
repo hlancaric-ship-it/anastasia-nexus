@@ -1,3 +1,4 @@
+import { renderLuciaLetter } from "./lucia-letter"
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 /**
@@ -274,68 +275,15 @@ export type CampaignEmailInput = {
 }
 
 /**
- * Šablóna „Dopis“: šedomodré pozadie, krémová karta, serif nadpis, jedno tlačidlo, olivová pätička.
+ * Schválený list s portrétom Lucie, krémovým podkladom a úplným logom ANASTASIA OZ.
  * Testovací e-mail bez známeho súhlasu odkaz na odhlásenie nemá (nemá čo podpísať).
  */
 export function renderCampaignEmail(input: CampaignEmailInput): { html: string; text: string } {
   const preheader = String(input.preheader ?? "").trim()
   const unsubscribe = input.unsubscribeUrl ? String(input.unsubscribeUrl) : ""
   const asset = newsletterAssetUrl()
-  const serif = "Fraunces,Georgia,'Times New Roman',serif"
-  const sans = "Figtree,Helvetica,Arial,sans-serif"
-  const styleBlock = (html: string, panel: (typeof PANELS)[number]): string => ctaButtons(html, panel.dark)
-    .replace(/<a href=/gi, `<a style="color:${panel.link};text-decoration:underline" href=`)
-    .replace(/<h2>/gi, `<h2 style="margin:0 0 20px;font-family:${serif};font-size:32px;line-height:1.15;font-weight:300;letter-spacing:-.01em;color:${panel.head}">`)
-    .replace(/<h3>/gi, `<h3 style="margin:26px 0 10px;font-family:${serif};font-size:21px;line-height:1.25;font-weight:400;color:${panel.link}">`)
-    .replace(/<p>/gi, `<p style="margin:0 0 18px">`)
-    .replace(/<ul>/gi, `<ul style="margin:0 0 18px;padding-left:22px">`)
-    .replace(/<ol>/gi, `<ol style="margin:0 0 18px;padding-left:22px">`)
-    .replace(/<li>/gi, `<li style="margin:0 0 8px">`)
-    .replace(/<img /gi, `<img style="display:block;width:100%;max-width:520px;height:auto;border-radius:16px;margin:8px 0 22px" `)
-    .replace(/ data-cta="1"/g, "")
-  const sections = input.bodyHtml.split(/(?=<h2>)/i).filter(part => part.trim())
-  const rows = (sections.length ? sections : [""]).map((part, index) => {
-    const panel = PANELS[index % PANELS.length]
-    return `<tr><td bgcolor="${panel.bg}" style="padding:44px 48px 36px;background:${panel.bg};font-family:${sans};font-size:16px;line-height:1.8;color:${panel.ink}">
-${styleBlock(part, panel)}
-</td></tr>`
-  }).join("\n")
-  const footer = unsubscribe
-    ? `<p style="margin:0 0 6px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Odhlásiť sa môžete kedykoľvek jedným kliknutím.</p>
-<p style="margin:0"><a href="${escapeHtml(unsubscribe)}" style="font-family:${sans};font-size:12px;line-height:1.7;color:${BRAND.gold};text-decoration:underline">Odhlásiť sa z odberu</a></p>`
-    : `<p style="margin:0;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.</p>`
-
-  const html = `<!doctype html>
-<html lang="sk">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light">
-<title>${escapeHtml(input.subject)}</title>
-</head>
-<body style="margin:0;padding:0;background:${BRAND.cream}">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${BRAND.cream}" style="background:${BRAND.cream}">
-<tr><td align="center" background="${asset}/assets/email-lines.png" style="padding:36px 16px 44px;background:${BRAND.cream} url(${asset}/assets/email-lines.png) center top repeat-y;background-size:1200px auto">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;background:${BRAND.card};border-radius:28px;overflow:hidden">
-<tr><td align="center" style="padding:44px 40px 26px;background:${BRAND.paper}">
-<img src="${asset}/assets/lucia-koule.png" width="64" height="64" alt="ANASTASIA" style="display:block;width:64px;height:64px;margin:0 auto 16px;border:0">
-<div style="font-family:${serif};font-size:26px;font-weight:300;letter-spacing:9px;color:${BRAND.olive};text-transform:uppercase">ANASTASIA</div>
-<div style="font-family:${sans};font-size:10px;letter-spacing:4px;color:${BRAND.gold};text-transform:uppercase;padding-top:10px">Light for the future</div>
-</td></tr>
-<tr><td height="3" bgcolor="${BRAND.gold}" style="height:3px;background:${BRAND.gold};line-height:3px;font-size:3px"></td></tr>
-${rows}
-<tr><td style="padding:34px 48px 36px;background:${BRAND.olive}">
-<p style="margin:0 0 10px;font-family:${sans};font-size:12px;line-height:1.7;color:#cfd2c0">Tento e-mail ste dostali, pretože ste sa prihlásili na odber noviniek ANASTASIA.</p>
-${footer}
-<p style="margin:18px 0 0;font-family:${serif};font-size:11px;letter-spacing:3px;color:${BRAND.gold};text-transform:uppercase">ANASTASIA · Light for the future</p>
-<p style="margin:10px 0 0;font-family:${sans};font-size:11px;line-height:1.6;color:#aeb29c">LUCRAT spol. s r.o. · IČO 36652164 · <a href="https://anastasiaoz.eu" style="color:${BRAND.gold}">anastasiaoz.eu</a> · info@anastasiaoz.eu</p>
-</td></tr>
-</table>
-</td></tr>
-</table>
-</body>
-</html>`
+  const html = renderLuciaLetter({ subject:input.subject, preheader,
+    bodyHtml:input.bodyHtml, asset, unsubscribeUrl:unsubscribe })
 
   const text = [
     htmlToText(input.bodyHtml),
