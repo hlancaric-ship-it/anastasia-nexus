@@ -357,6 +357,12 @@ function wireSideSearch() {
   };
   input.oninput = () => { clearTimeout(timer); timer = setTimeout(run, 320); };
   input.onkeydown = (e) => { if (e.key === 'Escape') { input.value = ''; box.hidden = true; input.blur(); } };
+  window.addEventListener('hashchange', () => {
+    clearTimeout(timer);
+    input.value = '';
+    box.hidden = true;
+    box.innerHTML = '';
+  });
 }
 
 // --- horná lišta: rozbalovacie menu, zvoneček s upozorneniami a skratka ⌘K ---
