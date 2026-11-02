@@ -332,7 +332,9 @@ function wireSideSearch() {
   const input = root.querySelector('#side-q'), box = root.querySelector('#side-results');
   if (!input || !box) return;
   let timer = null;
+  let searchRevision = 0;
   const run = async () => {
+    const revision = ++searchRevision;
     const q = input.value.trim();
     if (q.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false; box.innerHTML = '<div class="muted">Hľadám…</div>';
@@ -341,6 +343,7 @@ function wireSideSearch() {
       api(`/admin/products?q=${encodeURIComponent(q)}&limit=5`).catch(() => null),
       api(`/admin/customers?q=${encodeURIComponent(q)}&limit=5`).catch(() => null),
     ]);
+    if (revision !== searchRevision || input.value.trim() !== q) return;
     const groups = [
       { label: 'Objednávky', hash: '#/objednavky', rows: (o?.orders || []).map(x => `#${x.display_id ?? ''} · ${x.email || ''}`) },
       { label: 'Produkty', hash: '#/produkty', rows: (p?.products || []).map(x => x.title) },
@@ -355,9 +358,10 @@ function wireSideSearch() {
       box.hidden = true; input.value = '';
     });
   };
-  input.oninput = () => { clearTimeout(timer); timer = setTimeout(run, 320); };
-  input.onkeydown = (e) => { if (e.key === 'Escape') { input.value = ''; box.hidden = true; input.blur(); } };
+  input.oninput = () => { searchRevision++; clearTimeout(timer); timer = setTimeout(run, 320); };
+  input.onkeydown = (e) => { if (e.key === 'Escape') { searchRevision++; clearTimeout(timer); input.value = ''; box.hidden = true; input.blur(); } };
   window.addEventListener('hashchange', () => {
+    searchRevision++;
     clearTimeout(timer);
     input.value = '';
     box.hidden = true;
@@ -2618,7 +2622,7 @@ async function vVoucherSettings(view, notice) {
     <p class="muted">Zmena platí pre nové poukazy. Už vydané poukazy si držia hodnotu, platnosť a pravidlá z dňa nákupu.</p>
     <div id="vsmsg">${notice || ''}</div>
     ${chk('vs-on', s.enabled, 'Poukazy sú v predaji na webe')}
-    <div class="row" style="margin-top:12px"><div><label>Hodnoty v € (oddeľte medzerou, najviac 10)</label><input id="vs-values" value="${esc(s.values.map(x => String(x).replace('.', ',')).join(' '))}" placeholder="50 100 200"></div>
+    <div class="row" style="margin-top:12px"><div><label>Hodnoty v € (oddeľte medzerou, najviac 10)</label><input id="vs-values" value="${esc(s.values.map(x => String(x).replace('.', ',')).join(' '))}" placeholder="30 50 100"></div>
     <div><label>Platnosť (mesiace, 1–60)</label><input id="vs-months" type="number" min="1" max="60" step="1" value="${s.validity_months}"></div></div>
     <div class="row"><div><label>Doručenie</label><select id="vs-delivery">${Object.entries(VS_DELIVERY).map(([k, l]) => `<option value="${k}" ${s.delivery_method === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <div><label>Kde sa dá poukaz použiť</label><select id="vs-scope"><option value="all" ${s.scope_type === 'all' ? 'selected' : ''}>na celý e-shop</option><option value="categories" ${s.scope_type === 'categories' ? 'selected' : ''}>len vo vybraných kategóriách</option></select></div></div>
@@ -3480,7 +3484,7 @@ async function vAmbasadori(view) {
           <div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
               <input type="checkbox" id="am-set-enabled" ${settings.enabled ? 'checked' : ''}>
-              <span>Zapnúť ambasadorský program (priraďovanie odporúčaní)</span>
+              <span style="min-width:0;white-space:normal;overflow-wrap:anywhere">Zapnúť ambasadorský program (priraďovanie odporúčaní)</span>
             </label>
           </div>
           <div></div>
@@ -4278,11 +4282,11 @@ async function vLoyaltyPolicy(view) {
   };
 }
 async function vUklidTestDat(view) {
-  view.innerHTML = `<div class="card" style="max-width:880px">
-    <div class="card-h"><h2>Úklid testovacích dát pred ostrým spustením (schválil Lucky)</h2></div>
+  view.innerHTML = `<div class="card compact-form">
+    <div class="card-h"><h2>Údržba testovacích dát</h2></div>
     <div class="card-b">
-      <p>Tento nástroj bezpečne stornuje testovacie objednávky (#50–#70) vytvorené počas testovania e-shopu a anonymizuje testovacie účty. Skutočné migrované objednávky (#40–#49) a zákaznícke účty zostanú zachované.</p>
-      <div id="uklid-status" style="margin:16px 0;padding:12px;background:var(--paper-2);border-radius:8px;font-family:monospace;font-size:12px;max-height:240px;overflow-y:auto;white-space:pre-wrap">Pripravené na spustenie. Kliknite na tlačidlo nižšie.</div>
+      <p>Zrušenie vybraných testovacích objednávok z rozsahu #50–#70. Objednávka #53 je vynechaná. Zákaznícke účty sa touto akciou nemenia.</p>
+      <div id="uklid-status" style="margin:16px 0;padding:12px;background:var(--paper-2);border-radius:8px;font:inherit;max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">Pripravené na spustenie. Kliknite na tlačidlo nižšie.</div>
       <button type="button" class="btn danger" id="btn-run-uklid">Spustiť zrušenie testovacích objednávok (#50–#70)</button>
     </div>
   </div>`;
