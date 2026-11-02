@@ -697,3 +697,14 @@ details.cp-live[open] iframe { display:block; height:min(600px,65vh); }
 .security-agenda .ot { min-width:580px; }
 .security-agenda .ot th:first-child { width:48%; }
 .security-agenda select { max-width:260px; }
+
+/* Orders are tables: discard the old card-only checkbox positioning. */
+table.ot-orders thead th.ot-check,
+table.ot-orders tbody td.ot-check {
+ position:static!important; inset:auto!important; display:table-cell!important;
+ width:38px!important; min-width:38px; padding:10px 8px!important; text-align:center;
+}
+table.ot-orders thead th.ot-check:after { content:none; }
+table.ot-orders .ot-check input { position:static; margin:0; vertical-align:middle; }
+table.ot-orders tbody td.ot-act { position:static!important; }
+table.ot-orders .ot-acts { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
