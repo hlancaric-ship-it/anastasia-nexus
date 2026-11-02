@@ -1413,3 +1413,56 @@ table.agenda-grid tbody .ot-act .btn {
   height: 32px!important;
   min-height: 32px!important;
 }
+
+/* Coupon codes and order fields need deliberate column widths; auto layout was
+   shrinking their labels to a few characters and pushing actions away. */
+.ot-wrap:has(table.coupon-grid),
+.ot-wrap:has(table.ot-orders) {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto!important;
+}
+table.agenda-grid.coupon-grid,
+table.ot-orders {
+  table-layout: fixed!important;
+}
+table.agenda-grid.coupon-grid tbody td,
+table.ot-orders tbody td {
+  white-space: normal!important;
+  word-break: normal!important;
+  overflow-wrap: break-word!important;
+  min-width: 0;
+}
+table.agenda-grid.coupon-grid tbody td.lv-title {
+  width: 24%;
+  max-width: none!important;
+  white-space: normal!important;
+  overflow-wrap: break-word!important;
+}
+table.agenda-grid.coupon-grid thead th:nth-child(1),
+table.agenda-grid.coupon-grid tbody td.lv-title { width: 24%!important; }
+table.agenda-grid.coupon-grid thead th:nth-child(2) { width: 16%!important; }
+table.agenda-grid.coupon-grid thead th:nth-child(3) { width: 14%!important; }
+table.agenda-grid.coupon-grid thead th:nth-child(4) { width: 31%!important; }
+table.agenda-grid.coupon-grid thead th.ot-act,
+table.agenda-grid.coupon-grid tbody td.ot-act { width: 15%!important; }
+table.agenda-grid.coupon-grid tbody td.lv-title { overflow-wrap: normal!important; }
+table.ot-orders { min-width: 1380px; }
+table.ot-orders thead th:nth-child(1), table.ot-orders tbody td:nth-child(1) { width: 3%!important; }
+table.ot-orders thead th:nth-child(2), table.ot-orders tbody td:nth-child(2) { width: 4%!important; }
+table.ot-orders thead th:nth-child(3), table.ot-orders tbody td:nth-child(3) { width: 8%!important; }
+table.ot-orders thead th:nth-child(4), table.ot-orders tbody td:nth-child(4) { width: 13%!important; }
+table.ot-orders thead th:nth-child(5), table.ot-orders tbody td:nth-child(5) { width: 13%!important; }
+table.ot-orders thead th:nth-child(6), table.ot-orders tbody td:nth-child(6) { width: 13%!important; }
+table.ot-orders thead th:nth-child(7), table.ot-orders tbody td:nth-child(7) { width: 8%!important; }
+table.ot-orders thead th:nth-child(8), table.ot-orders tbody td:nth-child(8) { width: 12%!important; }
+table.ot-orders thead th:nth-child(9), table.ot-orders tbody td:nth-child(9) { width: 10%!important; }
+table.ot-orders thead th:nth-child(10), table.ot-orders tbody td:nth-child(10) { width: 16%!important; }
+table.ot-orders tbody td small { max-width: 100%; }
+.ot .ot-acts { flex-wrap: wrap; }
+.qr-list-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); }
+.qr-list-card { display: grid; grid-template-columns: minmax(0,1fr); gap: 9px; align-content: start; }
+.qr-list-card .qr-card-title { line-height: 1.45; overflow-wrap: break-word; }
+.qr-list-card .qr-card-coupon,
+.qr-list-card .qr-card-status { display: block; line-height: 1.5; }
+.qr-list-card .pill { justify-self: start; white-space: normal; }
