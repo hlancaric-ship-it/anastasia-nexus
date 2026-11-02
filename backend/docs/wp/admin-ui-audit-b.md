@@ -33,3 +33,10 @@ Na přímý pokyn Luckyho převzal opravy Codex B. Překlady používají vlastn
 Ověření: `node --check anastasia-admin/app.mjs`, `git diff --check`, `node /private/tmp/codex-admin-fix-check.mjs` — 28/28 PASS při 320, 390 a 1440 px: žádné přetékání dokumentu, skutečné tabulkové řádky na mobilu, čitelná akce, filtrování, otevření editoru překladů, šířka názvu kategorie a vycentrování obou formulářů. Vizuálně překontrolován opravený mobilní seznam překladů a kategorií. Skripty a screenshoty jsou dočasné lokální artefakty. Backend a produkce beze změn; výše uvedené limity syntetických dat platí dál.
 
 Opakovaný plný průchod `node /private/tmp/codex-admin-audit-b.mjs`: 34/34 stavů bez přetečení dokumentu a viditelné chyby, 0 JS výjimek. Akce mimo počáteční výřez zůstávají uvnitř lokálně posuvných tabulek; cílený test ověřil otevření překladového editoru kliknutím na takovou akci.
+
+
+## Oprava dashboardu podle screenshotu Luckyho
+
+Příčina: desktopový `.dash` měl implicitní grid řádek odvozený z obsahu. Vnitřní `.dash-main` tak měřil 639,5 px i při přidělené výšce rodiče jen 467,5–567,5 px a překrýval bannery. Doplněn `grid-template-rows:minmax(0,1fr)` pro existující desktopový režim; notifikace dostaly omezení minimální výšky a vlastní scroll. Tlačítko `.dash-table .dots-btn` nyní respektuje šířku své buňky; původní pevná šířka 32 px způsobovala přetečení tabulky až o 19 px.
+
+`node /private/tmp/codex-dashboard-check.mjs`: 19/19 PASS na 1896×860 (rozměr obsahu screenshotu), 1440×812, 1280×760, 1024×768 a 390×844. Kontroly: bannery nepřekrývají hlavní ani boční obsah, tabulka nemá vodorovné přetečení, poslední objednávka je dosažitelná, desktop nemá přetečení výšky dokumentu, žádné JS výjimky. Menší desktop používá lokální vertikální scroll seznamů. `git diff --check` PASS. Snímky `/private/tmp/codex-admin-audit-b/dashboard-*.png`; vizuálně prohlédnut opravený 1896px desktop. Lokální syntetická data, externí síť blokovaná, nenasazeno.
