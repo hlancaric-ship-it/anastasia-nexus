@@ -352,7 +352,7 @@ main>.lh-top+.kc{margin-top:-64px}
 
 /* Hero 300 % (25. 10.): pečeť, kapsula čísel, smerové overlaye, zlatý eyebrow */
 .kc-open__drop::after{display:none}
-.kc-open__shade{position:absolute;inset:0;pointer-events:none;opacity:var(--claim,0);z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 50%),radial-gradient(circle at 10% 90%,rgba(10,15,10,.75) 0%,rgba(10,15,10,0) 75%)}
+.kc-open__shade{position:absolute;inset:0;pointer-events:none;opacity:var(--claim,0);z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.18) 0%,rgba(0,0,0,0) 50%),radial-gradient(circle at 10% 90%,rgba(10,15,10,.24) 0%,rgba(10,15,10,0) 75%)}
 .kc-open__seal{position:absolute;top:32px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:var(--claim,0);pointer-events:none}
 .kc-open__seal img{width:auto;height:36px;filter:brightness(0) invert(72%) sepia(28%) saturate(520%) hue-rotate(4deg) brightness(95%) contrast(86%)}
 .kc-open__seal span{font:400 12px/1 var(--serif);letter-spacing:.3em;padding-left:.3em;color:#F6F0E1}
