@@ -53,7 +53,7 @@ for v in "$ANASTASIA_API_ORIGIN" "${ANASTASIA_MEDIA_ORIGIN:-}"; do
 done
 
 # --- Build ---
-export ANASTASIA_MEDIA_ORIGIN="${ANASTASIA_MEDIA_ORIGIN:-$ANASTASIA_API_ORIGIN}"
+export ANASTASIA_MEDIA_ORIGIN="${ANASTASIA_MEDIA_ORIGIN:-$ANASTASIA_API_ORIGIN https://pub-e3ec1b5623e544bb8f2907db2e7cbda1.r2.dev}"
 export ANASTASIA_ADMIN_URL="${ANASTASIA_ADMIN_URL:-https://anastasia-test-admin.l-code-dynamics.com}"
 export ANASTASIA_SOCIAL_ORIGIN="https://$WEB_HOST"
 (cd "$ROOT/storefront-prototype" && node build.mjs)

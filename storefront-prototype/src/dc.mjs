@@ -220,7 +220,7 @@ function footerClasses(html) {
     if (!html.includes(from)) throw new Error(`dc: v pätičke chýba časť ${from.slice(0, 60)}`);
     html = html.replace(from, to);
   }
-  return html;
+  return html.replace(/<div class="sf-brands"[\s\S]*?(?=<div class="sf-bottom")/, '<div class="sf-brands" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;gap:24px"><a href="/" aria-label="ANASTASIA OZ" style="display:flex;justify-content:center"><img src="/assets/anastasia-oz-logo.png" alt="ANASTASIA OZ" style="width:100%!important;max-width:240px;height:auto!important;object-fit:contain;filter:none!important"></a><a href="https://www.anastasia.academy/" aria-label="ANASTASIA academy" style="display:flex;justify-content:center"><img src="/assets/anastasia-academy-logo.png" alt="ANASTASIA academy" style="width:100%!important;max-width:240px;height:auto!important;object-fit:contain;filter:none!important"></a><a href="https://www.aianastasia.com/" aria-label="ANASTASIA AI" style="display:flex;justify-content:center"><img src="/assets/anastasia-ai-logo.png" alt="ANASTASIA AI" style="width:100%!important;max-width:240px;height:auto!important;object-fit:contain;filter:none!important"></a></div>\n');
 }
 
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
