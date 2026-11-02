@@ -88,9 +88,9 @@ export const LH_HEADER = `
     <a href="/eshop">Obchod</a>
     <a href="/eshop?category=sebarozvoj">Programy a služby</a>
   </nav>
-  <a class="lh-top__brand" href="/" aria-label="ANASTASIA — domov">
-    <img src="/assets/lucia-koule.png" class="brand-seal" alt="" width="34" height="34">
-    <span>ANASTASIA<small>LIGHT FOR THE FUTURE</small></span>
+  <a class="lh-top__brand" href="/" aria-label="ANASTASIA OZ — domov">
+    <img src="/assets/anastasia-oz-mark.png" class="brand-seal" alt="" width="34" height="34">
+    <span>ANASTASIA OZ<small>LIGHT FOR THE FUTURE</small></span>
   </a>
   <nav class="lh-top__side lh-top__side--right" aria-label="Účet">
     <a href="/konzultacie">Konzultácie</a>
@@ -167,12 +167,12 @@ export function homeSections(products = [], activeCategories = []) {
         <span class="lh-brand__name lh-shimmer-text">ANASTASIA</span>
         <span class="lh-brand__sub lh-shimmer-text lh-shimmer-text--gold"><i></i>ACADEMY<i></i></span>
       </a>
-      <a class="lh-brand lh-brand--main" href="/" aria-label="ANASTASIA — Light for the Future">
+      <a class="lh-brand lh-brand--main" href="/" aria-label="ANASTASIA OZ — Light for the Future">
         <span class="lh-brand__lock">
           <img class="lh-brand__mark" src="/assets/logo-mark.png" alt="" width="72" height="72">
           <img class="lh-brand__img--shine" src="/assets/logo-mark.png" alt="" aria-hidden="true" width="72" height="72">
         </span>
-        <span class="lh-brand__name">ANASTASIA</span>
+        <span class="lh-brand__name">ANASTASIA OZ</span>
         <span class="lh-brand__sub">LIGHT FOR THE FUTURE</span>
       </a>
       <a class="lh-brand lh-brand--ai" href="/ai-anastasia" aria-label="AI ANASTASIA">
@@ -210,7 +210,7 @@ export function homeSections(products = [], activeCategories = []) {
     <button class="lh-vid-btn" id="lh-vid-btn" type="button" aria-pressed="false" aria-label="Pozastaviť video">Ⅱ</button>
     <div class="lh-post-entry lh-hx" aria-live="polite">
       <div class="lh-hx__title">
-        <p class="lh-hx__brand"><img src="/assets/brand-mark.svg" alt="" width="34" height="34"><span class="lh-post-entry__brand">ANASTASIA</span></p>
+        <p class="lh-hx__brand"><img src="/assets/anastasia-oz-mark.png" alt="" width="34" height="34"><span class="lh-post-entry__brand">ANASTASIA OZ</span></p>
         <p class="lh-post-entry__claim lh-hx__claim"><span>Light for</span> <em>the Future</em></p>
       </div>
       <nav class="lh-hx__index" aria-label="Ponuka">
@@ -459,6 +459,10 @@ html.lh-hero-mode .lh-intro__cats{display:none}
 /* r17/3: rotujúca kategória je pod slovom ANASTASIA, centrovaná, plná farba. */
 @media (min-width:761px) and (pointer:fine){.lh-cat--1,.lh-cat--2,.lh-cat--3,.lh-cat--4{top:calc(50% + min((100vw - 2*var(--lh-gut,16px))*.135,15svh*1.35) + 12px);left:0;right:0;text-align:center;color:#313C2B;background-image:none!important;-webkit-text-fill-color:#313C2B}}
 @media (max-width:760px){
+  /* Keep the entry control in the visual viewport on phones with browser chrome. */
+  .lh-intro .lh-enter-wrap{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;width:max-content;max-width:calc(100vw - 32px);transform:translateX(-50%)}
+  html.lh-entered .lh-intro .lh-enter-wrap{display:none}
+  .lh-intro .lh-enter{min-width:156px;justify-content:center;color:#313C2B!important;background:rgba(255,255,255,.82)!important;border:1px solid rgba(255,255,255,.98)!important;box-shadow:0 8px 28px rgba(40,48,32,.18)!important}
   /* r12/1: na mobilu logo vľavo, košík a Menu vpravo, hlavička fixná. */
   .lh-top{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:9px 14px}
   .lh-top__side--right{grid-column:3;justify-self:end}
@@ -474,6 +478,10 @@ html.lh-hero-mode .lh-intro__cats{display:none}
   .lh-top__side--right>a[aria-label="Košík"]{display:inline-flex;align-items:center;gap:8px;min-height:44px;height:44px;padding:0 16px;border-radius:80px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:inherit;text-decoration:none;white-space:nowrap}
   .lh-top__side--right .lh-top__menu{display:none}
   .lh-top__menu{height:44px;min-height:44px;padding:0 16px;gap:8px;font-size:11px;letter-spacing:1.2px}
+  .lh-top{position:fixed!important;inset:0 0 auto!important;height:64px;display:flex!important;justify-content:flex-end!important;padding:0!important;z-index:90!important;pointer-events:none}
+  .lh-top>nav:first-child{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:14px;left:auto!important;grid-column:auto!important;justify-self:auto!important;pointer-events:auto}
+  .lh-top>nav:first-child .lh-top__menu{margin:0!important}
+  .lh-top__side--right{display:none!important}
   .lh-intro-page:not(.lh-chrome-in) .lh-top__brand{display:none}
   .lh-intro__brands{top:62px;gap:0 14px;flex-wrap:nowrap;justify-content:center}
   .lh-brand--main,.lh-brand--academy,.lh-brand--ai{height:58px;flex:0 0 auto}

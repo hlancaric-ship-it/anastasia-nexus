@@ -301,7 +301,7 @@ export const DICT = {
   'Odstrániť': ['Remove', 'Удалить'],
   'Preskočiť na obsah': ['Skip to content', 'Перейти к содержимому'],
   'Počet kusov': ['Number of items', 'Количество товаров'],
-  'ANASTASIA — domov': ['ANASTASIA — home', 'ANASTASIA — главная'],
+  'ANASTASIA OZ — domov': ['ANASTASIA OZ — home', 'ANASTASIA OZ — главная'],
   'ANASTASIA OZ': ['ANASTASIA OZ', 'ANASTASIA OZ'],
   'ANASTASIA.ACADEMY': ['ANASTASIA.ACADEMY', 'ANASTASIA.ACADEMY'],
   'ANASTASIA OZ — Light for the Future': ['ANASTASIA OZ — Light for the Future', 'ANASTASIA OZ — Light for the Future'],
@@ -314,7 +314,7 @@ export const DICT = {
   'Obchodné podmienky': ['Terms of business', 'Условия продажи'],
   'Súkromie a GDPR': ['Privacy and GDPR', 'Конфиденциальность и GDPR'],
   'Reklamácie': ['Complaints', 'Жалобы'],
-  '© 2026 ANASTASIA · Light for the Future': ['© 2026 ANASTASIA · Light for the Future', '© 2026 ANASTASIA · Light for the Future'],
+  '© 2026 ANASTASIA OZ · Light for the Future': ['© 2026 ANASTASIA OZ · Light for the Future', '© 2026 ANASTASIA OZ · Light for the Future'],
 
   // --- Úvod --------------------------------------------------------------
   'Kozmetika na mieru': ['Cosmetics made to measure', 'Косметика на заказ'],

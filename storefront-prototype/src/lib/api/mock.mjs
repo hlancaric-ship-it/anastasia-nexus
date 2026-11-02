@@ -32,7 +32,7 @@ const clone = value => structuredClone(value);
 const voucherVariants = [
   {id:'gv-50',title:'50,00 €'}, {id:'gv-100',title:'100,00 €'}, {id:'gv-200',title:'200,00 €'},
 ];
-const voucherProducts=voucherVariants.map(v=>({slug:v.id,code:v.id,name:'Darčekový poukaz',priceLabel:v.title,image:'/assets/brand-mark.svg',giftVoucher:true}));
+const voucherProducts=voucherVariants.map(v=>({slug:v.id,code:v.id,name:'Darčekový poukaz',priceLabel:v.title,image:'/assets/anastasia-oz-mark.png',giftVoucher:true}));
 const cartProducts=[...products,...voucherProducts];
 const memoryStorage = () => { const values = new Map(); return {getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)}; };
 const KEY='anastasia.skeleton.v1';

@@ -314,7 +314,7 @@ export function createHttpApi(storage, config) {
       name: (it.product_title || it.title || it.product?.title || 'Položka') + (it.variant_title && !/^(Štandard|Predvolené|Default.*)$/i.test(it.variant_title) && it.variant_title !== it.product_title ? ` · ${it.variant_title}` : ''),
       code: it.product_handle || it.product?.handle,
       priceLabel: money(it.unit_price),
-      image: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_IMAGE : publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/brand-mark.svg',base),
+      image: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_IMAGE : publicMedia(it.thumbnail || it.product?.thumbnail || '/assets/anastasia-oz-mark.png',base),
       category: (it.product?.metadata?.gift_voucher === true || it.product?.metadata?.gift_voucher === 'true') ? VOUCHER_CATEGORY : ((it.product?.categories || []).map(c => shopCategoryName(c.name)).find(n => SHOP_CATEGORIES.includes(n)) || ''),
       // Fyzickú položku určuje server (requires_shipping podľa prepravného profilu), digitálna má vždy 1 ks.
       physical: it.requires_shipping === true,
