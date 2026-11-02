@@ -24,3 +24,12 @@ Rozpracované změny větve A nejsou součástí tohoto auditu.
 ## Limity
 
 Neověřeno proti skutečnému backendu ani datům; prázdné fixture seznamy neprokazují správnost naplněných médií, ambasadorů, dopravy a uživatelů. Fonty ze sítě byly blokované, screenshoty používají lokálně dostupné fallbacky. Neproběhl test ukládání, mazání ani celkový audit přístupnosti. Backendový TypeScript a unit suite nespouštěny: audit nemění backend ani produktový kód. Implementační opravy patří Codexu A, poté je nutné opakovat cílené UI kontroly.
+
+
+## Následná implementace ve větvi B
+
+Na přímý pokyn Luckyho převzal opravy Codex B. Překlady používají vlastní tabulkovou třídu uvnitř lokálně posuvného `.ot-wrap`; tím se vyhnou mobilní transformaci `.ot` na blokové karty. Tabulka má minimální šířku 680 px a nezalamované akce. Kategorie mají cílenou minimální šířku názvu 160 px. Vzhled a pozvánka správce mají samostatnou třídu `compact-form`, maximálně 800 px a automatické boční okraje. Datové seznamy zůstávají široké.
+
+Ověření: `node --check anastasia-admin/app.mjs`, `git diff --check`, `node /private/tmp/codex-admin-fix-check.mjs` — 28/28 PASS při 320, 390 a 1440 px: žádné přetékání dokumentu, skutečné tabulkové řádky na mobilu, čitelná akce, filtrování, otevření editoru překladů, šířka názvu kategorie a vycentrování obou formulářů. Vizuálně překontrolován opravený mobilní seznam překladů a kategorií. Skripty a screenshoty jsou dočasné lokální artefakty. Backend a produkce beze změn; výše uvedené limity syntetických dat platí dál.
+
+Opakovaný plný průchod `node /private/tmp/codex-admin-audit-b.mjs`: 34/34 stavů bez přetečení dokumentu a viditelné chyby, 0 JS výjimek. Akce mimo počáteční výřez zůstávají uvnitř lokálně posuvných tabulek; cílený test ověřil otevření překladového editoru kliknutím na takovou akci.

@@ -1618,6 +1618,7 @@ async function vCategories(view) {
     { h: 'Nadradená kategória', v: c => esc(product_categories.find(p => p.id === c.parent_category_id)?.name || 'Hlavná kategória') },
     { h: 'Produkty', v: c => (c.products || []).length ? `<b>${(c.products || []).length}</b>` : '<span class="muted">0</span>' },
     { h: 'Na webe', v: c => c.is_active ? '<span class="pill ok">zobrazená</span>' : '<span class="pill off">skrytá</span>' }] });
+  view.querySelector('table')?.classList.add('category-grid');
 }
 async function vCategoryDetail(view, id) {
   view = freshView(view);
@@ -3806,8 +3807,8 @@ async function vTranslationsManager(view) {
         </div>
       </div>
 
-      <div class="tbl-wrap">
-        <table class="tbl">
+      <div class="ot-wrap translation-wrap">
+        <table class="translation-table">
           <thead>
             <tr>
               <th style="width:48px"></th>
@@ -3909,7 +3910,7 @@ async function vPouzivatelia(view, notice) {
     <div class="card" style="margin-bottom:16px"><div class="card-h">Správcovia</div><div class="card-b"><div class="rc-grid">${users.map(u => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc([u.first_name, u.last_name].filter(Boolean).join(' ') || u.email)}</div><div class="rc-fields">
       <span class="rc-f"><em>E-mail</em>${esc(u.email)}</span><span class="rc-f"><em>Od</em>${fmtDate(u.created_at)}</span>${ME && ME.id === u.id ? '<span class="pill ok">vy</span>' : ''}</div></div></div>`).join('')}</div>
       <p class="muted" style="font-size:12px;margin-top:10px">Každý správca má zatiaľ plný prístup do administrácie. Pozývajte len ľudí, ktorým dôverujete.</p></div></div>
-    <div class="card"><div class="card-h">Pozvať ďalšieho správcu</div><div class="card-b">
+    <div class="card compact-form"><div class="card-h">Pozvať ďalšieho správcu</div><div class="card-b">
       <form id="u-inv" class="row"><div><label>E-mail</label><input id="u-email" type="email" required></div><div style="align-self:end"><button class="btn gold" type="submit">Vytvoriť pozvánku</button></div></form>
       ${invites.length ? `<label style="margin-top:14px">Čakajúce pozvánky</label><div class="rc-grid">${invites.map(i => { const exp = i.expires_at && new Date(i.expires_at) < new Date();
         return `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(i.email)}</div><div class="rc-fields">
@@ -4704,7 +4705,7 @@ async function vAppearance(view) {
   if (!t) { view.innerHTML = '<div class="err">Vzhľad sa teraz nedá načítať. Skúste to znova.</div>'; return; }
   const custom = t.selection.scheme === 'custom';
   const forest = custom ? t.selection.navigation : THEME_DEFAULT.forest, gold = custom ? t.selection.accent : THEME_DEFAULT.gold;
-  view.innerHTML = `<div class="card"><div class="card-h">Vzhľad administrácie</div><div class="card-b">
+  view.innerHTML = `<div class="card compact-form"><div class="card-h">Vzhľad administrácie</div><div class="card-b">
     <div id="tmsg"></div>
     <p class="muted">Východzí je motív ANASTASIA v teplých farbách so zlatým akcentom a tmavou zelenou. Vlastné farby sa uložia k vášmu účtu, takže ich uvidíte na každom zariadení.</p>
     <div class="row">
