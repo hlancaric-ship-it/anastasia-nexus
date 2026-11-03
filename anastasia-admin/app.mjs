@@ -2421,7 +2421,7 @@ async function vCouponNew(view) {
     if (view.querySelector('#pn-target').value === 'products' && !view.querySelectorAll('#pn-plist [data-prod]:checked').length) {
       msg.innerHTML = '<div class="err">Vyberte aspoň jeden produkt, na ktorý zľava platí.</div>'; return;
     }
-    try { await api('/admin/promotions', { method: 'POST', body: couponBody(view, 'pn', code) }); await vCoupons(view); }
+    try { await api('/admin/promotions', { method: 'POST', body: couponBody(view, 'pn', code, { code }) }); await vCoupons(view); }
     catch (e) { msg.innerHTML = `<div class="err">Jadro odmietlo: ${esc(e.message)}</div>`; }
   };
 }
