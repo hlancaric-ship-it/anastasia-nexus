@@ -263,10 +263,13 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
         <div class="nl-grid">
           <section class="card nl-editor" aria-labelledby="nl-editor-h" data-no-fgrid>
             <div class="card-h"><h2 id="nl-editor-h" tabindex="-1" style="font:inherit;margin:0">Kampaň <span class="pill ${status[1]}">${esc(status[0])}</span></h2>
-              <div class="card-h-act"><button type="button" class="btn ghost" data-new>Nová kampaň</button></div>
+              <div class="card-h-act"><button type="button" class="btn ghost" data-new>Nová kampaň</button>
+                ${editing.status === 'queued' || editing.status === 'sending' ? '<button type="button" class="btn ghost" data-cancel>Zrušiť odosielanie</button>' : ''}
+                ${editable && editing.id ? '<button type="button" class="btn danger" data-delete>Zmazať koncept</button>' : ''}
+                ${editable ? '<button type="button" class="btn gold" data-save>Uložiť koncept</button><button type="button" class="btn gold" data-send>Odoslať všetkým</button>' : ''}</div>
             </div>
             <div class="card-b">
-              ${slot('top')}
+              ${slot('top')}${slot('save')}${slot('send')}
               <div class="nl-2">
                 <div><label for="nl-subject">Predmet</label>
                 <input id="nl-subject" maxlength="200" value="${esc(editing.subject)}" ${editable ? '' : 'disabled'} placeholder="Napríklad Novinky z ateliéru ANASTASIA"></div>
@@ -284,19 +287,12 @@ export function newsletterView({ api, esc, fmtDate, freshView, pickMedia, upload
               <textarea id="nl-body" rows="14" ${editable ? '' : 'disabled'} placeholder="Napíšte text kampane. Povolené je základné formátovanie.">${esc(editing.body_html)}</textarea>
               <p class="muted nl-note">Povolené sú odseky, nadpisy, tučné a kurzívne písmo, odrážky, odkazy a obrázky len cez https. Ostatné značky server pri uložení odstráni.</p>
               ${editable ? '<p class="nl-note"><button type="button" class="btn ghost" data-mode="sablona">Späť do formulára</button> <button type="button" class="btn ghost" data-mode="vzor">Začať znova podľa návrhu</button></p>' : ''}`}
-              <div class="nl-act">
-                ${editable ? '<button type="button" class="btn gold" data-save>Uložiť koncept</button>' : ''}
-                ${editable && editing.id ? '<button type="button" class="btn ghost" data-delete>Zmazať koncept</button>' : ''}
-                ${editing.status === 'queued' || editing.status === 'sending' ? '<button type="button" class="btn ghost" data-cancel>Zrušiť odosielanie</button>' : ''}
-              </div>
-              ${slot('save')}
               <hr style="border:0;border-top:1px solid var(--line-soft);margin:22px 0">
               <label for="nl-test">Testovací e-mail</label>
               <div class="nl-act" style="margin-top:0"><input id="nl-test" type="email" maxlength="254" placeholder="meno@l-code-dynamics.com" ${editable ? '' : 'disabled'}><button type="button" class="btn ghost" data-test ${editable ? '' : 'disabled'}>Poslať test</button></div>
               ${slot('test')}
               <p class="muted nl-note">Test odchádza len na adresy @l-code-dynamics.com. Odkaz na odhlásenie sa pridá, ak pre adresu existuje prihlásený súhlas.</p>
-              ${editable ? `<div class="nl-act" style="margin-top:16px"><button type="button" class="btn gold" data-send>Odoslať všetkým</button><span class="muted nl-note">Prihlásených teraz: ${esc(state.stats.subscribed ?? 0)}</span></div>
-                ${slot('send')}
+              ${editable ? `<p class="muted nl-note" style="margin-top:16px">„Odoslať všetkým“ je hore v lište. Prihlásených teraz: ${esc(state.stats.subscribed ?? 0)}.</p>
                 <p class="muted nl-note">Po potvrdení sa vytvorí zoznam príjemcov a e-maily odchádzajú postupne. Denný limit chráni doručiteľnosť.</p>` : ''}
             </div>
           </section>

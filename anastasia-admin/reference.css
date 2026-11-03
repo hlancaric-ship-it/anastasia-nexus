@@ -823,3 +823,8 @@ table.agenda-grid.coupon-grid thead th.ot-act,table.agenda-grid.coupon-grid tbod
 .pe-bar{position:sticky;top:8px;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .pe-bar .pe-nav{position:static;flex:1 1 auto;min-width:0}
 .pe-bar .pe-act{position:static;margin:0 0 0 auto;flex:none}.pe-bar .pe-act .btn{border-radius:999px;padding:10px 18px}
+/* Zoznamy (desktop): stĺpec s tlačidlom Otvoriť len tak široký ako tlačidlo, názov sa nikdy neláme uprostred slova. */
+@media(min-width:801px){
+table.agenda-grid tbody td.ot-act,table.lv:has(td.ot-act) thead th:last-child{width:1%;white-space:nowrap}
+table.agenda-grid tbody td.lv-title{min-width:220px;overflow-wrap:normal!important;word-break:normal!important;hyphens:none}
+}
