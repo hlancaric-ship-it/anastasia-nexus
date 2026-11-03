@@ -254,7 +254,7 @@ export const DICT = {
   'CHRÍPKOVÝ PRÁŠOK': ['FLU POWDER', 'ПОРОШОК ОТ ГРИППА'],
   'Nič nemusíš': ['You do not have to do anything', 'Тебе ничего не нужно делать'],
   'Tvoj sprcháč': ['Your shower gel', 'Ваш гель для душа'],
-  'JANČOVA antibiotická zmes': ['JANCA ANTIBIOTIC SPICE BLEND', 'АНТИБАКТЕРИАЛЬНАЯ СМЕСЬ ЯНЧА'],
+  'Jančova antibiotická zmes': ["Janca's antibiotic blend", 'Антибиотическая смесь Янчи'],
   'Tvoja pleťová voda osviežujúca': ['Your refreshing facial toner', 'Ваш освежающий тоник для лица'],
   'Nevyhnutné cookies používame na fungovanie webu a nákupu. Voliteľné cookies použijeme iba s vaším súhlasom. Voľbu môžete kedykoľvek zmeniť v Nastaveniach cookies. Podrobnosti nájdete v informáciách o cookies a ochrane osobných údajov.': ['We use essential cookies to run the website and process purchases. We use optional cookies only with your consent. You can change your choice at any time in Cookie settings. See our cookie and privacy information for details.', 'Необходимые файлы cookie нужны для работы сайта и покупок. Необязательные файлы cookie используются только с вашего согласия. Вы можете изменить свой выбор в любое время в настройках файлов cookie. Подробнее — в информации о файлах cookie и защите персональных данных.'],
   'Odmietnuť voliteľné': ['Reject optional', 'Отклонить необязательные'],
@@ -783,7 +783,8 @@ function productEntry(trimmed) {
   }
   return null;
 }
-const lookup = trimmed => DICT[trimmed] || productEntry(trimmed) || null;
+// Živé překlady produktů z API mají přednost před statickým slovníkem.
+const lookup = trimmed => productEntry(trimmed) || DICT[trimmed] || null;
 
 let productJson = null;
 function loadProductJson() {

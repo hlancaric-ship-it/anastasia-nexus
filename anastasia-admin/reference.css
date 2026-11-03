@@ -838,3 +838,16 @@ table.agenda-grid.customer-grid thead th.ot-check { width:38px!important; }
 table.agenda-grid.customer-grid thead th.ot-img { width:50px!important; }
 table.agenda-grid.customer-grid thead th.ot-act,
 table.agenda-grid.category-grid thead th:last-child { width:120px!important; }
+/* Detail produktu: záložky namiesto dlhej stránky. */
+.pe-grid > .pe-sec[hidden]{display:none!important}
+
+/* Podsekcie a záložky produktu: rozprestreté po celej šírke, tučné a výrazné (Lucky 3. 11.). */
+.app .head-actions #actions .pills{display:flex;width:100%;gap:6px;padding:6px;margin:0;border-radius:16px;background:var(--glass);border:1px solid rgba(164,129,191,.31);box-shadow:var(--shadow);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%)}
+.app .head-actions #actions .pills .pill{flex:1 1 0;display:flex;align-items:center;justify-content:center;text-align:center;min-height:46px;margin:0;padding:10px 14px;border:0!important;border-radius:12px;background:transparent!important;box-shadow:none!important;font-size:15px;font-weight:700;letter-spacing:.01em;color:var(--ink);white-space:nowrap;text-decoration:none}
+.app .head-actions #actions .pills .pill::after{display:none!important}
+.app .head-actions #actions .pills .pill:hover{background:var(--lav-soft)!important}
+.app .head-actions #actions .pills .pill.on{background:#49305e!important;color:#fff!important}
+.pe-bar .pe-nav{display:flex;gap:6px;padding:6px;border-radius:16px;flex-wrap:nowrap}
+.pe-bar .pe-nav button{flex:1 1 0;min-height:46px;padding:10px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:var(--ink);white-space:nowrap;text-align:center}
+.pe-bar .pe-nav button[aria-selected=true]{background:#49305e;color:#fff}
+html[data-theme=dark] .app .head-actions #actions .pills .pill.on,html[data-theme=dark] .pe-bar .pe-nav button[aria-selected=true]{background:var(--lav-deep)!important;color:#1d1724!important}

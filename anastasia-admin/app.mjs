@@ -1455,9 +1455,10 @@ async function vProductDetail(view, id, opts = {}) {
   };
   const renderChecks = () => { const box = view.querySelector('#p-checks'); if (!box) return;
     box.innerHTML = completeness().map(c => `<span class="pill ${c.ok ? 'ok' : c.block ? 'off' : 'warn'}" style="margin:0 6px 6px 0">${c.ok ? '✓' : c.block ? '✕' : '!'} ${esc(c.t)}</span>`).join(''); };
-  // Editor na jednej stránke: všetky sekcie pod sebou, horné kotvy len posúvajú na sekciu.
+  // Záložky: pod hlavičkou produktu je vždy len obsah jednej záložky, nič sa neroluje pod sebou.
   const SECTIONS = [['zaklad', 'Základ a cena'], ['popis', 'Popis'], ['foto', 'Fotografie'], ['predaj', 'Kategórie a predaj'], ['varianty', 'Varianty'], ['sklad', 'Sklad'], ['obsah', 'Zakúpený obsah'], ['jazyky', 'Jazykové mutácie']];
-  const sec = (key, n, title, html, wide) => `<section class="pe-sec${wide ? ' wide' : ''}" id="pe-${key}"><header><span class="pe-n">${n}</span><h2>${esc(title)}</h2></header>${html}</section>`;
+  const TAB_OF = { cena: 'zaklad', dorucenie: 'predaj' };
+  const sec = (key, n, title, html, wide) => `<section class="pe-sec${wide ? ' wide' : ''}" id="pe-${key}" data-tab="${TAB_OF[key] || key}"><header><span class="pe-n">${n}</span><h2>${esc(title)}</h2></header>${html}</section>`;
   const priceTxt = price?.amount != null ? new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(price.amount) : '–';
   view.innerHTML = `<div class="pe">
     <article class="pe-hero">
@@ -1469,7 +1470,7 @@ async function vProductDetail(view, id, opts = {}) {
         <div id="p-checks" class="pe-checks"></div>
       </div>
     </article>
-    <div class="pe-bar"><nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" data-jump="${k}">${esc(l)}</button>`).join('')}</nav>
+    <div class="pe-bar"><nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" role="tab" data-jump="${k}">${esc(l)}</button>`).join('')}</nav>
       <div class="pe-act card-h-act"><button type="button" class="btn ghost" id="p-back">Späť</button><button type="button" class="btn danger" id="p-del">Odstrániť produkt</button><button type="button" class="btn gold" id="p-save">Uložiť zmeny</button></div></div>
     <div id="pmsg">${opts.notice ? `<div class="notice">${esc(opts.notice)}</div>` : ''}</div>
     <div class="pe-grid">
@@ -1485,8 +1486,15 @@ async function vProductDetail(view, id, opts = {}) {
       ${sec('jazyky', '10', 'Jazykové mutácie (EN / RU)', jazyky, true)}
     </div>
   </div>`;
-  view.querySelectorAll('.pe-nav [data-jump]').forEach(b => b.onclick = () => view.querySelector(`#pe-${b.dataset.jump}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  if (opts.tab && opts.tab !== 'zaklad') requestAnimationFrame(() => view.querySelector(`#pe-${opts.tab}`)?.scrollIntoView({ block: 'start' }));
+  const showTab = key => {
+    const tab = SECTIONS.some(([k]) => k === key) ? key : 'zaklad';
+    view.querySelectorAll('.pe-grid > .pe-sec').forEach(s => { s.hidden = s.dataset.tab !== tab; });
+    view.querySelectorAll('.pe-nav [data-jump]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.jump === tab)));
+  };
+  view.querySelectorAll('.pe-nav [data-jump]').forEach(b => b.onclick = () => showTab(b.dataset.jump));
+  // Neplatné pole v skrytej záložke: prepni na ňu, aby ho prehliadač vedel ukázať.
+  view.querySelector('.pe-grid').addEventListener('invalid', e => { const t = e.target.closest('.pe-sec')?.dataset.tab; if (t) showTab(t); }, true);
+  showTab(opts.tab || 'zaklad');
   wireWysiwyg(view);
   const libraryEditor = await mountLibraryEditor(view.querySelector('#p-library'), { api, productId: id });
   mountVariantsEditor(view.querySelector('#p-variants'), { api, productId: id, canPrice: isOwner() }).catch(e => { if (e?.message === '401') renderLogin('Prihlásenie vypršalo.'); });
@@ -3844,14 +3852,14 @@ async function vTranslationsManager(view) {
             <span class="pill ${withRu === total ? 'ok' : 'warn'}">RU ${withRu}/${total}</span>
           </div>
         </div>
-        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;padding:16px 22px 20px;flex-wrap:wrap">
           <button type="button" class="btn ${filter === 'all' ? 'gold' : 'ghost'} sm" data-f="all">Všetky produkty (${total})</button>
           <button type="button" class="btn ${filter === 'missing_en' ? 'gold' : 'ghost'} sm" data-f="missing_en">Chýba EN (${total - withEn})</button>
           <button type="button" class="btn ${filter === 'missing_ru' ? 'gold' : 'ghost'} sm" data-f="missing_ru">Chýba RU (${total - withRu})</button>
         </div>
       </div>
 
-      <div class="ot-wrap translation-wrap">
+      <section class="card" style="padding:0;overflow:hidden"><div class="ot-wrap translation-wrap">
         <table class="translation-table">
           <thead>
             <tr>
@@ -3881,7 +3889,7 @@ async function vTranslationsManager(view) {
             }).join('') || '<tr><td colspan="5" class="empty">Žiadne produkty nezodpovedajú filtru.</td></tr>'}
           </tbody>
         </table>
-      </div>
+      </div></section>
     `;
 
     view.querySelectorAll('[data-f]').forEach(b => {
