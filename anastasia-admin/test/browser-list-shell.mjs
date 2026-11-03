@@ -15,17 +15,20 @@ try {
  const customers=Array.from({length:31},(_,i)=>({id:`cus_${i}`,first_name:`Zákazník ${String(i).padStart(2,'0')}`,last_name:'Test',email:`customer${i}@example.test`,created_at:'2026-10-01T10:00:00Z',tier_code:i%2?'ZR1':null,tier_name:i%2?'Bronze':null}));
  const promotions=Array.from({length:31},(_,i)=>({id:`promo_${i}`,code:i===0?'20ABC':i===1?'20AAA':`KOD${String(i).padStart(2,'0')}`,status:'active',used:i,limit:100,application_method:{type:'percentage',value:i+1}}));
  await page.addInitScript(()=>{localStorage.setItem('ana_api','http://127.0.0.1:9100');localStorage.setItem('ana_token','synthetic-list-test');localStorage.setItem('ana_tour_seen:list_owner','1')});
- let delayOld=false, releaseOld;
+ let delayOld=false, releaseOld, removedMedia=false;
  const oldResponseGate=new Promise(resolve=>{releaseOld=resolve});
  await page.route('**/*',async route=>{
   const req=route.request(),u=new URL(req.url());
   if(u.origin==='http://127.0.0.1:9100'){
    const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'*'};
    if(req.method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
-   if(req.method()!=='GET')writes.push({path:u.pathname,body:req.postDataJSON()});
+   if(req.method()!=='GET')writes.push({path:u.pathname,body:req.headers()['content-type']?.includes('application/json')?req.postDataJSON():null});
    let json={};
    if(u.pathname==='/admin/users/me')json={user:{id:'list_owner',email:'owner@example.test'}};
    if(u.pathname==='/admin/nexus/admin-roles')json={current_user_id:'list_owner',admins:[{id:'list_owner',role:'owner'}]};
+   if(u.pathname==='/admin/uploads')json={files:[{key:'upload_test',url:'https://example.test/upload.png',name:'upload.png',size:68,content_type:'image/png'}]};
+   if(req.method()==='DELETE'&&u.pathname.startsWith('/admin/media/'))removedMedia=true;
+   if(u.pathname==='/admin/media')json={files:Array.from({length:31},(_,i)=>({key:`test_${i}`,name:`Image ${String(i).padStart(2,'0')}`,url:'https://example.test/image.png',size:1024*(31-i),uploaded_at:'2026-11-03T12:00:00Z'})).filter(f=>!removedMedia||f.key!=='test_30')};
    if(u.pathname==='/admin/promotions')json={promotions,count:promotions.length};
    if(u.pathname==='/admin/orders')json={orders:customers.slice(0,5).map((c,i)=>({id:`order_${i}`,display_id:100+i,customer:c,email:c.email,created_at:c.created_at,status:'pending',payment_status:'captured',fulfillment_status:'not_fulfilled',total:123.45,shipping_methods:[{name:'Osobný odber'}],items:[{title:'Testovací produkt',variant_sku:'TEST-01',quantity:1}]})),count:5};
    if(/^\/admin\/orders\/order_\d+$/.test(u.pathname)){ const i=Number(u.pathname.split('_').pop()); json={order:{id:`order_${i}`,display_id:100+i,email:customers[i].email,created_at:customers[i].created_at,status:'pending',payment_status:'captured',fulfillment_status:'not_fulfilled',total:123.45,items:[],shipping_address:{first_name:'Test',address_1:'Testovacia 1',city:'Bratislava'},payment_collections:[]}}; }
@@ -125,6 +128,37 @@ try {
  await page.locator('#o-back').click();
  await page.locator('.ot-orders tbody tr[data-id]').first().waitFor();
  check(await page.locator('.ot-orders tbody tr[data-id]').count()===5,'back returns to orders');
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto(base+'/#/obsah/3');
+ await page.locator('#md-grid tr').first().waitFor();
+ check(await page.locator('#md-grid tr').count()===25,'media first page');
+ await page.locator('.st-pages [data-pg="1"]').first().click();
+ check(await page.locator('#md-grid tr').count()===6,'media second page');
+ await page.locator('.rc-search').fill('Image 30');
+ check(await page.locator('#md-grid tr').count()===1,'media search across pages');
+ await page.locator('.rc-search').fill('');
+ await page.locator('th[data-sort=size]').click();
+ check((await page.locator('#md-grid tr').first().textContent()).includes('Image 30'),'media numeric size ordering');
+ await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async value=>{window.copiedOrderValue=value}}}));
+ await page.locator('#md-grid [data-copy]').first().click();
+ check(await page.evaluate(()=>window.copiedOrderValue)==='https://example.test/image.png','media copy after redraw');
+ check(await page.locator('#md-file').getAttribute('accept').then(x=>x.includes('image/avif')),'media upload formats retained');
+ const beforeDelete=writes.length;
+ page.once('dialog',d=>d.dismiss());
+ await page.locator('#md-grid [data-del]').first().click();
+ check(writes.length===beforeDelete,'cancel media delete leaves API untouched');
+ page.once('dialog',d=>d.accept());
+ await page.locator('#md-grid [data-del]').first().click();
+ await page.waitForFunction(()=>document.querySelector('.st-total b')?.textContent==='30');
+ check(writes.at(-1).path==='/admin/media/test_30','delete targets sorted media row');
+ const chooserPromise=page.waitForEvent('filechooser');
+ await page.locator('#md-choose').click();
+ const chooser=await chooserPromise;
+ await chooser.setFiles({name:'upload.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5o4AAAAASUVORK5CYII=','base64')});
+ await page.waitForResponse(res=>res.url().endsWith('/admin/media')&&res.request().method()==='POST');
+ check(writes.at(-1).body.files[0].key==='upload_test','upload registered in media library');
+ await page.locator('#md-grid tr').first().waitFor();
+ await page.screenshot({path:join(tmpdir(),'anastasia-media-list-1440.png')});
  check(errors.length===0,`browser errors: ${errors.join('; ')}`);
  console.log(JSON.stringify({checks,passed:true,traffic:'synthetic only'}));
 } finally {await browser.close()}

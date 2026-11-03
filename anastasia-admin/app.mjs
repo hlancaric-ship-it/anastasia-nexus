@@ -2839,25 +2839,30 @@ const B_STATUS = { held: ['čaká na platbu', 'warn'], confirmed: ['potvrdená',
 const B_TABS = [{ id: '', label: 'Všetky' }, { id: 'confirmed', label: 'Potvrdené' }, { id: 'held', label: 'Čakajú na platbu' }, { id: 'completed', label: 'Prebehli' }, { id: 'canceled', label: 'Zrušené' }];
 async function vKonzultacie(view, st = {}) {
   view = freshView(view);
-  const status = st.status || '', offset = Math.max(0, st.offset | 0);
+  const limit = 25, status = st.status || '', offset = Math.max(0, st.offset | 0);
   const go = (patch) => vKonzultacie(view, { status, offset, ...patch });
   view.innerHTML = '<div class="muted">Načítavam konzultácie…</div>';
   let d, n;
   try {
-    d = await api(`/admin/bookings?limit=${PAGE_LIMIT}&offset=${offset}${status ? '&status=' + status : ''}`);
+    d = await api(`/admin/bookings?limit=${limit}&offset=${offset}${status ? '&status=' + status : ''}`);
     n = await namesFor((d.bookings || []).map(b => b.customer_id), (d.bookings || []).map(b => b.product_id));
   } catch (e) { return loadError(view, e, () => go({})); }
   const items = (d.bookings || []).map(b => ({ ...b, customer_label: n.cust(b.customer_id), product_label: n.prod(b.product_id) }));
-  // Stavové záložky patria do hornej lišty – rovnako ako v ostatných častiach administrácie.
-  setActions(`<div class="pills">${B_TABS.map(t => `<button class="pill ${t.id === status ? 'on' : ''}" data-st="${esc(t.id)}">${esc(t.label)}</button>`).join('')}</div>`);
-  document.querySelectorAll('#actions .own-actions .pill').forEach(b => b.onclick = () => go({ status: b.dataset.st, offset: 0 }));
-  view.innerHTML = pagedHtml({ tabs: null, active: status, items, count: d.count || 0, offset, empty: 'Zatiaľ tu nie sú žiadne konzultácie. Ako pridáte typy konzultácií a voľné termíny, rezervácie sa zobrazia tu.',
-    card: b => `<div class="rc-body"><div class="rc-title">${esc(b.customer_label)}</div><div class="rc-fields">
-      <span class="rc-f"><em>Termín</em>${fmtDate(b.starts_at)}</span><span class="rc-f"><em>Konzultácia</em>${esc(b.product_label)}</span>
-      <span class="rc-f"><em>Stav</em>${statusPill(B_STATUS, b.status)}</span></div></div>` });
-  wirePaged(view, { items, offset, go, open: b => vBookingDetail(view, b, () => go({})) });
+  view.innerHTML = `<section class="card ot-card st-card"><div class="st-head"><h1>Konzultácie</h1><div class="st-head-act"><button class="btn ghost" id="ics-export">Export kalendára (.ics)</button></div></div>
+    <div class="ot-filters" role="tablist">${B_TABS.map(t => `<button type="button" role="tab" data-status="${esc(t.id)}" aria-selected="${t.id === status}">${esc(t.label)}</button>`).join('')}</div>
+    ${stBar([], `<label>Stav<select name="status">${B_TABS.map(t => `<option value="${esc(t.id)}"${t.id === status ? ' selected' : ''}>${esc(t.label)}</option>`).join('')}</select></label>`)}
+    <div class="ot-wrap"><table class="ot lv st-table"><thead><tr><th>Zákazník</th><th>Termín</th><th>Konzultácia</th><th>Stav</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>
+    ${items.length ? items.map(b => `<tr data-id="${esc(b.id)}" tabindex="0" role="link"><td class="lv-title">${esc(b.customer_label)}</td><td>${fmtDate(b.starts_at)}</td><td>${esc(b.product_label)}</td><td>${statusPill(B_STATUS,b.status)}</td><td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">Zatiaľ tu nie sú žiadne konzultácie.</td></tr>'}
+    </tbody></table></div><div class="st-foot">${stPager(Number(d.count) || items.length, Math.floor(offset / limit), limit)}</div></section>`;
+  view.querySelectorAll('[data-status]').forEach(b => b.onclick = () => go({ status:b.dataset.status, offset:0 }));
+  stWireBar(view, { onFunc:()=>{}, onFilter:f=>go({ status:f.status || '', offset:0 }) });
+  view.querySelector('.st-filter').onreset = () => { go({ status:'', offset:0 }); };
+  view.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => go({ offset:Number(b.dataset.pg) * limit }));
+  view.querySelectorAll('tr[data-id]').forEach(tr => { const open=()=>vBookingDetail(view, items.find(b=>b.id===tr.dataset.id), ()=>go({})); tr.onclick=open; tr.onkeydown=e=>{if(e.target===tr && (e.key==='Enter'||e.key===' ')){e.preventDefault();open();}}; });
+  view.querySelector('[data-st=funcs]')?.closest('.st-dd')?.remove();
+  view.querySelector('.ot-wrap').style.position = 'relative';
+  stHelp(view);
   // Export kalendára (.ics) – termíny sa dajú pridať do kalendára na mobile aj na počítači.
-  setActions('<button class="btn ghost" id="ics-export">Export kalendára (.ics)</button>');
   const icsBtn = document.querySelector('#ics-export');
   if (icsBtn) icsBtn.onclick = () => {
     const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//ANASTASIA//Konzultacie//SK', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
@@ -3049,20 +3054,29 @@ const vSpravyMenu = (view) => subnav(view, [
 ]);
 async function vSpravy(view, st = {}) {
   view = freshView(view);
-  const status = st.status || 'open', offset = Math.max(0, st.offset | 0);
+  const limit = 25, status = st.status || 'open', offset = Math.max(0, st.offset | 0);
   const go = (patch) => vSpravy(view, { status, offset, ...patch });
   view.innerHTML = '<div class="muted">Načítavam správy…</div>';
-  setActions('<button type="button" class="btn gold" id="sp-new">+ Nová správa</button>');
-  const nb = document.querySelector('#sp-new'); if (nb) nb.onclick = () => vNewMessage(view);
   let d;
-  try { d = await api(`/admin/chat/conversations?status=${status}&limit=${PAGE_LIMIT}&offset=${offset}`); }
+  try { d = await api(`/admin/chat/conversations?status=${status}&limit=${limit}&offset=${offset}`); }
   catch (e) { return loadError(view, e, () => go({})); }
   const items = d.conversations || [];
-  view.innerHTML = (d.unread ? `<div class="notice">Neprečítané konverzácie: ${d.unread}</div>` : '') + pagedHtml({ tabs: C_TABS, active: status, items, count: d.count || 0, offset, empty: 'Zatiaľ tu nie sú žiadne konverzácie. Keď zákazník napíše z účtu na webe, správa sa zobrazí tu.',
-    card: c => `<div class="rc-body"><div class="rc-title">${c.unread ? '● ' : ''}${esc(c.customer?.name || c.customer?.email || 'Zákazník')}</div><div class="rc-fields">
-      <span class="rc-f"><em>Téma</em>${esc(c.subject || '—')}</span><span class="rc-f"><em>Posledná správa</em>${fmtDate(c.last_message_at)}</span>
-      <span class="rc-f">${c.unread ? '<span class="pill warn">neprečítaná</span>' : ''}${c.status === 'closed' ? '<span class="pill off">uzavretá</span>' : ''}${c.muted ? ' <span class="pill off">stlmená</span>' : ''}${c.customer?.chat_blocked ? ' <span class="pill off">chat zablokovaný</span>' : ''}</span></div></div>` });
-  wirePaged(view, { items, offset, go, open: c => vConversation(view, c.id, () => go({})) });
+  view.innerHTML = `<section class="card ot-card st-card"><div class="st-head"><h1>Správy</h1><div class="st-head-act"><button type="button" class="btn gold" id="sp-new">+ Nová správa</button></div></div>
+    <div class="ot-filters" role="tablist">${C_TABS.map(t=>`<button type="button" role="tab" data-status="${esc(t.id)}" aria-selected="${t.id===status}">${esc(t.label)}</button>`).join('')}</div>
+    ${d.unread ? `<div class="notice">Neprečítané konverzácie: ${Number(d.unread) || 0}</div>` : ''}
+    ${stBar([], `<label>Stav<select name="status">${C_TABS.map(t=>`<option value="${esc(t.id)}"${t.id===status?' selected':''}>${esc(t.label)}</option>`).join('')}</select></label>`)}
+    <div class="ot-wrap"><table class="ot lv st-table"><thead><tr><th>Zákazník</th><th>Téma</th><th>Posledná správa</th><th>Stav</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>
+    ${items.length ? items.map(c=>`<tr data-id="${esc(c.id)}" tabindex="0" role="link"><td class="lv-title">${c.unread?'● ':''}${esc(c.customer?.name || c.customer?.email || 'Zákazník')}</td><td>${esc(c.subject || '—')}</td><td>${fmtDate(c.last_message_at)}</td><td>${c.unread?'<span class="pill warn">neprečítaná</span>':''}${c.status==='closed'?'<span class="pill off">uzavretá</span>':''}${c.muted?' <span class="pill off">stlmená</span>':''}${c.customer?.chat_blocked?' <span class="pill off">chat zablokovaný</span>':''}</td><td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">Zatiaľ tu nie sú žiadne konverzácie.</td></tr>'}
+    </tbody></table></div><div class="st-foot">${stPager(Number(d.count) || items.length, Math.floor(offset / limit), limit)}</div></section>`;
+  view.querySelector('#sp-new').onclick=()=>vNewMessage(view);
+  view.querySelectorAll('[data-status]').forEach(b=>b.onclick=()=>go({status:b.dataset.status,offset:0}));
+  stWireBar(view,{onFunc:()=>{},onFilter:f=>go({status:f.status || 'open',offset:0})});
+  view.querySelector('.st-filter').onreset=()=>go({status:'open',offset:0});
+  view.querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>go({offset:Number(b.dataset.pg)*limit}));
+  view.querySelectorAll('tr[data-id]').forEach(tr=>{const open=()=>vConversation(view,tr.dataset.id,()=>go({}));tr.onclick=open;tr.onkeydown=e=>{if(e.target===tr&&(e.key==='Enter'||e.key===' ')){e.preventDefault();open();}};});
+  view.querySelector('[data-st=funcs]')?.closest('.st-dd')?.remove();
+  view.querySelector('.ot-wrap').style.position = 'relative';
+  stHelp(view);
 }
 // --- Správy → Šablóny odpovedí: opakovane používané texty ---
 // --- Správy → Nová správa: napísať zákazníkovi, ktorý ešte neodpovedal ---
@@ -3502,45 +3516,44 @@ async function vMediaLibrary(view) {
   let files = [];
   try { files = (await api('/admin/media')).files || []; }
   catch (e) { if (e.message === '401') throw e; view.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
-  const kb = (n) => (Number(n) / 1024).toFixed(0) + ' kB';
-  view.innerHTML = `<div class="card media-library"><div class="card-h">Knihovna obrázkov</div><div class="card-b">
-    <div id="md-msg"></div>
-    <p class="muted" style="margin-top:0">Obrázky, ktoré tu nahráte, sa uložia na server a môžete ich použiť na webe aj v e-mailoch.
-    Kliknutím na „Kopírovať URL“ skopírujete priamu adresu obrázka.</p>
-    <label class="md-drop" id="md-drop">
-      <input type="file" id="md-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple class="sr-only">
-      <b>Pretiahnite obrázky sem</b><span>alebo <u>vyberte z počítača</u> · JPG, PNG, WebP</span>
-    </label>
-    <button type="button" class="btn gold" id="md-upload" hidden>Nahrať obrázky</button>
-    <style>.md-drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 16px;margin-bottom:16px;border:1.5px dashed #c9bfe0;border-radius:12px;background:rgba(255,255,255,.6);cursor:pointer;text-align:center}.md-drop b{font-weight:500}.md-drop span{color:var(--muted);font-size:13px}.md-drop.over,.md-drop:hover{border-color:#73729c;background:#f4f2fa}</style>
-    <div class="media-grid" id="md-grid">${files.map(f => `<figure class="media-item">
-        <img src="${esc(f.url)}" alt="${esc(f.name)}" loading="lazy">
-        <figcaption><b title="${esc(f.name)}">${esc(f.name)}</b><small>${kb(f.size)} · ${fmtDate(f.uploaded_at)}</small>
-          <div class="media-act">
-            <button type="button" class="btn ghost sm" data-copy="${esc(f.url)}">Kopírovať URL</button>
-            <a class="btn ghost sm" href="${esc(f.url)}" target="_blank" rel="noopener">Otvoriť</a>
-            <button type="button" class="btn ghost sm danger" data-del="${esc(f.key)}" data-name="${esc(f.name)}">Zmazať</button>
-          </div></figcaption></figure>`).join('')}</div>
-    ${files.length ? '' : '<div class="empty">Zatiaľ tu nie je žiadny obrázok. Nahrajte prvý obrázok vyššie.</div>'}
-  </div></div>`;
-  const msg = view.querySelector('#md-msg');
-  view.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
-    const ok = await copyToClipboard(b.dataset.copy, b);
-    if (!ok) msg.innerHTML = '<div class="err">Prehliadač nedovolil skopírovať. Adresu skopírujte ručne.</div>';
-  });
-  view.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
-    const name = b.dataset.name || 'obrázok';
-    if (!confirm(`Naozaj zmazať obrázok „${name}“? Súbor sa odstráni zo servera.`)) return;
-    msg.innerHTML = ''; b.disabled = true;
-    try {
-      await api(`/admin/media/${encodeURIComponent(b.dataset.del)}`, { method: 'DELETE' });
-      msg.innerHTML = '<div class="ok">Obrázok je zmazaný.</div>';
-      await vMediaLibrary(view);
-    } catch (e) {
-      if (e.message !== '401') msg.innerHTML = `<div class="err">${esc(e.message)}</div>`;
-      b.disabled = false;
+  let query = '', page = 0;
+  const sort = { key: 'date', dir: -1 };
+  const keys = { name: f => f.name || '', size: f => Number(f.size) || 0, date: f => new Date(f.uploaded_at).getTime() || 0 };
+  view.innerHTML = `<section class="card media-library st-card"><div class="st-head"><h1>Médiá</h1><div class="st-head-act">
+    <input class="rc-search" type="search" aria-label="Hľadať obrázky" placeholder="Hľadať názov obrázka…">
+    <button type="button" class="btn gold" id="md-choose">+ Nahrať obrázky</button></div></div>
+    <div class="card-b"><div id="md-msg" role="status"></div>
+    <label class="md-drop" id="md-drop"><input type="file" id="md-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple class="sr-only">
+    <b>Pretiahnite obrázky sem</b><span>alebo vyberte z počítača · JPG, PNG, WebP, GIF, AVIF do 12 MB</span></label>
+    <button type="button" class="btn gold" id="md-upload" hidden>Nahrať obrázky</button></div>
+    <div class="ot-wrap"><table class="ot lv agenda-grid st-table media-table"><thead><tr><th class="ot-img"><span class="sr-only">Náhľad</span></th><th data-sort="name">Názov</th><th data-sort="size">Veľkosť</th><th data-sort="date">Nahraté</th><th>Akcie</th></tr></thead><tbody id="md-grid"></tbody></table></div><div class="st-foot"></div></section>`;
+  const msg = view.querySelector('#md-msg'), grid = view.querySelector('#md-grid');
+  const draw = () => {
+    const list = files.filter(f => (f.name || '').toLocaleLowerCase('sk').includes(query)).sort((a,b) => stCmp(keys[sort.key](a), keys[sort.key](b)) * sort.dir);
+    page = Math.max(0, Math.min(page, Math.ceil(list.length / LIST_PAGE_SIZE) - 1));
+    grid.innerHTML = list.slice(page * LIST_PAGE_SIZE, (page + 1) * LIST_PAGE_SIZE).map(f => `<tr>
+      <td class="ot-img"><img src="${esc(f.url)}" alt="" loading="lazy" width="32" height="32"></td><td class="lv-title">${esc(f.name)}</td>
+      <td>${(Number(f.size) / 1024).toFixed(0)} kB</td><td>${fmtDate(f.uploaded_at)}</td>
+      <td><div class="media-act"><button type="button" class="btn ghost sm" data-copy="${esc(f.url)}">Kopírovať URL</button>
+      <a class="btn ghost sm" href="${esc(f.url)}" target="_blank" rel="noopener">Otvoriť</a>
+      <button type="button" class="btn ghost sm danger" data-del="${esc(f.key)}" data-name="${esc(f.name)}">Zmazať</button></div></td></tr>`).join('') || `<tr><td colspan="5" class="empty">${query ? 'Žiadne obrázky nezodpovedajú hľadaniu.' : 'Zatiaľ tu nie je žiadny obrázok.'}</td></tr>`;
+    const foot = view.querySelector('.st-foot'); foot.innerHTML = stPager(list.length, page, LIST_PAGE_SIZE);
+    foot.querySelectorAll('[data-pg]').forEach(btn => btn.onclick = () => { page = Number(btn.dataset.pg); draw(); });
+  };
+  grid.onclick = async (e) => {
+    const b = e.target.closest('[data-copy],[data-del]'); if (!b) return;
+    if (b.hasAttribute('data-copy')) {
+      if (!await copyToClipboard(b.dataset.copy, b)) msg.innerHTML = '<div class="err">Prehliadač nedovolil skopírovať. Adresu skopírujte ručne.</div>';
+      return;
     }
-  });
+    if (!confirm(`Naozaj zmazať obrázok „${b.dataset.name || 'obrázok'}“? Súbor sa odstráni zo servera.`)) return;
+    msg.innerHTML = ''; b.disabled = true;
+    try { await api(`/admin/media/${encodeURIComponent(b.dataset.del)}`, { method: 'DELETE' }); await vMediaLibrary(view); }
+    catch (err) { if (err.message !== '401') msg.innerHTML = `<div class="err">${esc(err.message)}</div>`; b.disabled = false; }
+  };
+  view.querySelector('.rc-search').oninput = e => { query = e.target.value.trim().toLocaleLowerCase('sk'); page = 0; draw(); };
+  view.querySelector('#md-choose').onclick = () => view.querySelector('#md-file').click();
+  stWireSort(view.querySelector('table'), sort, draw); stHelp(view); draw();
   const upload = view.querySelector('#md-upload');
   // Výber alebo pretiahnutie súborov hneď spustí nahrávanie.
   const drop = view.querySelector('#md-drop'), fileInput = view.querySelector('#md-file');
@@ -3603,10 +3616,10 @@ async function vAmbasadori(view) {
 
   view.innerHTML = `
     ${kpis}
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-h">
-        Ambasádori
-        <div class="card-h-act">
+    <div class="card ot-card st-card" style="margin-bottom:16px">
+      <div class="st-head">
+        <h1>Ambasádori</h1>
+        <div class="st-head-act"><input type="search" class="rc-search" id="am-search" aria-label="Hľadať ambasádorov" placeholder="Hľadať meno, e-mail alebo kód…">
           <button class="btn primary" id="am-btn-new">+ Nový ambasádor</button>
         </div>
       </div>
@@ -3634,24 +3647,24 @@ async function vAmbasadori(view) {
           </div>
         </div>
 
-        ${ambassadors.length ? `
+        ${stBar([], `<label>Stav<select name="status"><option value="">Všetky</option>${Object.entries(AMBASSADOR_STATUS).map(([id,v])=>`<option value="${esc(id)}">${esc(v[0])}</option>`).join('')}</select></label>`)}
           <div class="ot-wrap">
-            <table class="ot lv">
+            <table class="ot lv st-table">
               <thead>
                 <tr>
-                  <th>Meno a kontakt</th>
-                  <th>Kód odporúčania</th>
-                  <th>Provízia (%)</th>
-                  <th>Objednávky</th>
-                  <th>Obrat</th>
-                  <th>Provízia spolu</th>
-                  <th>K výplate</th>
-                  <th>Stav</th>
+                  <th data-sort="name">Meno a kontakt</th>
+                  <th data-sort="code">Kód odporúčania</th>
+                  <th data-sort="commission_percent">Provízia (%)</th>
+                  <th data-sort="orders_count">Objednávky</th>
+                  <th data-sort="revenue">Obrat</th>
+                  <th data-sort="commission_total">Provízia spolu</th>
+                  <th data-sort="commission_pending">K výplate</th>
+                  <th data-sort="status">Stav</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                ${ambassadors.map(a => `
+                ${ambassadors.length ? ambassadors.map(a => `
                   <tr data-id="${esc(a.id)}" tabindex="0" role="link">
                     <td><b>${esc(a.name)}</b><br><small class="muted">${esc(a.email)}</small></td>
                     <td><code>${esc(a.code)}</code></td>
@@ -3663,11 +3676,11 @@ async function vAmbasadori(view) {
                     <td>${statusPill(AMBASSADOR_STATUS, a.status || 'draft')}</td>
                     <td style="text-align:right"><button class="btn ghost" style="padding:4px 8px;font-size:12px" data-open="${esc(a.id)}">Detail →</button></td>
                   </tr>
-                `).join('')}
+                `).join('') : '<tr><td colspan="9" class="empty">Zatiaľ nemáte žiadnych ambasádorov.</td></tr>'}
               </tbody>
             </table>
           </div>
-        ` : '<div class="empty">Zatiaľ nemáte žiadnych ambasádorov. Kliknite na <b>+ Nový ambasádor</b> a pridajte prvého.</div>'}
+        <div class="st-foot" id="am-foot"></div>
       </div>
     </div>
 
@@ -3703,6 +3716,34 @@ async function vAmbasadori(view) {
       </div>
     </div>
   `;
+
+  let listPage=0, listQuery='', listStatus='';
+  const listSort={key:'',dir:1}, listTable=view.querySelector('table.st-table');
+  const listRows=[...listTable.querySelectorAll('tbody tr[data-id]')];
+  const emptyRow=document.createElement('tr');
+  emptyRow.innerHTML='<td colspan="9" class="empty">Žiadne položky nezodpovedajú výberu.</td>';
+  listTable.querySelector('tbody').append(emptyRow);
+  const drawList=()=>{
+    const filtered=ambassadors.filter(a=>(!listStatus||a.status===listStatus)&&(!listQuery||[a.name,a.email,a.code].join(' ').toLocaleLowerCase('sk').includes(listQuery)));
+    if(listSort.key) filtered.sort((a,b)=>stCmp(a[listSort.key],b[listSort.key])*listSort.dir);
+    listPage=Math.max(0,Math.min(listPage,Math.ceil(filtered.length/25)-1));
+    const ids=new Set(filtered.slice(listPage*25,(listPage+1)*25).map(a=>a.id));
+    listRows.forEach(row=>{row.hidden=!ids.has(row.dataset.id);});
+    // Append in sorted order, preserving the existing row/button listeners.
+    const byId=new Map(listRows.map(row=>[row.dataset.id,row]));
+    filtered.forEach(a=>listTable.querySelector('tbody').append(byId.get(a.id)));
+    emptyRow.hidden=filtered.length>0 || ambassadors.length===0;
+    const foot=view.querySelector('#am-foot');foot.innerHTML=stPager(filtered.length,listPage,25);
+    foot.querySelectorAll('[data-pg]').forEach(btn=>btn.onclick=()=>{listPage=Number(btn.dataset.pg);drawList();});
+  };
+  view.querySelector('#am-search').oninput=e=>{listQuery=e.target.value.trim().toLocaleLowerCase('sk');listPage=0;drawList();};
+  stWireBar(view,{onFunc:()=>{},onFilter:f=>{listStatus=f.status||'';listPage=0;drawList();}});
+  view.querySelector('.st-filter').onreset=()=>{listStatus='';listPage=0;drawList();};
+  stWireSort(listTable,listSort,()=>{listPage=0;drawList();});
+  view.querySelector('[data-st=funcs]')?.closest('.st-dd')?.remove();
+  view.querySelector('.ot-wrap').style.position = 'relative';
+  stHelp(view);
+  drawList();
 
   // Bind new ambassador toggle and save
   const newBox = view.querySelector('#am-new-box');
@@ -3762,6 +3803,7 @@ async function vAmbasadori(view) {
 
   // Click on row to open detail
   view.querySelectorAll('[data-id]').forEach(row => {
+    row.onkeydown=e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();vAmbasadorDetail(view,row.dataset.id);}};
     row.onclick = (e) => {
       if (e.target.closest('button')) return;
       vAmbasadorDetail(view, row.dataset.id);
