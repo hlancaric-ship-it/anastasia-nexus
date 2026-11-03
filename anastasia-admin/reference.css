@@ -851,3 +851,13 @@ table.agenda-grid.category-grid thead th:last-child { width:120px!important; }
 .pe-bar .pe-nav button{flex:1 1 0;min-height:46px;padding:10px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:var(--ink);white-space:nowrap;text-align:center}
 .pe-bar .pe-nav button[aria-selected=true]{background:#49305e;color:#fff}
 html[data-theme=dark] .app .head-actions #actions .pills .pill.on,html[data-theme=dark] .pe-bar .pe-nav button[aria-selected=true]{background:var(--lav-deep)!important;color:#1d1724!important}
+/* Detail produktu: záložky a ich obsah sú jedna karta, žiadna medzera ani rozdelené okná (Lucky 3. 11.). */
+.pe-panel{margin-top:16px;border-radius:20px;background:var(--glass);border:1px solid rgba(164,129,191,.31);box-shadow:var(--shadow);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%);overflow:visible}
+.pe-panel .pe-bar{position:sticky;top:0;z-index:20;margin:0;padding:0;background:transparent}
+.pe-panel .pe-bar .pe-nav{width:100%;margin:0;border:0!important;border-bottom:1px solid rgba(164,129,191,.25)!important;border-radius:20px 20px 0 0!important;box-shadow:none!important;background:var(--glass)!important;padding:8px}
+.pe-panel #pmsg:empty{display:none}.pe-panel #pmsg{padding:12px 24px 0}
+.pe-panel .pe-grid{gap:0!important;padding:8px 8px 12px;align-items:stretch}
+.pe-panel .pe-sec{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:20px 22px!important}
+.pe-panel .pe-grid>.pe-sec:not([hidden])+.pe-sec:not([hidden]):not(.wide){border-left:1px solid rgba(164,129,191,.22)!important}
+.pe-hero-body .pe-act{position:static;margin-top:auto;justify-content:flex-end}
+.pe-panel .pe-grid>.pe-sec:not([hidden])~.pe-sec.wide:not([hidden]){border-top:1px solid rgba(164,129,191,.22)!important}

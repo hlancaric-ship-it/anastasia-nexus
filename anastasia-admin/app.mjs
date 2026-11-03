@@ -1468,10 +1468,11 @@ async function vProductDetail(view, id, opts = {}) {
         <h1 class="pe-title">${esc(p.title)}</h1>
         <div class="pe-price"><b>${priceTxt}</b><small>EUR</small>${saleOn && sale.akcna_cena ? `<em>akcia ${esc(String(sale.akcna_cena))} €</em>` : ''}</div>
         <div id="p-checks" class="pe-checks"></div>
+        <div class="pe-act card-h-act"><button type="button" class="btn ghost" id="p-back">Späť</button><button type="button" class="btn danger" id="p-del">Odstrániť produkt</button><button type="button" class="btn gold" id="p-save">Uložiť zmeny</button></div>
       </div>
     </article>
-    <div class="pe-bar"><nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" role="tab" data-jump="${k}">${esc(l)}</button>`).join('')}</nav>
-      <div class="pe-act card-h-act"><button type="button" class="btn ghost" id="p-back">Späť</button><button type="button" class="btn danger" id="p-del">Odstrániť produkt</button><button type="button" class="btn gold" id="p-save">Uložiť zmeny</button></div></div>
+    <div class="pe-panel">
+    <div class="pe-bar"><nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" role="tab" data-jump="${k}">${esc(l)}</button>`).join('')}</nav></div>
     <div id="pmsg">${opts.notice ? `<div class="notice">${esc(opts.notice)}</div>` : ''}</div>
     <div class="pe-grid">
       ${sec('zaklad', '01', 'Základné údaje', zakladne)}
@@ -1484,6 +1485,7 @@ async function vProductDetail(view, id, opts = {}) {
       ${sec('sklad', '08', 'Sklad', sklad, true)}
       ${sec('obsah', '09', 'Zakúpený obsah', '<div id="p-library"></div>', true)}
       ${sec('jazyky', '10', 'Jazykové mutácie (EN / RU)', jazyky, true)}
+    </div>
     </div>
   </div>`;
   const showTab = key => {
