@@ -652,20 +652,22 @@ table.agenda-grid.category-grid tbody td.lv-title {
 
 /* Compact, balanced agendas; horizontal scrolling belongs to tables on mobile. */
 table.agenda-grid.category-grid { table-layout:fixed!important; min-width:800px; }
-table.category-grid th:nth-child(1) { width:23%; }
-table.category-grid th:nth-child(2) { width:25%; }
-table.category-grid th:nth-child(3) { width:23%; }
+/* Percentá + pevný stĺpec akcie musia dať spolu najviac 100 %, inak tlačidlo Otvoriť vypadne z karty. */
+table.category-grid th:nth-child(1) { width:21%; }
+table.category-grid th:nth-child(2) { width:23%; }
+table.category-grid th:nth-child(3) { width:21%; }
 table.category-grid th:nth-child(4) { width:8%; }
-table.category-grid th:nth-child(5) { width:11%; }
+table.category-grid th:nth-child(5) { width:10%; }
 table.category-grid th:last-child { width:110px; }
-table.agenda-grid.customer-grid { table-layout:fixed!important; min-width:1100px; }
+table.agenda-grid.customer-grid { table-layout:fixed!important; min-width:900px; }
 table.customer-grid th:nth-child(1) { width:38px; }
 table.customer-grid th:nth-child(2) { width:50px; }
-table.customer-grid th:nth-child(3) { width:23%; }
-table.customer-grid th:nth-child(4) { width:29%; }
-table.customer-grid th:nth-child(5) { width:10%; }
-table.customer-grid th:nth-child(6) { width:12%; }
-table.customer-grid th:nth-child(7) { width:16%; }
+table.customer-grid th:nth-child(3) { width:22%; }
+table.customer-grid th:nth-child(4) { width:26%; }
+table.customer-grid th:nth-child(5) { width:8%; }
+table.customer-grid th:nth-child(6) { width:10%; }
+table.customer-grid th:nth-child(7) { width:12%; }
+table.agenda-grid tbody .ot-img .thumb.ini { display:grid!important; place-items:center; background:var(--lav-soft)!important; color:var(--lav-deep); border-color:transparent!important; font-size:12px; font-weight:600; letter-spacing:.02em; }
 table.customer-grid th:last-child { width:110px; }
 table.agenda-grid.customer-grid tbody td.lv-title,
 table.agenda-grid.customer-grid tbody td[data-label="E-mail"] {
@@ -828,3 +830,6 @@ table.agenda-grid.coupon-grid thead th.ot-act,table.agenda-grid.coupon-grid tbod
 table.agenda-grid tbody td.ot-act,table.lv:has(td.ot-act) thead th:last-child{width:1%;white-space:nowrap}
 table.agenda-grid tbody td.lv-title{min-width:220px;overflow-wrap:normal!important;word-break:normal!important;hyphens:none}
 }
+
+/* Checkbox „označiť všetky“ v produktoch sedí v rovnakom stĺpci ako checkboxy riadkov. */
+table.product-grid:has(#p-pick-all) thead th.ot-check { display:table-cell!important; width:38px!important; padding:12px 14px!important; text-align:center!important; }

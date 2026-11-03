@@ -2158,7 +2158,7 @@ async function vCustomers(view) {
         : '<span class="muted">—</span>';
       return `<tr data-id="${esc(c.id)}" tabindex="0" role="link">
         <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákazníka" ${selected.has(c.id) ? 'checked' : ''}></td>
-        <td class="ot-img lv-media"><span class="thumb" style="display:grid;place-items:center;font-weight:600;color:var(--forest)">${esc(av)}</span></td>
+        <td class="ot-img lv-media"><span class="thumb ini">${esc(av)}</span></td>
         <td class="lv-title">${esc(nm || c.email)}</td>
         <td data-label="E-mail">${esc(c.email)}</td>
         <td data-label="Úroveň">${tierCell}</td>
@@ -2526,7 +2526,9 @@ async function namesFor(customerIds, productIds) {
   ]);
   const cust = new Map((cs.customers || []).map(c => [c.id, [c.first_name, c.last_name].filter(Boolean).join(' ') || c.email || c.id]));
   const prod = new Map((ps.products || []).map(x => [x.id, x.title]));
-  return { cust: id => cust.get(id) || id || '—', prod: id => prod.get(id) || id || '—' };
+  // Surové ID (guest:cart_…, cus_…) Lucii nič nepovie – hosť bez účtu alebo zmazaný profil dostane čitateľný popis.
+  const custLabel = id => cust.get(id) || (!id ? '—' : String(id).startsWith('guest:') ? 'Hosť bez účtu' : 'Zákazník bez profilu');
+  return { cust: custLabel, prod: id => prod.get(id) || id || '—' };
 }
 
 // --- Darčekové poukazy (/admin/vouchers*) — kód je vždy maskovaný, zostatky počíta jadro ---
