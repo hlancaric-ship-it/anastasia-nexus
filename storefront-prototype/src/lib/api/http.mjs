@@ -5,6 +5,8 @@ import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES, shopCategoryName, VOUCHER_CATEGO
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
 const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena sa doplní');
+// Číslo objednávky = variabilný symbol: rok vytvorenia + poradové číslo na 6 miest (2026000088); ďalší rok sa mení len rok.
+const orderNo = o => { const d = String(o?.display_id ?? '').trim(); if (!/^\d{1,6}$/.test(d)) return d; const y = new Date(o?.created_at || Date.now()); return `${Number.isNaN(y.getTime()) ? new Date().getUTCFullYear() : y.getUTCFullYear()}${d.padStart(6, '0')}`; };
 const NAME_BY_HANDLE=Object.fromEntries(Object.entries(SHOP_CATEGORY_HANDLES).map(([name,handle])=>[handle,name]));
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Biokozmetika: 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
@@ -919,7 +921,7 @@ export function createHttpApi(storage, config) {
         const tracking = (o.fulfillments || []).flatMap(f => f.labels || []).filter(l => l && (l.tracking_number || l.tracking_url)).map(l => ({ number: l.tracking_number || '', url: /^https:\/\//.test(l.tracking_url || '') ? l.tracking_url : '' }));
         const status = o.status === 'canceled' ? ORDER_STATUS.canceled : SHIP[o.fulfillment_status] || ORDER_STATUS[o.status] || 'Prijatá';
         return {
-          id: o.id, legacy: Boolean(o.metadata?.legacy_customer_migration), number: String(o.metadata?.legacy_customer_migration?.number || o.display_id || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
+          id: o.id, legacy: Boolean(o.metadata?.legacy_customer_migration), number: String(o.metadata?.legacy_customer_migration?.number || orderNo(o) || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
           product: items[0]?.title || '—', items, tracking,
           status, statusKey: o.status === 'canceled' ? 'canceled' : o.fulfillment_status === 'delivered' ? 'delivered' : SHIP[o.fulfillment_status] ? 'shipped' : 'placed',
           totalLabel: money(o.total), subtotalLabel: money(o.subtotal), shippingLabel: money(o.shipping_total), taxLabel: money(o.tax_total), discountLabel: o.discount_total ? money(o.discount_total) : '',

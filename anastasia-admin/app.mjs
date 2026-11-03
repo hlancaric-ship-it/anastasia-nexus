@@ -10,6 +10,8 @@ const fmtEur = (a) => (a == null ? '—' : new Intl.NumberFormat('sk-SK', { styl
 const fmtDate = (d) => d ? new Date(d).toLocaleString('sk-SK', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 // Variabilný symbol prevodu: rok a číslo objednávky na 6 miest (10 číslic, zhodné s číslom faktúry bez písmen FA).
 const orderVs = (o) => `${new Date(o?.created_at || Date.now()).getUTCFullYear()}${String(o?.display_id || '').replace(/\D/g, '').padStart(6, '0')}`;
+// Číslo objednávky všade v administrácii = variabilný symbol (2026000088); objednávky zo Shoptetu majú pôvodné číslo.
+const orderNo = (o) => String(o?.metadata?.legacy_customer_migration?.number || (o?.display_id != null && o.display_id !== '' ? orderVs(o) : o?.id || ''));
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // Krátky, čitateľný kód zákazníka (prvých 8 znakov ID) – rovnaký sa používa v celom administrácii.
 const custCode = (id) => { const s = String(id ?? ''); return s.length > 12 ? `${s.slice(0, 10)}…` : s; };
@@ -379,13 +381,14 @@ function wireSideSearch() {
     if (q.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false; box.innerHTML = '<div class="muted">Hľadám…</div>';
     const [o, p, c] = await Promise.all([
-      api(`/admin/orders?q=${encodeURIComponent(q)}&limit=5`).catch(() => null),
+      // Dlhé číslo objednávky (2026000088) hľadáme podľa poradového čísla na konci.
+      api(`/admin/orders?q=${encodeURIComponent(/^20\d{8}$/.test(q.trim()) ? String(Number(q.trim().slice(4))) : q)}&limit=5`).catch(() => null),
       api(`/admin/products?q=${encodeURIComponent(q)}&limit=5`).catch(() => null),
       api(`/admin/customers?q=${encodeURIComponent(q)}&limit=5`).catch(() => null),
     ]);
     if (revision !== searchRevision || input.value.trim() !== q) return;
     const groups = [
-      { label: 'Objednávky', hash: '#/objednavky', rows: (o?.orders || []).map(x => `#${x.display_id ?? ''} · ${x.email || ''}`) },
+      { label: 'Objednávky', hash: '#/objednavky', rows: (o?.orders || []).map(x => `${orderNo(x)} · ${x.email || ''}`) },
       { label: 'Produkty', hash: '#/produkty', rows: (p?.products || []).map(x => x.title) },
       { label: 'Zákazníci', hash: '#/zakaznicky', rows: (c?.customers || []).map(x => [x.first_name, x.last_name].filter(Boolean).join(' ') || x.email) },
     ].filter(g => g.rows.length);
@@ -447,14 +450,14 @@ async function loadBellMenu() {
     body.innerHTML = '<p class="side-empty">Načítavam…</p>';
     const soft = (p) => api(p).catch(e => { if (e.message === '401') throw e; return null; });
     const [o, c, inv, prod] = await Promise.all([
-      soft('/admin/orders?limit=5&order=-created_at&fields=id,display_id,created_at,payment_status,fulfillment_status,status'),
+      soft('/admin/orders?limit=5&order=-created_at&fields=id,display_id,metadata,created_at,payment_status,fulfillment_status,status'),
       soft('/admin/chat/conversations?status=open&limit=5'),
       soft('/admin/inventory-items?limit=200&fields=id,sku,*location_levels'),
       soft('/admin/products?limit=100&fields=id,title,*variants.sku'),
     ]);
     const unread = Number(c?.unread) || 0;
     const notif = [];
-    for (const x of (o?.orders || []).slice(0, 3)) notif.push({ icon: 'bag', tone: 'lav', title: `Nová objednávka #${x.display_id ?? ''}`, time: x.created_at, href: '#/objednavky' });
+    for (const x of (o?.orders || []).slice(0, 3)) notif.push({ icon: 'bag', tone: 'lav', title: `Nová objednávka ${orderNo(x)}`, time: x.created_at, href: '#/objednavky' });
     if (unread > 0) notif.push({ icon: 'chat', tone: 'lav', title: `${unread} neprečítaných správ`, time: null, href: '#/spravy' });
     for (const s of lowStockFrom(inv?.inventory_items || [], prod?.products || []).slice(0, 2)) notif.push({ icon: 'box2', tone: 'warn', title: `Nízky sklad: ${s.title} (${s.stock} ks)`, time: null, href: '#/produkty' });
     BELL = { notif, unread, toFulfill: BADGES.orders || 0 };
@@ -644,7 +647,7 @@ async function vDashboard(view) {
   await loadMe(); setUserChip();
   // Všetky čísla v prehľade pochádzajú z jadra – žiadne vymyšlené hodnoty.
   const [ordersRes, custRes, prodRes, catRes, invRes, chatRes, bookRes, readiness] = await Promise.all([
-    soft('/admin/orders?limit=500&order=-created_at&fields=id,display_id,status,payment_status,fulfillment_status,created_at,total,email,customer_id,*items,*customer,*shipping_address'),
+    soft('/admin/orders?limit=500&order=-created_at&fields=id,display_id,metadata,status,payment_status,fulfillment_status,created_at,total,email,customer_id,*items,*customer,*shipping_address'),
     soft('/admin/customers?limit=500&fields=id,email,first_name,last_name,created_at'),
     soft('/admin/products?limit=200&fields=id,title,thumbnail,*variants.prices,*variants.sku,*categories'),
     soft('/admin/product-categories?limit=100&fields=id,name,handle,is_active,*products.id'),
@@ -731,7 +734,7 @@ async function vDashboard(view) {
     const nm = custName(o);
     const [st, stTone] = orderState(o);
     return `<tr data-oid="${esc(o.id)}">
-      <td class="muted-cell">#${esc(o.display_id ?? o.id ?? '')}</td>
+      <td class="muted-cell">${esc(orderNo(o))}</td>
       <td><div class="cust-cell"><span class="avatar">${esc(initialsOf(nm))}</span><b>${esc(nm)}</b></div></td>
       <td><div class="prod-cell">${first?.thumbnail ? `<img class="thumb" src="${esc(first.thumbnail)}" alt="" loading="lazy">` : '<span class="thumb ph"></span>'}<span>${esc(first?.title || first?.product_title || '—')}${items.length > 1 ? ` <span class="muted">+${items.length - 1}</span>` : ''}</span></div></td>
       <td class="sum">${fmtEur(o.total)}</td>
@@ -764,7 +767,7 @@ async function vDashboard(view) {
     ? bookRes.bookings.filter(b => { const t = new Date(b.starts_at); return t >= dayStart && t < dayEnd; }).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))
     : [];
   const notif = [];
-  for (const o of rangeOrders.slice(0, 3)) notif.push({ icon: 'bag', tone: 'rose', title: `Nová objednávka #${o.display_id ?? ''}`, time: o.created_at, href: '#/objednavky' });
+  for (const o of rangeOrders.slice(0, 3)) notif.push({ icon: 'bag', tone: 'rose', title: `Nová objednávka ${orderNo(o)}`, time: o.created_at, href: '#/objednavky' });
   for (const c of customers.filter(c => inRange(c.created_at)).slice(0, 2)) {
     const nm = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.email || 'zákazník';
     notif.push({ icon: 'user', tone: 'sage', title: `Nový zákazník ${nm}`, time: c.created_at, href: '#/zakaznicky' });
@@ -1842,9 +1845,9 @@ async function vOrders(view) {
     const items = o.items || [], first = items[0];
     const thumb = first?.thumbnail ? `<img src="${esc(first.thumbnail)}" alt="" loading="lazy">` : `<span class="ot-noimg">${navIcon('bag')}</span>`;
     return `<tr data-id="${esc(o.id)}" tabindex="0" role="link">
-      <td class="ot-check"><input type="checkbox" data-pick="${esc(o.id)}" aria-label="Označiť objednávku ${esc(legacy(o)?.number || o.display_id || '')}"></td>
+      <td class="ot-check"><input type="checkbox" data-pick="${esc(o.id)}" aria-label="Označiť objednávku ${esc(orderNo(o))}"></td>
       <td class="ot-img">${thumb}</td>
-      <td><b>#${esc(legacy(o)?.number || o.display_id || '')}</b><small>${fmtDate(legacy(o)?.placed_at || o.created_at)}</small></td>
+      <td><b>${esc(orderNo(o))}</b><small>${fmtDate(legacy(o)?.placed_at || o.created_at)}</small></td>
       <td class="ot-cust" title="${esc(name(o) || o.email || '')}">${esc(name(o) || o.email || '—')}</td>
       <td class="ot-dor" title="${esc(shipping(o))}">${esc(shipKind(o))}</td>
       <td class="ot-items">${items.length ? items.map(i => `<span class="ot-code" tabindex="0" data-name="${esc([i.product_title || i.title, i.variant_title && !/^(default|predvolen|variant$)/i.test(i.variant_title) ? i.variant_title : ''].filter(Boolean).join(' – '))}" data-img="${esc(i.thumbnail || '')}" data-qty="${esc(String(i.quantity || 1))}">${esc(i.variant_sku || i.product_title || i.title || '—')}</span>`).join('<span class="ot-code-sep">, </span>') : '—'}</td>
@@ -1858,7 +1861,7 @@ async function vOrders(view) {
   const selected = new Set();
   const placed = o => new Date(legacy(o)?.placed_at || o.created_at).getTime() || 0;
   const SORT = {
-    date: placed, num: o => Number(legacy(o)?.number || o.display_id) || 0, cust: o => name(o) || o.email || '', ship: shipKind,
+    date: placed, num: o => Number(orderNo(o)) || 0, cust: o => name(o) || o.email || '', ship: shipKind,
     total: o => Number(o.total) || 0, pay: o => PAY_LABEL[o.payment_status] || '', ful: o => o.status === 'canceled' ? 'zrušená' : FUL_LABEL[o.fulfillment_status] || '',
   };
   const opt = (map) => Object.entries(map).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('');
@@ -1871,7 +1874,7 @@ async function vOrders(view) {
     <label>Dátum od<input name="from" type="date"></label><label>Dátum do<input name="to" type="date"></label>
     <label>Suma od (€)<input name="min" type="number" step="0.01" min="0" inputmode="decimal"></label><label>Suma do (€)<input name="max" type="number" step="0.01" min="0" inputmode="decimal"></label>`;
   const advMatch = o => {
-    if (adv.q && !JSON.stringify([legacy(o)?.number, o.display_id, o.email, name(o)]).toLowerCase().includes(adv.q.toLowerCase().trim())) return false;
+    if (adv.q && !JSON.stringify([orderNo(o), legacy(o)?.number, o.display_id, o.email, name(o)]).toLowerCase().includes(adv.q.toLowerCase().trim())) return false;
     if (adv.pay && o.payment_status !== adv.pay) return false;
     if (adv.ful && o.fulfillment_status !== adv.ful) return false;
     if (adv.ship && shipKind(o) !== adv.ship) return false;
@@ -1904,7 +1907,7 @@ async function vOrders(view) {
     if (!list.length) return;
     const head = ['Číslo', 'Dátum', 'Zákazník', 'E-mail', 'Adresa', 'Doprava', 'Položky', 'Suma (EUR)', 'Platba', 'Spôsob platby', 'Vybavenie'];
     const lines = list.map(o => [
-      legacy(o)?.number || o.display_id || '',
+      orderNo(o),
       new Date(legacy(o)?.placed_at || o.created_at).toLocaleString('sk-SK'),
       name(o), o.email || '',
       [o.shipping_address?.address_1, o.shipping_address?.postal_code, city(o)].filter(Boolean).join(' '),
@@ -1930,7 +1933,7 @@ async function vOrders(view) {
   const draw = () => {
     const f = FILTERS.find(x => x[0] === filter)?.[2] || (() => true);
     const key = SORT[sort.key] || SORT.date;
-    const list = orders.filter(f).filter(advMatch).filter(o => !query || JSON.stringify([legacy(o)?.number, o.display_id, o.email, name(o), (o.items || []).map(i => [i.title, i.variant_sku])]).toLowerCase().includes(query))
+    const list = orders.filter(f).filter(advMatch).filter(o => !query || JSON.stringify([orderNo(o), legacy(o)?.number, o.display_id, o.email, name(o), (o.items || []).map(i => [i.title, i.variant_sku])]).toLowerCase().includes(query))
       .sort((a, b) => stCmp(key(a), key(b)) * sort.dir || placed(b) - placed(a));
     visible = list;
     const pages = Math.max(1, Math.ceil(list.length / ORDER_PAGE_SIZE));
@@ -2100,7 +2103,7 @@ async function vOrderDetail(view, id, notice) {
           <p class="muted" style="font-size:12px;margin:4px 0 0">Zapnuté, ak tovar fyzicky vraciate späť do skladu.</p></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
-  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<div class="card-h-act">
+  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka ${esc(history.number || orderNo(o))}<div class="card-h-act">
       <button type="button" class="btn ghost" id="o-back">Späť</button>
       <button type="button" class="btn ghost" id="o-print-label">Vytlačiť štítok</button>
       <button type="button" class="btn ghost" id="o-print-slip">Dodací list</button>
@@ -2360,7 +2363,7 @@ async function vCustomerDetail(view, id) {
   const productTitle = (pid) => allProducts.find((p) => p.id === pid)?.title || pid || '';
   let entitlements = [], orders = [], erasures = [];
   try { entitlements = (await api(`/admin/entitlements?customer_id=${encodeURIComponent(id)}&limit=50`)).entitlements || []; } catch {}
-  try { orders = (await api(`/admin/orders?customer_id=${encodeURIComponent(id)}&limit=50&fields=id,display_id,created_at,total,payment_status,fulfillment_status`)).orders || []; } catch {}
+  try { orders = (await api(`/admin/orders?customer_id=${encodeURIComponent(id)}&limit=50&fields=id,display_id,metadata,created_at,total,payment_status,fulfillment_status`)).orders || []; } catch {}
   try { erasures = ((await api('/admin/customer-erasures?limit=100')).requests || []).filter((r) => r.customer_id === id); } catch {}
   const inG = new Set((c.groups || []).map((g) => g.id));
   const zakladne = `<div class="row"><div><label>E-mail</label><div>${esc(c.email)}</div></div><div><label>Účet</label><div>${c.has_account ? 'áno' : 'hosť'}</div></div></div>
@@ -2384,7 +2387,7 @@ async function vCustomerDetail(view, id) {
       ${tier?.locked ? '<p class="muted" style="font-size:12px;margin-top:6px">Nastavené ručne – automatické priradenie podľa útraty to nepremení.</p>' : '<p class="muted" style="font-size:12px;margin-top:6px">Úroveň sa priradí automaticky podľa celkovej útraty zákazníka. Ručne nastavenú úroveň už automatika nepremení.</p>'}
 `
     : '<p class="muted">Vernostné úrovne ešte nie sú v jadre zapnuté.</p>';
-  const objednavky = orders.length ? `<div class="rc-grid">${orders.map((o) => `<div class="rc"><div class="rc-body"><div class="rc-title">#${esc(o.display_id ?? '')}</div>
+  const objednavky = orders.length ? `<div class="rc-grid">${orders.map((o) => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(orderNo(o))}</div>
       <div class="rc-fields"><span class="rc-f"><em>Dátum</em>${fmtDate(o.created_at)}</span><span class="rc-f"><em>Suma</em>${fmtEur(o.total)}</span>
       <span class="rc-f"><em>Platba</em>${esc(PAY_LABEL[o.payment_status] || o.payment_status || '—')}</span>
       <span class="rc-f"><em>Vybavenie</em>${esc(FUL_LABEL[o.fulfillment_status] || o.fulfillment_status || '—')}</span></div></div></div>`).join('')}</div>`
@@ -3859,7 +3862,7 @@ async function vAmbasadorDetail(view, id) {
               <tbody>
                 ${orders.map(o => `
                   <tr>
-                    <td><b>#${esc(String(o.display_id || o.id))}</b></td>
+                    <td><b>${esc(orderNo(o))}</b></td>
                     <td>${fmtDate(o.created_at)}</td>
                     <td>${esc(o.customer_name)}</td>
                     <td>${fmtEur(o.total)}</td>

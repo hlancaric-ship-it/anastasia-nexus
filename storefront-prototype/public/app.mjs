@@ -720,7 +720,7 @@ const STRIPE_LOOK={theme:'flat',variables:{colorPrimary:'#283020',colorBackgroun
 // Súhrn objednávky pre ďakovnú stránku (aj po návrate z presmerovanej platby). Len položky a sumy, nič citlivé.
 const ORDER_KEY='anastasia.lastOrder';
 const rememberOrder=(cart,email,extra={},needsDelivery=true)=>{try{if(!cart)return;sessionStorage.setItem(ORDER_KEY,JSON.stringify({email:String(email||''),lines:(cart.lines||[]).map(l=>({name:l.name,quantity:l.quantity,priceLabel:l.priceLabel,image:l.image,physical:typeof l.physical==='boolean'&&l.physical===false?false:needsDelivery&&l.physical!==false&&!l.booking&&!l.giftVoucher,voucher:!!l.giftVoucher,booking:!!l.booking})),shippingLabel:cart.shippingLabel||'',totalLabel:cart.totalLabel||'',...extra}));}catch{}};
-const finishOrder=(result,cart,email,method,needsDelivery=true)=>{let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(cart||prev,email||prev.email,{number:result.order?.display_id??null,status:result.status,method,bank:result.bank_transfer||null,pickup:result.pickup_address||null},needsDelivery);location.assign('/dakujeme/');};
+const finishOrder=(result,cart,email,method,needsDelivery=true)=>{let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(cart||prev,email||prev.email,{number:result.order?.number??result.order?.display_id??null,status:result.status,method,bank:result.bank_transfer||null,pickup:result.pickup_address||null},needsDelivery);location.assign('/dakujeme/');};
 const cartLine=l=>{
   const physical=isPhysicalLine(l);
   const type=l.booking?(l.booking.label?`Termín: ${e(l.booking.label)}`:'Konzultácia · termín vyberiete v rezervácii'):physical?'Fyzický produkt · skladom':'Digitálny produkt · Aktivácia na účte po platbe';
@@ -896,7 +896,7 @@ if($('#ty-view')){
     history.replaceState(null,'',location.pathname);
     const ok=['succeeded','processing'].includes(q.get('redirect_status')||'');
     if(!ok)failed=true;
-    else{view.innerHTML='<p class="form-status">Dokončujem objednávku…</p>';try{const r=await api.checkout();if(r.status==='ALLOW'||r.status==='PENDING'){let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(prev,prev.email,{number:r.order?.display_id??null,status:r.status,method:'card'},(prev.lines||[]).some(l=>l.physical));}else failed=true;}catch{failed=true;}}
+    else{view.innerHTML='<p class="form-status">Dokončujem objednávku…</p>';try{const r=await api.checkout();if(r.status==='ALLOW'||r.status==='PENDING'){let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(prev,prev.email,{number:r.order?.number??r.order?.display_id??null,status:r.status,method:'card'},(prev.lines||[]).some(l=>l.physical));}else failed=true;}catch{failed=true;}}
   }
   let o=null;try{o=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'null');}catch{}
   if(failed){title.textContent='Platba neprebehla.';lead.textContent='Objednávka nebola dokončená a nič sa nestrhlo. Košík vám zostal uložený.';view.innerHTML=`<div class="ty-actions">${button('/pokladna','Skúsiť platbu znova')}</div>`;$('.ty-actions:not(#ty-view .ty-actions)')?.setAttribute('hidden','');}

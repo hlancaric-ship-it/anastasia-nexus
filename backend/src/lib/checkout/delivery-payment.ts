@@ -63,6 +63,15 @@ export function variableSymbol(displayId: unknown, createdAt?: unknown): string 
   return `${year}${raw.padStart(6, "0")}`
 }
 
+/** Číslo objednávky pre zákazníka aj administráciu: zhodné s variabilným symbolom (rok + 6 miest, napr. 2026000088).
+ *  Objednávky prenesené zo Shoptetu si ponechávajú pôvodné číslo. */
+export function orderNumber(order: { display_id?: unknown; created_at?: unknown; metadata?: unknown } | null | undefined): string | null {
+  if (!order) return null
+  const legacy = (order.metadata as { legacy_customer_migration?: { number?: unknown } } | null | undefined)?.legacy_customer_migration?.number
+  if ((typeof legacy === "string" && legacy.trim()) || typeof legacy === "number") return String(legacy).trim()
+  return variableSymbol(order.display_id, order.created_at) ?? (order.display_id != null && order.display_id !== "" ? String(order.display_id) : null)
+}
+
 export type BankTransferInstructions = typeof BANK_TRANSFER_ACCOUNT & { variable_symbol: string; amount: number; currency_code: string }
 
 export function bankTransferInstructions(order: { display_id?: unknown; created_at?: unknown; total?: unknown; currency_code?: string | null }): BankTransferInstructions | null {

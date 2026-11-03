@@ -1,7 +1,7 @@
 import {
   BANK_TRANSFER_PROVIDER_ID, COD_PROVIDER_ID, STRIPE_PROVIDER_ID, CheckoutChoiceError,
   assertDeliveryPaymentConsistency, bankTransferInstructions, freeShippingThreshold, paymentMethodByProvider,
-  resolvePhysicalShippingType, safeOrderPaymentMethod, shippingSatisfied, variableSymbol,
+  resolvePhysicalShippingType, safeOrderPaymentMethod, shippingSatisfied, variableSymbol, orderNumber,
 } from "../delivery-payment"
 import { buildShippingOptionInputs } from "../../../scripts/anastasia-bootstrap"
 import { grantEntitlementsForOrder } from "../../../modules/entitlement/order-sync"
@@ -89,5 +89,14 @@ describe("manuálne platby (dobierka, prevod)", () => {
     expect(grant).not.toHaveBeenCalled()
     order = captured
     expect((await grantEntitlementsForOrder(container, "o1")).granted).toEqual(["ent_1"])
+  })
+})
+
+describe("orderNumber", () => {
+  it("číslo objednávky = variabilný symbol, ďalší rok sa mení len rok, Shoptet ponechá pôvodné číslo", () => {
+    expect(orderNumber({ display_id: 88, created_at: "2026-11-03T16:19:00.000Z" })).toBe("2026000088")
+    expect(orderNumber({ display_id: 89, created_at: "2027-01-02T08:00:00.000Z" })).toBe("2027000089")
+    expect(orderNumber({ display_id: 5, created_at: "2026-11-03T00:00:00.000Z", metadata: { legacy_customer_migration: { number: "O-2023-112" } } })).toBe("O-2023-112")
+    expect(orderNumber(null)).toBeNull()
   })
 })
