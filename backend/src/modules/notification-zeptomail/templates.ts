@@ -41,9 +41,14 @@ const BRAND = "ANASTASIA"
 const ACCENT = "#73729c"
 const LAVENDER = "#a7a5cf"
 const CREAM = "#e9e9f2"
+const PAPER = "#f8f3ea"
 const SURFACE = "#ffffff"
+const GOLD = "#c9a55c"
+const GOLD_INK = "#a8823f"
+const LINE = "#e6dcc4"
 const INK = "#2b2a3a"
 const MUTED = "#55546b"
+const SCRIPT_FONT = "'Pinyon Script','Snell Roundhand','Apple Chancery',Fraunces,Georgia,serif"
 const LOGO_URL = "https://anastasia-test.l-code-dynamics.com/assets/logo-mark.png"
 
 export const SLOT_MAX_LENGTH: Record<SlotKind, number> = { line: 160, text: 1000 }
@@ -1031,37 +1036,59 @@ export function listTemplateDefs(): TemplateDef[] {
 function renderHtml(body: Body): string {
   const blocks = body.blocks.map(block => {
     if (block.kind === "quote") {
-      return `<p style="margin:0 0 16px;padding:12px 16px;border-left:3px solid ${LAVENDER};background:${CREAM};font-style:italic;white-space:pre-line">${escapeHtml(block.text)}</p>`
+      return `<p style="margin:0 0 18px;padding:16px 20px;border-left:3px solid ${GOLD};background:${SURFACE};border-radius:0 14px 14px 0;font-family:Fraunces,Georgia,serif;font-style:italic;white-space:pre-line;color:${INK}">${escapeHtml(block.text)}</p>`
     }
     if (block.kind === "code") {
-      return `<p style="margin:0 0 6px;font-size:13px;color:#6b6b6b">${escapeHtml(block.label)}</p>` +
-        `<p style="margin:0 0 16px;font-size:22px;font-weight:bold;letter-spacing:2px;font-family:Menlo,Consolas,monospace">${escapeHtml(block.value)}</p>`
+      return `<div style="margin:0 0 20px;padding:18px 22px;background:${SURFACE};border:1px solid ${LINE};border-radius:16px;text-align:center">` +
+        `<p style="margin:0 0 6px;font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:${GOLD_INK}">${escapeHtml(block.label)}</p>` +
+        `<p style="margin:0;font-size:22px;font-weight:bold;letter-spacing:3px;font-family:Menlo,Consolas,monospace;color:${INK}">${escapeHtml(block.value)}</p>` +
+        `</div>`
     }
     if (block.kind === "rows") {
-      const rows = block.rows.map(row => {
-        const weight = row.strong ? "font-weight:bold;border-top:1px solid #e6e0dc;" : ""
-        return `<tr><td style="padding:6px 0;${weight}">${escapeHtml(row.label)}</td><td align="right" style="padding:6px 0 6px 12px;white-space:nowrap;${weight}">${escapeHtml(row.value)}</td></tr>`
+      const rows = block.rows.map((row, idx) => {
+        const isLast = idx === block.rows.length - 1
+        const border = row.strong
+          ? `font-weight:bold;border-top:1px solid ${LINE};color:${ACCENT};padding-top:10px;`
+          : !isLast
+            ? `border-bottom:1px solid #f2ece1;`
+            : ""
+        return `<tr><td style="padding:8px 0;color:${INK};${border}">${escapeHtml(row.label)}</td><td align="right" style="padding:8px 0 8px 14px;white-space:nowrap;color:${INK};${border}">${escapeHtml(row.value)}</td></tr>`
       }).join("")
-      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;font-size:15px">${rows}</table>`
+      return `<div style="margin:0 0 20px;padding:14px 20px;background:${SURFACE};border:1px solid ${LINE};border-radius:16px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:15px">${rows}</table></div>`
     }
-    return `<p style="margin:0 0 16px;white-space:pre-line">${escapeHtml(block.text)}</p>`
+    return `<p style="margin:0 0 16px;white-space:pre-line;color:${INK}">${escapeHtml(block.text)}</p>`
   }).join("\n")
   const button = body.button
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0"><tr><td bgcolor="${ACCENT}" style="border-radius:9px;background:${ACCENT}"><a href="${escapeHtml(body.button.url)}" style="display:inline-block;padding:13px 24px;background:${ACCENT};color:#ffffff;text-decoration:none;border-radius:9px;font-weight:bold;font-family:Figtree,Arial,sans-serif">${escapeHtml(body.button.label)}</a></td></tr></table>` +
-      `<p style="margin:0 0 16px;font-size:12px;color:${MUTED};word-break:break-all;font-family:Figtree,Arial,sans-serif">Ak tlačidlo nefunguje, skopírujte do prehliadača: ${escapeHtml(body.button.url)}</p>`
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 18px"><tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="${ACCENT}" style="border-radius:999px;background:${ACCENT};border:1px solid ${GOLD}"><a href="${escapeHtml(body.button.url)}" style="display:inline-block;padding:15px 34px;background:${ACCENT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;font-family:Figtree,Arial,sans-serif">${escapeHtml(body.button.label)}<span style="padding-left:12px;color:${GOLD}">→</span></a></td></tr></table></td></tr></table>` +
+      `<p style="margin:0 0 18px;text-align:center;font-size:12px;color:${MUTED};word-break:break-all;font-family:Figtree,Arial,sans-serif">Ak tlačidlo nefunguje, skopírujte do prehliadača: ${escapeHtml(body.button.url)}</p>`
     : ""
   return `<!doctype html>
-<html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(body.subject)}</title></head>
+<html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(body.subject)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&family=Figtree:wght@400;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>@media (max-width:620px){.em-pad{padding:26px 22px 22px!important}.em-head{padding:24px 20px 18px!important}.em-foot{padding:20px 22px 24px!important}.em-h1{font-size:26px!important}}</style>
+</head>
 <body style="margin:0;padding:0;background:${CREAM};color:${INK};-webkit-text-size-adjust:100%">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${CREAM}" style="width:100%;background:${CREAM}"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${SURFACE}" style="width:100%;max-width:600px;background:${SURFACE};border:1px solid ${LAVENDER};border-radius:12px;overflow:hidden;color:${INK}">
-<tr><td align="center" style="padding:24px 24px 16px;border-bottom:1px solid ${LAVENDER}"><img src="${LOGO_URL}" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;object-fit:contain;border:0"><div style="padding-top:10px;font-family:Fraunces,Georgia,serif;font-size:12px;letter-spacing:4px;color:${ACCENT}">${BRAND}</div></td></tr>
-<tr><td style="padding:28px 32px 22px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.7;color:${INK}">
-<h1 style="margin:0 0 18px;font-family:Fraunces,Georgia,serif;font-size:28px;line-height:1.25;font-weight:300;color:${ACCENT}">${escapeHtml(body.heading)}</h1>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${CREAM}" style="width:100%;background:${CREAM};background-image:radial-gradient(ellipse 60% 38% at 100% 0%,rgba(227,197,142,.55) 0%,rgba(227,197,142,0) 100%),linear-gradient(180deg,${CREAM} 0%,#f6f2ea 100%)"><tr><td align="center" style="padding:28px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${PAPER}" style="width:100%;max-width:600px;background:${PAPER};border:1px solid ${LINE};border-radius:22px;overflow:hidden;color:${INK};box-shadow:0 16px 42px rgba(43,42,58,0.08)">
+<tr><td class="em-head" align="center" style="padding:28px 32px 20px;background:${SURFACE};border-bottom:1px solid ${LINE}">
+<div style="display:inline-block;padding:6px;border-radius:999px;border:1px solid ${LINE};background:${PAPER}"><img src="${LOGO_URL}" width="52" height="52" alt="ANASTASIA" style="display:block;width:52px;height:52px;object-fit:contain;border:0"></div>
+<div style="padding-top:12px;font-family:Fraunces,Georgia,serif;font-size:17px;letter-spacing:5px;color:${ACCENT}">${BRAND}</div>
+<div style="padding-top:4px;font-family:Figtree,Arial,sans-serif;font-size:9px;letter-spacing:3.6px;text-transform:uppercase;color:${GOLD_INK}">Light for the future</div>
+</td></tr>
+<tr><td class="em-pad" style="padding:34px 40px 26px;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.75;color:${INK}">
+<div style="width:36px;height:1px;background:${GOLD};margin:0 auto 16px"></div>
+<h1 class="em-h1" style="margin:0 0 24px;text-align:center;font-family:Fraunces,Georgia,serif;font-size:30px;line-height:1.22;font-weight:300;letter-spacing:-0.01em;color:${ACCENT}">${escapeHtml(body.heading)}</h1>
 ${blocks}
 ${button}
+<div style="margin-top:26px;padding-top:18px;border-top:1px solid ${LINE};text-align:right">
+<div style="font-family:${SCRIPT_FONT};font-size:30px;line-height:1.15;color:${GOLD_INK}">Lucia Rogožanová</div>
+<div style="padding-top:2px;font-family:Figtree,Arial,sans-serif;font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:${MUTED}">Farmaceutka • Tvorkyňa ANASTASIA</div>
+</div>
 </td></tr>
-<tr><td style="padding:18px 32px 22px;border-top:1px solid ${LAVENDER};font-family:Figtree,Arial,sans-serif;font-size:12px;line-height:1.7;color:${MUTED}">LUCRAT spol. s r.o. · IČO 36652164<br><a href="https://anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">anastasiaoz.eu</a> · <a href="mailto:info@anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">info@anastasiaoz.eu</a></td></tr>
+<tr><td class="em-foot" align="center" style="padding:20px 32px 24px;background:${SURFACE};border-top:1px solid ${LINE};font-family:Figtree,Arial,sans-serif;font-size:12px;line-height:1.75;color:${MUTED}">
+<div style="font-family:Fraunces,Georgia,serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${GOLD_INK};margin-bottom:4px">${BRAND} · Light for the future</div>
+LUCRAT spol. s r.o. · IČO 36652164<br><a href="https://anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">anastasiaoz.eu</a> · <a href="mailto:info@anastasiaoz.eu" style="color:${ACCENT};text-decoration:underline">info@anastasiaoz.eu</a>
+</td></tr>
 </table></td></tr></table>
 </body></html>`
 }

@@ -183,8 +183,10 @@ describe('Ambassadors Admin API', () => {
     // Push the created one into mock customers
     f2.customers.push({
       id: json.ambassador.id,
+      first_name: 'Eva',
+      last_name: 'Testová',
       email: json.ambassador.email,
-      metadata: { ambassador: { code: json.ambassador.code } },
+      metadata: { ambassador: { code: json.ambassador.code, commission_percent: 10, status: 'active', joined_at: '2026-10-01T00:00:00.000Z' } },
     })
     await createAmbassadorRoute(f2.req, f2.res)
     expect(f2.res.status).toHaveBeenCalledWith(409)

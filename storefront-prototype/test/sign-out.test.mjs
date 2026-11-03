@@ -90,8 +90,8 @@ const mediaBlocks=(css,query)=>{const out=[];const re=new RegExp('@media\\('+que
 
 test('odhlásenie je v HTML účtu raz a CSS ho na mobile neskrýva',async()=>{
   const html=await readFile(new URL('../dist/ucet/index.html',import.meta.url),'utf8');
-  assert.equal((html.match(/data-sign-out/g)||[]).length,1,'v HTML účtu je práve jeden odkaz na odhlásenie');
-  assert.equal((html.match(/<a [^>]*data-sign-out/g)||[]).length,1,'odhlásenie je jeden odkaz, nie zdvojené tlačidlo');
+  assert.equal((html.match(/data-sign-out(?=[\s>])/g)||[]).length,1,'v HTML účtu je práve jeden odkaz na odhlásenie');
+  assert.equal((html.match(/<a [^>]*data-sign-out(?=[\s>])/g)||[]).length,1,'odhlásenie je jeden odkaz, nie zdvojené tlačidlo');
   for(const file of ['../public/styles.css','../dist/styles.css']){
     const css=await readFile(new URL(file,import.meta.url),'utf8');
     const mobile=mediaBlocks(css,'max-width:999\\.98px');
@@ -104,7 +104,8 @@ test('odhlásenie je v HTML účtu raz a CSS ho na mobile neskrýva',async()=>{
 
 test('účet má jediné tlačidlo na odhlásenie a je previazané na signOut',async()=>{
   const html=customerCenter('<form id="chat-form"></form>');
-  assert.equal((html.match(/data-sign-out/g)||[]).length,1,'jedno tlačidlo na odhlásenie, žiadne zdvojené');
+  assert.equal((html.match(/data-sign-out(?=[\s>])/g)||[]).length,1,'jedno tlačidlo na odhlásenie, žiadne zdvojené');
+  assert.equal((html.match(/data-sign-out-everywhere(?=[\s>])/g)||[]).length,1,'odhlásenie všetkých relácií má samostatný ovládač');
   assert.equal((html.match(/Odhlásiť sa/g)||[]).length,1);
   assert.match(html,/data-sign-out[^>]*>Odhlásiť sa/);
   const app=await readFile(new URL('../public/app.mjs',import.meta.url),'utf8');

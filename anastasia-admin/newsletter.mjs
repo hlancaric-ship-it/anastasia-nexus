@@ -353,7 +353,7 @@ export function newsletterView({ api, esc, fmtDate, freshView }) {
       if (!email) throw new Error('Zadajte e-mail, na ktorý sa má poslať test.');
       if (!email.endsWith('@l-code-dynamics.com')) throw new Error('Testovací e-mail sa posiela len na adresy @l-code-dynamics.com.');
       if (!state.editing.id) await save();
-      await api(`/admin/newsletter/campaigns/${encodeURIComponent(state.editing.id)}/test`, { method: 'POST', body: { email } });
+      await api(`/admin/newsletter/campaigns/${encodeURIComponent(state.editing.id)}/send-test`, { method: 'POST', body: { email } });
       state.message = { text: 'Testovací e-mail je prijatý na odoslanie. Skontrolujte schránku.', error: false };
       render();
     }

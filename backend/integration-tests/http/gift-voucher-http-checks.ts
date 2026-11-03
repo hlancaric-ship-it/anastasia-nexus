@@ -16,7 +16,7 @@ export async function verifyGiftVoucherHttp({ api, container, options, channel, 
   const vouchers = container.resolve(GIFT_VOUCHER_MODULE)
   const query = container.resolve("query")
   const [admin] = await container.resolve(Modules.USER).createUsers([{ email: "gift-voucher-admin@example.test" }])
-  const adminToken = generateJwtToken({ actor_id: admin.id, actor_type: "user", auth_identity_id: `synthetic-${admin.id}` }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
+  const adminToken = generateJwtToken({ actor_id: admin.id, actor_type: "user", auth_identity_id: `synthetic-${admin.id}`, app_metadata: { user_id: admin.id, session_epoch: 0 } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })
   const adminOpts = { ...options, headers: { ...options.headers, Authorization: `Bearer ${adminToken}` } }
   // Vlastní zboží bez rezervace: booking scénáře mohou svůj produkt dál používat.
   const { result: [product] } = await createProductsWorkflow(container).run({ input: { products: [{

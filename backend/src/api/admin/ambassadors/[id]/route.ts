@@ -1,5 +1,5 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { adminActor, auditAdminChange } from "../../../../lib/observability/audit"
 import { getAmbassadorById, updateAmbassador, recordPayout } from "../../../../lib/ambassador/service"
 
@@ -80,5 +80,24 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     }
     req.scope.resolve(ContainerRegistrationKeys.LOGGER).error("POST /admin/ambassadors/:id zlyhal", error as Error)
     return res.status(500).json({ message: "Ambasádora sa nepodarilo upraviť. Skúste to znova." })
+  }
+}
+
+/** DELETE /admin/ambassadors/:id: zruší rolu ambasádora (kód prestane platiť). Zákazník, objednávky a výplaty zostávajú. */
+export async function DELETE(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  res.setHeader("Cache-Control", "no-store")
+  if (!adminActor(req)) return res.status(401).json({ message: "Prihláste sa do administrácie." })
+  try {
+    const { ambassador } = await getAmbassadorById(req.scope, req.params.id)
+    const customers = req.scope.resolve(Modules.CUSTOMER) as any
+    const customer = await customers.retrieveCustomer(req.params.id, { select: ["id", "metadata"] })
+    const { ambassador: removed, ...rest } = (customer.metadata || {}) as Record<string, unknown>
+    await customers.updateCustomers(req.params.id, { metadata: { ...rest, ambassador: null, ambassador_removed: { at: new Date().toISOString(), previous: removed ?? null } } })
+    await auditAdminChange(req, "ambassador.removed", "customer", req.params.id, { code: ambassador.code }, null)
+    return res.status(200).json({ ok: true, id: req.params.id, deleted: true })
+  } catch (error: any) {
+    if (error?.message === "CUSTOMER_NOT_FOUND" || error?.message === "NOT_AN_AMBASSADOR") return res.status(404).json({ message: "Ambasádor sa nenašiel." })
+    req.scope.resolve(ContainerRegistrationKeys.LOGGER).error("DELETE /admin/ambassadors/:id zlyhal", error as Error)
+    return res.status(500).json({ message: "Ambasádora sa nepodarilo zrušiť." })
   }
 }

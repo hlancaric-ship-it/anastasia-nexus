@@ -139,6 +139,8 @@
     "anastasia-test": {
       "name": "nexus-api-anastasia-test",
       "workers_dev": false,
+      // Cron spouští scheduled(): obnova intentů a booking inbox NEXUS → Medusa. Bez něj se rezervace nesynchronizují.
+      "triggers": { "crons": ["* * * * *"] },
       "routes": [{ "pattern": "anastasia-test-nexus.l-code-dynamics.com", "custom_domain": true }],
       "observability": { "enabled": true },
       "vars": {

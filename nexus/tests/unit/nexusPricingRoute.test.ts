@@ -85,4 +85,16 @@ describe('handleNexusPricing Route Handler', () => {
         });
         await expect(handleNexusPricing(req, env)).rejects.toThrow('couponDiscountPercent musí být číslo mezi 0 a 1.');
     });
+
+    it('úroveň, ktorá v politike chýba, nezľavuje a nespôsobí 500', async () => {
+        const req = new Request('https://nexus-api.internal/api/nexus/pricing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', authorization: 'Bearer test-key' },
+            body: JSON.stringify({ sku: 'TEST-UNKNOWN-TIER', basePrice: 100, customerTier: 'ZR1' }),
+        });
+        const res = await handleNexusPricing(req, env);
+        expect(res.status).toBe(200);
+        const data = await res.json() as { calculated: { finalPrice: number } };
+        expect(data.calculated.finalPrice).toBe(100);
+    });
 });

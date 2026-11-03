@@ -1,5 +1,6 @@
 import {digitalTopics} from './lib/digital-content.mjs';
 import {isMediaUrl} from './lib/media-url.mjs';
+import {flagBadges} from './lib/product-flags.mjs';
 import {descriptionHtml} from './lib/description-blocks.mjs';
 import {escape as e,arrow,shopShortcuts} from './components.mjs';
 import {VOUCHER_CATEGORY,VOUCHER_CATEGORY_HANDLE,SHOP_CATEGORY_HANDLES,voucherAmountFromSlug} from './lib/api/catalog.mjs';
@@ -60,7 +61,7 @@ const stockLabel = p => ({in_stock:'Skladom',out_of_stock:'Vypredané',preorder:
 // Varianty dopĺňa app.mjs ako rolovaciu ponuku (vypredané sú vypnuté s označením).
 const stepper = () => `<div class="pd-stepper"><button type="button" data-qty-step="-1" aria-label="Znížiť množstvo">−</button><label class="pd-sr" for="pd-qty">Množstvo</label><input id="pd-qty" name="quantity" type="number" inputmode="numeric" min="1" max="99" value="1" required><button type="button" data-qty-step="1" aria-label="Zvýšiť množstvo">+</button></div>`;
 const buyForm = (p, {quantity=true}={}) => `<form class="add-product pd-purchase" data-code="${txt(p.code)}"><div class="pdm-buy-row">${quantity?stepper():'<input type="hidden" name="quantity" value="1">'}<button class="button pd-buy" type="submit">Pridať do košíka ${arrow}</button></div></form><p class="form-status" role="status"></p>`;
-const head = (p, {eyebrow=p.category, badge=''}={}) => `<p class="pd-eyebrow" data-product-category>${txt(eyebrow)}</p><h1 data-product-title>${txt(p.name)}</h1><div class="pdm-price-row"><p class="pd-price" data-product-price>${txt(p.priceLabel)}</p>${badge}</div>`;
+const head = (p, {eyebrow=p.category, badge=''}={}) => `<p class="pd-eyebrow" data-product-category>${txt(eyebrow)}</p>${flagBadges(p)}<h1 data-product-title>${txt(p.name)}</h1><div class="pdm-price-row"><p class="pd-price" data-product-price>${txt(p.priceLabel)}</p>${badge}</div>`;
 const shell = (p, kind, crumbs, media, panel, extra='', attrs='') => `<section class="pd-page pdm pdm--${kind} kc-motif" data-product-detail${attrs} data-product-handle="${txt(p.slug)}" data-product-kind="${kind}">${shopShortcuts()}${crumbs}<div class="pdm-grid"><div class="pdm-media">${media}</div><div class="pdm-panel kc-glass">${panel}</div></div>${extra}</section>`;
 const related = (p, products) => {
   const kind=kindOf(p);const ok=x=>x.slug!==p.slug&&x.priceLabel!=='Cena sa doplní';

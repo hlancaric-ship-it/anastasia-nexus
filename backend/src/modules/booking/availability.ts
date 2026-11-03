@@ -124,7 +124,8 @@ export function bookingConfigFromMetadata(meta: unknown): BookingConfig | null {
     timezone: BOOKING_TIMEZONE,
     durationMinutes,
     bufferMinutes: intIn(m.bufferMinutes, 0, 240) ?? DEFAULT_BOOKING_CONFIG.bufferMinutes,
-    stepMinutes: intIn(m.stepMinutes, 5, 240) ?? DEFAULT_BOOKING_CONFIG.stepMinutes,
+    // Bez vlastného rastra sa termíny ponúkajú po dĺžke konzultácie (60 min → 9:00, 10:00, …), nie po polhodine.
+    stepMinutes: intIn(m.stepMinutes, 5, 240) ?? Math.min(durationMinutes, 240),
     minNoticeHours: intIn(m.minNoticeHours, 0, 720) ?? DEFAULT_BOOKING_CONFIG.minNoticeHours,
     maxAdvanceDays: intIn(m.maxAdvanceDays, 1, 365) ?? DEFAULT_BOOKING_CONFIG.maxAdvanceDays,
   }

@@ -62,7 +62,11 @@ export async function handleNexusPricing(request: Request, env: Env): Promise<Re
         sku: input.sku,
         basePrice: new Decimal(basePrice),
         salePrice: typeof input.salePrice === 'number' ? new Decimal(input.salePrice) : undefined,
-        customerTier: typeof input.customerTier === 'string' ? input.customerTier : undefined,
+        customerTier:
+            typeof input.customerTier === 'string' &&
+            Object.prototype.hasOwnProperty.call(policyConfig.loyaltyTiers, input.customerTier)
+                ? input.customerTier
+                : undefined,
         manufacturer: typeof input.manufacturer === 'string' ? input.manufacturer : undefined,
         category: typeof input.category === 'string' ? input.category : undefined,
         productMaxDiscount: typeof input.productMaxDiscount === 'number' ? new Decimal(input.productMaxDiscount) : undefined,

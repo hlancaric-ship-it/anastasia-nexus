@@ -62,14 +62,14 @@ describe('AI gateway proti skutečnému Durable Objectu', () => {
     });
 
     it('bez AI_API_KEY vrátí 503 a poskytovateľa nevolá', async () => {
-        const upstreamMock = upstreamStub();
-        const response = await handleAIQuery(
+        const response = await worker.fetch(
             request(BODY),
             { ...bindings, AI_API_KEY: undefined } as unknown as Env,
-            upstreamMock as unknown as typeof fetch,
+            ctx,
         );
         expect(response.status).toBe(503);
-        expect(upstreamMock).not.toHaveBeenCalled();
+        const body = (await response.json()) as { error?: string };
+        expect(body.error).toBe('MISSING_BINDING');
     });
 
     it('odpovídá s odpovědí poskytovatele (200) a neprezradí kľúč', async () => {

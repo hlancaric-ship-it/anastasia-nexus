@@ -100,6 +100,15 @@ export function qrAgenda({ api, esc, fmtDate, freshView, openPrintHtml }) {
           try { await navigator.clipboard.writeText(field.value); const l = b.querySelector('span'); l.textContent = 'Skopírované'; b.classList.add('done'); setTimeout(() => { l.textContent = 'Kopírovať'; b.classList.remove('done'); }, 1800); }
           catch { field.select(); }
         };
+        const del = document.createElement('button');
+        del.type = 'button'; del.className = 'btn danger'; del.textContent = 'Zmazať QR kód';
+        view.querySelector('[data-back]').before(del);
+        del.onclick = async () => {
+          if (!confirm(`Zmazať QR kód pre „${r.product_title || r.sku}“ (${r.coupon_code})? Odkaz zmizne zo zoznamu. Kupón zostane, vypnete ho samostatne.`)) return;
+          del.disabled = true;
+          try { await api(`/admin/coupon-links/${encodeURIComponent(id)}`, { method: 'DELETE' }); await list(); }
+          catch (e) { fail(e); del.disabled = false; }
+        };
         view.querySelectorAll('[data-download]').forEach(b => b.onclick = async () => {
           b.disabled = true;
           try {

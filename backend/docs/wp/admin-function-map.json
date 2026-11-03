@@ -381,7 +381,7 @@
         "backend/src/api/store/newsletter/unsubscribe/route.ts",
         "backend/src/api/admin/newsletter/campaigns/route.ts",
         "backend/src/api/admin/newsletter/campaigns/[id]/route.ts",
-        "backend/src/api/admin/newsletter/campaigns/[id]/test/route.ts",
+        "backend/src/api/admin/newsletter/campaigns/[id]/send-test/route.ts",
         "backend/src/api/admin/newsletter/campaigns/[id]/send/route.ts",
         "backend/src/api/admin/newsletter/campaigns/[id]/cancel/route.ts",
         "backend/src/api/store/newsletter/unsubscribe/link/route.ts",
@@ -939,6 +939,23 @@
       ],
       "remaining": "Storefront zatiaľ obsah nenačítava (trasa GET /store/content/:page je pripravená); jazyky EN/RU sú v modeli vyhradené, ale zatiaľ prázdne.",
       "acceptance": "Úprava poľa sa uloží, vráti sa vo verejnej trase, pôvodné znenie sa dá obnoviť a staršiu verziu vrátiť."
+    },
+    {
+      "id": "novinky",
+      "label_sk": "Novinky",
+      "delivery_lane": "NEXT",
+      "backend_layer": "custom",
+      "backend_status": "IMPLEMENTED_UNVERIFIED",
+      "new_admin_status": "IMPLEMENTED_UNVERIFIED",
+      "request": "Lucia spravuje stránku Novinky a výsuvný panel: príspevky (foto, video, YouTube, text, anketa) s rubrikou, plánovaním a hlavným príspevkom, tri reklamné plochy partnerov a texty stránky; server validuje obsah (bez HTML, len https, médiá len z nášho úložiska), počíta hlasy a kliknutia.",
+      "sources": [
+        "backend/src/lib/novinky/policy.ts",
+        "backend/src/lib/novinky/store.ts",
+        "backend/src/api/admin/novinky/route.ts",
+        "backend/src/api/store/novinky/route.ts"
+      ],
+      "remaining": "Overenie na testovacom backende po nasadení; web stránka Noviniek je na strane frontendu.",
+      "acceptance": "Uložený príspevok sa po zverejnení zobrazí v GET /store/novinky, skrytý a naplánovaný nie; hlas z jednej IP sa započíta raz."
     }
   ],
   "custom_routes": [
@@ -955,12 +972,13 @@
     {
       "path": "/admin/ambassadors/:id",
       "methods": [
+        "DELETE",
         "GET",
         "POST"
       ],
       "feature": "ambassadors",
       "source": "backend/src/api/admin/ambassadors/[id]/route.ts",
-      "sha256": "c9495a6b1d3a3f08b5f5453882369c965ad0c46655b71f8f2f4e538727136ba5"
+      "sha256": "7c77c20384bd07810cbdad363366e0ad278308c3320aa7ed940240c6e344c5bc"
     },
     {
       "path": "/admin/ambassadors/commissions",
@@ -1079,12 +1097,13 @@
     {
       "path": "/admin/chat/conversations/:id",
       "methods": [
+        "DELETE",
         "GET",
         "POST"
       ],
       "feature": "chat",
       "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
-      "sha256": "2bb21a27aa9cbc29414a54823b9d47c174f8e8464d39c875b612d2b9740b306e"
+      "sha256": "04c3a440c6e92c592a705e010cf0a97cfcf27fe84d91e3b60bbc4c1660f83c9e"
     },
     {
       "path": "/admin/chat/conversations/:id/messages",
@@ -1184,10 +1203,11 @@
       "path": "/admin/coupon-links/:id",
       "feature": "qr",
       "methods": [
+        "DELETE",
         "GET"
       ],
       "source": "backend/src/api/admin/coupon-links/[id]/route.ts",
-      "sha256": "4ad76aa81772a3158d52e6e481cfc76a106c2799779a00f91b2b214d824d4041"
+      "sha256": "61b5ae59138f74eda3b877e6aafcd059e62ec8e0dd80acaf6ea28e1e7a0bf18d"
     },
     {
       "path": "/admin/coupon-links/:id/deactivate",
@@ -1318,7 +1338,7 @@
       ],
       "feature": "product-feeds",
       "source": "backend/src/api/admin/feeds/route.ts",
-      "sha256": "f9bb2b30b7f790dfc4c19eda0d2bbf458dd19a4ea47abd571ce2a03cb9198562"
+      "sha256": "aec36221eb4b205428e664b23b4db06a25a1fee742f7a4375c8f6a742963fba2"
     },
     {
       "path": "/admin/media",
@@ -1432,15 +1452,6 @@
       "feature": "newsletter",
       "source": "backend/src/api/admin/newsletter/campaigns/[id]/send/route.ts",
       "sha256": "c5cc1394f242f50f15d68080746291ac02c9ad736972604baba782100562fee4"
-    },
-    {
-      "path": "/admin/newsletter/campaigns/:id/test",
-      "methods": [
-        "POST"
-      ],
-      "feature": "newsletter",
-      "source": "backend/src/api/admin/newsletter/campaigns/[id]/test/route.ts",
-      "sha256": "f4156d132fa543fc1eff4cd6b665e97dbbecd9551f5b95cdf0475663c9c45302"
     },
     {
       "path": "/admin/nexus-auth/logout",
@@ -1608,7 +1619,7 @@
       ],
       "feature": "invoices",
       "source": "backend/src/api/admin/orders/[id]/invoice/route.ts",
-      "sha256": "39b0387f5734a26dc44529afec7283df3c10f4be38ee99b7363bc3b25dde270d"
+      "sha256": "2c93883bd7897dd007ad9c8ab6bd9ce9e276cc0a58fc76e3f7474401cbe996c5"
     },
     {
       "path": "/admin/pages",
@@ -2227,7 +2238,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "6ef22988c45a7e235f418fa15c4a7d40207efb344745d86e405545cf60f900f1"
+      "sha256": "f8b404930d1646f1d0df4021f6ed6c0182aa48b1dc7c7dd9aadb282854e7ff16"
     },
     {
       "path": "/store/nexus-checkout",
@@ -2236,7 +2247,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "516723c3d61a2e8add5bf96e3a92d899b213ded988dd589e58ded09a8795b133"
+      "sha256": "096841dc3081afcff5c858995d1a1075788432b46faa11d37c73307814f6b965"
     },
     {
       "path": "/store/nexus-checkout/free-shipping",
@@ -2321,6 +2332,61 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/admin/newsletter/campaigns/:id/send-test",
+      "feature": "newsletter",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/newsletter/campaigns/[id]/send-test/route.ts",
+      "sha256": "ee1a4181bb52ea49a434e03ed93c59b4663af0353487ca0cc19cc2d4f5e84d27"
+    },
+    {
+      "path": "/admin/newsletter/preview",
+      "feature": "newsletter",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/newsletter/preview/route.ts",
+      "sha256": "bde06e75298cfa811ce1882110b1bb3bc4c4f8872efa57c1d1dec7eec193af4d"
+    },
+    {
+      "path": "/admin/novinky",
+      "feature": "novinky",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "source": "backend/src/api/admin/novinky/route.ts",
+      "sha256": "ca31ab33af087cba8ca73fddbc60c1a6d7c1e5a0631ac533e6c6d06e8d8ef0b3"
+    },
+    {
+      "path": "/store/novinky",
+      "feature": "novinky",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/store/novinky/route.ts",
+      "sha256": "07de0b4666a6c920dd6eb67b887106e4b25b81c5758dc145aef18d4fc930ab2f"
+    },
+    {
+      "path": "/store/novinky/ads/:slot/click",
+      "feature": "novinky",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/novinky/ads/[slot]/click/route.ts",
+      "sha256": "4102e7ee5e1e88b0608a110fb55a206e20bd63de4a238293f4788fa2161c62ce"
+    },
+    {
+      "path": "/store/novinky/polls/:postId/vote",
+      "feature": "novinky",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/novinky/polls/[postId]/vote/route.ts",
+      "sha256": "7757a1ce0805e795a91f67f3bd4082c83ee2b59ea7b92a7f0ccab3836185ea0a"
     }
   ],
   "native_medusa_version": "2.19.0",

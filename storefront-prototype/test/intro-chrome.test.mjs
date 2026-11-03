@@ -1,15 +1,28 @@
 // Regresní test úvodní homepage: skrytá hlavička, nápis ANASTASIA, pozice kategorií.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
 
 const PLAYWRIGHT_MODULE = process.env.PLAYWRIGHT_MODULE;
-const base = process.env.STOREFRONT_URL || 'http://127.0.0.1:4173';
+let base = process.env.STOREFRONT_URL;
+let preview;
 
 let browser;
 let context;
 let page;
 
 test.before(async () => {
+  if (!base) {
+    preview = spawn(process.execPath, [new URL('../serve.mjs', import.meta.url).pathname, '0'], {stdio: ['ignore','pipe','pipe']});
+    base = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Local preview did not start')), 10000);
+      const finish = (error, url) => {clearTimeout(timer); error ? reject(error) : resolve(url)};
+      preview.once('error', error => finish(error));
+      preview.once('exit', code => finish(new Error('Local preview exited: ' + code)));
+      preview.stdout.on('data', chunk => {const url = String(chunk).match(/http:\/\/127\.0\.0\.1:\d+/)?.[0]; if (url) finish(null, url)});
+    });
+  }
   const playwrightPath = PLAYWRIGHT_MODULE 
     ? PLAYWRIGHT_MODULE 
     : 'file:///Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
@@ -22,9 +35,8 @@ test.before(async () => {
 });
 
 test.after(async () => {
-  if (page) await page.close();
-  if (context) await context.close();
-  if (browser) await browser.close();
+  try { if (browser) await browser.close(); }
+  finally { if (preview && preview.exitCode === null) {const stopped = once(preview, 'exit'); preview.kill(); await stopped;} }
 });
 
 test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', async () => {

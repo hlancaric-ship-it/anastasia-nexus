@@ -150,6 +150,8 @@ export function initResetZone(api, root = document) {
       if (journalBox) journalBox.innerHTML = renderAccessNotice(program);
       return;
     }
+    const libraryJournal=journalBox?.closest('[data-reset-journal-library]');
+    if(libraryJournal)libraryJournal.hidden=false;
     state.program = program;
     state.metrics = orderedMetrics(program.metrics);
     state.weeks = Array.isArray(program.weeks) ? program.weeks : [];

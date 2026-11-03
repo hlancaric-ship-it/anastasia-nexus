@@ -170,3 +170,22 @@ test('protected contents use the redacted ext from Store API and still accept le
   const p=await createHttpApi(memoryStorage(),config).getProduct('reset');
   assert.deepEqual(p.contents,[{title:'Kniha',ext:'pdf'},{title:'Starý',ext:'mp3'},{title:'Zlý',ext:'x'}]);
 });
+
+
+test('meno profilu zostane dostupné aj pri výpadku rezervácií a katalógu', async()=>{
+  globalThis.fetch=async url=>{
+    if(String(url).includes('/store/customers/me'))return respond(200,{customer:{first_name:'Anna',last_name:'Nováková',email:'codex+profile@l-code-dynamics.com'}});
+    throw new Error('synthetic unavailable');
+  };
+  const result=await createHttpApi(memoryStorage({'anastasia.jwt':'synthetic'}),config).getCustomerCenter();
+  assert.equal(result.ok,true);
+  assert.equal(result.profile.name,'Anna Nováková');
+  assert.equal(result.bookingsOk,false);
+});
+
+test('uloženie profilu vráti meno potvrdené serverom', async()=>{
+  globalThis.fetch=async()=>respond(200,{customer:{first_name:'Anna',last_name:'Potvrdená',email:'codex+profile@l-code-dynamics.com'}});
+  const result=await createHttpApi(memoryStorage({'anastasia.jwt':'synthetic'}),config).saveCustomerProfile({firstName:'Anna',lastName:'Zadaná'});
+  assert.equal(result.ok,true);
+  assert.deepEqual(result.profile,{firstName:'Anna',lastName:'Potvrdená',email:'codex+profile@l-code-dynamics.com'});
+});
