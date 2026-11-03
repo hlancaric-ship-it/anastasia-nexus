@@ -170,7 +170,7 @@ const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${
 const LOGO = './assets/anastasia-oz-emblem.png';
 // Web k administrácii: anastasia-test-admin.X → anastasia-test.X, admin.X → X.
 const SITE_ORIGIN = `${location.protocol}//${location.hostname.replace(/-admin\./, '.').replace(/^admin\./, '')}`;
-const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img class="brand-ring" src="./assets/brand-ring.png" alt="" width="67" height="64"><div><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="156" height="27"><small>Light for the future</small></div></${tag}>`;
+const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><img class="brand-ring" src="./assets/anastasia-oz-emblem.png" alt="ANASTASIA OZ" width="64" height="64"><div><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="156" height="27"><small>Light for the future</small></div></${tag}>`;
 
 // --- dekor: jemné botanické kresby (olivová a levandulová vetvička) ako inline SVG ---
 // Kresba je linková, v šalvějovej farbe s nízkou priehľadnosťou – žiadne stiahnuté fotky.
@@ -272,7 +272,7 @@ function shell(active, title, sub) {
     <div class="workspace">
       <header class="topbar">
         ${BOTANIC_OLIVE}
-        <div class="mobile-head"><button type="button" id="nav-toggle" aria-label="Otvoriť navigáciu" aria-expanded="false" aria-controls="sidebar">${navIcon('menu')}</button><img class="brand-ring" src="./assets/brand-ring.png" alt="" width="34" height="32"><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="104" height="18"></div>
+        <div class="mobile-head"><button type="button" id="nav-toggle" aria-label="Otvoriť navigáciu" aria-expanded="false" aria-controls="sidebar">${navIcon('menu')}</button><img class="brand-ring" src="./assets/anastasia-oz-emblem.png" alt="" width="34" height="34"><img class="brand-word" src="./assets/brand-word.png" alt="ANASTASIA" width="104" height="18"></div>
         <div class="top-search">
           ${navIcon('search')}
           <input type="search" id="side-q" placeholder="Hľadať produkty, objednávky, zákazníkov…" aria-label="Hľadať v celom obchode" autocomplete="off">

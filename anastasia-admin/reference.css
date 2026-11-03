@@ -743,8 +743,18 @@ div:has(>[data-pg="prev"]:disabled):has(>[data-pg="next"]:disabled) { display:no
 .ot-foot:not(:has(div:has(>[data-pg]:not(:disabled)))):has(.muted:empty) { display:none; }
 /* Zlaté logo ANASTASIA od Lucie (krúžok a nápis s tieňom), rovnaké ako v newsletteri. */
 .brand img.brand-ring,.brand img.brand-word,.mobile-head img.brand-ring,.mobile-head img.brand-word{filter:none}
-.brand img.brand-ring{width:67px;height:64px;flex:none;object-fit:contain}
+.brand img.brand-ring{width:64px;height:64px;flex:none;object-fit:contain}
 .brand img.brand-word{display:block;width:156px;height:auto;margin-left:-3px}
 .brand small{margin:2px 0 0 4px;color:#a8823f}
-.mobile-head .brand-ring{width:34px;height:32px;flex:none}
+.mobile-head .brand-ring{width:34px;height:34px;flex:none}
 .mobile-head .brand-word{width:104px;height:auto}
+/* Objednávky: text v bunkách sa zalamuje v rámci stĺpca, nikdy nepretečie do susedného (Doručenie × Položky × Suma). */
+table.ot-orders tbody td{white-space:normal!important;overflow:hidden;overflow-wrap:break-word!important;word-break:normal!important}
+table.ot-orders tbody td.ot-num{white-space:nowrap!important;text-overflow:clip}
+table.ot-orders tbody td small{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+table.ot-orders tbody td.ot-items small{display:inline}
+/* Hlavička a bunky sedia pod sebou: suma vpravo (aj nadpis), platba a vybavenie vľavo. */
+@media(min-width:801px){
+ table.ot-orders thead th.ot-num,table.ot-orders tbody td.ot-num{text-align:right!important;padding-right:20px!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8),table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){text-align:left!important;max-width:none}
+}
