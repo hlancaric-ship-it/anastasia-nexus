@@ -690,3 +690,6 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
  .customer-center .center-sidebar nav{margin:0;padding:8px 20px 16px;gap:6px!important;mask-image:none;-webkit-mask-image:none}
  .customer-center .center-sidebar nav button{padding:10px 14px;font-size:13px}
 }
+/* Logá v hornom menu: celé obrázky bez orezu do kruhu, tri rovnako široké stĺpce s rovnakými medzerami. */
+#dc-top-menu .menu-brand-logos img{border-radius:0!important;box-shadow:none!important;background:none!important;object-fit:contain!important;width:100%!important;height:auto!important;max-width:116px}
+@media(max-width:999.98px){#dc-top-menu .menu-bottom-row .menu-brand-logos{column-gap:20px!important;width:100%;grid-template-columns:repeat(3,minmax(0,1fr))!important;justify-items:center}}

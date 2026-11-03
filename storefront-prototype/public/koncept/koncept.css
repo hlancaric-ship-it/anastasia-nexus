@@ -11,7 +11,7 @@ html:has(.kc){overflow-x:clip}
   --lav-3:#E9E9F2;
   --mist:#E4E6D6;
   --ink:#2A2F21;
-  --muted:#6B705F;
+  --muted:#545949;
   --serif:'Fraunces',Georgia,serif;
   --sans:'Figtree','Helvetica Neue',sans-serif;
   --drop:28px 28px 28px 0;
@@ -420,3 +420,9 @@ body>.ana-sound-pop:is(:hover,:focus-within,.is-open){transform:none}
 body>.ana-sound-pop .ana-sound-pop__btn{width:44px!important;height:44px!important;border-radius:999px 0 0 999px!important;border-right:0!important;padding-right:10px!important;box-shadow:0 10px 26px -12px rgba(47,52,36,.45)!important}
 .ana-menu-open body>.ana-sound-pop,body.ana-menu-open>.ana-sound-pop{visibility:hidden!important}
 }}
+/* Čitateľnosť (audit 3. 11.): kontrast úvodných textov a minimálna veľkosť popiskov. */
+.kc-open__kicker{color:#8A6B2E;font-size:clamp(12px,.9vw,13px)}
+.kc-open__facts li{font-size:12px}
+@media(max-width:760px){.kc-open__facts li{font-size:11px}}
+/* Klávesnica: dlaždice v úvode sú pri fokuse viditeľné aj pred doskrolovaním. */
+.kc-open__more:focus-within{opacity:1;transform:none}

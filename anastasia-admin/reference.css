@@ -743,8 +743,88 @@ div:has(>[data-pg="prev"]:disabled):has(>[data-pg="next"]:disabled) { display:no
 .ot-foot:not(:has(div:has(>[data-pg]:not(:disabled)))):has(.muted:empty) { display:none; }
 /* Zlaté logo ANASTASIA od Lucie (krúžok a nápis s tieňom), rovnaké ako v newsletteri. */
 .brand img.brand-ring,.brand img.brand-word,.mobile-head img.brand-ring,.mobile-head img.brand-word{filter:none}
-.brand img.brand-ring{width:67px;height:64px;flex:none;object-fit:contain}
+.brand img.brand-ring{width:64px;height:64px;flex:none;object-fit:contain}
 .brand img.brand-word{display:block;width:156px;height:auto;margin-left:-3px}
 .brand small{margin:2px 0 0 4px;color:#a8823f}
-.mobile-head .brand-ring{width:34px;height:32px;flex:none}
+.mobile-head .brand-ring{width:34px;height:34px;flex:none}
 .mobile-head .brand-word{width:104px;height:auto}
+/* Objednávky: text v bunkách sa zalamuje v rámci stĺpca, nikdy nepretečie do susedného (Doručenie × Položky × Suma). */
+table.ot-orders tbody td{white-space:normal!important;overflow:hidden;overflow-wrap:break-word!important;word-break:normal!important}
+table.ot-orders tbody td.ot-num{white-space:nowrap!important;text-overflow:clip}
+table.ot-orders tbody td small{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+table.ot-orders tbody td.ot-items small{display:inline}
+/* Hlavička a bunky sedia pod sebou: suma vpravo (aj nadpis), platba a vybavenie vľavo. */
+@media(min-width:801px){
+ table.ot-orders thead th.ot-num,table.ot-orders tbody td.ot-num{text-align:right!important;padding-right:20px!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8),table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){text-align:left!important;max-width:none}
+}
+/* Tabuľky sa nestláčajú pod čitateľnú šírku: radšej sa posúvajú vo svojej karte, slová ani sumy sa nelámu. */
+table.agenda-grid.coupon-grid{min-width:640px}
+table.agenda-grid.coupon-grid tbody td:not(.lv-title){overflow-wrap:normal!important}
+table.agenda-grid.coupon-grid tbody td.ot-act{white-space:nowrap!important}
+.dash-table td:nth-child(5) .state{white-space:normal;line-height:1.15;align-items:flex-start}
+.dash-table td:nth-child(5) .state::before{margin-top:.3em}
+@media(min-width:801px){
+ table.ot-orders{min-width:980px!important}
+ table.ot-orders thead th:nth-child(2),table.ot-orders tbody td:nth-child(2){width:52px!important}
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:10%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:13%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:9%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:13%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7){width:10%!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8){width:9%!important}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:9%!important}
+ table.ot-orders thead th:nth-child(10),table.ot-orders tbody td:nth-child(10){width:172px!important}
+ table.ot-orders thead th.ot-num,table.ot-orders tbody td.ot-num{padding-right:12px!important}
+ table.ot-orders tbody td:nth-child(5) small{display:block;margin:2px 0 0;overflow-wrap:normal}
+}
+table.agenda-grid.coupon-grid thead th.ot-act,table.agenda-grid.coupon-grid tbody td.ot-act{width:112px!important}
+/* Na dotykových displejoch má každý ovládací prvok aspoň 32 px na ťuknutie. */
+@media(max-width:800px){
+ .dash .dots-btn{min-width:32px!important;width:32px!important;max-width:none;min-height:32px}
+ .dash .link-lav{display:inline-flex;align-items:center;min-height:32px;padding:0 4px}
+}
+/* Objednávky (desktop): na riadku len číslo, zákazník, položky, suma a stav. Doručenie, e-mail, tlač a faktúra sú v detaile. */
+@media(min-width:801px){
+ table.ot-orders{min-width:860px!important}
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:13%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:19%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:24%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:12%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7),table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8){width:13%!important;text-align:left!important}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:110px!important;text-align:right}
+ table.ot-orders tbody td:nth-child(5) small{display:inline;margin:0}
+ table.ot-orders tbody td .pill{white-space:nowrap}
+ table.ot-orders tbody tr[data-id] td{padding-top:14px!important;padding-bottom:14px!important}
+}
+/* Objednávky (desktop) s krátkym stĺpcom Doručenie. */
+@media(min-width:801px){
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:12%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:17%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:12%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:16%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7){width:12%!important;text-align:right!important;white-space:nowrap;overflow:visible!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8),table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:12%!important;text-align:left!important}
+ table.ot-orders thead th:nth-child(10),table.ot-orders tbody td:nth-child(10){width:110px!important;text-align:right}
+ table.ot-orders tbody td:nth-child(5){color:var(--muted)}
+ table.ot-orders tbody td:nth-child(6) small{display:inline;margin:0}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:14%!important}
+ table.ot-orders tbody td:nth-child(9) .pill{white-space:normal;text-align:left;line-height:1.25}
+}
+/* Jednotná lišta akcií detailu: vždy hore vpravo v hlavičke karty, poradie Späť → vedľajšie → nebezpečné → Uložiť; pri posune ostáva viditeľná. */
+@media(min-width:801px){
+.card>.card-h:has(>.card-h-act){position:sticky;top:0;z-index:20;background:var(--surface);border-radius:inherit}
+.card-h-act{flex-wrap:wrap;gap:8px;max-width:100%}.card-h-act .btn{white-space:nowrap;padding:9px 14px;min-height:38px}
+.card-h-act .btn.gold{order:99}
+.pe-act{position:sticky;top:12px;z-index:20}
+}
+.act-confirm{margin:0 0 16px;padding:14px 16px;border:1px solid #e7c3c3;border-radius:12px;background:#fdf6f6}
+@media(min-width:801px){.card:has(>.card-h>.card-h-act){overflow:visible}.card>.card-h:has(>.card-h-act){border-radius:var(--radius,16px) var(--radius,16px) 0 0;box-shadow:0 1px 0 var(--line-soft)}}
+.pe-bar{position:sticky;top:8px;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pe-bar .pe-nav{position:static;flex:1 1 auto;min-width:0}
+.pe-bar .pe-act{position:static;margin:0 0 0 auto;flex:none}.pe-bar .pe-act .btn{border-radius:999px;padding:10px 18px}
+/* Zoznamy (desktop): stĺpec s tlačidlom Otvoriť len tak široký ako tlačidlo, názov sa nikdy neláme uprostred slova. */
+@media(min-width:801px){
+table.agenda-grid tbody td.ot-act,table.lv:has(td.ot-act) thead th:last-child{width:1%;white-space:nowrap}
+table.agenda-grid tbody td.lv-title{min-width:220px;overflow-wrap:normal!important;word-break:normal!important;hyphens:none}
+}
