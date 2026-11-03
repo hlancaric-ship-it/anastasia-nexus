@@ -4,6 +4,8 @@ import { ContainerRegistrationKeys, Modules, QueryContext } from "@medusajs/fram
 import type { IPromotionModuleService, PromotionDTO } from "@medusajs/framework/types"
 import { updateLineItemInCartWorkflow, updateCartWorkflow } from "@medusajs/medusa/core-flows"
 import { refreshPaymentCollectionForCartWorkflow } from "@medusajs/medusa/core-flows"
+import { COUPON_LINK_MODULE } from "../../../modules/coupon-link"
+import type CouponLinkModuleService from "../../../modules/coupon-link/service"
 import { resolveCustomerTier } from "./customer-tier"
 import { codeAvailable } from "../../admin/coupon-links/validation"
 import { allocateFixedCoupon, couponAppliesToProduct, resolveCoupon } from "../../../lib/pricing/coupon"
@@ -63,8 +65,7 @@ function readStoredCoupon(metadata: Record<string, unknown> | null | undefined):
 
 async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, existingMetadata: Record<string, unknown> | null | undefined, coupon: StoredCoupon | null) {
   const metadata = { ...(existingMetadata || {}) }
-  if (coupon) metadata.nexus_coupon = coupon
-  else delete metadata.nexus_coupon
+  metadata.nexus_coupon = coupon ?? null
   await updateCartWorkflow(scope).run({ input: { id: cartId, metadata } })
 }
 
@@ -74,22 +75,33 @@ async function persistCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  * produkt). Vrací `undefined`, pokud kód neexistuje nebo není momentálně
  * dostupný (`codeAvailable`) -- volající rozhodne, jestli je to chyba
  * (nový kód od zákazníka) nebo tichý pokles (dřív uložený kód mezitím
- * vypršel/došel limit).
+ * vypršel). Vyčerpaný limit se odmítne bez změny ceny.
  *
  * Podporuje se percentuálna aj pevná zľava (EUR), rozsah `order` aj `items`
  * a obmedzenie na produkty (`target_rules items.product.id`). Nepodporovaná
  * pravidla (pravidla pro zákazníka, „kúpi X a dostane Y“) se odmietajú.
  */
-async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promise<StoredCoupon | undefined> {
+async function lookupCoupon(scope: MedusaRequest["scope"], code: string, cartId: string): Promise<StoredCoupon | undefined> {
   const promotions = scope.resolve<IPromotionModuleService>(Modules.PROMOTION)
   // `application_method.target_rules.values` je nutné načítať – hodnoty pravidla
   // (napr. `items.product.id in [...]`) ležia v samostatnej tabuľke a bez nich sa
   // obmedzenie na produkty nedá prečítať (kupón by sa vôbec neuplatnil).
   const matches = await promotions.listPromotions({ code }, { relations: ["campaign", "rules", "application_method", "application_method.target_rules", "application_method.target_rules.values", "application_method.buy_rules"], take: 2 })
   const promotion = matches[0] as PromotionDTO | undefined
-  if (matches.length !== 1 || !promotion || !codeAvailable(promotion, code)) return undefined
+  if (matches.length !== 1 || !promotion || !codeAvailable({ ...promotion, limit: null }, code)) return undefined
   const resolved = resolveCoupon(promotion as any, code)
   if (!resolved) return undefined
+  if (promotion.limit != null && Number(promotion.used ?? 0) >= Number(promotion.limit)) {
+    // Vlastná rezervácia smie idempotentne zopakovať checkout.
+    let rows: any[]
+    try {
+      rows = await scope.resolve<CouponLinkModuleService>(COUPON_LINK_MODULE).listCouponUsageReservations(
+        { cart_id: cartId }, { select: ["promotion_id", "coupon_code", "status"], take: 1 },
+      )
+    } catch { throw new Error("COUPON_USAGE_RESERVATION_UNAVAILABLE") }
+    const own = rows[0]
+    if (!own || own.promotion_id !== promotion.id || own.coupon_code !== code || !["reserved", "confirmed"].includes(own.status)) throw new Error("COUPON_LIMIT_EXHAUSTED")
+  }
   return {
     code: resolved.code,
     promotion_id: resolved.promotion_id,
@@ -113,28 +125,28 @@ async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promis
  *   nový kód skončí COUPON_NOT_APPLICABLE (legacy „kupón platí len pre ...“) a
  *   uložený sa tiše odoberie – inak by sa pri objednávke započítalo použitie bez zľavy.
  */
-async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, cartMetadata: Record<string, unknown> | null | undefined, couponCodeInput: string | null | undefined, applicable: (coupon: StoredCoupon) => boolean): Promise<StoredCoupon | undefined> {
+async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, cartMetadata: Record<string, unknown> | null | undefined, couponCodeInput: string | null | undefined, applyChanges: boolean, applicable: (coupon: StoredCoupon) => boolean): Promise<StoredCoupon | undefined> {
   if (couponCodeInput === null) {
-    await persistCartCoupon(scope, cartId, cartMetadata, null)
+    if (applyChanges) await persistCartCoupon(scope, cartId, cartMetadata, null)
     return undefined
   }
   if (typeof couponCodeInput === "string" && couponCodeInput.trim().length > 0) {
-    const resolved = await lookupCoupon(scope, couponCodeInput.trim())
+    const resolved = await lookupCoupon(scope, couponCodeInput.trim(), cartId)
     if (!resolved) throw new Error("COUPON_INVALID")
     if (!applicable(resolved)) throw new Error("COUPON_NOT_APPLICABLE")
-    await persistCartCoupon(scope, cartId, cartMetadata, resolved)
+    if (applyChanges) await persistCartCoupon(scope, cartId, cartMetadata, resolved)
     return resolved
   }
   const stored = readStoredCoupon(cartMetadata)
   if (!stored) return undefined
-  const revalidated = await lookupCoupon(scope, stored.code)
+  const revalidated = await lookupCoupon(scope, stored.code, cartId)
   if (!revalidated || !applicable(revalidated)) {
-    await persistCartCoupon(scope, cartId, cartMetadata, null)
+    if (applyChanges) await persistCartCoupon(scope, cartId, cartMetadata, null)
     return undefined
   }
   // Uložené pole (promotion_id, hodnota, rozsah) mohol prepísať klient alebo ich medzitým
   // zmenil správca – v košíku sa vždy prepíšu hodnotami zo servera.
-  if (JSON.stringify(stored) !== JSON.stringify(revalidated)) await persistCartCoupon(scope, cartId, cartMetadata, revalidated)
+  if (applyChanges && JSON.stringify(stored) !== JSON.stringify(revalidated)) await persistCartCoupon(scope, cartId, cartMetadata, revalidated)
   return revalidated
 }
 
@@ -250,7 +262,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   // 2) Kupón sa uplatní len na položky, na ktoré platí (darčekový poukaz nikdy).
   //    Bez jedinej takej položky sa kupón neprijme (viď `resolveCartCoupon`).
   const discountable = prepared.filter((item) => !isGiftVoucherProduct(item.variant?.product))
-  const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput,
+  const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput, applyChanges,
     (candidate) => discountable.some((item) => couponAppliesToProduct(candidate, item.productId)))
 
   // 3) Pevná zľava (EUR) platí JEDNOU za košík a rozdelí sa na zľavu za kus.

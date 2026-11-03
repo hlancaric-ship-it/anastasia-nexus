@@ -8,6 +8,7 @@ import type { NotifyResult } from "./index"
 import { bankTransferInstructions, bankTransferQr, paymentMethodByProvider } from "../checkout/delivery-payment"
 import { qrPng } from "../payments/qr-payment"
 import { invoiceAttachment } from "../invoice/load"
+import { syncOrderToPohodaIfPaid } from "../invoice/pohoda"
 
 /**
  * E-maily k objednávce a účtu (C-1). Stejná pravidla jako `notify` u rezervací:
@@ -170,6 +171,10 @@ export async function notifyOrderPlaced(container: Container, orderId: string): 
     // Faktúra (zaplatené) alebo zálohová faktúra (prevod) ide v prílohe.
     const invoice = await invoiceAttachment(container, order.id)
     if (invoice) attachments = [...(attachments ?? []), invoice]
+    // Do účtovníctva Pohoda sa prenášajú iba reálne zaplatené daňové doklady (FA), nikdy zálohové faktúry (ZF).
+    if (data.paid === true) {
+      await syncOrderToPohodaIfPaid(container, order.id).catch(() => null)
+    }
     return send(container, {
       to, template: ORDER_TEMPLATES.placed, idempotency_key: `order.placed:${order.id}`,
       resource_id: order.id, resource_type: "order", data, ...(attachments ? { attachments } : {}),
@@ -192,6 +197,7 @@ export async function notifyPaymentCaptured(container: Container, paymentId: str
     const order = await loadOrder(container, orderId)
     if (!order) return skip("ORDER_NOT_FOUND")
     if (!isOrderPaid(order)) return skip("NOT_PAID")
+    await syncOrderToPohodaIfPaid(container, order.id).catch(() => null)
     const to = clean(order.email)
     if (!to) return skip("NO_EMAIL")
     const paidInvoice = await invoiceAttachment(container, order.id)

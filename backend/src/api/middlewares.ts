@@ -23,6 +23,7 @@ import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
 import { customerCreateMiddlewares } from "./store/customers/create-guard"
 import { customerProfileMiddlewares } from "./store/customers/profile-guard"
 import { adminCapabilityMiddlewares } from "./admin-capability-middlewares"
+import { adminProductDeleteMiddlewares } from "./admin-product-delete-guard"
 import { abuseGuardMiddlewares } from "./abuse-guard-middlewares"
 import { protectedMediaRedactionMiddlewares } from "./protected-media-redaction-middlewares"
 import { adminUploadGuardMiddlewares } from "./admin/upload-guard"
@@ -34,6 +35,7 @@ import { protectAdminRoleMetadata, protectAdminUserCreation, requireInviteEmail 
 import { pageAdminMiddlewares } from "./admin/pages/middlewares"
 import { mediaAdminMiddlewares } from "./admin/media/middlewares"
 import { contentAdminMiddlewares } from "./admin/content/middlewares"
+import { novinkyMiddlewares } from "./admin/novinky/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -91,8 +93,12 @@ export default defineMiddlewares({
     ...pageAdminMiddlewares,
     ...mediaAdminMiddlewares,
     ...contentAdminMiddlewares,
+    // Novinky: správa len pre správcu, hlasovanie a kliknutia s brzdou na IP.
+    ...novinkyMiddlewares,
     // Serverová hranica rolí: asistent nemení ceny, kupóny, poukazy, prístupy ani API kľúče.
     ...adminCapabilityMiddlewares,
+    // Produkt s aktívnym prístupom zákazníkov alebo budúcou rezerváciou sa nezmaže.
+    ...adminProductDeleteMiddlewares,
     // Verejné nahrávanie len obrázkov a videí overených podľa obsahu.
     ...adminUploadGuardMiddlewares,
     // Rola administrátora (metadata.anastasia_role) a zakladanie nových účtov:

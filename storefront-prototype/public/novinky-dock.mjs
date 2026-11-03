@@ -1,5 +1,5 @@
 // Výsuvný panel Novinky na všetkých stránkach okrem /novinky (tá má vlastný). Obsah len z API, vkladá sa ako text.
-// Bez obsahu v admine alebo pri výpadku API ukazuje ukážku ako stránka Novinky; vypnutý panel v admine platí vždy.
+// Keď API neodpovie alebo je panel v admine vypnutý, záložka sa nezobrazí (žiadne ukážkové dáta mimo stránky Novinky).
 import {config} from './config.mjs';
 
 const $=id=>document.getElementById(id);
@@ -14,15 +14,10 @@ function beacon(slot){try{fetch(`${config.apiBaseUrl}/store/novinky/ads/${slot}/
 async function load(){
   try{
     const r=await fetch(`${config.apiBaseUrl}/store/novinky`,{headers:{'x-publishable-api-key':config.publishableKey}});
-    if(r.ok){
-      const j=await r.json();
-      if(j&&j.panel&&Array.isArray(j.posts)){
-        if(j.panel.enabled===false)return null;
-        if(j.featured||j.posts.length)return j;
-      }
-    }
-  }catch{/* ukážka nižšie */}
-  try{return (await import('/novinky-data.mjs')).NOVINKY_SAMPLE}catch{return null}
+    if(!r.ok)return null;
+    const j=await r.json();
+    return j&&j.panel&&Array.isArray(j.posts)?j:null;
+  }catch{return null}
 }
 
 function mount(data){

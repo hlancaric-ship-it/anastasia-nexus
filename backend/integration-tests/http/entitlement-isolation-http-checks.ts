@@ -11,7 +11,7 @@ export async function verifyEntitlementIsolation({ api, container, options, evid
   const entitlements = container.resolve("entitlement")
   const record = (scenario: string, extra: Record<string, unknown> = {}) => evidence.push({ scenario: `A02_${scenario}`, status: "PASS", ...extra })
   const jwt = (actor_id: string, actor_type: string, extra: Record<string, unknown> = {}) =>
-    `Bearer ${generateJwtToken({ actor_id, actor_type, auth_identity_id: `synthetic-${actor_id}`, ...extra }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}`
+    `Bearer ${generateJwtToken({ actor_id, actor_type, auth_identity_id: `synthetic-${actor_id}`, app_metadata: { [`${actor_type}_id`]: actor_id, session_epoch: 0 }, ...extra }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}`
   const as = (authorization: string) => ({ ...options, headers: { ...options.headers, Authorization: authorization } })
 
   const [a, b] = await container.resolve(Modules.CUSTOMER).createCustomers([{ email: "isolation-a@example.test" }, { email: "isolation-b@example.test" }])

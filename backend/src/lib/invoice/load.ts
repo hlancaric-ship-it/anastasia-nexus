@@ -19,6 +19,12 @@ export async function loadInvoiceOrder(container: Pick<MedusaContainer, "resolve
   return (data?.[0] as InvoiceOrder | undefined) ?? null
 }
 
+export async function loadAllInvoiceOrders(container: Pick<MedusaContainer, "resolve">, limit = 500): Promise<InvoiceOrder[]> {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY) as { graph: (q: Record<string, unknown>) => Promise<{ data?: unknown[] }> }
+  const { data } = await query.graph({ entity: "order", fields: FIELDS, pagination: { take: Math.min(Math.max(limit, 1), 1000), order: { created_at: "DESC" } } })
+  return (data as InvoiceOrder[] | undefined) ?? []
+}
+
 export async function invoicePdfForOrder(container: Pick<MedusaContainer, "resolve">, orderId: string): Promise<{ model: InvoiceModel; pdf: Buffer } | null> {
   const order = await loadInvoiceOrder(container, orderId)
   if (!order) return null

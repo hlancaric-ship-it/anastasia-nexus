@@ -741,3 +741,10 @@ table.ot-orders .ot-acts { display:flex; flex-wrap:wrap; justify-content:flex-en
 /* Stránkovanie bez ďalšej strany nezaberá miesto. */
 div:has(>[data-pg="prev"]:disabled):has(>[data-pg="next"]:disabled) { display:none!important; }
 .ot-foot:not(:has(div:has(>[data-pg]:not(:disabled)))):has(.muted:empty) { display:none; }
+/* Zlaté logo ANASTASIA od Lucie (krúžok a nápis s tieňom), rovnaké ako v newsletteri. */
+.brand img.brand-ring,.brand img.brand-word,.mobile-head img.brand-ring,.mobile-head img.brand-word{filter:none}
+.brand img.brand-ring{width:67px;height:64px;flex:none;object-fit:contain}
+.brand img.brand-word{display:block;width:156px;height:auto;margin-left:-3px}
+.brand small{margin:2px 0 0 4px;color:#a8823f}
+.mobile-head .brand-ring{width:34px;height:32px;flex:none}
+.mobile-head .brand-word{width:104px;height:auto}

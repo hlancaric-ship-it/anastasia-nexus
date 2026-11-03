@@ -947,7 +947,7 @@ input[readonly]{background:var(--surface-3);color:var(--muted)}
 .fgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
 /* Nastavenie poukazov: formulár + náhľad dizajnu vedľa seba */
 .vs-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
-.vs-preview .voucher{max-width:100%;margin:0 auto}
+.vs-preview .gv{max-width:100%;margin:0 auto}
 @media (max-width:1100px){.vs-layout{grid-template-columns:1fr}}
 h1,h2,h3{font-weight:300}
 
@@ -1466,3 +1466,15 @@ table.ot-orders tbody td small { max-width: 100%; }
 .qr-list-card .qr-card-coupon,
 .qr-list-card .qr-card-status { display: block; line-height: 1.5; }
 .qr-list-card .pill { justify-self: start; white-space: normal; }
+/* Štítky produktu v tvare listu (zhodné s obchodom). */
+.pill.leaf{display:inline-flex;align-items:center;gap:5px;border-radius:12px 2px 12px 2px;background:#f1efe2;color:#55603a;border:1px solid #c9cdb0}
+.pill.leaf::before{content:'';width:6px;height:9px;border-radius:0 100% 0 100%;background:currentColor;opacity:.7;transform:rotate(18deg)}
+/* Newsletter: orezanie fotografie do výrezu šablóny */
+.pc{width:min(820px,calc(100vw - 32px))}
+.pc-body{display:flex;gap:28px;align-items:center;flex-wrap:wrap;padding:18px 22px 22px}
+.pc-stage{position:relative;flex:none;overflow:hidden;cursor:grab;touch-action:none;outline-offset:4px;box-shadow:0 0 0 1px var(--line)}
+.pc-stage:active{cursor:grabbing}
+.pc-ctl{flex:1 1 220px;display:flex;flex-direction:column;gap:10px}
+.pc-ctl input[type=range]{width:100%;accent-color:var(--gold)}
+.pc-err{color:#9b3d2e}
+.pc-ctl .pc-reset{align-self:flex-start}

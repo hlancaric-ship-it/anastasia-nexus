@@ -21,10 +21,11 @@ describe('Medusa event intake in real D1', () => {
         expect(persisted).toHaveLength(1);
         expect(persisted[0]).toMatchObject({ tenant_id: 'synthetic', target_id: 'ord_synthetic', event_type: 'order.placed', processing_state: 'RECEIVED' });
         expect(JSON.stringify(persisted)).not.toContain('synthetic-private');
-        expect(ctx.waitUntil).not.toHaveBeenCalled();
+        expect(ctx.waitUntil).toHaveBeenCalledTimes(1);
         const replay = await handleMedusaWebhook(await signedMedusaWebhook(event(id)), workerEnv, ctx);
         expect(await replay.json()).toMatchObject({ duplicate: true });
         expect((await rows(id)).results).toEqual(persisted);
+        expect(ctx.waitUntil).toHaveBeenCalledTimes(1);
     });
     it('parallel deliveries create exactly one inbox row', async () => {
         const id = `evt_${crypto.randomUUID()}`;

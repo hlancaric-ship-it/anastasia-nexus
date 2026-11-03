@@ -48,4 +48,4 @@ const server=http.createServer(async(req,res)=>{
   }catch{res.writeHead(404,{'Content-Type':'text/html; charset=utf-8'});if(req.method==='HEAD')res.end();else res.end(await readFile(resolve(root,'404.html')));}
 });
 const host=process.env.HOST||'127.0.0.1';
-server.listen(port,host,()=>console.log(`ANASTASIA preview: http://${host}:${port}`));
+server.listen(port,host,()=>console.log(`ANASTASIA preview: http://${host}:${server.address().port}`));

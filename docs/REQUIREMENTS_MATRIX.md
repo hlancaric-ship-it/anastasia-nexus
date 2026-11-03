@@ -208,3 +208,34 @@ Vlastník oznámil úhradu billing. Oba nové verify pokusy byly stále odmítnu
 startem runneru stejným account-lock důvodem. Přesná data:
 `backend/docs/wp/evidence/safeorder-ci-after-payment.json`. Gate P0 zůstává
 BLOCKED, Auth nebylo otevřeno. Další krok je rerun38125396491 po změně stavu účtu.
+
+## Security audit delta — 2026-10-27/28, `claude/security-audit-2026-10` (1ffdb13)
+
+Zadání `docs/ZADANI-ZABEZPECENI-UTOKY.md`. Důkaz: `npx tsc --noEmit` OK, `npm run test:unit` 182/182 sad, 1766/1766 testů PASS, `check-admin-function-map.py` PASS. Stav na testu (Medusa Cloud) = IMPLEMENTED_UNVERIFIED do E2E po jednom buildu (Sonnet).
+
+| Požadavek | Implementace | Test | Stav |
+|---|---|---|---|
+| S1-09 odhlášení na všech zařízeních | session epoch v JWT (C7 Codex) + guard pro `/store/*`, `/admin/*`, `/auth/token/refresh`, `/auth/session`; neregistrovaná identita (magic-link, pozvánka) projde jen na svůj typ aktéra | `auth-session-transport.unit.spec.ts` (skutečný Express, regresní test registrace) | unit VERIFIED, Cloud UNVERIFIED |
+| S1-09 smazaný zákazník (GDPR) | `denyErasedCustomer` čte `originalUrl` (globální middleware má oříznutou `path`) | `privacy.unit.spec.ts` | unit VERIFIED |
+| S1-09 role asistenta | capability `payments`, `shipping` (jen owner); pricing pro order-edits, draft-orders, customer-groups, booking types s cenou; access pro `metadata.protected_media`/`membership`; refund jen platby vlastní objednávky | `admin-capability.unit.spec.ts`, `orders-admin.unit.spec.ts` | unit VERIFIED, Cloud UNVERIFIED |
+| S1-03 vrácená/zrušená platba | validate hook ověří PaymentIntent a refundy přímo ve Stripe, `compensated_payment_intents` serverový klíč | `payment-compensation` + hooks testy | unit VERIFIED |
+| S1-06 kupón s limitem (C8) | předkontrola vyčerpání před zamknutím košíku, chyba zámku → 409 `COUPON_LIMIT_EXHAUSTED`/`CHECKOUT_IN_PROGRESS`; autoritativní zůstává atomická `reserveUsage` | `coupon-usage.unit.spec.ts`, `route-errors.unit.spec.ts` | unit VERIFIED, Cloud UNVERIFIED |
+
+Otevřené: N1 limit kupónu ignoruje budget kampaně, N2 rezervace `reserved` po pádu procesu nevyprší, CAPTCHA (Turnstile) a CVE závislostí čekají na rozhodnutí Luckyho. T1-7 zůstává NOT_IMPLEMENTED do externího pentestu.
+
+
+## Převzetí po Opusovi — 28. 10. 2026 (Codex)
+
+| Oblast | Ověřený důkaz | Stav |
+|---|---|---|
+| Novinky a tipy: ukázka při prázdném/nedostupném API, živá data mají přednost, vypnutí panelu v adminu platí | `storefront-prototype/test/browser-novinky.mjs`, skutečný Chrome, 1440 a 390 px, syntetické API, žádné externí zápisy | VERIFIED lokálně; skutečné hlasování/reklamní kliky na testu zatím UNVERIFIED |
+| Menu: vlajky a velikost účtu, odkazy, běžné odhlášení oddělené od logout-all | 182/182 storefront testů bez globálního timeoutu; browser regrese skutečných rozměrů a CSS | VERIFIED lokálně |
+| NEXUS booking inbox, sync commity `ed3ef07`, `dcdd538`, `1535b31` + C13 worker suite | všechny tři commity jsou v remote větvi; oprava `1819553` ověřena v [izolovaném Linux CI běhu 40683223584](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/40683223584) a [40685755235](https://github.com/hlancaric-ship-it/anastasia-nexus/actions/runs/40685755235) | **VERIFIED** — booking inbox 31/31 PASS, celý worker suite **15/15 sad, 159/159 testů PASS** v reálném `workerd`, backend unit **186/186 sad, 1797/1797 testů PASS** |
+| Newsletter: typografie, náhled, hláška u tlačítka a živé `send-test` (A1/A2) | `anastasia-admin/test/browser-newsletter.mjs` (Chrome 1440 a 390 px PASS) + živý test na Medusa Cloud (`build_01M60TM1DSGSMT4VF635YRSDFC` @ `4b7a963`): `OPTIONS` → 204 + ACAO, `POST /admin/newsletter/campaigns/nlc_4afe649d-76c9-4e88-81b4-aae51163be6e/send-test` na `ceo+codex-newsletter-20261028@l-code-dynamics.com` → 200, e-mail doručen (Zoho ID `1793189425998004400`) | **VERIFIED lokálně i na testu** |
+| Živý admin: přijetí pozvánky a role asistenta | Nový syntetický účet `+codex-rbac-20261028@l-code-dynamics.com`: invite/register/accept/login/me 200; výchozí assistant; šest zákazů 403 (carriers, regions, payments, refund, booking price, protected_media) | VERIFIED na testu |
+| Živý admin: logout-all | dvě přihlášení 200/200 → logout-all 200 → staré relace 401/401, refresh 401, nové přihlášení 200, původní vlastník dál 200; pouze syntetický účet | VERIFIED bearer na testu; cookie pokryté lokálním Express testem, Cloud cookie dosud UNVERIFIED |
+| Zákaznický magic-link, zákaznické logout-all přes živý test (B6) | syntetický zákazník `cus_7f101e5d35674dd4a77a1e5e6bf4c387` (`ceo+codex-customer-20261028@l-code-dynamics.com`): magic-link callback 200, vytvoření zákazníka 200, svázání identity 200, dvě relace před 200/200 → `POST /store/nexus-auth/logout-all` 200 (`epoch: 1`) → obě staré relace 401/401, refresh 401, re-login 200 | **VERIFIED na testu** |
+| B8 / C8 kupón s limitem 1 (druhý košík + odebrání kupónu) | Živý test na `6ab9e45` odhalil: 1) druhý košík dostal `409 PRICE_CHANGED_PAYMENT_REINITIALIZATION_REQUIRED` místo `409 COUPON_LIMIT_EXHAUSTED` (reprice běžel před kontrolou vyčerpání a v `hooks.validate` držel zámek košíku); 2) `couponCode: null` v Medusa v2 nesmazalo JSONB klíč `metadata.nexus_coupon` (`delete` místo `= null`). Opraveno v `29900d2`/`4fb5a44`: `npx tsc --noEmit` PASS, 186/186 unit sad (1797/1797 testů PASS), PostgreSQL integrace `service.integration.spec.ts` 1/1 PASS (`anastasia_coupon_c3`), API mapa 55/150/259 PASS; pushnuto do `L-Code-Dynamics-Dev/anastasia-nexus` (`main`) | VERIFIED lokálně + PG integrace; v Cloud `main` pushnuto |
+| B10 Novinky živé API (vč. ankety 200 → 409 a reklamy) | Na živém Medusa Cloud vytvořena syntetická anketa `codex-e2e-poll-20261028`: 1. hlas → 200 (`total: 1`), 2. hlas z téže IP → 409 `ALREADY_VOTED`, klik na slot 1 → 204, neplatný slot 99 → 404, serverové odmítnutí externí URL obrázku reklamy → 400, admin readback `total: 1`, poté stav obnoven (`posts: []`, 200) | **VERIFIED na testu** |
+| Môj účet: jedna knihovna, jméno z profilu a kontrast panelu | 185/185 storefront testů; browser-account-panel na 1440/390 px, všech 6 barev má kontrast jména a aktivní položky ≥4.5:1; serverem potvrzené jméno i po uložení, nezávislé na chybě objednávek/katalogu; staré #reset → #programy, Zrkadielko zachované jako deník v knihovně | VERIFIED lokálně + DEPLOYED |
+| Produktové obrázky po nasazení | zjištěné chybějící R2 originy v CSP; obnoven manifest `ops/test-predani/public-media-origins.json`, smoke je kontroluje a preflight vyžaduje video i zvuk | VERIFIED po společném deployi: všech 14 obrázků e-shopu načteno, R2 obrázek na nově načteném adminu PASS, smoke + hero/audio 200 |

@@ -11,7 +11,7 @@ export async function verifyChatHttp({ api, container, options, admin, evidence 
     { email: "chat-a@example.test", first_name: "Anna", last_name: "Chatová" },
     { email: "chat-b@example.test", first_name: "Bea", last_name: "Chatová" },
   ])
-  const as = (customer: any) => ({ ...options, headers: { ...options.headers, Authorization: `Bearer ${generateJwtToken({ actor_id: customer.id, actor_type: "customer", auth_identity_id: `synthetic-${customer.id}` }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` } })
+  const as = (customer: any) => ({ ...options, headers: { ...options.headers, Authorization: `Bearer ${generateJwtToken({ actor_id: customer.id, actor_type: "customer", auth_identity_id: `synthetic-${customer.id}`, app_metadata: { customer_id: customer.id, session_epoch: 0 } }, { secret: process.env.JWT_SECRET!, expiresIn: "1h" })}` } })
   const [none, a, b] = customers.map(as)
   // Oprávnění psát: aktivní přístup (předplatné/digitální produkt) – jako po zaplacené objednávce.
   await container.resolve("entitlement").createEntitlements(customers.slice(1).map((c: any) => ({
