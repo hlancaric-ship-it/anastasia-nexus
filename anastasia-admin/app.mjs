@@ -1337,14 +1337,13 @@ const shipLabel = (sp) => sp.type === 'digital' ? 'Digitálny produkt / služba 
 async function vProductNew(view) {
   view = freshView(view);
   let profiles = []; try { profiles = (await api('/admin/shipping-profiles?limit=50&fields=id,name,type')).shipping_profiles || []; } catch (e) { if (e.message === '401') throw e; }
-  view.innerHTML = `<div class="card"><div class="card-h">Nový produkt<button class="btn ghost" id="pn-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Nový produkt<div class="card-h-act"><button type="button" class="btn ghost" id="pn-back">Späť</button><button type="button" class="btn gold" id="pn-save">Vytvoriť produkt</button></div></div><div class="card-b">
     <div id="pnmsg"></div>
     <label>Názov</label><input id="pn-title" placeholder="napr. Konzultačný balík">
     <div class="row"><div><label>Cena (EUR)</label><input id="pn-price" type="number" step="0.01" placeholder="0.00"></div>
     <div><label>Stav</label><select id="pn-status"><option value="draft">Koncept</option><option value="published">Zverejnený</option></select></div></div>
     <label>Kód produktu (SKU)</label><input id="pn-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">
     <label>Typ produktu</label><select id="pn-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}">${esc(shipLabel(sp))}</option>`).join('')}</select>
-    <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť produkt</button></div>
     <p class="muted" style="margin-top:10px;font-size:12px">Produkt vznikne s jedným variantom a cenou v EUR. Typ produktu určuje dopravu v pokladni. Obrázky, sklad, predajné kanály, popis a kategórie doplníte v úprave.</p>
   </div></div>`;
   view.querySelector('#pn-back').onclick = () => vProducts(view);
@@ -1468,10 +1467,10 @@ async function vProductDetail(view, id, opts = {}) {
         <h1 class="pe-title">${esc(p.title)}</h1>
         <div class="pe-price"><b>${priceTxt}</b><small>EUR</small>${saleOn && sale.akcna_cena ? `<em>akcia ${esc(String(sale.akcna_cena))} €</em>` : ''}</div>
         <div id="p-checks" class="pe-checks"></div>
-        <div class="pe-act"><button type="button" class="btn danger" id="p-del">Odstrániť produkt</button><button class="btn ghost" id="p-back">Späť na produkty</button><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
       </div>
     </article>
-    <nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" data-jump="${k}">${esc(l)}</button>`).join('')}</nav>
+    <div class="pe-bar"><nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" data-jump="${k}">${esc(l)}</button>`).join('')}</nav>
+      <div class="pe-act card-h-act"><button type="button" class="btn ghost" id="p-back">Späť</button><button type="button" class="btn danger" id="p-del">Odstrániť produkt</button><button type="button" class="btn gold" id="p-save">Uložiť zmeny</button></div></div>
     <div id="pmsg">${opts.notice ? `<div class="notice">${esc(opts.notice)}</div>` : ''}</div>
     <div class="pe-grid">
       ${sec('zaklad', '01', 'Základné údaje', zakladne)}
@@ -1649,13 +1648,12 @@ async function vCategoryDetail(view, id) {
   let c = { name: '', handle: '', is_active: true, parent_category_id: null };
   if (id) { const r = await api(`/admin/product-categories/${id}?fields=id,name,handle,is_active,parent_category_id`); c = r.product_category; }
   const descendant = candidate => { const seen = new Set(); let current = candidate; while (current) { if (current === id || seen.has(current)) return true; seen.add(current); current = all.find(x => x.id === current)?.parent_category_id; } return false; };
-  view.innerHTML = `<div class="card"><div class="card-h">${id ? 'Úprava kategórie' : 'Nová kategória'}<button class="btn ghost" id="c-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">${id ? 'Úprava kategórie' : 'Nová kategória'}<div class="card-h-act"><button type="button" class="btn ghost" id="c-back">Späť</button>${id ? '<button type="button" class="btn danger" id="c-delete">Odstrániť kategóriu</button>' : ''}<button type="button" class="btn gold" id="c-save">Uložiť</button></div></div><div class="card-b">
     <div id="cmsg"></div>
     <label>Názov</label><input id="c-name" value="${esc(c.name)}">
     <label>Adresa kategórie</label><input id="c-handle" value="${esc(c.handle || '')}" placeholder="napr. bio-kozmetika">
     <label for="c-parent">Nadradená kategória</label><select id="c-parent"><option value="">Hlavná kategória</option>${all.filter(x => !descendant(x.id)).map(x => `<option value="${esc(x.id)}"${x.id === c.parent_category_id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
     <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="c-active" ${c.is_active !== false ? 'checked' : ''} style="width:auto"> Aktívna</label>
-    <div style="margin-top:16px"><button class="btn gold" id="c-save">Uložiť</button>${id ? ' <button class="btn ghost" id="c-delete">Odstrániť kategóriu</button>' : ''}</div>
   </div></div>`;
   view.querySelector('#c-back').onclick = () => vCategories(view);
   const deleteButton = view.querySelector('#c-delete');
@@ -1979,12 +1977,18 @@ async function vOrderDetail(view, id, notice) {
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
   view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka #${esc(history.number || o.display_id || '')}<div class="card-h-act">
+      <button type="button" class="btn ghost" id="o-back">Späť</button>
       <button type="button" class="btn ghost" id="o-print-label">Vytlačiť štítok</button>
       <button type="button" class="btn ghost" id="o-print-slip">Dodací list</button>
       ${archived ? '' : '<button type="button" class="btn ghost" id="o-invoice">Faktúra</button>'}
-      <button class="btn ghost" id="o-back">Späť</button>
+      ${!canceled && !archived && !anyShipped ? '<button type="button" class="btn danger" id="o-cancel">Zrušiť objednávku</button>' : ''}
     </div></div><div class="card-b">
     <div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
+    ${!canceled && !archived && !anyShipped ? `<div id="o-cancel-box" class="act-confirm" hidden>
+        <label for="o-cancel-reason">Dôvod zrušenia (povinný)</label>
+        <textarea id="o-cancel-reason" rows="2" maxlength="500" placeholder="napr. zákazník zrušil objednávku telefonicky"></textarea>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn danger" id="o-cancel-go">Potvrdiť zrušenie</button><span class="muted" style="font-size:12px">Zaplatená suma sa zákazníkovi vráti cez platobnú bránu. Dôvod zostane v objednávke.</span></div>
+      </div>` : ''}
     ${tabsHtml([{ id: 'p', label: 'Prehľad', html: prehlad }, { id: 'i', label: 'Položky', html: polozky }, { id: 'o', label: 'Odoslanie', html: odoslanie }, { id: 'pl', label: 'Platby', html: platby }])}
     ${giftVouchers.length ? `<div style="margin-top:16px"><div class="card" style="margin:0"><div class="card-h">Darčekové poukazy<div class="card-h-act"><button type="button" class="btn gold" id="o-gift-print">Tlačiť poukazy</button></div></div>
       <div class="card-b"><div class="voucher-list" id="gift-list">${giftVouchers.map((gv, i) => {
@@ -1992,13 +1996,6 @@ async function vOrderDetail(view, id, notice) {
         return voucherHtml({ value: gv.initial_amount, currency: gv.currency_code, code: gv.code, expires_at: gv.expires_at, recipient_name: r.name, message: r.message });
       }).join('')}</div>
       <p class="muted" style="font-size:12px;margin-top:10px">Kód je maskovaný – plný kód dostal každý obdarovaný e-mailom. Hodnotu a platnosť overuje backend.</p></div></div>` : ''}
-    ${!canceled && !archived && !anyShipped ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px">
-      <button class="btn ghost" id="o-cancel">Zrušiť objednávku</button>
-      <div id="o-cancel-box" hidden style="margin-top:12px">
-        <label for="o-cancel-reason">Dôvod zrušenia (povinný)</label>
-        <textarea id="o-cancel-reason" rows="2" maxlength="500" placeholder="napr. zákazník zrušil objednávku telefonicky"></textarea>
-        <div class="row" style="margin-top:8px"><button type="button" class="btn gold" id="o-cancel-go">Zrušiť objednávku</button><span class="muted" style="font-size:12px">Zaplatená suma sa zákazníkovi vráti cez platobnú bránu. Dôvod zostane v objednávke.</span></div>
-      </div></div>` : ''}
   </div></div><aside class="detail-help panel" aria-label="Nápoveda k objednávke"><div class="panel-head"><h2>Ako postupovať</h2></div><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
   wireTabs(view);
   const orderHelp = {
@@ -2269,10 +2266,9 @@ async function vCustomerDetail(view, id) {
       <div class="rc-fields"><span class="rc-f"><em>Stav</em>${r.status === 'completed' ? '<span class="pill ok">vykonaná</span>' : '<span class="pill warn">čaká</span>'}</span>
       <span class="rc-f"><em>Požiadala</em>${fmtDate(r.created_at)}</span></div>
       ${r.status !== 'completed' ? `<div style="margin-top:10px"><button type="button" class="btn ghost sm danger" data-erasure="${esc(r.id)}">Vymazať osobné údaje</button></div>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">Zákazník nepožiadala o výmaz osobných údajov.</div>'}`;
-  view.innerHTML = `<div class="card"><div class="card-h">Zákazník<div class="card-h-act"><button type="button" class="btn gold" id="cu-msg">Napísať správu</button><button type="button" class="btn danger" id="cu-del">Odstrániť zákazníka</button><button class="btn ghost" id="cu-back">Späť</button></div></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Zákazník<div class="card-h-act"><button type="button" class="btn ghost" id="cu-back">Späť</button><button type="button" class="btn ghost" id="cu-msg">Napísať správu</button><button type="button" class="btn danger" id="cu-del">Odstrániť zákazníka</button><button type="button" class="btn gold" id="cu-save">Uložiť</button></div></div><div class="card-b">
     <div id="custmsg"></div>
     ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 'v', label: 'Vernosť a skupiny', html: vernost + skupiny }, { id: 'o', label: 'Objednávky', html: objednavky }, { id: 'p', label: 'Prístupy', html: pristupy }, { id: 'g', label: 'Ochrana údajov', html: ochrana }])}
-    <div style="margin-top:16px"><button class="btn gold" id="cu-save">Uložiť</button></div>
   </div></div>`;
   wireTabs(view);
   const tierStart = view.querySelector('#tier-code')?.value;
@@ -2398,11 +2394,10 @@ async function vCouponNew(view) {
   view = freshView(view);
   let products = [];
   try { products = ((await api('/admin/products?limit=200&fields=id,title')).products || []).map((p) => ({ id: p.id, title: p.title })); } catch {}
-  view.innerHTML = `<div class="card"><div class="card-h">Nový kupón<button class="btn ghost" id="pn-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Nový kupón<div class="card-h-act"><button type="button" class="btn ghost" id="pn-back">Späť</button><button type="button" class="btn gold" id="pn-save">Vytvoriť</button></div></div><div class="card-b">
     <div id="pnmsg"></div>
     <label for="pn-code">Kód</label><input id="pn-code" placeholder="napr. JAR26" autocomplete="off">
     ${couponFieldsHtml('pn', { type: 'percentage', value: 10 }, { products })}
-    <div style="margin-top:16px"><button class="btn gold" id="pn-save">Vytvoriť</button></div>
     <p class="muted" style="margin-top:10px">Kupón vytvoríte tu, QR kód k nemu pridáte v záložke QR kódy. Košík uplatní zľavu, keď je kód zadaný v košíku.</p>
   </div></div>`;
   wireCouponTarget(view, 'pn');
@@ -2433,7 +2428,7 @@ async function vCouponDetail(view, id) {
   const from = p.campaign?.starts_at ? String(p.campaign.starts_at).slice(0, 10) : '';
   const to = p.campaign?.ends_at ? String(p.campaign.ends_at).slice(0, 10) : '';
   const used = Number(p.used || 0), limit = p.limit == null ? null : Number(p.limit);
-  view.innerHTML = `<div class="card"><div class="card-h">Kupón ${esc(p.code)}<div class="card-h-act"><button type="button" class="btn danger" id="pd-del">Odstrániť kupón</button><button class="btn ghost" id="pd-back">Späť</button></div></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Kupón ${esc(p.code)}<div class="card-h-act"><button type="button" class="btn ghost" id="pd-back">Späť</button><button type="button" class="btn danger" id="pd-del">Odstrániť kupón</button><button type="button" class="btn gold" id="pd-save">Uložiť</button></div></div><div class="card-b">
     <div id="pdmsg"></div>
     <div class="row"><div><label>Stav</label><select id="pd-status"><option value="active"${p.status === 'active' ? ' selected' : ''}>aktívny</option><option value="inactive"${p.status === 'inactive' ? ' selected' : ''}>inactive</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select></div>
     <div><label>Použitia</label><div>${used} ${limit === null ? 'z neobmedzeného počtu' : `z ${limit}`}${limit !== null && used >= limit ? ' <span class="pill off">limit dosiahnutý</span>' : ''}</div></div></div>
@@ -2442,7 +2437,6 @@ async function vCouponDetail(view, id) {
       <div><label for="pd-limit">Limit použití (0 = bez limitu)</label><input id="pd-limit" type="number" min="0" step="1" value="${esc(String(limit ?? 0))}"></div>
     </div>
     <p class="muted" style="font-size:12px;margin-top:10px">Zľava platí na nové objednávky. Košík ju uplatní, keď je kód zadaný v košíku; pri možnosti „len vybrané produkty“ sa zľava počíta len z týchto produktov.</p>
-    <div style="margin-top:16px"><button class="btn gold" id="pd-save">Uložiť</button></div>
   </div></div>`;
   wireCouponTarget(view, 'pd');
   view.querySelector('#pd-back').onclick = () => vCoupons(view);
@@ -2587,8 +2581,9 @@ async function vVoucherDetail(view, v, back) {
   catch (e) { mail = null; }
   const card = voucherHtml({ value: v.initial_amount, currency: v.currency_code, code: v.code, expires_at: v.expires_at, note: 'Kód je v tejto tlači maskovaný – plný kód dostala obdarovaná e-mailom.' });
   view.innerHTML = `<div class="card"><div class="card-h">Poukaz ${esc(v.code)}<div class="card-h-act">
-      <button type="button" class="btn gold" id="v-print">Tlačiť poukaz</button>
-      <button class="btn ghost" id="v-back">Späť</button></div></div><div class="card-b">
+      <button type="button" class="btn ghost" id="v-back">Späť</button>
+      <button type="button" class="btn ghost" id="v-print">Tlačiť poukaz</button>
+      ${v.status === 'active' ? '<button type="button" class="btn danger" id="v-void">Zneplatniť poukaz</button>' : ''}</div></div><div class="card-b">
     <div id="vmsg"></div>
     <div class="row"><div><label>Zostatok</label><div>${fmtEur(v.balance)} z ${fmtEur(v.initial_amount)}</div></div><div><label>Stav</label><div>${statusPill(V_STATUS, v.status)}</div></div></div>
     <div class="row"><div><label>Vydaný</label><div>${fmtDate(v.issued_at)}</div></div><div><label>Platí do</label><div>${v.expires_at ? fmtDate(v.expires_at) : '—'}</div></div></div>
@@ -2604,8 +2599,7 @@ async function vVoucherDetail(view, v, back) {
     <div class="rc-grid">${tx.map(t => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc(V_TX[t.type] || t.type)} · ${fmtEur(t.amount)}</div><div class="rc-fields">
       <span class="rc-f"><em>Kedy</em>${fmtDate(t.created_at)}</span><span class="rc-f"><em>Zostatok po</em>${fmtEur(t.balance_after)}</span>
       ${t.order_id ? `<span class="rc-f"><em>Objednávka</em>${esc(t.order_id)}</span>` : ''}${t.reversed_at ? '<span class="pill off">stornované</span>' : ''}</div></div></div>`).join('') || '<div class="empty">Bez záznamov.</div>'}</div>
-    ${v.status === 'active' ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><label>Dôvod zneplatnenia</label><input id="v-reason" maxlength="300" placeholder="napr. podvodná objednávka">
-      <div style="margin-top:10px"><button class="btn ghost" id="v-void">Zneplatniť poukaz</button></div></div>` : ''}
+    ${v.status === 'active' ? `<div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px"><label>Dôvod zneplatnenia</label><input id="v-reason" maxlength="300" placeholder="napr. podvodná objednávka"></div>` : ''}
   </div></div>`;
   view.querySelector('#v-back').onclick = back;
   const printBtn = view.querySelector('#v-print');
@@ -2761,7 +2755,7 @@ function vBookingTypeForm(view, t) {
   view = freshView(view);
   const isNew = !t;
   t = t || { title: '', description: '', price_eur: '', duration_minutes: 60, buffer_minutes: 15, form: 'online', active: true, archived: false };
-  view.innerHTML = `<div class="card"><div class="card-h">${isNew ? 'Nový typ konzultácie' : esc(t.title)}<button class="btn ghost" id="bt-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">${isNew ? 'Nový typ konzultácie' : esc(t.title)}<div class="card-h-act"><button type="button" class="btn ghost" id="bt-back">Späť</button>${isNew ? '' : `<button class="btn ghost" type="button" id="bt-arch">${t.archived ? 'Obnoviť z archívu' : 'Archivovať'}</button><button class="btn danger" type="button" id="bt-del">Odstrániť</button>`}<button class="btn gold" type="submit" form="bt-form">${isNew ? 'Vytvoriť' : 'Uložiť'}</button></div></div><div class="card-b">
     <div id="btmsg"></div>
     <form id="bt-form">
       <label>Názov</label><input id="bt-title" maxlength="120" required value="${esc(t.title)}">
@@ -2775,8 +2769,6 @@ function vBookingTypeForm(view, t) {
         <div><label>Pauza po konzultácii (minúty)</label><input id="bt-buf" type="number" step="5" min="0" max="240" required value="${esc(t.buffer_minutes)}"></div>
       </div>
       ${t.archived ? '' : `<label style="margin-top:12px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="bt-active" style="width:auto" ${t.active ? 'checked' : ''}> V ponuke na webe</label>`}
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" type="submit">${isNew ? 'Vytvoriť' : 'Uložiť'}</button>
-        ${isNew ? '' : `<button class="btn ghost" type="button" id="bt-arch">${t.archived ? 'Obnoviť z archívu' : 'Archivovať'}</button><button class="btn danger" type="button" id="bt-del">Odstrániť</button>`}</div>
       ${isNew ? '' : '<p class="muted" style="font-size:12px;margin-top:8px">Zmena ceny platí pre nové rezervácie. Archivovaný typ zmizne z webu; existujúce termíny ostávajú platné.</p>'}
     </form>
   </div></div>`;
@@ -2923,7 +2915,7 @@ async function vNewMessage(view, opts = {}) {
     const clear = box.querySelector('#nm-clear');
     if (clear) clear.onclick = () => { customer = null; renderChosen(); view.querySelector('#nm-search').focus(); };
   };
-  view.innerHTML = `<div class="card"><div class="card-h">Nová správa<div class="card-h-act"><button type="button" class="btn ghost" id="nm-back">Späť</button></div></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Nová správa<div class="card-h-act"><button type="button" class="btn ghost" id="nm-back">Späť</button><button type="button" class="btn gold" id="nm-send">Odoslať správu</button></div></div><div class="card-b">
     <div id="nm-msg"></div>
     <div><label for="nm-search">Zákazník</label><input id="nm-search" type="search" placeholder="Hľadať podľa mena alebo e-mailu" autocomplete="off">
       <div id="nm-results" hidden style="margin-top:8px"></div></div>
@@ -2931,7 +2923,7 @@ async function vNewMessage(view, opts = {}) {
     <div style="margin-top:14px"><label for="nm-subject">Téma správy (voliteľné)</label><input id="nm-subject" maxlength="120" placeholder="napr. Objednávka #12 – doprava"></div>
     <div style="margin-top:14px"><label>Text správy <button type="button" class="subtle-link" id="nm-tpl">vložiť šablónu</button></label><textarea id="nm-body" rows="6" maxlength="5000" required></textarea></div>
     <div id="nm-tpl-list" hidden style="margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fafbf7"></div>
-    <div style="margin-top:12px"><button type="button" class="btn gold" id="nm-send">Odoslať správu</button> <span class="muted" style="font-size:12px">Zákazníkovi príde aj e-mail.</span></div>
+    <p class="muted" style="font-size:12px;margin-top:12px">Po odoslaní príde zákazníkovi aj e-mail.</p>
   </div></div>`;
   renderChosen();
   view.querySelector('#nm-back').onclick = () => back();
@@ -3062,7 +3054,11 @@ async function vConversation(view, id, back, notice) {
   catch (e) { return loadError(view, e, () => vConversation(view, id, back)); }
   const c = d.conversation, cu = c.customer || {};
   if (c.unread) api(`/admin/chat/conversations/${encodeURIComponent(id)}/read`, { method: 'POST', body: {} }).catch(() => {});
-  view.innerHTML = `<div class="card"><div class="card-h">${esc(cu.name || cu.email || 'Zákazník')}${c.subject ? ' · ' + esc(c.subject) : ''}<button class="btn ghost" id="c-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">${esc(cu.name || cu.email || 'Zákazník')}${c.subject ? ' · ' + esc(c.subject) : ''}<div class="card-h-act"><button type="button" class="btn ghost" id="c-back">Späť</button>
+      <button type="button" class="btn ghost" data-act="${c.status === 'closed' ? 'reopen' : 'close'}">${c.status === 'closed' ? 'Znovu otvoriť' : 'Uzavrieť konverzáciu'}</button>
+      <button type="button" class="btn ghost" data-act="${c.muted ? 'unmute' : 'mute'}">${c.muted ? 'Zrušiť stlmenie' : 'Stlmiť upozornenia'}</button>
+      <button type="button" class="btn ghost" id="c-block">${cu.chat_blocked ? 'Odblokovať chat' : 'Zablokovať chat'}</button>
+      <button type="button" class="btn danger" id="c-del">Odstrániť konverzáciu</button></div></div><div class="card-b">
     <div id="cmsg">${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
     <p class="muted">${esc(cu.email || '')}${c.order_id ? ' · objednávka ' + esc(c.order_id) : ''}${c.booking_id ? ' · konzultácia ' + esc(c.booking_id) : ''}</p>
     <div style="display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding:4px 0" id="c-thread">
@@ -3073,12 +3069,6 @@ async function vConversation(view, id, back, notice) {
     <form id="c-reply" style="margin-top:12px"><label>Odpoveď <button type="button" class="subtle-link" id="c-tpl">vložiť šablónu</button></label><textarea id="c-body" rows="4" maxlength="5000" required></textarea>
       <div style="margin-top:8px"><button class="btn gold" type="submit">Odoslať</button> <span class="muted" style="font-size:12px">Zákazníkovi príde aj e-mail.</span></div></form>
     <div id="c-tpl-list" hidden style="margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fafbf7"></div>
-    <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn ghost" data-act="${c.status === 'closed' ? 'reopen' : 'close'}">${c.status === 'closed' ? 'Znovu otvoriť' : 'Uzavrieť konverzáciu'}</button>
-      <button class="btn ghost" data-act="${c.muted ? 'unmute' : 'mute'}">${c.muted ? 'Zrušiť stlmenie' : 'Stlmiť upozornenia'}</button>
-      <button class="btn ghost" id="c-block">${cu.chat_blocked ? 'Odblokovať chat zákazníka' : 'Zablokovať chat zákazníka'}</button>
-      <button type="button" class="btn danger" id="c-del">Odstrániť konverzáciu</button>
-    </div>
   </div></div>`;
   const th = view.querySelector('#c-thread'); th.scrollTop = th.scrollHeight;
   view.querySelector('#c-back').onclick = back;
@@ -3637,8 +3627,8 @@ async function vAmbasadorDetail(view, id) {
         ${esc(a.name)}
         <div class="card-h-act">
           ${statusPill(AMBASSADOR_STATUS, a.status || 'draft')}
+          <button type="button" class="btn ghost" id="am-back">Späť</button>
           <button type="button" class="btn danger" id="am-del">Zrušiť ambasádora</button>
-          <button class="btn ghost" id="am-back">← Späť na zoznam</button>
         </div>
       </div>
       <div class="card-b">
@@ -4709,14 +4699,13 @@ async function vEntitlements(view) {
 }
 async function vEntitlementDetail(view, e) {
   view = freshView(view);
-  view.innerHTML = `<div class="card"><div class="card-h">Prístup<button class="btn ghost" id="e-back">Späť</button></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Prístup<div class="card-h-act"><button type="button" class="btn ghost" id="e-back">Späť</button>${e.status === 'active' && isOwner() ? '<button type="button" class="btn danger" id="e-revoke">Odobrať prístup</button>' : ''}</div></div><div class="card-b">
     <div id="emsg"></div>
     <div class="row"><div><label>Produkt</label><div>${esc(e.product_title || e.product_id || '—')}</div></div>
     <div><label>Zákazník</label><div>${esc(e.customer_email || e.customer_id || '—')}</div></div></div>
     <div class="row"><div><label>Stav</label><div><span class="pill ${e.status === 'active' ? 'ok' : 'off'}">${esc(e.status === 'active' ? 'Aktívny' : e.status === 'revoked' ? 'Odobratý' : 'Neaktívny')}</span></div></div>
     <div><label>Platí do</label><div>${e.expires_at ? fmtDate(e.expires_at) : 'trvalý'}</div></div></div>
     <p class="muted" style="margin-top:12px">${e.source === 'migration' ? 'Prístup prenesený zo starého obchodu.' : e.source === 'admin' ? 'Prístup pridelený v administrácii.' : 'Prístup k zakúpenému produktu.'}</p>
-    ${e.status === 'active' && isOwner() ? '<div style="margin-top:16px"><button class="btn ghost" id="e-revoke">Odobrať prístup</button></div>' : ''}
     ${e.status === 'active' && !isOwner() ? '<p class="muted" style="margin-top:16px">Pridanie a odobratie prístupu spravuje vlastník administrácie.</p>' : ''}
   </div></div>`;
   view.querySelector('#e-back').onclick = () => vEntitlements(view);

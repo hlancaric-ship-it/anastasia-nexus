@@ -809,3 +809,15 @@ table.agenda-grid.coupon-grid thead th.ot-act,table.agenda-grid.coupon-grid tbod
  table.ot-orders tbody td:nth-child(5){color:var(--muted)}
  table.ot-orders tbody td:nth-child(6) small{display:inline;margin:0}
 }
+/* Jednotná lišta akcií detailu: vždy hore vpravo v hlavičke karty, poradie Späť → vedľajšie → nebezpečné → Uložiť; pri posune ostáva viditeľná. */
+@media(min-width:801px){
+.card>.card-h:has(>.card-h-act){position:sticky;top:0;z-index:20;background:var(--surface);border-radius:inherit}
+.card-h-act{flex-wrap:nowrap;gap:8px}.card-h-act .btn{white-space:nowrap}
+.card-h-act .btn.gold{order:99}
+.pe-act{position:sticky;top:12px;z-index:20}
+}
+.act-confirm{margin:0 0 16px;padding:14px 16px;border:1px solid #e7c3c3;border-radius:12px;background:#fdf6f6}
+@media(min-width:801px){.card:has(>.card-h>.card-h-act){overflow:visible}.card>.card-h:has(>.card-h-act){border-radius:var(--radius,16px) var(--radius,16px) 0 0;box-shadow:0 1px 0 var(--line-soft)}}
+.pe-bar{position:sticky;top:8px;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pe-bar .pe-nav{position:static;flex:1 1 auto;min-width:0}
+.pe-bar .pe-act{position:static;margin:0 0 0 auto;flex:none}.pe-bar .pe-act .btn{border-radius:999px;padding:10px 18px}
