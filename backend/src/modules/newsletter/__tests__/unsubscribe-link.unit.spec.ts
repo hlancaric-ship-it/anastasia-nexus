@@ -1,6 +1,6 @@
 import {
   batchSize, dailyLimit, listUnsubscribeHeaders, newsletterSecret, NewsletterError,
-  remainingDailyBudget, renderCampaignEmail, unsubscribeSignature, unsubscribeUrl, verifyUnsubscribeSignature,
+  htmlToText, remainingDailyBudget, renderCampaignEmail, unsubscribeSignature, unsubscribeUrl, verifyUnsubscribeSignature,
 } from "../policy"
 
 const SECRET = "testovaci-secret-pre-newsletter-32-znakov"
@@ -88,8 +88,13 @@ describe("šablóna e-mailu", () => {
   })
 
   it("texty neobsahujú bodkočiarku", () => {
-    const { html } = renderCampaignEmail({ subject: "Novinky", bodyHtml: "<p>Text</p>", unsubscribeUrl: "https://example.test/u" })
-    const visible = html.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/style="[^"]*"/gi, "")
+    const { html, text } = renderCampaignEmail({ subject: "Novinky", bodyHtml: "<p>Text</p>", unsubscribeUrl: "https://example.test/u" })
+    // Interpunkciu kontrolujeme v texte, nie v CSS, URL atribútoch alebo ukončení HTML entít (&nbsp;).
+    const visible = htmlToText(html.replace(/<head[\s\S]*?<\/head>/gi, ""))
     expect(visible.includes(";")).toBe(false)
+    expect(text.includes(";")).toBe(false)
+    // Kontrola ostáva citlivá na skutočnú bodkočiarku v obsahu správy.
+    const punctuated = renderCampaignEmail({ subject: "Novinky", bodyHtml: "<p>Text; text</p>", unsubscribeUrl: null })
+    expect(htmlToText(punctuated.html.replace(/<head[\s\S]*?<\/head>/gi, ""))).toContain("Text; text")
   })
 })
