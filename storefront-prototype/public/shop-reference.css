@@ -403,3 +403,10 @@ main .shop-page.shop-v2{padding:0 0 70px!important;max-width:none!important;widt
 @media (max-width:760px){.shop-page.shop-v2 .shop-products{padding:44px 16px 32px!important}.shop-v2 .shop-pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px!important;padding:0 16px 2px!important;width:calc(100% + 32px)}.shop-v2 .shop-pills::-webkit-scrollbar{display:none}.shop-v2 .shop-grid--v3 .shop-card__body{padding:12px 12px 14px!important}.shop-v2 .shop-grid--v3 .shop-card h3{font-size:15px!important}.shop-v2 .shop-card__type{font-size:9px;padding:3px 8px}}
 .shop-v2 .shop-pill{flex:0 0 auto!important;min-width:max-content!important;width:auto!important}
 @media (max-width:760px){.shop-v2 .shop-pills{flex:0 0 auto}.shop-v2 .shop-toolbar{flex-direction:column;align-items:stretch}.shop-v2 .shop-sort select{width:100%!important}}
+/* Čitateľnosť a ovládanie (audit 3. 11.). */
+.shop-v2 .shop-hero__cta{background:#f6f1e6;color:#26271f;border-color:#f6f1e6;font-size:13px;font-weight:600}
+.shop-v2 .shop-hero__cta:hover{background:#fff;color:#26271f}
+.shop-v2 .shop-hero__quote cite{font-size:12px;color:#fff;text-shadow:0 1px 8px rgba(20,22,16,.6)}
+@media(min-width:901px){.shop-v2 .shop-tile__sub{font-size:12px}}
+.shop-v2 .shop-products .result-count,.shop-v2 .result-count{color:#5f5d52!important}
+.shop-v2 .shop-card__type,.shop-v2 .product-flag{font-size:11px!important}

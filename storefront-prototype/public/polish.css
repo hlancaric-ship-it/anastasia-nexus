@@ -316,3 +316,11 @@ html body .site-footer .sf-pay__badge{background:rgba(239,229,199,.94)!important
 html body img.brand-seal,html body #dc-top-menu .menu-brand-mark img.brand-seal,html body :is(.dc-root,.dc-chrome) .header-brand-emblem img.brand-seal,html body .menu-brand-mark img.brand-seal{position:static!important;width:100%!important;height:100%!important;max-width:100%!important;left:auto!important;top:auto!important;object-fit:contain!important;opacity:1!important;filter:none!important}
 html body :is(.header-brand-emblem,.menu-brand-mark){overflow:visible!important;border-radius:0!important}
 html body footer img.brand-seal,html body [data-menu-brand] img.brand-seal{width:auto!important}
+/* Cookie lišta na desktope: jeden nízky riadok, nezakrýva obsah. */
+@media(min-width:901px){
+.cookie-banner{max-height:none!important}
+.cookie-banner-inner{flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:24px!important;padding:14px clamp(20px,3vw,40px)!important;max-width:1280px!important}
+.cookie-banner-text{flex:1 1 0!important;min-width:0;margin:0!important;font-size:13px!important;line-height:1.5!important;color:#2f2e4c!important}
+.cookie-banner .cookie-banner-actions{flex:none!important;flex-wrap:nowrap!important}
+.cookie-banner .cookie-btn{min-height:40px!important;padding:8px 18px!important}
+}
