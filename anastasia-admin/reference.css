@@ -797,3 +797,15 @@ table.agenda-grid.coupon-grid thead th.ot-act,table.agenda-grid.coupon-grid tbod
  table.ot-orders tbody td .pill{white-space:nowrap}
  table.ot-orders tbody tr[data-id] td{padding-top:14px!important;padding-bottom:14px!important}
 }
+/* Objednávky (desktop) s krátkym stĺpcom Doručenie. */
+@media(min-width:801px){
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:12%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:17%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:12%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:20%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7){width:10%!important;text-align:right!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8),table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:12%!important;text-align:left!important}
+ table.ot-orders thead th:nth-child(10),table.ot-orders tbody td:nth-child(10){width:110px!important;text-align:right}
+ table.ot-orders tbody td:nth-child(5){color:var(--muted)}
+ table.ot-orders tbody td:nth-child(6) small{display:inline;margin:0}
+}
