@@ -28,7 +28,7 @@ for (const f of ['app.mjs', 'guide.mjs', 'library-editor.mjs', 'variants-editor.
 await cp(join(root, 'assets'), join(out, 'assets'), { recursive: true });
 const html = await readFile(join(root, 'index.html'), 'utf8');
 if (!html.includes('<meta name="robots"')) throw new Error('index.html: chýba meta robots');
-await writeFile(join(out, 'index.html'), html.replace('<meta name="robots"', `<meta name="ana-api" content="${api}">\n<meta name="robots"`));
+await writeFile(join(out, 'index.html'), html.replace('<meta name="robots"', `<meta name="ana-api" content="${api}">\n<meta name="ana-web" content="${web}">\n<meta name="robots"`));
 await writeFile(join(out, '_headers'), `/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache

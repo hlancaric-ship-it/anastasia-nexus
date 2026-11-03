@@ -2,6 +2,8 @@
 // Vzhled dle backend/docs/wp/admin-design-preview.html. Slovensky. Theming tokeny v styles.css.
 // Produkčný build (build.mjs) zapíše adresu jadra do <meta name="ana-api">; lokálne platí localStorage 'ana_api' alebo :9100.
 const API = (document.querySelector('meta[name="ana-api"]')?.content || localStorage.getItem('ana_api') || 'http://localhost:9100').replace(/\/+$/, '');
+// Adresa e-shopu pre tlačidlo Zobraziť v obchode (build.mjs ju zapíše do <meta name="ana-web">).
+const WEB = (document.querySelector('meta[name="ana-web"]')?.content || API.replace('-api.', '.')).replace(/\/+$/, '');
 const root = document.getElementById('root');
 const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstChild; };
 const fmtEur = (a) => (a == null ? '—' : new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'eur' }).format(Number(a)));
@@ -1397,50 +1399,34 @@ async function vProductDetail(view, id, opts = {}) {
   const trans = (p.metadata && p.metadata.translations) || { en: {}, ru: {} };
   const enTrans = trans.en || {};
   const ruTrans = trans.ru || {};
-  const jazyky = `<div class="row">
-      <div>
-        <h4 style="margin:0 0 10px;color:var(--text);font-size:14px;display:flex;align-items:center;gap:6px">🇬🇧 Anglická verzia (EN)</h4>
-        <label>Názov (EN)</label>
-        <input id="p-title-en" value="${esc(enTrans.title || '')}" placeholder="English product title">
-        <label>Podtitul (EN)</label>
-        <input id="p-sub-en" value="${esc(enTrans.subtitle || '')}" placeholder="Short English subtitle">
-        <label>Popis (EN)</label>
-        <textarea id="p-desc-en" rows="3" style="width:100%;box-sizing:border-box" placeholder="English detailed description">${esc(enTrans.description || '')}</textarea>
-      </div>
-      <div>
-        <h4 style="margin:0 0 10px;color:var(--text);font-size:14px;display:flex;align-items:center;gap:6px">🇷🇺 Ruská verzia (RU)</h4>
-        <label>Názov (RU)</label>
-        <input id="p-title-ru" value="${esc(ruTrans.title || '')}" placeholder="Русское название продукта">
-        <label>Podtitul (RU)</label>
-        <input id="p-sub-ru" value="${esc(ruTrans.subtitle || '')}" placeholder="Краткое описание на русском">
-        <label>Popis (RU)</label>
-        <textarea id="p-desc-ru" rows="3" style="width:100%;box-sizing:border-box" placeholder="Подробное описание на русском">${esc(ruTrans.description || '')}</textarea>
-      </div>
-    </div>`;
-  const zakladne = `<label>Názov</label><input id="p-title" value="${esc(p.title)}">
-    <label>Stav</label><select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>
-    <label>Štítky v obchode</label><div>${PRODUCT_FLAGS.map(([k, label]) => `<label style="display:inline-flex;gap:6px;margin:4px 14px 4px 0;align-items:center"><input type="checkbox" data-flag="${k}" ${productFlagsOf(p).some(([f]) => f === k) ? 'checked' : ''} style="width:auto"> ${label}</label>`).join('')}</div>
-    <p class="muted" style="font-size:12px;margin-top:4px">Štítok sa zobrazí na karte a v detaile produktu. Štítok Akcia sa pridá sám, keď má produkt akčnú cenu.</p>`;
-  const cena = isOwner() ? `<div class="row"><div><label>Bežná cena (EUR)${variant ? '' : ' — bez variantu'}</label><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}></div>
-    <div><label>Akcia</label><label style="display:inline-flex;gap:8px;align-items:center;white-space:nowrap;margin:6px 0 0"><input type="checkbox" id="p-sale-on" ${saleOn ? 'checked' : ''} style="width:16px!important;flex:none"> Vo výpredaji / akcia</label></div></div>
-    <div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">
-      <div class="row"><div><label>Akčná cena (EUR)</label><input id="p-sale-price" type="number" step="0.01" value="${sale.akcna_cena ?? ''}"></div>
-      <div><label>Platí do (voliteľné)</label><input id="p-sale-to" type="date" value="${esc(sale.do || '')}"></div></div>
-      <div class="muted" style="font-size:12px;margin-top:6px">Akčná cena sa prejaví ako zľava oproti bežnej cene (číta ju cenový engine jadra).</div>
-    </div>` : '<p class="muted" style="margin-top:0">Ceny a akcie spravuje vlastník administrácie. Ak treba cenu zmeniť, obráťte sa na neho.</p>';
-  const kategorie = `<label for="p-category">Pridať kategóriu</label><select id="p-category" ${catsR ? '' : 'disabled'}><option value="">Vyberte kategóriu…</option>${cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select><div id="p-categories" class="category-chips"></div><a class="subtle-link" href="#/kategorie">Spravovať kategórie →</a>${catsR ? '' : '<p class="muted">Kategórie sa nepodarilo načítať. Pôvodné zaradenie zostane zachované.</p>'}`;
+  // Riadok formulára ako v Shoptete: popis vľavo, pole vpravo, voliteľná nápoveda pod poľom.
+  const fr = (label, control, forId, hint) => `<div class="pe-f">${forId ? `<label for="${forId}">${label}</label>` : `<span class="pe-fl">${label}</span>`}<div class="pe-fc">${control}${hint ? `<p class="muted pe-hint">${hint}</p>` : ''}</div></div>`;
+  const chk = (attrs, text) => `<label class="pe-chk"><input type="checkbox" ${attrs}> ${text}</label>`;
+  const langRows = (k, t) => fr('Názov', `<input id="p-title-${k}" value="${esc(t.title || '')}" placeholder="${k === 'en' ? 'English product title' : 'Русское название продукта'}">`, `p-title-${k}`)
+    + fr('Podtitul', `<input id="p-sub-${k}" value="${esc(t.subtitle || '')}" placeholder="${k === 'en' ? 'Short English subtitle' : 'Краткое описание на русском'}">`, `p-sub-${k}`)
+    + fr('Popis', `<textarea id="p-desc-${k}" rows="5" placeholder="${k === 'en' ? 'English detailed description' : 'Подробное описание на русском'}">${esc(t.description || '')}</textarea>`, `p-desc-${k}`);
+  const jazykyEn = langRows('en', enTrans), jazykyRu = langRows('ru', ruTrans);
+  const zakladne = fr('Názov', `<input id="p-title" value="${esc(p.title)}">`, 'p-title')
+    + fr('Stav', `<select id="p-status"><option value="published"${p.status === 'published' ? ' selected' : ''}>Zverejnený</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>Koncept</option></select>`, 'p-status')
+    + fr('Štítky v obchode', `<div class="pe-chks">${PRODUCT_FLAGS.map(([k, label]) => chk(`data-flag="${k}" ${productFlagsOf(p).some(([f]) => f === k) ? 'checked' : ''}`, label)).join('')}</div>`, '', 'Štítok sa zobrazí na karte a v detaile produktu. Štítok Akcia sa pridá sám, keď má produkt akčnú cenu.');
+  const cena = isOwner() ? fr('Bežná cena', `<span class="pe-unit"><input id="p-price" type="number" step="0.01" value="${price?.amount ?? ''}" ${variant ? '' : 'disabled'}> EUR vrátane DPH</span>`, 'p-price', variant ? '' : 'Produkt nemá variant, cenu nie je kam uložiť.')
+    + fr('Akcia', chk(`id="p-sale-on" ${saleOn ? 'checked' : ''}`, 'Vo výpredaji / akcia'))
+    + `<div id="p-sale-box" class="sale-on ${saleOn ? '' : 'hidden'}">`
+    + fr('Akčná cena', `<span class="pe-unit"><input id="p-sale-price" type="number" step="0.01" value="${sale.akcna_cena ?? ''}"> EUR</span>`, 'p-sale-price', 'Akčná cena sa prejaví ako zľava oproti bežnej cene.')
+    + fr('Platí do', `<input id="p-sale-to" type="date" value="${esc(sale.do || '')}">`, 'p-sale-to', 'Voliteľné. Bez dátumu platí, kým akciu nevypnete.')
+    + '</div>' : '<p class="muted" style="margin-top:0">Ceny a akcie spravuje vlastník administrácie. Ak treba cenu zmeniť, obráťte sa na neho.</p>';
+  const kategorie = fr('Pridať kategóriu', `<select id="p-category" ${catsR ? '' : 'disabled'}><option value="">Vyberte kategóriu…</option>${cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select>`, 'p-category', catsR ? '' : 'Kategórie sa nepodarilo načítať. Pôvodné zaradenie zostane zachované.')
+    + fr('Zaradený v', '<div id="p-categories" class="category-chips"></div><a class="subtle-link" href="#/kategorie">Spravovať kategórie →</a>');
   const popis = wysiwygHtml('p-desc', p.description || '');
   const obrazky = `<div id="p-imgs" class="rc-grid"></div>
     <div class="p-img-actions"><label class="btn ghost p-img-upload"><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only">Nahrať z počítača</label><button type="button" class="btn gold" id="p-pick">${navIcon('photos')} Vybrať z mediálnej banky</button></div>
     <p class="muted" style="font-size:12px">JPG, PNG a WebP do 5 MB. Poradie zmeníte pretiahnutím alebo šípkami, prvý hlavný obrázok sa zobrazuje v obchode. Odobratím sa fotka nezmaže z mediálnej banky. Zmeny sa uložia tlačidlom Uložiť.</p>`;
-  const predaj = `<div class="pe-form2"><div><label for="p-sku">Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" maxlength="64" autocomplete="off"><p class="muted pe-hint">Kód môžete zmeniť. Pozor: QR kódy vytvorené pre starý kód prestanú fungovať a treba ich vytvoriť znova.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}</div>
-    <div><label for="p-ean">EAN (čiarový kód)</label><input id="p-ean" value="${esc(String(variant?.barcode || variant?.ean || ''))}" maxlength="64" inputmode="numeric" autocomplete="off" placeholder="napr. 5901234123457"></div>
-    <div><label for="p-weight">Hmotnosť (kg)</label><input id="p-weight" type="number" min="0" step="0.001" value="${esc(String(variant?.weight ?? ''))}" placeholder="napr. 0.25"></div>
-    <div><label for="p-ship">Typ produktu (doprava)</label><select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select></div></div>
-    <p class="muted pe-hint">EAN a hmotnosť sa doplnia do feedov pre porovnávače a do dopravných údajov.</p>
-    <label style="margin-top:14px">Predajné kanály</label><p class="muted pe-hint" style="margin:0 0 4px">Produkt sa v obchode zobrazí len v označených kanáloch.</p>
-    <div>${channels.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}</label>`).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`;
-  const sklad = '<p class="muted" style="margin:0">Počet kusov nastavíte pri každom variante v sekcii <b>07 Voľby a varianty</b>, stĺpec <b>Skladom (ks)</b>. Digitálne produkty a služby majú zaškrtnuté Neobmedzené.</p>';
+  const predaj = fr('Kód produktu (SKU)', !variant ? '<span class="muted">Produkt nemá variant.</span>' : `<input id="p-sku" value="${esc(variant.sku || '')}" maxlength="64" autocomplete="off" placeholder="napr. RUZOVY-OLEJ-50ML">`, variant ? 'p-sku' : '', variant?.sku ? 'Pozor: QR kódy vytvorené pre starý kód po zmene prestanú fungovať.' : '')
+    + fr('EAN kód', `<input id="p-ean" value="${esc(String(variant?.barcode || variant?.ean || ''))}" maxlength="64" inputmode="numeric" autocomplete="off" placeholder="napr. 5901234123457">`, 'p-ean')
+    + fr('Hmotnosť', `<span class="pe-unit"><input id="p-weight" type="number" min="0" step="0.001" value="${esc(String(variant?.weight ?? ''))}" placeholder="0.25"> kg</span>`, 'p-weight', 'EAN a hmotnosť sa posielajú do feedov pre porovnávače a dopravcom.')
+    + fr('Typ produktu (doprava)', `<select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select>`, 'p-ship')
+    + fr('Predajné kanály', `<div class="pe-chks">${channels.map(c => chk(`data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''}`, `${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}`)).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`, '', 'Produkt sa v obchode zobrazí len v označených kanáloch.');
+  const sklad = '<div id="p-stock"></div>';
   const completeness = () => {
     const np = Number(view.querySelector('#p-price')?.value ?? price?.amount);
     const chosenCh = [...view.querySelectorAll('[data-ch]')].some(cb => cb.checked), chosenCat = inC.size > 0;
@@ -1457,10 +1443,11 @@ async function vProductDetail(view, id, opts = {}) {
     box.innerHTML = completeness().map(c => `<span class="pill ${c.ok ? 'ok' : c.block ? 'off' : 'warn'}" style="margin:0 6px 6px 0">${c.ok ? '✓' : c.block ? '✕' : '!'} ${esc(c.t)}</span>`).join(''); };
   // Záložky: pod hlavičkou produktu je vždy len obsah jednej záložky, nič sa neroluje pod sebou.
   const SECTIONS = [['zaklad', 'Základ a cena'], ['popis', 'Popis'], ['foto', 'Fotografie'], ['predaj', 'Kategórie a predaj'], ['varianty', 'Varianty'], ['sklad', 'Sklad'], ['obsah', 'Zakúpený obsah'], ['jazyky', 'Jazykové mutácie']];
-  const TAB_OF = { cena: 'zaklad', dorucenie: 'predaj' };
+  const TAB_OF = { cena: 'zaklad', dorucenie: 'predaj', 'jazyky-ru': 'jazyky' };
   const sec = (key, n, title, html, wide) => `<section class="pe-sec${wide ? ' wide' : ''}" id="pe-${key}" data-tab="${TAB_OF[key] || key}"><header><span class="pe-n">${n}</span><h2>${esc(title)}</h2></header>${html}</section>`;
   const priceTxt = price?.amount != null ? new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(price.amount) : '–';
   view.innerHTML = `<div class="pe">
+    <div class="pe-toolbar"><div class="pe-act"><button type="button" class="btn gold" id="p-save">Uložiť</button><button type="button" class="btn" id="p-save-close">Uložiť a zavrieť</button>${p.handle ? `<a class="btn" href="${esc(WEB)}/eshop/produkt/${encodeURIComponent(p.handle)}/" target="_blank" rel="noopener">Zobraziť v obchode</a>` : ''}<button type="button" class="btn danger" id="p-del">Odstrániť</button><button type="button" class="btn ghost" id="p-back">Späť</button></div></div>
     <article class="pe-hero">
       <div class="pe-hero-img">${thumb ? `<img src="${esc(thumb)}" alt="">` : '<span>Bez fotografie</span>'}</div>
       <div class="pe-hero-body">
@@ -1468,23 +1455,23 @@ async function vProductDetail(view, id, opts = {}) {
         <h1 class="pe-title">${esc(p.title)}</h1>
         <div class="pe-price"><b>${priceTxt}</b><small>EUR</small>${saleOn && sale.akcna_cena ? `<em>akcia ${esc(String(sale.akcna_cena))} €</em>` : ''}</div>
         <div id="p-checks" class="pe-checks"></div>
-        <div class="pe-act card-h-act"><button type="button" class="btn ghost" id="p-back">Späť</button><button type="button" class="btn danger" id="p-del">Odstrániť produkt</button><button type="button" class="btn gold" id="p-save">Uložiť zmeny</button></div>
       </div>
     </article>
     <div class="pe-panel">
     <div class="pe-bar"><nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" role="tab" data-jump="${k}">${esc(l)}</button>`).join('')}</nav></div>
     <div id="pmsg">${opts.notice ? `<div class="notice">${esc(opts.notice)}</div>` : ''}</div>
     <div class="pe-grid">
-      ${sec('zaklad', '01', 'Základné údaje', zakladne)}
-      ${sec('cena', '02', 'Cena a akcia', cena)}
+      ${sec('zaklad', '01', 'Základné údaje', zakladne, true)}
+      ${sec('cena', '02', 'Cena a akcia', cena, true)}
       ${sec('popis', '03', 'Popis produktu', popis, true)}
       ${sec('foto', '04', 'Fotografie', obrazky, true)}
-      ${sec('predaj', '05', 'Kategórie', kategorie)}
-      ${sec('dorucenie', '06', 'Predaj a doručenie', predaj)}
+      ${sec('predaj', '05', 'Kategórie', kategorie, true)}
+      ${sec('dorucenie', '06', 'Predaj a doručenie', predaj, true)}
       ${sec('varianty', '07', 'Voľby a varianty', '<div id="p-variants"></div>', true)}
-      ${sec('sklad', '08', 'Sklad', sklad, true)}
+      ${sec('sklad', '08', 'Skladové zásoby', sklad, true)}
       ${sec('obsah', '09', 'Zakúpený obsah', '<div id="p-library"></div>', true)}
-      ${sec('jazyky', '10', 'Jazykové mutácie (EN / RU)', jazyky, true)}
+      ${sec('jazyky', '10', 'Anglická verzia (EN)', jazykyEn, true)}
+      ${sec('jazyky-ru', '11', 'Ruská verzia (RU)', jazykyRu, true)}
     </div>
     </div>
   </div>`;
@@ -1499,7 +1486,7 @@ async function vProductDetail(view, id, opts = {}) {
   showTab(opts.tab || 'zaklad');
   wireWysiwyg(view);
   const libraryEditor = await mountLibraryEditor(view.querySelector('#p-library'), { api, productId: id });
-  mountVariantsEditor(view.querySelector('#p-variants'), { api, productId: id, canPrice: isOwner() }).catch(e => { if (e?.message === '401') renderLogin('Prihlásenie vypršalo.'); });
+  mountVariantsEditor(view.querySelector('#p-variants'), { api, productId: id, canPrice: isOwner(), stockHost: view.querySelector('#p-stock') }).catch(e => { if (e?.message === '401') renderLogin('Prihlásenie vypršalo.'); });
   const drawCategories = () => {
     view.querySelector('#p-categories').innerHTML = [...inC].map(id => `<button type="button" class="btn ghost" data-category-remove="${esc(id)}" aria-label="Odobrať kategóriu ${esc(cats.find(c => c.id === id)?.name || p.categories?.find(c => c.id === id)?.name || 'z produktu')}">${esc(cats.find(c => c.id === id)?.name || p.categories?.find(c => c.id === id)?.name || 'Priradená kategória')} ×</button>`).join('');
     view.querySelectorAll('[data-category-remove]').forEach(b => b.onclick = () => { inC.delete(b.dataset.categoryRemove); drawCategories(); renderChecks(); });
@@ -1557,7 +1544,10 @@ async function vProductDetail(view, id, opts = {}) {
   };
   const box = view.querySelector('#p-sale-box');
   view.querySelector('#p-sale-on').onchange = (e) => box.classList.toggle('hidden', !e.target.checked);
+  let closeAfter = false;
+  view.querySelector('#p-save-close').onclick = () => { closeAfter = true; view.querySelector('#p-save').click(); };
   view.querySelector('#p-save').onclick = async () => {
+    const goList = closeAfter; closeAfter = false;
     const msg = view.querySelector('#pmsg'); msg.innerHTML = ''; const btn = view.querySelector('#p-save');
     const wantStatus = view.querySelector('#p-status').value;
     if (!view.querySelector('#p-title').value.trim()) { msg.innerHTML = '<div class="err">Zadajte názov produktu.</div>'; return; }
@@ -1575,7 +1565,7 @@ async function vProductDetail(view, id, opts = {}) {
     const isDigital = !isVoucher && profiles.find(sp => sp.id === shipId)?.type === 'digital';
     const hasFiles = libraryEditor.hasFiles();
     if (wantStatus === 'published' && isDigital && hasFiles === false) {
-      msg.innerHTML = '<div class="err">Digitálny produkt nemá žiadny súbor. Najprv v sekcii 08 Zakúpený obsah nahrajte video, nahrávku alebo dokument, ktorý zákazník dostane. Bez súboru produkt nezverejňujte.</div>'; return;
+      msg.innerHTML = '<div class="err">Digitálny produkt nemá žiadny súbor. Najprv v záložke Zakúpený obsah nahrajte video, nahrávku alebo dokument, ktorý zákazník dostane. Bez súboru produkt nezverejňujte.</div>'; return;
     }
     const skuIn = (view.querySelector('#p-sku')?.value || '').trim().toUpperCase();
     const newSku = variant && skuIn && skuIn !== String(variant.sku || '').toUpperCase() ? skuIn : '';
@@ -1630,7 +1620,7 @@ async function vProductDetail(view, id, opts = {}) {
       await api(`/admin/products/${id}`, { method: 'POST', body });
       await libraryEditor.save();
       msg.innerHTML = '<div class="notice">Uložené.</div>';
-      setTimeout(() => vProductDetail(view, id), 700);
+      setTimeout(() => goList ? vProducts(view) : vProductDetail(view, id), 700);
     } catch (e) { if (e.message === '401') return; msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
     finally { btn.disabled = false; }
   };

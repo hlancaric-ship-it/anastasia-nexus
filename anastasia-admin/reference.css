@@ -866,8 +866,6 @@ html[data-theme=dark] .app .head-actions #actions .pills .pill.on,html[data-them
 .app .pe .pe-hero{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:22px 22px 0 0!important;grid-template-columns:200px minmax(0,1fr)!important}
 .app .pe .pe-hero-img{min-height:180px!important;max-height:200px!important;border-radius:21px 0 0 0;overflow:hidden}
 .app .pe .pe-hero-body{padding:22px 28px 18px!important;gap:10px!important}
-.app .pe .pe-hero-body .pe-act{position:absolute;top:20px;right:24px;margin:0}
-.app .pe .pe-hero-body .pe-title{padding-right:340px}
 .app .pe .pe-panel{margin:0;background:transparent;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:0 0 22px 22px}
 .app .pe .pe-panel .pe-bar{padding:0 20px;background:transparent}
 .app .pe .pe-panel .pe-bar .pe-nav{background:transparent!important;border-radius:0!important;padding:0!important;gap:4px;border-bottom:3px solid #49305e!important}
@@ -879,7 +877,75 @@ html[data-theme=dark] .app .head-actions #actions .pills .pill.on,html[data-them
 .app .pe .pe-sec header::after{content:"";flex:1;height:1px;background:rgba(164,129,191,.35)}
 html[data-theme=dark] .app .pe .pe-panel .pe-bar .pe-nav{border-bottom-color:var(--lav-deep)!important}
 html[data-theme=dark] .app .pe .pe-panel .pe-bar .pe-nav button[aria-selected=true]{background:var(--lav-deep);border-color:var(--lav-deep);color:#1d1724}
-.pe-form2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px;align-items:start}
-.pe-form2>div{min-width:0}.pe-form2 input,.pe-form2 select{width:100%}
 .pe-hint{font-size:12px!important;line-height:1.45;margin:6px 0 0}
 .app .pe .pe-panel .pe-sec{align-content:start!important;justify-content:flex-start!important}.app .pe #p-category{width:100%}
+/* Detail produktu ako Shoptet (Lucky 3. 11.): lišta tlačidiel vpravo hore, kompaktná hlavička, formulár „popis vľavo – pole vpravo“, tabuľky variantov a skladu, okno variantu so záložkami. */
+.app .pe .pe-toolbar{position:sticky;top:0;z-index:30;display:flex;justify-content:flex-end;padding:14px 22px 10px;border-radius:22px 22px 0 0;background:var(--glass);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%);border-bottom:1px solid rgba(164,129,191,.18)}
+.app .pe .pe-toolbar .pe-act{position:static;margin:0;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.app .pe .pe-toolbar .pe-act .btn{border-radius:999px;padding:9px 18px;min-height:40px;white-space:nowrap;font-weight:600}
+.app .pe .pe-toolbar .pe-act .btn.gold{background:#49305e;border-color:#49305e;color:#fff}
+.app .pe .pe-toolbar .pe-act .btn.danger{margin-left:14px}
+.app .pe .pe-hero{grid-template-columns:120px minmax(0,1fr)!important;align-items:center;padding:18px 24px 14px;gap:22px;border-radius:0!important}
+.app .pe .pe-hero-img{min-height:120px!important;max-height:120px!important;height:120px;border-radius:16px!important;overflow:hidden}
+.app .pe .pe-hero-body{padding:0!important;gap:8px!important}
+.app .pe .pe-hero-body .pe-title{padding-right:0;font-size:clamp(28px,2.6vw,40px)}
+.pe-f{display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);gap:6px 18px;align-items:center;padding:7px 0}
+.pe-f>label,.pe-f>.pe-fl{margin:0!important;text-align:right;font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.3;text-transform:none;letter-spacing:0}
+.pe-fc{min-width:0;max-width:560px}
+.pe-fc>input:not([type=checkbox]),.pe-fc>select,.pe-fc>textarea{width:100%;margin:0}
+.pe-fc textarea{min-height:110px;resize:vertical}
+.pe-fc .pe-hint{margin:5px 0 0}
+.pe-unit{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;color:var(--muted);font-size:13px}.pe-unit input{width:130px!important;margin:0}
+.pe-chks{display:flex;flex-wrap:wrap;gap:6px 18px}
+.pe-chk{display:inline-flex!important;align-items:center;gap:8px;margin:0!important;font-weight:400!important;font-size:14px;text-transform:none!important;letter-spacing:0!important;color:var(--ink)}
+.pe-chk input{width:18px!important;height:18px;flex:none;margin:0}
+.app .pe .pe-sec .category-chips{margin:0 0 6px}
+.ve-h{display:flex;align-items:center;gap:12px;margin:18px 0 10px}.ve-h:first-child,[data-v-msg]+.ve-h,[data-dlg-msg]+.ve-pane>.ve-h:first-child{margin-top:4px}
+.ve-h h3{font-family:Fraunces,serif;font-weight:400;font-size:20px;margin:0;color:var(--ink)}
+.ve-h::after{content:"";flex:1;height:1px;background:rgba(164,129,191,.35)}
+.ve-note{margin:-2px 0 10px!important}
+.ve-vals{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.ve-add{display:flex;gap:8px;align-items:center}.ve-add input{flex:1;min-width:0;margin:0}.ve-add .btn{white-space:nowrap}
+.ve-tw{overflow-x:auto;border:1px solid rgba(164,129,191,.28);border-radius:14px}
+table.ve-t{width:100%;border-collapse:collapse;font-size:14px}
+table.ve-t th{background:rgba(164,129,191,.14);text-align:left;font-size:12.5px;font-weight:700;color:var(--ink);padding:11px 14px;border-bottom:3px solid #49305e;white-space:nowrap}
+table.ve-t td{padding:10px 14px;border-bottom:1px solid rgba(164,129,191,.18);vertical-align:middle}
+table.ve-t tbody tr:nth-child(even) td{background:rgba(164,129,191,.05)}
+table.ve-t tbody tr:last-child td{border-bottom:0}
+table.ve-t .r{text-align:right}table.ve-t td.r input{width:96px;text-align:right;margin:0}
+table.ve-t tr.ve-sum td{font-weight:700}
+table.ve-t .ve-act{text-align:right;white-space:nowrap;width:1%}.ve-act .btn+.btn{margin-left:6px}
+.ve-name{background:none;border:0;padding:0;font:inherit;font-weight:700;color:#49305e;cursor:pointer;text-align:left}.ve-name:hover{text-decoration:underline}
+dialog.ve-dlg{width:min(980px,calc(100vw - 32px));background:var(--surface,#fff);border:4px solid #49305e;border-radius:20px}
+dialog.ve-dlg::backdrop{background:rgba(42,26,56,.45);backdrop-filter:blur(3px)}
+.ve-dlg-in{display:flex;flex-direction:column;max-height:calc(100vh - 56px);overflow:auto;padding:22px 26px 18px}
+.ve-dlg-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px}
+.ve-dlg-top h2{flex:1;margin:0;font-family:Fraunces,serif;font-weight:300;font-size:30px;line-height:1.15;color:var(--ink)}.ve-dlg-top h2 span{color:#9b6fbf}
+.ve-x{background:none;border:0;font-size:28px;line-height:1;color:var(--muted);cursor:pointer;padding:0 4px}
+.ve-tabs{display:flex;gap:4px;border-bottom:3px solid #49305e;margin-bottom:6px}
+.ve-tabs button{border:1px solid rgba(164,129,191,.28);border-bottom:0;border-radius:12px 12px 0 0;background:rgba(164,129,191,.14);padding:10px 18px;min-height:44px;font:inherit;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer}
+.ve-tabs button:hover{background:var(--lav-soft)}
+.ve-tabs button[aria-selected=true]{background:#49305e;border-color:#49305e;color:#fff}
+.ve-pane{padding:4px 2px}.ve-pane[hidden]{display:none}
+.ve-dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(164,129,191,.22)}
+.ve-dlg-foot .btn.gold{background:#49305e;border-color:#49305e;color:#fff;border-radius:999px;padding:10px 26px}
+.ve-dlg-foot .btn{border-radius:999px}
+html[data-theme=dark] .ve-tabs,html[data-theme=dark] table.ve-t th{border-bottom-color:var(--lav-deep)}
+html[data-theme=dark] .ve-tabs button[aria-selected=true],html[data-theme=dark] .app .pe .pe-toolbar .pe-act .btn.gold,html[data-theme=dark] .ve-dlg-foot .btn.gold{background:var(--lav-deep);border-color:var(--lav-deep);color:#1d1724}
+html[data-theme=dark] dialog.ve-dlg{border-color:var(--lav-deep)}html[data-theme=dark] .ve-name{color:var(--lav-deep)}
+@media(max-width:800px){.pe-f{grid-template-columns:minmax(0,1fr);gap:4px}.pe-f>label,.pe-f>.pe-fl{text-align:left}.app .pe .pe-hero{grid-template-columns:80px minmax(0,1fr)!important}.app .pe .pe-hero-img{height:80px;min-height:80px!important;max-height:80px!important}}
+.app .pe .pe-panel .pe-bar{position:static}
+table.ve-t td.ve-act{display:table-cell!important;text-align:right}table.ve-t td{color:var(--ink)}
+/* Jednotné riadky (Lucky 3. 11.): každý riadok má rovnakú výšku 44 px, popis sedí vždy na úrovni poľa, nápoveda ide pod pole a popis neposúva. */
+.pe-f{align-items:start!important;padding:5px 0!important;row-gap:0!important}
+.pe-f>label,.pe-f>.pe-fl{min-height:44px;display:flex!important;align-items:center;justify-content:flex-end;line-height:1.25}
+.pe-fc>input:not([type=checkbox]),.pe-fc>select,.pe-fc>.pe-unit input,.pe-fc>.ve-add input{height:44px;min-height:44px;box-sizing:border-box;padding-top:0;padding-bottom:0}
+.pe-fc>.ve-add .btn{height:44px;min-height:44px}
+.pe-fc>.pe-unit,.pe-fc>.pe-chks,.pe-fc>.pe-chk,.pe-fc>b,.pe-fc>span.muted,.pe-fc>.category-chips{min-height:44px;display:flex;align-items:center}
+.pe-fc>.pe-chks{flex-wrap:wrap}.pe-fc>.category-chips:empty{display:none}
+.pe-fc>.category-chips .btn{margin:0 6px 0 0}
+.pe-fc>.ve-vals{min-height:44px;align-items:center;margin:0}
+.pe-fc>.ve-vals+.ve-add{margin-top:6px}
+.pe-fc>.pe-hint{margin:4px 0 2px!important}
+.pe-fc>textarea{padding-top:11px}
+.app .pe #p-sale-box{padding:0!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important}
