@@ -49,3 +49,19 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     return sendChatError(req, res, error, "POST /admin/chat/conversations/:id")
   }
 }
+
+/** DELETE /admin/chat/conversations/:id: konverzácia aj jej správy zmiznú adminovi aj zákazníkovi (soft delete). */
+export async function DELETE(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
+  if (!requireActor(req, res, "user")) return
+  try {
+    const conversation = await load(req)
+    const chat = chatService(req) as any
+    const messages = (await chat.listChatMessages({ conversation_id: conversation.id }, { select: ["id"], take: 10000 })) as { id: string }[]
+    if (messages.length) await chat.softDeleteChatMessages(messages.map((m) => m.id))
+    await chat.softDeleteChatConversations([conversation.id])
+    await auditAdminChange(req, "chat_conversation.deleted", "chat_conversation", conversation.id, { customer_id: conversation.customer_id, messages: messages.length }, null)
+    return res.status(200).json({ ok: true, id: conversation.id, deleted: true })
+  } catch (error) {
+    return sendChatError(req, res, error, "DELETE /admin/chat/conversations/:id")
+  }
+}
