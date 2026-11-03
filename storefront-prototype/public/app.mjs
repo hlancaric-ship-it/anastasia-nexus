@@ -122,7 +122,11 @@ if(customerCenter){
       catch{status.textContent='Heslo sa nepodarilo uložiť. Skúste to znova.';}finally{send.disabled=false;}});
     const all=$('[data-sign-out-everywhere]',pw),sessionStatus=$('[data-session-status]',pw);all?.addEventListener('click',async()=>{all.disabled=true;sessionStatus.textContent='Odhlasujem všetky relácie…';try{const r=await api.signOutEverywhere();if(r.ok){sessionStatus.textContent='Všetky relácie sú odhlásené.';setTimeout(()=>location.assign('/prihlasenie'),500);}else sessionStatus.textContent=r.message;}catch{sessionStatus.textContent='Odhlásenie sa nepodarilo. Skúste to znova.';}finally{all.disabled=false;}});
   }}
-  $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{const result=await api.saveCustomerProfile(Object.fromEntries(new FormData(form)));$('.form-status',form).textContent=result.message;if(result.ok&&result.profile)$('#center-name').textContent=customerDisplayName(result.profile);}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
+  // Firma: ak je doručovacia adresa rovnaká ako sídlo, karta s doručovacou adresou sa skryje a pri uložení sa sídlo skopíruje.
+  const syncShipSame=()=>{const form=$('#center-profile');if(!form)return;const el=form.elements,hasSeat=['companyStreet','companyCity','companyPostalCode'].every(k=>String(el[k]?.value||'').trim());const box=$('[data-same-ship]',form),card=$('[data-ship-card]',form);if(box)box.hidden=!hasSeat;if(!hasSeat&&el.shipSameAsCompany)el.shipSameAsCompany.checked=false;if(card)card.hidden=!!el.shipSameAsCompany?.checked;};
+  $('#center-profile').addEventListener('input',event=>{if(/^company(Street|City|PostalCode)$/.test(event.target.name||''))syncShipSame();});
+  $('#center-profile').addEventListener('change',event=>{if(event.target.name==='shipSameAsCompany')syncShipSame();});
+  $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{const values=Object.fromEntries(new FormData(form));if(values.shipSameAsCompany){values.street=values.companyStreet||'';values.city=values.companyCity||'';values.postalCode=values.companyPostalCode||'';}delete values.shipSameAsCompany;const result=await api.saveCustomerProfile(values);$('.form-status',form).textContent=result.message;if(result.ok&&result.profile)$('#center-name').textContent=customerDisplayName(result.profile);}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
   // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.
   (async()=>{
     const put=(sel,html)=>$$(sel,customerCenter).forEach(el=>{el.innerHTML=html;});
@@ -135,7 +139,7 @@ if(customerCenter){
     const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');
     if(data.ok&&data.profile){
       const pr=data.profile;$('#center-name').textContent=customerDisplayName(pr);
-      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});{const u=$('#center-password [name=username]');if(u&&pr.email)u.value=pr.email;}
+      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});{const norm=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');const same=form.elements.shipSameAsCompany;if(same)same.checked=!!norm(pr.companyStreet)&&norm(pr.street)===norm(pr.companyStreet)&&norm(pr.city)===norm(pr.companyCity)&&norm(pr.postalCode).replace(/ /g,'')===norm(pr.companyPostalCode).replace(/ /g,'');syncShipSame();}{const u=$('#center-password [name=username]');if(u&&pr.email)u.value=pr.email;}
       const birth=[pr.birthDate&&new Date(`${pr.birthDate}T00:00:00`).toLocaleDateString('sk-SK'),pr.birthTime,pr.birthPlace].filter(Boolean);
       if(birth.length)put('#center-birth-summary',e(birth.join(' · ')));
     }
