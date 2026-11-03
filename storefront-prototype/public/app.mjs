@@ -1,5 +1,6 @@
 import {isMediaUrl} from '/lib/media-url.mjs';
 import {descriptionHtml} from '/lib/description-blocks.mjs';
+import {longTextFor} from '/lib/product-i18n.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import '/cms-preview.mjs';
@@ -637,13 +638,19 @@ if(productDetail){
     put('[data-product-category]',product.category);
     const purchase=productDetail.querySelector('.add-product');if(purchase)purchase.dataset.code=product.code;
     // The original legacy description must stay complete, without unverified marketing copy.
-    const html=product.descriptionHtml;const complete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
-    if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
-      const full=productDetail.querySelector('[data-product-full-description]');
-      if(full&&full.hasAttribute('data-structured'))full.innerHTML=descriptionHtml(complete);else put('[data-product-full-description]',complete);
-      const intro=productDetail.querySelector('[data-product-intro]');
-      if(intro){intro.hidden=false;const brief=complete.replace(/\s+/g,' ').trim();intro.textContent=brief.length>220?brief.slice(0,220).replace(/\s+\S*$/,'')+'…':brief;}
-    }
+    const html=product.descriptionHtml;const skComplete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
+    // Popis podľa jazyka: EN/RU z metadata.translations, bez prekladu slovenčina. Prekreslí sa aj pri prepnutí jazyka.
+    const paintCopy=()=>{
+      const lang=document.documentElement.lang;
+      const complete=((lang==='en'||lang==='ru')&&longTextFor(product,lang))||skComplete;
+      if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
+        const full=productDetail.querySelector('[data-product-full-description]');
+        if(full&&full.hasAttribute('data-structured'))full.innerHTML=descriptionHtml(complete);else put('[data-product-full-description]',complete);
+        const intro=productDetail.querySelector('[data-product-intro]');
+        if(intro){intro.hidden=false;const brief=complete.replace(/\s+/g,' ').trim();intro.textContent=brief.length>220?brief.slice(0,220).replace(/\s+\S*$/,'')+'…':brief;}
+      }
+    };
+    paintCopy();document.addEventListener('anastasia:lang',paintCopy);
     const pic=productDetail.querySelector('[data-product-main-image]');
     if(pic&&typeof product.image==='string'&&isMediaUrl(product.image)&&!(new URLSearchParams(location.search).get('foto')==='b'&&productDetail.dataset.packshots?.length>2))pic.src=product.image;
     let packs=[];try{packs=JSON.parse(productDetail.dataset.packshots||'[]');}catch{packs=[];}

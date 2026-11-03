@@ -767,10 +767,42 @@ function walkTextNodes(root, fn) {
 const TEXT_ATTRS = ['alt', 'aria-label', 'title', 'placeholder'];
 const isLanguageCode = value => ['SK', 'EN', 'RU'].includes(value.trim().toUpperCase());
 
+// Názvy a popisy produktů (EN/RU z metadat Medusy). Registr plní src/lib/product-i18n.mjs (živá data z API)
+// a při prvním přepnutí jazyka i statický product-translations.json z buildu. Chybějící překlad = slovenština.
+const productReg = () => (globalThis.__anaProductTr ||= {});
+const PRODUCT_SEPARATORS = [' · ', ' × '];
+function productEntry(trimmed) {
+  const reg = productReg();
+  if (reg[trimmed]) return reg[trimmed];
+  // Řádek košíku/objednávky: „Název · varianta“, „Název × 2“.
+  for (const sep of PRODUCT_SEPARATORS) {
+    const at = trimmed.indexOf(sep);
+    if (at <= 0) continue;
+    const head = reg[trimmed.slice(0, at)];
+    if (head) return head.map(v => (v ? v + trimmed.slice(at) : ''));
+  }
+  return null;
+}
+const lookup = trimmed => DICT[trimmed] || productEntry(trimmed) || null;
+
+let productJson = null;
+function loadProductJson() {
+  if (productJson || typeof fetch !== 'function') return productJson;
+  productJson = fetch('/product-translations.json', { credentials: 'same-origin' })
+    .then(r => (r.ok ? r.json() : {}))
+    .then(data => {
+      const reg = productReg();
+      for (const [key, value] of Object.entries(data || {})) if (!reg[key] && Array.isArray(value)) reg[key] = value; // živá data mají přednost
+      if (currentLang !== 'sk') apply(currentLang);
+    })
+    .catch(() => {});
+  return productJson;
+}
+
 function translateValue(value, target) {
   const trimmed = value.trim();
   if (!trimmed || isLanguageCode(trimmed)) return value;
-  let entry = DICT[trimmed];
+  let entry = lookup(trimmed);
   let sentence = false;
   // štítky sa píšu vetou, slovník ich má verzálkami
   if (!entry && trimmed !== trimmed.toLocaleUpperCase()) { entry = DICT[trimmed.toLocaleUpperCase('sk')]; sentence = Boolean(entry); }
@@ -791,8 +823,8 @@ function translateNode(node, target) {
   const trimmed = src.trim();
   let next = src;
   if (target !== 'sk') {
-    const entry = DICT[trimmed];
-    if (entry && entry[idx[target]]) next = src.replace(trimmed, entry[idx[target]]); // nenalezené zůstává slovensky (patří do data-sk-only)
+    const entry = lookup(trimmed);
+    if (entry && entry[idx[target]]) next = src.replace(trimmed, () => entry[idx[target]]); // nenalezené zůstává slovensky (patří do data-sk-only)
   }
   if (node.nodeValue !== next) node.nodeValue = next;
   lastSet.set(node, next);
@@ -822,6 +854,7 @@ function watchDynamicText() {
 export function apply(lang) {
   const target = normalizeLang(lang);
   currentLang = target;
+  if (target !== 'sk') loadProductJson();
   walkTextNodes(document.body, (node) => translateNode(node, target));
   for (const el of document.querySelectorAll('[alt],[aria-label],[title],[placeholder]')) {
     if (!originalAttr.has(el)) {
@@ -897,6 +930,8 @@ export function init() {
     }
     apply(detectLang());
     watchDynamicText();
+    // Živá data produktů dorazila po vykreslení: přeložit už zobrazené texty.
+    document.addEventListener('anastasia:product-tr', () => { if (currentLang !== 'sk') apply(currentLang); });
   } catch {}
   try { window.anaSetLang = setLang; } catch {}
 }

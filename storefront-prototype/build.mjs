@@ -13,6 +13,7 @@ import {api} from './src/lib/api/index.mjs';
 import {createHttpApi,JWT_KEY} from './src/lib/api/http.mjs';
 import {FEATURED_SLUGS,SHOP_CATEGORIES} from './src/lib/api/catalog.mjs';
 import {menuGroups} from './src/lib/menu-navigation.mjs';
+import {dictEntries} from './src/lib/product-i18n.mjs';
 const escapeHtml=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 import {escape as e} from './src/components.mjs';
 import * as views from './src/pages.mjs';
@@ -161,6 +162,8 @@ const renderDocument=(path,{title,body,design})=>{
 // dist sa stavia vždy načisto, inak by sa na test nasadzovali staré stránky zo starších buildov (Lucky 25. 10.).
 await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});await cp(join(root,'public'),out,{recursive:true});
 await cp(join(root,'public','library-new.mjs'),join(out,'library.mjs'));await cp(join(root,'src/lib'),join(out,'lib'),{recursive:true});await cp(join(root,'src/components.mjs'),join(out,'components.mjs'));await cp(join(root,'src/site-themes.mjs'),join(out,'site-themes.mjs'));
+// Překlady názvů a popisů produktů (EN/RU) pro prvotní načtení stránky; živá data z API je přepíšou.
+{const reg={};for(const product of await catalogProducts)Object.assign(reg,dictEntries(product));await writeFile(join(out,'product-translations.json'),JSON.stringify(reg));}
 {
  const file=join(out,'config.mjs');let source=await readFile(file,'utf8');
  for(const [key,name] of Object.entries({apiBaseUrl:'ANASTASIA_API_ORIGIN',publishableKey:'ANASTASIA_PUBLISHABLE_KEY',regionId:'ANASTASIA_REGION_ID'})){

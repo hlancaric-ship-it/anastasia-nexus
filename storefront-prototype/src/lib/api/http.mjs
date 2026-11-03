@@ -1,4 +1,5 @@
 import {productFlags} from '../product-flags.mjs';
+import {normalizeTranslations,registerProducts} from '../product-i18n.mjs';
 import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES, shopCategoryName, VOUCHER_CATEGORY, VOUCHER_CATEGORY_HANDLE, VOUCHER_IMAGE, voucherAmountFromSlug, voucherSlug} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
@@ -65,6 +66,8 @@ function mapProduct(p,apiBase='') {
     art: ART[category] || 'jar',
     description: p.subtitle || p.metadata?.description_text || '',
     descriptionHtml: p.description || '',
+    // Překlady názvu/podtitulku/popisu z metadat (EN/RU); bez překladu se zobrazí slovenština.
+    translations: normalizeTranslations(p.metadata),
     longDescription: p.metadata?.description_text || '',
     images: (p.images || []).map(image => image.url).filter(url=>!isEditorialOnlyAsset(url)).map(media).filter(Boolean),
     availability: 'Dostupné',
@@ -399,6 +402,7 @@ export function createHttpApi(storage, config) {
       const all = r.data?.products || [];
       let items = all.filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
       items = items.concat(voucherProducts(all.find(p=>p.metadata?.gift_voucher===true||p.metadata?.gift_voucher==='true')));
+      registerProducts(items);
       const s = search.toLocaleLowerCase('sk');
       if (category) { const wanted = NAME_BY_HANDLE[category] || category; items = items.filter(p => p.category === wanted || p.categoryHandle === category); }
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
@@ -411,7 +415,9 @@ export function createHttpApi(storage, config) {
       if (voucherAmountFromSlug(slug) != null) return (await voucherList()).find(v => v.slug === slug) || null;
       const r = await call(`/store/products?handle=${encodeURIComponent(slug)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
       const p = r.data?.products?.[0];
-      return p ? mapProduct(p,base) : null;
+      const product = p ? mapProduct(p,base) : null;
+      if (product) registerProducts([product]);
+      return product;
     },
     async getCategories() {
       const r = await call('/store/product-categories?limit=100&fields=name');
