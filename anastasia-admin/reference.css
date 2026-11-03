@@ -1107,3 +1107,23 @@ html[data-theme=dark] .app table.st-table thead tr{background:#2a2132!important}
 .app .st-card table.st-table thead th input{min-height:0!important;height:16px;width:16px}
 html[data-theme=dark] .app .st-card table.st-table thead th{background:#2a2132!important;border-bottom-color:var(--lav-deep)!important;color:var(--lav-deep)!important}
 .app .st-card .ot-wrap:has(.st-table){padding:0 16px!important;background:transparent;overflow-x:auto}
+.app table.st-table th.ot-check,.app table.st-table td.ot-check{width:44px!important}
+.app table.st-table th.ot-img,.app table.st-table td.ot-img{width:56px!important}
+.app table.st-table th.ot-act,.app table.st-table td.ot-act{width:112px!important;text-align:right}
+.app table.st-table.lv-compact th.ot-act,.app table.st-table.lv-compact td.ot-act{width:56px!important}
+.app table.st-table.customer-grid th:nth-child(5),.app table.st-table.customer-grid td:nth-child(5){width:200px!important}
+.app table.st-table.customer-grid th:nth-child(6),.app table.st-table.customer-grid td:nth-child(6){width:130px!important}
+.app table.st-table.customer-grid th:nth-child(7),.app table.st-table.customer-grid td:nth-child(7){width:120px!important}
+.app table.st-table td.lv-title{font-weight:600;color:#49305e}
+html[data-theme=dark] .app table.st-table td.lv-title{color:var(--lav-deep)}
+/* Podsekcie (.pills) vyzerajú ako ostatné záložky – pripojené ku karte, linka 3 px */
+.app .heading #actions>.pills{display:flex!important;flex-wrap:wrap;gap:4px!important;width:100%;padding:0 16px!important;margin:0!important;background:transparent!important;border:0!important;border-bottom:3px solid #49305e!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important}
+.app .heading #actions>.pills .pill{flex:0 0 auto!important;display:inline-flex;align-items:center;min-height:44px;padding:10px 18px!important;margin:0!important;border:1px solid rgba(164,129,191,.28)!important;border-bottom:0!important;border-radius:12px 12px 0 0!important;background:rgba(164,129,191,.14)!important;color:var(--ink,#2a2233)!important;font:700 14px/1.2 'Figtree',sans-serif!important;text-decoration:none!important;box-shadow:none!important}
+.app .heading #actions>.pills .pill:hover{background:var(--lav-soft)!important}
+.app .heading #actions>.pills .pill.on{background:#49305e!important;border-color:#49305e!important;color:#fff!important}
+html[data-theme=dark] .app .heading #actions>.pills{border-bottom-color:var(--lav-deep)!important}
+html[data-theme=dark] .app .heading #actions>.pills .pill.on{background:var(--lav-deep)!important;border-color:var(--lav-deep)!important;color:#1d1724!important}
+.app.st-page .heading:has(#actions>.pills){display:block;margin:0 0 -1px}
+.app.st-page .heading:has(#actions>.pills)+*,.app.st-page .heading:has(#actions>.pills)~#view .st-card{border-top-left-radius:0}
+.app table.st-table.customer-grid th:nth-child(7),.app table.st-table.customer-grid td:nth-child(7){width:150px!important}
+.app table.st-table.customer-grid th:nth-child(6),.app table.st-table.customer-grid td:nth-child(6){width:190px!important}

@@ -1030,6 +1030,7 @@ function wireShortcuts() {
 // Zoznamy ako prehľadná tabuľka (miniatúra, stĺpce, stavy, akcia). Stránky dodávajú buď `cols`, alebo `card(r)`
 // v tvare .rc-media / .rc-title / .rc-f(em = názov stĺpca); z karty sa poskladá riadok tabuľky, takže všetky zoznamy
 // vyzerajú rovnako ako Objednávky.
+const LIST_PAGE_SIZE = 25;
 function listView(view, { cols, rows, title, onRow, empty, card, search = true, compact = false, className = '' }) {
   const genCard = (r) => {
     const cells = cols.map(c => ({ h: c.h, v: c.v(r) }));
@@ -1053,14 +1054,37 @@ function listView(view, { cols, rows, title, onRow, empty, card, search = true, 
   const titleHead = (cols && (cols.find(c => c.h) || {}).h) || 'Názov';
   const rowHtml = (x) => `<tr data-id="${esc(x.r.id ?? '')}"${onRow ? ' tabindex="0" role="link"' : ''}>${hasMedia ? `<td class="ot-img lv-media">${x.media}</td>` : ''}<td class="lv-title">${x.title}</td>${labels.map(l => `<td data-label="${esc(l)}">${x.fields.find(f => f.label === l)?.html ?? '<span class="muted">—</span>'}</td>`).join('')}${onRow ? `<td class="ot-act"><button type="button" class="btn ghost sm"${compact ? ' aria-label="Otvoriť"' : ''}>${compact ? '' : 'Otvoriť '}${navIcon('arrow')}</button></td>` : ''}</tr>`;
   const colCount = (hasMedia ? 1 : 0) + 1 + labels.length + (onRow ? 1 : 0);
-  const render = (list) => list.length ? list.map(rowHtml).join('') : `<tr><td colspan="${colCount}" class="empty">${esc(empty || 'Zatiaľ tu nič nie je.')}</td></tr>`;
-  view.innerHTML = `<section class="card ot-card"><div class="ot-head"><h2>${esc(title)} <span class="muted">(${rows.length})</span></h2>
-    ${search && rows.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať…" aria-label="Hľadať">' : ''}</div>
-    <div class="ot-wrap"><table class="ot lv ${compact ? 'lv-compact' : 'agenda-grid'} ${className}"><thead><tr>${hasMedia ? '<th class="ot-img"><span class="sr-only">Obrázok</span></th>' : ''}<th>${esc(titleHead)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}${onRow ? '<th class="ot-act"><span class="sr-only">Akcia</span></th>' : ''}</tr></thead><tbody id="rc-wrap">${render(parsed)}</tbody></table></div></section>`;
+  // Triedenie podľa textu bunky (čísla a sumy porovnáva numericky), stránkovanie po LIST_PAGE_SIZE ako v Shoptete.
+  const txt = (html) => { tpl.innerHTML = html || ''; return tpl.content.textContent.replace(/\s+/g, ' ').trim(); };
+  const num = (t) => { const m = /^-?[\d\s]+(?:[.,]\d+)?/.exec(t.replace(/ /g, ' ')); return m ? Number(m[0].replace(/\s/g, '').replace(',', '.')) : null; };
+  parsed.forEach(x => { x.keys = { title: txt(x.title) }; labels.forEach(l => { x.keys[l] = txt(x.fields.find(f => f.label === l)?.html); }); });
+  const sortKey = (x, k) => { const t = x.keys[k] ?? ''; const n = num(t); return n === null ? t : n; };
+  const sort = { key: '', dir: 1 };
+  let list = parsed, page = 0;
+  const render = () => {
+    const sorted = sort.key ? [...list].sort((a, b) => { const ka = sortKey(a, sort.key), kb = sortKey(b, sort.key); return (typeof ka !== typeof kb ? stCmp(String(ka), String(kb)) : stCmp(ka, kb)) * sort.dir; }) : list;
+    const pages = Math.max(1, Math.ceil(sorted.length / LIST_PAGE_SIZE));
+    page = Math.min(Math.max(0, page), pages - 1);
+    const slice = sorted.slice(page * LIST_PAGE_SIZE, (page + 1) * LIST_PAGE_SIZE);
+    view.querySelector('#rc-wrap').innerHTML = slice.length ? slice.map(rowHtml).join('') : `<tr><td colspan="${colCount}" class="empty">${esc(rows.length ? 'Žiadne položky nezodpovedajú výberu.' : (empty || 'Žiadne položky.'))}</td></tr>`;
+    const foot = view.querySelector('.st-foot');
+    foot.innerHTML = stPager(sorted.length, page, LIST_PAGE_SIZE);
+    foot.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { page = Number(b.dataset.pg); render(); });
+    wire();
+  };
+  view.innerHTML = `<section class="card ot-card st-card"><div class="st-head"><h1>${esc(title)}</h1>
+    <div class="st-head-act">${search && rows.length > 6 ? '<input class="rc-search" type="search" placeholder="Hľadať…" aria-label="Hľadať">' : ''}</div></div>
+    <div class="ot-wrap"><table class="ot lv st-table ${compact ? 'lv-compact' : 'agenda-grid'} ${className}"><thead><tr>${hasMedia ? '<th class="ot-img"><span class="sr-only">Obrázok</span></th>' : ''}<th data-sort="title">${esc(titleHead)}</th>${labels.map(l => `<th data-sort="${esc(l)}">${esc(l)}</th>`).join('')}${onRow ? '<th class="ot-act"><span class="sr-only">Akcia</span></th>' : ''}</tr></thead><tbody id="rc-wrap"></tbody></table></div>
+    <div class="st-foot"></div></section>`;
+  // Tlačidlá stránky (napr. „+ Nový kupón“) patria do hlavičky karty; podnavigácia (.pills) ostáva hore.
+  const slot = view.querySelector('.st-head-act'), acts = document.querySelector('#actions');
+  if (acts) [...acts.children].forEach(el => { if (el.classList.contains('pills')) return; if (el.classList.contains('own-actions')) [...el.children].forEach(c => slot.append(c)); else slot.append(el); });
   const wire = () => { if (onRow) view.querySelectorAll('#rc-wrap tr[data-id]').forEach(tr => { const open = () => onRow(rows.find(x => String(x.id) === tr.dataset.id) || rows[0]); tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }; }); };
-  wire();
+  stWireSort(view.querySelector('table'), sort, () => { page = 0; render(); });
   const s = view.querySelector('.rc-search');
-  if (s) s.oninput = () => { const q = s.value.toLowerCase().trim(); const f = q ? parsed.filter(x => JSON.stringify(x.r).toLowerCase().includes(q)) : parsed; view.querySelector('#rc-wrap').innerHTML = render(f); wire(); };
+  if (s) s.oninput = () => { const q = s.value.toLowerCase().trim(); list = q ? parsed.filter(x => JSON.stringify(x.r).toLowerCase().includes(q)) : parsed; page = 0; render(); };
+  stHelp(view);
+  render();
 }
 
 // Prepínač podstránok (subnav) zostáva; podstránka mení len svoje tlačidlá vedľa neho.
@@ -1730,7 +1754,7 @@ function stWireBar(root, { onFunc, onFilter }) {
   const close = () => { if (!root.isConnected) document.removeEventListener('click', close); if (menu) menu.hidden = true; fb?.setAttribute('aria-expanded', 'false'); };
   if (fb && menu) {
     fb.onclick = (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; fb.setAttribute('aria-expanded', String(!menu.hidden)); };
-    menu.querySelectorAll('[data-fn]').forEach(b => b.onclick = () => { close(); onFunc(b.dataset.fn); });
+    menu.onclick = (e) => { const b = e.target.closest('[data-fn]'); if (b) { close(); onFunc(b.dataset.fn); } };
     document.addEventListener('click', close);
   }
   if (tb && form) {
@@ -1740,6 +1764,7 @@ function stWireBar(root, { onFunc, onFilter }) {
     form.onreset = () => setTimeout(() => { tb.querySelector('.st-count').textContent = ''; onFilter({}); });
   }
   return {
+    setFuncs(funcs) { if (menu) menu.innerHTML = funcs.map(([id, label]) => `<button type="button" role="menuitem" data-fn="${esc(id)}">${esc(label)}</button>`).join(''); },
     setPicked(n) { if (!fb) return; fb.disabled = !n; fb.querySelector('.st-count').textContent = n ? `(${n})` : ''; if (!n) close(); },
   };
 }
@@ -2208,23 +2233,79 @@ async function vOrderDetail(view, id, notice) {
 }
 async function vCustomers(view) {
   view = freshView(view);
-  let offset = 0, query = '', count = 0, tierFilter = '', tierOptions = [], loyalty = false, selected = new Set();
+  let offset = 0, query = '', count = 0, tierFilter = '', tierOptions = [], loyalty = false, selected = new Set(), customers = [];
   const PAGE = 25;
-  view.innerHTML = `<section class="card ot-card"><div class="ot-head">
-      <h2>Zákazníci</h2>
-      <div class="ot-head-act">
-        <select class="rc-select" id="cu-tier" aria-label="Filter podľa vernostnej úrovne"><option value="">Všetky úrovne</option></select>
+  const sort = { key: '', dir: 1 };
+  const nameOf = c => [c.first_name, c.last_name].filter(Boolean).join(' ');
+  const tierOf = c => c.tier_name || LOYALTY_TIER_LABEL[c.tier_code] || '';
+  const SORT = { name: c => nameOf(c) || c.email || '', email: c => c.email || '', tier: tierOf, since: c => new Date(c.created_at).getTime() || 0 };
+  view.innerHTML = `<section class="card ot-card st-card"><div class="st-head">
+      <h1>Zákazníci</h1>
+      <div class="st-head-act">
         <input class="rc-search" type="search" placeholder="Hľadať meno alebo e-mail…" aria-label="Hľadať zákazníkov">
       </div>
-    </div><div id="cu-body"><div class="muted">Načítavam zákazníkov…</div></div></section>`;
-  const body = view.querySelector('#cu-body');
-  const tierSel = view.querySelector('#cu-tier');
+    </div>
+    ${stBar([['clear', 'Zrušiť označenie']], `<label>Vernostná úroveň<select name="tier"><option value="">Všetky úrovne</option><option value="none">Bez úrovne</option></select></label>`)}
+    <div class="ot-wrap"><table class="ot lv agenda-grid customer-grid st-table"><thead><tr><th class="ot-check"><input type="checkbox" id="cu-pick-all" aria-label="Označiť všetkých zákazníkov na strane"></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th data-sort="name">Meno</th><th data-sort="email">E-mail</th><th data-sort="tier">Úroveň</th><th>ID</th><th data-sort="since" data-dir="desc">Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody><tr><td colspan="8" class="empty">Načítavam zákazníkov…</td></tr></tbody></table></div>
+    <div class="st-foot"></div></section>`;
+  const body = view.querySelector('tbody'), foot = view.querySelector('.st-foot');
+  const tierSel = view.querySelector('.st-filter [name=tier]');
+  const assignTier = async (code) => {
+    const ids = [...selected];
+    if (!code || !ids.length) return;
+    try {
+      await api('/admin/nexus/customers/tiers', { method: 'POST', body: { tier_code: code, customer_ids: ids } });
+      selected.clear();
+      await vCustomers(view);
+    } catch (e) { if (e.message !== '401') alert(e.message); }
+  };
+  const bar = stWireBar(view, {
+    onFunc: (fn) => { if (fn === 'clear') { selected.clear(); draw(); } else if (fn.startsWith('tier:')) assignTier(fn.slice(5)); },
+    onFilter: (f) => { tierFilter = f.tier || ''; offset = 0; load(); },
+  });
+  const row = (c) => {
+    const nm = nameOf(c);
+    const av = (nm || c.email || '?').slice(0, 2).toUpperCase();
+    const tier = tierOf(c);
+    const tierCell = !loyalty ? '<span class="muted">—</span>' : tier
+      ? `<b>${esc(tier)}</b>${c.locked ? ' <span class="pill">ručné</span>' : c.source === 'auto' ? ' <span class="muted">automaticky</span>' : ''}`
+      : '<span class="muted">—</span>';
+    return `<tr data-id="${esc(c.id)}" tabindex="0" role="link">
+      <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákazníka ${esc(nm || c.email || '')}"></td>
+      <td class="ot-img lv-media"><span class="thumb ini">${esc(av)}</span></td>
+      <td class="lv-title">${esc(nm || c.email)}</td>
+      <td data-label="E-mail">${esc(c.email)}</td>
+      <td data-label="Úroveň">${tierCell}</td>
+      <td data-label="ID"><code class="rc-code">${esc(custCode(c.id))}</code></td>
+      <td data-label="Od">${fmtDate(c.created_at)}</td>
+      <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
+  };
+  const draw = () => {
+    const key = SORT[sort.key];
+    const list = key ? [...customers].sort((a, b) => stCmp(key(a), key(b)) * sort.dir) : customers;
+    body.innerHTML = list.length ? list.map(row).join('') : `<tr><td colspan="8" class="empty">${query || tierFilter ? 'Žiadne položky nezodpovedajú výberu.' : 'Zatiaľ žiadni zákazníci.'}</td></tr>`;
+    const all = view.querySelector('#cu-pick-all'), ids = list.map(c => c.id);
+    const syncAll = () => { if (!all) return; all.checked = ids.length > 0 && ids.every(id => selected.has(id)); all.indeterminate = !all.checked && ids.some(id => selected.has(id)); };
+    body.querySelectorAll('tr[data-id]').forEach((tr) => {
+      const open = () => vCustomerDetail(view, tr.dataset.id);
+      tr.onclick = open;
+      tr.onkeydown = (e) => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+      const box = tr.querySelector('[data-pick]');
+      if (box) {
+        box.checked = selected.has(tr.dataset.id); tr.classList.toggle('st-picked', box.checked);
+        box.onclick = (e) => e.stopPropagation();
+        box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); tr.classList.toggle('st-picked', box.checked); syncAll(); bar.setPicked(selected.size); };
+      }
+    });
+    if (all) { syncAll(); all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); draw(); }; }
+    bar.setPicked(selected.size);
+  };
   const load = async () => {
-    body.innerHTML = '<div class="muted">Načítavam…</div>';
+    body.innerHTML = '<tr><td colspan="8" class="empty">Načítavam…</td></tr>';
     const params = new URLSearchParams({ limit: String(PAGE), offset: String(offset) });
     if (query) params.set('q', query);
     if (tierFilter) params.set('tier', tierFilter);
-    let data = null, customers = [], hasAccount = null;
+    let data = null;
     try {
       // Ak jadro pozná vernostné úrovne, zoznam berie z nich (serverový filter na úroveň).
       data = await api(`/admin/nexus/loyalty-customers?${params}`);
@@ -2234,74 +2315,28 @@ async function vCustomers(view) {
     } catch (e) {
       if (e.message === '401') throw e;
       // Bez vernostných úrovní (jadro ich ešte neobsluhuje) použijeme bežný zoznam zákazníkov.
-      const plain = await api(`/admin/customers?${params}&fields=id,email,first_name,last_name,has_account,created_at`);
-      loyalty = false;
-      customers = plain.customers || [];
-      data = { count: Number(plain.count) || 0 };
+      try {
+        const plain = await api(`/admin/customers?${params}&fields=id,email,first_name,last_name,has_account,created_at`);
+        loyalty = false;
+        customers = plain.customers || [];
+        data = { count: Number(plain.count) || 0 };
+      } catch (e2) { if (e2.message === '401') throw e2; body.innerHTML = `<tr><td colspan="8" class="empty">${esc(e2.message)}</td></tr>`; return; }
     }
     count = Number(data?.count ?? 0) || customers.length;
-    if (tierSel) {
-      const wanted = ['', 'none', ...tierOptions.map((t) => t.code)];
-      if (tierSel.options.length !== wanted.length + 1) {
-        tierSel.innerHTML = `<option value="">Všetky úrovne</option><option value="none">Bez úrovne</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(tierLabel(t))}</option>`).join('')}`;
-        tierSel.value = tierFilter;
-      }
+    if (tierSel && tierSel.options.length !== tierOptions.length + 2) {
+      tierSel.innerHTML = `<option value="">Všetky úrovne</option><option value="none">Bez úrovne</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(tierLabel(t))}</option>`).join('')}`;
+      tierSel.value = tierFilter;
     }
-    const rows = customers.map((c) => {
-      const nm = [c.first_name, c.last_name].filter(Boolean).join(' ');
-      const av = (nm || c.email || '?').slice(0, 2).toUpperCase();
-      const tier = c.tier_name || LOYALTY_TIER_LABEL[c.tier_code] || '';
-      const tierCell = !loyalty ? '<span class="muted">—</span>' : tier
-        ? `<b>${esc(tier)}</b>${c.locked ? ' <span class="pill">ručné</span>' : c.source === 'auto' ? ' <span class="muted">automaticky</span>' : ''}`
-        : '<span class="muted">—</span>';
-      return `<tr data-id="${esc(c.id)}" tabindex="0" role="link">
-        <td class="ot-check"><input type="checkbox" data-pick="${esc(c.id)}" aria-label="Označiť zákazníka" ${selected.has(c.id) ? 'checked' : ''}></td>
-        <td class="ot-img lv-media"><span class="thumb ini">${esc(av)}</span></td>
-        <td class="lv-title">${esc(nm || c.email)}</td>
-        <td data-label="E-mail">${esc(c.email)}</td>
-        <td data-label="Úroveň">${tierCell}</td>
-        <td data-label="ID"><code class="rc-code">${esc(custCode(c.id))}</code></td>
-        <td data-label="Od">${fmtDate(c.created_at)}</td>
-        <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
-    }).join('');
-    const from = count ? offset + 1 : 0, to = Math.min(offset + customers.length, count);
-    body.innerHTML = `${selected.size ? `<div class="ot-bulk"><span class="muted">Označení zákazníci: ${selected.size}</span><div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${isOwner() ? `<select class="rc-select" id="cu-assign" aria-label="Priradiť úroveň"><option value="">Priradiť úroveň…</option><option value="automatic">Automaticky podľa útraty</option>${tierOptions.map((t) => `<option value="${esc(t.code)}">${esc(tierLabel(t))}</option>`).join('')}</select>
-        <button type="button" class="btn ghost sm" id="cu-assign-go">Priradiť</button>` : ''}
-        <button type="button" class="btn ghost sm" id="cu-pick-clear">Zrušiť označenie</button></div></div>` : ''}
-      <div class="ot-wrap"><table class="ot lv agenda-grid customer-grid"><thead><tr><th class="ot-check"><span class="sr-only">Označiť</span></th><th class="ot-img"><span class="sr-only">Zákazník</span></th><th>Meno</th><th>E-mail</th><th>Úroveň</th><th>ID</th><th>Od</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Zatiaľ žiadni zákazníci.</td></tr>'}</tbody></table></div>
-      <div class="ot-foot"><span class="muted">${count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadni zákazníci'}</span>
-      <div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev" ${offset <= 0 ? 'disabled' : ''}>← Predchádzajúce</button><button class="btn ghost" data-pg="next" ${offset + PAGE >= count ? 'disabled' : ''}>Ďalšie →</button></div></div>`;
-    body.querySelectorAll('tr[data-id]').forEach((tr) => {
-      const open = () => vCustomerDetail(view, tr.dataset.id);
-      tr.onclick = open;
-      tr.onkeydown = (e) => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
-      const box = tr.querySelector('[data-pick]');
-      if (box) { box.onclick = (e) => e.stopPropagation(); box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); load(); }; }
-    });
-    const prev = body.querySelector('[data-pg="prev"]'), next = body.querySelector('[data-pg="next"]');
-    if (prev) prev.onclick = () => { if (offset > 0) { offset = Math.max(0, offset - PAGE); load(); } };
-    if (next) next.onclick = () => { if (offset + PAGE < count) { offset += PAGE; load(); } };
-    const assignGo = body.querySelector('#cu-assign-go');
-    if (assignGo) assignGo.onclick = async () => {
-      const code = body.querySelector('#cu-assign').value;
-      if (!code) return;
-      const ids = [...selected];
-      if (!ids.length) return;
-      assignGo.disabled = true;
-      try {
-        await api('/admin/nexus/customers/tiers', { method: 'POST', body: { tier_code: code, customer_ids: ids } });
-        selected.clear();
-        await vCustomers(view);
-      } catch (e) { if (e.message !== '401') alert(e.message); assignGo.disabled = false; }
-    };
-    const clear = body.querySelector('#cu-pick-clear');
-    if (clear) clear.onclick = () => { selected.clear(); load(); };
+    bar.setFuncs([...(isOwner() && loyalty ? [['tier:automatic', 'Úroveň: automaticky podľa útraty'], ...tierOptions.map((t) => [`tier:${t.code}`, `Priradiť úroveň: ${tierLabel(t)}`])] : []), ['clear', 'Zrušiť označenie']]);
+    draw();
+    foot.innerHTML = stPager(count, Math.floor(offset / PAGE), PAGE);
+    foot.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { offset = Number(b.dataset.pg) * PAGE; load(); view.querySelector('.st-head')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
   };
+  stWireSort(view.querySelector('table'), sort, draw);
   const search = view.querySelector('.rc-search');
   let timer = null;
   search.oninput = () => { clearTimeout(timer); timer = setTimeout(() => { query = search.value.trim(); offset = 0; load(); }, 350); };
-  tierSel.onchange = () => { tierFilter = tierSel.value; offset = 0; load(); };
+  stHelp(view);
   load();
 }
 async function vCustomerDetail(view, id) {
