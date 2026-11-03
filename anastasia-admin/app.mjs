@@ -1056,7 +1056,8 @@ function listView(view, { cols, rows, title, onRow, empty, card, search = true, 
   const colCount = (hasMedia ? 1 : 0) + 1 + labels.length + (onRow ? 1 : 0);
   // Triedenie podľa textu bunky (čísla a sumy porovnáva numericky), stránkovanie po LIST_PAGE_SIZE ako v Shoptete.
   const txt = (html) => { tpl.innerHTML = html || ''; return tpl.content.textContent.replace(/\s+/g, ' ').trim(); };
-  const num = (t) => { const m = /^-?[\d\s]+(?:[.,]\d+)?/.exec(t.replace(/ /g, ' ')); return m ? Number(m[0].replace(/\s/g, '').replace(',', '.')) : null; };
+  // Číslo len keď je celá bunka číslo (prípadne s menou/jednotkou) – kód „20ABC“ sa triedi ako text, nie ako 20.
+  const num = (t) => { const m = /^(-?[\d\s]+(?:[.,]\d+)?)\s*(?:€|%|ks|x|×)?$/i.exec(t.replace(/ /g, ' ').trim()); return m ? Number(m[1].replace(/\s/g, '').replace(',', '.')) : null; };
   parsed.forEach(x => { x.keys = { title: txt(x.title) }; labels.forEach(l => { x.keys[l] = txt(x.fields.find(f => f.label === l)?.html); }); });
   const sortKey = (x, k) => { const t = x.keys[k] ?? ''; const n = num(t); return n === null ? t : n; };
   const sort = { key: '', dir: 1 };
@@ -2300,7 +2301,10 @@ async function vCustomers(view) {
     if (all) { syncAll(); all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); draw(); }; }
     bar.setPicked(selected.size);
   };
+  let loadSeq = 0;
   const load = async () => {
+    // Neskorá odpoveď staršieho hľadania nesmie prepísať novší výsledok.
+    const seq = ++loadSeq;
     body.innerHTML = '<tr><td colspan="8" class="empty">Načítavam…</td></tr>';
     const params = new URLSearchParams({ limit: String(PAGE), offset: String(offset) });
     if (query) params.set('q', query);
@@ -2309,18 +2313,21 @@ async function vCustomers(view) {
     try {
       // Ak jadro pozná vernostné úrovne, zoznam berie z nich (serverový filter na úroveň).
       data = await api(`/admin/nexus/loyalty-customers?${params}`);
+      if (seq !== loadSeq) return;
       loyalty = true;
       customers = data.customers || [];
       tierOptions = data.tiers || [];
     } catch (e) {
       if (e.message === '401') throw e;
+      if (seq !== loadSeq) return;
       // Bez vernostných úrovní (jadro ich ešte neobsluhuje) použijeme bežný zoznam zákazníkov.
       try {
         const plain = await api(`/admin/customers?${params}&fields=id,email,first_name,last_name,has_account,created_at`);
+        if (seq !== loadSeq) return;
         loyalty = false;
         customers = plain.customers || [];
         data = { count: Number(plain.count) || 0 };
-      } catch (e2) { if (e2.message === '401') throw e2; body.innerHTML = `<tr><td colspan="8" class="empty">${esc(e2.message)}</td></tr>`; return; }
+      } catch (e2) { if (e2.message === '401') throw e2; if (seq !== loadSeq) return; body.innerHTML = `<tr><td colspan="8" class="empty">${esc(e2.message)}</td></tr>`; return; }
     }
     count = Number(data?.count ?? 0) || customers.length;
     if (tierSel && tierSel.options.length !== tierOptions.length + 2) {
