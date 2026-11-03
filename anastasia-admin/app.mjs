@@ -220,6 +220,38 @@ const NAV = [
 ];
 let BADGES = {};
 
+// Drobčeková navigácia ako v Shoptete: domček › sekcia › stránka (› detail dopĺňa setCrumbTail).
+// Kód položky v zozname objednávok: pri myši/fokuse malé okienko s fotkou a názvom produktu.
+let otPop = null;
+function otCodePop(e) {
+  const c = e.target.closest?.('.ot-code');
+  if (!c) { if (otPop) otPop.hidden = true; return; }
+  if (!otPop) { otPop = document.createElement('div'); otPop.className = 'ot-pop'; otPop.setAttribute('role', 'tooltip'); document.body.appendChild(otPop); }
+  const img = c.dataset.img, qty = Number(c.dataset.qty) || 1;
+  otPop.innerHTML = `${img ? `<img src="${esc(img)}" alt="">` : `<span class="ot-pop-noimg">${navIcon('bag')}</span>`}<div><b>${esc(c.dataset.name || c.textContent)}</b><small>Kód ${esc(c.textContent)}${qty > 1 ? ` · ${qty} ks` : ''}</small></div>`;
+  otPop.hidden = false;
+  const r = c.getBoundingClientRect(), pw = otPop.offsetWidth, ph = otPop.offsetHeight;
+  const left = Math.max(8, Math.min(r.left, innerWidth - pw - 8));
+  const top = r.bottom + 8 + ph > innerHeight ? r.top - ph - 8 : r.bottom + 8;
+  otPop.style.left = left + 'px'; otPop.style.top = Math.max(8, top) + 'px';
+}
+['mouseover', 'focusin'].forEach(t => document.addEventListener(t, otCodePop));
+document.addEventListener('scroll', () => { if (otPop) otPop.hidden = true; }, true);
+
+function crumbsHtml(active, label) {
+  const h = location.hash.replace(/^#\/?/, '');
+  const n = NAV.find(x => x.k === h) || NAV.find(x => x.k === active);
+  const g = NAV_GROUPS.find(x => x.k === n?.group);
+  const parts = [`<a href="#/" class="crumb-home" aria-label="Prehľad">${navIcon('home')}</a>`];
+  if (g) parts.push(`<span>${esc(g.label.charAt(0) + g.label.slice(1).toLowerCase())}</span>`);
+  parts.push(`<a href="#/${esc(n?.k ?? active)}" class="crumb-page">${esc(n?.label || label)}</a>`);
+  return `<nav class="crumb crumbs" aria-label="Drobčeková navigácia">${parts.join('<span class="crumb-sep" aria-hidden="true">›</span>')}<span class="crumb-tail"></span></nav>`;
+}
+function setCrumbTail(text) {
+  const t = document.querySelector('.crumbs .crumb-tail'); if (!t) return;
+  t.innerHTML = text ? `<span class="crumb-sep" aria-hidden="true">›</span><b>${esc(text)}</b>` : '';
+}
+
 function shell(active, title, sub) {
   const cur = (k) => (location.hash.replace(/^#\/?/, '') || '') === k ? ' active" aria-current="page' : '';
   const item = (n) => `<a class="nav-item${cur(n.k)}" href="#/${n.k}">${navIcon(n.icon)}<span>${esc(n.label)}</span>${n.phase2 ? '<span class="nav-phase">Fáza 2</span>' : ''}${n.badge ? `<span class="counter" data-badge="${n.badge}" ${BADGES[n.badge] ? '' : 'hidden'}>${BADGES[n.badge] || ''}</span>` : ''}</a>`;
@@ -309,7 +341,7 @@ function shell(active, title, sub) {
       </header>
       <main class="content" id="main">
         ${BOTANIC_LAVENDER}
-        ${active ? `<p class="crumb">Váš obchod / ${esc(crumb)}</p>` : ''}
+        ${active ? crumbsHtml(active, crumb) : ''}
         ${head}
         ${ctxHelpHtml(active)}
         <div id="view"></div>
@@ -1159,6 +1191,7 @@ const basePrice = (v) => (v?.prices || []).find(x => x.currency_code === 'eur' &
 const PRODUCT_PAGE_SIZE = 12;
 const PRODUCT_STATUS = { published: ['zverejnený', 'ok'], draft: ['koncept', 'warn'] };
 async function vProducts(view) {
+  setCrumbTail('');
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
   setActions('<button class="btn primary" id="p-new">+ Pridať produkt</button>');
@@ -1337,6 +1370,7 @@ const SKU_RE = /^[A-Z0-9][A-Z0-9._-]{1,63}$/;
 const skuFrom = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 const shipLabel = (sp) => sp.type === 'digital' ? 'Digitálny produkt / služba (bez dopravy)' : sp.type === 'default' ? 'Fyzický tovar (doprava kuriérom)' : sp.name;
 async function vProductNew(view) {
+  setCrumbTail('Nový produkt');
   view = freshView(view);
   let profiles = []; try { profiles = (await api('/admin/shipping-profiles?limit=50&fields=id,name,type')).shipping_profiles || []; } catch (e) { if (e.message === '401') throw e; }
   view.innerHTML = `<div class="card"><div class="card-h">Nový produkt<div class="card-h-act"><button type="button" class="btn ghost" id="pn-back">Späť</button><button type="button" class="btn gold" id="pn-save">Vytvoriť produkt</button></div></div><div class="card-b">
@@ -1382,6 +1416,8 @@ async function vProductDetail(view, id, opts = {}) {
   setActions('');
   view.innerHTML = '<div class="muted">Načítavam…</div>';
   const { product: p } = await api(`/admin/products/${id}?fields=id,title,status,description,thumbnail,metadata,*images,*sales_channels,*variants.prices,*categories,variants.manage_inventory,variants.sku,*variants.inventory_items,*shipping_profile`);
+  setCrumbTail(p.title || 'Produkt');
+  const cp = document.querySelector('.crumbs .crumb-page'); if (cp) cp.onclick = (e) => { e.preventDefault(); vProducts(view); };
   const variant = p.variants?.[0]; const price = basePrice(variant);
   const soft = (e) => { if (e.message === '401') throw e; return null; };
   const [catsR, chR, locR, spR] = await Promise.all([
@@ -1730,15 +1766,14 @@ async function vOrders(view) {
   const provider = o => (o.payment_collections || []).flatMap(pc => pc.payment_sessions || []).map(s => s.provider_id).find(Boolean) || '';
   const row = o => {
     const items = o.items || [], first = items[0];
-    const more = items.length > 1 ? ` <small>+ ${items.length - 1} ďalšie</small>` : '';
     const thumb = first?.thumbnail ? `<img src="${esc(first.thumbnail)}" alt="" loading="lazy">` : `<span class="ot-noimg">${navIcon('bag')}</span>`;
     return `<tr data-id="${esc(o.id)}" tabindex="0" role="link">
       <td class="ot-check"><input type="checkbox" data-pick="${esc(o.id)}" aria-label="Označiť objednávku ${esc(legacy(o)?.number || o.display_id || '')}"></td>
       <td class="ot-img">${thumb}</td>
       <td><b>#${esc(legacy(o)?.number || o.display_id || '')}</b><small>${fmtDate(legacy(o)?.placed_at || o.created_at)}</small></td>
-      <td class="ot-cust">${esc(name(o) || o.email || '—')}</td>
-      <td class="ot-dor">${esc(shipKind(o))}</td>
-      <td class="ot-items">${esc(first?.title || first?.product_title || '—')}${more}</td>
+      <td class="ot-cust" title="${esc(name(o) || o.email || '')}">${esc(name(o) || o.email || '—')}</td>
+      <td class="ot-dor" title="${esc(shipping(o))}">${esc(shipKind(o))}</td>
+      <td class="ot-items">${items.length ? items.map(i => `<span class="ot-code" tabindex="0" data-name="${esc([i.product_title || i.title, i.variant_title && !/^(default|predvolen|variant$)/i.test(i.variant_title) ? i.variant_title : ''].filter(Boolean).join(' – '))}" data-img="${esc(i.thumbnail || '')}" data-qty="${esc(String(i.quantity || 1))}">${esc(i.variant_sku || i.product_title || i.title || '—')}</span>`).join('<span class="ot-code-sep">, </span>') : '—'}</td>
       <td class="ot-num">${fmtEur(o.total)}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status, true)}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
@@ -1764,7 +1799,7 @@ async function vOrders(view) {
       </div>
     </div>
     ${truncated ? `<div class="notice" style="margin:14px 24px 0">V prehľade je prvých ${orders.length} z ${total} objednávok. Staršie objednávky hľadaj cez vyhľadávanie podľa e-mailu.</div>` : ''}
-    <div class="ot-wrap"><table class="ot ot-orders"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazník</th><th>Doručenie</th><th>Položky</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+    <div class="ot-wrap"><table class="ot ot-orders"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazník</th><th>Doručenie</th><th>Kód</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="o-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('tbody');
@@ -1857,7 +1892,7 @@ const PAY_METHOD = {
 };
 const PAY_LABEL = { captured: 'zaplatená', authorized: 'autorizovaná (čaká na prijatie)', partially_refunded: 'čiastočne vrátená', refunded: 'vrátená', not_paid: 'nezaplatená', awaiting: 'čaká na platbu', canceled: 'zrušená', partially_captured: 'čiastočne zaplatená', requires_action: 'čaká na overenie' };
 const PAY_SHORT = { authorized: 'čaká na prijatie', partially_captured: 'čiastočne zaplatená' };
-const FUL_LABEL = { not_fulfilled: 'nevybavená', fulfilled: 'pripravená na odoslanie', partially_fulfilled: 'čiastočne pripravená', shipped: 'odoslaná', partially_shipped: 'čiastočne odoslaná', delivered: 'doručená', canceled: 'zrušená' };
+const FUL_LABEL = { not_fulfilled: 'nevybavená', fulfilled: 'na odoslanie', partially_fulfilled: 'čiastočne pripravená', shipped: 'odoslaná', partially_shipped: 'čiastočne odoslaná', delivered: 'doručená', canceled: 'zrušená' };
 const sum = (arr, k = 'amount') => (arr || []).reduce((a, x) => a + Number(x?.[k] || 0), 0);
 async function vOrderDetail(view, id, notice) {
   view = freshView(view);
