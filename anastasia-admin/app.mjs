@@ -1733,6 +1733,7 @@ const ORDER_LOAD_PAGE = 100;
 const ORDER_LOAD_CAP = 1000;
 /** Koľko objednávok sa zobrazí na jednu stranu v prehľade (ako v Shoptete – riadok = objednávka). */
 const ORDER_PAGE_SIZE = 25;
+let orderBrowseIds = [];
 // Spoločná kostra zoznamov podľa Shoptetu: lišta „▾ Funkcie“ + „▾ Filter“, triediteľné hlavičky
 // a pätička „N položiek celkom“ s číslami strán.
 function stPager(total, page, size) {
@@ -1936,6 +1937,7 @@ async function vOrders(view) {
     const list = orders.filter(f).filter(advMatch).filter(o => !query || JSON.stringify([orderNo(o), legacy(o)?.number, o.display_id, o.email, name(o), (o.items || []).map(i => [i.title, i.variant_sku])]).toLowerCase().includes(query))
       .sort((a, b) => stCmp(key(a), key(b)) * sort.dir || placed(b) - placed(a));
     visible = list;
+    orderBrowseIds = list.map(o => o.id);
     const pages = Math.max(1, Math.ceil(list.length / ORDER_PAGE_SIZE));
     page = Math.min(Math.max(0, page), pages - 1);
     const slice = list.slice(page * ORDER_PAGE_SIZE, (page + 1) * ORDER_PAGE_SIZE);
@@ -2064,12 +2066,14 @@ async function vOrderDetail(view, id, notice) {
       </div>
       <div style="margin-top:12px"><button type="button" class="btn gold" id="o-addr-save">Uložiť adresy</button> <span class="muted" id="o-addr-msg" style="font-size:12px"></span></div>
     </details></div>`;
-  const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(history.placed_at || o.created_at)}</div></div></div>
+  const copyField = (label, value) => value ? `<button type="button" class="btn ghost sm" data-order-copy="${esc(value)}" aria-label="${esc(label)}">Kopírovať</button>` : '';
+  const addressText = x => [[x.first_name, x.last_name].filter(Boolean).join(' '), x.address_1, x.address_2, [x.postal_code, x.city].filter(Boolean).join(' '), x.country_code?.toUpperCase()].filter(Boolean).join('\n');
+  const prehlad = `<div class="row"><div><label>E-mail</label><div>${esc(o.email)} ${copyField('Kopírovať e-mail', o.email)}</div></div><div><label>Dátum</label><div>${fmtDate(history.placed_at || o.created_at)}</div></div></div>
     <div class="row"><div><label>Platba</label><div><span class="pill">${esc(payState)}</span>${method ? `<div style="margin-top:4px"><b>${esc(method.label)}</b></div>` : ''}</div></div>
     <div><label>Vybavenie</label><div><span class="pill">${esc(history.status || (archived ? 'Archív' : FUL_LABEL[o.fulfillment_status] || o.fulfillment_status) || '—')}</span>${canceled ? ' <span class="pill off">objednávka zrušená</span>' : ''}</div></div></div>
-    <div class="row"><div><label>Doručenie</label><div>${addr || '<span class="muted">bez adresy (digitálny obsah)</span>'}</div></div>
+    <div class="row"><div><label>Doručenie</label><div>${addr || '<span class="muted">bez adresy (digitálny obsah)</span>'} ${copyField('Kopírovať doručovaciu adresu', addressText(a))}</div></div>
     <div><label>Doprava</label><div>${(o.shipping_methods || []).map(m => `${esc(m.name)} · ${fmtEur(m.total ?? m.amount)}`).join('<br>') || '—'}</div></div></div>
-    <div class="row"><div><label>Fakturačná adresa</label><div>${billAddr || '<span class="muted">žiadna (rovná sa doručeniu)</span>'}</div></div>
+    <div class="row"><div><label>Fakturačná adresa</label><div>${billAddr || '<span class="muted">žiadna (rovná sa doručeniu)</span>'} ${copyField('Kopírovať fakturačnú adresu', addressText(bAddr))}</div></div>
     <div><label>Rozdiel</label><div>${billDiffers ? '<span class="pill warn">iná než doručovacia</span>' : '<span class="muted">rovná sa doručovacej</span>'}</div></div></div>
     <div style="margin-top:10px;font-weight:600">Celkom: ${fmtEur(o.total)}</div>
     ${archived ? '' : addrEdit}
@@ -2103,7 +2107,10 @@ async function vOrderDetail(view, id, notice) {
           <p class="muted" style="font-size:12px;margin:4px 0 0">Zapnuté, ak tovar fyzicky vraciate späť do skladu.</p></div></div>` : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
-  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka ${esc(history.number || orderNo(o))}<div class="card-h-act">
+  const browseIndex = orderBrowseIds.indexOf(id);
+  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka ${esc(history.number || orderNo(o))} ${copyField('Kopírovať číslo objednávky', history.number || orderNo(o))}<div class="card-h-act">
+      <button type="button" class="btn ghost" id="o-prev" aria-label="Predchádzajúca objednávka" ${browseIndex <= 0 ? 'disabled' : ''}>‹</button>
+      <button type="button" class="btn ghost" id="o-next" aria-label="Ďalšia objednávka" ${browseIndex < 0 || browseIndex >= orderBrowseIds.length - 1 ? 'disabled' : ''}>›</button>
       <button type="button" class="btn ghost" id="o-back">Späť</button>
       <button type="button" class="btn ghost" id="o-print-label">Vytlačiť štítok</button>
       <button type="button" class="btn ghost" id="o-print-slip">Dodací list</button>
@@ -2134,7 +2141,21 @@ async function vOrderDetail(view, id, notice) {
   const showOrderHelp = tab => { const h = archived ? ['Historická objednávka', 'Toto sú pôvodné údaje zo starého obchodu. Objednávku znova neodosielajte ani neúčtujte. Položky, pôvodnú sumu a stav si môžete prezrieť v záložkách.', 'objednavka-vybavit'] : orderHelp[tab]; view.querySelector('#order-help').innerHTML = `<h3>${esc(h[0])}</h3><p>${esc(h[1])}</p><a class="subtle-link" href="#/pomoc/${h[2]}">Podrobný postup →</a>`; };
   showOrderHelp('p');
   view.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showOrderHelp(b.dataset.tab)));
-  view.querySelector('#o-back').onclick = () => vOrders(view);
+  let dirty = false, navigating = false;
+  view.addEventListener('input', () => { dirty = true; });
+  view.addEventListener('change', () => { dirty = true; });
+  const navigate = async (target) => {
+    if (navigating || (dirty && !confirm('Opustiť rozpracované zmeny v objednávke?'))) return;
+    navigating = true;
+    try { await target(); } catch (e) { navigating = false; if (e.message !== '401') alert(e.message); }
+  };
+  view.querySelector('#o-prev').onclick = () => navigate(() => vOrderDetail(view, orderBrowseIds[browseIndex - 1]));
+  view.querySelector('#o-next').onclick = () => navigate(() => vOrderDetail(view, orderBrowseIds[browseIndex + 1]));
+  view.querySelector('#o-back').onclick = () => navigate(() => vOrders(view));
+  view.querySelectorAll('[data-order-copy]').forEach(btn => btn.onclick = async () => {
+    const ok = await copyToClipboard(btn.dataset.orderCopy, btn);
+    if (!ok) { const msg = view.querySelector('#omsg'); msg.textContent = 'Kopírovanie sa nepodarilo. Označte a skopírujte údaj ručne.'; msg.setAttribute('role', 'status'); }
+  });
   const giftPrint = view.querySelector('#o-gift-print');
   if (giftPrint) giftPrint.onclick = () => {
     const cards = giftVouchers.map((gv) => {

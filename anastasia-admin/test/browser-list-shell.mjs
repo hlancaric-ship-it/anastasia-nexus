@@ -28,6 +28,7 @@ try {
    if(u.pathname==='/admin/nexus/admin-roles')json={current_user_id:'list_owner',admins:[{id:'list_owner',role:'owner'}]};
    if(u.pathname==='/admin/promotions')json={promotions,count:promotions.length};
    if(u.pathname==='/admin/orders')json={orders:customers.slice(0,5).map((c,i)=>({id:`order_${i}`,display_id:100+i,customer:c,email:c.email,created_at:c.created_at,status:'pending',payment_status:'captured',fulfillment_status:'not_fulfilled',total:123.45,shipping_methods:[{name:'Osobný odber'}],items:[{title:'Testovací produkt',variant_sku:'TEST-01',quantity:1}]})),count:5};
+   if(/^\/admin\/orders\/order_\d+$/.test(u.pathname)){ const i=Number(u.pathname.split('_').pop()); json={order:{id:`order_${i}`,display_id:100+i,email:customers[i].email,created_at:customers[i].created_at,status:'pending',payment_status:'captured',fulfillment_status:'not_fulfilled',total:123.45,items:[],shipping_address:{first_name:'Test',address_1:'Testovacia 1',city:'Bratislava'},payment_collections:[]}}; }
    if(u.pathname==='/admin/product-categories')json={product_categories:[],count:0};
    if(u.pathname==='/admin/products')json={products:[],count:0};
    if(u.pathname==='/admin/nexus/loyalty-customers'){
@@ -107,6 +108,23 @@ try {
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`order page overflow ${width}`);
   await page.screenshot({path:join(tmpdir(),`anastasia-list-orders-${width}.png`)});
  }
+ await page.locator('.ot-orders tbody tr[data-id]').first().click();
+ await page.locator('#o-next').waitFor();
+ check(await page.locator('#o-prev').isDisabled(),'first order has no predecessor');
+ await page.locator('#o-next').click();
+ await page.waitForFunction(()=>document.querySelector('[data-order-copy]')?.dataset.orderCopy==='2026000101');
+ check(await page.locator('#o-prev').isEnabled(),'next order has predecessor');
+ await page.evaluate(()=>{window.copiedOrderValue='';Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async value=>{window.copiedOrderValue=value}}})});
+ await page.getByRole('button',{name:'Kopírovať e-mail',exact:true}).click();
+ check(await page.evaluate(()=>window.copiedOrderValue)==='customer1@example.test','copies current order email');
+ await page.locator('#o-note').fill('Unfinished note');
+ page.once('dialog',d=>d.dismiss());
+ await page.locator('#o-next').click();
+ check(await page.locator('#o-note').inputValue()==='Unfinished note','canceled navigation preserves unsaved note');
+ page.once('dialog',d=>d.accept());
+ await page.locator('#o-back').click();
+ await page.locator('.ot-orders tbody tr[data-id]').first().waitFor();
+ check(await page.locator('.ot-orders tbody tr[data-id]').count()===5,'back returns to orders');
  check(errors.length===0,`browser errors: ${errors.join('; ')}`);
  console.log(JSON.stringify({checks,passed:true,traffic:'synthetic only'}));
 } finally {await browser.close()}
