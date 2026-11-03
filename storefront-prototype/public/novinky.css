@@ -84,6 +84,8 @@
 .nv-opt:hover{background:#ffffff4d}.nv-opt--res{cursor:default}.nv-opt--res i{position:absolute;inset:0 auto 0 0;background:#ffffff40;display:block}.nv-opt--res span,.nv-opt--res b{position:relative}.nv-opt.is-mine{border-color:#F7E3B0}
 .nv-poll small{color:#f0f0f8;font-size:12px}
 html.nv-lock{overflow:hidden}
+/* panel na ostatných stránkach: obal bez pozadia stránky Novinky */
+.nv.nv--dock{position:static;background:none;overflow:visible}
 .nv-modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#1c2014d9;padding:20px}.nv-modal[hidden]{display:none}
 .nv-modal video,.nv-modal iframe{width:min(960px,92vw);aspect-ratio:16/9;border:0;border-radius:22px;background:#000}.nv-modal button{position:absolute;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:0;background:#fff;font-size:22px;cursor:pointer}
 @media(max-width:760px){

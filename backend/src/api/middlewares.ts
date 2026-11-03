@@ -21,6 +21,7 @@ import { nexusCartMiddlewares } from "./store/nexus-cart/middlewares"
 import { requireNexusCheckoutForCouponCart } from "./store/carts/complete-guard"
 import { rejectServerOwnedCartMetadata } from "./store/carts/metadata-guard"
 import { customerCreateMiddlewares } from "./store/customers/create-guard"
+import { customerProfileMiddlewares } from "./store/customers/profile-guard"
 import { adminCapabilityMiddlewares } from "./admin-capability-middlewares"
 import { abuseGuardMiddlewares } from "./abuse-guard-middlewares"
 import { protectedMediaRedactionMiddlewares } from "./protected-media-redaction-middlewares"
@@ -48,6 +49,7 @@ export default defineMiddlewares({
     ...authMagicLinkMiddlewares,
     // Zákazník sa zakladá len na e-mail, ktorý jeho identita overila (inak prevzatie účtu správcu).
     ...customerCreateMiddlewares,
+    ...customerProfileMiddlewares,
     // Brzdy Store API: card testing, zahltenie cudzej schránky, termíny, stránkovanie, množstvá.
     ...abuseGuardMiddlewares,
     // Kľúče chránených súborov sa verejne nevracajú (len názov a prípona).

@@ -121,7 +121,7 @@ export function createMockApi(storage=memoryStorage()) {
     getCustomerCenter:()=>({
       ok:true,bookingsOk:true,mode:'mock',bookings:[{id:'demo-consultation',day:'23',month:'Okt',title:'Online zdravotná konzultácia',date:'23. 10. 2026 · 18:00 – 19:00',status:'Potvrdený termín'}],
       materials:[{id:'demo-workbook',title:'Pracovný zošit · RESET 40+',category:'programy',type:'PDF'},{id:'demo-consultation-note',title:'Zápis z konzultácie',category:'konzultacie',type:'PDF'},{id:'demo-invoice',title:'Faktúra · 2026-0142',category:'faktury',type:'PDF'}],
-      reorder:clone(products.slice(0,3)),profile:{name:'Zákazníka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:''},
+      reorder:clone(products.slice(0,3)),profile:{name:'Zákazníka',email:'demo@example.test',phone:'',birthDate:'',birthTime:'',birthPlace:'',street:'',city:'',postalCode:'',companyName:'',companyIco:'',companyDic:'',companyIcDph:'',companyStreet:'',companyCity:'',companyPostalCode:''},
     }),
     saveCustomerProfile:()=>({ok:true,message:'Údaje boli skontrolované.'}),
     getAccount:()=>({ok:true,name:'Zákazníka',orders:[{number:'2026-0142',date:'12. 10. 2026',product:'RESET 40+',status:'Doručená',totalLabel:'168,00 €'}]}),

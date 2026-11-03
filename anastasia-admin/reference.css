@@ -117,7 +117,7 @@ html,body{overflow-x:visible}
 /* Keep the fixed brand anchored to the window, outside any filter containing block. */
 .sidebar{backdrop-filter:none;-webkit-backdrop-filter:none}
 /* The source's circular emblem only; the wordmark remains live text. */
-.brand-symbol{display:block;width:60px;height:60px;flex:none;background:#49305e;mask:url('./assets/lucia-logo.png') center /115% 170% no-repeat;-webkit-mask:url('./assets/lucia-logo.png') center /115% 170% no-repeat}
+.brand-symbol{display:block;width:60px;height:60px;flex:none;background:transparent url('./assets/anastasia-oz-emblem.png') center/contain no-repeat}
 .mobile-head .brand-symbol{width:28px;height:28px}
 /* Filtered glass creates stacking contexts. Header menus must be above the content. */
 .topbar{z-index:50;overflow:visible}.top-actions{z-index:2}.dd.open{z-index:5}.dd-menu{z-index:60;background:rgba(253,250,255,.97);max-height:calc(100dvh - 100px);overflow-y:auto;box-shadow:0 12px 36px #49305e26;border-color:#cfb7df}
@@ -126,7 +126,7 @@ html,body{overflow-x:visible}
 /* Persistent search and account controls on every desktop agenda. */
 @media(min-width:801px){.topbar{position:fixed;top:0;left:305px;right:0;height:78px;z-index:50}.sidebar>.brand{z-index:51}.workspace{padding-top:78px}}
 /* Original compact emblem and matching lavender header. */
-.brand-symbol{mask:none;-webkit-mask:none;background:transparent url('./assets/lucia-symbol.png') center/contain no-repeat;filter:brightness(0) saturate(100%) invert(18%) sepia(19%) saturate(1748%) hue-rotate(231deg) brightness(92%) contrast(90%)}
+.brand-symbol{mask:none;-webkit-mask:none;background:transparent url('./assets/anastasia-oz-emblem.png') center/contain no-repeat;filter:none}
 .topbar{background:#e8ddf1;border-bottom:1px solid #ccb5df;backdrop-filter:none;-webkit-backdrop-filter:none}
 .sidebar>.brand{background:#e8ddf1;border-color:#ccb5df}
 /* Compact toolbars and balanced cards across agendas. */
@@ -208,7 +208,7 @@ html[data-theme=dark] .app{background:#241c2c}
 html[data-theme=dark] .app:before{opacity:.12}
 html[data-theme=dark] .topbar,html[data-theme=dark] .sidebar,html[data-theme=dark] .sidebar>.brand{background:#352740;border-color:#5a416b}
 html[data-theme=dark] .brand-name,html[data-theme=dark] .brand small,html[data-theme=dark] .nav-title,html[data-theme=dark] .nav-item{color:#ded0eb}
-html[data-theme=dark] .brand-symbol{filter:brightness(0) invert(.85)}
+html[data-theme=dark] .brand-symbol{filter:none}
 html[data-theme=dark] .nav-item svg.i{stroke:#d3bde1}
 html[data-theme=dark] .nav-item.active{background:#513961;color:#fff;box-shadow:none}
 html[data-theme=dark] .agenda-grid tbody tr[data-id],html[data-theme=dark] .ot-orders tbody tr[data-id],html[data-theme=dark] .ctx-help,html[data-theme=dark] .dd-menu{background:#302638;color:var(--ink);border-color:#5b4269}
@@ -423,11 +423,18 @@ table.product-grid tbody td {
   border: 0!important;
   border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
   background: transparent!important;
-  white-space: nowrap!important;
+  white-space: normal!important;
+  word-break: normal!important;
+  overflow-wrap: normal!important;
+  hyphens: none!important;
 }
 table.product-grid tbody td.lv-title {
   white-space: normal!important;
-  max-width: 280px!important;
+  word-break: normal!important;
+  overflow-wrap: normal!important;
+  hyphens: none!important;
+  min-width: 260px!important;
+  max-width: 320px!important;
   font-size: 14px!important;
   font-weight: 500!important;
   padding-right: 14px!important;
@@ -450,7 +457,7 @@ table.product-grid tbody .ot-check input {
   margin: 0!important;
 }
 table.product-grid tbody .ot-img {
-  width: 50px!important;
+  width: 48px!important;
   padding: 6px 4px 6px 0!important;
 }
 table.product-grid tbody .ot-img .thumb {
@@ -620,7 +627,7 @@ table.agenda-grid tbody .ot-act .btn {
 
 
 /* Small forms stay readable; data lists retain their available width. */
-#view .card.compact-form { width:100%; max-width:800px; margin-inline:auto; }
+#view .card.compact-form { width:100%; max-width:none; margin-inline:0; }
 table.agenda-grid.category-grid tbody td.lv-title {
   min-width:160px; overflow-wrap:anywhere; word-break:normal;
 }
@@ -664,11 +671,11 @@ table.agenda-grid.customer-grid tbody td.lv-title,
 table.agenda-grid.customer-grid tbody td[data-label="E-mail"] {
  white-space:normal!important; overflow-wrap:anywhere; word-break:normal; max-width:none!important;
 }
-.voucher-agenda { width:100%; max-width:1040px; margin-inline:auto; }
-.voucher-agenda>.rc-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),320px)); justify-content:center; }
+.voucher-agenda { width:100%; max-width:none; margin-inline:0; }
+.voucher-agenda>.rc-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); }
 .voucher-refund #vr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 18px; align-items:end; }
 .voucher-refund #vr label { margin-top:0; }
-.media-library { width:100%; max-width:1200px; margin-inline:auto; }
+.media-library { width:100%; max-width:none; margin-inline:0; }
 .media-library .media-grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr)); }
 .media-library .media-act { display:flex; flex-wrap:wrap; gap:6px; }
 .media-library .media-act .btn { flex:1 0 auto; }
@@ -678,7 +685,7 @@ table.agenda-grid.customer-grid tbody td[data-label="E-mail"] {
  .voucher-refund #vr { grid-template-columns:minmax(0,1fr); }
 }
 
-.cp-layout,.cp-layout.has-live { display:block; width:100%; max-width:1120px; margin-inline:auto; }
+.cp-layout,.cp-layout.has-live { display:block; width:100%; max-width:none; margin-inline:0; }
 details.cp-live { position:static; height:auto; margin-top:16px; display:block; }
 details.cp-live>.cp-live-h { cursor:pointer; }
 details.cp-live[open] iframe { display:block; height:min(600px,65vh); }
@@ -692,7 +699,7 @@ details.cp-live[open] iframe { display:block; height:min(600px,65vh); }
  font-family:Figtree,Helvetica,Arial,sans-serif!important; font-weight:500;
 }
 .app .card-h h2,.app .pe-sec h2 { font-size:17px!important; line-height:1.35; margin:0; }
-.security-agenda { max-width:1040px; margin-inline:auto; }
+.security-agenda { max-width:none; margin-inline:0; }
 .security-agenda .card+.card { margin-top:16px; }
 .security-agenda .ot { min-width:580px; }
 .security-agenda .ot th:first-child { width:48%; }
@@ -708,3 +715,29 @@ table.ot-orders thead th.ot-check:after { content:none; }
 table.ot-orders .ot-check input { position:static; margin:0; vertical-align:middle; }
 table.ot-orders tbody td.ot-act { position:static!important; }
 table.ot-orders .ot-acts { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+
+/* Objednávky: tabuľka sa zmestí do karty, kompaktné riadky, bez orezania pravého stĺpca. */
+@media(min-width:801px) {
+ .ot-wrap:has(.ot-orders) { overflow-x:auto; padding:0 16px 8px; }
+ table.ot-orders { min-width:0!important; width:100%!important; table-layout:fixed!important; }
+ table.ot-orders thead th:nth-child(1), table.ot-orders tbody td:nth-child(1) { width:40px!important; }
+ table.ot-orders thead th:nth-child(2), table.ot-orders tbody td:nth-child(2) { width:56px!important; }
+ table.ot-orders thead th:nth-child(3), table.ot-orders tbody td:nth-child(3) { width:11%!important; }
+ table.ot-orders thead th:nth-child(4), table.ot-orders tbody td:nth-child(4) { width:17%!important; }
+ table.ot-orders thead th:nth-child(5), table.ot-orders tbody td:nth-child(5) { width:10%!important; }
+ table.ot-orders thead th:nth-child(6), table.ot-orders tbody td:nth-child(6) { width:17%!important; }
+ table.ot-orders thead th:nth-child(7), table.ot-orders tbody td:nth-child(7) { width:10%!important; }
+ table.ot-orders thead th:nth-child(8), table.ot-orders tbody td:nth-child(8) { width:9%!important; }
+ table.ot-orders thead th:nth-child(9), table.ot-orders tbody td:nth-child(9) { width:10%!important; }
+ table.ot-orders thead th:nth-child(10), table.ot-orders tbody td:nth-child(10) { width:16%!important; }
+ table.ot-orders thead th, table.ot-orders tbody td { padding:10px 8px!important; vertical-align:middle; overflow-wrap:anywhere; }
+ table.ot-orders tbody td:nth-child(7) { white-space:nowrap; }
+ table.ot-orders .ot-img img, table.ot-orders .ot-noimg { width:36px; height:36px; }
+}
+@media(min-width:801px) {
+ table.ot-orders .ot-acts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+ table.ot-orders .ot-acts .btn { justify-content:center; min-height:30px; padding:4px 6px; font-size:11.5px; white-space:nowrap; }
+}
+/* Stránkovanie bez ďalšej strany nezaberá miesto. */
+div:has(>[data-pg="prev"]:disabled):has(>[data-pg="next"]:disabled) { display:none!important; }
+.ot-foot:not(:has(div:has(>[data-pg]:not(:disabled)))):has(.muted:empty) { display:none; }

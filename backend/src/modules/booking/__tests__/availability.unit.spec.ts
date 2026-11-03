@@ -45,7 +45,15 @@ describe("validateWeekInput", () => {
 describe("bookingConfigFromMetadata", () => {
   it("bere jen známé klíče, zónu kalendáře a ignoruje týdenní pravidla", () => {
     const c = bookingConfigFromMetadata({ durationMinutes: 45, bufferMinutes: 10, timezone: "America/New_York", rules: [{ weekday: 1 }] })
-    expect(c).toEqual({ ...DEFAULT_BOOKING_CONFIG, durationMinutes: 45, bufferMinutes: 10, timezone: "Europe/Bratislava" })
+    expect(c).toEqual({ ...DEFAULT_BOOKING_CONFIG, durationMinutes: 45, bufferMinutes: 10, stepMinutes: 45, timezone: "Europe/Bratislava" })
+  })
+  it("bez vlastného rastra ponúka termíny po dĺžke konzultácie, vlastný raster má prednosť", () => {
+    expect(bookingConfigFromMetadata({ durationMinutes: 60 })?.stepMinutes).toBe(60)
+    expect(bookingConfigFromMetadata({ durationMinutes: 300 })?.stepMinutes).toBe(240)
+    expect(bookingConfigFromMetadata({ durationMinutes: 60, stepMinutes: 30 })?.stepMinutes).toBe(30)
+    const c = bookingConfigFromMetadata({ durationMinutes: 60, bufferMinutes: 0, minNoticeHours: 0 })!
+    const slots = generateSlotsFromWindows({ config: c, windows: [{ date: "2026-10-12", start_time: "09:00", end_time: "12:00" }], fromDate: "2026-10-12", toDate: "2026-10-12", now: NOW })
+    expect(slots.map((s) => s.start)).toEqual(["2026-10-12T07:00:00.000Z", "2026-10-12T08:00:00.000Z", "2026-10-12T09:00:00.000Z"])
   })
   it("neplatná délka = nerezervovatelné (null)", () => {
     for (const meta of [null, [], {}, { durationMinutes: 0 }, { durationMinutes: "60" }, { durationMinutes: 1.5 }]) expect(bookingConfigFromMetadata(meta)).toBeNull()

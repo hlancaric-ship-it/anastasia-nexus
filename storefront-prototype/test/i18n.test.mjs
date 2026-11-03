@@ -52,7 +52,7 @@ const UNTRANSLATED_NAMES = new Set([
   'AI ANASTASIA Longevity Academy', 'AI ANASTASIA RESET 40+',
   'AI ANASTASIA ACADEMY', 'ACADEMY', 'ANASTASIA OZ', 'ANASTASIA.ACADEMY',
   'ANASTASIA OZ — Light for the Future', 'ANASTASIA — Light for the Future',
-  'ANASTASIA ACADEMY', 'Facebook', 'YouTube', 'Lucia', 'Cookies', '© 2026 ANASTASIA · Light for the Future',
+  'ANASTASIA ACADEMY', 'Facebook', 'YouTube', 'Lucia', 'Cookies', '© 2026 ANASTASIA · Light for the Future', '© 2026 ANASTASIA OZ · Light for the Future',
   'MINERAL PROTECT 200ml', 'Teams, Zoom',
 ]);
 

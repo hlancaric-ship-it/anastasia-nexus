@@ -518,9 +518,10 @@ export function createHttpApi(storage, config) {
       // Adresa na doručenie patrí ku kuriérovi; pri osobnom odbere a digitálnom tovare stačí krajina.
       const address = { first_name: String(firstName).trim(), last_name: String(lastName).trim(), country_code: 'sk',
         ...(wanted === 'courier' ? { address_1: String(street).trim(), city: String(city).trim(), postal_code: String(postalCode).replace(/\s+/g, '') } : {}) };
-      // Nákup na firmu: názov firmy ide do fakturačnej adresy, IČO, DIČ a IČ DPH do metadát košíka (prejdú do objednávky a na faktúru).
-      const co = company && String(company.name || '').trim() ? { name: String(company.name).trim().slice(0, 120), ico: String(company.ico || '').replace(/\s+/g, '').slice(0, 12), dic: String(company.dic || '').replace(/\s+/g, '').slice(0, 14), icDph: String(company.icDph || '').replace(/\s+/g, '').toUpperCase().slice(0, 14) } : null;
-      const body = { shipping_address: address, billing_address: co ? { ...address, company: co.name } : address };
+      // Nákup na firmu: názov a sídlo firmy idú do fakturačnej adresy, IČO, DIČ a IČ DPH do metadát košíka (prejdú do objednávky a na faktúru).
+      const co = company && String(company.name || '').trim() ? { name: String(company.name).trim().slice(0, 120), ico: String(company.ico || '').replace(/\s+/g, '').slice(0, 12), dic: String(company.dic || '').replace(/\s+/g, '').slice(0, 14), icDph: String(company.icDph || '').replace(/\s+/g, '').toUpperCase().slice(0, 14), street: String(company.street || '').trim().slice(0, 200), city: String(company.city || '').trim().slice(0, 100), postalCode: String(company.postalCode || '').replace(/\s+/g, '').slice(0, 12) } : null;
+      const billing = co ? { first_name: address.first_name, last_name: address.last_name, country_code: 'sk', company: co.name, ...(co.street ? { address_1: co.street, city: co.city, postal_code: co.postalCode } : {}) } : address;
+      const body = { shipping_address: address, billing_address: billing };
       body.metadata = { company_ico: co?.ico || '', company_dic: co?.dic || '', company_ic_dph: co?.icDph || '' };
       const mail = String(email).trim(); if (mail) body.email = mail;
       const up = await call(`/store/carts/${id}`, { method: 'POST', body });
@@ -921,7 +922,7 @@ export function createHttpApi(storage, config) {
     // Údaje prihláseného zákazníka na predvyplnenie pokladne: meno, e-mail a adresa z profilu alebo z uloženej adresy (aj zo starého webu).
     async getCheckoutProfile() {
       if (!loggedIn()) return null;
-      const r = await call('/store/customers/me?fields=first_name,last_name,email,phone,metadata,*addresses');
+      const r = await call('/store/customers/me?fields=first_name,last_name,email,phone,company_name,metadata,*addresses');
       if (!r.ok) return null;
       const c = r.data?.customer || {}, md = c.metadata || {};
       const list = Array.isArray(c.addresses) ? c.addresses : [];
@@ -934,6 +935,8 @@ export function createHttpApi(storage, config) {
         street: text(md.street) || text(a.address_1),
         city: text(md.city) || text(a.city),
         postalCode: text(md.postal_code) || text(a.postal_code),
+        companyName: text(c.company_name), companyIco: text(md.company_ico), companyDic: text(md.company_dic), companyIcDph: text(md.company_ic_dph),
+        companyStreet: text(md.company_street), companyCity: text(md.company_city), companyPostalCode: text(md.company_postal_code),
       };
     },
     // Faktúra (daňový doklad) k vlastnej objednávke ako PDF. Stiahne sa s prihlasovacím tokenom.
@@ -992,6 +995,8 @@ export function createHttpApi(storage, config) {
           name: [c.first_name, c.last_name].filter(Boolean).join(' '), firstName: c.first_name || '', lastName: c.last_name || '', email: c.email || '', phone: c.phone || '',
           birthDate: md.birth_date || '', birthTime: md.birth_time || '', birthPlace: md.birth_place || '',
           street: md.street || '', city: md.city || '', postalCode: md.postal_code || '',
+          companyName: c.company_name || '', companyIco: md.company_ico || '', companyDic: md.company_dic || '', companyIcDph: md.company_ic_dph || '',
+          companyStreet: md.company_street || '', companyCity: md.company_city || '', companyPostalCode: md.company_postal_code || '',
         },
       };
     },
@@ -1003,9 +1008,13 @@ export function createHttpApi(storage, config) {
       const body = {
         ...(first ? { first_name: first } : {}), ...(rest.length ? { last_name: rest.join(' ') } : {}),
         ...(profile.phone ? { phone: profile.phone } : {}),
-        metadata: { birth_date: profile.birthDate || '', birth_time: profile.birthTime || '', birth_place: profile.birthPlace || '', street: profile.street || '', city: profile.city || '', postal_code: profile.postalCode || '' },
+        ...(profile.companyName !== undefined ? { company_name: String(profile.companyName).trim() } : {}),
+        metadata: { birth_date: profile.birthDate || '', birth_time: profile.birthTime || '', birth_place: profile.birthPlace || '', street: profile.street || '', city: profile.city || '', postal_code: profile.postalCode || '',
+          company_ico: String(profile.companyIco || '').replace(/\s+/g, ''), company_dic: String(profile.companyDic || '').replace(/\s+/g, ''), company_ic_dph: String(profile.companyIcDph || '').replace(/\s+/g, '').toUpperCase(),
+          company_street: profile.companyStreet || '', company_city: profile.companyCity || '', company_postal_code: String(profile.companyPostalCode || '').replace(/\s+/g, '') },
       };
       const r = await call('/store/customers/me', { method: 'POST', body });
+      if (!r.ok && r.data?.code === 'INVALID_COMPANY_ID') return { ok: false, message: 'Skontrolujte IČO, DIČ a IČ DPH (napr. IČO 8 číslic, IČ DPH SK1234567890).' };
       return r.ok ? { ok: true, message: 'Údaje boli uložené.' } : { ok: false, message: 'Údaje sa nepodarilo uložiť.' };
     },
 

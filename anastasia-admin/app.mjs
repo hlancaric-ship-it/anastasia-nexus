@@ -166,7 +166,7 @@ const ICONS = {
   photos: '<rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/><circle cx="8" cy="11" r="1.5"/><path d="m3 18 5-5 4 4 2-2 3 3"/>',
 };
 const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
-const LOGO = './assets/lucia-logo.png';
+const LOGO = './assets/anastasia-oz-emblem.png';
 // Web k administrácii: anastasia-test-admin.X → anastasia-test.X, admin.X → X.
 const SITE_ORIGIN = `${location.protocol}//${location.hostname.replace(/-admin\./, '.').replace(/^admin\./, '')}`;
 const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><span class="brand-symbol" aria-hidden="true"></span><div><div class="brand-name">ANASTASIA</div><small>Light for the future</small></div></${tag}>`;
@@ -1459,7 +1459,7 @@ async function vProductDetail(view, id, opts = {}) {
         <h1 class="pe-title">${esc(p.title)}</h1>
         <div class="pe-price"><b>${priceTxt}</b><small>EUR</small>${saleOn && sale.akcna_cena ? `<em>akcia ${esc(String(sale.akcna_cena))} €</em>` : ''}</div>
         <div id="p-checks" class="pe-checks"></div>
-        <div class="pe-act"><button class="btn ghost" id="p-back">Späť na produkty</button><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
+        <div class="pe-act"><button type="button" class="btn danger" id="p-del">Odstrániť produkt</button><button class="btn ghost" id="p-back">Späť na produkty</button><button class="btn gold" id="p-save">Uložiť zmeny</button></div>
       </div>
     </article>
     <nav class="pe-nav" aria-label="Sekcie produktu">${SECTIONS.map(([k, l]) => `<button type="button" data-jump="${k}">${esc(l)}</button>`).join('')}</nav>
@@ -1490,6 +1490,8 @@ async function vProductDetail(view, id, opts = {}) {
   view.querySelector('#p-category').onchange = e => { if (e.target.value) inC.add(e.target.value); e.target.value = ''; drawCategories(); renderChecks(); };
   drawCategories();
   view.querySelector('#p-back').onclick = () => vProducts(view);
+  view.querySelector('#p-del').onclick = (e) => confirmRemove(e.currentTarget, `Odstrániť produkt „${p.title}“? Zmizne z e-shopu aj z administrácie. Doterajšie objednávky zostanú zachované.`,
+    async () => { await api(`/admin/products/${id}`, { method: 'DELETE' }); await vProducts(view); }, view.querySelector('#pmsg'));
   // Fotky produktu: poradie pretiahnutím alebo šípkami, hlavná fotka, odobratie bez zmazania z mediálnej banky.
   const move = (from, to) => { if (to < 0 || to >= images.length || from === to) return; images.splice(to, 0, images.splice(from, 1)[0]); drawImgs(); };
   const drawImgs = () => {
@@ -2263,7 +2265,7 @@ async function vCustomerDetail(view, id) {
       <div class="rc-fields"><span class="rc-f"><em>Stav</em>${r.status === 'completed' ? '<span class="pill ok">vykonaná</span>' : '<span class="pill warn">čaká</span>'}</span>
       <span class="rc-f"><em>Požiadala</em>${fmtDate(r.created_at)}</span></div>
       ${r.status !== 'completed' ? `<div style="margin-top:10px"><button type="button" class="btn ghost sm danger" data-erasure="${esc(r.id)}">Vymazať osobné údaje</button></div>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">Zákazník nepožiadala o výmaz osobných údajov.</div>'}`;
-  view.innerHTML = `<div class="card"><div class="card-h">Zákazník<div class="card-h-act"><button type="button" class="btn gold" id="cu-msg">Napísať správu</button><button class="btn ghost" id="cu-back">Späť</button></div></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Zákazník<div class="card-h-act"><button type="button" class="btn gold" id="cu-msg">Napísať správu</button><button type="button" class="btn danger" id="cu-del">Odstrániť zákazníka</button><button class="btn ghost" id="cu-back">Späť</button></div></div><div class="card-b">
     <div id="custmsg"></div>
     ${tabsHtml([{ id: 'z', label: 'Základné', html: zakladne }, { id: 'v', label: 'Vernosť a skupiny', html: vernost + skupiny }, { id: 'o', label: 'Objednávky', html: objednavky }, { id: 'p', label: 'Prístupy', html: pristupy }, { id: 'g', label: 'Ochrana údajov', html: ochrana }])}
     <div style="margin-top:16px"><button class="btn gold" id="cu-save">Uložiť</button></div>
@@ -2271,6 +2273,8 @@ async function vCustomerDetail(view, id) {
   wireTabs(view);
   const tierStart = view.querySelector('#tier-code')?.value;
   view.querySelector('#cu-back').onclick = () => vCustomers(view);
+  view.querySelector('#cu-del').onclick = (e) => confirmRemove(e.currentTarget, `Odstrániť zákazníka ${c.email || ''}? Zmizne zo zoznamu zákazníkov a nebude sa môcť prihlásiť. Jeho objednávky zostanú zachované.`,
+    async () => { await api(`/admin/customers/${id}`, { method: 'DELETE' }); await vCustomers(view); });
   view.querySelector('#cu-msg').onclick = () => vNewMessage(view, {
     customer: { id: c.id, first_name: c.first_name, last_name: c.last_name, email: c.email },
     back: () => vCustomerDetail(view, id),
@@ -2425,7 +2429,7 @@ async function vCouponDetail(view, id) {
   const from = p.campaign?.starts_at ? String(p.campaign.starts_at).slice(0, 10) : '';
   const to = p.campaign?.ends_at ? String(p.campaign.ends_at).slice(0, 10) : '';
   const used = Number(p.used || 0), limit = p.limit == null ? null : Number(p.limit);
-  view.innerHTML = `<div class="card"><div class="card-h">Kupón ${esc(p.code)}<div class="card-h-act"><button class="btn ghost" id="pd-back">Späť</button></div></div><div class="card-b">
+  view.innerHTML = `<div class="card"><div class="card-h">Kupón ${esc(p.code)}<div class="card-h-act"><button type="button" class="btn danger" id="pd-del">Odstrániť kupón</button><button class="btn ghost" id="pd-back">Späť</button></div></div><div class="card-b">
     <div id="pdmsg"></div>
     <div class="row"><div><label>Stav</label><select id="pd-status"><option value="active"${p.status === 'active' ? ' selected' : ''}>aktívny</option><option value="inactive"${p.status === 'inactive' ? ' selected' : ''}>inactive</option><option value="draft"${p.status === 'draft' ? ' selected' : ''}>draft</option></select></div>
     <div><label>Použitia</label><div>${used} ${limit === null ? 'z neobmedzeného počtu' : `z ${limit}`}${limit !== null && used >= limit ? ' <span class="pill off">limit dosiahnutý</span>' : ''}</div></div></div>
@@ -2438,6 +2442,8 @@ async function vCouponDetail(view, id) {
   </div></div>`;
   wireCouponTarget(view, 'pd');
   view.querySelector('#pd-back').onclick = () => vCoupons(view);
+  view.querySelector('#pd-del').onclick = (e) => confirmRemove(e.currentTarget, `Odstrániť kupón ${p.code}? Zákazníci ho už nebudú môcť použiť. Doterajšie objednávky so zľavou zostanú zachované.`,
+    async () => { await api(`/admin/promotions/${id}`, { method: 'DELETE' }); await vCoupons(view); });
   view.querySelector('#pd-save').onclick = async () => {
     const msg = view.querySelector('#pdmsg'); msg.innerHTML = '';
     const value = Number(view.querySelector('#pd-value').value);
@@ -2691,7 +2697,7 @@ async function vKonzultacie(view, st = {}) {
     for (const b of items) {
       if (!b.starts_at) continue;
       const stamp = (d) => new Date(d).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-      const end = b.ends_at || new Date(new Date(b.starts_at).getTime() + 45 * 60000).toISOString();
+      const end = b.ends_at || new Date(new Date(b.starts_at).getTime() + 75 * 60000).toISOString();
       lines.push('BEGIN:VEVENT', `UID:${esc(b.id)}@anastasia`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(b.starts_at)}`, `DTEND:${stamp(end)}`,
         `SUMMARY:${icsEscape(`Konzultácia – ${b.product_label || 'ANASTASIA'}`)}`,
         `DESCRIPTION:${icsEscape(`Zákazník: ${b.customer_label || '—'}`)}`, 'END:VEVENT');
@@ -2766,7 +2772,7 @@ function vBookingTypeForm(view, t) {
       </div>
       ${t.archived ? '' : `<label style="margin-top:12px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="bt-active" style="width:auto" ${t.active ? 'checked' : ''}> V ponuke na webe</label>`}
       <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" type="submit">${isNew ? 'Vytvoriť' : 'Uložiť'}</button>
-        ${isNew ? '' : `<button class="btn ghost" type="button" id="bt-arch">${t.archived ? 'Obnoviť z archívu' : 'Archivovať'}</button>`}</div>
+        ${isNew ? '' : `<button class="btn ghost" type="button" id="bt-arch">${t.archived ? 'Obnoviť z archívu' : 'Archivovať'}</button><button class="btn danger" type="button" id="bt-del">Odstrániť</button>`}</div>
       ${isNew ? '' : '<p class="muted" style="font-size:12px;margin-top:8px">Zmena ceny platí pre nové rezervácie. Archivovaný typ zmizne z webu; existujúce termíny ostávajú platné.</p>'}
     </form>
   </div></div>`;
@@ -2790,6 +2796,9 @@ function vBookingTypeForm(view, t) {
       back(isNew ? 'Typ konzultácie je vytvorený. Nastavte ešte dostupnosť, aby sa na webe zobrazili termíny.' : 'Zmeny sú uložené.');
     } catch (err) { fail(btn, err); }
   };
+  const db = view.querySelector('#bt-del');
+  if (db) db.onclick = () => confirmRemove(db, `Odstrániť typ konzultácie „${t.title}“? Zmizne z ponuky aj z administrácie. Už rezervované termíny zostanú zachované.`,
+    async () => { await api(`/admin/products/${encodeURIComponent(t.id)}`, { method: 'DELETE' }); await vBookingTypes(view, 'Typ konzultácie je odstránený.'); });
   const ab = view.querySelector('#bt-arch');
   if (ab) ab.onclick = async () => {
     if (!t.archived && !confirm('Archivovať tento typ? Zmizne z webu, existujúce rezervácie ostanú platné.')) return;
@@ -3064,6 +3073,7 @@ async function vConversation(view, id, back, notice) {
       <button class="btn ghost" data-act="${c.status === 'closed' ? 'reopen' : 'close'}">${c.status === 'closed' ? 'Znovu otvoriť' : 'Uzavrieť konverzáciu'}</button>
       <button class="btn ghost" data-act="${c.muted ? 'unmute' : 'mute'}">${c.muted ? 'Zrušiť stlmenie' : 'Stlmiť upozornenia'}</button>
       <button class="btn ghost" id="c-block">${cu.chat_blocked ? 'Odblokovať chat zákazníka' : 'Zablokovať chat zákazníka'}</button>
+      <button type="button" class="btn danger" id="c-del">Odstrániť konverzáciu</button>
     </div>
   </div></div>`;
   const th = view.querySelector('#c-thread'); th.scrollTop = th.scrollHeight;
@@ -3096,6 +3106,8 @@ async function vConversation(view, id, back, notice) {
     catch (err) { fail(btn, err); }
   };
   const ACT = { close: 'Konverzácia je uzavretá.', reopen: 'Konverzácia je znovu otvorená.', mute: 'Upozornenia sú stlmené.', unmute: 'Upozornenia sú zapnuté.' };
+  view.querySelector('#c-del').onclick = (e) => confirmRemove(e.currentTarget, 'Odstrániť celú konverzáciu aj so všetkými správami? Zákazník ju už neuvidí ani vo svojom účte.',
+    async () => { await api(`/admin/chat/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (typeof back === 'function') await back(); else await vSpravy(view); });
   view.querySelectorAll('[data-act]').forEach(b => b.onclick = async () => {
     b.disabled = true;
     try { await api(`/admin/chat/conversations/${encodeURIComponent(id)}`, { method: 'POST', body: { action: b.dataset.act } }); await vConversation(view, id, back, ACT[b.dataset.act]); }
@@ -3601,6 +3613,7 @@ async function vAmbasadorDetail(view, id) {
         ${esc(a.name)}
         <div class="card-h-act">
           ${statusPill(AMBASSADOR_STATUS, a.status || 'draft')}
+          <button type="button" class="btn danger" id="am-del">Zrušiť ambasádora</button>
           <button class="btn ghost" id="am-back">← Späť na zoznam</button>
         </div>
       </div>
@@ -3705,6 +3718,8 @@ async function vAmbasadorDetail(view, id) {
   `;
 
   view.querySelector('#am-back').onclick = () => vAmbasadori(view);
+  view.querySelector('#am-del').onclick = (e) => confirmRemove(e.currentTarget, `Zrušiť ambasádora ${a.name || ''}? Jeho kód prestane platiť. Zákaznícky účet, objednávky a doteraz vyplatené provízie zostanú zachované.`,
+    async () => { await api(`/admin/ambassadors/${encodeURIComponent(id)}`, { method: 'DELETE' }); await vAmbasadori(view); });
 
   // Copy referral link
   view.querySelector('#am-copy-btn').onclick = async () => {
@@ -3918,7 +3933,7 @@ async function vPouzivatelia(view, notice) {
   const users = us.users || [], invites = (inv.invites || []).filter(i => !i.accepted);
   view.innerHTML = `<div id="umsg">${notice || ''}</div>
     <div class="card" style="margin-bottom:16px"><div class="card-h">Správcovia</div><div class="card-b"><div class="rc-grid">${users.map(u => `<div class="rc"><div class="rc-body"><div class="rc-title">${esc([u.first_name, u.last_name].filter(Boolean).join(' ') || u.email)}</div><div class="rc-fields">
-      <span class="rc-f"><em>E-mail</em>${esc(u.email)}</span><span class="rc-f"><em>Od</em>${fmtDate(u.created_at)}</span>${ME && ME.id === u.id ? '<span class="pill ok">vy</span>' : ''}</div></div></div>`).join('')}</div>
+      <span class="rc-f"><em>E-mail</em>${esc(u.email)}</span><span class="rc-f"><em>Od</em>${fmtDate(u.created_at)}</span>${ME && ME.id === u.id ? '<span class="pill ok">vy</span>' : ''}</div>${isOwner() && !(ME && ME.id === u.id) ? `<div style="margin-top:8px"><button type="button" class="btn danger sm" data-udel="${esc(u.id)}" data-name="${esc(u.email)}">Odstrániť správcu</button></div>` : ''}</div></div>`).join('')}</div>
       <p class="muted" style="font-size:12px;margin-top:10px">Každý správca má zatiaľ plný prístup do administrácie. Pozývajte len ľudí, ktorým dôverujete.</p></div></div>
     <div class="card compact-form"><div class="card-h">Pozvať ďalšieho správcu</div><div class="card-b">
       <form id="u-inv" class="row"><div><label>E-mail</label><input id="u-email" type="email" required></div><div style="align-self:end"><button class="btn gold" type="submit">Vytvoriť pozvánku</button></div></form>
@@ -3942,6 +3957,8 @@ async function vPouzivatelia(view, notice) {
   view.querySelectorAll('[data-resend]').forEach(b => b.onclick = async () => { b.disabled = true;
     try { const { invite } = await api(`/admin/invites/${encodeURIComponent(b.dataset.resend)}/resend`, { method: 'POST', body: {} }); await vPouzivatelia(view); if (invite?.token) await copy(invite.token); }
     catch (err) { fail(b, err); } });
+  view.querySelectorAll('[data-udel]').forEach(b => b.onclick = () => confirmRemove(b, `Odstrániť správcu ${b.dataset.name}? Okamžite stratí prístup do administrácie.`,
+    async () => { await api(`/admin/users/${encodeURIComponent(b.dataset.udel)}`, { method: 'DELETE' }); await vPouzivatelia(view, '<div class="notice">Správca je odstránený.</div>'); }));
   view.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('Zrušiť túto pozvánku? Odkaz prestane fungovať.')) return; b.disabled = true;
     try { await api(`/admin/invites/${encodeURIComponent(b.dataset.del)}`, { method: 'DELETE' }); await vPouzivatelia(view, '<div class="notice">Pozvánka je zrušená.</div>'); }
     catch (err) { fail(b, err); } });
@@ -4754,6 +4771,17 @@ async function refreshBadges() {
 // Pohľad otvorený zo staršej sekcie (napr. oneskorené prekreslenie po uložení, keď už je otvorená iná sekcia)
 // dostane odpojený uzol a nič neprepíše.
 function flash(sel, html) { const el = root.querySelector('#view ' + sel); if (el) el.innerHTML = html; }
+// Trvalé odstránenie položky: potvrdenie, zablokované tlačidlo počas požiadavky, chyba do správy (alebo alert).
+async function confirmRemove(btn, question, run, msgEl) {
+  if (!confirm(question)) return;
+  btn.disabled = true;
+  try { await run(); }
+  catch (e) {
+    if (e.message === '401') return;
+    if (msgEl) msgEl.innerHTML = `<div class="err">${esc(e.message)}</div>`; else alert(e.message);
+    btn.disabled = false;
+  }
+}
 function freshView(view) {
   let cur = view; while (cur && cur._next) cur = cur._next;
   if (!cur || !cur.isConnected) return document.createElement('div');

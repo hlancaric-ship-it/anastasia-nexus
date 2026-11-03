@@ -70,6 +70,7 @@ const start = () => {
   wireMotionTrigger();
   // Runtime aplikácie (košík, menu, i18n) sa načíta až po vykreslení – neblokuje DOMContentLoaded.
   import('/app.mjs').catch((error) => { console.warn('Aplikácia sa nepodarilo načítať.', error); });
+  import('/novinky-dock.mjs').catch(() => {});
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
