@@ -31,6 +31,14 @@ try {
   await page.goto(base+'/ucet#reset',{waitUntil:'load'});
   await page.waitForFunction(()=>document.querySelector('#center-name')?.textContent==='Anna Nováková');
   const decline=page.getByRole('button',{name:'Odmietnuť voliteľné',exact:true});if(await decline.isVisible())await decline.click();
+  const menu=page.locator('#lh-top [data-menu-open="top"]:visible');
+  assert.equal(await menu.count(),1);
+  const bounds=await menu.boundingBox();
+  assert.ok(bounds.x+bounds.width>width-100&&bounds.y<100,'Menu stays top right');
+  await menu.click();
+  await page.waitForFunction(()=>document.querySelector('#dc-top-menu')?.getAttribute('aria-hidden')==='false');
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(()=>document.querySelector('#dc-top-menu')?.getAttribute('aria-hidden')==='true');
   assert.equal(await page.locator('[data-account-go="reset"],#account-reset,#reset-program').count(),0);
   assert.equal(await page.locator('#account-programy').isVisible(),true);
   assert.ok(page.url().endsWith('#programy'));

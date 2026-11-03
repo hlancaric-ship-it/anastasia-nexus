@@ -1321,3 +1321,15 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
 #page-shell.kc-unified .customer-center .center-sidebar>.eyebrow,#page-shell.kc-unified .customer-center .center-sidebar .center-theme p{color:#EDE9F5!important}
 @media(max-width:999.98px){#page-shell.kc-unified .customer-center .center-sidebar>#center-name{margin:8px 20px 0!important;padding-bottom:12px!important;font-size:22px!important}}
 }
+
+/* Zákaznícky účet: jedno dostupné Menu v pravom hornom rohu aj na telefóne. */
+.customer-page #lh-top [data-menu-open]{pointer-events:auto}
+@media(max-width:999.98px){
+.customer-page #lh-top.lh-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important;padding:8px 16px!important;pointer-events:auto}
+.customer-page #lh-top>div:first-child{display:none!important}
+.customer-page #lh-top>.header-brand{justify-self:start}
+.customer-page #lh-top>div:last-child{display:flex!important;justify-content:flex-end!important}
+.customer-page #lh-top>div:last-child>:not(dc-wide:has(.dch1)){display:none!important}
+.customer-page #lh-top>div:last-child>dc-wide:has(.dch1){display:contents!important}
+.customer-page #lh-top .dch1{display:flex!important;height:44px!important;padding:0 16px!important;gap:12px!important}
+}
