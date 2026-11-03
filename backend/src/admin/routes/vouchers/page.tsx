@@ -83,7 +83,7 @@ function SettingsForm() {
   return <form onSubmit={submit} className="flex max-w-2xl flex-col gap-4" aria-busy={busy}>
     <fieldset disabled={busy} className="flex flex-col gap-4">
       <div className="flex items-center gap-3"><Switch id="enabled" checked={settings.enabled} onCheckedChange={(enabled) => update({ enabled })} /><Label htmlFor="enabled">Predaj poukazov zapnutý</Label></div>
-      <div><Label htmlFor="values">Hodnoty poukazu v € (oddelené čiarkou)</Label><Input id="values" value={values} onChange={(e) => { setValues(e.target.value); setMessage("") }} placeholder="50, 100, 200" required /></div>
+      <div><Label htmlFor="values">Hodnoty poukazu v € (oddelené čiarkou)</Label><Input id="values" value={values} onChange={(e) => { setValues(e.target.value); setMessage("") }} placeholder="30, 50, 100" required /></div>
       <div><Label htmlFor="validity">Platnosť (mesiace od nákupu)</Label><Input id="validity" type="number" min={1} max={60} step={1} value={settings.validity_months} onChange={(e) => update({ validity_months: Number(e.target.value) })} required /></div>
       <div><Label htmlFor="scope">Na čo sa dá poukaz použiť</Label>
         <select id="scope" className="ml-3 min-h-11 rounded border p-2 text-ui-fg-base bg-ui-bg-base" value={settings.scope_type} onChange={(e) => update({ scope_type: e.target.value as Settings["scope_type"] })}>

@@ -469,9 +469,11 @@ export const DICT = {
   "Kód poukazu": ["Voucher code", "Код сертификата"],
   // --- Katalóg 17 produktov a ich detaily ---
   'MINERAL PROTECT 200ml': ['MINERAL PROTECT 200ml', 'MINERAL PROTECT 200ml'],
+  'Darčekový poukaz 30 €': ['Gift voucher €30', 'Подарочный сертификат 30 €'],
   'Darčekový poukaz 50 €': ['Gift voucher €50', 'Подарочный сертификат 50 €'],
   'Darčekový poukaz 100 €': ['Gift voucher €100', 'Подарочный сертификат 100 €'],
   'Darčekový poukaz 200 €': ['Gift voucher €200', 'Подарочный сертификат 200 €'],
+  'Darčekový poukaz 30\u00a0€': ['Gift voucher €30', 'Подарочный сертификат 30 €'],
   'Darčekový poukaz 50\u00a0€': ['Gift voucher €50', 'Подарочный сертификат 50 €'],
   'Darčekový poukaz 100\u00a0€': ['Gift voucher €100', 'Подарочный сертификат 100 €'],
   'Darčekový poukaz 200\u00a0€': ['Gift voucher €200', 'Подарочный сертификат 200 €'],

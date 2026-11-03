@@ -35,7 +35,7 @@ export type GiftVoucherSettings = {
 /** Výchozí hodnoty podle rozhodnutí z 14. 10. 2026 – klientka je mění v adminu. */
 export const DEFAULT_SETTINGS: GiftVoucherSettings = Object.freeze({
   enabled: true,
-  values_minor: [5000, 10000, 20000],
+  values_minor: [3000, 5000, 10000],
   validity_months: 12,
   scope_type: "all",
   category_ids: [],

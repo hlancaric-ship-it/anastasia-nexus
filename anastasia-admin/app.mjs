@@ -2638,9 +2638,12 @@ async function vVoucherSettings(view, notice) {
     <p class="muted" style="margin-top:12px">Rovnaký dizajn ako na webe, dá sa aj vytlačiť. Kód je tu len ukážka.</p></div></div></div>`;
   const $ = (q) => view.querySelector(q), msg = $('#vsmsg');
   const drawCard = () => {
-    const first = Number(String($('#vs-values').value.split(/[;\s]+/).filter(Boolean)[0] || '').replace(',', '.')) || s.values[0] || 0;
+    // Všetky hodnoty, ktoré zákazník uvidí v obchode, nie len prvá.
+    const typed = $('#vs-values').value.split(/[;\s]+/).filter(Boolean).map(v => Number(v.replace(',', '.'))).filter(v => v > 0);
+    const list = typed.length ? typed : s.values;
     const m = Number($('#vs-months').value) || s.validity_months || 12, d = new Date(); d.setMonth(d.getMonth() + m);
-    $('#vs-card').innerHTML = voucherHtml({ value: first, currency: 'eur', code: 'XXXX-XXXX', expires_at: d.toISOString() });
+    $('#vs-card').innerHTML = `<p class="muted" style="margin:0 0 10px">V obchode na výber: <b>${list.map(v => esc(String(v).replace('.', ',')) + ' €').join(' · ')}</b></p>`
+      + voucherHtml({ value: list[0] || 0, currency: 'eur', code: 'XXXX-XXXX', expires_at: d.toISOString() });
   };
   $('#vs-values').oninput = drawCard; $('#vs-months').oninput = drawCard; drawCard();
   $('#vs-scope').onchange = () => { $('#vs-cats').hidden = $('#vs-scope').value !== 'categories'; };
