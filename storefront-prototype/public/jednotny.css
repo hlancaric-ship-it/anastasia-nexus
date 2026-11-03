@@ -574,12 +574,8 @@
 #page-shell.kc-unified.kc-shop .legacy-main .shop-cart>:is(.page-intro,.cart-guest-note,.qr-status,#cart-view,.shop-shortcuts){width:100%!important}
 
 /* Patička 25. 10. – centrální symetrie: pečetě, pod nimi platby, pod nimi právní řádek */
-html body .site-footer .sf-brands{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:clamp(28px,5vw,72px)!important;text-align:center!important}
-html body .site-footer .sf-brands>*{align-items:center!important;text-align:center!important;margin:0!important}
 html body .site-footer .sf-pay{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:12px!important;padding:24px 0 6px!important;margin:8px auto 0!important;width:100%!important}
 html body .site-footer .sf-pay__badge{border-radius:10px!important;background:rgba(239,229,199,.94)!important;border:1px solid rgba(201,165,92,.28)!important;box-shadow:0 1px 6px rgba(0,0,0,.08)!important}
-html body .site-footer .sf-bottom{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;text-align:center!important;gap:12px!important;white-space:normal!important;color:rgba(255,255,255,.5)!important}
-html body .site-footer .sf-bottom>div{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:10px 22px!important;margin:0!important}
 html body .site-footer .sf-bottom :is(a,span,p){color:rgba(255,255,255,.5)!important}
 html body .site-footer .sf-bottom a:hover{color:rgba(255,255,255,.85)!important}
 /* Účet 25. 10.: bez lišty, kontajner 1152, mriežka 65/35, kompaktné karty */
@@ -1118,7 +1114,7 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 .site-footer .sf-news input::placeholder{color:rgba(239,229,199,.72)!important}
 .site-footer .sf-bottom :is(a,span){color:rgba(255,255,255,.72)!important;opacity:1!important}
 .cookie-banner .cookie-banner-text{max-width:60ch!important;margin-inline:auto!important;text-wrap:pretty}
-#ana-rail .dch0 span,#ana-rail>a span,#dc-side-menu a:not(:first-child) span{font-size:11px!important}
+#ana-rail .dch0 span,#ana-rail>a span{font-size:11px!important}
 
 /* Prehliadka stacionára (26. 10.): rovnaké panely ako konzultácie, na celú šírku. */
 #page-shell#page-shell.kc-unified .legacy-main .ds-tour{width:100cqw;max-width:none;margin:0 calc(50% - 50cqw)!important;box-sizing:border-box}

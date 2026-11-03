@@ -216,6 +216,8 @@ const FOOTER_PARTS = [
   ['<div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px', '<div class="sf-bottom" style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px'],
 ];
 function footerClasses(html) {
+  // Rovnaký podnadpis ako na úvodnej stránke.
+  html = html.replace('Občasný list o nových programoch, rituáloch a kolekciách. Bez zhonu.', 'Priestor pre zdravie, poznanie a vedomý život.');
   for (const [from, to] of FOOTER_PARTS) {
     if (!html.includes(from)) throw new Error(`dc: v pätičke chýba časť ${from.slice(0, 60)}`);
     html = html.replace(from, to);

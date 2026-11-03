@@ -424,3 +424,5 @@ body>.ana-sound-pop .ana-sound-pop__btn{width:44px!important;height:44px!importa
 .kc-open__kicker{color:#8A6B2E;font-size:clamp(12px,.9vw,13px)}
 .kc-open__facts li{font-size:12px}
 @media(max-width:760px){.kc-open__facts li{font-size:11px}}
+/* Klávesnica: dlaždice v úvode sú pri fokuse viditeľné aj pred doskrolovaním. */
+.kc-open__more:focus-within{opacity:1;transform:none}

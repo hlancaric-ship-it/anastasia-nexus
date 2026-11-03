@@ -385,7 +385,7 @@ main .shop-page.shop-v2{padding:0 0 70px!important;max-width:none!important;widt
 .shop-v2 .shop-search{position:relative;color:#7b7a6b}
 .shop-v2 .shop-search svg{position:absolute;left:14px;pointer-events:none}
 .shop-v2 .shop-search input{width:190px!important;min-height:40px!important;height:40px;padding:0 14px 0 38px!important;border:1px solid rgba(48,67,47,.14)!important;border-radius:999px!important;background:rgba(255,253,248,.7)!important;font:400 13px/1 Figtree,sans-serif!important;box-shadow:none!important;transition:width .3s,border-color .25s}
-.shop-v2 .shop-search input:focus{width:240px!important;border-color:rgba(115,114,156,.55)!important;outline:0!important}
+.shop-v2 .shop-search input:focus{width:240px!important;border-color:#73729c!important;outline:0!important;box-shadow:0 0 0 3px rgba(115,114,156,.28)!important}
 .shop-v2 .shop-products .result-count{margin:4px auto 22px!important;font:400 12px/1 Figtree,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#7b7a6b}
 .shop-page.shop-v2 .shop-grid--v3{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:32px 24px!important}
 .shop-v2 .shop-grid--v3 .shop-card{background:#FFFDF8;border:1px solid rgba(48,67,47,.07);border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(38,39,31,.04),0 14px 34px -18px rgba(38,39,31,.22);transition:transform .4s cubic-bezier(.2,.7,.2,1),box-shadow .4s}
@@ -404,7 +404,7 @@ main .shop-page.shop-v2{padding:0 0 70px!important;max-width:none!important;widt
 .shop-v2 .shop-pill{flex:0 0 auto!important;min-width:max-content!important;width:auto!important}
 @media (max-width:760px){.shop-v2 .shop-pills{flex:0 0 auto}.shop-v2 .shop-toolbar{flex-direction:column;align-items:stretch}.shop-v2 .shop-sort select{width:100%!important}}
 /* Čitateľnosť a ovládanie (audit 3. 11.). */
-.shop-v2 .shop-hero__cta{background:#f6f1e6;color:#26271f;border-color:#f6f1e6;font-size:13px;font-weight:600}
+.shop-v2 .shop-hero__cta{border-radius:999px!important;background:#f6f1e6;color:#26271f;border-color:#f6f1e6;font-size:13px;font-weight:600}
 .shop-v2 .shop-hero__cta:hover{background:#fff;color:#26271f}
 .shop-v2 .shop-hero__quote cite{font-size:12px;color:#fff;text-shadow:0 1px 8px rgba(20,22,16,.6)}
 @media(min-width:901px){.shop-v2 .shop-tile__sub{font-size:12px}}
