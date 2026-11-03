@@ -92,29 +92,42 @@ describe('Serverová politika kupónov', () => {
     expect(couponAppliesToProduct(null, 'prod_reset')).toBe(false)
   })
 
-  it('rozdelí pevnú sumu medzi položky úmerne a nikdy pod 0', () => {
-    const allocation = allocateFixedCoupon(20, [
-      { id: 'line_1', productId: 'prod_reset', basePrice: 168 },
-      { id: 'line_2', productId: 'prod_other', basePrice: 50 },
-    ])
-    // 20 € medzi 168 € a 50 €: 15,41 € a 4,59 € (súčet presne 20 €).
-    expect(allocation.get('line_1')).toBeCloseTo(15.41, 2)
-    expect(allocation.get('line_2')).toBeCloseTo(4.59, 2)
-    expect([...(allocation.values())].reduce((sum, value) => sum + value, 0)).toBeCloseTo(20, 2)
+  const line = (id: string, basePrice: number, quantity = 1) => ({ id, productId: 'prod_x', basePrice, quantity })
+  const total = (allocation: Map<string, number>, items: Array<{ id: string; quantity: number }>) =>
+    Math.round(items.reduce((sum, item) => sum + (allocation.get(item.id) ?? 0) * 100 * item.quantity, 0))
+
+  it('rozdelí pevnú sumu medzi riadky úmerne (zľava za kus)', () => {
+    const items = [line('line_1', 168), line('line_2', 50)]
+    const allocation = allocateFixedCoupon(20, items)
+    expect(allocation.get('line_1')).toBe(15.42)
+    expect(allocation.get('line_2')).toBe(4.58)
+    expect(total(allocation, items)).toBe(2000)
   })
 
-  it('pevná suma nikdy nezníži cenu pod 0', () => {
-    const allocation = allocateFixedCoupon(50, [{ id: 'line_1', productId: 'prod_x', basePrice: 10 }])
+  it('2 kusy: pevná suma platí raz za košík, nie za každý kus', () => {
+    const items = [line('line_1', 168, 2)]
+    const allocation = allocateFixedCoupon(20, items)
     expect(allocation.get('line_1')).toBe(10)
+    expect(total(allocation, items)).toBe(2000)
   })
 
-  it('nadbytok pevnej sumy sa nerozdáva nikomu', () => {
-    const allocation = allocateFixedCoupon(100, [{ id: 'line_1', productId: 'prod_x', basePrice: 30 }])
-    expect([...(allocation.values())].reduce((sum, value) => sum + value, 0)).toBeCloseTo(30, 2)
+  it('zvyšok centov dostanú najprv riadky s menej kusmi, nikdy viac než suma kupónu', () => {
+    const exact = [line('line_1', 10, 3), line('line_2', 10, 1)]
+    expect(total(allocateFixedCoupon(20, exact), exact)).toBe(2000)
+    const odd = [line('line_1', 10, 3)]
+    const allocation = allocateFixedCoupon(20, odd)
+    expect(allocation.get('line_1')).toBe(6.66)
+    expect(total(allocation, odd)).toBe(1998)
+  })
+
+  it('pevná suma nikdy nezníži cenu pod 0 a nadbytok sa nerozdáva', () => {
+    expect(allocateFixedCoupon(50, [line('line_1', 10)]).get('line_1')).toBe(10)
+    const items = [line('line_1', 7.5, 2)]
+    expect(total(allocateFixedCoupon(100, items), items)).toBe(1500)
   })
 
   it('bez položiek sa nič nerozdelí', () => {
     expect(allocateFixedCoupon(20, []).size).toBe(0)
-    expect(allocateFixedCoupon(0, [{ id: 'line_1', productId: 'p', basePrice: 10 }]).size).toBe(0)
+    expect(allocateFixedCoupon(0, [line('line_1', 10)]).size).toBe(0)
   })
 })

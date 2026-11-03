@@ -141,6 +141,54 @@ describe('Kupóny a výpredajová cena v košíku (serverovo)', () => {
     expect(calls.find((call) => call.sku === 'EP.002').couponFixedAmount).toBe(20)
   })
 
+  const montelope = () => promotion({
+    type: 'fixed', target_type: 'items', allocation: 'across', value: 20, currency_code: 'eur',
+    target_rules: [{ attribute: 'items.product.id', operator: 'in', values: [RESET.id] }],
+  })
+
+  it('Montelope pri 2 kusoch EP.002: -20 € spolu, nie -20 € za kus', async () => {
+    const calls: any[] = []
+    global.fetch = workerFetch(calls)
+    items[0]!.quantity = 2
+    try {
+      const result = await repriceCart('cart_synthetic', scope(montelope()), false, 'MONTELOPE')
+      const reset = result.items.find((item) => item.id === 'line_reset')!
+      expect(calls.find((call) => call.sku === 'EP.002').couponFixedAmount).toBe(10)
+      expect(reset.unit_price * reset.quantity).toBe(336 - 20)
+    } finally {
+      items[0]!.quantity = 1
+    }
+  })
+
+  it('Montelope bez EP.002 v košíku sa neprijme a nič sa neuloží', async () => {
+    const calls: any[] = []
+    global.fetch = workerFetch(calls)
+    const { updateCartWorkflow } = jest.requireMock('@medusajs/medusa/core-flows')
+    updateCartWorkflow.mockClear()
+    const reset = items.shift()!
+    try {
+      await expect(repriceCart('cart_synthetic', scope(montelope()), false, 'MONTELOPE')).rejects.toThrow('COUPON_NOT_APPLICABLE')
+      expect(updateCartWorkflow).not.toHaveBeenCalled()
+      expect(calls).toHaveLength(0)
+    } finally {
+      items.unshift(reset)
+    }
+  })
+
+  it('uložený Montelope po odobratí EP.002 z košíka zmizne bez chyby', async () => {
+    const calls: any[] = []
+    global.fetch = workerFetch(calls)
+    const stored = { nexus_coupon: { code: 'MONTELOPE', promotion_id: 'promo_1', type: 'fixed', value: 20, target: 'items', product_ids: [RESET.id], currency: 'eur' } }
+    const reset = items.shift()!
+    try {
+      const result = await repriceCart('cart_synthetic', scope(montelope(), stored), false)
+      expect(result.coupon).toBeNull()
+      expect(calls.every((call) => call.couponFixedAmount === undefined)).toBe(true)
+    } finally {
+      items.unshift(reset)
+    }
+  })
+
   it('kupón z administrácie (percentá, celý košík) zľavuje všetky položky', async () => {
     const calls: any[] = []
     global.fetch = workerFetch(calls)
