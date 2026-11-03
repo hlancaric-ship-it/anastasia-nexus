@@ -1127,3 +1127,8 @@ html[data-theme=dark] .app .heading #actions>.pills .pill.on{background:var(--la
 .app.st-page .heading:has(#actions>.pills)+*,.app.st-page .heading:has(#actions>.pills)~#view .st-card{border-top-left-radius:0}
 .app table.st-table.customer-grid th:nth-child(7),.app table.st-table.customer-grid td:nth-child(7){width:150px!important}
 .app table.st-table.customer-grid th:nth-child(6),.app table.st-table.customer-grid td:nth-child(6){width:190px!important}
+/* Objednávky: voľné miesto sa delí medzi všetky dátové stĺpce, nie iba zákazníka.
+   Na užšom desktope sa posúva iba tabuľka; dátum a ovládanie sa nestlačia. */
+.app .st-card table.st-table.ot-orders{min-width:1160px!important}
+.app .st-card .ot-wrap:has(.ot-orders){position:relative}
+.app .st-card table.st-table.ot-orders :is(th,td):nth-child(n+3):nth-child(-n+9){width:auto!important}
