@@ -1,5 +1,6 @@
 import {isMediaUrl} from '/lib/media-url.mjs';
 import {descriptionHtml} from '/lib/description-blocks.mjs';
+import {longTextFor} from '/lib/product-i18n.mjs';
 import {initDigitalProduct} from '/digital-product.mjs';
 import '/config.mjs';
 import '/cms-preview.mjs';
@@ -122,7 +123,11 @@ if(customerCenter){
       catch{status.textContent='Heslo sa nepodarilo uložiť. Skúste to znova.';}finally{send.disabled=false;}});
     const all=$('[data-sign-out-everywhere]',pw),sessionStatus=$('[data-session-status]',pw);all?.addEventListener('click',async()=>{all.disabled=true;sessionStatus.textContent='Odhlasujem všetky relácie…';try{const r=await api.signOutEverywhere();if(r.ok){sessionStatus.textContent='Všetky relácie sú odhlásené.';setTimeout(()=>location.assign('/prihlasenie'),500);}else sessionStatus.textContent=r.message;}catch{sessionStatus.textContent='Odhlásenie sa nepodarilo. Skúste to znova.';}finally{all.disabled=false;}});
   }}
-  $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{const result=await api.saveCustomerProfile(Object.fromEntries(new FormData(form)));$('.form-status',form).textContent=result.message;if(result.ok&&result.profile)$('#center-name').textContent=customerDisplayName(result.profile);}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
+  // Firma: ak je doručovacia adresa rovnaká ako sídlo, karta s doručovacou adresou sa skryje a pri uložení sa sídlo skopíruje.
+  const syncShipSame=()=>{const form=$('#center-profile');if(!form)return;const el=form.elements,hasSeat=['companyStreet','companyCity','companyPostalCode'].every(k=>String(el[k]?.value||'').trim());const box=$('[data-same-ship]',form),card=$('[data-ship-card]',form);if(box)box.hidden=!hasSeat;if(!hasSeat&&el.shipSameAsCompany)el.shipSameAsCompany.checked=false;if(card)card.hidden=!!el.shipSameAsCompany?.checked;};
+  $('#center-profile').addEventListener('input',event=>{if(/^company(Street|City|PostalCode)$/.test(event.target.name||''))syncShipSame();});
+  $('#center-profile').addEventListener('change',event=>{if(event.target.name==='shipSameAsCompany')syncShipSame();});
+  $('#center-profile').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,send=$('button[type=submit]',form);if(send.disabled)return;send.disabled=true;try{const values=Object.fromEntries(new FormData(form));if(values.shipSameAsCompany){values.street=values.companyStreet||'';values.city=values.companyCity||'';values.postalCode=values.companyPostalCode||'';}delete values.shipSameAsCompany;const result=await api.saveCustomerProfile(values);$('.form-status',form).textContent=result.message;if(result.ok&&result.profile)$('#center-name').textContent=customerDisplayName(result.profile);}catch{$('.form-status',form).textContent='Zmeny sa nepodarilo skontrolovať. Skúste to znova.';}finally{send.disabled=false;}});
   // Údaje účtu len z backendu (pri builde sa nič negeneruje). Bez prihlásenia ani pri chybe nič nevymýšľame.
   (async()=>{
     const put=(sel,html)=>$$(sel,customerCenter).forEach(el=>{el.innerHTML=html;});
@@ -135,7 +140,7 @@ if(customerCenter){
     const unavailable=note('Údaje sa teraz nepodarilo načítať. Skúste stránku obnoviť.');
     if(data.ok&&data.profile){
       const pr=data.profile;$('#center-name').textContent=customerDisplayName(pr);
-      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});{const u=$('#center-password [name=username]');if(u&&pr.email)u.value=pr.email;}
+      const form=$('#center-profile');Object.entries(pr).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||'';});{const norm=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');const same=form.elements.shipSameAsCompany;if(same)same.checked=!!norm(pr.companyStreet)&&norm(pr.street)===norm(pr.companyStreet)&&norm(pr.city)===norm(pr.companyCity)&&norm(pr.postalCode).replace(/ /g,'')===norm(pr.companyPostalCode).replace(/ /g,'');syncShipSame();}{const u=$('#center-password [name=username]');if(u&&pr.email)u.value=pr.email;}
       const birth=[pr.birthDate&&new Date(`${pr.birthDate}T00:00:00`).toLocaleDateString('sk-SK'),pr.birthTime,pr.birthPlace].filter(Boolean);
       if(birth.length)put('#center-birth-summary',e(birth.join(' · ')));
     }
@@ -633,13 +638,19 @@ if(productDetail){
     put('[data-product-category]',product.category);
     const purchase=productDetail.querySelector('.add-product');if(purchase)purchase.dataset.code=product.code;
     // The original legacy description must stay complete, without unverified marketing copy.
-    const html=product.descriptionHtml;const complete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
-    if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
-      const full=productDetail.querySelector('[data-product-full-description]');
-      if(full&&full.hasAttribute('data-structured'))full.innerHTML=descriptionHtml(complete);else put('[data-product-full-description]',complete);
-      const intro=productDetail.querySelector('[data-product-intro]');
-      if(intro){intro.hidden=false;const brief=complete.replace(/\s+/g,' ').trim();intro.textContent=brief.length>220?brief.slice(0,220).replace(/\s+\S*$/,'')+'…':brief;}
-    }
+    const html=product.descriptionHtml;const skComplete=String(product.longDescription||(html?new DOMParser().parseFromString(html.replace(/<br\s*\/?\s*>|<\/(?:p|h[1-6]|li)>/gi,'\n'),'text/html').body.textContent:product.description)||'').trim();
+    // Popis podľa jazyka: EN/RU z metadata.translations, bez prekladu slovenčina. Prekreslí sa aj pri prepnutí jazyka.
+    const paintCopy=()=>{
+      const lang=document.documentElement.lang;
+      const complete=((lang==='en'||lang==='ru')&&longTextFor(product,lang))||skComplete;
+      if(complete&&complete!=='Podrobnosti a podmienky nájdete v detaile produktu.'){
+        const full=productDetail.querySelector('[data-product-full-description]');
+        if(full&&full.hasAttribute('data-structured'))full.innerHTML=descriptionHtml(complete);else put('[data-product-full-description]',complete);
+        const intro=productDetail.querySelector('[data-product-intro]');
+        if(intro){intro.hidden=false;const brief=complete.replace(/\s+/g,' ').trim();intro.textContent=brief.length>220?brief.slice(0,220).replace(/\s+\S*$/,'')+'…':brief;}
+      }
+    };
+    paintCopy();document.addEventListener('anastasia:lang',paintCopy);
     const pic=productDetail.querySelector('[data-product-main-image]');
     if(pic&&typeof product.image==='string'&&isMediaUrl(product.image)&&!(new URLSearchParams(location.search).get('foto')==='b'&&productDetail.dataset.packshots?.length>2))pic.src=product.image;
     let packs=[];try{packs=JSON.parse(productDetail.dataset.packshots||'[]');}catch{packs=[];}
@@ -709,7 +720,7 @@ const STRIPE_LOOK={theme:'flat',variables:{colorPrimary:'#283020',colorBackgroun
 // Súhrn objednávky pre ďakovnú stránku (aj po návrate z presmerovanej platby). Len položky a sumy, nič citlivé.
 const ORDER_KEY='anastasia.lastOrder';
 const rememberOrder=(cart,email,extra={},needsDelivery=true)=>{try{if(!cart)return;sessionStorage.setItem(ORDER_KEY,JSON.stringify({email:String(email||''),lines:(cart.lines||[]).map(l=>({name:l.name,quantity:l.quantity,priceLabel:l.priceLabel,image:l.image,physical:typeof l.physical==='boolean'&&l.physical===false?false:needsDelivery&&l.physical!==false&&!l.booking&&!l.giftVoucher,voucher:!!l.giftVoucher,booking:!!l.booking})),shippingLabel:cart.shippingLabel||'',totalLabel:cart.totalLabel||'',...extra}));}catch{}};
-const finishOrder=(result,cart,email,method,needsDelivery=true)=>{let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(cart||prev,email||prev.email,{number:result.order?.display_id??null,status:result.status,method,bank:result.bank_transfer||null,pickup:result.pickup_address||null},needsDelivery);location.assign('/dakujeme/');};
+const finishOrder=(result,cart,email,method,needsDelivery=true)=>{let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(cart||prev,email||prev.email,{number:result.order?.number??result.order?.display_id??null,status:result.status,method,bank:result.bank_transfer||null,pickup:result.pickup_address||null},needsDelivery);location.assign('/dakujeme/');};
 const cartLine=l=>{
   const physical=isPhysicalLine(l);
   const type=l.booking?(l.booking.label?`Termín: ${e(l.booking.label)}`:'Konzultácia · termín vyberiete v rezervácii'):physical?'Fyzický produkt · skladom':'Digitálny produkt · Aktivácia na účte po platbe';
@@ -885,7 +896,7 @@ if($('#ty-view')){
     history.replaceState(null,'',location.pathname);
     const ok=['succeeded','processing'].includes(q.get('redirect_status')||'');
     if(!ok)failed=true;
-    else{view.innerHTML='<p class="form-status">Dokončujem objednávku…</p>';try{const r=await api.checkout();if(r.status==='ALLOW'||r.status==='PENDING'){let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(prev,prev.email,{number:r.order?.display_id??null,status:r.status,method:'card'},(prev.lines||[]).some(l=>l.physical));}else failed=true;}catch{failed=true;}}
+    else{view.innerHTML='<p class="form-status">Dokončujem objednávku…</p>';try{const r=await api.checkout();if(r.status==='ALLOW'||r.status==='PENDING'){let prev={};try{prev=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'{}');}catch{}rememberOrder(prev,prev.email,{number:r.order?.number??r.order?.display_id??null,status:r.status,method:'card'},(prev.lines||[]).some(l=>l.physical));}else failed=true;}catch{failed=true;}}
   }
   let o=null;try{o=JSON.parse(sessionStorage.getItem(ORDER_KEY)||'null');}catch{}
   if(failed){title.textContent='Platba neprebehla.';lead.textContent='Objednávka nebola dokončená a nič sa nestrhlo. Košík vám zostal uložený.';view.innerHTML=`<div class="ty-actions">${button('/pokladna','Skúsiť platbu znova')}</div>`;$('.ty-actions:not(#ty-view .ty-actions)')?.setAttribute('hidden','');}

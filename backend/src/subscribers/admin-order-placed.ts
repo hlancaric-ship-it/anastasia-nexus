@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
+import { orderNumber } from "../lib/checkout/delivery-payment"
 import { sendEmail } from "../lib/email/send"
 import { recordEvent } from "../lib/observability/events"
 
@@ -38,7 +39,7 @@ export default async function adminOrderPlacedHandler({ event, container }: Subs
       resource_type: "order",
       resource_id: order.id,
       data: {
-        order_display_id: order.display_id,
+        order_display_id: orderNumber(order),
         first_name: name,
         total,
         payment_status: payment.join(", ") || "nepoplatená",

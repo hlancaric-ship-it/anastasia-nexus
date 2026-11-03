@@ -76,7 +76,7 @@ html,body{overflow-x:visible}
  .is-dashboard .banner-sage .banner-txt b{font-size:18px}
 }
 /* Lucia's direction: lavender navigation, coloured edges and frosted glass. */
-:root{--glass:rgba(255,252,255,.63);--line:#d8c9e4;--line-soft:rgba(147,111,178,.15);--shadow:0 5px 22px rgba(112,74,150,.10),0 1px 3px rgba(112,74,150,.08);--gold:#49305e;--gold-deep:#49305e;--cream:#eee6f4}
+:root{--glass:rgba(255,252,255,.88);--line:#d8c9e4;--line-soft:rgba(147,111,178,.15);--shadow:0 5px 22px rgba(112,74,150,.10),0 1px 3px rgba(112,74,150,.08);--gold:#49305e;--gold-deep:#49305e;--cream:#eee6f4}
 .app{position:relative;isolation:isolate;background:#f4f0f2}
 .app:before{content:"";position:fixed;z-index:-1;pointer-events:none;top:0;right:12%;width:min(66vw,1080px);height:85vh;background:url('./assets/design-reference.png') -5500px 0 /8448px 5632px no-repeat;mask-image:linear-gradient(to right,transparent,#000 12%,#000 80%,transparent),linear-gradient(to bottom,#000 65%,transparent);mask-composite:intersect;opacity:.85}
 .sidebar{background:rgba(229,216,240,.83);border-right:1px solid #d8c6e6;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
@@ -87,12 +87,12 @@ html,body{overflow-x:visible}
 .nav-item{color:#40314e}.nav-item svg.i{stroke:#554064}.nav-item.active{background:rgba(194,170,218,.47);color:#382248;box-shadow:inset 0 0 0 1px #cdb7de}.nav-item:hover{background:#e0cfea}.nav-title{color:#705784}.side-promo{border-color:#cfbadd;background:rgba(255,255,255,.22)}
 .topbar{background:rgba(248,243,250,.55);border-color:#dfd1e7;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .topbar>.botanic-olive{display:none}
-.card,.panel,.rc,.editor-section,.help-search,.help-tour,.guide-card,.kpi,.dash-card,.side-card,.banner,.empty,.ctx-help{background:var(--glass);border:1px solid rgba(164,129,191,.31);box-shadow:var(--shadow);backdrop-filter:blur(13px) saturate(115%);-webkit-backdrop-filter:blur(13px) saturate(115%)}
+.card,.panel,.rc,.editor-section,.help-search,.help-tour,.guide-card,.kpi,.dash-card,.side-card,.banner,.empty,.ctx-help{background:var(--glass);border:1px solid rgba(164,129,191,.31);box-shadow:var(--shadow);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%)}
 .kpi:nth-child(2n),.dash-row>.dash-card:nth-child(2),.banner-sage{border-color:rgba(128,155,111,.34);box-shadow:0 5px 22px rgba(101,139,89,.11)}
 .banner-lav{background:rgba(226,211,241,.63)}.banner-plain{background:rgba(246,222,235,.55)}.banner-sage{background:rgba(217,230,207,.6)}
 .side-card .btn.ghost,.top-search,.top-btn,input,select,textarea,.pills{background:rgba(255,252,255,.6);border-color:#d8c9e4}
 .card .card-h,.ot-head,.ot-filters,th{background:rgba(245,235,249,.4)}
-.app:not(.is-dashboard) .content>.eyebrow,.app:not(.is-dashboard) .content>.crumb{display:none}
+.app:not(.is-dashboard) .content>.eyebrow{display:none}
 .app:not(.is-dashboard) .heading>div:first-child{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .app:not(.is-dashboard) .heading{display:flex;justify-content:flex-end;margin-bottom:14px;gap:0}
 .app:not(.is-dashboard) .heading:has(.pills){display:block}
@@ -652,20 +652,22 @@ table.agenda-grid.category-grid tbody td.lv-title {
 
 /* Compact, balanced agendas; horizontal scrolling belongs to tables on mobile. */
 table.agenda-grid.category-grid { table-layout:fixed!important; min-width:800px; }
-table.category-grid th:nth-child(1) { width:23%; }
-table.category-grid th:nth-child(2) { width:25%; }
-table.category-grid th:nth-child(3) { width:23%; }
+/* Percentá + pevný stĺpec akcie musia dať spolu najviac 100 %, inak tlačidlo Otvoriť vypadne z karty. */
+table.category-grid th:nth-child(1) { width:21%; }
+table.category-grid th:nth-child(2) { width:23%; }
+table.category-grid th:nth-child(3) { width:21%; }
 table.category-grid th:nth-child(4) { width:8%; }
-table.category-grid th:nth-child(5) { width:11%; }
+table.category-grid th:nth-child(5) { width:10%; }
 table.category-grid th:last-child { width:110px; }
-table.agenda-grid.customer-grid { table-layout:fixed!important; min-width:1100px; }
+table.agenda-grid.customer-grid { table-layout:fixed!important; min-width:900px; }
 table.customer-grid th:nth-child(1) { width:38px; }
 table.customer-grid th:nth-child(2) { width:50px; }
-table.customer-grid th:nth-child(3) { width:23%; }
-table.customer-grid th:nth-child(4) { width:29%; }
-table.customer-grid th:nth-child(5) { width:10%; }
-table.customer-grid th:nth-child(6) { width:12%; }
-table.customer-grid th:nth-child(7) { width:16%; }
+table.customer-grid th:nth-child(3) { width:22%; }
+table.customer-grid th:nth-child(4) { width:26%; }
+table.customer-grid th:nth-child(5) { width:8%; }
+table.customer-grid th:nth-child(6) { width:10%; }
+table.customer-grid th:nth-child(7) { width:12%; }
+table.agenda-grid tbody .ot-img .thumb.ini { display:grid!important; place-items:center; background:var(--lav-soft)!important; color:var(--lav-deep); border-color:transparent!important; font-size:12px; font-weight:600; letter-spacing:.02em; }
 table.customer-grid th:last-child { width:110px; }
 table.agenda-grid.customer-grid tbody td.lv-title,
 table.agenda-grid.customer-grid tbody td[data-label="E-mail"] {
@@ -743,8 +745,390 @@ div:has(>[data-pg="prev"]:disabled):has(>[data-pg="next"]:disabled) { display:no
 .ot-foot:not(:has(div:has(>[data-pg]:not(:disabled)))):has(.muted:empty) { display:none; }
 /* Zlaté logo ANASTASIA od Lucie (krúžok a nápis s tieňom), rovnaké ako v newsletteri. */
 .brand img.brand-ring,.brand img.brand-word,.mobile-head img.brand-ring,.mobile-head img.brand-word{filter:none}
-.brand img.brand-ring{width:67px;height:64px;flex:none;object-fit:contain}
+.brand img.brand-ring{width:64px;height:64px;flex:none;object-fit:contain}
 .brand img.brand-word{display:block;width:156px;height:auto;margin-left:-3px}
 .brand small{margin:2px 0 0 4px;color:#a8823f}
-.mobile-head .brand-ring{width:34px;height:32px;flex:none}
+.mobile-head .brand-ring{width:34px;height:34px;flex:none}
 .mobile-head .brand-word{width:104px;height:auto}
+/* Objednávky: text v bunkách sa zalamuje v rámci stĺpca, nikdy nepretečie do susedného (Doručenie × Položky × Suma). */
+table.ot-orders tbody td{white-space:normal!important;overflow:hidden;overflow-wrap:break-word!important;word-break:normal!important}
+table.ot-orders tbody td.ot-num{white-space:nowrap!important;text-overflow:clip}
+table.ot-orders tbody td small{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+table.ot-orders tbody td.ot-items small{display:inline}
+/* Hlavička a bunky sedia pod sebou: suma vpravo (aj nadpis), platba a vybavenie vľavo. */
+@media(min-width:801px){
+ table.ot-orders thead th.ot-num,table.ot-orders tbody td.ot-num{text-align:right!important;padding-right:20px!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8),table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){text-align:left!important;max-width:none}
+}
+/* Tabuľky sa nestláčajú pod čitateľnú šírku: radšej sa posúvajú vo svojej karte, slová ani sumy sa nelámu. */
+table.agenda-grid.coupon-grid{min-width:640px}
+table.agenda-grid.coupon-grid tbody td:not(.lv-title){overflow-wrap:normal!important}
+table.agenda-grid.coupon-grid tbody td.ot-act{white-space:nowrap!important}
+.dash-table td:nth-child(5) .state{white-space:normal;line-height:1.15;align-items:flex-start}
+.dash-table td:nth-child(5) .state::before{margin-top:.3em}
+@media(min-width:801px){
+ table.ot-orders{min-width:980px!important}
+ table.ot-orders thead th:nth-child(2),table.ot-orders tbody td:nth-child(2){width:52px!important}
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:10%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:13%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:9%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:13%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7){width:10%!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8){width:9%!important}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:9%!important}
+ table.ot-orders thead th:nth-child(10),table.ot-orders tbody td:nth-child(10){width:172px!important}
+ table.ot-orders thead th.ot-num,table.ot-orders tbody td.ot-num{padding-right:12px!important}
+ table.ot-orders tbody td:nth-child(5) small{display:block;margin:2px 0 0;overflow-wrap:normal}
+}
+table.agenda-grid.coupon-grid thead th.ot-act,table.agenda-grid.coupon-grid tbody td.ot-act{width:112px!important}
+/* Na dotykových displejoch má každý ovládací prvok aspoň 32 px na ťuknutie. */
+@media(max-width:800px){
+ .dash .dots-btn{min-width:32px!important;width:32px!important;max-width:none;min-height:32px}
+ .dash .link-lav{display:inline-flex;align-items:center;min-height:32px;padding:0 4px}
+}
+/* Objednávky (desktop): na riadku len číslo, zákazník, položky, suma a stav. Doručenie, e-mail, tlač a faktúra sú v detaile. */
+@media(min-width:801px){
+ table.ot-orders{min-width:860px!important}
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:13%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:19%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:24%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:12%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7),table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8){width:13%!important;text-align:left!important}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:110px!important;text-align:right}
+ table.ot-orders tbody td:nth-child(5) small{display:inline;margin:0}
+ table.ot-orders tbody td .pill{white-space:nowrap}
+ table.ot-orders tbody tr[data-id] td{padding-top:14px!important;padding-bottom:14px!important}
+}
+/* Objednávky (desktop) s krátkym stĺpcom Doručenie. */
+@media(min-width:801px){
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:12%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:17%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:12%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:16%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7){width:12%!important;text-align:right!important;white-space:nowrap;overflow:visible!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8),table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:12%!important;text-align:left!important}
+ table.ot-orders thead th:nth-child(10),table.ot-orders tbody td:nth-child(10){width:110px!important;text-align:right}
+ table.ot-orders tbody td:nth-child(5){color:var(--muted)}
+ table.ot-orders tbody td:nth-child(6) small{display:inline;margin:0}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:14%!important}
+ table.ot-orders tbody td:nth-child(9) .pill{white-space:normal;text-align:left;line-height:1.25}
+}
+/* Jednotná lišta akcií detailu: vždy hore vpravo v hlavičke karty, poradie Späť → vedľajšie → nebezpečné → Uložiť; pri posune ostáva viditeľná. */
+@media(min-width:801px){
+.card>.card-h:has(>.card-h-act){position:sticky;top:0;z-index:20;background:var(--surface);border-radius:inherit}
+.card-h-act{flex-wrap:wrap;gap:8px;max-width:100%}.card-h-act .btn{white-space:nowrap;padding:9px 14px;min-height:38px}
+.card-h-act .btn.gold{order:99}
+.pe-act{position:sticky;top:12px;z-index:20}
+}
+.act-confirm{margin:0 0 16px;padding:14px 16px;border:1px solid #e7c3c3;border-radius:12px;background:#fdf6f6}
+@media(min-width:801px){.card:has(>.card-h>.card-h-act){overflow:visible}.card>.card-h:has(>.card-h-act){border-radius:var(--radius,16px) var(--radius,16px) 0 0;box-shadow:0 1px 0 var(--line-soft)}}
+.pe-bar{position:sticky;top:8px;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pe-bar .pe-nav{position:static;flex:1 1 auto;min-width:0}
+.pe-bar .pe-act{position:static;margin:0 0 0 auto;flex:none}.pe-bar .pe-act .btn{border-radius:999px;padding:10px 18px}
+/* Zoznamy (desktop): stĺpec s tlačidlom Otvoriť len tak široký ako tlačidlo, názov sa nikdy neláme uprostred slova. */
+@media(min-width:801px){
+table.agenda-grid tbody td.ot-act,table.lv:has(td.ot-act) thead th:last-child{width:1%;white-space:nowrap}
+table.agenda-grid tbody td.lv-title{min-width:220px;overflow-wrap:normal!important;word-break:normal!important;hyphens:none}
+}
+
+/* Checkbox „označiť všetky“ v produktoch sedí v rovnakom stĺpci ako checkboxy riadkov. */
+table.product-grid:has(#p-pick-all) thead th.ot-check { display:table-cell!important; width:38px!important; padding:12px 14px!important; text-align:center!important; }
+/* Pevné stĺpce agend: obecné .ot-check/.ot-img/.ot-act pravidlá ich inak roztiahnu a akcii nechajú 10 px. */
+table.agenda-grid.customer-grid thead th.ot-check { width:38px!important; }
+table.agenda-grid.customer-grid thead th.ot-img { width:50px!important; }
+table.agenda-grid.customer-grid thead th.ot-act,
+table.agenda-grid.category-grid thead th:last-child { width:120px!important; }
+/* Detail produktu: záložky namiesto dlhej stránky. */
+.pe-grid > .pe-sec[hidden]{display:none!important}
+
+/* Podsekcie a záložky produktu: rozprestreté po celej šírke, tučné a výrazné (Lucky 3. 11.). */
+.app .head-actions #actions .pills{display:flex;width:100%;gap:6px;padding:6px;margin:0;border-radius:16px;background:var(--glass);border:1px solid rgba(164,129,191,.31);box-shadow:var(--shadow);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%)}
+.app .head-actions #actions .pills .pill{flex:1 1 0;display:flex;align-items:center;justify-content:center;text-align:center;min-height:46px;margin:0;padding:10px 14px;border:0!important;border-radius:12px;background:transparent!important;box-shadow:none!important;font-size:15px;font-weight:700;letter-spacing:.01em;color:var(--ink);white-space:nowrap;text-decoration:none}
+.app .head-actions #actions .pills .pill::after{display:none!important}
+.app .head-actions #actions .pills .pill:hover{background:var(--lav-soft)!important}
+.app .head-actions #actions .pills .pill.on{background:#49305e!important;color:#fff!important}
+.pe-bar .pe-nav{display:flex;gap:6px;padding:6px;border-radius:16px;flex-wrap:nowrap}
+.pe-bar .pe-nav button{flex:1 1 0;min-height:46px;padding:10px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:var(--ink);white-space:nowrap;text-align:center}
+.pe-bar .pe-nav button[aria-selected=true]{background:#49305e;color:#fff}
+html[data-theme=dark] .app .head-actions #actions .pills .pill.on,html[data-theme=dark] .pe-bar .pe-nav button[aria-selected=true]{background:var(--lav-deep)!important;color:#1d1724!important}
+/* Detail produktu: záložky a ich obsah sú jedna karta, žiadna medzera ani rozdelené okná (Lucky 3. 11.). */
+.pe-panel{margin-top:16px;border-radius:20px;background:var(--glass);border:1px solid rgba(164,129,191,.31);box-shadow:var(--shadow);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%);overflow:visible}
+.pe-panel .pe-bar{position:sticky;top:0;z-index:20;margin:0;padding:0;background:transparent}
+.pe-panel .pe-bar .pe-nav{width:100%;margin:0;border:0!important;border-bottom:1px solid rgba(164,129,191,.25)!important;border-radius:20px 20px 0 0!important;box-shadow:none!important;background:var(--glass)!important;padding:8px}
+.pe-panel #pmsg:empty{display:none}.pe-panel #pmsg{padding:12px 24px 0}
+.pe-panel .pe-grid{gap:0!important;padding:8px 8px 12px;align-items:stretch}
+.pe-panel .pe-sec{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:20px 22px!important}
+.pe-panel .pe-grid>.pe-sec:not([hidden])+.pe-sec:not([hidden]):not(.wide){border-left:1px solid rgba(164,129,191,.22)!important}
+.pe-hero-body .pe-act{position:static;margin-top:auto;justify-content:flex-end}
+.pe-panel .pe-grid>.pe-sec:not([hidden])~.pe-sec.wide:not([hidden]){border-top:1px solid rgba(164,129,191,.22)!important}
+/* Detail produktu podľa vzoru Shoptet (Lucky 3. 11.): celý detail je jedna karta – hlavička s tlačidlami vpravo hore, pod ňou pripojené záložky, pod nimi obsah záložky. */
+.app .pe{position:relative;background:var(--glass);border:1px solid rgba(164,129,191,.31);border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%);overflow:visible}
+.app .pe .pe-hero{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:22px 22px 0 0!important;grid-template-columns:200px minmax(0,1fr)!important}
+.app .pe .pe-hero-img{min-height:180px!important;max-height:200px!important;border-radius:21px 0 0 0;overflow:hidden}
+.app .pe .pe-hero-body{padding:22px 28px 18px!important;gap:10px!important}
+.app .pe .pe-panel{margin:0;background:transparent;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:0 0 22px 22px}
+.app .pe .pe-panel .pe-bar{padding:0 20px;background:transparent}
+.app .pe .pe-panel .pe-bar .pe-nav{background:transparent!important;border-radius:0!important;padding:0!important;gap:4px;border-bottom:3px solid #49305e!important}
+.app .pe .pe-panel .pe-bar .pe-nav button{border-radius:12px 12px 0 0;min-height:48px;background:rgba(164,129,191,.14);border:1px solid rgba(164,129,191,.28);border-bottom:0;font-weight:700;font-size:14.5px}
+.app .pe .pe-panel .pe-bar .pe-nav button:hover{background:var(--lav-soft)}
+.app .pe .pe-panel .pe-bar .pe-nav button[aria-selected=true]{background:#49305e;border-color:#49305e;color:#fff}
+.app .pe .pe-panel .pe-grid{padding:6px 8px 14px}
+.app .pe .pe-sec header{align-items:center}
+.app .pe .pe-sec header::after{content:"";flex:1;height:1px;background:rgba(164,129,191,.35)}
+html[data-theme=dark] .app .pe .pe-panel .pe-bar .pe-nav{border-bottom-color:var(--lav-deep)!important}
+html[data-theme=dark] .app .pe .pe-panel .pe-bar .pe-nav button[aria-selected=true]{background:var(--lav-deep);border-color:var(--lav-deep);color:#1d1724}
+.pe-hint{font-size:12px!important;line-height:1.45;margin:6px 0 0}
+.app .pe .pe-panel .pe-sec{align-content:start!important;justify-content:flex-start!important}.app .pe #p-category{width:100%}
+/* Detail produktu ako Shoptet (Lucky 3. 11.): lišta tlačidiel vpravo hore, kompaktná hlavička, formulár „popis vľavo – pole vpravo“, tabuľky variantov a skladu, okno variantu so záložkami. */
+.app .pe .pe-toolbar{position:sticky;top:0;z-index:30;display:flex;justify-content:flex-end;padding:14px 22px 10px;border-radius:22px 22px 0 0;background:var(--glass);backdrop-filter:blur(22px) saturate(120%);-webkit-backdrop-filter:blur(22px) saturate(120%);border-bottom:1px solid rgba(164,129,191,.18)}
+.app .pe .pe-toolbar .pe-act{position:static;margin:0;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.app .pe .pe-toolbar .pe-act .btn{border-radius:999px;padding:9px 18px;min-height:40px;white-space:nowrap;font-weight:600}
+.app .pe .pe-toolbar .pe-act .btn.gold{background:#49305e;border-color:#49305e;color:#fff}
+.app .pe .pe-toolbar .pe-act .btn.danger{margin-left:14px}
+.app .pe .pe-hero{grid-template-columns:120px minmax(0,1fr)!important;align-items:center;padding:18px 24px 14px;gap:22px;border-radius:0!important}
+.app .pe .pe-hero-img{min-height:120px!important;max-height:120px!important;height:120px;border-radius:16px!important;overflow:hidden}
+.app .pe .pe-hero-body{padding:0!important;gap:8px!important}
+.app .pe .pe-hero-body .pe-title{padding-right:0;font-size:clamp(28px,2.6vw,40px)}
+.pe-f{display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);gap:6px 18px;align-items:center;padding:7px 0}
+.pe-f>label,.pe-f>.pe-fl{margin:0!important;text-align:right;font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.3;text-transform:none;letter-spacing:0}
+.pe-fc{min-width:0;max-width:560px}
+.pe-fc>input:not([type=checkbox]),.pe-fc>select,.pe-fc>textarea{width:100%;margin:0}
+.pe-fc textarea{min-height:110px;resize:vertical}
+.pe-fc .pe-hint{margin:5px 0 0}
+.pe-unit{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;color:var(--muted);font-size:13px}.pe-unit input{width:130px!important;margin:0}
+.pe-chks{display:flex;flex-wrap:wrap;gap:6px 18px}
+.pe-chk{display:inline-flex!important;align-items:center;gap:8px;margin:0!important;font-weight:400!important;font-size:14px;text-transform:none!important;letter-spacing:0!important;color:var(--ink)}
+.pe-chk input{width:18px!important;height:18px;flex:none;margin:0}
+.app .pe .pe-sec .category-chips{margin:0 0 6px}
+.ve-h{display:flex;align-items:center;gap:12px;margin:18px 0 10px}.ve-h:first-child,[data-v-msg]+.ve-h,[data-dlg-msg]+.ve-pane>.ve-h:first-child{margin-top:4px}
+.ve-h h3{font-family:Fraunces,serif;font-weight:400;font-size:20px;margin:0;color:var(--ink)}
+.ve-h::after{content:"";flex:1;height:1px;background:rgba(164,129,191,.35)}
+.ve-note{margin:-2px 0 10px!important}
+.ve-vals{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.ve-add{display:flex;gap:8px;align-items:center}.ve-add input{flex:1;min-width:0;margin:0}.ve-add .btn{white-space:nowrap}
+.ve-tw{overflow-x:auto;border:1px solid rgba(164,129,191,.28);border-radius:14px}
+table.ve-t{width:100%;border-collapse:collapse;font-size:14px}
+table.ve-t th{background:rgba(164,129,191,.14);text-align:left;font-size:12.5px;font-weight:700;color:var(--ink);padding:11px 14px;border-bottom:3px solid #49305e;white-space:nowrap}
+table.ve-t td{padding:10px 14px;border-bottom:1px solid rgba(164,129,191,.18);vertical-align:middle}
+table.ve-t tbody tr:nth-child(even) td{background:rgba(164,129,191,.05)}
+table.ve-t tbody tr:last-child td{border-bottom:0}
+table.ve-t .r{text-align:right}table.ve-t td.r input{width:96px;text-align:right;margin:0}
+table.ve-t tr.ve-sum td{font-weight:700}
+table.ve-t .ve-act{text-align:right;white-space:nowrap;width:1%}.ve-act .btn+.btn{margin-left:6px}
+.ve-name{background:none;border:0;padding:0;font:inherit;font-weight:700;color:#49305e;cursor:pointer;text-align:left}.ve-name:hover{text-decoration:underline}
+dialog.ve-dlg{width:min(980px,calc(100vw - 32px));background:var(--surface,#fff);border:4px solid #49305e;border-radius:20px}
+dialog.ve-dlg::backdrop{background:rgba(42,26,56,.45);backdrop-filter:blur(3px)}
+.ve-dlg-in{display:flex;flex-direction:column;max-height:calc(100vh - 56px);overflow:auto;padding:22px 26px 18px}
+.ve-dlg-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px}
+.ve-dlg-top h2{flex:1;margin:0;font-family:Fraunces,serif;font-weight:300;font-size:30px;line-height:1.15;color:var(--ink)}.ve-dlg-top h2 span{color:#9b6fbf}
+.ve-x{background:none;border:0;font-size:28px;line-height:1;color:var(--muted);cursor:pointer;padding:0 4px}
+.ve-tabs{display:flex;gap:4px;border-bottom:3px solid #49305e;margin-bottom:6px}
+.ve-tabs button{border:1px solid rgba(164,129,191,.28);border-bottom:0;border-radius:12px 12px 0 0;background:rgba(164,129,191,.14);padding:10px 18px;min-height:44px;font:inherit;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer}
+.ve-tabs button:hover{background:var(--lav-soft)}
+.ve-tabs button[aria-selected=true]{background:#49305e;border-color:#49305e;color:#fff}
+.ve-pane{padding:4px 2px}.ve-pane[hidden]{display:none}
+.ve-dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(164,129,191,.22)}
+.ve-dlg-foot .btn.gold{background:#49305e;border-color:#49305e;color:#fff;border-radius:999px;padding:10px 26px}
+.ve-dlg-foot .btn{border-radius:999px}
+html[data-theme=dark] .ve-tabs,html[data-theme=dark] table.ve-t th{border-bottom-color:var(--lav-deep)}
+html[data-theme=dark] .ve-tabs button[aria-selected=true],html[data-theme=dark] .app .pe .pe-toolbar .pe-act .btn.gold,html[data-theme=dark] .ve-dlg-foot .btn.gold{background:var(--lav-deep);border-color:var(--lav-deep);color:#1d1724}
+html[data-theme=dark] dialog.ve-dlg{border-color:var(--lav-deep)}html[data-theme=dark] .ve-name{color:var(--lav-deep)}
+@media(max-width:800px){.pe-f{grid-template-columns:minmax(0,1fr);gap:4px}.pe-f>label,.pe-f>.pe-fl{text-align:left}.app .pe .pe-hero{grid-template-columns:80px minmax(0,1fr)!important}.app .pe .pe-hero-img{height:80px;min-height:80px!important;max-height:80px!important}}
+.app .pe .pe-panel .pe-bar{position:static}
+table.ve-t td.ve-act{display:table-cell!important;text-align:right}table.ve-t td{color:var(--ink)}
+/* Jednotné riadky (Lucky 3. 11.): každý riadok má rovnakú výšku 44 px, popis sedí vždy na úrovni poľa, nápoveda ide pod pole a popis neposúva. */
+.pe-f{align-items:start!important;padding:5px 0!important;row-gap:0!important}
+.pe-f>label,.pe-f>.pe-fl{min-height:44px;display:flex!important;align-items:center;justify-content:flex-end;line-height:1.25}
+.pe-fc>input:not([type=checkbox]),.pe-fc>select,.pe-fc>.pe-unit input,.pe-fc>.ve-add input{height:44px;min-height:44px;box-sizing:border-box;padding-top:0;padding-bottom:0}
+.pe-fc>.ve-add .btn{height:44px;min-height:44px}
+.pe-fc>.pe-unit,.pe-fc>.pe-chks,.pe-fc>.pe-chk,.pe-fc>b,.pe-fc>span.muted,.pe-fc>.category-chips{min-height:44px;display:flex;align-items:center}
+.pe-fc>.pe-chks{flex-wrap:wrap}.pe-fc>.category-chips:empty{display:none}
+.pe-fc>.category-chips .btn{margin:0 6px 0 0}
+.pe-fc>.ve-vals{min-height:44px;align-items:center;margin:0}
+.pe-fc>.ve-vals+.ve-add{margin-top:6px}
+.pe-fc>.pe-hint{margin:4px 0 2px!important}
+.pe-fc>textarea{padding-top:11px}
+.app .pe #p-sale-box{padding:0!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+
+/* Drobčeková navigácia (Shoptet): domček › sekcia › stránka › detail */
+.app .content>.crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px;font-size:13px;letter-spacing:0;color:var(--muted);white-space:normal}
+.app .crumbs a{color:#49305e;text-decoration:none;font-weight:500}
+.app .crumbs a:hover{text-decoration:underline}
+.app .crumbs .crumb-home{display:inline-flex;align-items:center}
+.app .crumbs .crumb-home svg{width:16px;height:16px}
+.app .crumbs .crumb-sep{color:#a481bf;font-size:15px;line-height:1}
+.app .crumbs .crumb-tail{display:contents}
+.app .crumbs b{color:var(--ink,#2a2233);font-weight:600;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .app .crumbs a{color:var(--lav-deep)}:root:not([data-theme=light]) .app .crumbs b{color:inherit}}
+:root[data-theme=dark] .app .crumbs a{color:var(--lav-deep)}:root[data-theme=dark] .app .crumbs b{color:inherit}
+/* Objednávky (Shoptet): jeden riadok na objednávku, dlhý text sa skráti „…“, celý je v detaile a v bublinke pri myši */
+@media (min-width:801px){
+.app table.ot-orders{min-width:0;width:100%}
+.app table.ot-orders thead th:nth-child(1),.app table.ot-orders tbody td:nth-child(1){width:36px!important}
+.app table.ot-orders thead th:nth-child(2),.app table.ot-orders tbody td:nth-child(2){width:56px!important}
+.app table.ot-orders thead th:nth-child(3),.app table.ot-orders tbody td:nth-child(3){width:104px!important}
+.app table.ot-orders thead th:nth-child(4),.app table.ot-orders tbody td:nth-child(4){width:132px!important}
+.app table.ot-orders thead th:nth-child(5),.app table.ot-orders tbody td:nth-child(5){width:128px!important}
+.app table.ot-orders thead th:nth-child(6),.app table.ot-orders tbody td:nth-child(6){width:auto!important}
+.app table.ot-orders thead th:nth-child(7),.app table.ot-orders tbody td:nth-child(7){width:96px!important}
+.app table.ot-orders thead th:nth-child(8),.app table.ot-orders tbody td:nth-child(8){width:108px!important}
+.app table.ot-orders thead th:nth-child(9),.app table.ot-orders tbody td:nth-child(9){width:130px!important}
+.app table.ot-orders thead th:nth-child(10),.app table.ot-orders tbody td:nth-child(10){width:100px!important}
+.app table.ot-orders tbody td:nth-child(n+4){white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;max-width:none}
+.app table.ot-orders tbody td:nth-child(10){overflow:visible}
+.app table.ot-orders tbody td.ot-items small{display:inline!important;margin-left:6px;color:var(--muted)}
+.app table.ot-orders tbody td .pill{white-space:nowrap}
+}
+/* Kódy položiek + okienko s produktom pri myši */
+.app .ot-orders .ot-code{cursor:default;border-bottom:1px dotted #a481bf;font-variant-numeric:tabular-nums}
+.app .ot-orders .ot-code:hover,.app .ot-orders .ot-code:focus{color:#49305e;outline:none;border-bottom-style:solid}
+.ot-pop{position:fixed;z-index:9999;display:flex;gap:12px;align-items:center;max-width:320px;padding:10px 14px 10px 10px;background:rgba(255,252,255,.97);border:1px solid #d9c8e5;border-radius:10px;box-shadow:0 10px 30px rgba(73,48,94,.18);pointer-events:none;font:14px/1.35 'Figtree',sans-serif;color:#2a2233}
+.ot-pop[hidden]{display:none}
+.ot-pop img,.ot-pop-noimg{width:72px;height:72px;flex:none;border-radius:8px;object-fit:cover;background:#f3ecf8;display:grid;place-items:center;border:1px solid #e6daef}
+.ot-pop b{display:block;font-weight:600}
+.ot-pop small{display:block;margin-top:3px;color:#7a6b86;font-size:12px}
+:root[data-theme=dark] .ot-pop{background:#2a2233;border-color:#4a3a5a;color:#f1e9f7}
+/* Všetky záložky v adminu rovnako ako detail produktu (Shoptet): pripojené záložky, aktívna plná fialová, pod nimi linka */
+.app .ot-filters,.app .pe-tabs,.app .tabs{display:flex!important;flex-wrap:wrap;gap:4px!important;padding:0 16px!important;margin:0;border:0!important;border-bottom:3px solid #49305e!important;background:transparent!important;overflow:visible}
+.app .ot-filters button,.app .pe-tabs button,.app .tabs .tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 18px!important;margin:0!important;border:1px solid rgba(164,129,191,.28)!important;border-bottom:0!important;border-radius:12px 12px 0 0!important;background:rgba(164,129,191,.14)!important;color:var(--ink,#2a2233)!important;font:700 14px/1.2 'Figtree',sans-serif!important;white-space:nowrap;text-decoration:none;cursor:pointer}
+.app .ot-filters button:hover,.app .pe-tabs button:hover,.app .tabs .tab:hover{background:var(--lav-soft)!important}
+.app .ot-filters button[aria-selected=true],.app .pe-tabs button[aria-selected=true],.app .tabs .tab.active,.app .tabs .tab[aria-selected=true]{background:#49305e!important;border-color:#49305e!important;color:#fff!important}
+.app .ot-filters button span{min-width:22px;padding:1px 7px;margin:0!important;border-radius:10px;background:rgba(255,255,255,.7)!important;color:#5b4470!important;font-size:11.5px;font-weight:600;text-align:center}
+.app .ot-filters button[aria-selected=true] span{background:rgba(255,255,255,.22)!important;color:#fff!important}
+html[data-theme=dark] .app .ot-filters,html[data-theme=dark] .app .pe-tabs,html[data-theme=dark] .app .tabs{border-bottom-color:var(--lav-deep)!important}
+html[data-theme=dark] .app .ot-filters button[aria-selected=true],html[data-theme=dark] .app .pe-tabs button[aria-selected=true],html[data-theme=dark] .app .tabs .tab.active{background:var(--lav-deep)!important;border-color:var(--lav-deep)!important;color:#1d1724!important}
+/* Shoptet kostra zoznamov: hlavička karty, ▾ Funkcie / ▾ Filter, triedenie, pätička so stránkovaním */
+.app .st-card{padding:0;overflow:visible}
+.app .st-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 24px 16px}
+.app .st-head h1{margin:0;font:300 30px/1.15 'Figtree',sans-serif;letter-spacing:-.01em;color:var(--ink,#2a2233)}
+.app .st-head-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.app .st-head-act .rc-search{width:300px;max-width:100%}
+.app .st-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;background:rgba(245,235,249,.55);border-bottom:1px solid #e6daef}
+.app .st-dd{position:relative}
+.app .st-btn{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:5px 12px;border:1px solid #cdb6dd;border-radius:6px;background:#fff;color:#49305e;font:600 13px/1.2 'Figtree',sans-serif;cursor:pointer}
+.app .st-btn:hover:not(:disabled){background:#f5ebf9;border-color:#a481bf}
+.app .st-btn:disabled{opacity:.5;cursor:not-allowed}
+.app .st-btn[aria-expanded=true]{background:#49305e;border-color:#49305e;color:#fff}
+.app .st-filter-toggle{margin-left:auto}
+.app .st-menu{position:absolute;left:0;top:calc(100% + 4px);z-index:40;min-width:220px;padding:6px;background:#fff;border:1px solid #d9c8e5;border-radius:8px;box-shadow:0 10px 28px rgba(73,48,94,.18)}
+.app .st-menu[hidden]{display:none}
+.app .st-menu button{display:block;width:100%;padding:8px 10px;border:0;border-radius:5px;background:none;color:var(--ink,#2a2233);font:500 13.5px/1.3 'Figtree',sans-serif;text-align:left;cursor:pointer}
+.app .st-menu button:hover{background:#f5ebf9;color:#49305e}
+.app .st-filter{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px;padding:14px 16px 16px;background:rgba(250,245,252,.8);border-bottom:1px solid #e6daef}
+.app .st-filter[hidden]{display:none}
+.app .st-filter label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:#776284}
+.app .st-filter input,.app .st-filter select{min-height:34px;font-size:13.5px;font-weight:400}
+.app .st-filter-act{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.app .st-filter-act .btn{min-height:34px}
+.app table.st-table thead th{background:#f3ecf8!important;border-bottom:3px solid #49305e!important;color:#49305e;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;white-space:nowrap}
+.app table.st-table th[data-sort]{cursor:pointer;user-select:none}
+.app table.st-table th[data-sort]:after{content:'⬍';margin-left:5px;color:#c3add3;font-size:11px}
+.app table.st-table th[aria-sort=ascending]:after{content:'▲';color:#49305e}
+.app table.st-table th[aria-sort=descending]:after{content:'▼';color:#49305e}
+.app table.st-table th[data-sort]:hover,.app table.st-table th[data-sort]:focus-visible{color:#2a1c38;outline:none;text-decoration:underline}
+.app table.st-table tbody tr[data-id]:nth-child(even) td{background:rgba(245,235,249,.35)}
+.app table.st-table tbody tr[data-id]:hover td{background:#f5ebf9}
+.app table.st-table tbody tr.st-wait td:first-child{box-shadow:inset 3px 0 0 #d9a441}
+.app table.st-table tbody tr.st-done td:first-child{box-shadow:inset 3px 0 0 #31563d}
+.app table.st-table tbody tr.st-canceled td,.app table.st-table tbody tr.st-muted td{color:#9b8fa5;font-style:italic}
+.app table.st-table tbody tr.st-canceled td:first-child{box-shadow:inset 3px 0 0 #b9a9c6}
+.app table.st-table tbody tr.st-picked td{background:#efe3f6!important}
+.app table.st-table tbody td:nth-child(3) b{color:#49305e}
+.app .st-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px 16px;border-top:1px solid #e6daef;font-size:13.5px;color:var(--muted)}
+.app .st-total b{color:var(--ink,#2a2233)}
+.app .st-pages{display:flex;gap:4px;align-items:center}
+.app .st-pages button{min-width:32px;height:32px;padding:0 8px;border:1px solid #d9c8e5;border-radius:6px;background:#fff;color:#49305e;font:600 13px 'Figtree',sans-serif;cursor:pointer}
+.app .st-pages button:hover:not(:disabled){background:#f5ebf9}
+.app .st-pages button[aria-current=page]{background:#49305e;border-color:#49305e;color:#fff}
+.app .st-pages button:disabled{opacity:.4;cursor:default}
+.app .st-pages span{padding:0 4px;color:#a481bf}
+html[data-theme=dark] .app .st-head h1{color:var(--ink)}
+html[data-theme=dark] .app .st-bar,html[data-theme=dark] .app .st-filter{background:#2a2132;border-color:#4a3a5a}
+html[data-theme=dark] .app .st-btn,html[data-theme=dark] .app .st-pages button,html[data-theme=dark] .app .st-menu{background:#302638;border-color:#5b4269;color:var(--lav-deep)}
+html[data-theme=dark] .app .st-menu button{color:var(--ink)}
+html[data-theme=dark] .app .st-menu button:hover{background:#3c2e46}
+html[data-theme=dark] .app .st-btn[aria-expanded=true],html[data-theme=dark] .app .st-pages button[aria-current=page]{background:var(--lav-deep);border-color:var(--lav-deep);color:#1d1724}
+html[data-theme=dark] .app table.st-table thead th{background:#2a2132!important;border-bottom-color:var(--lav-deep)!important;color:var(--lav-deep)}
+html[data-theme=dark] .app table.st-table tbody tr[data-id]:nth-child(even) td{background:rgba(255,255,255,.03)}
+html[data-theme=dark] .app table.st-table tbody tr[data-id]:hover td,html[data-theme=dark] .app table.st-table tbody tr.st-picked td{background:#3c2e46!important}
+html[data-theme=dark] .app table.st-table tbody td:nth-child(3) b{color:var(--lav-deep)}
+html[data-theme=dark] .app .st-foot{border-color:#4a3a5a}
+@media(max-width:900px){.app .st-filter{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.app.st-page .heading .help-toggle{display:none}
+.app.st-page .heading:has(#actions:empty){display:none}
+.app .st-help svg{width:16px;height:16px}
+.app table.st-table tbody tr[data-id] td{padding-top:7px!important;padding-bottom:7px!important}
+.app table.st-table .ot-img img,.app table.st-table .ot-noimg{width:32px;height:32px}
+.app table.st-table tbody td:nth-child(3) small{font-size:11px}
+.app table.st-table.ot-orders thead th:nth-child(3),.app table.st-table.ot-orders tbody td:nth-child(3){width:132px!important}
+.app table.st-table.ot-orders tbody td:nth-child(3) small{white-space:nowrap}
+.app .st-filter-act .btn.primary{background:#49305e!important;border-color:#49305e!important;color:#fff!important}
+html[data-theme=dark] .app .st-filter-act .btn.primary{background:var(--lav-deep)!important;border-color:var(--lav-deep)!important;color:#1d1724!important}
+/* Rovnomerná mriežka zoznamov: jednotné odsadenie, voľné miesto dostáva len hlavný textový stĺpec */
+.app table.st-table{table-layout:fixed!important;width:100%!important;min-width:0!important}
+.app table.st-table thead th,.app table.st-table tbody td{padding:8px 12px!important;vertical-align:middle!important;height:auto}
+.app table.st-table thead th{padding-top:10px!important;padding-bottom:10px!important}
+.app table.st-table th.ot-num,.app table.st-table td.ot-num{text-align:right!important;padding-right:24px!important}
+.app table.st-table.ot-orders th:nth-child(1),.app table.st-table.ot-orders td:nth-child(1){width:44px!important}
+.app table.st-table.ot-orders th:nth-child(2),.app table.st-table.ot-orders td:nth-child(2){width:56px!important}
+.app table.st-table.ot-orders th:nth-child(3),.app table.st-table.ot-orders td:nth-child(3){width:140px!important}
+.app table.st-table.ot-orders th:nth-child(4),.app table.st-table.ot-orders td:nth-child(4){width:auto!important}
+.app table.st-table.ot-orders th:nth-child(5),.app table.st-table.ot-orders td:nth-child(5){width:150px!important}
+.app table.st-table.ot-orders th:nth-child(6),.app table.st-table.ot-orders td:nth-child(6){width:150px!important}
+.app table.st-table.ot-orders th:nth-child(7),.app table.st-table.ot-orders td:nth-child(7){width:130px!important}
+.app table.st-table.ot-orders th:nth-child(8),.app table.st-table.ot-orders td:nth-child(8){width:140px!important}
+.app table.st-table.ot-orders th:nth-child(9),.app table.st-table.ot-orders td:nth-child(9){width:140px!important}
+.app table.st-table.ot-orders th:nth-child(10),.app table.st-table.ot-orders td:nth-child(10){width:112px!important;text-align:right}
+.app table.st-table.product-grid th:nth-child(1),.app table.st-table.product-grid td:nth-child(1){width:44px!important}
+.app table.st-table.product-grid th:nth-child(2),.app table.st-table.product-grid td:nth-child(2){width:56px!important}
+.app table.st-table.product-grid th:nth-child(3),.app table.st-table.product-grid td:nth-child(3){width:auto!important}
+.app table.st-table.product-grid th:nth-child(4),.app table.st-table.product-grid td:nth-child(4){width:120px!important}
+.app table.st-table.product-grid th:nth-child(5),.app table.st-table.product-grid td:nth-child(5){width:110px!important}
+.app table.st-table.product-grid th:nth-child(6),.app table.st-table.product-grid td:nth-child(6),.app table.st-table.product-grid th:nth-child(7),.app table.st-table.product-grid td:nth-child(7){width:120px!important;text-align:right!important;padding-right:24px!important}
+.app table.st-table.product-grid th:nth-child(8),.app table.st-table.product-grid td:nth-child(8){width:140px!important}
+.app table.st-table.product-grid th:nth-child(9),.app table.st-table.product-grid td:nth-child(9){width:110px!important}
+.app table.st-table.product-grid th:nth-child(10),.app table.st-table.product-grid td:nth-child(10){width:112px!important;text-align:right}
+.app table.st-table.product-grid tbody td{display:table-cell!important}
+.app table.st-table.product-grid thead{display:table-header-group!important}.app table.st-table.product-grid tbody{display:table-row-group!important}.app table.st-table.product-grid tr{display:table-row!important}
+.app table.st-table.product-grid thead th{display:table-cell!important;height:auto!important;min-height:0!important}
+.app table.st-table td{overflow:hidden;text-overflow:ellipsis}
+.app table.st-table td.ot-act{overflow:visible}
+.app table.st-table.ot-orders th:nth-child(3),.app table.st-table.ot-orders td:nth-child(3){width:136px!important}
+.app table.st-table.ot-orders th:nth-child(5),.app table.st-table.ot-orders td:nth-child(5){width:130px!important}
+.app table.st-table.ot-orders th:nth-child(6),.app table.st-table.ot-orders td:nth-child(6){width:120px!important}
+.app table.st-table.ot-orders th:nth-child(7),.app table.st-table.ot-orders td:nth-child(7){width:116px!important}
+.app table.st-table.ot-orders th:nth-child(8),.app table.st-table.ot-orders td:nth-child(8),.app table.st-table.ot-orders th:nth-child(9),.app table.st-table.ot-orders td:nth-child(9){width:120px!important}
+.app table.st-table.ot-orders th:nth-child(10),.app table.st-table.ot-orders td:nth-child(10){width:104px!important}
+.app table.st-table td.ot-check,.app table.st-table th.ot-check{overflow:visible!important;text-overflow:clip!important;padding-left:14px!important;padding-right:6px!important}
+.app table.st-table thead tr{background:#f3ecf8!important;height:auto!important}
+.app table.st-table thead th{line-height:1.3!important}
+html[data-theme=dark] .app table.st-table thead tr{background:#2a2132!important}
+.app .st-card table.st-table thead th,.app .st-card table.st-table:has(#p-pick-all) thead th{background:#f3ecf8!important;border-bottom:3px solid #49305e!important;color:#49305e!important;padding:10px 12px!important}
+.app .st-card table.st-table thead th input{min-height:0!important;height:16px;width:16px}
+html[data-theme=dark] .app .st-card table.st-table thead th{background:#2a2132!important;border-bottom-color:var(--lav-deep)!important;color:var(--lav-deep)!important}
+.app .st-card .ot-wrap:has(.st-table){padding:0 16px!important;background:transparent;overflow-x:auto}
+.app table.st-table th.ot-check,.app table.st-table td.ot-check{width:44px!important}
+.app table.st-table th.ot-img,.app table.st-table td.ot-img{width:56px!important}
+.app table.st-table th.ot-act,.app table.st-table td.ot-act{width:112px!important;text-align:right}
+.app table.st-table.lv-compact th.ot-act,.app table.st-table.lv-compact td.ot-act{width:56px!important}
+.app table.st-table.customer-grid th:nth-child(5),.app table.st-table.customer-grid td:nth-child(5){width:200px!important}
+.app table.st-table.customer-grid th:nth-child(6),.app table.st-table.customer-grid td:nth-child(6){width:130px!important}
+.app table.st-table.customer-grid th:nth-child(7),.app table.st-table.customer-grid td:nth-child(7){width:120px!important}
+.app table.st-table td.lv-title{font-weight:600;color:#49305e}
+html[data-theme=dark] .app table.st-table td.lv-title{color:var(--lav-deep)}
+/* Podsekcie (.pills) vyzerajú ako ostatné záložky – pripojené ku karte, linka 3 px */
+.app .heading #actions>.pills{display:flex!important;flex-wrap:wrap;gap:4px!important;width:100%;padding:0 16px!important;margin:0!important;background:transparent!important;border:0!important;border-bottom:3px solid #49305e!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important}
+.app .heading #actions>.pills .pill{flex:0 0 auto!important;display:inline-flex;align-items:center;min-height:44px;padding:10px 18px!important;margin:0!important;border:1px solid rgba(164,129,191,.28)!important;border-bottom:0!important;border-radius:12px 12px 0 0!important;background:rgba(164,129,191,.14)!important;color:var(--ink,#2a2233)!important;font:700 14px/1.2 'Figtree',sans-serif!important;text-decoration:none!important;box-shadow:none!important}
+.app .heading #actions>.pills .pill:hover{background:var(--lav-soft)!important}
+.app .heading #actions>.pills .pill.on{background:#49305e!important;border-color:#49305e!important;color:#fff!important}
+html[data-theme=dark] .app .heading #actions>.pills{border-bottom-color:var(--lav-deep)!important}
+html[data-theme=dark] .app .heading #actions>.pills .pill.on{background:var(--lav-deep)!important;border-color:var(--lav-deep)!important;color:#1d1724!important}
+.app.st-page .heading:has(#actions>.pills){display:block;margin:0 0 -1px}
+.app.st-page .heading:has(#actions>.pills)+*,.app.st-page .heading:has(#actions>.pills)~#view .st-card{border-top-left-radius:0}
+.app table.st-table.customer-grid th:nth-child(7),.app table.st-table.customer-grid td:nth-child(7){width:150px!important}
+.app table.st-table.customer-grid th:nth-child(6),.app table.st-table.customer-grid td:nth-child(6){width:190px!important}
+/* Objednávky: voľné miesto sa delí medzi všetky dátové stĺpce, nie iba zákazníka.
+   Na užšom desktope sa posúva iba tabuľka; dátum a ovládanie sa nestlačia. */
+.app .st-card table.st-table.ot-orders{min-width:1160px!important}
+.app .st-card .ot-wrap:has(.ot-orders){position:relative}
+.app .st-card table.st-table.ot-orders :is(th,td):nth-child(n+3):nth-child(-n+9){width:auto!important}

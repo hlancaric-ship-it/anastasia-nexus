@@ -38,12 +38,11 @@ describe("sanitizácia obsahu kampane", () => {
       .toEqual({ subject: "Téma skryté", preheader: "Úvod", body_html: "<p>x</p>" })
   })
 
-  // Schválený list s Luciou role data-nl nepoužíva, sanitizácia ich odstráni.
-  it("odstráni atribúty data-nl aj oddeľovače hr", () => {
+  it("prenáša len roly šablóny data-nl a oddeľovač hr", () => {
     expect(sanitizeCampaignHtml('<p data-nl="eyebrow">Nadtitulok</p><hr data-nl="dark"><p data-nl="quote">Citát</p><hr data-nl="olive"><p data-nl="sign">S láskou,</p><p data-nl="link">L</p>'))
-      .toBe('<p>Nadtitulok</p><p>Citát</p><p>S láskou,</p><p>L</p>')
+      .toBe('<p data-nl="eyebrow">Nadtitulok</p><hr data-nl="dark"><p data-nl="quote">Citát</p><hr data-nl="olive"><p data-nl="sign">S láskou,</p><p data-nl="link">L</p>')
     expect(sanitizeCampaignHtml('<img data-nl="hero" src="https://cdn.example.test/a.jpg" alt=""><hr data-nl="sign"><h2 data-nl="eyebrow">T</h2><p data-nl="x&quot; onclick=&quot;1">y</p>'))
-      .toBe('<img src="https://cdn.example.test/a.jpg" alt=""><h2>T</h2><p>y</p>')
-    expect(sanitizeCampaignHtml('<hr style="border:5px solid red" onclick="x">')).toBe("")
+      .toBe('<img src="https://cdn.example.test/a.jpg" alt=""><hr><h2>T</h2><p>y</p>')
+    expect(sanitizeCampaignHtml('<hr style="border:5px solid red" onclick="x">')).toBe("<hr>")
   })
 })

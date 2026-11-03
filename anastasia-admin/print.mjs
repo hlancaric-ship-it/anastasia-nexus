@@ -21,7 +21,8 @@ const COUNTRY = { sk: 'Slovensko', cz: 'Česko' };
 const h = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const eur = (n) => new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' }).format(Number(n || 0));
 const date = (d) => (d ? new Date(d).toLocaleDateString('sk-SK') : '');
-const num = (o) => o.metadata?.legacy_customer_migration?.number || o.display_id || '';
+// Číslo objednávky = variabilný symbol (rok + 6 miest), objednávky zo Shoptetu s pôvodným číslom.
+const num = (o) => o.metadata?.legacy_customer_migration?.number || (o.display_id != null && o.display_id !== '' ? `${new Date(o.created_at || Date.now()).getUTCFullYear()}${String(o.display_id).replace(/\D/g, '').padStart(6, '0')}` : '');
 
 function addressLines(a = {}) {
   return [

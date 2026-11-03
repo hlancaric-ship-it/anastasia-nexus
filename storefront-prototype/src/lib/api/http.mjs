@@ -1,9 +1,12 @@
 import {productFlags} from '../product-flags.mjs';
+import {normalizeTranslations,registerProducts} from '../product-i18n.mjs';
 import {SHOP_CATEGORIES, SHOP_CATEGORY_HANDLES, shopCategoryName, VOUCHER_CATEGORY, VOUCHER_CATEGORY_HANDLE, VOUCHER_IMAGE, voucherAmountFromSlug, voucherSlug} from './catalog.mjs';
 
 const EUR = new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' });
 const ORDER_STATUS = { pending: 'Prijatá', completed: 'Vybavená', canceled: 'Zrušená', archived: 'Archivovaná', requires_action: 'Čaká na vás', draft: 'Rozpracovaná' };
 const money = n => (Number.isFinite(Number(n)) ? EUR.format(Number(n)) : 'Cena sa doplní');
+// Číslo objednávky = variabilný symbol: rok vytvorenia + poradové číslo na 6 miest (2026000088); ďalší rok sa mení len rok.
+const orderNo = o => { const d = String(o?.display_id ?? '').trim(); if (!/^\d{1,6}$/.test(d)) return d; const y = new Date(o?.created_at || Date.now()); return `${Number.isNaN(y.getTime()) ? new Date().getUTCFullYear() : y.getUTCFullYear()}${d.padStart(6, '0')}`; };
 const NAME_BY_HANDLE=Object.fromEntries(Object.entries(SHOP_CATEGORY_HANDLES).map(([name,handle])=>[handle,name]));
 const ART = { Kozmetika: 'jar', 'BIOKOZMETIKA': 'jar', Biokozmetika: 'jar', Výživa: 'coffee', Domov: 'candle', Ľan: 'linen', Programy: 'sun', Služby: 'sun' };
 
@@ -65,6 +68,8 @@ function mapProduct(p,apiBase='') {
     art: ART[category] || 'jar',
     description: p.subtitle || p.metadata?.description_text || '',
     descriptionHtml: p.description || '',
+    // Překlady názvu/podtitulku/popisu z metadat (EN/RU); bez překladu se zobrazí slovenština.
+    translations: normalizeTranslations(p.metadata),
     longDescription: p.metadata?.description_text || '',
     images: (p.images || []).map(image => image.url).filter(url=>!isEditorialOnlyAsset(url)).map(media).filter(Boolean),
     availability: 'Dostupné',
@@ -399,6 +404,7 @@ export function createHttpApi(storage, config) {
       const all = r.data?.products || [];
       let items = all.filter(p=>p.metadata?.gift_voucher!==true&&p.metadata?.gift_voucher!=='true').map(p=>mapProduct(p,base));
       items = items.concat(voucherProducts(all.find(p=>p.metadata?.gift_voucher===true||p.metadata?.gift_voucher==='true')));
+      registerProducts(items);
       const s = search.toLocaleLowerCase('sk');
       if (category) { const wanted = NAME_BY_HANDLE[category] || category; items = items.filter(p => p.category === wanted || p.categoryHandle === category); }
       if (search) items = items.filter(p => p.name.toLocaleLowerCase('sk').includes(s));
@@ -411,7 +417,9 @@ export function createHttpApi(storage, config) {
       if (voucherAmountFromSlug(slug) != null) return (await voucherList()).find(v => v.slug === slug) || null;
       const r = await call(`/store/products?handle=${encodeURIComponent(slug)}&region_id=${config.regionId}&fields=${PRODUCT_FIELDS}`);
       const p = r.data?.products?.[0];
-      return p ? mapProduct(p,base) : null;
+      const product = p ? mapProduct(p,base) : null;
+      if (product) registerProducts([product]);
+      return product;
     },
     async getCategories() {
       const r = await call('/store/product-categories?limit=100&fields=name');
@@ -876,7 +884,7 @@ export function createHttpApi(storage, config) {
       const p = r.data?.products?.[0];
       // Bez publikovaného produktu (poukazy vypnuté v adminu) ponuka zostane prázdna, nikdy ukážkové hodnoty.
       if (!r.ok || !p) return { id: '', handle: 'darkovy-poukaz', variants: [] };
-      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, amount: v.calculated_price?.calculated_amount })) };
+      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, amount: v.calculated_price?.calculated_amount })).sort((a, b) => (a.amount ?? Infinity) - (b.amount ?? Infinity)) };
     },
     async addGiftVoucher({ variant_id, recipient }) {
       if (!variant_id) return { ok: false, message: 'Vybraná hodnota poukazu už nie je dostupná.' };
@@ -913,7 +921,7 @@ export function createHttpApi(storage, config) {
         const tracking = (o.fulfillments || []).flatMap(f => f.labels || []).filter(l => l && (l.tracking_number || l.tracking_url)).map(l => ({ number: l.tracking_number || '', url: /^https:\/\//.test(l.tracking_url || '') ? l.tracking_url : '' }));
         const status = o.status === 'canceled' ? ORDER_STATUS.canceled : SHIP[o.fulfillment_status] || ORDER_STATUS[o.status] || 'Prijatá';
         return {
-          id: o.id, legacy: Boolean(o.metadata?.legacy_customer_migration), number: String(o.metadata?.legacy_customer_migration?.number || o.display_id || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
+          id: o.id, legacy: Boolean(o.metadata?.legacy_customer_migration), number: String(o.metadata?.legacy_customer_migration?.number || orderNo(o) || o.id), date: new Date(o.metadata?.legacy_customer_migration?.placed_at || o.created_at).toLocaleDateString('sk-SK'),
           product: items[0]?.title || '—', items, tracking,
           status, statusKey: o.status === 'canceled' ? 'canceled' : o.fulfillment_status === 'delivered' ? 'delivered' : SHIP[o.fulfillment_status] ? 'shipped' : 'placed',
           totalLabel: money(o.total), subtotalLabel: money(o.subtotal), shippingLabel: money(o.shipping_total), taxLabel: money(o.tax_total), discountLabel: o.discount_total ? money(o.discount_total) : '',

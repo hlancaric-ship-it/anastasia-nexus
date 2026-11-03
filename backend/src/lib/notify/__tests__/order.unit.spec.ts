@@ -45,7 +45,7 @@ beforeEach(() => { process.env.ACCOUNT_ORDERS_URL = "https://anastasiaoz.eu/ucet
 describe("orderPlacedData", () => {
   it("formátuje sumy v sk-SK a označí zaplatenú objednávku", () => {
     const data = orderPlacedData(baseOrder() as any)
-    expect(data).toMatchObject({ order_display_id: "1042", first_name: "Jana", paid: true, url: "https://anastasiaoz.eu/ucet/objednavky/order_1" })
+    expect(data).toMatchObject({ order_display_id: "2026001042", first_name: "Jana", paid: true, url: "https://anastasiaoz.eu/ucet/objednavky/order_1" })
     expect(data.items).toEqual([{ title: "Kurz RESET", quantity: 2, total: formatMoney(118, "eur") }])
     expect(String(data.total)).toMatch(/^111,50\s€$/)
     expect(orderPlacedData(baseOrder({ shipping_total: 0, discount_total: 0 }) as any)).toMatchObject({ shipping_total: null, discount_total: null })

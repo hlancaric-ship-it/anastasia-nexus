@@ -254,7 +254,7 @@ export const DICT = {
   'CHRÍPKOVÝ PRÁŠOK': ['FLU POWDER', 'ПОРОШОК ОТ ГРИППА'],
   'Nič nemusíš': ['You do not have to do anything', 'Тебе ничего не нужно делать'],
   'Tvoj sprcháč': ['Your shower gel', 'Ваш гель для душа'],
-  'JANČOVA antibiotická zmes': ['JANCA ANTIBIOTIC SPICE BLEND', 'АНТИБАКТЕРИАЛЬНАЯ СМЕСЬ ЯНЧА'],
+  'Jančova antibiotická zmes': ["Janca's antibiotic blend", 'Антибиотическая смесь Янчи'],
   'Tvoja pleťová voda osviežujúca': ['Your refreshing facial toner', 'Ваш освежающий тоник для лица'],
   'Nevyhnutné cookies používame na fungovanie webu a nákupu. Voliteľné cookies použijeme iba s vaším súhlasom. Voľbu môžete kedykoľvek zmeniť v Nastaveniach cookies. Podrobnosti nájdete v informáciách o cookies a ochrane osobných údajov.': ['We use essential cookies to run the website and process purchases. We use optional cookies only with your consent. You can change your choice at any time in Cookie settings. See our cookie and privacy information for details.', 'Необходимые файлы cookie нужны для работы сайта и покупок. Необязательные файлы cookie используются только с вашего согласия. Вы можете изменить свой выбор в любое время в настройках файлов cookie. Подробнее — в информации о файлах cookie и защите персональных данных.'],
   'Odmietnuť voliteľné': ['Reject optional', 'Отклонить необязательные'],
@@ -469,9 +469,11 @@ export const DICT = {
   "Kód poukazu": ["Voucher code", "Код сертификата"],
   // --- Katalóg 17 produktov a ich detaily ---
   'MINERAL PROTECT 200ml': ['MINERAL PROTECT 200ml', 'MINERAL PROTECT 200ml'],
+  'Darčekový poukaz 30 €': ['Gift voucher €30', 'Подарочный сертификат 30 €'],
   'Darčekový poukaz 50 €': ['Gift voucher €50', 'Подарочный сертификат 50 €'],
   'Darčekový poukaz 100 €': ['Gift voucher €100', 'Подарочный сертификат 100 €'],
   'Darčekový poukaz 200 €': ['Gift voucher €200', 'Подарочный сертификат 200 €'],
+  'Darčekový poukaz 30\u00a0€': ['Gift voucher €30', 'Подарочный сертификат 30 €'],
   'Darčekový poukaz 50\u00a0€': ['Gift voucher €50', 'Подарочный сертификат 50 €'],
   'Darčekový poukaz 100\u00a0€': ['Gift voucher €100', 'Подарочный сертификат 100 €'],
   'Darčekový poukaz 200\u00a0€': ['Gift voucher €200', 'Подарочный сертификат 200 €'],
@@ -765,10 +767,43 @@ function walkTextNodes(root, fn) {
 const TEXT_ATTRS = ['alt', 'aria-label', 'title', 'placeholder'];
 const isLanguageCode = value => ['SK', 'EN', 'RU'].includes(value.trim().toUpperCase());
 
+// Názvy a popisy produktů (EN/RU z metadat Medusy). Registr plní src/lib/product-i18n.mjs (živá data z API)
+// a při prvním přepnutí jazyka i statický product-translations.json z buildu. Chybějící překlad = slovenština.
+const productReg = () => (globalThis.__anaProductTr ||= {});
+const PRODUCT_SEPARATORS = [' · ', ' × '];
+function productEntry(trimmed) {
+  const reg = productReg();
+  if (reg[trimmed]) return reg[trimmed];
+  // Řádek košíku/objednávky: „Název · varianta“, „Název × 2“.
+  for (const sep of PRODUCT_SEPARATORS) {
+    const at = trimmed.indexOf(sep);
+    if (at <= 0) continue;
+    const head = reg[trimmed.slice(0, at)];
+    if (head) return head.map(v => (v ? v + trimmed.slice(at) : ''));
+  }
+  return null;
+}
+// Živé překlady produktů z API mají přednost před statickým slovníkem.
+const lookup = trimmed => productEntry(trimmed) || DICT[trimmed] || null;
+
+let productJson = null;
+function loadProductJson() {
+  if (productJson || typeof fetch !== 'function') return productJson;
+  productJson = fetch('/product-translations.json', { credentials: 'same-origin' })
+    .then(r => (r.ok ? r.json() : {}))
+    .then(data => {
+      const reg = productReg();
+      for (const [key, value] of Object.entries(data || {})) if (!reg[key] && Array.isArray(value)) reg[key] = value; // živá data mají přednost
+      if (currentLang !== 'sk') apply(currentLang);
+    })
+    .catch(() => {});
+  return productJson;
+}
+
 function translateValue(value, target) {
   const trimmed = value.trim();
   if (!trimmed || isLanguageCode(trimmed)) return value;
-  let entry = DICT[trimmed];
+  let entry = lookup(trimmed);
   let sentence = false;
   // štítky sa píšu vetou, slovník ich má verzálkami
   if (!entry && trimmed !== trimmed.toLocaleUpperCase()) { entry = DICT[trimmed.toLocaleUpperCase('sk')]; sentence = Boolean(entry); }
@@ -789,8 +824,8 @@ function translateNode(node, target) {
   const trimmed = src.trim();
   let next = src;
   if (target !== 'sk') {
-    const entry = DICT[trimmed];
-    if (entry && entry[idx[target]]) next = src.replace(trimmed, entry[idx[target]]); // nenalezené zůstává slovensky (patří do data-sk-only)
+    const entry = lookup(trimmed);
+    if (entry && entry[idx[target]]) next = src.replace(trimmed, () => entry[idx[target]]); // nenalezené zůstává slovensky (patří do data-sk-only)
   }
   if (node.nodeValue !== next) node.nodeValue = next;
   lastSet.set(node, next);
@@ -820,6 +855,7 @@ function watchDynamicText() {
 export function apply(lang) {
   const target = normalizeLang(lang);
   currentLang = target;
+  if (target !== 'sk') loadProductJson();
   walkTextNodes(document.body, (node) => translateNode(node, target));
   for (const el of document.querySelectorAll('[alt],[aria-label],[title],[placeholder]')) {
     if (!originalAttr.has(el)) {
@@ -895,6 +931,8 @@ export function init() {
     }
     apply(detectLang());
     watchDynamicText();
+    // Živá data produktů dorazila po vykreslení: přeložit už zobrazené texty.
+    document.addEventListener('anastasia:product-tr', () => { if (currentLang !== 'sk') apply(currentLang); });
   } catch {}
   try { window.anaSetLang = setLang; } catch {}
 }

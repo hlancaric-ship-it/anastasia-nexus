@@ -5,7 +5,7 @@ import { capturedTotal, isOrderPaid, refundedTotal, toNumber, type OrderPaymentV
 import { sendEmail } from "../email/send"
 import { recordEvent } from "../observability/events"
 import type { NotifyResult } from "./index"
-import { bankTransferInstructions, bankTransferQr, paymentMethodByProvider } from "../checkout/delivery-payment"
+import { bankTransferInstructions, bankTransferQr, orderNumber, paymentMethodByProvider } from "../checkout/delivery-payment"
 import { qrPng } from "../payments/qr-payment"
 import { invoiceAttachment } from "../invoice/load"
 import { syncOrderToPohodaIfPaid } from "../invoice/pohoda"
@@ -41,6 +41,8 @@ type Fields = Record<string, unknown>
 type OrderRow = OrderPaymentView & {
   id: string
   display_id?: number | string | null
+  created_at?: string | Date | null
+  metadata?: Record<string, unknown> | null
   email?: string | null
   no_notification?: boolean
   currency_code?: string | null
@@ -55,7 +57,7 @@ type OrderRow = OrderPaymentView & {
 }
 
 const ORDER_FIELDS = [
-  "id", "display_id", "email", "no_notification", "currency_code", "status", "total", "item_total", "shipping_total", "discount_total",
+  "id", "display_id", "created_at", "metadata", "email", "no_notification", "currency_code", "status", "total", "item_total", "shipping_total", "discount_total",
   "customer.first_name", "shipping_address.first_name", "billing_address.first_name",
   "items.title", "items.product_title", "items.quantity", "items.total", "items.requires_shipping",
   "payment_collections.captured_amount", "payment_collections.refunded_amount", "payment_collections.payments.captured_at",
@@ -98,7 +100,7 @@ export function orderPlacedData(order: OrderRow): Record<string, unknown> {
   const method = paymentMethodByProvider(((order.payment_collections ?? []) as Array<{ payments?: Array<{ provider_id?: string | null }> | null }>).flatMap(c => c.payments ?? []).find(p => p?.provider_id)?.provider_id)
   const transfer = bankTransferInstructions(order)
   return {
-    order_display_id: order.display_id != null ? String(order.display_id) : null,
+    order_display_id: orderNumber(order),
     first_name: firstName(order),
     items: (order.items ?? []).slice(0, MAX_ITEMS).map(item => ({
       title: clean(item.product_title) ?? clean(item.title) ?? "Položka",
@@ -206,7 +208,7 @@ export async function notifyPaymentCaptured(container: Container, paymentId: str
       resource_id: order.id, resource_type: "order",
       ...(paidInvoice ? { attachments: [paidInvoice] } : {}),
       data: {
-        order_display_id: order.display_id != null ? String(order.display_id) : null,
+        order_display_id: orderNumber(order),
         amount: formatMoney(capturedTotal(order), order.currency_code),
         url: orderUrl(order.id),
       },
@@ -233,7 +235,7 @@ export async function notifyShipment(container: Container, fulfillmentId: string
       to, template: ORDER_TEMPLATES.shipped, idempotency_key: `order.shipped:${fulfillmentId}`,
       resource_id: order.id, resource_type: "order",
       data: {
-        order_display_id: order.display_id != null ? String(order.display_id) : null,
+        order_display_id: orderNumber(order),
         tracking_number: clean(label?.tracking_number),
         tracking_url: clean(label?.tracking_url),
         url: orderUrl(order.id),
@@ -267,7 +269,7 @@ export async function notifyRefunds(container: Container, paymentId: string): Pr
       to: clean(target.email)!, template: ORDER_TEMPLATES.refunded, idempotency_key: `order.refunded:${refund.id}`,
       resource_id: target.id, resource_type: "order",
       data: {
-        order_display_id: target.display_id != null ? String(target.display_id) : null,
+        order_display_id: orderNumber(target),
         amount: formatMoney(refund.amount, payment?.currency_code ?? target.currency_code),
         url: orderUrl(target.id),
       },
@@ -287,7 +289,7 @@ export async function notifyOrderCanceled(container: Container, orderId: string)
       to, template: ORDER_TEMPLATES.canceled, idempotency_key: `order.canceled:${order.id}`,
       resource_id: order.id, resource_type: "order",
       data: {
-        order_display_id: order.display_id != null ? String(order.display_id) : null,
+        order_display_id: orderNumber(order),
         // Zaplaceno a ještě nevráceno → věta „peniaze Vám vrátime“.
         paid: capturedTotal(order) - refundedTotal(order) > 0.005,
         url: orderUrl(order.id),

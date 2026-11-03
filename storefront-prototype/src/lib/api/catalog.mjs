@@ -29,7 +29,7 @@ export const SHOP_CATEGORY_HANDLES=Object.freeze({
   'Konzultácie':'konzultacie',
   'Darčekové poukazy':'darcekove-poukazy',
 });
-// Darčekový poukaz je v jadre jeden produkt s hodnotami. V obchode je každá hodnota samostatný produkt.
+// Darčekový poukaz je v jadre jeden produkt s hodnotami. Každá hodnota má vlastnú adresu detailu, výpis obchodu ukáže jednu kartu.
 export const VOUCHER_CATEGORY='Darčekové poukazy';
 export const VOUCHER_CATEGORY_HANDLE='darcekove-poukazy';
 export const VOUCHER_SLUG_PREFIX='darcekovy-poukaz-';

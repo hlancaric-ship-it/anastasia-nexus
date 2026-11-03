@@ -11,7 +11,7 @@ import { assertCartConsent, loadConsentCart } from "../../../lib/legal/checkout"
 import { LegalError } from "../../../modules/legal/policy"
 import { compensateUnfinishedCheckout, stripeIntentsOfCart } from "../../../lib/checkout/payment-compensation"
 import { assertCouponNotExhausted, isCartLockError } from "../../../lib/pricing/coupon-usage"
-import { bankTransferInstructions, bankTransferQr, loadCartShape, paymentMethodByProvider, PICKUP_ADDRESS } from "../../../lib/checkout/delivery-payment"
+import { bankTransferInstructions, bankTransferQr, loadCartShape, orderNumber, paymentMethodByProvider, PICKUP_ADDRESS } from "../../../lib/checkout/delivery-payment"
 
 /** Objednávka nevznikla: ak už bola platba kartou stiahnutá/autorizovaná, vráti ju (nikdy nevyhodí). */
 async function compensate(scope: AuthenticatedMedusaRequest["scope"], cartId: string, reason: string, knownIntents: string[]) {
@@ -60,7 +60,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const { data } = await query.graph({
       entity: "order",
-      fields: ["id", "display_id", "currency_code", "total", "metadata", "payment_collections.payments.captured_at", "payment_collections.payments.status", "payment_collections.payments.provider_id", "shipping_methods.name", "shipping_methods.shipping_option_id"],
+      fields: ["id", "display_id", "created_at", "currency_code", "total", "metadata", "payment_collections.payments.captured_at", "payment_collections.payments.status", "payment_collections.payments.provider_id", "shipping_methods.name", "shipping_methods.shipping_option_id"],
       filters: { id: (result.result as any).id },
     })
     const order = data?.[0]
@@ -96,7 +96,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     const transfer = method === "bank_transfer" && !isPaid ? bankTransferInstructions(order) : null
     return res.status(200).json({
       ok: true,
-      order: { id: order.id, display_id: order.display_id, currency_code: order.currency_code, total: order.total, payment_collections: order.payment_collections },
+      order: { id: order.id, display_id: order.display_id, number: orderNumber(order), currency_code: order.currency_code, total: order.total, payment_collections: order.payment_collections },
       payment_method: method,
       // Prevod: platobné údaje (VS = číslo objednávky); dobierka: platí sa pri prevzatí.
       bank_transfer: transfer ? { ...transfer, ...(await bankTransferQr(transfer).catch(() => ({}))) } : null,

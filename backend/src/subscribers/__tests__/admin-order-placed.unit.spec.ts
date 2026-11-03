@@ -9,6 +9,7 @@ jest.mock("../../lib/observability/events", () => ({ recordEvent: (...args: any[
 const order = {
   id: "order_1",
   display_id: "1042",
+  created_at: "2026-10-27T09:00:00.000Z",
   currency_code: "eur",
   total: 89,
   email: "zákaznik@anastasia.test",
@@ -41,7 +42,7 @@ describe("Upozornenie správcovi na novú objednávku", () => {
     expect(call.template).toBe("order-placed-admin")
     expect(call.resource_type).toBe("order")
     expect(call.resource_id).toBe("order_1")
-    expect(call.data.order_display_id).toBe("1042")
+    expect(call.data.order_display_id).toBe("2026001042")
     expect(call.data.first_name).toBe("Jozef Kováč")
     expect(call.data.total).toContain("89")
     expect(call.data.admin_url).toBeTruthy()

@@ -9,8 +9,8 @@ const valid = { values: [50, 100, 200], validity_months: 12, scope_type: "all", 
 
 describe("nastavení poukazu", () => {
   it("výchozí hodnoty odpovídají zadání (50/100/200 €, 12 měsíců, vše, částečné čerpání)", () => {
-    expect(DEFAULT_SETTINGS).toMatchObject({ enabled: true, values_minor: [5000, 10000, 20000], validity_months: 12, scope_type: "all", partial_redemption: true })
-    expect(settingsFromRow(null).values_minor).toEqual([5000, 10000, 20000])
+    expect(DEFAULT_SETTINGS).toMatchObject({ enabled: true, values_minor: [3000, 5000, 10000], validity_months: 12, scope_type: "all", partial_redemption: true })
+    expect(settingsFromRow(null).values_minor).toEqual([3000, 5000, 10000])
   })
   it("převede eura na centy a seřadí", () => {
     const result = parseSettingsInput({ ...valid, values: ["25,50", 100, 10] })
