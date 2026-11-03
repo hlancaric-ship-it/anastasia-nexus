@@ -109,8 +109,11 @@ async function lookupCoupon(scope: MedusaRequest["scope"], code: string): Promis
  * - `couponCodeInput === undefined` -> žádná změna z klienta; použije se
  *   dřív uložený kód, ale ZNOVU se ověří dostupnost (limit/platnost se
  *   mohly mezitím změnit -- nikdy se nespoléhá na starou uloženou platnost).
+ * - `applicable`: kupón bez jediné povolené položky v košíku nezľaví nič, takže
+ *   nový kód skončí COUPON_NOT_APPLICABLE (legacy „kupón platí len pre ...“) a
+ *   uložený sa tiše odoberie – inak by sa pri objednávke započítalo použitie bez zľavy.
  */
-async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, cartMetadata: Record<string, unknown> | null | undefined, couponCodeInput: string | null | undefined): Promise<StoredCoupon | undefined> {
+async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, cartMetadata: Record<string, unknown> | null | undefined, couponCodeInput: string | null | undefined, applicable: (coupon: StoredCoupon) => boolean): Promise<StoredCoupon | undefined> {
   if (couponCodeInput === null) {
     await persistCartCoupon(scope, cartId, cartMetadata, null)
     return undefined
@@ -118,13 +121,14 @@ async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
   if (typeof couponCodeInput === "string" && couponCodeInput.trim().length > 0) {
     const resolved = await lookupCoupon(scope, couponCodeInput.trim())
     if (!resolved) throw new Error("COUPON_INVALID")
+    if (!applicable(resolved)) throw new Error("COUPON_NOT_APPLICABLE")
     await persistCartCoupon(scope, cartId, cartMetadata, resolved)
     return resolved
   }
   const stored = readStoredCoupon(cartMetadata)
   if (!stored) return undefined
   const revalidated = await lookupCoupon(scope, stored.code)
-  if (!revalidated) {
+  if (!revalidated || !applicable(revalidated)) {
     await persistCartCoupon(scope, cartId, cartMetadata, null)
     return undefined
   }
@@ -185,7 +189,6 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
       }
     }
   }
-  const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput)
   const tenantId = process.env.NEXUS_TENANT_ID
   const pricingUrl = process.env.NEXUS_PRICING_URL
   const apiKey = process.env.NEXUS_PRICING_API_KEY
@@ -244,11 +247,17 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
     })
   }
 
-  // 2) Pevná zľava (EUR) sa rozdeľuje medzi položky, na ktoré kupón platí.
+  // 2) Kupón sa uplatní len na položky, na ktoré platí (darčekový poukaz nikdy).
+  //    Bez jedinej takej položky sa kupón neprijme (viď `resolveCartCoupon`).
+  const discountable = prepared.filter((item) => !isGiftVoucherProduct(item.variant?.product))
+  const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput,
+    (candidate) => discountable.some((item) => couponAppliesToProduct(candidate, item.productId)))
+
+  // 3) Pevná zľava (EUR) platí JEDNOU za košík a rozdelí sa na zľavu za kus.
   //    Percentuálna zľava nemusí alokáciu -- Worker ju aplikuje na každú položku.
-  const couponItems = prepared
+  const couponItems = discountable
     .filter((item) => couponAppliesToProduct(coupon, item.productId))
-    .map((item) => ({ id: item.id, productId: item.productId, basePrice: item.basePrice }))
+    .map((item) => ({ id: item.id, productId: item.productId, basePrice: item.salePrice ?? item.basePrice, quantity: item.quantity }))
   const fixedAllocation = coupon && coupon.type === "fixed"
     ? allocateFixedCoupon(coupon.value, couponItems)
     : new Map<string, number>()
@@ -289,7 +298,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
         productMaxDiscount: typeof metadata.max_discount === "number" ? metadata.max_discount : undefined,
         allowLoyaltyDiscount: true,
         // Kupón: percentá len na položky, na ktoré platí; pevná suma je rozdelená
-        // už v backendu (alokácia) a Worker ju odčíta od ceny (nikdy pod 0).
+        // už v backendu na zľavu ZA KUS a Worker ju odčíta od ceny kusu (nikdy pod 0).
         couponDiscountPercent: couponApplies && coupon?.type === "percentage" ? coupon.value / 100 : undefined,
         couponFixedAmount: fixedAmount > 0 ? fixedAmount : undefined,
         }),
@@ -346,10 +355,10 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   } catch (error) {
     const message = error instanceof Error ? error.message : "PRICING_FAILED"
     const cartId = (req.body as { cart_id?: unknown } | undefined)?.cart_id
-    await recordEvent(req.scope, message.startsWith("NEXUS_PRICING") || message === "INVALID_NEXUS_PRICE_RESPONSE" ? "error" : "warn", message === "COUPON_INVALID" ? "coupon" : "pricing", "reprice_failed", {
+    await recordEvent(req.scope, message.startsWith("NEXUS_PRICING") || message === "INVALID_NEXUS_PRICE_RESPONSE" ? "error" : "warn", message.startsWith("COUPON_") ? "coupon" : "pricing", "reprice_failed", {
       cart_id: typeof cartId === "string" ? cartId : null, error_code: /^[A-Z][A-Z0-9_]{2,63}$/.test(message) ? message : "PRICING_FAILED",
     })
-    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message === "COUPON_INVALID" ? 400 : message.startsWith("NEXUS_PRICING") ? 503 : 400
+    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message.startsWith("COUPON_") ? 400 : message.startsWith("NEXUS_PRICING") ? 503 : 400
     return res.status(status).json({ ok: false, error: message })
   }
 }

@@ -446,6 +446,7 @@ export function createHttpApi(storage, config) {
       const id = await ensureCart();
       const r = await call('/store/nexus-cart', { method: 'POST', body: { cart_id: id, couponCode: String(code || '').trim() } });
       if (r.ok && r.data?.coupon) { set(COUPON, r.data.coupon.code); return { ok: true, message: 'Kupón prijatý.' }; }
+      if (r.data?.error === 'COUPON_NOT_APPLICABLE') return { ok: false, message: 'Kupón platí len pre vybrané produkty. Pridajte ich do košíka a použite kupón znova.' };
       return { ok: false, message: 'Kupón nie je dostupný.' };
     },
     async removeCoupon() { del(COUPON); await reprice(); return cartShape(); },
