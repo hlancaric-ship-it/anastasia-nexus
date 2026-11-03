@@ -1711,7 +1711,7 @@ async function vOrders(view) {
   // závisia od stavu platby a vybavenia, ktoré jadro nefiltruje na serveri. Cap 1 000 objednávok
   // je poistka proti ťažkému načítaniu; nad to sa v prehľade zobrazí upozornenie.
   const { orders = [], total = 0, truncated = false } = await loadOrders();
-  const payPill = (s) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc(PAY_LABEL[s] || s || '—')}</span>`;
+  const payPill = (s, short) => `<span class="pill ${s === 'captured' || s === 'paid' ? 'ok' : s === 'not_paid' || s === 'canceled' ? 'off' : 'warn'}">${esc((short && PAY_SHORT[s]) || PAY_LABEL[s] || s || '—')}</span>`;
   const fulPill = (s) => `<span class="pill ${s === 'fulfilled' || s === 'shipped' || s === 'delivered' ? 'ok' : 'warn'}">${esc(FUL_LABEL[s] || s || 'nevybavená')}</span>`;
   const legacy = o => o.metadata?.legacy_customer_migration;
   const archived = o => o.status === 'archived';
@@ -1732,23 +1732,16 @@ async function vOrders(view) {
     const items = o.items || [], first = items[0];
     const more = items.length > 1 ? ` <small>+ ${items.length - 1} ďalšie</small>` : '';
     const thumb = first?.thumbnail ? `<img src="${esc(first.thumbnail)}" alt="" loading="lazy">` : `<span class="ot-noimg">${navIcon('bag')}</span>`;
-    const method = PAY_METHOD[provider(o)];
     return `<tr data-id="${esc(o.id)}" tabindex="0" role="link">
       <td class="ot-check"><input type="checkbox" data-pick="${esc(o.id)}" aria-label="Označiť objednávku ${esc(legacy(o)?.number || o.display_id || '')}"></td>
       <td class="ot-img">${thumb}</td>
       <td><b>#${esc(legacy(o)?.number || o.display_id || '')}</b><small>${fmtDate(legacy(o)?.placed_at || o.created_at)}</small></td>
-      <td class="ot-cust">${esc(name(o) || '—')}<small>${esc(o.email || '')}</small></td>
-      <td class="ot-dor">${esc(shipping(o))}<small>${esc(city(o))}</small></td>
+      <td class="ot-cust">${esc(name(o) || o.email || '—')}</td>
       <td class="ot-items">${esc(first?.title || first?.product_title || '—')}${more}</td>
       <td class="ot-num">${fmtEur(o.total)}</td>
-      <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status)}${method ? `<small>${esc(method.label)}</small>` : ''}</td>
+      <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.payment_status || 'Historický záznam')}</span>` : payPill(o.payment_status, true)}</td>
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
-      <td class="ot-act ot-act-print"><div class="ot-acts">
-        <button type="button" class="btn ghost sm" data-print="label" title="Vytlačiť adresný štítok (A6)">Štítok</button>
-        <button type="button" class="btn ghost sm" data-print="slip" title="Vytlačiť dodací list (A4)">Dodací list</button>
-        ${archived(o) ? '' : '<button type="button" class="btn ghost sm" data-invoice title="Faktúra alebo zálohová faktúra (PDF)">Faktúra</button>'}
-        <button type="button" class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</button>
-      </div></td></tr>`;
+      <td class="ot-act"><button type="button" class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
   };
   let filter = 'all', query = '', visible = [], page = 0;
   const selected = new Set();
@@ -1770,7 +1763,7 @@ async function vOrders(view) {
       </div>
     </div>
     ${truncated ? `<div class="notice" style="margin:14px 24px 0">V prehľade je prvých ${orders.length} z ${total} objednávok. Staršie objednávky hľadaj cez vyhľadávanie podľa e-mailu.</div>` : ''}
-    <div class="ot-wrap"><table class="ot ot-orders"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazník</th><th>Doručenie</th><th>Položky</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+    <div class="ot-wrap"><table class="ot ot-orders"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazník</th><th>Položky</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
     <div class="ot-foot"><span class="muted" id="o-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
   </section>`;
   const body = view.querySelector('tbody');
@@ -1792,12 +1785,10 @@ async function vOrders(view) {
     const pages = Math.max(1, Math.ceil(list.length / ORDER_PAGE_SIZE));
     page = Math.min(Math.max(0, page), pages - 1);
     const slice = list.slice(page * ORDER_PAGE_SIZE, (page + 1) * ORDER_PAGE_SIZE);
-    body.innerHTML = slice.length ? slice.map(row).join('') : `<tr><td colspan="10" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
+    body.innerHTML = slice.length ? slice.map(row).join('') : `<tr><td colspan="9" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
     body.querySelectorAll('tr[data-id]').forEach(tr => {
       const open = () => vOrderDetail(view, tr.dataset.id);
       tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
-      tr.querySelectorAll('[data-print]').forEach(b => b.onclick = (e) => { e.stopPropagation(); printOrders([tr.dataset.id], b.dataset.print); });
-      tr.querySelectorAll('[data-invoice]').forEach(b => b.onclick = (e) => { e.stopPropagation(); openInvoice(tr.dataset.id); });
       const box = tr.querySelector('[data-pick]');
       if (box) {
         box.checked = selected.has(tr.dataset.id);
@@ -1864,6 +1855,7 @@ const PAY_METHOD = {
   pp_membership_stripe_membership: { key: 'card', label: 'Kartou', short: 'karta', manual: false },
 };
 const PAY_LABEL = { captured: 'zaplatená', authorized: 'autorizovaná (čaká na prijatie)', partially_refunded: 'čiastočne vrátená', refunded: 'vrátená', not_paid: 'nezaplatená', awaiting: 'čaká na platbu', canceled: 'zrušená', partially_captured: 'čiastočne zaplatená', requires_action: 'čaká na overenie' };
+const PAY_SHORT = { authorized: 'čaká na prijatie', partially_captured: 'čiastočne zaplatená' };
 const FUL_LABEL = { not_fulfilled: 'nevybavená', fulfilled: 'pripravená na odoslanie', partially_fulfilled: 'čiastočne pripravená', shipped: 'odoslaná', partially_shipped: 'čiastočne odoslaná', delivered: 'doručená', canceled: 'zrušená' };
 const sum = (arr, k = 'amount') => (arr || []).reduce((a, x) => a + Number(x?.[k] || 0), 0);
 async function vOrderDetail(view, id, notice) {

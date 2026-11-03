@@ -758,3 +758,42 @@ table.ot-orders tbody td.ot-items small{display:inline}
  table.ot-orders thead th.ot-num,table.ot-orders tbody td.ot-num{text-align:right!important;padding-right:20px!important}
  table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8),table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){text-align:left!important;max-width:none}
 }
+/* Tabuľky sa nestláčajú pod čitateľnú šírku: radšej sa posúvajú vo svojej karte, slová ani sumy sa nelámu. */
+table.agenda-grid.coupon-grid{min-width:640px}
+table.agenda-grid.coupon-grid tbody td:not(.lv-title){overflow-wrap:normal!important}
+table.agenda-grid.coupon-grid tbody td.ot-act{white-space:nowrap!important}
+.dash-table td:nth-child(5) .state{white-space:normal;line-height:1.15;align-items:flex-start}
+.dash-table td:nth-child(5) .state::before{margin-top:.3em}
+@media(min-width:801px){
+ table.ot-orders{min-width:980px!important}
+ table.ot-orders thead th:nth-child(2),table.ot-orders tbody td:nth-child(2){width:52px!important}
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:10%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:13%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:9%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:13%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7){width:10%!important}
+ table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8){width:9%!important}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:9%!important}
+ table.ot-orders thead th:nth-child(10),table.ot-orders tbody td:nth-child(10){width:172px!important}
+ table.ot-orders thead th.ot-num,table.ot-orders tbody td.ot-num{padding-right:12px!important}
+ table.ot-orders tbody td:nth-child(5) small{display:block;margin:2px 0 0;overflow-wrap:normal}
+}
+table.agenda-grid.coupon-grid thead th.ot-act,table.agenda-grid.coupon-grid tbody td.ot-act{width:112px!important}
+/* Na dotykových displejoch má každý ovládací prvok aspoň 32 px na ťuknutie. */
+@media(max-width:800px){
+ .dash .dots-btn{min-width:32px!important;width:32px!important;max-width:none;min-height:32px}
+ .dash .link-lav{display:inline-flex;align-items:center;min-height:32px;padding:0 4px}
+}
+/* Objednávky (desktop): na riadku len číslo, zákazník, položky, suma a stav. Doručenie, e-mail, tlač a faktúra sú v detaile. */
+@media(min-width:801px){
+ table.ot-orders{min-width:860px!important}
+ table.ot-orders thead th:nth-child(3),table.ot-orders tbody td:nth-child(3){width:13%!important}
+ table.ot-orders thead th:nth-child(4),table.ot-orders tbody td:nth-child(4){width:19%!important}
+ table.ot-orders thead th:nth-child(5),table.ot-orders tbody td:nth-child(5){width:24%!important}
+ table.ot-orders thead th:nth-child(6),table.ot-orders tbody td:nth-child(6){width:12%!important}
+ table.ot-orders thead th:nth-child(7),table.ot-orders tbody td:nth-child(7),table.ot-orders thead th:nth-child(8),table.ot-orders tbody td:nth-child(8){width:13%!important;text-align:left!important}
+ table.ot-orders thead th:nth-child(9),table.ot-orders tbody td:nth-child(9){width:110px!important;text-align:right}
+ table.ot-orders tbody td:nth-child(5) small{display:inline;margin:0}
+ table.ot-orders tbody td .pill{white-space:nowrap}
+ table.ot-orders tbody tr[data-id] td{padding-top:14px!important;padding-bottom:14px!important}
+}
