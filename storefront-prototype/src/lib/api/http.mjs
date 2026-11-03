@@ -876,7 +876,7 @@ export function createHttpApi(storage, config) {
       const p = r.data?.products?.[0];
       // Bez publikovaného produktu (poukazy vypnuté v adminu) ponuka zostane prázdna, nikdy ukážkové hodnoty.
       if (!r.ok || !p) return { id: '', handle: 'darkovy-poukaz', variants: [] };
-      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, amount: v.calculated_price?.calculated_amount })) };
+      return { id: p.id, handle: p.handle, variants: (p.variants || []).map(v => ({ id: v.id, title: v.title, amount: v.calculated_price?.calculated_amount })).sort((a, b) => (a.amount ?? Infinity) - (b.amount ?? Infinity)) };
     },
     async addGiftVoucher({ variant_id, recipient }) {
       if (!variant_id) return { ok: false, message: 'Vybraná hodnota poukazu už nie je dostupná.' };
