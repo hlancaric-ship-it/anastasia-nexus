@@ -879,3 +879,7 @@ html[data-theme=dark] .app .head-actions #actions .pills .pill.on,html[data-them
 .app .pe .pe-sec header::after{content:"";flex:1;height:1px;background:rgba(164,129,191,.35)}
 html[data-theme=dark] .app .pe .pe-panel .pe-bar .pe-nav{border-bottom-color:var(--lav-deep)!important}
 html[data-theme=dark] .app .pe .pe-panel .pe-bar .pe-nav button[aria-selected=true]{background:var(--lav-deep);border-color:var(--lav-deep);color:#1d1724}
+.pe-form2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px;align-items:start}
+.pe-form2>div{min-width:0}.pe-form2 input,.pe-form2 select{width:100%}
+.pe-hint{font-size:12px!important;line-height:1.45;margin:6px 0 0}
+.app .pe .pe-panel .pe-sec{align-content:start!important;justify-content:flex-start!important}.app .pe #p-category{width:100%}

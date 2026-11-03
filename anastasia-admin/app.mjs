@@ -1433,12 +1433,12 @@ async function vProductDetail(view, id, opts = {}) {
   const obrazky = `<div id="p-imgs" class="rc-grid"></div>
     <div class="p-img-actions"><label class="btn ghost p-img-upload"><input type="file" id="p-file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only">Nahrať z počítača</label><button type="button" class="btn gold" id="p-pick">${navIcon('photos')} Vybrať z mediálnej banky</button></div>
     <p class="muted" style="font-size:12px">JPG, PNG a WebP do 5 MB. Poradie zmeníte pretiahnutím alebo šípkami, prvý hlavný obrázok sa zobrazuje v obchode. Odobratím sa fotka nezmaže z mediálnej banky. Zmeny sa uložia tlačidlom Uložiť.</p>`;
-  const predaj = `<label>Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" maxlength="64" autocomplete="off"><p class="muted" style="font-size:12px">Kód môžete zmeniť. Pozor: QR kódy vytvorené pre starý kód prestanú fungovať a treba ich vytvoriť znova.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}
-    <div class="row"><div><label for="p-ean">EAN (čiarový kód)</label><input id="p-ean" value="${esc(String(variant?.barcode || variant?.ean || ''))}" maxlength="64" inputmode="numeric" autocomplete="off" placeholder="napr. 5901234123457"></div>
-    <div><label for="p-weight">Hmotnosť (kg)</label><input id="p-weight" type="number" min="0" step="0.001" value="${esc(String(variant?.weight ?? ''))}" placeholder="napr. 0.25"></div></div>
-    <p class="muted" style="font-size:12px;margin-top:6px">EAN a hmotnosť sa doplnia do feedov pre porovnávače a do dopravných údajov.</p>
-    <label>Typ produktu (doprava)</label><select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select>
-    <p class="muted" style="margin-top:14px">Produkt sa v obchode zobrazí len v označených predajných kanáloch.</p>
+  const predaj = `<div class="pe-form2"><div><label for="p-sku">Kód produktu (SKU)</label>${!variant ? '<p class="muted">Produkt nemá variant.</p>' : variant.sku ? `<input id="p-sku" value="${esc(variant.sku)}" maxlength="64" autocomplete="off"><p class="muted pe-hint">Kód môžete zmeniť. Pozor: QR kódy vytvorené pre starý kód prestanú fungovať a treba ich vytvoriť znova.</p>` : '<input id="p-sku" maxlength="64" placeholder="napr. RUZOVY-OLEJ-50ML" autocomplete="off">'}</div>
+    <div><label for="p-ean">EAN (čiarový kód)</label><input id="p-ean" value="${esc(String(variant?.barcode || variant?.ean || ''))}" maxlength="64" inputmode="numeric" autocomplete="off" placeholder="napr. 5901234123457"></div>
+    <div><label for="p-weight">Hmotnosť (kg)</label><input id="p-weight" type="number" min="0" step="0.001" value="${esc(String(variant?.weight ?? ''))}" placeholder="napr. 0.25"></div>
+    <div><label for="p-ship">Typ produktu (doprava)</label><select id="p-ship"><option value="">— vyberte —</option>${profiles.map(sp => `<option value="${esc(sp.id)}"${sp.id === curProfile ? ' selected' : ''}>${esc(shipLabel(sp))}</option>`).join('')}</select></div></div>
+    <p class="muted pe-hint">EAN a hmotnosť sa doplnia do feedov pre porovnávače a do dopravných údajov.</p>
+    <label style="margin-top:14px">Predajné kanály</label><p class="muted pe-hint" style="margin:0 0 4px">Produkt sa v obchode zobrazí len v označených kanáloch.</p>
     <div>${channels.map(c => `<label style="display:inline-flex;gap:6px;margin:4px 12px 4px 0;align-items:center"><input type="checkbox" data-ch="${esc(c.id)}" ${inCh.has(c.id) ? 'checked' : ''} style="width:auto"> ${esc(c.name)}${c.is_disabled ? ' <span class="pill off">vypnutý</span>' : ''}</label>`).join('') || '<span class="muted">Predajné kanály sa nedajú načítať.</span>'}</div>`;
   const sklad = '<p class="muted" style="margin:0">Počet kusov nastavíte pri každom variante v sekcii <b>07 Voľby a varianty</b>, stĺpec <b>Skladom (ks)</b>. Digitálne produkty a služby majú zaškrtnuté Neobmedzené.</p>';
   const completeness = () => {
@@ -1479,8 +1479,8 @@ async function vProductDetail(view, id, opts = {}) {
       ${sec('cena', '02', 'Cena a akcia', cena)}
       ${sec('popis', '03', 'Popis produktu', popis, true)}
       ${sec('foto', '04', 'Fotografie', obrazky, true)}
-      ${sec('predaj', '05', 'Kategórie', kategorie, true)}
-      ${sec('dorucenie', '06', 'Predaj a doručenie', predaj, true)}
+      ${sec('predaj', '05', 'Kategórie', kategorie)}
+      ${sec('dorucenie', '06', 'Predaj a doručenie', predaj)}
       ${sec('varianty', '07', 'Voľby a varianty', '<div id="p-variants"></div>', true)}
       ${sec('sklad', '08', 'Sklad', sklad, true)}
       ${sec('obsah', '09', 'Zakúpený obsah', '<div id="p-library"></div>', true)}
