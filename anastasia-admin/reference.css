@@ -833,3 +833,8 @@ table.agenda-grid tbody td.lv-title{min-width:220px;overflow-wrap:normal!importa
 
 /* Checkbox „označiť všetky“ v produktoch sedí v rovnakom stĺpci ako checkboxy riadkov. */
 table.product-grid:has(#p-pick-all) thead th.ot-check { display:table-cell!important; width:38px!important; padding:12px 14px!important; text-align:center!important; }
+/* Pevné stĺpce agend: obecné .ot-check/.ot-img/.ot-act pravidlá ich inak roztiahnu a akcii nechajú 10 px. */
+table.agenda-grid.customer-grid thead th.ot-check { width:38px!important; }
+table.agenda-grid.customer-grid thead th.ot-img { width:50px!important; }
+table.agenda-grid.customer-grid thead th.ot-act,
+table.agenda-grid.category-grid thead th:last-child { width:120px!important; }
