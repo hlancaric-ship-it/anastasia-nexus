@@ -35,7 +35,7 @@ const NL_TEMPLATE = () => ({
     text: 'V dnešnom newsletteri sa s tebou chcem podeliť o niekoľko myšlienok, ktoré mi v poslednom čase prinášajú pokoj, rovnováhu a viac ľahkosti do každodenného života.\n\nVerím, že ťa inšpirujú rovnako ako mňa a prinesú ti viac energie, zdravia a radosti.',
   },
   sections: [
-    { ...NL_SECTION('dark'), eyebrow: 'Tip pre vás', title: 'Malý rituál', accent: 'pre viac pokoja', text: 'Skúste si každý večer dopriať pár minút ticha, vedomého dýchania a vďačnosti. Uvidíte, ako aj malé okamihy môžu priniesť veľkú zmenu vo vašej energii a kvalite spánku.', image: NL_SAMPLE_TIP, alt: 'Program Reset 40', links: [{ kind: 'button', label: 'Prečítať tip', url: 'https://anastasiaoz.eu/blog' }] },
+    { ...NL_SECTION('dark'), eyebrow: '04', title: 'Astrologický profil zdravia a vitality', accent: '', text: '60 min · Online · 59 €\n\nOsobný výklad tvojho zdravia, vitality a prirodzených predispozícií podľa dátumu, času a miesta narodenia.', image: NL_SAMPLE_TIP, alt: 'Astrologický profil zdravia a vitality', links: [{ kind: 'button', label: 'Vybrať termín', url: 'https://anastasiaoz.eu/konzultacie/astrologicky-profil-zdravia-a-vitality' }] },
     { ...NL_SECTION('light'), eyebrow: 'Novinka', title: 'Kráľovna svojho', accent: 'života', image: NL_SAMPLE_PHOTO, alt: 'Pleťová voda Kráľovna svojho života', text: 'Jemná pleťová voda, ktorá podporuje prirodzenú rovnováhu pleti a prináša sviežosť každý deň. Vznikla s rešpektom k prírode, vede a ženám, ktoré sa starajú o seba vedome.', links: [{ kind: 'button', label: 'Viac o produkte', url: 'https://anastasiaoz.eu/eshop' }] },
     { ...NL_SECTION('olive'), eyebrow: 'Pozvánka', title: 'Online', accent: 'konzultácie', text: 'Individuálny prístup, osobné protokoly a podpora na vašej ceste k zdravšiemu a harmonickejšiemu životu.', links: [{ kind: 'button', label: 'Rezervovať termín', url: 'https://anastasiaoz.eu/konzultacie' }] },
   ],
@@ -43,7 +43,7 @@ const NL_TEMPLATE = () => ({
 });
 const NL_BLANK = () => {
   const form = NL_TEMPLATE();
-  return { id: null, mode: 'sablona', form, subject: 'Novinky z ANASTASIA', preheader: 'Malý rituál pre viac pokoja, novinka a online konzultácie', body_html: nlBuildBody(form), status: 'draft', recipients_count: 0, sent_count: 0, failed_count: 0, created_at: null, queued_at: null, sent_at: null };
+  return { id: null, mode: 'sablona', form, subject: 'Novinky z ANASTASIA', preheader: 'Astrologický profil zdravia, novinka a online konzultácie', body_html: nlBuildBody(form), status: 'draft', recipients_count: 0, sent_count: 0, failed_count: 0, created_at: null, queued_at: null, sent_at: null };
 };
 
 const NL_CSV_PAGE = 100;

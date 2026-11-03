@@ -410,10 +410,10 @@ function sectionHtml(section: CampaignSection, asset: string): string {
         ? `<div style="max-width:366px;padding:11px;border:1.5px solid #c4a068;border-radius:184px 184px 116px 0"><img src="${part.image.src}" alt="${part.image.alt}" width="340" style="display:block;width:100%;max-width:340px;height:auto;border:0;border-radius:173px 173px 105px 0"></div>`
         : ""
     const cells = side
-      // Citát a lístok vľavo, text s tlačidlom vpravo.
-      ? `<td class="nl-c" width="36%" valign="middle" style="padding:30px 6px 30px 30px">${side}</td>`
-        + `<td class="nl-c nl-h" width="20%" valign="middle" align="center" style="padding:16px 0"><img src="${asset}/assets/newsletter-leaf.png" width="220" alt="" style="display:block;width:220px;height:auto;border:0;margin-left:-150px;position:relative"></td>`
-        + textCell(head + buttons, tone, "44%", "34px 40px 34px 8px")
+      // Ako v návrhu: text s tlačidlom vľavo, lístok a fotka (alebo citát) vpravo.
+      ? textCell(head + buttons, tone, "44%", "34px 8px 34px 40px")
+        + `<td class="nl-c nl-h" width="20%" valign="middle" align="center" style="padding:16px 0"><img src="${asset}/assets/newsletter-leaf.png" width="220" alt="" style="display:block;width:220px;height:auto;border:0;margin-right:-150px;margin-left:auto;position:relative"></td>`
+        + `<td class="nl-c" width="36%" valign="middle" style="padding:30px 30px 30px 6px">${side}</td>`
       : textCell(head + buttons, tone, "100%", "34px 40px")
     return `<tr><td class="nl-o" style="padding:0 14px 6px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#45475a" style="border-radius:22px;background:#45475a;background-image:radial-gradient(circle at 100% 0%,rgba(222,190,136,.95) 0%,rgba(222,190,136,0) 34%),linear-gradient(100deg,#363a3a 0%,#454852 30%,#5e5d75 52%,#8d879b 76%,#a39bb3 100%)"><tr>${cells}</tr></table>
@@ -495,7 +495,7 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
   const icons = newsletterSocialLinks().map((link, index) =>
     `<td class="nl-ic" align="center" style="padding:6px 38px;${index ? "border-left:1px solid #d9c7a3" : ""}"><a href="${escapeHtml(link.href)}" title="${link.label}"><img src="${asset}/assets/newsletter-ic-${link.icon}.png" width="34" height="34" alt="${link.label}" style="display:block;width:34px;height:34px;border:0"></a></td>`).join("")
   const unsubscribeLine = unsubscribe
-    ? `<a href="${escapeHtml(unsubscribe)}" style="color:${BRAND.text};text-decoration:underline">Odhlásiť sa</a>`
+    ? `<a href="${escapeHtml((process.env.NEWSLETTER_WEB_URL || "https://anastasiaoz.eu").replace(/\/+$/, ""))}/ucet" style="color:${BRAND.text};text-decoration:underline">Spravovať odber</a> &nbsp;|&nbsp; <a href="${escapeHtml(unsubscribe)}" style="color:${BRAND.text};text-decoration:underline">Odhlásiť sa</a>`
     : `Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.`
 
   const html = `<!doctype html>
