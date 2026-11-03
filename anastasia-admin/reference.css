@@ -988,3 +988,122 @@ table.ve-t td.ve-act{display:table-cell!important;text-align:right}table.ve-t td
 .ot-pop b{display:block;font-weight:600}
 .ot-pop small{display:block;margin-top:3px;color:#7a6b86;font-size:12px}
 :root[data-theme=dark] .ot-pop{background:#2a2233;border-color:#4a3a5a;color:#f1e9f7}
+/* Všetky záložky v adminu rovnako ako detail produktu (Shoptet): pripojené záložky, aktívna plná fialová, pod nimi linka */
+.app .ot-filters,.app .pe-tabs,.app .tabs{display:flex!important;flex-wrap:wrap;gap:4px!important;padding:0 16px!important;margin:0;border:0!important;border-bottom:3px solid #49305e!important;background:transparent!important;overflow:visible}
+.app .ot-filters button,.app .pe-tabs button,.app .tabs .tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 18px!important;margin:0!important;border:1px solid rgba(164,129,191,.28)!important;border-bottom:0!important;border-radius:12px 12px 0 0!important;background:rgba(164,129,191,.14)!important;color:var(--ink,#2a2233)!important;font:700 14px/1.2 'Figtree',sans-serif!important;white-space:nowrap;text-decoration:none;cursor:pointer}
+.app .ot-filters button:hover,.app .pe-tabs button:hover,.app .tabs .tab:hover{background:var(--lav-soft)!important}
+.app .ot-filters button[aria-selected=true],.app .pe-tabs button[aria-selected=true],.app .tabs .tab.active,.app .tabs .tab[aria-selected=true]{background:#49305e!important;border-color:#49305e!important;color:#fff!important}
+.app .ot-filters button span{min-width:22px;padding:1px 7px;margin:0!important;border-radius:10px;background:rgba(255,255,255,.7)!important;color:#5b4470!important;font-size:11.5px;font-weight:600;text-align:center}
+.app .ot-filters button[aria-selected=true] span{background:rgba(255,255,255,.22)!important;color:#fff!important}
+html[data-theme=dark] .app .ot-filters,html[data-theme=dark] .app .pe-tabs,html[data-theme=dark] .app .tabs{border-bottom-color:var(--lav-deep)!important}
+html[data-theme=dark] .app .ot-filters button[aria-selected=true],html[data-theme=dark] .app .pe-tabs button[aria-selected=true],html[data-theme=dark] .app .tabs .tab.active{background:var(--lav-deep)!important;border-color:var(--lav-deep)!important;color:#1d1724!important}
+/* Shoptet kostra zoznamov: hlavička karty, ▾ Funkcie / ▾ Filter, triedenie, pätička so stránkovaním */
+.app .st-card{padding:0;overflow:visible}
+.app .st-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 24px 16px}
+.app .st-head h1{margin:0;font:300 30px/1.15 'Figtree',sans-serif;letter-spacing:-.01em;color:var(--ink,#2a2233)}
+.app .st-head-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.app .st-head-act .rc-search{width:300px;max-width:100%}
+.app .st-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;background:rgba(245,235,249,.55);border-bottom:1px solid #e6daef}
+.app .st-dd{position:relative}
+.app .st-btn{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:5px 12px;border:1px solid #cdb6dd;border-radius:6px;background:#fff;color:#49305e;font:600 13px/1.2 'Figtree',sans-serif;cursor:pointer}
+.app .st-btn:hover:not(:disabled){background:#f5ebf9;border-color:#a481bf}
+.app .st-btn:disabled{opacity:.5;cursor:not-allowed}
+.app .st-btn[aria-expanded=true]{background:#49305e;border-color:#49305e;color:#fff}
+.app .st-filter-toggle{margin-left:auto}
+.app .st-menu{position:absolute;left:0;top:calc(100% + 4px);z-index:40;min-width:220px;padding:6px;background:#fff;border:1px solid #d9c8e5;border-radius:8px;box-shadow:0 10px 28px rgba(73,48,94,.18)}
+.app .st-menu[hidden]{display:none}
+.app .st-menu button{display:block;width:100%;padding:8px 10px;border:0;border-radius:5px;background:none;color:var(--ink,#2a2233);font:500 13.5px/1.3 'Figtree',sans-serif;text-align:left;cursor:pointer}
+.app .st-menu button:hover{background:#f5ebf9;color:#49305e}
+.app .st-filter{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px;padding:14px 16px 16px;background:rgba(250,245,252,.8);border-bottom:1px solid #e6daef}
+.app .st-filter[hidden]{display:none}
+.app .st-filter label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:#776284}
+.app .st-filter input,.app .st-filter select{min-height:34px;font-size:13.5px;font-weight:400}
+.app .st-filter-act{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.app .st-filter-act .btn{min-height:34px}
+.app table.st-table thead th{background:#f3ecf8!important;border-bottom:3px solid #49305e!important;color:#49305e;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;white-space:nowrap}
+.app table.st-table th[data-sort]{cursor:pointer;user-select:none}
+.app table.st-table th[data-sort]:after{content:'⬍';margin-left:5px;color:#c3add3;font-size:11px}
+.app table.st-table th[aria-sort=ascending]:after{content:'▲';color:#49305e}
+.app table.st-table th[aria-sort=descending]:after{content:'▼';color:#49305e}
+.app table.st-table th[data-sort]:hover,.app table.st-table th[data-sort]:focus-visible{color:#2a1c38;outline:none;text-decoration:underline}
+.app table.st-table tbody tr[data-id]:nth-child(even) td{background:rgba(245,235,249,.35)}
+.app table.st-table tbody tr[data-id]:hover td{background:#f5ebf9}
+.app table.st-table tbody tr.st-wait td:first-child{box-shadow:inset 3px 0 0 #d9a441}
+.app table.st-table tbody tr.st-done td:first-child{box-shadow:inset 3px 0 0 #31563d}
+.app table.st-table tbody tr.st-canceled td,.app table.st-table tbody tr.st-muted td{color:#9b8fa5;font-style:italic}
+.app table.st-table tbody tr.st-canceled td:first-child{box-shadow:inset 3px 0 0 #b9a9c6}
+.app table.st-table tbody tr.st-picked td{background:#efe3f6!important}
+.app table.st-table tbody td:nth-child(3) b{color:#49305e}
+.app .st-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px 16px;border-top:1px solid #e6daef;font-size:13.5px;color:var(--muted)}
+.app .st-total b{color:var(--ink,#2a2233)}
+.app .st-pages{display:flex;gap:4px;align-items:center}
+.app .st-pages button{min-width:32px;height:32px;padding:0 8px;border:1px solid #d9c8e5;border-radius:6px;background:#fff;color:#49305e;font:600 13px 'Figtree',sans-serif;cursor:pointer}
+.app .st-pages button:hover:not(:disabled){background:#f5ebf9}
+.app .st-pages button[aria-current=page]{background:#49305e;border-color:#49305e;color:#fff}
+.app .st-pages button:disabled{opacity:.4;cursor:default}
+.app .st-pages span{padding:0 4px;color:#a481bf}
+html[data-theme=dark] .app .st-head h1{color:var(--ink)}
+html[data-theme=dark] .app .st-bar,html[data-theme=dark] .app .st-filter{background:#2a2132;border-color:#4a3a5a}
+html[data-theme=dark] .app .st-btn,html[data-theme=dark] .app .st-pages button,html[data-theme=dark] .app .st-menu{background:#302638;border-color:#5b4269;color:var(--lav-deep)}
+html[data-theme=dark] .app .st-menu button{color:var(--ink)}
+html[data-theme=dark] .app .st-menu button:hover{background:#3c2e46}
+html[data-theme=dark] .app .st-btn[aria-expanded=true],html[data-theme=dark] .app .st-pages button[aria-current=page]{background:var(--lav-deep);border-color:var(--lav-deep);color:#1d1724}
+html[data-theme=dark] .app table.st-table thead th{background:#2a2132!important;border-bottom-color:var(--lav-deep)!important;color:var(--lav-deep)}
+html[data-theme=dark] .app table.st-table tbody tr[data-id]:nth-child(even) td{background:rgba(255,255,255,.03)}
+html[data-theme=dark] .app table.st-table tbody tr[data-id]:hover td,html[data-theme=dark] .app table.st-table tbody tr.st-picked td{background:#3c2e46!important}
+html[data-theme=dark] .app table.st-table tbody td:nth-child(3) b{color:var(--lav-deep)}
+html[data-theme=dark] .app .st-foot{border-color:#4a3a5a}
+@media(max-width:900px){.app .st-filter{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.app.st-page .heading .help-toggle{display:none}
+.app.st-page .heading:has(#actions:empty){display:none}
+.app .st-help svg{width:16px;height:16px}
+.app table.st-table tbody tr[data-id] td{padding-top:7px!important;padding-bottom:7px!important}
+.app table.st-table .ot-img img,.app table.st-table .ot-noimg{width:32px;height:32px}
+.app table.st-table tbody td:nth-child(3) small{font-size:11px}
+.app table.st-table.ot-orders thead th:nth-child(3),.app table.st-table.ot-orders tbody td:nth-child(3){width:132px!important}
+.app table.st-table.ot-orders tbody td:nth-child(3) small{white-space:nowrap}
+.app .st-filter-act .btn.primary{background:#49305e!important;border-color:#49305e!important;color:#fff!important}
+html[data-theme=dark] .app .st-filter-act .btn.primary{background:var(--lav-deep)!important;border-color:var(--lav-deep)!important;color:#1d1724!important}
+/* Rovnomerná mriežka zoznamov: jednotné odsadenie, voľné miesto dostáva len hlavný textový stĺpec */
+.app table.st-table{table-layout:fixed!important;width:100%!important;min-width:0!important}
+.app table.st-table thead th,.app table.st-table tbody td{padding:8px 12px!important;vertical-align:middle!important;height:auto}
+.app table.st-table thead th{padding-top:10px!important;padding-bottom:10px!important}
+.app table.st-table th.ot-num,.app table.st-table td.ot-num{text-align:right!important;padding-right:24px!important}
+.app table.st-table.ot-orders th:nth-child(1),.app table.st-table.ot-orders td:nth-child(1){width:44px!important}
+.app table.st-table.ot-orders th:nth-child(2),.app table.st-table.ot-orders td:nth-child(2){width:56px!important}
+.app table.st-table.ot-orders th:nth-child(3),.app table.st-table.ot-orders td:nth-child(3){width:140px!important}
+.app table.st-table.ot-orders th:nth-child(4),.app table.st-table.ot-orders td:nth-child(4){width:auto!important}
+.app table.st-table.ot-orders th:nth-child(5),.app table.st-table.ot-orders td:nth-child(5){width:150px!important}
+.app table.st-table.ot-orders th:nth-child(6),.app table.st-table.ot-orders td:nth-child(6){width:150px!important}
+.app table.st-table.ot-orders th:nth-child(7),.app table.st-table.ot-orders td:nth-child(7){width:130px!important}
+.app table.st-table.ot-orders th:nth-child(8),.app table.st-table.ot-orders td:nth-child(8){width:140px!important}
+.app table.st-table.ot-orders th:nth-child(9),.app table.st-table.ot-orders td:nth-child(9){width:140px!important}
+.app table.st-table.ot-orders th:nth-child(10),.app table.st-table.ot-orders td:nth-child(10){width:112px!important;text-align:right}
+.app table.st-table.product-grid th:nth-child(1),.app table.st-table.product-grid td:nth-child(1){width:44px!important}
+.app table.st-table.product-grid th:nth-child(2),.app table.st-table.product-grid td:nth-child(2){width:56px!important}
+.app table.st-table.product-grid th:nth-child(3),.app table.st-table.product-grid td:nth-child(3){width:auto!important}
+.app table.st-table.product-grid th:nth-child(4),.app table.st-table.product-grid td:nth-child(4){width:120px!important}
+.app table.st-table.product-grid th:nth-child(5),.app table.st-table.product-grid td:nth-child(5){width:110px!important}
+.app table.st-table.product-grid th:nth-child(6),.app table.st-table.product-grid td:nth-child(6),.app table.st-table.product-grid th:nth-child(7),.app table.st-table.product-grid td:nth-child(7){width:120px!important;text-align:right!important;padding-right:24px!important}
+.app table.st-table.product-grid th:nth-child(8),.app table.st-table.product-grid td:nth-child(8){width:140px!important}
+.app table.st-table.product-grid th:nth-child(9),.app table.st-table.product-grid td:nth-child(9){width:110px!important}
+.app table.st-table.product-grid th:nth-child(10),.app table.st-table.product-grid td:nth-child(10){width:112px!important;text-align:right}
+.app table.st-table.product-grid tbody td{display:table-cell!important}
+.app table.st-table.product-grid thead{display:table-header-group!important}.app table.st-table.product-grid tbody{display:table-row-group!important}.app table.st-table.product-grid tr{display:table-row!important}
+.app table.st-table.product-grid thead th{display:table-cell!important;height:auto!important;min-height:0!important}
+.app table.st-table td{overflow:hidden;text-overflow:ellipsis}
+.app table.st-table td.ot-act{overflow:visible}
+.app table.st-table.ot-orders th:nth-child(3),.app table.st-table.ot-orders td:nth-child(3){width:136px!important}
+.app table.st-table.ot-orders th:nth-child(5),.app table.st-table.ot-orders td:nth-child(5){width:130px!important}
+.app table.st-table.ot-orders th:nth-child(6),.app table.st-table.ot-orders td:nth-child(6){width:120px!important}
+.app table.st-table.ot-orders th:nth-child(7),.app table.st-table.ot-orders td:nth-child(7){width:116px!important}
+.app table.st-table.ot-orders th:nth-child(8),.app table.st-table.ot-orders td:nth-child(8),.app table.st-table.ot-orders th:nth-child(9),.app table.st-table.ot-orders td:nth-child(9){width:120px!important}
+.app table.st-table.ot-orders th:nth-child(10),.app table.st-table.ot-orders td:nth-child(10){width:104px!important}
+.app table.st-table td.ot-check,.app table.st-table th.ot-check{overflow:visible!important;text-overflow:clip!important;padding-left:14px!important;padding-right:6px!important}
+.app table.st-table thead tr{background:#f3ecf8!important;height:auto!important}
+.app table.st-table thead th{line-height:1.3!important}
+html[data-theme=dark] .app table.st-table thead tr{background:#2a2132!important}
+.app .st-card table.st-table thead th,.app .st-card table.st-table:has(#p-pick-all) thead th{background:#f3ecf8!important;border-bottom:3px solid #49305e!important;color:#49305e!important;padding:10px 12px!important}
+.app .st-card table.st-table thead th input{min-height:0!important;height:16px;width:16px}
+html[data-theme=dark] .app .st-card table.st-table thead th{background:#2a2132!important;border-bottom-color:var(--lav-deep)!important;color:var(--lav-deep)!important}
+.app .st-card .ot-wrap:has(.st-table){padding:0 16px!important;background:transparent;overflow-x:auto}

@@ -1188,15 +1188,15 @@ async function clearVariantSale(ref) {
 // Základná EUR cena bez cenníka a pravidiel (akciový cenník má vlastnú cenu na tom istom variante).
 const basePrice = (v) => (v?.prices || []).find(x => x.currency_code === 'eur' && !x.price_list_id && !(x.rules_count > 0));
 // --- Produkty: serverové stránkovanie, vyhľadávanie a filter stavu (jadro filtruje aj počíta) ---
-const PRODUCT_PAGE_SIZE = 12;
+const PRODUCT_PAGE_SIZE = 25;
 const PRODUCT_STATUS = { published: ['zverejnený', 'ok'], draft: ['koncept', 'warn'] };
 async function vProducts(view) {
   setCrumbTail('');
   view = freshView(view);
   view.innerHTML = '<div class="muted">Načítavam produkty…</div>';
-  setActions('<button class="btn primary" id="p-new">+ Pridať produkt</button>');
-  const nb = document.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
-  let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false, fallback = false;
+  setActions('');
+  let offset = 0, query = '', status = '', type = '', count = 0, busy = false, pending = false, fallback = false, products = [];
+  const sort = { key: '', dir: 1 };
   const selected = new Set();
   // Sklad: súčet zásob podľa SKU (inventory item má rovnaké SKU ako variant).
   let stockBySku = new Map();
@@ -1210,7 +1210,7 @@ async function vProducts(view) {
   };
   const row = p => {
     const stock = stockOf(p);
-    return `<tr data-id="${esc(p.id)}" tabindex="0" role="link">
+    return `<tr data-id="${esc(p.id)}" tabindex="0" role="link"${p.status === 'published' ? '' : ' class="st-muted"'}>
       <td class="ot-check"><input type="checkbox" data-pick="${esc(p.id)}" aria-label="Označiť produkt ${esc(p.title)}"></td>
       <td class="ot-img lv-media">${p.thumbnail ? `<img class="thumb" src="${esc(p.thumbnail)}" alt="">` : '<span class="thumb ph"></span>'}</td>
       <td class="lv-title">${esc(p.title)}</td>
@@ -1222,31 +1222,43 @@ async function vProducts(view) {
       <td data-label="Akcia">${(() => { const s = p.metadata?.vyprodej; return (s && s.active && s.akcna_cena != null) ? `<span class="pill warn">${fmtEur(s.akcna_cena)}</span>` : '<span class="muted">—</span>'; })()}</td>
       <td class="ot-act"><button type="button" class="btn ghost sm">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
   };
-  view.innerHTML = `<section class="card ot-card"><div class="ot-head">
-      <h2>Produkty <span class="muted" id="p-count"></span></h2>
-      <div class="ot-head-act">
-        <input class="rc-search" type="search" placeholder="Hľadať produkt…" aria-label="Hľadať produkty">
-        <select class="rc-select" id="p-type" aria-label="Filter podľa typu">
-          <option value="">Fyzické aj digitálne</option>
-          <option value="digital">Digitálne</option>
-          <option value="physical">Fyzické</option>
-        </select>
-        <select class="rc-select" id="p-status" aria-label="Filter podľa stavu">
-          <option value="">Všetky stavy</option>
-          <option value="published">Zverejnené</option>
-          <option value="draft">Koncepty</option>
-        </select>
+  view.innerHTML = `<section class="card ot-card st-card"><div class="st-head">
+      <h1>Produkty</h1>
+      <div class="st-head-act">
+        <input class="rc-search" type="search" placeholder="Hľadať názov alebo kód…" aria-label="Hľadať produkty">
+        <button type="button" class="btn primary" id="p-new">+ Pridať produkt</button>
       </div>
     </div>
-    <div class="ot-bulk" id="p-bulk" hidden><span class="muted" id="p-bulk-info">Žiadny označený produkt</span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn ghost sm" id="p-bulk-publish">Zverejniť</button>
-        <button type="button" class="btn ghost sm" id="p-bulk-draft">Uložiť ako koncept</button>
-        <button type="button" class="btn ghost sm" id="p-bulk-clear">Zrušiť označenie</button>
-      </div></div>
-    <div class="ot-wrap"><table class="ot lv agenda-grid product-grid"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th>Názov</th><th>Stav</th><th>Typ</th><th>Cena s DPH</th><th>Sklad</th><th>Štítky</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
-    <div class="ot-foot"><span class="muted" id="p-range"></span><span class="muted" id="p-note" hidden></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
+    <div class="ot-filters" role="tablist">${[['', 'Všetky'], ['physical', 'Fyzické'], ['digital', 'Digitálne']].map(([k, l]) => `<button type="button" role="tab" data-type="${k}" aria-selected="${k === type}">${l}</button>`).join('')}</div>
+    ${stBar([['published', 'Zverejniť'], ['draft', 'Uložiť ako koncept'], ['clear', 'Zrušiť označenie']], `
+      <label>Stav<select name="status"><option value="">Všetky</option><option value="published">Zverejnené</option><option value="draft">Koncepty</option></select></label>`)}
+    <div class="ot-wrap"><table class="ot lv agenda-grid product-grid st-table"><thead><tr><th class="ot-check"><input type="checkbox" id="p-pick-all" aria-label="Označiť všetky produkty na strane"></th><th class="ot-img"><span class="sr-only">Obrázok</span></th><th data-sort="title">Názov</th><th data-sort="status">Stav</th><th data-sort="type">Typ</th><th data-sort="price" data-dir="desc">Cena s DPH</th><th data-sort="stock">Sklad</th><th>Štítky</th><th>Akcia</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody id="p-body"></tbody></table></div>
+    <p class="muted st-note" id="p-note" hidden></p>
+    <div class="st-foot"></div>
   </section>`;
+  const nb = view.querySelector('#p-new'); if (nb) nb.onclick = () => vProductNew(view);
+  const SORT = { title: p => p.title || '', status: p => p.status || '', type: p => p.digital ? 1 : 0, price: p => Number(basePrice(p.variants?.[0])?.amount) || 0, stock: p => stockOf(p) ?? -1 };
+  const draw = () => {
+    const key = SORT[sort.key];
+    const list = key ? [...products].sort((a, b) => stCmp(key(a), key(b)) * sort.dir) : products;
+    body.innerHTML = list.length ? list.map(row).join('') : `<tr><td colspan="10" class="empty">${count ? 'Žiadne položky nezodpovedajú výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
+    body.querySelectorAll('tr[data-id]').forEach(tr => {
+      const open = () => vProductDetail(view, tr.dataset.id);
+      tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+      const box = tr.querySelector('[data-pick]');
+      if (box) {
+        box.checked = selected.has(tr.dataset.id);
+        tr.classList.toggle('st-picked', box.checked);
+        box.onclick = (e) => e.stopPropagation();
+        box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); tr.classList.toggle('st-picked', box.checked); syncAll(); drawBulk(); };
+      }
+    });
+    const all = view.querySelector('#p-pick-all');
+    const ids = list.map(p => p.id);
+    const syncAll = () => { if (!all) return; all.checked = ids.length > 0 && ids.every(id => selected.has(id)); all.indeterminate = !all.checked && ids.some(id => selected.has(id)); };
+    if (all) { syncAll(); all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); draw(); }; }
+    drawBulk();
+  };
   const body = view.querySelector('#p-body');
   const load = async () => {
     // Ak už beží požiadavka, nezahadzujeme novú – po skončení sa zopakuje s poslednými údajmi.
@@ -1266,7 +1278,7 @@ async function vProducts(view) {
         }),
         api('/admin/inventory-items?limit=500&fields=id,sku,*location_levels').catch(() => null),
       ]);
-      const products = data.products || [];
+      products = data.products || [];
       // Poradie robí jadro (zverejnené, fyzické, služby, digitálne). Záložný zoznam zoradíme aspoň na strane rovnako.
       if (data.fallback) {
         const kind = p => p.metadata?.product_kind === 'digital' ? 2 : (p.metadata?.booking || p.metadata?.product_kind === 'service') ? 1 : 0;
@@ -1284,45 +1296,24 @@ async function vProducts(view) {
       fallback = !!data.fallback;
       count = Number(data.count) || 0;
       stockBySku = new Map((inv?.inventory_items || []).map(i => [i.sku, (i.location_levels || []).reduce((a, l) => a + Number(l.stocked_quantity || 0), 0)]));
-      body.innerHTML = products.length ? products.map(row).join('') : `<tr><td colspan="10" class="empty">${count ? 'Žiadny produkt nezodpovedá výberu.' : 'Zatiaľ žiadne produkty.'}</td></tr>`;
-      body.querySelectorAll('tr[data-id]').forEach(tr => {
-        const open = () => vProductDetail(view, tr.dataset.id);
-        tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
-        const box = tr.querySelector('[data-pick]');
-        if (box) {
-          box.checked = selected.has(tr.dataset.id);
-          box.onclick = (e) => e.stopPropagation();
-          box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); drawBulk(); };
-        }
-      });
-      const all = view.querySelector('#p-pick-all');
-      if (all) {
-        const ids = products.map(p => p.id);
-        all.checked = ids.length > 0 && ids.every(id => selected.has(id));
-        all.indeterminate = !all.checked && ids.some(id => selected.has(id));
-        all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); load(); };
-      }
-      drawBulk();
-      const from = count ? offset + 1 : 0, to = Math.min(offset + products.length, count);
-      view.querySelector('#p-count').textContent = `(${count})`;
-      view.querySelector('#p-range').textContent = count ? `${from}–${to} z ${count}` : 'Zatiaľ žiadne produkty';
+      draw();
+      const foot = view.querySelector('.st-foot'), page = Math.floor(offset / PRODUCT_PAGE_SIZE);
+      foot.innerHTML = stPager(count, page, PRODUCT_PAGE_SIZE);
+      foot.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { offset = Number(b.dataset.pg) * PRODUCT_PAGE_SIZE; load(); view.querySelector('.st-head')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
       const note = view.querySelector('#p-note');
       if (note) { note.hidden = !fallback; note.textContent = fallback ? 'Zoznam sa načítal zo základného jadra – filter digitálnych produktov zatiaľ nefunguje.' : ''; }
-      view.querySelector('[data-pg="prev"]').disabled = offset <= 0;
-      view.querySelector('[data-pg="next"]').disabled = offset + PRODUCT_PAGE_SIZE >= count;
     } catch (e) {
-      if (e.message !== '401') body.innerHTML = `<tr><td colspan="7" class="empty">${esc(e.message)}</td></tr>`;
+      if (e.message !== '401') body.innerHTML = `<tr><td colspan="10" class="empty">${esc(e.message)}</td></tr>`;
     } finally {
       busy = false;
       if (pending) { pending = false; load(); }
     }
   };
-  const bulkBar = view.querySelector('#p-bulk'), bulkInfo = view.querySelector('#p-bulk-info');
-  const drawBulk = () => {
-    if (!bulkBar) return;
-    bulkBar.hidden = !selected.size;
-    if (bulkInfo) bulkInfo.textContent = selected.size ? `Označené produkty: ${selected.size}` : 'Žiadny označený produkt';
-  };
+  const bar = stWireBar(view, {
+    onFunc: (fn) => { if (fn === 'clear') { selected.clear(); draw(); } else bulkStatus(fn); },
+    onFilter: (f) => { status = f.status || ''; offset = 0; load(); },
+  });
+  const drawBulk = () => bar.setPicked(selected.size);
   const bulkStatus = async (status) => {
     const ids = [...selected];
     if (!ids.length) return;
@@ -1350,20 +1341,16 @@ async function vProducts(view) {
     note.innerHTML = skipped.length
       ? `Zmenených: ${done}. Preskočené: ${esc(skipped.join(', '))}`
       : `Zmenených produktov: ${done}`;
-    const host = view.querySelector('.ot-head');
-    host?.insertAdjacentElement('afterend', note);
+    view.querySelector('.st-head')?.insertAdjacentElement('afterend', note);
   };
-  const bp = view.querySelector('#p-bulk-publish'), bd = view.querySelector('#p-bulk-draft'), bc = view.querySelector('#p-bulk-clear');
-  if (bp) bp.onclick = () => bulkStatus('published');
-  if (bd) bd.onclick = () => bulkStatus('draft');
-  if (bc) bc.onclick = () => { selected.clear(); load(); };
-  view.querySelector('[data-pg="prev"]').onclick = () => { if (offset <= 0) return; offset = Math.max(0, offset - PRODUCT_PAGE_SIZE); load(); };
-  view.querySelector('[data-pg="next"]').onclick = () => { if (offset + PRODUCT_PAGE_SIZE >= count) return; offset += PRODUCT_PAGE_SIZE; load(); };
+  stWireSort(view.querySelector('table'), sort, draw);
   let timer = null;
   const search = view.querySelector('.rc-search');
   search.oninput = () => { clearTimeout(timer); timer = setTimeout(() => { query = search.value.trim(); offset = 0; load(); }, 350); };
-  view.querySelector('#p-status').onchange = (e) => { status = e.target.value; offset = 0; load(); };
-  view.querySelector('#p-type').onchange = (e) => { type = e.target.value; offset = 0; load(); };
+  view.querySelectorAll('.ot-filters [data-type]').forEach(b => b.onclick = () => {
+    type = b.dataset.type; offset = 0; view.querySelectorAll('.ot-filters [data-type]').forEach(x => x.setAttribute('aria-selected', String(x === b))); load();
+  });
+  stHelp(view);
   load();
 }
 const SKU_RE = /^[A-Z0-9][A-Z0-9._-]{1,63}$/;
@@ -1716,8 +1703,69 @@ const ORDER_LIST_FIELDS = 'id,display_id,email,status,total,currency_code,create
 const ORDER_LOAD_PAGE = 100;
 /** Poistka proti ťažkému načítaniu; nad tento počet sa zobrazí upozornenie (staršie hľadaj cez vyhľadávanie). */
 const ORDER_LOAD_CAP = 1000;
-/** Koľko objednávok sa zobrazí na jednu stranu v prehľade. */
-const ORDER_PAGE_SIZE = 6;
+/** Koľko objednávok sa zobrazí na jednu stranu v prehľade (ako v Shoptete – riadok = objednávka). */
+const ORDER_PAGE_SIZE = 25;
+// Spoločná kostra zoznamov podľa Shoptetu: lišta „▾ Funkcie“ + „▾ Filter“, triediteľné hlavičky
+// a pätička „N položiek celkom“ s číslami strán.
+function stPager(total, page, size) {
+  const pages = Math.max(1, Math.ceil(total / size));
+  const nums = [];
+  for (let i = 0; i < pages; i++) {
+    if (i === 0 || i === pages - 1 || Math.abs(i - page) <= 2) nums.push(i);
+    else if (nums[nums.length - 1] !== '…') nums.push('…');
+  }
+  return `<span class="st-total"><b>${total}</b> ${total === 1 ? 'položka' : total >= 2 && total <= 4 ? 'položky' : 'položiek'} celkom</span>`
+    + (pages > 1 ? `<nav class="st-pages" aria-label="Strany"><button type="button" data-pg="${page - 1}" ${page <= 0 ? 'disabled' : ''} aria-label="Predchádzajúca strana">‹</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button type="button" data-pg="${n}" ${n === page ? 'aria-current="page"' : ''}>${n + 1}</button>`).join('')}<button type="button" data-pg="${page + 1}" ${page >= pages - 1 ? 'disabled' : ''} aria-label="Ďalšia strana">›</button></nav>` : '');
+}
+function stBar(funcs, filterHtml) {
+  return `<div class="st-bar">
+    <div class="st-dd"><button type="button" class="st-btn" data-st="funcs" aria-expanded="false" disabled>▾ Funkcie <span class="st-count"></span></button>
+      <div class="st-menu" role="menu" hidden>${funcs.map(([id, label]) => `<button type="button" role="menuitem" data-fn="${esc(id)}">${esc(label)}</button>`).join('')}</div></div>
+    ${filterHtml ? `<button type="button" class="st-btn st-filter-toggle" data-st="filter" aria-expanded="false">▾ Filter <span class="st-count"></span></button>` : ''}
+  </div>${filterHtml ? `<form class="st-filter" hidden>${filterHtml}<div class="st-filter-act"><button type="submit" class="btn primary">Filtrovať</button><button type="reset" class="btn ghost" title="Zrušiť filter">✕</button></div></form>` : ''}`;
+}
+function stWireBar(root, { onFunc, onFilter }) {
+  const fb = root.querySelector('[data-st="funcs"]'), menu = root.querySelector('.st-menu');
+  const tb = root.querySelector('[data-st="filter"]'), form = root.querySelector('.st-filter');
+  const close = () => { if (!root.isConnected) document.removeEventListener('click', close); if (menu) menu.hidden = true; fb?.setAttribute('aria-expanded', 'false'); };
+  if (fb && menu) {
+    fb.onclick = (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; fb.setAttribute('aria-expanded', String(!menu.hidden)); };
+    menu.querySelectorAll('[data-fn]').forEach(b => b.onclick = () => { close(); onFunc(b.dataset.fn); });
+    document.addEventListener('click', close);
+  }
+  if (tb && form) {
+    tb.onclick = () => { form.hidden = !form.hidden; tb.setAttribute('aria-expanded', String(!form.hidden)); };
+    const read = () => Object.fromEntries([...new FormData(form)].filter(([, v]) => String(v).trim() !== ''));
+    form.onsubmit = (e) => { e.preventDefault(); const f = read(); tb.querySelector('.st-count').textContent = Object.keys(f).length ? `(${Object.keys(f).length})` : ''; onFilter(f); };
+    form.onreset = () => setTimeout(() => { tb.querySelector('.st-count').textContent = ''; onFilter({}); });
+  }
+  return {
+    setPicked(n) { if (!fb) return; fb.disabled = !n; fb.querySelector('.st-count').textContent = n ? `(${n})` : ''; if (!n) close(); },
+  };
+}
+/** Triediteľné hlavičky: th[data-sort] → klik prepína vzostupne/zostupne, šípka ukazuje smer. */
+function stWireSort(table, state, onChange) {
+  const paint = () => table.querySelectorAll('th[data-sort]').forEach(th => {
+    th.setAttribute('aria-sort', th.dataset.sort === state.key ? (state.dir > 0 ? 'ascending' : 'descending') : 'none');
+  });
+  table.querySelectorAll('th[data-sort]').forEach(th => {
+    th.tabIndex = 0;
+    const go = () => { state.dir = state.key === th.dataset.sort ? -state.dir : (th.dataset.dir === 'desc' ? -1 : 1); state.key = th.dataset.sort; paint(); onChange(); };
+    th.onclick = go; th.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+  });
+  paint();
+}
+/** „Ako to funguje“ patrí do hlavičky karty ako v Shoptete; pôvodné tlačidlo v hlavičke stránky ostáva (skryté) a obsluhuje panel. */
+function stHelp(root) {
+  const orig = document.querySelector('#ctx-help-btn'), slot = root.querySelector('.st-head-act');
+  if (!orig || !slot) return;
+  document.querySelector('.app')?.classList.add('st-page');
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'btn ghost st-help'; b.innerHTML = orig.innerHTML;
+  b.onclick = () => { orig.click(); b.setAttribute('aria-expanded', orig.getAttribute('aria-expanded') || 'false'); };
+  slot.append(b);
+}
+const stCmp = (a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a ?? '').localeCompare(String(b ?? ''), 'sk', { numeric: true, sensitivity: 'base' });
 /** Stiahnutie súboru v prehliadači (CSV export). */
 function downloadText(filename, text, type = 'text/csv;charset=utf-8') {
   const blob = new Blob([text], { type });
@@ -1779,88 +1827,54 @@ async function vOrders(view) {
       <td>${archived(o) ? `<span class="pill">${esc(legacy(o)?.status || 'Archív')}</span>` : o.status === 'canceled' ? '<span class="pill off">zrušená</span>' : fulPill(o.fulfillment_status)}</td>
       <td class="ot-act"><button type="button" class="btn ghost sm open">Otvoriť ${navIcon('arrow')}</button></td></tr>`;
   };
-  let filter = 'all', query = '', visible = [], page = 0;
+  let filter = 'all', query = '', visible = [], page = 0, adv = {};
+  const sort = { key: 'date', dir: -1 };
   const selected = new Set();
-  view.innerHTML = `<section class="card ot-card"><div class="ot-head">
-      <h2>Objednávky <span class="muted">(${orders.length})</span></h2>
-      <div class="ot-head-act">
+  const placed = o => new Date(legacy(o)?.placed_at || o.created_at).getTime() || 0;
+  const SORT = {
+    date: placed, num: o => Number(legacy(o)?.number || o.display_id) || 0, cust: o => name(o) || o.email || '', ship: shipKind,
+    total: o => Number(o.total) || 0, pay: o => PAY_LABEL[o.payment_status] || '', ful: o => o.status === 'canceled' ? 'zrušená' : FUL_LABEL[o.fulfillment_status] || '',
+  };
+  const opt = (map) => Object.entries(map).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('');
+  const ships = [...new Set(orders.map(shipKind).filter(x => x && x !== '—'))].sort(stCmp);
+  const filterHtml = `
+    <label>Číslo, meno, e-mail<input name="q" type="search" autocomplete="off"></label>
+    <label>Platba<select name="pay"><option value="">Všetky</option>${opt(PAY_LABEL)}</select></label>
+    <label>Vybavenie<select name="ful"><option value="">Všetky</option>${opt(FUL_LABEL)}</select></label>
+    <label>Doprava<select name="ship"><option value="">Všetky</option>${ships.map(x => `<option>${esc(x)}</option>`).join('')}</select></label>
+    <label>Dátum od<input name="from" type="date"></label><label>Dátum do<input name="to" type="date"></label>
+    <label>Suma od (€)<input name="min" type="number" step="0.01" min="0" inputmode="decimal"></label><label>Suma do (€)<input name="max" type="number" step="0.01" min="0" inputmode="decimal"></label>`;
+  const advMatch = o => {
+    if (adv.q && !JSON.stringify([legacy(o)?.number, o.display_id, o.email, name(o)]).toLowerCase().includes(adv.q.toLowerCase().trim())) return false;
+    if (adv.pay && o.payment_status !== adv.pay) return false;
+    if (adv.ful && o.fulfillment_status !== adv.ful) return false;
+    if (adv.ship && shipKind(o) !== adv.ship) return false;
+    if (adv.from && placed(o) < new Date(adv.from + 'T00:00:00').getTime()) return false;
+    if (adv.to && placed(o) > new Date(adv.to + 'T23:59:59.999').getTime()) return false;
+    if (adv.min && Number(o.total) < Number(adv.min)) return false;
+    if (adv.max && Number(o.total) > Number(adv.max)) return false;
+    return true;
+  };
+  const rowState = o => archived(o) ? 'st-muted' : o.status === 'canceled' ? 'st-canceled' : ['shipped', 'partially_shipped', 'delivered'].includes(o.fulfillment_status) ? 'st-done' : ['not_paid', 'awaiting', 'authorized', 'requires_action'].includes(o.payment_status) ? 'st-wait' : '';
+  view.innerHTML = `<section class="card ot-card st-card"><div class="st-head">
+      <h1>Objednávky</h1>
+      <div class="st-head-act">
         <input class="rc-search" type="search" placeholder="Hľadať číslo, meno, e-mail, produkt…" aria-label="Hľadať v objednávkach">
         <button type="button" class="btn gold" id="o-print-all" hidden>Vytlačiť štítky (0)</button>
+        <button type="button" class="btn ghost" id="o-export">Export CSV</button>
       </div>
     </div>
     ${FILTERS.length > 1 ? `<div class="ot-filters" role="tablist">${FILTERS.map(([k, l, f]) => `<button type="button" role="tab" data-f="${k}" aria-selected="${k === filter}">${esc(l)} <span>${orders.filter(f).length}</span></button>`).join('')}</div>` : ''}
-    <div class="ot-bulk" id="o-bulk" hidden>
-      <span class="muted" id="o-bulk-info">Žiadna označená objednávka</span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn ghost sm" id="o-bulk-label">Vytlačiť štítky</button>
-        <button type="button" class="btn ghost sm" id="o-bulk-slip">Dodací list</button>
-        <button type="button" class="btn ghost sm" id="o-bulk-csv">Export CSV</button>
-        <button type="button" class="btn ghost sm" id="o-bulk-clear">Zrušiť označenie</button>
-      </div>
-    </div>
+    ${stBar([['label', 'Vytlačiť štítky'], ['slip', 'Dodací list'], ['csv', 'Export CSV označených'], ['clear', 'Zrušiť označenie']], filterHtml)}
     ${truncated ? `<div class="notice" style="margin:14px 24px 0">V prehľade je prvých ${orders.length} z ${total} objednávok. Staršie objednávky hľadaj cez vyhľadávanie podľa e-mailu.</div>` : ''}
-    <div class="ot-wrap"><table class="ot ot-orders"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th>Objednávka</th><th>Zákazník</th><th>Doručenie</th><th>Kód</th><th class="ot-num">Suma s DPH</th><th>Platba</th><th>Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
-    <div class="ot-foot"><span class="muted" id="o-range"></span><div style="display:flex;gap:8px"><button class="btn ghost" data-pg="prev">← Predchádzajúce</button><button class="btn ghost" data-pg="next">Ďalšie →</button></div></div>
+    <div class="ot-wrap"><table class="ot ot-orders st-table"><thead><tr><th class="ot-check"><input type="checkbox" id="o-pick-all" aria-label="Označiť všetky objednávky na strane"></th><th class="ot-img"><span class="sr-only">Produkt</span></th><th data-sort="date" data-dir="desc">Objednávka</th><th data-sort="cust">Zákazník</th><th data-sort="ship">Doručenie</th><th>Kód</th><th class="ot-num" data-sort="total" data-dir="desc">Suma s DPH</th><th data-sort="pay">Platba</th><th data-sort="ful">Vybavenie</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody></tbody></table></div>
+    <div class="st-foot"></div>
   </section>`;
   const body = view.querySelector('tbody');
   const bulk = view.querySelector('#o-print-all');
-  const range = view.querySelector('#o-range');
-  const bulkBar = view.querySelector('#o-bulk');
-  const bulkInfo = view.querySelector('#o-bulk-info');
+  const foot = view.querySelector('.st-foot');
   const picked = () => orders.filter(o => selected.has(o.id));
-  const drawBulk = () => {
-    if (!bulkBar) return;
-    const list = picked();
-    bulkBar.hidden = !list.length;
-    if (bulkInfo) bulkInfo.textContent = list.length ? `Označené objednávky: ${list.length}` : 'Žiadna označená objednávka';
-  };
-  const draw = () => {
-    const f = FILTERS.find(x => x[0] === filter)?.[2] || (() => true);
-    const list = orders.filter(f).filter(o => !query || JSON.stringify([o.display_id, o.email, name(o), (o.items || []).map(i => i.title)]).toLowerCase().includes(query));
-    visible = list;
-    const pages = Math.max(1, Math.ceil(list.length / ORDER_PAGE_SIZE));
-    page = Math.min(Math.max(0, page), pages - 1);
-    const slice = list.slice(page * ORDER_PAGE_SIZE, (page + 1) * ORDER_PAGE_SIZE);
-    body.innerHTML = slice.length ? slice.map(row).join('') : `<tr><td colspan="10" class="empty">${orders.length ? 'Žiadna objednávka nezodpovedá výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
-    body.querySelectorAll('tr[data-id]').forEach(tr => {
-      const open = () => vOrderDetail(view, tr.dataset.id);
-      tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
-      const box = tr.querySelector('[data-pick]');
-      if (box) {
-        box.checked = selected.has(tr.dataset.id);
-        box.onclick = (e) => e.stopPropagation();
-        box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); drawBulk(); };
-      }
-    });
-    const all = view.querySelector('#o-pick-all');
-    if (all) {
-      const ids = slice.map(o => o.id);
-      all.checked = ids.length > 0 && ids.every(id => selected.has(id));
-      all.indeterminate = !all.checked && ids.some(id => selected.has(id));
-      all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); draw(); };
-    }
-    const from = list.length ? page * ORDER_PAGE_SIZE + 1 : 0, to = Math.min((page + 1) * ORDER_PAGE_SIZE, list.length);
-    if (range) range.textContent = list.length ? `${from}–${to} z ${list.length}` : 'Žiadne objednávky';
-    const prev = view.querySelector('[data-pg="prev"]'), next = view.querySelector('[data-pg="next"]');
-    if (prev) prev.disabled = page <= 0;
-    if (next) next.disabled = (page + 1) * ORDER_PAGE_SIZE >= list.length;
-    // Hromadná tlač štítkov je k dispozícii pri filtri „Na vybavenie“ – presne pre tie objednávky, ktoré sa chystajú.
-    if (bulk) { bulk.hidden = !(filter === 'todo' && list.length); bulk.textContent = `Vytlačiť štítky (${list.length})`; }
-    drawBulk();
-  };
-  view.querySelectorAll('.ot-filters button').forEach(b => b.onclick = () => {
-    filter = b.dataset.f; page = 0; view.querySelectorAll('.ot-filters button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw();
-  });
-  const prev = view.querySelector('[data-pg="prev"]'), next = view.querySelector('[data-pg="next"]');
-  if (prev) prev.onclick = () => { if (page > 0) { page--; draw(); } };
-  if (next) next.onclick = () => { page++; draw(); };
-  if (bulk) bulk.onclick = () => printOrders(visible.map(o => o.id), 'label');
-  const bulkLabel = view.querySelector('#o-bulk-label'), bulkSlip = view.querySelector('#o-bulk-slip'), bulkCsv = view.querySelector('#o-bulk-csv'), bulkClear = view.querySelector('#o-bulk-clear');
-  if (bulkLabel) bulkLabel.onclick = () => printOrders(picked().map(o => o.id), 'label');
-  if (bulkSlip) bulkSlip.onclick = () => printOrders(picked().map(o => o.id), 'slip');
-  if (bulkClear) bulkClear.onclick = () => { selected.clear(); draw(); };
-  if (bulkCsv) bulkCsv.onclick = () => {
-    const list = picked();
+  const exportCsv = (list) => {
     if (!list.length) return;
     const head = ['Číslo', 'Dátum', 'Zákazník', 'E-mail', 'Adresa', 'Doprava', 'Položky', 'Suma (EUR)', 'Platba', 'Spôsob platby', 'Vybavenie'];
     const lines = list.map(o => [
@@ -1877,8 +1891,57 @@ async function vOrders(view) {
     ].map(csvCell).join(','));
     downloadText(`objednavky-${new Date().toISOString().slice(0, 10)}.csv`, '﻿' + [head.map(csvCell).join(','), ...lines].join('\r\n'));
   };
+  const bar = stWireBar(view, {
+    onFunc: (fn) => {
+      const ids = picked().map(o => o.id);
+      if (fn === 'label') printOrders(ids, 'label');
+      else if (fn === 'slip') printOrders(ids, 'slip');
+      else if (fn === 'csv') exportCsv(picked());
+      else if (fn === 'clear') { selected.clear(); draw(); }
+    },
+    onFilter: (f) => { adv = f; page = 0; draw(); },
+  });
+  const draw = () => {
+    const f = FILTERS.find(x => x[0] === filter)?.[2] || (() => true);
+    const key = SORT[sort.key] || SORT.date;
+    const list = orders.filter(f).filter(advMatch).filter(o => !query || JSON.stringify([legacy(o)?.number, o.display_id, o.email, name(o), (o.items || []).map(i => [i.title, i.variant_sku])]).toLowerCase().includes(query))
+      .sort((a, b) => stCmp(key(a), key(b)) * sort.dir || placed(b) - placed(a));
+    visible = list;
+    const pages = Math.max(1, Math.ceil(list.length / ORDER_PAGE_SIZE));
+    page = Math.min(Math.max(0, page), pages - 1);
+    const slice = list.slice(page * ORDER_PAGE_SIZE, (page + 1) * ORDER_PAGE_SIZE);
+    body.innerHTML = slice.length ? slice.map(o => row(o).replace('<tr ', `<tr class="${rowState(o)}" `)).join('') : `<tr><td colspan="10" class="empty">${orders.length ? 'Žiadne položky nezodpovedajú výberu.' : 'Zatiaľ žiadne objednávky.'}</td></tr>`;
+    body.querySelectorAll('tr[data-id]').forEach(tr => {
+      const open = () => vOrderDetail(view, tr.dataset.id);
+      tr.onclick = open; tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+      const box = tr.querySelector('[data-pick]');
+      if (box) {
+        box.checked = selected.has(tr.dataset.id);
+        tr.classList.toggle('st-picked', box.checked);
+        box.onclick = (e) => e.stopPropagation();
+        box.onchange = () => { if (box.checked) selected.add(tr.dataset.id); else selected.delete(tr.dataset.id); tr.classList.toggle('st-picked', box.checked); syncAll(); bar.setPicked(selected.size); };
+      }
+    });
+    const all = view.querySelector('#o-pick-all');
+    const ids = slice.map(o => o.id);
+    const syncAll = () => { if (!all) return; all.checked = ids.length > 0 && ids.every(id => selected.has(id)); all.indeterminate = !all.checked && ids.some(id => selected.has(id)); };
+    if (all) { syncAll(); all.onchange = () => { ids.forEach(id => all.checked ? selected.add(id) : selected.delete(id)); draw(); }; }
+    foot.innerHTML = stPager(list.length, page, ORDER_PAGE_SIZE);
+    foot.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { page = Number(b.dataset.pg); draw(); view.querySelector('.st-head')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+    // Hromadná tlač štítkov je k dispozícii pri filtri „Na vybavenie“ – presne pre tie objednávky, ktoré sa chystajú.
+    if (bulk) { bulk.hidden = !(filter === 'todo' && list.length); bulk.textContent = `Vytlačiť štítky (${list.length})`; }
+    bar.setPicked(selected.size);
+  };
+  view.querySelectorAll('.ot-filters button').forEach(b => b.onclick = () => {
+    filter = b.dataset.f; page = 0; view.querySelectorAll('.ot-filters button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw();
+  });
+  stWireSort(view.querySelector('table'), sort, () => { page = 0; draw(); });
+  if (bulk) bulk.onclick = () => printOrders(visible.map(o => o.id), 'label');
+  const exp = view.querySelector('#o-export');
+  if (exp) exp.onclick = () => exportCsv(visible);
   const s = view.querySelector('.rc-search');
   if (s) s.oninput = () => { query = s.value.toLowerCase().trim(); page = 0; draw(); };
+  stHelp(view);
   draw();
 }
 // Akcie objednávky cez natívne Admin API jadra (spúšťajú existujúce subscribery: e-maily, prístupy, kompenzácie).
