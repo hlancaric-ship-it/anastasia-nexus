@@ -117,7 +117,7 @@ html,body{overflow-x:visible}
 /* Keep the fixed brand anchored to the window, outside any filter containing block. */
 .sidebar{backdrop-filter:none;-webkit-backdrop-filter:none}
 /* The source's circular emblem only; the wordmark remains live text. */
-.brand-symbol{display:block;width:60px;height:60px;flex:none;background:#49305e;mask:url('./assets/lucia-logo.png') center /115% 170% no-repeat;-webkit-mask:url('./assets/lucia-logo.png') center /115% 170% no-repeat}
+.brand-symbol{display:block;width:60px;height:60px;flex:none;background:transparent url('./assets/anastasia-oz-emblem.png') center/contain no-repeat}
 .mobile-head .brand-symbol{width:28px;height:28px}
 /* Filtered glass creates stacking contexts. Header menus must be above the content. */
 .topbar{z-index:50;overflow:visible}.top-actions{z-index:2}.dd.open{z-index:5}.dd-menu{z-index:60;background:rgba(253,250,255,.97);max-height:calc(100dvh - 100px);overflow-y:auto;box-shadow:0 12px 36px #49305e26;border-color:#cfb7df}
@@ -126,7 +126,7 @@ html,body{overflow-x:visible}
 /* Persistent search and account controls on every desktop agenda. */
 @media(min-width:801px){.topbar{position:fixed;top:0;left:305px;right:0;height:78px;z-index:50}.sidebar>.brand{z-index:51}.workspace{padding-top:78px}}
 /* Original compact emblem and matching lavender header. */
-.brand-symbol{mask:none;-webkit-mask:none;background:transparent url('./assets/lucia-symbol.png') center/contain no-repeat;filter:brightness(0) saturate(100%) invert(18%) sepia(19%) saturate(1748%) hue-rotate(231deg) brightness(92%) contrast(90%)}
+.brand-symbol{mask:none;-webkit-mask:none;background:transparent url('./assets/anastasia-oz-emblem.png') center/contain no-repeat;filter:none}
 .topbar{background:#e8ddf1;border-bottom:1px solid #ccb5df;backdrop-filter:none;-webkit-backdrop-filter:none}
 .sidebar>.brand{background:#e8ddf1;border-color:#ccb5df}
 /* Compact toolbars and balanced cards across agendas. */
@@ -208,7 +208,7 @@ html[data-theme=dark] .app{background:#241c2c}
 html[data-theme=dark] .app:before{opacity:.12}
 html[data-theme=dark] .topbar,html[data-theme=dark] .sidebar,html[data-theme=dark] .sidebar>.brand{background:#352740;border-color:#5a416b}
 html[data-theme=dark] .brand-name,html[data-theme=dark] .brand small,html[data-theme=dark] .nav-title,html[data-theme=dark] .nav-item{color:#ded0eb}
-html[data-theme=dark] .brand-symbol{filter:brightness(0) invert(.85)}
+html[data-theme=dark] .brand-symbol{filter:none}
 html[data-theme=dark] .nav-item svg.i{stroke:#d3bde1}
 html[data-theme=dark] .nav-item.active{background:#513961;color:#fff;box-shadow:none}
 html[data-theme=dark] .agenda-grid tbody tr[data-id],html[data-theme=dark] .ot-orders tbody tr[data-id],html[data-theme=dark] .ctx-help,html[data-theme=dark] .dd-menu{background:#302638;color:var(--ink);border-color:#5b4269}
@@ -279,6 +279,468 @@ html[data-theme=dark] .kpi-label,html[data-theme=dark] .dash-title h1,html[data-
  .is-dashboard .banner-lav .banner-art{height:78px}
 }
 
+/* Fix checkbox and radio widths and wrapping */
+input[type=checkbox], input[type=radio] {
+  width: 16px!important;
+  min-width: 16px!important;
+  max-width: 16px!important;
+  height: 16px!important;
+  flex: none!important;
+  margin: 0!important;
+  vertical-align: middle;
+}
+label:has(input[type=checkbox]), label:has(input[type=radio]),
+.pe-sec label:has(input[type=checkbox]), .row label:has(input[type=checkbox]) {
+  display: inline-flex!important;
+  flex-direction: row!important;
+  align-items: center!important;
+  gap: 8px!important;
+  width: auto!important;
+  max-width: 100%!important;
+  white-space: nowrap!important;
+  margin: 8px 14px 4px 0!important;
+  cursor: pointer;
+}
+
+/* Ergonomický a kompaktný layout editora a detailu – žiadne prázdne plochy */
+.pe {
+  display: grid!important;
+  gap: 16px!important;
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  width: 100%!important;
+}
+.pe-hero {
+  grid-template-columns: 240px minmax(0, 1fr)!important;
+  border-radius: 20px!important;
+  box-shadow: 0 10px 25px -10px rgba(47,52,36,.25)!important;
+}
+.pe-hero-img {
+  min-height: 200px!important;
+  max-height: 220px!important;
+}
+.pe-hero-body {
+  padding: 20px 24px!important;
+  gap: 10px!important;
+}
+.pe-title {
+  font-size: clamp(22px, 2.2vw, 32px)!important;
+}
+.pe-price b {
+  font-size: clamp(28px, 3vw, 40px)!important;
+}
+.pe-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr))!important;
+  gap: 16px!important;
+}
+.pe-sec {
+  padding: 18px 20px!important;
+  border-radius: 16px!important;
+}
+.pe-sec h2 {
+  font-size: 19px!important;
+}
+.pe-sec.wide {
+  grid-column: 1 / -1!important;
+}
+.detail-layout {
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  gap: 16px!important;
+}
+.row {
+  gap: 14px 18px!important;
+}
+.row label {
+  margin: 10px 0 4px!important;
+}
+input, select, textarea {
+  min-height: 40px!important;
+}
+
+/* Compact Table View for Products (clean desktop data table, no wasted space) */
+.ot-wrap:has(.product-grid) {
+  padding: 0!important;
+  overflow-x: auto!important;
+}
+table.product-grid {
+  display: table!important;
+  width: 100%!important;
+  border-collapse: collapse!important;
+  table-layout: auto!important;
+}
+table.product-grid thead,
+table.product-grid:has(#p-pick-all) thead {
+  display: table-header-group!important;
+  position: static!important;
+  clip-path: none!important;
+  width: auto!important;
+  height: auto!important;
+  margin: 0!important;
+}
+table.product-grid thead tr,
+table.product-grid:has(#p-pick-all) thead tr {
+  display: table-row!important;
+}
+table.product-grid thead th,
+table.product-grid:has(#p-pick-all) th {
+  display: table-cell!important;
+  padding: 12px 14px!important;
+  font-size: 11px!important;
+  letter-spacing: .08em!important;
+  text-transform: uppercase!important;
+  color: var(--muted, #666)!important;
+  background: var(--surface-2, #faf7fc)!important;
+  border-bottom: 1px solid var(--line, #e2dbe8)!important;
+  white-space: nowrap!important;
+  vertical-align: middle!important;
+}
+table.product-grid:has(#p-pick-all) th.ot-check:after {
+  display: none!important;
+}
+table.product-grid tbody {
+  display: table-row-group!important;
+}
+table.product-grid tbody tr[data-id] {
+  display: table-row!important;
+  padding: 0!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  box-shadow: none!important;
+  cursor: pointer!important;
+  transition: background .15s ease!important;
+}
+table.product-grid tbody tr[data-id]:hover {
+  background: var(--soft, #f6f0fb)!important;
+  border-color: transparent!important;
+}
+table.product-grid tbody td {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  vertical-align: middle!important;
+  font-size: 13.5px!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  white-space: normal!important;
+  word-break: normal!important;
+  overflow-wrap: normal!important;
+  hyphens: none!important;
+}
+table.product-grid tbody td.lv-title {
+  white-space: normal!important;
+  word-break: normal!important;
+  overflow-wrap: normal!important;
+  hyphens: none!important;
+  min-width: 260px!important;
+  max-width: 320px!important;
+  font-size: 14px!important;
+  font-weight: 500!important;
+  padding-right: 14px!important;
+}
+table.product-grid tbody td[data-label] {
+  display: table-cell!important;
+  grid-template-columns: none!important;
+  gap: 0!important;
+}
+table.product-grid tbody td[data-label]:before {
+  display: none!important;
+}
+table.product-grid tbody .ot-check {
+  position: static!important;
+  width: 38px!important;
+  text-align: center!important;
+  padding-left: 14px!important;
+}
+table.product-grid tbody .ot-check input {
+  margin: 0!important;
+}
+table.product-grid tbody .ot-img {
+  width: 48px!important;
+  padding: 6px 4px 6px 0!important;
+}
+table.product-grid tbody .ot-img .thumb {
+  width: 40px!important;
+  height: 40px!important;
+  border-radius: 8px!important;
+  object-fit: cover!important;
+  border: 1px solid var(--line-soft, #eee)!important;
+  display: block!important;
+  background: #fdfdfd!important;
+}
+table.product-grid tbody .ot-act {
+  margin: 0!important;
+  padding: 6px 14px!important;
+  border: 0!important;
+  text-align: right!important;
+  display: table-cell!important;
+}
+table.product-grid tbody .ot-act .btn {
+  min-width: 0!important;
+  padding: 6px 12px!important;
+  font-size: 12px!important;
+  height: 32px!important;
+  min-height: 32px!important;
+}
+
+/* Globálne vrátenie tabuliek z neprehľadných kariet na kompaktné tabuľky */
+.ot-wrap:has(.agenda-grid) {
+  padding: 0!important;
+  overflow-x: auto!important;
+}
+table.agenda-grid,
+table.product-grid,
+table.customer-grid,
+table.ot-orders {
+  display: table!important;
+  width: 100%!important;
+  border-collapse: collapse!important;
+  table-layout: auto!important;
+}
+table.agenda-grid thead,
+table.product-grid thead,
+table.customer-grid thead,
+table.ot-orders thead,
+table.agenda-grid:has(#p-pick-all) thead {
+  display: table-header-group!important;
+  position: static!important;
+  clip-path: none!important;
+  width: auto!important;
+  height: auto!important;
+  margin: 0!important;
+}
+table.agenda-grid thead tr,
+table.product-grid thead tr,
+table.customer-grid thead tr,
+table.ot-orders thead tr {
+  display: table-row!important;
+}
+table.agenda-grid thead th,
+table.product-grid thead th,
+table.customer-grid thead th,
+table.ot-orders thead th {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  font-size: 11px!important;
+  letter-spacing: .08em!important;
+  text-transform: uppercase!important;
+  color: var(--muted, #666)!important;
+  background: var(--surface-2, #faf7fc)!important;
+  border-bottom: 1px solid var(--line, #e2dbe8)!important;
+  white-space: nowrap!important;
+  vertical-align: middle!important;
+}
+table.agenda-grid:has(#p-pick-all) th.ot-check:after {
+  display: none!important;
+}
+table.agenda-grid tbody,
+table.product-grid tbody,
+table.customer-grid tbody,
+table.ot-orders tbody {
+  display: table-row-group!important;
+}
+table.agenda-grid tbody tr[data-id],
+table.product-grid tbody tr[data-id],
+table.customer-grid tbody tr[data-id],
+table.ot-orders tbody tr[data-id] {
+  display: table-row!important;
+  padding: 0!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  box-shadow: none!important;
+  cursor: pointer!important;
+  transition: background .15s ease!important;
+}
+table.agenda-grid tbody tr[data-id]:hover,
+table.product-grid tbody tr[data-id]:hover,
+table.customer-grid tbody tr[data-id]:hover,
+table.ot-orders tbody tr[data-id]:hover {
+  background: var(--soft, #f6f0fb)!important;
+  border-color: transparent!important;
+}
+table.agenda-grid tbody td,
+table.product-grid tbody td,
+table.customer-grid tbody td,
+table.ot-orders tbody td {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  vertical-align: middle!important;
+  font-size: 13.5px!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  white-space: nowrap!important;
+}
+table.agenda-grid tbody td[data-label] {
+  display: table-cell!important;
+  grid-template-columns: none!important;
+  gap: 0!important;
+}
+table.agenda-grid tbody td[data-label]:before {
+  display: none!important;
+}
+table.agenda-grid tbody td.lv-title {
+  white-space: normal!important;
+  max-width: 280px!important;
+  font-size: 14px!important;
+  font-weight: 500!important;
+  padding-right: 14px!important;
+}
+table.agenda-grid tbody .ot-check {
+  position: static!important;
+  width: 38px!important;
+  text-align: center!important;
+  padding-left: 14px!important;
+}
+table.agenda-grid tbody .ot-check input {
+  margin: 0!important;
+}
+table.agenda-grid tbody .ot-img {
+  width: 50px!important;
+  padding: 6px 4px 6px 0!important;
+}
+table.agenda-grid tbody .ot-img .thumb {
+  width: 38px!important;
+  height: 38px!important;
+  border-radius: 8px!important;
+  object-fit: cover!important;
+  border: 1px solid var(--line-soft, #eee)!important;
+  display: block!important;
+  background: #fdfdfd!important;
+}
+table.agenda-grid tbody .ot-act {
+  margin: 0!important;
+  padding: 6px 14px!important;
+  border: 0!important;
+  text-align: right!important;
+  display: table-cell!important;
+}
+table.agenda-grid tbody .ot-act .btn {
+  min-width: 0!important;
+  padding: 6px 12px!important;
+  font-size: 12px!important;
+  height: 32px!important;
+  min-height: 32px!important;
+}
+
+
+/* Small forms stay readable; data lists retain their available width. */
+#view .card.compact-form { width:100%; max-width:none; margin-inline:0; }
+table.agenda-grid.category-grid tbody td.lv-title {
+  min-width:160px; overflow-wrap:anywhere; word-break:normal;
+}
+.translation-wrap { max-width:100%; overflow-x:auto; }
+.translation-table { width:100%; min-width:680px; border-collapse:collapse; }
+.translation-table th,.translation-table td { padding:12px 14px; text-align:left; }
+.translation-table td:nth-child(2) { min-width:180px; overflow-wrap:anywhere; }
+.translation-table td:last-child { text-align:right; }
+.translation-table [data-edit-trans] { white-space:nowrap; }
+.translation-table { font-size:13.5px; }
+.translation-table th { background:var(--surface-2); color:var(--muted); font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.06em; }
+.translation-table td { border-bottom:1px solid var(--line-soft); overflow-wrap:anywhere; }
+
+
+/* Constrain the dashboard grid row before allocating its nested chart/list rows. */
+@media(min-width:1151px) and (min-height:760px) {
+ .is-dashboard .dash { grid-template-rows:minmax(0,1fr); }
+ .is-dashboard .dash-side { min-height:0; overflow:auto; }
+}
+.dash-table .dots-btn { width:100%; max-width:32px; min-width:0; }
+
+
+/* Compact, balanced agendas; horizontal scrolling belongs to tables on mobile. */
+table.agenda-grid.category-grid { table-layout:fixed!important; min-width:800px; }
+table.category-grid th:nth-child(1) { width:23%; }
+table.category-grid th:nth-child(2) { width:25%; }
+table.category-grid th:nth-child(3) { width:23%; }
+table.category-grid th:nth-child(4) { width:8%; }
+table.category-grid th:nth-child(5) { width:11%; }
+table.category-grid th:last-child { width:110px; }
+table.agenda-grid.customer-grid { table-layout:fixed!important; min-width:1100px; }
+table.customer-grid th:nth-child(1) { width:38px; }
+table.customer-grid th:nth-child(2) { width:50px; }
+table.customer-grid th:nth-child(3) { width:23%; }
+table.customer-grid th:nth-child(4) { width:29%; }
+table.customer-grid th:nth-child(5) { width:10%; }
+table.customer-grid th:nth-child(6) { width:12%; }
+table.customer-grid th:nth-child(7) { width:16%; }
+table.customer-grid th:last-child { width:110px; }
+table.agenda-grid.customer-grid tbody td.lv-title,
+table.agenda-grid.customer-grid tbody td[data-label="E-mail"] {
+ white-space:normal!important; overflow-wrap:anywhere; word-break:normal; max-width:none!important;
+}
+.voucher-agenda { width:100%; max-width:none; margin-inline:0; }
+.voucher-agenda>.rc-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); }
+.voucher-refund #vr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 18px; align-items:end; }
+.voucher-refund #vr label { margin-top:0; }
+.media-library { width:100%; max-width:none; margin-inline:0; }
+.media-library .media-grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr)); }
+.media-library .media-act { display:flex; flex-wrap:wrap; gap:6px; }
+.media-library .media-act .btn { flex:1 0 auto; }
+@media(max-width:760px) {
+ .pe .pe-grid { grid-template-columns:minmax(0,1fr)!important; }
+ .pe .pe-hero { grid-template-columns:minmax(0,1fr)!important; }
+ .voucher-refund #vr { grid-template-columns:minmax(0,1fr); }
+}
+
+.cp-layout,.cp-layout.has-live { display:block; width:100%; max-width:none; margin-inline:0; }
+details.cp-live { position:static; height:auto; margin-top:16px; display:block; }
+details.cp-live>.cp-live-h { cursor:pointer; }
+details.cp-live[open] iframe { display:block; height:min(600px,65vh); }
+.cp-open-web { display:block; padding:10px 14px; font-size:13px; }
+
+.pe #pe-popis .rt .wysi.rt-page { min-height:180px; }
+
+/* One UI typeface across administration, including imported security views. */
+.app h1,.app h2,.app h3,.app .card-h,.app .pe-title,.app .pe-n,
+.app .kpi-value,.app .dn-n,.app .banner-txt b {
+ font-family:Figtree,Helvetica,Arial,sans-serif!important; font-weight:500;
+}
+.app .card-h h2,.app .pe-sec h2 { font-size:17px!important; line-height:1.35; margin:0; }
+.security-agenda { max-width:none; margin-inline:0; }
+.security-agenda .card+.card { margin-top:16px; }
+.security-agenda .ot { min-width:580px; }
+.security-agenda .ot th:first-child { width:48%; }
+.security-agenda select { max-width:260px; }
+
+/* Orders are tables: discard the old card-only checkbox positioning. */
+table.ot-orders thead th.ot-check,
+table.ot-orders tbody td.ot-check {
+ position:static!important; inset:auto!important; display:table-cell!important;
+ width:38px!important; min-width:38px; padding:10px 8px!important; text-align:center;
+}
+table.ot-orders thead th.ot-check:after { content:none; }
+table.ot-orders .ot-check input { position:static; margin:0; vertical-align:middle; }
+table.ot-orders tbody td.ot-act { position:static!important; }
+table.ot-orders .ot-acts { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+
+/* Objednávky: tabuľka sa zmestí do karty, kompaktné riadky, bez orezania pravého stĺpca. */
+@media(min-width:801px) {
+ .ot-wrap:has(.ot-orders) { overflow-x:auto; padding:0 16px 8px; }
+ table.ot-orders { min-width:0!important; width:100%!important; table-layout:fixed!important; }
+ table.ot-orders thead th:nth-child(1), table.ot-orders tbody td:nth-child(1) { width:40px!important; }
+ table.ot-orders thead th:nth-child(2), table.ot-orders tbody td:nth-child(2) { width:56px!important; }
+ table.ot-orders thead th:nth-child(3), table.ot-orders tbody td:nth-child(3) { width:11%!important; }
+ table.ot-orders thead th:nth-child(4), table.ot-orders tbody td:nth-child(4) { width:17%!important; }
+ table.ot-orders thead th:nth-child(5), table.ot-orders tbody td:nth-child(5) { width:10%!important; }
+ table.ot-orders thead th:nth-child(6), table.ot-orders tbody td:nth-child(6) { width:17%!important; }
+ table.ot-orders thead th:nth-child(7), table.ot-orders tbody td:nth-child(7) { width:10%!important; }
+ table.ot-orders thead th:nth-child(8), table.ot-orders tbody td:nth-child(8) { width:9%!important; }
+ table.ot-orders thead th:nth-child(9), table.ot-orders tbody td:nth-child(9) { width:10%!important; }
+ table.ot-orders thead th:nth-child(10), table.ot-orders tbody td:nth-child(10) { width:16%!important; }
+ table.ot-orders thead th, table.ot-orders tbody td { padding:10px 8px!important; vertical-align:middle; overflow-wrap:anywhere; }
+ table.ot-orders tbody td:nth-child(7) { white-space:nowrap; }
+ table.ot-orders .ot-img img, table.ot-orders .ot-noimg { width:36px; height:36px; }
+}
+@media(min-width:801px) {
+ table.ot-orders .ot-acts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+ table.ot-orders .ot-acts .btn { justify-content:center; min-height:30px; padding:4px 6px; font-size:11.5px; white-space:nowrap; }
+}
+/* Stránkovanie bez ďalšej strany nezaberá miesto. */
+div:has(>[data-pg="prev"]:disabled):has(>[data-pg="next"]:disabled) { display:none!important; }
+.ot-foot:not(:has(div:has(>[data-pg]:not(:disabled)))):has(.muted:empty) { display:none; }
 /* Zlaté logo ANASTASIA od Lucie (krúžok a nápis s tieňom), rovnaké ako v newsletteri. */
 .brand img.brand-ring,.brand img.brand-word,.mobile-head img.brand-ring,.mobile-head img.brand-word{filter:none}
 .brand img.brand-ring{width:67px;height:64px;flex:none;object-fit:contain}

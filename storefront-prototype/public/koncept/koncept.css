@@ -233,11 +233,14 @@ html:has(.kc){overflow-x:clip}
   .kc-top__nav{display:none}
   .kc-open{height:220vh}
   .kc-open__drop{width:40vw}
-  .kc-open__title{font-size:clamp(40px,14.5vw,80px)}
+  .kc-open__title{font-size:clamp(36px,13.5vw,72px);white-space:nowrap}
+  .kc-open .kc-l{transform:none!important;opacity:calc(1 - var(--p,0) * 2)!important}
   .kc-open__mark{top:calc(50% - 130px)}
   .kc-open__kicker{top:calc(50% + 70px);letter-spacing:.42em}
-  .kc-open__lead{bottom:auto;top:96px;left:50%;transform:translateX(-50%);text-align:center;font-size:14px}
+  .kc-open__lead{bottom:auto;top:108px;left:50%;transform:translateX(-50%);text-align:center;font-size:13.5px;line-height:1.45;width:min(320px,calc(100% - 40px))}
+  .kc-pre{display:none!important}
   .kc-open__scroll{display:none}
+  .kc-enter{bottom:calc(28px + env(safe-area-inset-bottom))!important;z-index:10!important}
   .kc-mani{height:200vh}
   .kc-mani__foot{grid-template-columns:1fr;gap:24px}
   .kc-mani__foot p{font-size:15px}
@@ -349,7 +352,7 @@ main>.lh-top+.kc{margin-top:-64px}
 
 /* Hero 300 % (25. 10.): pečeť, kapsula čísel, smerové overlaye, zlatý eyebrow */
 .kc-open__drop::after{display:none}
-.kc-open__shade{position:absolute;inset:0;pointer-events:none;opacity:var(--claim,0);z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 50%),radial-gradient(circle at 10% 90%,rgba(10,15,10,.75) 0%,rgba(10,15,10,0) 75%)}
+.kc-open__shade{position:absolute;inset:0;pointer-events:none;opacity:var(--claim,0);z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.18) 0%,rgba(0,0,0,0) 50%),radial-gradient(circle at 10% 90%,rgba(10,15,10,.24) 0%,rgba(10,15,10,0) 75%)}
 .kc-open__seal{position:absolute;top:32px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:var(--claim,0);pointer-events:none}
 .kc-open__seal img{width:auto;height:36px;filter:brightness(0) invert(72%) sepia(28%) saturate(520%) hue-rotate(4deg) brightness(95%) contrast(86%)}
 .kc-open__seal span{font:400 12px/1 var(--serif);letter-spacing:.3em;padding-left:.3em;color:#F6F0E1}

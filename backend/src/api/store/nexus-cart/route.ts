@@ -15,6 +15,7 @@ import { syncGiftVoucherCredit, type CreditState } from "../../../modules/gift-v
 import { recordEvent } from "../../../lib/observability/events"
 import { requestIdHeaders } from "../../../lib/observability/log"
 import { productRequiresShipping } from "../../../lib/checkout/product-delivery"
+import { findActiveAmbassadorByCode } from "../../../lib/ambassador/service"
 
 type PriceResponse = {
   ok: true
@@ -120,8 +121,11 @@ async function lookupCoupon(scope: MedusaRequest["scope"], code: string, cartId:
  * - `couponCodeInput === undefined` -> žádná změna z klienta; použije se
  *   dřív uložený kód, ale ZNOVU se ověří dostupnost (limit/platnost se
  *   mohly mezitím změnit -- nikdy se nespoléhá na starou uloženou platnost).
+ * - `applicable`: kupón bez jediné povolené položky v košíku nezľaví nič, takže
+ *   nový kód skončí COUPON_NOT_APPLICABLE (legacy „kupón platí len pre ...“) a
+ *   uložený sa tiše odoberie – inak by sa pri objednávke započítalo použitie bez zľavy.
  */
-async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, cartMetadata: Record<string, unknown> | null | undefined, couponCodeInput: string | null | undefined, applyChanges: boolean): Promise<StoredCoupon | undefined> {
+async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, cartMetadata: Record<string, unknown> | null | undefined, couponCodeInput: string | null | undefined, applyChanges: boolean, applicable: (coupon: StoredCoupon) => boolean): Promise<StoredCoupon | undefined> {
   if (couponCodeInput === null) {
     if (applyChanges) await persistCartCoupon(scope, cartId, cartMetadata, null)
     return undefined
@@ -129,13 +133,14 @@ async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
   if (typeof couponCodeInput === "string" && couponCodeInput.trim().length > 0) {
     const resolved = await lookupCoupon(scope, couponCodeInput.trim(), cartId)
     if (!resolved) throw new Error("COUPON_INVALID")
+    if (!applicable(resolved)) throw new Error("COUPON_NOT_APPLICABLE")
     if (applyChanges) await persistCartCoupon(scope, cartId, cartMetadata, resolved)
     return resolved
   }
   const stored = readStoredCoupon(cartMetadata)
   if (!stored) return undefined
   const revalidated = await lookupCoupon(scope, stored.code, cartId)
-  if (!revalidated) {
+  if (!revalidated || !applicable(revalidated)) {
     if (applyChanges) await persistCartCoupon(scope, cartId, cartMetadata, null)
     return undefined
   }
@@ -161,7 +166,7 @@ async function resolveCartCoupon(scope: MedusaRequest["scope"], cartId: string, 
  * `guest`: nákup bez registrácie (HTTP handler bez prihláseného zákazníka). Host smie
  * len košík bez účtu, viz `canAccessCart`.
  */
-export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null, expectedCustomerId?: string, guest = false) {
+export async function repriceCart(cartId: string, scope: MedusaRequest["scope"], applyChanges = true, couponCodeInput?: string | null, expectedCustomerId?: string, guest = false, referralCodeInput?: string | null) {
   if (!cartId || typeof cartId !== "string") throw new Error("INVALID_CART_ID")
   const query: any = scope.resolve(ContainerRegistrationKeys.QUERY)
   const { data } = await query.graph({
@@ -176,7 +181,26 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
   const cart = data?.[0]
   if (!cart) throw new Error("CART_NOT_FOUND")
   if (guest || expectedCustomerId) assertCartAccess(cart, expectedCustomerId)
-  const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput, applyChanges)
+
+  if (referralCodeInput && typeof referralCodeInput === "string") {
+    const amb = await findActiveAmbassadorByCode(scope, referralCodeInput)
+    if (amb) {
+      const currentMeta = (cart.metadata || {}) as Record<string, unknown>
+      if (!currentMeta.ambassador || (currentMeta.ambassador as any).code !== amb.code) {
+        const metadata = {
+          ...currentMeta,
+          ambassador: {
+            customer_id: amb.customer_id,
+            code: amb.code,
+            commission_percent: amb.commission_percent,
+            source: "link",
+            captured_at: new Date().toISOString(),
+          },
+        }
+        await updateCartWorkflow(scope).run({ input: { id: cartId, metadata } })
+      }
+    }
+  }
   const tenantId = process.env.NEXUS_TENANT_ID
   const pricingUrl = process.env.NEXUS_PRICING_URL
   const apiKey = process.env.NEXUS_PRICING_API_KEY
@@ -235,11 +259,17 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
     })
   }
 
-  // 2) Pevná zľava (EUR) sa rozdeľuje medzi položky, na ktoré kupón platí.
+  // 2) Kupón sa uplatní len na položky, na ktoré platí (darčekový poukaz nikdy).
+  //    Bez jedinej takej položky sa kupón neprijme (viď `resolveCartCoupon`).
+  const discountable = prepared.filter((item) => !isGiftVoucherProduct(item.variant?.product))
+  const coupon = await resolveCartCoupon(scope, cartId, cart.metadata, couponCodeInput, applyChanges,
+    (candidate) => discountable.some((item) => couponAppliesToProduct(candidate, item.productId)))
+
+  // 3) Pevná zľava (EUR) platí JEDNOU za košík a rozdelí sa na zľavu za kus.
   //    Percentuálna zľava nemusí alokáciu -- Worker ju aplikuje na každú položku.
-  const couponItems = prepared
+  const couponItems = discountable
     .filter((item) => couponAppliesToProduct(coupon, item.productId))
-    .map((item) => ({ id: item.id, productId: item.productId, basePrice: item.basePrice }))
+    .map((item) => ({ id: item.id, productId: item.productId, basePrice: item.salePrice ?? item.basePrice, quantity: item.quantity }))
   const fixedAllocation = coupon && coupon.type === "fixed"
     ? allocateFixedCoupon(coupon.value, couponItems)
     : new Map<string, number>()
@@ -280,7 +310,7 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
         productMaxDiscount: typeof metadata.max_discount === "number" ? metadata.max_discount : undefined,
         allowLoyaltyDiscount: true,
         // Kupón: percentá len na položky, na ktoré platí; pevná suma je rozdelená
-        // už v backendu (alokácia) a Worker ju odčíta od ceny (nikdy pod 0).
+        // už v backendu na zľavu ZA KUS a Worker ju odčíta od ceny kusu (nikdy pod 0).
         couponDiscountPercent: couponApplies && coupon?.type === "percentage" ? coupon.value / 100 : undefined,
         couponFixedAmount: fixedAmount > 0 ? fixedAmount : undefined,
         }),
@@ -324,11 +354,11 @@ export async function repriceCart(cartId: string, scope: MedusaRequest["scope"],
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const actorId = customerActor(req)
   try {
-    const { cart_id: cartId, couponCode } = req.body as { cart_id?: string; couponCode?: string | null }
+    const { cart_id: cartId, couponCode, referral_code } = req.body as { cart_id?: string; couponCode?: string | null; referral_code?: string | null }
     if (couponCode !== undefined && couponCode !== null && typeof couponCode !== "string") {
       return res.status(400).json({ ok: false, error: "VALIDATION_ERROR" })
     }
-    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode, actorId, !actorId)
+    const pricing = await repriceCart(cartId || "", req.scope, true, couponCode, actorId, !actorId, referral_code)
     await recordEvent(req.scope, "info", "pricing", "repriced", {
       cart_id: cartId, tenant_id: pricing.tenantId, lines: pricing.items.length, prices_changed: pricing.pricesChanged,
       coupon_applied: Boolean(pricing.coupon), gift_voucher_applied: Boolean(pricing.gift_voucher),
@@ -337,10 +367,10 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   } catch (error) {
     const message = error instanceof Error ? error.message : "PRICING_FAILED"
     const cartId = (req.body as { cart_id?: unknown } | undefined)?.cart_id
-    await recordEvent(req.scope, message.startsWith("NEXUS_PRICING") || message === "INVALID_NEXUS_PRICE_RESPONSE" ? "error" : "warn", message === "COUPON_INVALID" ? "coupon" : "pricing", "reprice_failed", {
+    await recordEvent(req.scope, message.startsWith("NEXUS_PRICING") || message === "INVALID_NEXUS_PRICE_RESPONSE" ? "error" : "warn", message.startsWith("COUPON_") ? "coupon" : "pricing", "reprice_failed", {
       cart_id: typeof cartId === "string" ? cartId : null, error_code: /^[A-Z][A-Z0-9_]{2,63}$/.test(message) ? message : "PRICING_FAILED",
     })
-    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message === "COUPON_INVALID" ? 400 : message.startsWith("NEXUS_PRICING") ? 503 : 400
+    const status = message === "CART_ACCESS_DENIED" ? 403 : message === "CART_NOT_FOUND" ? 404 : message.startsWith("COUPON_") ? 400 : message.startsWith("NEXUS_PRICING") ? 503 : 400
     return res.status(status).json({ ok: false, error: message })
   }
 }

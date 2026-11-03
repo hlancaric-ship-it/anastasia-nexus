@@ -21,6 +21,12 @@ let storage;try{
   storage={getItem:k=>pick(k).getItem(k),setItem:(k,v)=>pick(k).setItem(k,v),removeItem:k=>pick(k).removeItem(k)};
 }catch{}
 const api=createApi(storage);
+try {
+  const refParam = new URLSearchParams(window.location.search).get('ref') || new URLSearchParams(window.location.search).get('ambassador');
+  if (refParam && /^[A-Za-z0-9_-]{3,24}$/.test(refParam.trim())) {
+    try { window.localStorage.setItem('anastasia.ref', refParam.trim().toUpperCase()); } catch {}
+  }
+} catch {}
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
 // Product media can be temporarily unavailable while catalogue URLs are repaired.
 // Keep the designed local placeholder visible and never paint the browser's alt text.
@@ -747,7 +753,7 @@ if($('#cart-view')){
 }
 
 const checkoutForm=$('#checkout-form');
-if(checkoutForm){const cb=checkoutForm.elements.asCompany,box=checkoutForm.querySelector('[data-company-fields]');cb?.addEventListener('change',()=>{if(box)box.hidden=!cb.checked;const n=checkoutForm.elements.companyName;if(n)n.required=cb.checked;});}
+if(checkoutForm){const cb=checkoutForm.elements.asCompany,box=checkoutForm.querySelector('[data-company-fields]');cb?.addEventListener('change',()=>{if(box)box.hidden=!cb.checked;for(const k of ['companyName','companyStreet','companyCity','companyPostalCode']){const n=checkoutForm.elements[k];if(n)n.required=cb.checked;}});}
 if(checkoutForm){
   const cart=await api.getCart();$('#checkout-summary').innerHTML=summary(cart);
   if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
@@ -764,7 +770,9 @@ if(checkoutForm){
     };
     const retry=$('#checkout-retry',checkoutForm);
     // Prihlásený zákazník má údaje predvyplnené z účtu. Čo už zákazník sám napísal, sa neprepisuje.
-    (async()=>{try{const prof=await api.getCheckoutProfile?.();if(!prof)return;for(const k of ['firstName','lastName','email','street','city','postalCode']){const f=checkoutForm.elements[k];if(f&&!f.value&&prof[k])f.value=prof[k];}}catch{}})();
+    (async()=>{try{const prof=await api.getCheckoutProfile?.();if(!prof)return;for(const k of ['firstName','lastName','email','street','city','postalCode','companyName','companyIco','companyDic','companyIcDph','companyStreet','companyCity','companyPostalCode']){const f=checkoutForm.elements[k];if(f&&!f.value&&prof[k])f.value=prof[k];}
+      // Firemný zákazník (názov firmy v profile): pokladňa sa otvorí rovno s firemnými údajmi.
+      const cb=checkoutForm.elements.asCompany;if(cb&&!cb.checked&&prof.companyName){cb.checked=true;cb.dispatchEvent(new Event('change',{bubbles:true}));}}catch{}})();
     if(retry)retry.addEventListener('click',async()=>{
       retry.hidden=true;setNextState(nextButtonState({cartReady:true,optionsReady:false}));
       const again=await loadOptions();
@@ -780,11 +788,14 @@ if(checkoutForm){
     let options={requires_delivery:false,delivery:[],payment:[]};
     const deliveryNote=()=>$('#delivery-note',checkoutForm);
     // Adresa je povinná len pri kuriérovi; pri osobnom odbere a digitálnom košíku nie je potrebná.
+    // Firma môže dať doručiť na adresu sídla (predvolené) alebo zaškrtnutie zruší a vyplní inú doručovaciu adresu.
     const applyAddress=()=>{
       const addr=$('#address-fields',checkoutForm);if(!addr)return;
-      const chosen=checkoutForm.elements.delivery?.value||'';
-      const needed=chosen==='courier';
-      $$('#address-fields input',checkoutForm).forEach(input=>{input.required=needed;input.disabled=!needed;});
+      const el=checkoutForm.elements,courier=(el.delivery?.value||'')==='courier',company=el.asCompany?.checked===true;
+      const same=$('[data-same-address]',checkoutForm);if(same)same.hidden=!(courier&&company);
+      const own=courier&&!(company&&el.sameAsCompany?.checked);
+      const ship=$('[data-ship-fields]',checkoutForm);if(ship)ship.hidden=!own;
+      $$('[data-ship-fields] input',checkoutForm).forEach(input=>{input.required=own;input.disabled=!own;});
     };
     const renderDelivery=()=>{
       const box=$('#delivery-options',checkoutForm);if(!box)return;
@@ -826,9 +837,11 @@ if(checkoutForm){
       host.textContent='Pripravujem objednávku…';
       if(typeof api.prepareCheckout!=='function'){host.textContent='Platbu sa nepodarilo pripraviť.';return;}
       const el=checkoutForm.elements,f=Object.fromEntries(['firstName','lastName','email','street','city','postalCode'].map(k=>[k,el[k]?.value||'']));
+      const asCompany=el.asCompany?.checked===true,co=asCompany?{name:el.companyName?.value||'',ico:el.companyIco?.value||'',dic:el.companyDic?.value||'',icDph:el.companyIcDph?.value||'',street:el.companyStreet?.value||'',city:el.companyCity?.value||'',postalCode:el.companyPostalCode?.value||''}:null;
+      if(co&&el.sameAsCompany?.checked){f.street=co.street;f.city=co.city;f.postalCode=co.postalCode;}
       paymentMethod=el.payment?.value||'card';
       // Server pripraví dopravu, prepočíta ceny a založí platobnú session (client_secret).
-      const prep=await api.prepareCheckout({company:el.asCompany?.checked?{name:el.companyName?.value||'',ico:el.companyIco?.value||'',dic:el.companyDic?.value||'',icDph:el.companyIcDph?.value||''}:null,firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:el.delivery?.value||null,street:f.street,city:f.city,postalCode:f.postalCode,payment:paymentMethod});
+      const prep=await api.prepareCheckout({company:co,firstName:f.firstName,lastName:f.lastName,email:f.email,delivery:el.delivery?.value||null,street:f.street,city:f.city,postalCode:f.postalCode,payment:paymentMethod});
       if(!prep.ok){host.textContent=prep.message;return;}
       lastCart=prep.cart;$('#checkout-summary').innerHTML=summary(prep.cart);
       paymentRequired=prep.paymentRequired===true;
@@ -845,7 +858,7 @@ if(checkoutForm){
     // Zmena dopravy (adresa) alebo platby znovu pripraví objednávku na serveri.
     checkoutForm.addEventListener('change',event=>{
       const name=event.target?.name;
-      if(name==='delivery'){applyAddress();if(!$('fieldset[data-step="3"]',checkoutForm)?.hidden)initPayment();}
+      if(name==='delivery'||name==='sameAsCompany'||name==='asCompany'){applyAddress();if(!$('fieldset[data-step="3"]',checkoutForm)?.hidden)initPayment();}
       if(name==='payment'&&!$('fieldset[data-step="3"]',checkoutForm)?.hidden)initPayment();
     });
     let checkoutBusy=false;
@@ -885,7 +898,7 @@ if($('#ty-view')){
     const bk=o.method==='bank_transfer'&&o.bank&&o.bank.iban?o.bank:null;
     const bkMoney=bk&&Number.isFinite(Number(bk.amount))?new Intl.NumberFormat('sk-SK',{style:'currency',currency:String(bk.currency_code||'eur').toUpperCase()}).format(Number(bk.amount)):'';
     const bankBlock=bk?`<section class="ty-bank"><p class="eyebrow">Platba prevodom na účet</p><dl class="ty-total"><div><dt>Príjemca</dt><dd>${e(bk.beneficiary)}</dd></div><div><dt>IBAN</dt><dd>${e(bk.iban)}</dd></div><div><dt>Variabilný symbol</dt><dd>${e(bk.variable_symbol)}</dd></div>${bkMoney?`<div><dt>Suma</dt><dd>${e(bkMoney)}</dd></div>`:''}</dl>${safeSvg(bk.qr_svg)?`<figure class="ty-qr"><div class="ty-qr__code">${safeSvg(bk.qr_svg)}</div><figcaption>Naskenujte QR kód v bankovej aplikácii, platba sa vyplní sama.</figcaption></figure>`:''}${safeSvg(bk.qr_spayd_svg)?`<details class="ty-qr-cz"><summary>QR platba pre české banky</summary><div class="ty-qr__code">${safeSvg(bk.qr_spayd_svg)}</div></details>`:''}</section>`:'';
-    view.innerHTML=`<ul class="ty-lines">${o.lines.map(l=>`<li><img src="${e(l.image||'/assets/brand-mark.svg')}" alt="" width="56" height="56" loading="lazy"><span>${e(l.name)}<small>${l.quantity} ks</small></span><strong>${e(l.priceLabel||'')}</strong></li>`).join('')}</ul><dl class="ty-total">${o.shippingLabel&&phys?`<div><dt>Doprava</dt><dd>${e(o.shippingLabel)}</dd></div>`:''}<div><dt>Celkom</dt><dd>${e(o.totalLabel)}</dd></div></dl>${next.length?`<div class="ty-next"><p class="eyebrow">Čo bude ďalej</p><ul>${next.map(t=>`<li>${e(t)}</li>`).join('')}</ul></div>`:''}${bankBlock}`;
+    view.innerHTML=`<ul class="ty-lines">${o.lines.map(l=>`<li><img src="${e(l.image||'/assets/anastasia-oz-mark.png')}" alt="" width="56" height="56" loading="lazy"><span>${e(l.name)}<small>${l.quantity} ks</small></span><strong>${e(l.priceLabel||'')}</strong></li>`).join('')}</ul><dl class="ty-total">${o.shippingLabel&&phys?`<div><dt>Doprava</dt><dd>${e(o.shippingLabel)}</dd></div>`:''}<div><dt>Celkom</dt><dd>${e(o.totalLabel)}</dd></div></dl>${next.length?`<div class="ty-next"><p class="eyebrow">Čo bude ďalej</p><ul>${next.map(t=>`<li>${e(t)}</li>`).join('')}</ul></div>`:''}${bankBlock}`;
   }
   title.focus();
 }

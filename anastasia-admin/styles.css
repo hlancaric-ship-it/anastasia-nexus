@@ -1101,6 +1101,371 @@ dialog.mp::backdrop{background:rgba(47,59,42,.35);backdrop-filter:blur(3px)}
 .ve-unl input{width:auto;margin:0}
 @media(max-width:720px){.ve-row{grid-template-columns:1fr 1fr}.ve-stock{grid-column:1/-1}}
 
+/* Fix checkbox and radio widths and wrapping */
+input[type=checkbox], input[type=radio] {
+  width: 16px!important;
+  min-width: 16px!important;
+  max-width: 16px!important;
+  height: 16px!important;
+  flex: none!important;
+  margin: 0!important;
+  vertical-align: middle;
+}
+label:has(input[type=checkbox]), label:has(input[type=radio]),
+.pe-sec label:has(input[type=checkbox]), .row label:has(input[type=checkbox]) {
+  display: inline-flex!important;
+  flex-direction: row!important;
+  align-items: center!important;
+  gap: 8px!important;
+  width: auto!important;
+  max-width: 100%!important;
+  white-space: nowrap!important;
+  margin: 8px 14px 4px 0!important;
+  cursor: pointer;
+}
+
+/* Ergonomický a kompaktný layout editora a detailu */
+.pe {
+  display: grid!important;
+  gap: 16px!important;
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  width: 100%!important;
+}
+.pe-hero {
+  grid-template-columns: 240px minmax(0, 1fr)!important;
+  border-radius: 20px!important;
+}
+.pe-hero-img {
+  min-height: 200px!important;
+  max-height: 220px!important;
+}
+.pe-hero-body {
+  padding: 20px 24px!important;
+  gap: 10px!important;
+}
+.pe-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr))!important;
+  gap: 16px!important;
+}
+.pe-sec {
+  padding: 18px 20px!important;
+  border-radius: 16px!important;
+}
+.pe-sec.wide {
+  grid-column: 1 / -1!important;
+}
+.detail-layout {
+  max-width: 1120px!important;
+  margin: 0 auto!important;
+  gap: 16px!important;
+}
+
+/* Compact Table View for Products */
+.ot-wrap:has(.product-grid) {
+  padding: 0!important;
+  overflow-x: auto!important;
+}
+table.product-grid {
+  display: table!important;
+  width: 100%!important;
+  border-collapse: collapse!important;
+  table-layout: auto!important;
+}
+table.product-grid thead,
+table.product-grid:has(#p-pick-all) thead {
+  display: table-header-group!important;
+  position: static!important;
+  clip-path: none!important;
+  width: auto!important;
+  height: auto!important;
+  margin: 0!important;
+}
+table.product-grid thead tr,
+table.product-grid:has(#p-pick-all) thead tr {
+  display: table-row!important;
+}
+table.product-grid thead th,
+table.product-grid:has(#p-pick-all) th {
+  display: table-cell!important;
+  padding: 12px 14px!important;
+  font-size: 11px!important;
+  letter-spacing: .08em!important;
+  text-transform: uppercase!important;
+  color: var(--muted, #666)!important;
+  background: var(--surface-2, #faf7fc)!important;
+  border-bottom: 1px solid var(--line, #e2dbe8)!important;
+  white-space: nowrap!important;
+  vertical-align: middle!important;
+}
+table.product-grid:has(#p-pick-all) th.ot-check:after {
+  display: none!important;
+}
+table.product-grid tbody {
+  display: table-row-group!important;
+}
+table.product-grid tbody tr[data-id] {
+  display: table-row!important;
+  padding: 0!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  box-shadow: none!important;
+}
+table.product-grid tbody tr[data-id]:hover {
+  background: var(--soft, #f6f0fb)!important;
+}
+table.product-grid tbody td {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  vertical-align: middle!important;
+  font-size: 13.5px!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  white-space: nowrap!important;
+}
+table.product-grid tbody td.lv-title {
+  white-space: normal!important;
+  max-width: 280px!important;
+  font-size: 14px!important;
+  font-weight: 500!important;
+  padding-right: 14px!important;
+}
+table.product-grid tbody td[data-label] {
+  display: table-cell!important;
+  grid-template-columns: none!important;
+  gap: 0!important;
+}
+table.product-grid tbody td[data-label]:before {
+  display: none!important;
+}
+table.product-grid tbody .ot-check {
+  position: static!important;
+  width: 38px!important;
+  text-align: center!important;
+  padding-left: 14px!important;
+}
+table.product-grid tbody .ot-img {
+  width: 50px!important;
+  padding: 6px 4px 6px 0!important;
+}
+table.product-grid tbody .ot-img .thumb {
+  width: 40px!important;
+  height: 40px!important;
+  border-radius: 8px!important;
+  object-fit: cover!important;
+  border: 1px solid var(--line-soft, #eee)!important;
+  display: block!important;
+  background: #fdfdfd!important;
+}
+table.product-grid tbody .ot-act {
+  margin: 0!important;
+  padding: 6px 14px!important;
+  border: 0!important;
+  text-align: right!important;
+  display: table-cell!important;
+}
+table.product-grid tbody .ot-act .btn {
+  min-width: 0!important;
+  padding: 6px 12px!important;
+  font-size: 12px!important;
+  height: 32px!important;
+  min-height: 32px!important;
+}
+
+/* Globálne vrátenie tabuliek z neprehľadných kariet na kompaktné tabuľky */
+.ot-wrap:has(.agenda-grid) {
+  padding: 0!important;
+  overflow-x: auto!important;
+}
+table.agenda-grid,
+table.product-grid,
+table.customer-grid,
+table.ot-orders {
+  display: table!important;
+  width: 100%!important;
+  border-collapse: collapse!important;
+  table-layout: auto!important;
+}
+table.agenda-grid thead,
+table.product-grid thead,
+table.customer-grid thead,
+table.ot-orders thead,
+table.agenda-grid:has(#p-pick-all) thead {
+  display: table-header-group!important;
+  position: static!important;
+  clip-path: none!important;
+  width: auto!important;
+  height: auto!important;
+  margin: 0!important;
+}
+table.agenda-grid thead tr,
+table.product-grid thead tr,
+table.customer-grid thead tr,
+table.ot-orders thead tr {
+  display: table-row!important;
+}
+table.agenda-grid thead th,
+table.product-grid thead th,
+table.customer-grid thead th,
+table.ot-orders thead th {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  font-size: 11px!important;
+  letter-spacing: .08em!important;
+  text-transform: uppercase!important;
+  color: var(--muted, #666)!important;
+  background: var(--surface-2, #faf7fc)!important;
+  border-bottom: 1px solid var(--line, #e2dbe8)!important;
+  white-space: nowrap!important;
+  vertical-align: middle!important;
+}
+table.agenda-grid:has(#p-pick-all) th.ot-check:after {
+  display: none!important;
+}
+table.agenda-grid tbody,
+table.product-grid tbody,
+table.customer-grid tbody,
+table.ot-orders tbody {
+  display: table-row-group!important;
+}
+table.agenda-grid tbody tr[data-id],
+table.product-grid tbody tr[data-id],
+table.customer-grid tbody tr[data-id],
+table.ot-orders tbody tr[data-id] {
+  display: table-row!important;
+  padding: 0!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  box-shadow: none!important;
+  cursor: pointer!important;
+  transition: background .15s ease!important;
+}
+table.agenda-grid tbody tr[data-id]:hover,
+table.product-grid tbody tr[data-id]:hover,
+table.customer-grid tbody tr[data-id]:hover,
+table.ot-orders tbody tr[data-id]:hover {
+  background: var(--soft, #f6f0fb)!important;
+  border-color: transparent!important;
+}
+table.agenda-grid tbody td,
+table.product-grid tbody td,
+table.customer-grid tbody td,
+table.ot-orders tbody td {
+  display: table-cell!important;
+  padding: 10px 14px!important;
+  vertical-align: middle!important;
+  font-size: 13.5px!important;
+  border: 0!important;
+  border-bottom: 1px solid var(--line-soft, #f0ebf5)!important;
+  background: transparent!important;
+  white-space: nowrap!important;
+}
+table.agenda-grid tbody td[data-label] {
+  display: table-cell!important;
+  grid-template-columns: none!important;
+  gap: 0!important;
+}
+table.agenda-grid tbody td[data-label]:before {
+  display: none!important;
+}
+table.agenda-grid tbody td.lv-title {
+  white-space: normal!important;
+  max-width: 280px!important;
+  font-size: 14px!important;
+  font-weight: 500!important;
+  padding-right: 14px!important;
+}
+table.agenda-grid tbody .ot-check {
+  position: static!important;
+  width: 38px!important;
+  text-align: center!important;
+  padding-left: 14px!important;
+}
+table.agenda-grid tbody .ot-check input {
+  margin: 0!important;
+}
+table.agenda-grid tbody .ot-img {
+  width: 50px!important;
+  padding: 6px 4px 6px 0!important;
+}
+table.agenda-grid tbody .ot-img .thumb {
+  width: 38px!important;
+  height: 38px!important;
+  border-radius: 8px!important;
+  object-fit: cover!important;
+  border: 1px solid var(--line-soft, #eee)!important;
+  display: block!important;
+  background: #fdfdfd!important;
+}
+table.agenda-grid tbody .ot-act {
+  margin: 0!important;
+  padding: 6px 14px!important;
+  border: 0!important;
+  text-align: right!important;
+  display: table-cell!important;
+}
+table.agenda-grid tbody .ot-act .btn {
+  min-width: 0!important;
+  padding: 6px 12px!important;
+  font-size: 12px!important;
+  height: 32px!important;
+  min-height: 32px!important;
+}
+
+/* Coupon codes and order fields need deliberate column widths; auto layout was
+   shrinking their labels to a few characters and pushing actions away. */
+.ot-wrap:has(table.coupon-grid),
+.ot-wrap:has(table.ot-orders) {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto!important;
+}
+table.agenda-grid.coupon-grid,
+table.ot-orders {
+  table-layout: fixed!important;
+}
+table.agenda-grid.coupon-grid tbody td,
+table.ot-orders tbody td {
+  white-space: normal!important;
+  word-break: normal!important;
+  overflow-wrap: break-word!important;
+  min-width: 0;
+}
+table.agenda-grid.coupon-grid tbody td.lv-title {
+  width: 24%;
+  max-width: none!important;
+  white-space: normal!important;
+  overflow-wrap: break-word!important;
+}
+table.agenda-grid.coupon-grid thead th:nth-child(1),
+table.agenda-grid.coupon-grid tbody td.lv-title { width: 24%!important; }
+table.agenda-grid.coupon-grid thead th:nth-child(2) { width: 16%!important; }
+table.agenda-grid.coupon-grid thead th:nth-child(3) { width: 14%!important; }
+table.agenda-grid.coupon-grid thead th:nth-child(4) { width: 31%!important; }
+table.agenda-grid.coupon-grid thead th.ot-act,
+table.agenda-grid.coupon-grid tbody td.ot-act { width: 15%!important; }
+table.agenda-grid.coupon-grid tbody td.lv-title { overflow-wrap: normal!important; }
+table.ot-orders { min-width: 1380px; }
+table.ot-orders thead th:nth-child(1), table.ot-orders tbody td:nth-child(1) { width: 3%!important; }
+table.ot-orders thead th:nth-child(2), table.ot-orders tbody td:nth-child(2) { width: 4%!important; }
+table.ot-orders thead th:nth-child(3), table.ot-orders tbody td:nth-child(3) { width: 8%!important; }
+table.ot-orders thead th:nth-child(4), table.ot-orders tbody td:nth-child(4) { width: 13%!important; }
+table.ot-orders thead th:nth-child(5), table.ot-orders tbody td:nth-child(5) { width: 13%!important; }
+table.ot-orders thead th:nth-child(6), table.ot-orders tbody td:nth-child(6) { width: 13%!important; }
+table.ot-orders thead th:nth-child(7), table.ot-orders tbody td:nth-child(7) { width: 8%!important; }
+table.ot-orders thead th:nth-child(8), table.ot-orders tbody td:nth-child(8) { width: 12%!important; }
+table.ot-orders thead th:nth-child(9), table.ot-orders tbody td:nth-child(9) { width: 10%!important; }
+table.ot-orders thead th:nth-child(10), table.ot-orders tbody td:nth-child(10) { width: 16%!important; }
+table.ot-orders tbody td small { max-width: 100%; }
+.ot .ot-acts { flex-wrap: wrap; }
+.qr-list-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); }
+.qr-list-card { display: grid; grid-template-columns: minmax(0,1fr); gap: 9px; align-content: start; }
+.qr-list-card .qr-card-title { line-height: 1.45; overflow-wrap: break-word; }
+.qr-list-card .qr-card-coupon,
+.qr-list-card .qr-card-status { display: block; line-height: 1.5; }
+.qr-list-card .pill { justify-self: start; white-space: normal; }
 /* Štítky produktu v tvare listu (zhodné s obchodom). */
 .pill.leaf{display:inline-flex;align-items:center;gap:5px;border-radius:12px 2px 12px 2px;background:#f1efe2;color:#55603a;border:1px solid #c9cdb0}
 .pill.leaf::before{content:'';width:6px;height:9px;border-radius:0 100% 0 100%;background:currentColor;opacity:.7;transform:rotate(18deg)}

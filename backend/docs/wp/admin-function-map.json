@@ -397,8 +397,7 @@
         "backend/src/jobs/newsletter-send.ts",
         "backend/src/modules/legal/service.ts",
         "anastasia-admin/newsletter.mjs",
-        "backend/docs/wp/newsletter-kampane-HOTOVO.md",
-        "backend/src/api/admin/newsletter/preview/route.ts"
+        "backend/docs/wp/newsletter-kampane-HOTOVO.md"
       ],
       "remaining": "Backend a admin API sú hotové (koncept, test, fronta, odosielanie s limitom, odhlásenie podpísaným odkazom). Admin obrazovka je v samostatnom súbore anastasia-admin/newsletter.mjs a do app.mjs sa zapája jedným importom a jedným volaním; zapojenie zatiaľ nebolo vykonané. Migrácia nebola spustená proti reálnej DB a odosielanie nebolo overené proti živému poskytovateľovi.",
       "acceptance": "Kampaň sa odošle len prihláseným súhlasom a po opätovnej kontrole pred každým e-mailom; bez NEWSLETTER_UNSUBSCRIBE_SECRET sa neodošle nič; test ide len na @l-code-dynamics.com; denný limit a dávka sa dodržia; odhlasovací odkaz má podpis overený v konštantnom čase a jednoklikové odhlásenie funguje; obsah sa pred uložením sanitizuje a nedá sa prepašovať skript ani cudzia URL."
@@ -802,14 +801,18 @@
       "id": "ambassadors",
       "label_sk": "Ambasádorky a provízie",
       "delivery_lane": "PHASE2",
-      "backend_layer": "missing",
-      "backend_status": "NOT_IMPLEMENTED",
-      "new_admin_status": "NOT_IMPLEMENTED",
+      "backend_layer": "core-only",
+      "backend_status": "IMPLEMENTED",
+      "new_admin_status": "IMPLEMENTED",
       "request": "Osobní QR/odkazy, atribuce objednávek a přehled provizí.",
       "sources": [
+        "backend/src/api/admin/ambassadors/route.ts",
+        "backend/src/api/admin/ambassadors/[id]/route.ts",
+        "backend/src/api/admin/ambassadors/settings/route.ts",
+        "backend/src/api/admin/ambassadors/commissions/route.ts",
         "backend/src/api/admin/coupon-links/route.ts"
       ],
-      "remaining": "Generátor kupónu není atribuce ani provizní účetnictví; doplnit doménu a pravidla ve fázi 2.",
+      "remaining": "Hotovo: správa ambasádorov, nastavenie provízií, atribúcia v košíku a objednávke, výplaty v administrácii.",
       "acceptance": "Objednávka má jedno doložené přiřazení; storno/refund upraví nárok dle schválené politiky; replay bez dvojí provize."
     },
     {
@@ -957,6 +960,46 @@
   ],
   "custom_routes": [
     {
+      "path": "/admin/ambassadors",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/route.ts",
+      "sha256": "b863eb37af78b64c73c6dc2f6ab54ea93e2d8171de6b14ec805f30ef5e62bd99"
+    },
+    {
+      "path": "/admin/ambassadors/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/[id]/route.ts",
+      "sha256": "7c77c20384bd07810cbdad363366e0ad278308c3320aa7ed940240c6e344c5bc"
+    },
+    {
+      "path": "/admin/ambassadors/commissions",
+      "methods": [
+        "GET"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/commissions/route.ts",
+      "sha256": "466496d81695e9869a8b54b02e298263d6fd763d817403ab101f6c5cc357403a"
+    },
+    {
+      "path": "/admin/ambassadors/settings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "feature": "ambassadors",
+      "source": "backend/src/api/admin/ambassadors/settings/route.ts",
+      "sha256": "67af6a64619c8e2be05fac04639a62750b6c32ac36ddec49d351776bfe710c9c"
+    },
+    {
       "path": "/admin/booking-requests",
       "methods": [
         "GET"
@@ -1054,12 +1097,13 @@
     {
       "path": "/admin/chat/conversations/:id",
       "methods": [
+        "DELETE",
         "GET",
         "POST"
       ],
       "feature": "chat",
       "source": "backend/src/api/admin/chat/conversations/[id]/route.ts",
-      "sha256": "2bb21a27aa9cbc29414a54823b9d47c174f8e8464d39c875b612d2b9740b306e"
+      "sha256": "04c3a440c6e92c592a705e010cf0a97cfcf27fe84d91e3b60bbc4c1660f83c9e"
     },
     {
       "path": "/admin/chat/conversations/:id/messages",
@@ -1159,10 +1203,11 @@
       "path": "/admin/coupon-links/:id",
       "feature": "qr",
       "methods": [
+        "DELETE",
         "GET"
       ],
       "source": "backend/src/api/admin/coupon-links/[id]/route.ts",
-      "sha256": "4ad76aa81772a3158d52e6e481cfc76a106c2799779a00f91b2b214d824d4041"
+      "sha256": "61b5ae59138f74eda3b877e6aafcd059e62ec8e0dd80acaf6ea28e1e7a0bf18d"
     },
     {
       "path": "/admin/coupon-links/:id/deactivate",
@@ -1409,24 +1454,6 @@
       "sha256": "c5cc1394f242f50f15d68080746291ac02c9ad736972604baba782100562fee4"
     },
     {
-      "path": "/admin/newsletter/campaigns/:id/send-test",
-      "methods": [
-        "POST"
-      ],
-      "feature": "newsletter",
-      "source": "backend/src/api/admin/newsletter/campaigns/[id]/send-test/route.ts",
-      "sha256": "ee1a4181bb52ea49a434e03ed93c59b4663af0353487ca0cc19cc2d4f5e84d27"
-    },
-    {
-      "path": "/admin/newsletter/preview",
-      "methods": [
-        "POST"
-      ],
-      "feature": "newsletter",
-      "source": "backend/src/api/admin/newsletter/preview/route.ts",
-      "sha256": "bde06e75298cfa811ce1882110b1bb3bc4c4f8872efa57c1d1dec7eec193af4d"
-    },
-    {
       "path": "/admin/nexus-auth/logout",
       "methods": [
         "POST"
@@ -1557,16 +1584,6 @@
       "source": "backend/src/api/admin/nexus/tour-state/route.ts",
       "feature": "admin-account",
       "sha256": "a555dc28f4a932b4e6a8386f93779e2755cba4de4996daca895f309e0893e5d7"
-    },
-    {
-      "path": "/admin/novinky",
-      "methods": [
-        "GET",
-        "PUT"
-      ],
-      "feature": "novinky",
-      "source": "backend/src/api/admin/novinky/route.ts",
-      "sha256": "ca31ab33af087cba8ca73fddbc60c1a6d7c1e5a0631ac533e6c6d06e8d8ef0b3"
     },
     {
       "path": "/admin/ops/audit",
@@ -2221,7 +2238,7 @@
       ],
       "feature": "prices",
       "source": "backend/src/api/store/nexus-cart/route.ts",
-      "sha256": "cad520cfc8dabeed3083bd44f01ba201f9125698467137a963c7b1a73de1cb53"
+      "sha256": "f8b404930d1646f1d0df4021f6ed6c0182aa48b1dc7c7dd9aadb282854e7ff16"
     },
     {
       "path": "/store/nexus-checkout",
@@ -2230,7 +2247,7 @@
       ],
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/route.ts",
-      "sha256": "6da1cc3e44b93fa589652b8b717e97b65a33c4f2c27aa4a270853aaea903ab42"
+      "sha256": "096841dc3081afcff5c858995d1a1075788432b46faa11d37c73307814f6b965"
     },
     {
       "path": "/store/nexus-checkout/free-shipping",
@@ -2250,33 +2267,6 @@
       "feature": "orders",
       "source": "backend/src/api/store/nexus-checkout/options/route.ts",
       "sha256": "e7fbedf4cf4986081edffa5afa609cd58f1f2f63f946101b81f4ece563aa19bb"
-    },
-    {
-      "path": "/store/novinky",
-      "methods": [
-        "GET"
-      ],
-      "feature": "novinky",
-      "source": "backend/src/api/store/novinky/route.ts",
-      "sha256": "07de0b4666a6c920dd6eb67b887106e4b25b81c5758dc145aef18d4fc930ab2f"
-    },
-    {
-      "path": "/store/novinky/ads/:slot/click",
-      "methods": [
-        "POST"
-      ],
-      "feature": "novinky",
-      "source": "backend/src/api/store/novinky/ads/[slot]/click/route.ts",
-      "sha256": "4102e7ee5e1e88b0608a110fb55a206e20bd63de4a238293f4788fa2161c62ce"
-    },
-    {
-      "path": "/store/novinky/polls/:postId/vote",
-      "methods": [
-        "POST"
-      ],
-      "feature": "novinky",
-      "source": "backend/src/api/store/novinky/polls/[postId]/vote/route.ts",
-      "sha256": "7757a1ce0805e795a91f67f3bd4082c83ee2b59ea7b92a7f0ccab3836185ea0a"
     },
     {
       "path": "/store/orders/:id/cancel",
@@ -2342,6 +2332,61 @@
       "feature": "returns",
       "source": "backend/src/api/store/withdrawals/route.ts",
       "sha256": "ec08df9e6e6ba08780bef5a8b855e41956faabccf4f2ce286b19871c662bf748"
+    },
+    {
+      "path": "/admin/newsletter/campaigns/:id/send-test",
+      "feature": "newsletter",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/newsletter/campaigns/[id]/send-test/route.ts",
+      "sha256": "ee1a4181bb52ea49a434e03ed93c59b4663af0353487ca0cc19cc2d4f5e84d27"
+    },
+    {
+      "path": "/admin/newsletter/preview",
+      "feature": "newsletter",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/admin/newsletter/preview/route.ts",
+      "sha256": "bde06e75298cfa811ce1882110b1bb3bc4c4f8872efa57c1d1dec7eec193af4d"
+    },
+    {
+      "path": "/admin/novinky",
+      "feature": "novinky",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "source": "backend/src/api/admin/novinky/route.ts",
+      "sha256": "ca31ab33af087cba8ca73fddbc60c1a6d7c1e5a0631ac533e6c6d06e8d8ef0b3"
+    },
+    {
+      "path": "/store/novinky",
+      "feature": "novinky",
+      "methods": [
+        "GET"
+      ],
+      "source": "backend/src/api/store/novinky/route.ts",
+      "sha256": "07de0b4666a6c920dd6eb67b887106e4b25b81c5758dc145aef18d4fc930ab2f"
+    },
+    {
+      "path": "/store/novinky/ads/:slot/click",
+      "feature": "novinky",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/novinky/ads/[slot]/click/route.ts",
+      "sha256": "4102e7ee5e1e88b0608a110fb55a206e20bd63de4a238293f4788fa2161c62ce"
+    },
+    {
+      "path": "/store/novinky/polls/:postId/vote",
+      "feature": "novinky",
+      "methods": [
+        "POST"
+      ],
+      "source": "backend/src/api/store/novinky/polls/[postId]/vote/route.ts",
+      "sha256": "7757a1ce0805e795a91f67f3bd4082c83ee2b59ea7b92a7f0ccab3836185ea0a"
     }
   ],
   "native_medusa_version": "2.19.0",

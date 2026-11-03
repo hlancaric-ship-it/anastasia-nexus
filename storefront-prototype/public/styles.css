@@ -660,6 +660,14 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 #ana-rail#ana-rail#ana-rail [data-rail-tone="dark"],#ana-rail#ana-rail#ana-rail [data-rail-tone="dark"] :is(span,svg){color:#EFE5C7!important}
 #ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible),#ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible) :is(span,svg){color:#B08D57!important}
 
+/* Mobile main menu: sections stay in a consistent two-column card grid. */
+@media(max-width:760px){
+  #dc-top-menu div:has(> .menu-section){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch!important;gap:12px!important}
+  #dc-top-menu .menu-section{min-width:0!important;align-self:stretch!important;box-sizing:border-box!important;padding:16px 14px!important;border:1px solid rgba(64,63,98,.14)!important;border-radius:16px!important;background:rgba(255,255,255,.58)!important}
+  #dc-top-menu .menu-section>:first-child{display:flex!important;align-items:flex-start!important;min-height:2.5em!important;margin:0 0 10px!important;font:300 19px/1.22 Fraunces,Georgia,serif!important;color:#403f62!important}
+  #dc-top-menu .menu-section>a:not(:first-child){display:flex!important;align-items:center!important;min-height:40px!important;box-sizing:border-box!important;padding:7px 0!important;border-top:1px solid rgba(64,63,98,.08)!important;font:400 13px/1.32 Figtree,sans-serif!important;color:#403f62!important;white-space:normal!important;overflow-wrap:anywhere!important;hyphens:auto!important}
+  #dc-top-menu .menu-section>a:nth-child(2){border-top:0!important}
+}
 /* Môj účet: čitateľný panel vo všetkých farbách, rovnaká knižnica pre zakúpené programy. */
 .customer-center .center-sidebar{color:#FBF9F3;background:var(--center-main)}
 .customer-center .center-sidebar>.eyebrow{display:block;color:#EDE9F5!important;font-size:11px;letter-spacing:.16em}

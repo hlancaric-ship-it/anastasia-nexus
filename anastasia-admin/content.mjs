@@ -113,8 +113,8 @@ export async function contentPage(api, key, escHtml = esc) {
   if (!page) return '<div class="err">Stránka sa nenašla.</div>';
   const fieldByKey = (k) => page.sections.flatMap((s) => s.fields).find((f) => f.key === k);
   const web = webOrigin();
-  const frame = web ? `<aside class="cp-live"><div class="cp-live-h"><b>Náhľad na webe</b><span class="muted" data-cp-live-note>Kliknite do poľa a tu uvidíte, ktoré miesto na webe upravuje.</span></div>
-    <iframe src="${escHtml(web + page.path)}" title="Náhľad stránky ${escHtml(page.title)}" data-cp-live loading="lazy"></iframe></aside>` : '';
+  const frame = web ? `<details class="cp-live"><summary class="cp-live-h"><b>Náhľad na webe</b><span class="muted" data-cp-live-note>Rozbaľte náhľad a vyberte pole, ktoré upravujete.</span></summary><a class="cp-open-web" href="${escHtml(web + page.path)}" target="_blank" rel="noopener">Otvoriť stránku v novom okne ↗</a>
+    <iframe src="${escHtml(web + page.path)}" title="Náhľad stránky ${escHtml(page.title)}" data-cp-live loading="lazy"></iframe></details>` : '';
   return `<div class="cp-layout${web ? ' has-live' : ''}"><div class="cp-edit"><div class="card" style="margin-bottom:16px"><div class="card-h">${escHtml(page.title)}<div class="card-h-act">
       <span class="muted" style="font-size:12px">${escHtml(page.path)}</span>
       <button type="button" class="btn ghost" data-cp-back>Späť</button></div></div><div class="card-b">

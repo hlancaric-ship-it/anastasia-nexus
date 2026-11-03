@@ -169,32 +169,52 @@ export type CouponAllocationItem = {
   /** id položky košíka */
   id: string
   productId: string | null | undefined
-  /** cena pred zľavou (base price), podľa ktorej sa pevná suma rozdeľuje */
+  /** cena za kus pred kupónom (výpredajová, ak platí), podľa ktorej sa pevná suma rozdeľuje */
   basePrice: number
+  /** počet kusov na riadku */
+  quantity: number
 }
 
 /**
- * Rozdelí pevnú sumu (EUR) medzi položky, na ktoré kupón platí.
+ * Rozdelí pevnú sumu (EUR) JEDNOU za košík na zľavu ZA KUS (celé centy).
  *
- * - rozdelenie je úmerné cenám položiek (rovnaké percentá pre všetky),
- * - žiadna položka nedostane viac než svoju cenu (zľava nikdy nezníži cenu pod 0),
- * - súčet zľavy je najviac pevná suma kupónu (zvyšok sa nerozdáva nikomu),
- * - deterministické a bez náhody (poradie = poradie košíka).
+ * Medusa drží cenu riadku ako `unit_price × quantity`, preto sa vracia zľava za kus:
+ * - celkom najviac min(suma kupónu, hodnota povolených položiek), orezané na centy (legacy),
+ * - delí sa úmerne hodnote riadku (cena × kusy),
+ * - zvyšok po jednom cente na kus, najprv riadky s najmenším počtom kusov,
+ * - čo nejde rozdeliť na celé centy za kus, zákazník nedostane (vždy menej než kusov),
+ * - žiadny kus nezlacnie pod 0, deterministicky podľa poradia košíka.
  */
 export function allocateFixedCoupon(amount: number, items: CouponAllocationItem[]): Map<string, number> {
   const result = new Map<string, number>()
-  const eligible = items.filter((item) => Number.isFinite(item.basePrice) && item.basePrice > 0)
-  const total = eligible.reduce((sum, item) => sum + item.basePrice, 0)
   const value = Number(amount)
-  if (!eligible.length || !Number.isFinite(value) || value <= 0 || total <= 0) return result
-  const capped = Math.min(value, total)
-  let distributed = 0
-  eligible.forEach((item, index) => {
-    const isLast = index === eligible.length - 1
-    const share = isLast ? capped - distributed : Math.round((capped * item.basePrice / total) * 100) / 100
-    const bounded = Math.max(0, Math.min(share, item.basePrice))
-    result.set(item.id, Math.round(bounded * 100) / 100)
-    distributed += bounded
-  })
+  if (!Number.isFinite(value) || value <= 0) return result
+  const work = items
+    .filter((item) => Number.isFinite(item.basePrice) && item.basePrice > 0 && Number.isInteger(item.quantity) && item.quantity > 0)
+    .map((item, index) => {
+      const headroom = Math.floor(Math.round(item.basePrice * 1000) / 10)
+      return { item, index, headroom, lineCents: headroom * item.quantity, perUnit: 0 }
+    })
+  const purchaseCents = work.reduce((sum, w) => sum + w.lineCents, 0)
+  if (!work.length || purchaseCents <= 0) return result
+  const targetCents = Math.min(Math.floor(Math.round(value * 1000) / 10), purchaseCents)
+  for (const w of work) {
+    const share = Math.floor((targetCents * w.lineCents) / purchaseCents)
+    w.perUnit = Math.min(Math.floor(share / w.item.quantity), w.headroom)
+  }
+  let remaining = targetCents - work.reduce((sum, w) => sum + w.perUnit * w.item.quantity, 0)
+  const order = [...work].sort((a, b) => a.item.quantity - b.item.quantity || a.index - b.index)
+  let progressed = true
+  while (remaining > 0 && progressed) {
+    progressed = false
+    for (const w of order) {
+      if (w.item.quantity <= remaining && w.perUnit < w.headroom) {
+        w.perUnit += 1
+        remaining -= w.item.quantity
+        progressed = true
+      }
+    }
+  }
+  for (const w of work) if (w.perUnit > 0) result.set(w.item.id, w.perUnit / 100)
   return result
 }

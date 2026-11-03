@@ -66,6 +66,7 @@ DEFAULT_MEDIA_ORIGINS="$(node -p 'require(process.argv[1]).join(" ")' "$HERE/pub
 export ANASTASIA_MEDIA_ORIGIN="${ANASTASIA_MEDIA_ORIGIN:-$DEFAULT_MEDIA_ORIGINS}"
 export ANASTASIA_WEB_ORIGIN="${ANASTASIA_WEB_ORIGIN:-https://$WEB_HOST}"
 export ANASTASIA_ADMIN_URL="${ANASTASIA_ADMIN_URL:-https://anastasia-test-admin.l-code-dynamics.com}"
+export ANASTASIA_SOCIAL_ORIGIN="https://$WEB_HOST"
 (cd "$ROOT/storefront-prototype" && node build.mjs)
 (cd "$ROOT/anastasia-admin" && node build.mjs)
 

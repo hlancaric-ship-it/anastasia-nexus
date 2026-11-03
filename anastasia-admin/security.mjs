@@ -194,7 +194,7 @@ export function securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isO
           <td>${owner() ? `<button type="button" class="btn ghost sm" data-save-role="${esc(a.id)}">Uložiť rolu</button>` : ''}</td></tr>`;
       }).join('');
 
-      view.innerHTML = `<div data-msg style="margin-bottom:14px">${state.msg ? message(state.msg.text, state.msg.error) : ''}</div>
+      view.innerHTML = `<div class="security-agenda"><div data-msg style="margin-bottom:14px">${state.msg ? message(state.msg.text, state.msg.error) : ''}</div>
         ${mfaCard()}
         ${state.codes ? codesCard(state.codes) : ''}
         <section class="card"><div class="card-h"><h2>Administrátori a ich roly</h2></div><div class="card-b">
@@ -203,7 +203,7 @@ export function securityView({ api, esc, openPrintHtml, qrOtpSvg, freshView, isO
           ${roles ? (admins.length ? `<div class="ot-wrap"><table class="ot lv"><thead><tr><th>Správca</th><th>Rola</th><th class="ot-act"><span class="sr-only">Akcia</span></th></tr></thead><tbody>${roleRows}</tbody></table></div>`
             : '<div class="empty">Zatiaľ tu nie je žiadny správca.</div>')
             : `<p class="muted">${esc(loadError || 'Zoznam administrátorov sa nepodarilo načítať.')}</p>`}
-          ${!owner() ? '<p class="muted">Role môže meniť iba vlastník administrácie.</p>' : ''}</div></section>`;
+          ${!owner() ? '<p class="muted">Role môže meniť iba vlastník administrácie.</p>' : ''}</div></section></div>`;
 
       // 2FA
       const enrollBtn = view.querySelector('#s-enroll');
