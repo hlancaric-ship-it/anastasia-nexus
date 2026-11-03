@@ -166,7 +166,7 @@ const ICONS = {
   photos: '<rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/><circle cx="8" cy="11" r="1.5"/><path d="m3 18 5-5 4 4 2-2 3 3"/>',
 };
 const navIcon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
-const LOGO = './assets/lucia-logo.png';
+const LOGO = './assets/anastasia-oz-emblem.png';
 // Web k administrácii: anastasia-test-admin.X → anastasia-test.X, admin.X → X.
 const SITE_ORIGIN = `${location.protocol}//${location.hostname.replace(/-admin\./, '.').replace(/^admin\./, '')}`;
 const brandHtml = (tag = 'div') => `<${tag} class="brand"${tag === 'a' ? ' href="#/"' : ''}><span class="brand-symbol" aria-hidden="true"></span><div><div class="brand-name">ANASTASIA</div><small>Light for the future</small></div></${tag}>`;
