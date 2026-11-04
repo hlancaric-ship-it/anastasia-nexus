@@ -221,6 +221,8 @@ export async function mountLibrary(target, api) {
     }
   };
 
+  let isPlaying = false;
+
   // --- GENEROVÁNÍ POLOŽEK PLAYLISTU ---
   const renderPlaylist = () => {
     playlistList.replaceChildren();
@@ -249,15 +251,16 @@ export async function mountLibrary(target, api) {
 
       // Stavová část vpravo
       const rightWrap = node('div', null, 'library-item-actions');
-      if (index === currentTrackIndex) {
+      if (completed[track.key]) {
+        const checkIcon = node('span', '✓', 'library-check-done');
+        checkIcon.title = 'Dokončené';
+        rightWrap.append(checkIcon);
+      }
+
+      if (index === currentTrackIndex && isPlaying) {
         const activeBadge = node('span', 'Prehráva sa', 'library-badge-active');
         rightWrap.append(activeBadge);
       } else {
-        if (completed[track.key]) {
-          const checkIcon = node('span', '✓', 'library-check-done');
-          checkIcon.title = 'Dokončené';
-          rightWrap.append(checkIcon);
-        }
         const playBtn = node('button', track.kind === 'pdf' ? 'Otvoriť' : 'Prehrať', 'button outline library-play-btn');
         playBtn.type = 'button';
         rightWrap.append(playBtn);
@@ -266,9 +269,17 @@ export async function mountLibrary(target, api) {
       itemRow.append(mediaIcon, copyWrap, rightWrap);
       playlistList.append(itemRow);
 
-      // Kliknutím na položku spustíme přehrávání
+      // Kliknutím na položku spustíme alebo prepneme prehrávanie
       itemRow.addEventListener('click', () => {
-        selectTrack(index);
+        if (index === currentTrackIndex && activePlayer) {
+          if (activePlayer.paused) {
+            activePlayer.play().catch(() => {});
+          } else {
+            activePlayer.pause();
+          }
+        } else {
+          selectTrack(index, true);
+        }
       });
     });
   };
@@ -297,20 +308,20 @@ export async function mountLibrary(target, api) {
       activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
 
-    if (autoPlay) {
-      await playItem(track);
-    }
+    await playItem(track, autoPlay);
   };
 
   // --- PŘEHRÁNÍ POLOŽKY (API + HTML5 PŘEHRÁVAČ) ---
-  const playItem = async item => {
+  const playItem = async (item, autoPlay = true) => {
     stopPlayer();
+    isPlaying = false;
     document.dispatchEvent(new CustomEvent('ana:media-play'));
 
     const product = products.get(item.productId);
     if (!product) return;
 
     if (item.kind === 'pdf') {
+      if (!autoPlay) return;
       const popup = window.open('about:blank', '_blank');
       if (popup) popup.opener = null;
       try {
@@ -328,24 +339,55 @@ export async function mountLibrary(target, api) {
     // Video nebo audio
     const version = ++requestVersion;
     try {
-      const access = item.previewUrl ? null : await api.getMediaAccess({ product_id: product.id, media_key: item.key });
-      if (version !== requestVersion) return;
-      if (access && !access.ok) throw Error(access.message || failMessage);
+      let mediaUrl = item.previewUrl || null;
+      let watermark = null;
 
-      const url = new URL(item.previewUrl || access.url, location.origin);
-      const player = document.createElement(item.kind === 'audio' ? 'audio' : 'video');
+      if (!mediaUrl) {
+        try {
+          const access = await api.getMediaAccess({ product_id: product.id, media_key: item.key });
+          if (version !== requestVersion) return;
+          if (access?.ok && access.url) {
+            mediaUrl = access.url;
+            watermark = access.watermark || null;
+          } else if (access && !access.ok) {
+            throw Error(access.message || failMessage);
+          }
+        } catch (apiErr) {
+          if (!autoPlay) return;
+          throw apiErr;
+        }
+      }
+
+      if (!mediaUrl) return;
+
+      const url = new URL(mediaUrl, location.origin);
+      const player = document.createElement('video');
       player.controls = true;
       player.preload = 'metadata';
-      player.crossOrigin = 'anonymous';
+      player.playsInline = true;
       player.setAttribute('controlsList', 'nodownload');
       player.dataset.libraryPlayer = '';
+
+      if (item.kind === 'audio') {
+        player.poster = '/assets/hero-forest.jpg';
+      }
 
       playerBox.replaceChildren(player);
       activePlayer = player;
 
-      if (access?.watermark) {
-        playerBox.append(node('p', access.watermark, 'library-watermark'));
+      if (watermark) {
+        playerBox.append(node('p', watermark, 'library-watermark'));
       }
+
+      player.addEventListener('play', () => {
+        isPlaying = true;
+        renderPlaylist();
+      });
+
+      player.addEventListener('pause', () => {
+        isPlaying = false;
+        renderPlaylist();
+      });
 
       if (item.key.toLowerCase().endsWith('.m3u8')) {
         const { default: Hls } = await import('/vendor/hls.min.mjs');
@@ -357,6 +399,8 @@ export async function mountLibrary(target, api) {
         hls.on(Hls.Events.ERROR, (_event, data) => {
           if (data.fatal) {
             stopPlayer();
+            isPlaying = false;
+            renderPlaylist();
             showError(playerBox, failMessage);
           }
         });
@@ -365,19 +409,26 @@ export async function mountLibrary(target, api) {
       }
 
       player.addEventListener('error', () => {
+        isPlaying = false;
+        renderPlaylist();
         showError(playerBox, failMessage);
       });
 
       player.addEventListener('ended', () => {
-        // Po skončení automaticky nabídnout další stopu
+        isPlaying = false;
+        renderPlaylist();
         if (currentTrackIndex < allTracks.length - 1) {
-          selectTrack(currentTrackIndex + 1);
+          selectTrack(currentTrackIndex + 1, true);
         }
       });
 
-      await player.play().catch(() => {});
+      if (autoPlay) {
+        await player.play().catch(() => {});
+      }
     } catch (error) {
       if (version === requestVersion) {
+        isPlaying = false;
+        renderPlaylist();
         showError(playerBox, error.message || failMessage);
       }
     }

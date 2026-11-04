@@ -276,11 +276,13 @@ export function chrome(page) {
     if(!block||!bottomMatch)return html;
     const bottom=bottomMatch[0];
     const links=block[1].replace(/style="font-weight:300;font-size:30px;line-height:1\.35;letter-spacing:-0\.6px"/g,'style="font-size:14px;color:#283020;padding:4px 0;"').trim();
-    const column='<div class="menu-section" style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><span style="font-size:25px;color:#313C2B;line-height:1.2;margin-bottom:6px;display:block">Kontakt</span>'+links+'</div>';
+    const column='<div class="menu-section" style="display:flex;flex-direction:column;gap:4px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.14)"><span style="font-size:25px;color:#313C2B;line-height:1.2;margin-bottom:6px;display:block">Kontakt</span>'+links+'</div>';
     html=html.replace(block[0],'');
     const at=html.lastIndexOf('</div>',html.indexOf(bottom));
     html=html.slice(0,at)+column+html.slice(at);
-    html=html.replace('style="display:flex;flex-direction:column;gap:4px;padding-left:20px"','style="display:flex;flex-direction:column;gap:4px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.14)"');
+    html=html.replace(/grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,180px\),1fr\)\)/,'grid-template-columns:repeat(4,minmax(0,1fr))');
+    const langRow='<div class="menu-lang" style="display:flex;align-items:center;gap:14px;font-size:13px;font-weight:500"><span data-flag="sk" style="display:inline-flex;align-items:center;gap:8px;color:#283020;cursor:default">SK</span><span style="opacity:0.4">/</span><span data-flag="en" style="display:inline-flex;align-items:center;gap:8px;color:#283020;opacity:0.6;cursor:default">EN</span><span style="opacity:0.4">/</span><span data-flag="ru" style="display:inline-flex;align-items:center;gap:8px;color:#283020;opacity:0.6;cursor:default">RU</span></div>';
+    html=html.replace(/<div style="display:flex;gap:10px;font-size:12px"><span>SK<\/span>[\s\S]*?<\/div>/, langRow);
     return html.replace(bottom,'<div class="menu-bottom-row" style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding-top:20px;">').replace(/(<div class="menu-bottom-row"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>)/,'$1'+MENU_LOGOS);
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
