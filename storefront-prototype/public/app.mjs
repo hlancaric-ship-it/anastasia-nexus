@@ -867,7 +867,7 @@ if(checkoutForm){
     };
     const checkoutSummary=$('#checkout-summary'),checkoutCouponForm=$('.checkout-coupon',checkoutPage);
     const checkoutCouponField=$('#checkout-coupon',checkoutPage),checkoutCouponStatus=$('.form-status',checkoutCouponForm),checkoutCouponRemove=$('[data-remove-checkout-coupon]',checkoutCouponForm);
-    if(checkoutCouponField)checkoutCouponField.value=cart.coupon||'';
+    if(checkoutCouponField&&!checkoutCouponField.value&&cart.coupon)checkoutCouponField.value=cart.coupon;
     if(checkoutCouponRemove)checkoutCouponRemove.hidden=!cart.coupon;
     checkoutCouponForm?.addEventListener('submit',async event=>{
       event.preventDefault();if(checkoutCouponForm.dataset.busy)return;
@@ -889,6 +889,8 @@ if(checkoutForm){
       try{await api.removeCoupon();const current=await api.getCart();checkoutSummary.innerHTML=summary(current);checkoutCouponField.value='';button.hidden=true;checkoutCouponStatus.textContent='Kupón bol odstránený.';if(!$('fieldset[data-step="3"]',checkoutForm)?.hidden)await initPayment();}
       catch{button.disabled=false;checkoutCouponStatus.textContent='Kupón sa nepodarilo odstrániť. Skúste to znova.';}
     });
+    const checkoutCouponSubmit=checkoutCouponForm?.querySelector('[type="submit"]');
+    if(checkoutCouponSubmit)checkoutCouponSubmit.disabled=false;
     $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity()){const n=Number(btn.dataset.next);step(n);if(n===3)initPayment();}}));
     $$('[data-back]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>step(Number(btn.dataset.back))));
     // Zmena dopravy (adresa) alebo platby znovu pripraví objednávku na serveri.
