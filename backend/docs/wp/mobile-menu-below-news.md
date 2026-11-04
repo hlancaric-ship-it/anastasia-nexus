@@ -23,3 +23,16 @@ Navigační testy `node --test storefront-prototype/test/navigation.test.mjs`:
 Nasazené čtyři runtime assety na Worker `anastasia-test-web`, verze
 `9dca6f24-c4d5-4a02-b8ba-ab4d4dc05c7f`. Předchozí nasazený `app.mjs`
 odpovídal výchozímu commitu. Backend, admin a cenová služba se nenasazovaly.
+
+## Zarovnání nadpisů sloupců
+
+Navazující úprava 4. 11.: Kontakt používal jiné odsazení než ostatní tři sekce
+a nadpis Obchod je odkaz s animovaným textem, zatímco ostatní nadpisy jsou
+textové elementy. Všechny čtyři mobilní sekce nyní sdílejí odsazení, prostor
+pro nadpis a výšku řádku; animovaný obal Obchodu je zarovnaný shora.
+Obě dvojice nadpisů tak mají shodnou výšku viditelného textu.
+
+Chrome kontrola šířek 320, 390, 430 a 800 px: shodné souřadnice textu,
+horní i spodní okraje nadpisů, bez vodorovného přetékání. Desktop 1440 px
+zůstává mimo mobilní pravidla. Navigace 2/2 PASS. Nasazeny pouze dva CSS
+assety na `anastasia-test-web`, verze `de8d998f-4e15-42c4-8375-cd791b3469c7`.

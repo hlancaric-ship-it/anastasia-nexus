@@ -1401,6 +1401,23 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
     align-items: center!important;
     justify-content: center!important;
   }
+  /* Nadpis odkazu (Obchod) a textové nadpisy majú rovnaký riadok aj odstup. */
+  @layer jednotny {
+  @media (max-width: 999.98px) {
+    html body #dc-top-menu div:has(>.menu-section)>div>:first-child {
+      box-sizing: border-box!important;
+      display: block!important;
+      height: 44px!important;
+      min-height: 44px!important;
+      margin: 0 0 10px!important;
+      padding: 0!important;
+      line-height: 28px!important;
+    }
+    html body #dc-top-menu div:has(>.menu-section)>div>:first-child>span {
+      vertical-align: top!important;
+    }
+  }
+  }
   html.ana-menu-open .ana-menu-tab,
   .ana-menu-tab[aria-expanded="true"] {
     transform: translateX(110%)!important;
