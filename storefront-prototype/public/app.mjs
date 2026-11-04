@@ -253,6 +253,14 @@ const root=document.documentElement,shell=$('#page-shell'),reducedMotion=window.
 // DOM je připravený – teprve teď se smí ukázat lišta a hlavička (do té doby je
 // chrome skrytý CSS, aby při načítání neprobleskla zelená plocha).
 root.classList.add('ana-booted');
+// Logo aj názov značky v menu vedú na úvod; pôvodný obal zostáva kvôli rozloženiu.
+for(const mark of $$('#dc-top-menu .menu-brand-mark,#dc-side-menu .menu-brand-mark')){
+  if(mark.closest('a'))continue;
+  const brand=mark.parentElement,home=document.createElement('a');
+  home.href='/';home.className='menu-home-link';home.dataset.menuClose='';home.setAttribute('aria-label','ANASTASIA OZ — domov');
+  home.style.cssText='display:flex;align-items:center;gap:inherit;color:inherit;text-decoration:none';
+  home.append(...brand.childNodes);brand.append(home);
+}
 const MENU={side:{o:'--side-o',p:'--side-p',t:'--side-t',v:'--side-v',open:'translate(0,-50%)',closed:'translate(-24px,-50%)'},top:{o:'--top-o',p:'--top-p',t:'--top-t',v:'--top-v',open:'translateY(0)',closed:'translateY(-16px)'}};
 let lenis=null,menuOpen=null,previousFocus=null;
 // Mobilní spodní panel má vlastní scroll; text se nezmenšuje, aby zůstal čitelný.

@@ -36,3 +36,16 @@ Chrome kontrola šířek 320, 390, 430 a 800 px: shodné souřadnice textu,
 horní i spodní okraje nadpisů, bez vodorovného přetékání. Desktop 1440 px
 zůstává mimo mobilní pravidla. Navigace 2/2 PASS. Nasazeny pouze dva CSS
 assety na `anastasia-test-web`, verze `de8d998f-4e15-42c4-8375-cd791b3469c7`.
+
+## Logo jako návrat na úvod
+
+Znak i název značky v otevřeném menu jsou jeden nativní odkaz na `/`
+s popiskem `ANASTASIA OZ — domov` a stávajícím `data-menu-close`.
+Původní obal značky zůstává zachovaný, takže umístění přihlášení a jazyků
+v mobilním menu není změněno. Vložení odkazu kontroluje existujícího předka
+`a`, aby nevytvářelo vnořené nebo duplicitní odkazy.
+
+Chrome: 390 px klik na znak, 390 px klik na celý odkaz a 800 px klik na
+odkaz – 3/3 návraty na úvod PASS, menu po navigaci zavřené. Navigace 2/2
+PASS, syntaxe `app.mjs` a `git diff --check` PASS. Nasazen jediný asset
+`app.mjs` na testovací web, verze `f36edc39-629f-46bf-8a75-3cd88095ee64`.
