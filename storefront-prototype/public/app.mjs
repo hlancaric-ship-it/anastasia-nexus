@@ -255,9 +255,10 @@ const root=document.documentElement,shell=$('#page-shell'),reducedMotion=window.
 root.classList.add('ana-booted');
 const MENU={side:{o:'--side-o',p:'--side-p',t:'--side-t',v:'--side-v',open:'translate(0,-50%)',closed:'translate(-24px,-50%)'},top:{o:'--top-o',p:'--top-p',t:'--top-t',v:'--top-v',open:'translateY(0)',closed:'translateY(-16px)'}};
 let lenis=null,menuOpen=null,previousFocus=null;
-// Na telefonu se menu musí vejít na jeden displej i se zvětšeným písmem: obsah se úměrně zmenší.
+// Mobilní spodní panel má vlastní scroll; text se nezmenšuje, aby zůstal čitelný.
 function fitMenu(panel){
   if(!panel)return;const kids=[...panel.children];kids.forEach(k=>{k.style.zoom='';});
+  if(panel.id==='dc-top-menu'&&matchMedia('(max-width: 999.98px)').matches)return;
   if(!matchMedia('(max-width: 760px)').matches)return;
   const fits=f=>{kids.forEach(k=>{k.style.zoom=f===1?'':String(f);});return panel.scrollHeight<=panel.clientHeight+1;};
   if(fits(1))return;

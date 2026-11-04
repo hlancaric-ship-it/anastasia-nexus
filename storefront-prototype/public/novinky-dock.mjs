@@ -55,6 +55,11 @@ function mount(data){
     t.append(b);box.append(el('span','nv-rk',ad.label||'Reklama'),i,t);dock.append(box);
   }
   wrap.append(tab,dock);document.body.append(wrap);
+  // Menu patrí pod Novinky aj po otočení telefónu alebo zmene veľkosti písma.
+  const positionMenuTab=()=>{const rect=tab.getBoundingClientRect();if(rect.height)document.documentElement.style.setProperty('--ana-menu-tab-top',`${Math.ceil(rect.bottom+12)}px`);};
+  new ResizeObserver(positionMenuTab).observe(tab);
+  addEventListener('resize',positionMenuTab);
+  document.fonts.ready.then(positionMenuTab);
   const set=(open,remember=true)=>{
     dock.classList.toggle('is-closed',!open);dock.inert=!open;tab.hidden=open;tab.setAttribute('aria-expanded',String(open));
     document.documentElement.classList.toggle('nv-lock',open);
