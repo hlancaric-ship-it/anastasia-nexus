@@ -55,8 +55,8 @@ function mount(data){
     t.append(b);box.append(el('span','nv-rk',ad.label||'Reklama'),i,t);dock.append(box);
   }
   wrap.append(tab,dock);document.body.append(wrap);
-  // Menu patrí pod Novinky aj po otočení telefónu alebo zmene veľkosti písma.
-  const positionMenuTab=()=>{const rect=tab.getBoundingClientRect();if(rect.height)document.documentElement.style.setProperty('--ana-menu-tab-top',`${Math.ceil(rect.bottom+12)}px`);};
+  // Na účte je Menu nad ouškom Noviniek; inde zostáva pod ním.
+  const positionMenuTab=()=>{const rect=tab.getBoundingClientRect();if(!rect.height)return;const menu=document.querySelector('.ana-menu-tab'),menuHeight=menu?.getBoundingClientRect().height||52,top=Math.max(8,rect.top-menuHeight-12);document.documentElement.style.setProperty('--ana-menu-tab-top',`${Math.ceil(top)}px`);};
   new ResizeObserver(positionMenuTab).observe(tab);
   addEventListener('resize',positionMenuTab);
   document.fonts.ready.then(positionMenuTab);

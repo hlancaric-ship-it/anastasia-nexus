@@ -9,6 +9,7 @@
   --serif:'Fraunces',Georgia,serif;--sans:'Figtree','Helvetica Neue',sans-serif;
   --drop:28px 28px 28px 0;
 }
+
 #page-shell.kc-unified .legacy-main{background:var(--paper)!important;color:var(--ink)}
 
 /* nadpisy: tenký Fraunces, bez verzálok, olivová, zvýraznenie kurzívou v levanduli */
@@ -572,6 +573,72 @@
 @media (max-width:640px){#page-shell.kc-unified.kc-shop .legacy-main .shop-cart>:is(.page-intro,.cart-guest-note,.qr-status,#cart-view,.shop-shortcuts){padding-inline:16px!important}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-line{grid-template-columns:92px minmax(0,1fr)!important;gap:14px!important;padding:14px!important}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-line-img{width:92px!important;height:115px!important;padding:4px}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-line-price{grid-column:2;justify-items:start;text-align:left}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-lines .cart-upsell-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-lines .cart-upsell-item:nth-child(3){display:none!important}}
 #page-shell.kc-unified.kc-shop .legacy-main .shop-cart{padding-inline:0!important}
 #page-shell.kc-unified.kc-shop .legacy-main .shop-cart>:is(.page-intro,.cart-guest-note,.qr-status,#cart-view,.shop-shortcuts){width:100%!important}
+
+/* Košík a pokladňa: jasné kontaktné polia, viditeľný kupón a svetlý súhrn. */
+@layer shopv2{
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-coupon-panel{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(300px,.9fr)!important;align-items:center!important;gap:24px!important;margin:0 auto clamp(24px,3vw,40px)!important;padding:clamp(18px,2.4vw,30px)!important;max-width:1320px!important;background:linear-gradient(120deg,#E4E6D6,#F4F0E8)!important;border:1px solid rgba(47,52,36,.2)!important;border-radius:22px!important;box-shadow:0 18px 42px -34px rgba(47,52,36,.4)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-panel[hidden]{display:none!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-copy .eyebrow{margin:0 0 8px!important;color:#596044!important;font:500 11px/1.2 var(--sans)!important;letter-spacing:.14em!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-copy h2{margin:0 0 6px!important;color:#2A2F21!important;font:400 clamp(22px,2vw,30px)/1.1 var(--serif)!important;letter-spacing:-.02em!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-copy>p:last-child{margin:0!important;color:#626657!important;font:400 14px/1.45 var(--sans)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-label{display:block!important;margin:0 0 7px!important;color:#555A4D!important;font:500 12px/1.3 var(--sans)!important;letter-spacing:.035em!important;text-transform:none!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon{position:relative!important;z-index:2!important;display:grid!important;gap:8px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;pointer-events:auto!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;align-items:center!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon input#checkout-coupon{position:relative!important;z-index:3!important;display:block!important;width:100%!important;min-width:0!important;min-height:54px!important;margin:0!important;padding:0 18px!important;border:1px solid rgba(47,52,36,.24)!important;border-radius:14px!important;background:#fff!important;color:#25291f!important;font:500 16px/1.2 var(--sans)!important;letter-spacing:.02em!important;text-transform:none!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:manipulation!important;cursor:text!important;box-shadow:inset 0 1px 2px rgba(47,52,36,.05)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon input#checkout-coupon::placeholder{color:#76796e!important;opacity:1!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon input#checkout-coupon:focus{outline:3px solid rgba(47,52,36,.2)!important;outline-offset:1px!important;border-color:#596044!important;box-shadow:none!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-apply{position:relative!important;z-index:3!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:54px!important;padding:0 22px!important;border:1px solid #2F3424!important;border-radius:14px!important;background:#2F3424!important;color:#fff!important;font:600 14px/1 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;cursor:pointer!important;pointer-events:auto!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-apply:hover{background:#454B35!important;border-color:#454B35!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-apply:disabled{opacity:.65!important;cursor:wait!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-remove{justify-self:start!important;padding:4px 0!important;border:0!important;background:transparent!important;color:#454B35!important;font:500 13px/1.3 var(--sans)!important;text-decoration:underline!important;text-underline-offset:3px!important;cursor:pointer!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon .form-status{margin:0!important;color:#45483e!important;font:500 13px/1.4 var(--sans)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon .form-status:empty{display:none!important}
+
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary{position:sticky!important;top:104px!important;z-index:1!important;display:grid!important;gap:0!important;overflow:visible!important;padding:clamp(22px,2.6vw,34px)!important;border:1px solid rgba(47,52,36,.14)!important;border-radius:24px!important;background:#FBF8F1!important;color:#2A2F21!important;box-shadow:0 22px 50px -38px rgba(47,52,36,.42)!important;pointer-events:auto!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary::before{display:none!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary h2{margin:0 0 18px!important;color:#2A2F21!important;font:400 clamp(28px,2.6vw,36px)/1.05 var(--serif)!important;letter-spacing:-.025em!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row{display:flex!important;justify-content:space-between!important;gap:16px!important;margin:0!important;padding:13px 0!important;border-bottom:1px solid rgba(47,52,36,.12)!important;color:#5F6356!important;font:400 14px/1.45 var(--sans)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row strong{color:#2A2F21!important;font-weight:600!important;text-align:right!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row:last-of-type{padding-top:18px!important;border-bottom:0!important;align-items:baseline!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row:last-of-type :is(span,strong){color:#2A2F21!important;font:400 clamp(25px,2.2vw,34px)/1.1 var(--serif)!important;letter-spacing:-.02em!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .fine-print{margin:8px 0 0!important;color:#66695E!important;font:400 12px/1.5 var(--sans)!important}
+
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout #checkout-form fieldset label:not(.check):not(.radio-label){display:grid!important;gap:8px!important;margin:0 0 18px!important;color:#555A4D!important;font:500 12px/1.3 var(--sans)!important;letter-spacing:.035em!important;text-transform:none!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout #checkout-form :is(input:not([type=checkbox]):not([type=radio]),select,textarea){position:relative!important;z-index:1!important;width:100%!important;min-width:0!important;min-height:52px!important;padding:12px 15px!important;border:1px solid rgba(47,52,36,.2)!important;border-radius:13px!important;background:#fff!important;color:#25291f!important;font:400 16px/1.3 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;box-shadow:inset 0 1px 2px rgba(47,52,36,.04)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout #checkout-form :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{outline:3px solid rgba(115,114,156,.2)!important;outline-offset:1px!important;border-color:#73729C!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout #checkout-form .form-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout #checkout-form label.check{letter-spacing:0!important;text-transform:none!important}
+
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .cart-help{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:10px 18px!important;margin:0 auto 20px!important;padding:13px 18px!important;max-width:1320px!important;border-left:2px solid #73729C!important;border-radius:0 12px 12px 0!important;background:rgba(233,233,242,.6)!important;color:#555A4D!important;font:400 13px/1.4 var(--sans)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .cart-help>span{margin-right:auto!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .cart-help a{color:#53527E!important;font-weight:600!important;text-decoration:underline!important;text-underline-offset:3px!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary{position:sticky!important;top:104px!important;background:#FBF8F1!important;border-color:rgba(47,52,36,.14)!important;border-radius:24px!important;box-shadow:0 22px 50px -38px rgba(47,52,36,.42)!important;color:#2A2F21!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-apply{background:#2F3424!important;border-color:#2F3424!important;color:#fff!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-apply:hover{background:#454B35!important;border-color:#454B35!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-code-row input{position:relative!important;z-index:1!important;background:#fff!important;color:#25291f!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;cursor:text!important}
+/* Súhrny objednávky: olivová karta s kontrastným textom, ako voucher. */
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary{background:#2F3424!important;border-color:rgba(247,244,236,.16)!important;color:#F7F4EC!important;box-shadow:0 28px 58px -38px rgba(47,52,36,.62)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary h2{color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row{border-color:rgba(247,244,236,.17)!important;color:rgba(247,244,236,.76)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row strong{color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row:last-of-type :is(span,strong){color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row:last-of-type span{color:#D8C58E!important;font-style:italic!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .fine-print{color:rgba(247,244,236,.66)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary{background:#2F3424!important;border-color:rgba(247,244,236,.16)!important;color:#F7F4EC!important;box-shadow:0 28px 58px -38px rgba(47,52,36,.62)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary h2{color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary :is(.ck-free,.ck-voucher){background:rgba(247,244,236,.07)!important;border-color:rgba(247,244,236,.18)!important;color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary :is(.ck-free p,.ck-code label,.ck-voucher summary){color:rgba(247,244,236,.86)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows{border-color:rgba(247,244,236,.2)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows div{border-color:rgba(247,244,236,.15)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows :is(dt,dd){color:rgba(247,244,236,.78)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows .ck-total :is(dt,dd){color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows .ck-total dt small{color:rgba(247,244,236,.65)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-trust{border-color:rgba(247,244,236,.18)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-trust li{color:rgba(247,244,236,.76)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-cta{background:#F7F4EC!important;border-color:#F7F4EC!important;color:#2F3424!important}
+@media(max-width:900px){html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-coupon-panel{grid-template-columns:1fr!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary{position:relative!important;top:auto!important}}
+@media(max-width:560px){html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-coupon-panel{gap:16px!important;padding:18px!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-row{grid-template-columns:minmax(0,1fr)!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-apply{width:100%!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout #checkout-form .form-grid{grid-template-columns:1fr!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .cart-help{align-items:flex-start!important;flex-direction:column!important;gap:7px!important}}
+}
 
 /* Patička 25. 10. – centrální symetrie: pečetě, pod nimi platby, pod nimi právní řádek */
 html body .site-footer .sf-pay{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:12px!important;padding:24px 0 6px!important;margin:8px auto 0!important;width:100%!important}
@@ -1346,10 +1413,10 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
   }
 }
 
-/* Mobilné ouško menu pod Novinkami; polohu dopočíta novinky-dock podľa skutočnej výšky ouška. */
+/* Mobilné ouško menu nad Novinkami; polohu dopočíta novinky-dock podľa skutočnej výšky ouška. */
 .ana-menu-tab{
   position: fixed!important;
-  top: var(--ana-menu-tab-top, 34vh)!important;
+  top: var(--ana-menu-tab-top, calc(34vh - 76px))!important;
   right: 0!important;
   left: auto!important;
   bottom: auto!important;
@@ -1373,13 +1440,17 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
 }
 @media (max-width: 999.98px) {
   /* Skryť natívne ľavé menu a rail na mobile */
-  #ana-rail,
-  .hero-rail,
-  .left-rail,
-  .rail-menu,
-  .lh-top__menu,
-  .lh-top,
-  .legacy-shell>.dc-chrome:first-child>header {
+  html body #ana-rail,
+  html body .hero-rail,
+  html body .left-rail,
+  html body .rail-menu,
+  html body .lh-top__menu,
+  html body .lh-top,
+  html body #lh-top,
+  html body .legacy-shell>.dc-chrome:first-child>header,
+  html body .legacy-shell>.dc-chrome:first-child>header :is(.dch0,.dch1),
+  html body dc-narrow:has(.dch0),
+  html body .dch0 {
     display: none!important;
   }
   
@@ -1606,5 +1677,218 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
   @media (max-width: 360px) {
     html body #dc-top-menu {padding-right: 8px!important;padding-left: 8px!important}
     html body #dc-top-menu .menu-quick__links a {padding-right: 6px!important;padding-left: 6px!important;font-size: 12px!important}
+  }
+}
+
+/* Účet: zelený panel siaha k hornému okraju; modré Menu sedí nad Novinkami. */
+@media (min-width: 1000px) {
+  body.customer-page .center-sidebar {
+    top: 0!important;
+    min-height: 100dvh!important;
+    max-height: 100dvh!important;
+  }
+}
+body.customer-page .ana-menu-tab {
+  display: flex!important;
+  align-items: center!important;
+  justify-content: center!important;
+}
+/* Samostatná stránka Novinky má vlastné ouško (bez dock skriptu), Menu sa preto skladá ručne nad neho. */
+@media (max-width: 999.98px) {
+  body:has(#nv) .ana-menu-tab {
+    top: max(8px, calc(34vh - 76px))!important;
+  }
+}
+/* Mobilné menu využije voľnú výšku: nadpisy a odkazy majú väčšie rozostupy aj pohodlnejší riadok. */
+@media (max-width: 760px) {
+  html body #dc-top-menu>div:has(>.menu-section) {
+    row-gap: 16px!important;
+  }
+  html body #dc-top-menu>div:has(>.menu-section)>div>:first-child {
+    flex-basis: 34px!important;
+    height: 34px!important;
+    min-height: 34px!important;
+    margin-bottom: 7px!important;
+    line-height: 32px!important;
+  }
+  html body #dc-top-menu>div:has(>.menu-section)>div>a:not(:first-child) {
+    flex-basis: 42px!important;
+    height: 42px!important;
+    min-height: 42px!important;
+    padding-block: 3px!important;
+    font-size: 16px!important;
+    line-height: 20px!important;
+  }
+  html body #dc-top-menu>div:has(>.menu-section)>div>a:not(:first-child) :is(span,.roll-a) {
+    line-height: 20px!important;
+  }
+}
+html body .customer-center .acc-booking {
+  grid-template-columns: 80px minmax(0,1fr) auto!important;
+  column-gap: 18px!important;
+}
+html body .customer-center .acc-booking.is-past {opacity: 1!important}
+html body .customer-center .acc-booking :is(h3,p) {color:#2F3424!important}
+@media (max-width: 640px) {
+  html body .customer-center .acc-booking {
+    grid-template-columns: 64px minmax(0,1fr)!important;
+    gap: 12px!important;
+  }
+  html body .customer-center .acc-booking .center-date>span {min-width:64px!important}
+  html body .customer-center .acc-booking>.acc-badge {grid-column:2}
+}
+
+/* Dashboard zákazníckeho účtu: používa existujúce routy, profil aj rezervácie. */
+html body .customer-center .center-heading {text-align:left!important;margin:0 0 22px!important;position:relative}
+html body .customer-center .center-heading .eyebrow {color:#766B9D!important;font:italic 600 16px/1.3 Fraunces,Georgia,serif!important;letter-spacing:0!important;text-transform:none!important;margin:0 0 5px!important}
+html body .customer-center .center-heading h1 {font-size:clamp(30px,4vw,48px)!important;line-height:1.08!important;letter-spacing:-.035em!important;margin:0!important;color:var(--center-ink)!important}
+html body .customer-center .account-heading-subtitle {margin:7px 0 0!important;color:#5E6375!important;font-size:17px!important}
+html body .customer-center .account-signout {display:inline-flex;align-items:center;justify-self:end;min-height:36px;margin-top:8px;color:#5E6375!important;font-size:13px;text-decoration:underline;text-underline-offset:4px}
+html body .customer-center .account-back {display:inline-flex;align-items:center;min-height:44px;margin-top:12px;padding:0 14px;border:1px solid var(--acc-line);border-radius:99px;background:#fff;color:var(--center-ink);cursor:pointer}
+html body .customer-center .account-back[hidden] {display:none!important}
+html body .customer-center .account-dashboard {display:grid;gap:34px}
+html body .customer-center .account-dashboard-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0;padding:0;border:0}
+html body .customer-center .account-dashboard-tile {position:relative;display:grid;grid-template-columns:52px minmax(0,1fr);align-items:center;gap:14px;min-width:0;min-height:106px;padding:16px 18px;border:1px solid rgba(104,88,130,.08);border-radius:22px;background:rgba(255,253,250,.94);box-shadow:0 10px 24px -20px rgba(46,39,57,.4);color:var(--center-ink);text-align:left;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+html body .customer-center .account-dashboard-tile:hover {transform:translateY(-2px);border-color:color-mix(in srgb,var(--acc-lav) 38%,transparent);box-shadow:0 14px 26px -18px rgba(46,39,57,.42)}
+html body .customer-center .account-dashboard-tile:focus-visible,html body .customer-center .account-back:focus-visible {outline:3px solid #8E86B8;outline-offset:3px}
+html body .customer-center .account-dashboard-icon,html body .customer-center .account-world-card-icon {display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:color-mix(in srgb,var(--acc-lav) 12%,#fff);color:#655781}
+html body .customer-center .account-dashboard-icon svg,html body .customer-center .account-world-card-icon svg {width:34px;height:34px}
+html body .customer-center .account-dashboard-copy {display:grid;gap:4px;min-width:0}
+html body .customer-center .account-dashboard-copy strong {font:600 18px/1.2 Figtree,sans-serif;color:#25251F}
+html body .customer-center .account-dashboard-copy small {font:400 13px/1.35 Figtree,sans-serif;color:#5E6375}
+html body .customer-center .account-dashboard-arrow {align-self:center;color:#766B9D;font-size:23px;line-height:1}
+html body .customer-center .account-world {display:grid;gap:14px}
+html body .customer-center .account-world>.eyebrow {margin:0;color:#766B9D!important;font:italic 600 19px/1.3 Fraunces,Georgia,serif!important;letter-spacing:0!important;text-transform:none!important}
+html body .customer-center .account-world>h2 {max-width:760px;margin:0;color:var(--center-ink);font:300 clamp(32px,4.2vw,54px)/1.06 Fraunces,Georgia,serif;letter-spacing:-.035em}
+html body .customer-center .account-world-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:4px}
+html body .customer-center .account-world-card {display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:12px;padding:20px;border:1px solid rgba(104,88,130,.08);border-radius:22px;background:rgba(255,253,250,.94);box-shadow:0 10px 24px -20px rgba(46,39,57,.4);min-width:0}
+html body .customer-center .account-world-card-icon {width:44px;height:44px}
+html body .customer-center .account-world-card-icon svg {width:28px;height:28px}
+html body .customer-center .account-world-card-copy {min-width:0}
+html body .customer-center .account-world-card h3 {margin:0 0 6px;color:#665781;font:600 19px/1.2 Figtree,sans-serif}
+html body .customer-center .account-world-card :is(#center-next-booking,#center-library-summary) {color:#555966;font-size:14px;line-height:1.4}
+html body .customer-center #center-next-booking .form-status,html body .customer-center #center-library-summary .form-status {margin:0}
+html body .customer-center .account-world-card #center-next-booking .center-date {align-items:flex-start;gap:10px}
+html body .customer-center .account-world-card #center-next-booking .center-date>span {min-width:48px;padding:8px;border-radius:12px;background:#E6E5D9;color:#2F3424;font-size:22px}
+html body .customer-center .account-world-card #center-next-booking .center-date h3 {margin:0;color:#2F3424;font-size:14px;line-height:1.35}
+html body .customer-center .account-world-card #center-next-booking>p {margin:4px 0 0 58px;font-size:12px;color:#666B5C}
+html body .customer-center .account-world-card>.button {grid-column:2;justify-self:start;min-height:42px;padding:0 13px!important;border-color:rgba(47,52,36,.3)!important;background:transparent!important;color:#2F3424!important;font-size:13px!important}
+@media (min-width:1000px) {
+  html body .customer-center[data-active-panel="prehlad"] .center-content {max-width:none!important;padding-top:42px!important}
+  html body .customer-center[data-active-panel="prehlad"] .account-dashboard-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+}
+@media (max-width:999.98px) {
+  html body .customer-center[data-active-panel="prehlad"] .center-layout {display:block!important;min-height:0!important}
+  html body .customer-center[data-active-panel="prehlad"] .center-sidebar {display:none!important}
+  html body .customer-center .center-content {padding:20px 18px 48px!important}
+  html body .customer-center .center-heading {padding:20px 22px!important;margin:0 0 20px!important;border:1px solid rgba(118,107,157,.12);border-radius:26px;background:linear-gradient(115deg,#F2EDF5 0%,#FBF8F2 64%,#EFE8F1 100%);overflow:hidden}
+  html body .customer-center .center-heading::after {content:"";position:absolute;right:28px;top:10px;width:82px;height:120px;border-right:2px solid rgba(118,107,157,.19);border-radius:60% 0 60% 0;transform:rotate(22deg);pointer-events:none}
+  html body .customer-center .center-heading::before {content:"";position:absolute;right:62px;top:35px;width:46px;height:76px;border-left:2px solid rgba(118,107,157,.16);border-radius:0 60% 0 60%;transform:rotate(-24deg);pointer-events:none}
+  html body .customer-center .center-heading :is(.eyebrow,h1,.account-heading-subtitle,.account-back) {position:relative;z-index:1}
+  html body .customer-center .center-heading h1 {max-width:calc(100% - 46px)!important;font-size:clamp(28px,7.6vw,38px)!important}
+  html body .customer-center .center-heading .eyebrow {font-size:18px!important}
+  html body .customer-center .center-heading .account-heading-subtitle {font-size:16px!important}
+  html body .customer-center .account-dashboard {gap:28px}
+  html body .customer-center .account-dashboard-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  html body .customer-center .account-dashboard-tile {grid-template-columns:44px minmax(0,1fr);gap:10px;min-height:96px;padding:13px 12px;border-radius:19px}
+  html body .customer-center .account-dashboard-icon {width:44px;height:44px}
+  html body .customer-center .account-dashboard-icon svg {width:30px;height:30px}
+  html body .customer-center .account-dashboard-copy strong {font-size:16px}
+  html body .customer-center .account-dashboard-copy small {font-size:12px}
+  html body .customer-center .account-dashboard-copy strong {overflow-wrap:normal;word-break:normal}
+  html body .customer-center .account-dashboard-copy small {max-width:100%;overflow-wrap:break-word}
+  html body .customer-center .account-world {gap:10px}
+  html body .customer-center .account-world>h2 {font-size:clamp(32px,8vw,42px)}
+  html body .customer-center .account-world-cards {grid-template-columns:1fr;gap:12px}
+  html body .customer-center .account-world-card {grid-template-columns:40px minmax(0,1fr);gap:10px;padding:17px;border-radius:19px}
+  html body .customer-center .account-world-card-icon {width:40px;height:40px}
+  html body .customer-center .account-world-card-icon svg {width:25px;height:25px}
+  html body .customer-center .account-world-card h3 {font-size:17px}
+  html body .customer-center .account-world-card>.button {grid-column:2}
+  html body .customer-center .account-signout {justify-self:start;min-height:40px;margin-top:3px}
+  html body .customer-center:not([data-active-panel="prehlad"]) .center-sidebar {padding-top:20px!important}
+}
+@media (max-width:359px) {
+  html body .customer-center .center-content {padding-inline:12px!important}
+  html body .customer-center .account-dashboard-grid {grid-template-columns:1fr!important}
+  html body .customer-center .account-dashboard-tile {min-height:82px;grid-template-columns:44px minmax(0,1fr)}
+  html body .customer-center .center-heading {padding:18px!important}
+}
+@media (prefers-reduced-motion:reduce) {
+  html body .customer-center .account-dashboard-tile {transition:none!important}
+}
+
+/* Konzultácie: mobilné kroky, plnošírkový kalendár a čitateľné rezervácie. */
+@layer shopv2 {
+  #page-shell#page-shell.kc-unified .legacy-main .bk,
+  #page-shell#page-shell.kc-unified .legacy-main .bk * {min-width:0;box-sizing:border-box}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;padding:0;margin:0 0 20px}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress li {position:relative;display:grid;justify-items:center;align-content:start;gap:5px;text-align:center;color:#777b70;min-width:0}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress li:not(:last-child)::after {content:"";position:absolute;left:calc(50% + 16px);right:calc(-50% + 16px);top:13px;height:1px;background:rgba(47,52,36,.18)}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress li>span {display:grid;place-items:center;width:26px;height:26px;border:1px solid rgba(47,52,36,.24);border-radius:50%;background:#fff;font-size:12px;line-height:1;font-variant-numeric:tabular-nums}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress li>small {font-size:11px;line-height:1.2;white-space:nowrap}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress li.is-current {color:#766B9D;font-weight:600}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress li.is-current>span,
+  #page-shell#page-shell.kc-unified .legacy-main .bk-progress li.is-done>span {background:#766B9D;color:#fff;border-color:#766B9D}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-types {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important;margin:0 0 22px!important}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-types button {display:grid!important;grid-template-columns:48px minmax(0,1fr) 24px;align-items:center;gap:12px;min-height:88px!important;width:100%;padding:14px 16px!important;text-align:left;border-radius:20px!important;white-space:normal}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-type__icon {display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:#F0EDF7;color:#766B9D}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-type__icon svg {width:28px;height:28px}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-type__copy {display:grid;gap:5px;min-width:0}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-types button strong {font-size:16px;line-height:1.3;overflow-wrap:normal;word-break:normal}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-types button small {font-size:13px;line-height:1.35;color:#686d60;overflow-wrap:normal;word-break:normal}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-type__select {display:grid;place-items:center;width:22px;height:22px;border:1px solid rgba(47,52,36,.25);border-radius:50%;font-size:13px;line-height:1}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-types button[aria-pressed=true] {background:#EAE7F2!important;border-color:#B9B2D1!important;color:#2F3424!important}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-types button[aria-pressed=true] small {color:#5E5A70!important}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-types button[aria-pressed=true] .bk-type__select {background:#766B9D;color:#fff;border-color:#766B9D}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-body {min-width:0}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-body>* {min-width:0;width:100%}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-cal {width:100%;max-width:none!important;min-width:0}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-week,
+  #page-shell#page-shell.kc-unified .legacy-main .bk-grid {width:100%;min-width:0;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:clamp(2px,1vw,8px)!important}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-week span {min-width:0;text-align:center;letter-spacing:.04em}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-day {min-width:0;width:100%;height:clamp(36px,5vw,48px)!important;min-height:36px!important;padding:0!important;font-size:clamp(12px,1.3vw,16px);border-radius:11px!important;font-variant-numeric:tabular-nums}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-day:disabled {opacity:1;cursor:default}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-day--past:disabled {color:#c4c5bc!important}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-side {min-width:0;width:100%}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-step,
+  #page-shell#page-shell.kc-unified .legacy-main .bk-summary {min-width:0;overflow-wrap:break-word}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-times {grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr))!important}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-time {min-height:48px!important}
+  #page-shell#page-shell.kc-unified .legacy-main .bk-go {min-height:48px}
+  html body .customer-center .acc-booking {grid-template-columns:72px minmax(0,1fr)!important;gap:16px!important;align-items:start!important}
+  html body .customer-center .acc-booking__body {display:grid;justify-items:start;gap:7px;min-width:0}
+  html body .customer-center .acc-booking__body .acc-badge {grid-row:1;max-width:100%;white-space:normal}
+  html body .customer-center .acc-booking__body .acc-badge--shipped {background:#E6EFDF!important;color:#536D49!important}
+  html body .customer-center .acc-booking__body h3 {min-width:0;max-width:100%;line-height:1.35!important;overflow-wrap:break-word;word-break:normal}
+  html body .customer-center .acc-booking__body p {min-width:0;overflow-wrap:break-word;line-height:1.45}
+  @container (max-width:639px) {
+    #page-shell#page-shell.kc-unified .legacy-main .bk-body {grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-types {grid-template-columns:minmax(0,1fr)!important}
+  }
+  @media(max-width:760px) {
+    #page-shell#page-shell.kc-unified .legacy-main .bk-body {grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-types {grid-template-columns:minmax(0,1fr)!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-cal {padding:clamp(14px,4vw,20px)!important;border-radius:22px!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-cal__head h3 {font-size:17px!important;text-align:center}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-week span {font-size:10px;letter-spacing:0}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-day {height:40px!important;min-height:40px!important;border-radius:9px!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-step,
+    #page-shell#page-shell.kc-unified .legacy-main .bk-summary {padding:18px!important;border-radius:20px!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-times {grid-template-columns:minmax(0,1fr)!important}
+  }
+  @media(max-width:359px) {
+    #page-shell#page-shell.kc-unified .legacy-main .bk-progress {gap:2px}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-progress li>small {font-size:10px}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-cal {padding:12px!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-week,
+    #page-shell#page-shell.kc-unified .legacy-main .bk-grid {gap:2px!important}
+    #page-shell#page-shell.kc-unified .legacy-main .bk-day {height:36px!important;min-height:36px!important}
+    html body .customer-center .acc-booking {grid-template-columns:56px minmax(0,1fr)!important;gap:10px!important}
+  }
+  @media(prefers-reduced-motion:reduce) {
+    #page-shell#page-shell.kc-unified .legacy-main .bk-types button,
+    #page-shell#page-shell.kc-unified .legacy-main .bk-time,
+    #page-shell#page-shell.kc-unified .legacy-main .bk-day {transition:none!important;scroll-behavior:auto!important}
   }
 }
