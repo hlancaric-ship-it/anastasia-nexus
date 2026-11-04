@@ -514,6 +514,7 @@ export function buildPromotionInput(
       type: usePercent ? ("percentage" as const) : ("fixed" as const),
       target_type: "items" as const,
       allocation: usePercent ? ("each" as const) : ("across" as const),
+        max_quantity: 999999,
       value,
       ...(usePercent ? {} : { currency_code: CURRENCY_CODE }),
       ...(productIds.length

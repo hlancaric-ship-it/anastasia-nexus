@@ -2545,6 +2545,7 @@ const couponBody = (view, prefix, code, extra = {}) => {
     // Celý košík = 'order'; len vybrané produkty = 'items' + pravidlo na produkty (jadro zľavu rozdeľuje).
     target_type: target === 'products' ? 'items' : 'order',
     allocation: type === 'percentage' ? 'each' : 'across',
+        max_quantity: 999999,
     ...(type === 'fixed' ? { currency_code: 'eur' } : {}),
     ...(target === 'products' && productIds.length ? { target_rules: [{ attribute: 'items.product.id', operator: 'in', values: productIds }] } : {}),
   };
