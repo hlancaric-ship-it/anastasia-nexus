@@ -49,3 +49,15 @@ Chrome: 390 px klik na znak, 390 px klik na celý odkaz a 800 px klik na
 odkaz – 3/3 návraty na úvod PASS, menu po navigaci zavřené. Navigace 2/2
 PASS, syntaxe `app.mjs` a `git diff --check` PASS. Nasazen jediný asset
 `app.mjs` na testovací web, verze `f36edc39-629f-46bf-8a75-3cd88095ee64`.
+
+## Menu bez boxů
+
+Podle navazujícího požadavku odstraněny rámečky, pozadí a zaoblení čtyř
+sekcí i dělicí čáry mezi odkazy. Zachovány dva textové sloupce. Odkazy mají
+shodné řádky 52 px a text zarovnaný shora, takže protější položky sedí
+ve stejné výšce i při zalomení delšího názvu. Ověřeno na 320, 390 a 430 px:
+protější texty mají shodné souřadnice, sekce průhledné pozadí a nulový okraj,
+obsah odkazů nepřetéká. Kontrola nadpisů prošla i na 800 px, desktop 1440 px
+zůstává nezměněn; navigace 2/2 PASS.
+
+Nasazen pouze `styles.css`, verze `d446c60c-7220-4680-8d93-6b3911a6b1ed`.
