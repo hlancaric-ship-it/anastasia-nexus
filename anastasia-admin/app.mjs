@@ -2108,7 +2108,16 @@ async function vOrderDetail(view, id, notice) {
       <div style="display:flex;gap:8px;flex-wrap:wrap">${!p.captured_at && cap === 0 && !canceled ? `<button class="btn gold" data-cap="${esc(p.id)}">Prijať platbu</button>` : ''}${left > 0 ? `<button class="btn ghost" data-ref="${esc(p.id)}" data-max="${left}">Vrátiť peniaze</button>` : ''}</div></div>`; }).join('') || '<p class="muted">K objednávke nie je evidovaná platba.</p>'}
     <p class="muted" style="font-size:12px;margin-top:10px">${manual ? 'Dobierka a prevod nejdú cez platobnú bránu: „Prijať platbu“ len zaznamená, že peniaze prišli (sprístupní obsah, odíde e-mail). Pri vrátení pošlite peniaze zákazníkovi sami prevodom a sumu tu zaznamenajte.' : 'Vrátenie peňazí prebehne cez platobnú bránu. Jadro potom samo upraví prístupy k digitálnemu obsahu a pošle e-mail.'}</p>`;
   const browseIndex = orderBrowseIds.indexOf(id);
-  view.innerHTML = `<div class="detail-layout"><div class="card"><div class="card-h">Objednávka ${esc(history.number || orderNo(o))} ${copyField('Kopírovať číslo objednávky', history.number || orderNo(o))}<div class="card-h-act">
+  view.innerHTML = `<div class="detail-layout od-layout"><div class="card od-card"><div class="od-head">
+    <div class="od-title-row">
+      <div>
+        <span class="od-label">Objednávka</span>
+        <h1 class="od-num">${esc(history.number || orderNo(o))} ${copyField('Kopírovať číslo objednávky', history.number || orderNo(o))}</h1>
+        <div class="od-meta"><span class="muted">${fmtDate(o.created_at)}</span><span class="pill ${canceled ? 'off' : (anyShipped ? 'ok' : (o.payment_status === 'captured' ? 'on' : ''))}">${esc(canceled ? 'Zrušená' : (o.fulfillment_status === 'shipped' ? 'Odoslaná' : (o.fulfillment_status === 'fulfilled' ? 'Pripravená' : (o.payment_status === 'captured' ? 'Zaplatená' : (o.payment_status === 'awaiting' ? 'Čaká na platbu' : esc(o.payment_status || 'Nová'))))))}</span>${archived ? '<span class="pill muted">Archív</span>' : ''}</div>
+      </div>
+      <div class="od-total"><b>${fmtEur(o.total || o.summary?.total_amount || 0)}</b><small>EUR</small></div>
+    </div>
+    <div class="od-toolbar">
       <button type="button" class="btn ghost" id="o-prev" aria-label="Predchádzajúca objednávka" ${browseIndex <= 0 ? 'disabled' : ''}>‹</button>
       <button type="button" class="btn ghost" id="o-next" aria-label="Ďalšia objednávka" ${browseIndex < 0 || browseIndex >= orderBrowseIds.length - 1 ? 'disabled' : ''}>›</button>
       <button type="button" class="btn ghost" id="o-back">Späť</button>
@@ -2116,8 +2125,9 @@ async function vOrderDetail(view, id, notice) {
       <button type="button" class="btn ghost" id="o-print-slip">Dodací list</button>
       ${archived ? '' : '<button type="button" class="btn ghost" id="o-invoice">Faktúra</button>'}
       ${!canceled && !archived && !anyShipped ? '<button type="button" class="btn danger" id="o-cancel">Zrušiť objednávku</button>' : ''}
-    </div></div><div class="card-b">
-    <div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
+    </div>
+  </div>
+  <div class="od-main"><div id="omsg">${archived ? '<div class="notice">Historická objednávka zo starého obchodu. Slúži ako archív; nevytvára novú platbu ani zásielku.</div>' : ''}${notice ? `<div class="notice">${esc(notice)}</div>` : ''}</div>
     ${!canceled && !archived && !anyShipped ? `<div id="o-cancel-box" class="act-confirm" hidden>
         <label for="o-cancel-reason">Dôvod zrušenia (povinný)</label>
         <textarea id="o-cancel-reason" rows="2" maxlength="500" placeholder="napr. zákazník zrušil objednávku telefonicky"></textarea>
@@ -2130,7 +2140,7 @@ async function vOrderDetail(view, id, notice) {
         return voucherHtml({ value: gv.initial_amount, currency: gv.currency_code, code: gv.code, expires_at: gv.expires_at, recipient_name: r.name, message: r.message });
       }).join('')}</div>
       <p class="muted" style="font-size:12px;margin-top:10px">Kód je maskovaný – plný kód dostal každý obdarovaný e-mailom. Hodnotu a platnosť overuje backend.</p></div></div>` : ''}
-  </div></div><aside class="detail-help panel" aria-label="Nápoveda k objednávke"><div class="panel-head"><h2>Ako postupovať</h2></div><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
+  </div></div></div><aside class="detail-help" aria-label="Nápoveda k objednávke"><div class="card-b" id="order-help" aria-live="polite"></div></aside></div>`;
   wireTabs(view);
   const orderHelp = {
     p: ['Skontrolujte objednávku', 'Tu vidíte zákazníka, doručenie a aktuálny stav platby. Položky objednávky nájdete vo vedľajšej záložke.', 'objednavka-vybavit'],

@@ -290,7 +290,7 @@ export function chrome(page) {
     footer: bleed(withCookieSettings(convert(footerClasses(footerLegalLinks(footerLinks(src.footer))), {page: linkPage, region: 'footer'}))),
     overlay: ids(convert(src.overlay, {page: linkPage})),
     rail: ids(convert(src.rail, {page: linkPage, region: 'rail'})).replace('</aside>', `${mediaControls}</aside>`),
-    menus: ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(topLayout(convert(menuBrand(src.top), {page: linkPage, region: 'menu'}))),
+    menus: '<button type="button" class="ana-menu-tab" id="ana-menu-tab" data-menu-open="top" aria-controls="dc-top-menu" aria-expanded="false" aria-label="Hlavné menu">Menu</button>' + ids(convert(menuBrand(side), {page: linkPage, region: 'menu'})) + ids(topLayout(convert(menuBrand(src.top), {page: linkPage, region: 'menu'}))),
   };
   for(const k of Object.keys(out)) out[k]=seal(out[k]);
   return out;

@@ -356,7 +356,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stro
 .tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin:0 0 22px;overflow-x:auto;scrollbar-width:none}
 .tab{border:0;border-bottom:2px solid transparent;white-space:nowrap;background:none;padding:0 0 12px;font-size:13.5px;min-height:44px;color:var(--muted)}
 .tab:hover{color:var(--ink)}
-.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700!important}
 .tabpane{display:none}.tabpane.active{display:block}
 .pills{display:inline-flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;max-width:100%;overflow-x:auto}
 .pills .pill{background:transparent;border:0;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;text-transform:none;white-space:nowrap}
@@ -1156,9 +1156,46 @@ label:has(input[type=checkbox]), label:has(input[type=radio]),
   grid-column: 1 / -1!important;
 }
 .detail-layout {
-  max-width: 1120px!important;
-  margin: 0 auto!important;
-  gap: 16px!important;
+  display: grid!important;
+  grid-template-columns: minmax(0, 1fr) 340px!important;
+  max-width: 100%!important;
+  width: 100%!important;
+  margin: 0!important;
+  gap: 24px!important;
+  align-items: start!important;
+}
+@media(max-width:1100px){
+  .detail-layout {
+    grid-template-columns: minmax(0, 1fr)!important;
+  }
+}
+
+/* Order detail nový štýl (od-layout) */
+.od-card{padding:0!important;overflow:hidden;border-radius:24px!important;background:var(--surface);border:1px solid rgba(115,114,156,.18)!important;box-shadow:var(--shadow-sm)}
+.od-head{background:linear-gradient(135deg,rgba(115,114,156,.06),rgba(201,165,92,.04));border-bottom:1px solid rgba(115,114,156,.18);padding:24px 28px}
+.od-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.od-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.od-num{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:clamp(28px,2.8vw,42px);line-height:1.05;margin:0;overflow-wrap:anywhere;display:inline}
+.od-num .copy-btn,.od-num .copy-pill{font-size:13px;vertical-align:middle;margin-left:8px}
+.od-meta{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.od-total{text-align:right;flex-shrink:0}
+.od-total b{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:clamp(32px,3.2vw,48px);line-height:1;background:linear-gradient(120deg,#2F3424,#73729C 60%,#C9A55C);-webkit-background-clip:text;background-clip:text;color:transparent;display:block}
+.od-total small{color:var(--muted);letter-spacing:.14em;font-size:11px}
+.od-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid rgba(115,114,156,.14);padding-top:14px;margin-top:4px}
+.od-toolbar .btn{border-radius:999px;padding:9px 18px}
+.od-main{padding:24px 28px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.detail-help{position:sticky;top:16px;background:var(--surface);border:1px solid rgba(115,114,156,.18);border-radius:24px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.detail-help .card-b{padding:22px 24px}
+.detail-help h2{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:22px;margin:0 0 12px}
+.detail-help h3{font-size:16px;font-weight:600;margin:0 0 8px;color:var(--ink)}
+.detail-help p{margin:8px 0 14px;color:var(--muted);line-height:1.65;font-size:13.5px}
+@media(max-width:760px){
+  .od-head{padding:16px 18px}
+  .od-toolbar{gap:6px}
+  .od-toolbar .btn{padding:7px 13px;font-size:12px}
+  .od-num{font-size:24px}
+  .od-total b{font-size:28px}
+  .od-main{padding:16px 18px}
 }
 
 /* Compact Table View for Products */
