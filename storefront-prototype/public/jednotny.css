@@ -1346,14 +1346,16 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
   }
 }
 
-/* Mobilné ouško menu (modré v barvách nášho menu) a výsuv zospodu */
+/* Mobilné ouško menu (modré v barvách nášho menu) na boku NAD novinkami a výsuv zospodu */
 .ana-menu-tab{
   position: fixed!important;
-  top: 34vh!important;
-  left: 0!important;
-  z-index: 95!important;
+  top: calc(34vh - 76px)!important;
+  right: 0!important;
+  left: auto!important;
+  bottom: auto!important;
+  z-index: 60!important;
   writing-mode: vertical-rl!important;
-  transform: rotate(180deg)!important;
+  transform: none!important;
   background: var(--site-accent-deep, #62527F)!important;
   color: #fff!important;
   padding: 16px 9px!important;
@@ -1364,12 +1366,36 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
   letter-spacing: .16em!important;
   text-transform: uppercase!important;
   font-weight: 500!important;
-  box-shadow: 4px 6px 20px rgba(98, 82, 127, .38)!important;
+  box-shadow: -4px 6px 20px rgba(98, 82, 127, .38)!important;
   cursor: pointer!important;
   display: none!important;
   transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .3s ease!important;
 }
 @media (max-width: 999.98px) {
+  /* Skryť natívne ľavé menu a rail na mobile */
+  #ana-rail,
+  .hero-rail,
+  .left-rail,
+  .rail-menu,
+  .lh-top__menu,
+  .lh-top,
+  .legacy-shell>.dc-chrome:first-child>header {
+    display: none!important;
+  }
+  
+  :root, html, body {
+    --rail-pad: 0px!important;
+    --rail-neg: 0px!important;
+  }
+  .legacy-shell {
+    padding-left: 0!important;
+  }
+  .legacy-main>:not(.legal-doc) {
+    margin-left: 0!important;
+    border-left: 0!important;
+  }
+
+  /* Zobraziť modré ouško Menu na boku nad novinkami */
   .ana-menu-tab {
     display: flex!important;
     align-items: center!important;
@@ -1377,12 +1403,12 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
   }
   html.ana-menu-open .ana-menu-tab,
   .ana-menu-tab[aria-expanded="true"] {
-    transform: rotate(180deg) translateX(120%)!important;
+    transform: translateX(110%)!important;
     opacity: 0!important;
     pointer-events: none!important;
   }
   
-  /* Menu vyjde zospodu ako bottom sheet */
+  /* Menu vyskočí zospodu ako bottom sheet */
   #dc-top-menu {
     top: auto!important;
     bottom: 0!important;
