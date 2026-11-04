@@ -616,6 +616,26 @@ html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-
 html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-apply{background:#2F3424!important;border-color:#2F3424!important;color:#fff!important}
 html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-apply:hover{background:#454B35!important;border-color:#454B35!important}
 html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-code-row input{position:relative!important;z-index:1!important;background:#fff!important;color:#25291f!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;cursor:text!important}
+/* Súhrny objednávky: olivová karta s kontrastným textom, ako voucher. */
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary{background:#2F3424!important;border-color:rgba(247,244,236,.16)!important;color:#F7F4EC!important;box-shadow:0 28px 58px -38px rgba(47,52,36,.62)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary h2{color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row{border-color:rgba(247,244,236,.17)!important;color:rgba(247,244,236,.76)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row strong{color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row:last-of-type :is(span,strong){color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .summary-row:last-of-type span{color:#D8C58E!important;font-style:italic!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary .fine-print{color:rgba(247,244,236,.66)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary{background:#2F3424!important;border-color:rgba(247,244,236,.16)!important;color:#F7F4EC!important;box-shadow:0 28px 58px -38px rgba(47,52,36,.62)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary h2{color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary :is(.ck-free,.ck-voucher){background:rgba(247,244,236,.07)!important;border-color:rgba(247,244,236,.18)!important;color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary :is(.ck-free p,.ck-code label,.ck-voucher summary){color:rgba(247,244,236,.86)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows{border-color:rgba(247,244,236,.2)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows div{border-color:rgba(247,244,236,.15)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows :is(dt,dd){color:rgba(247,244,236,.78)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows .ck-total :is(dt,dd){color:#F7F4EC!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-rows .ck-total dt small{color:rgba(247,244,236,.65)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-trust{border-color:rgba(247,244,236,.18)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-trust li{color:rgba(247,244,236,.76)!important}
+html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .ck-summary .ck-cta{background:#F7F4EC!important;border-color:#F7F4EC!important;color:#2F3424!important}
 @media(max-width:900px){html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-coupon-panel{grid-template-columns:1fr!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-grid>#checkout-summary{position:relative!important;top:auto!important}}
 @media(max-width:560px){html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-coupon-panel{gap:16px!important;padding:18px!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-row{grid-template-columns:minmax(0,1fr)!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .checkout-coupon-apply{width:100%!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout #checkout-form .form-grid{grid-template-columns:1fr!important}html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-cart .cart-help{align-items:flex-start!important;flex-direction:column!important;gap:7px!important}}
 }
