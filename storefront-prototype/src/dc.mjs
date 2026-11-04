@@ -271,15 +271,17 @@ export function chrome(page) {
   // Horné menu: štyri sekcie vedľa seba (Môj účet a Kontakt sú štvrtý
   // stĺpec), dole jazyky vľavo a tri logá vpravo.
   const topLayout=html=>{
-    const block=html.match(/<div style="display:flex;flex-direction:column">\s*(<a class="dch6"[^>]*font-size:30px[\s\S]*?)<\/div>/);
-    const bottom='<div style="display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;padding-top:20px;';
-    if(!block||!html.includes(bottom))return html;
-    const links=block[1].replace(/style="font-weight:300;font-size:30px;line-height:1\.35;letter-spacing:-0\.6px"/g,'style="font-size:14px;color:var(--site-main);padding:4px 0;"').trim();
-    const column='<div style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><span style="font-size:25px;color:#313C2B;margin-bottom:6px">Kontakt</span>'+links+'</div>';
+    const block=html.match(/<div style="display:flex;flex-direction:column">\s*(<a\b[^>]*font-size:30px[\s\S]*?)<\/div>/);
+    const bottomMatch=html.match(/<div style="display:grid;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,220px\),1fr\)\);gap:24px;padding-top:20px;[^"]*">/);
+    if(!block||!bottomMatch)return html;
+    const bottom=bottomMatch[0];
+    const links=block[1].replace(/style="font-weight:300;font-size:30px;line-height:1\.35;letter-spacing:-0\.6px"/g,'style="font-size:14px;color:#283020;padding:4px 0;"').trim();
+    const column='<div class="menu-section" style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><span style="font-size:25px;color:#313C2B;line-height:1.2;margin-bottom:6px;display:block">Kontakt</span>'+links+'</div>';
     html=html.replace(block[0],'');
     const at=html.lastIndexOf('</div>',html.indexOf(bottom));
     html=html.slice(0,at)+column+html.slice(at);
-    return html.replace(bottom,'<div class="menu-bottom-row" style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding-top:20px;').replace(/(<div class="menu-bottom-row"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>)/,'$1'+MENU_LOGOS);
+    html=html.replace('style="display:flex;flex-direction:column;gap:4px;padding-left:20px"','style="display:flex;flex-direction:column;gap:4px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.14)"');
+    return html.replace(bottom,'<div class="menu-bottom-row" style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding-top:20px;">').replace(/(<div class="menu-bottom-row"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>)/,'$1'+MENU_LOGOS);
   };
   const accountLink='<a class="header-account" data-global-account href="/prihlasenie" aria-label="Prihlásiť sa" title="Prihlásiť sa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg></a>';
   const headerHtml=convert(src.header.replace('>Programy</a>','>Programy a služby</a>'), {page: linkPage, region: 'header'}).replace(/<a href="[^"]*" style="display:flex;flex-direction:column;align-items:center;gap:6px">[\s\S]*?<\/a>/, '<a class="header-brand" href="/" aria-label="ANASTASIA OZ — domov"><span class="header-brand-emblem"><img src="/assets/anastasia-oz-mark.png" alt=""></span><span class="header-brand-wordmark">ANASTASIA OZ<small>LIGHT FOR THE FUTURE</small></span></a>').replace('<dc-wide><a href="/konzultacie">',accountLink+'<dc-wide><a href="/konzultacie">').replace('<header ','<header id="lh-top" class="lh-top" ');

@@ -30,7 +30,7 @@ try {
   await menu.click();
   const flags=await page.locator('#dc-top-menu [data-flag]').evaluateAll(nodes=>nodes.map(n=>({flag:n.dataset.flag,content:getComputedStyle(n,'::before').content,image:getComputedStyle(n,'::before').backgroundImage,width:getComputedStyle(n,'::before').width,display:getComputedStyle(n).display,boxWidth:n.getBoundingClientRect().width})));
   assert.equal(flags.length,3);assert.ok(flags.every(f=>f.content!=='none'&&f.image!=='none'&&f.width==='22px'&&['flex','inline-flex'].includes(f.display)&&f.boxWidth>=44));
-  const account=await page.locator('#dc-top-menu .dch6[data-menu-account]').evaluate(n=>({font:getComputedStyle(n).fontSize,transform:getComputedStyle(n.firstElementChild).transform}));
+  const account=await page.locator('#dc-top-menu :is(.dch6, .dch4, [class*="dch"])[data-menu-account]').evaluate(n=>({font:getComputedStyle(n).fontSize,transform:getComputedStyle(n.firstElementChild).transform}));
   assert.equal(account.transform,'none');
   await page.screenshot({path:join(screenshots,`menu-${width}.png`),animations:'disabled',timeout:60000});
   response={featured:null,posts:[],ads:[],panel:{enabled:false}};
