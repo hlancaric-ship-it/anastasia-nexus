@@ -163,14 +163,8 @@
           }
         ]
       },
-      // ZOPAKOVÁNO ZÁMĚRNĚ -- `kv_namespaces` se z top-level NEDĚDÍ.
-      "kv_namespaces": [
-        {
-          "binding": "PRICING_POLICY",
-          "id": "REPLACE_WITH_ANASTASIA_TEST_KV_NAMESPACE_ID",
-          "preview_id": "REPLACE_WITH_ANASTASIA_TEST_KV_PREVIEW_NAMESPACE_ID"
-        }
-      ]
+      // Testovací KV namespace neexistuje; cenová politika je uložená
+      // v MEDUSA_PRICING_POLICY_JSON a Worker ji použije jako fallback.
     }
   }
 

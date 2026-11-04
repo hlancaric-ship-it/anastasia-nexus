@@ -4,7 +4,8 @@
 
 Oprava zpracování neznámé věrnostní úrovně již existuje v commitu
 `1819553` a v týmovém repozitáři `L-Code-Dynamics-Dev/anastasia-nexus`.
-V této větvi jsou doplněny regresní testy. Nasazení nebylo provedeno.
+V této větvi jsou doplněny regresní testy a oprava byla nasazena pouze do
+testovacího pricing Workeru `nexus-api-anastasia-test`.
 
 Backend běží na Medusa Cloudu (`https://anastasia-api.medusajs.app`),
 root repozitáře na Cloudu je `/backend`. Web a administrace jsou samostatné
@@ -46,6 +47,12 @@ Nové regresní případy pokrývají prázdnou politiku s `ZR0`, `ZR1`,
 `toString`, `__proto__` a zachování platné akce i kupónu u neznámé úrovně
 (100 EUR → akční cena 80 EUR → kupón 10 % → 72 EUR).
 
+Při nasazení se odstranil neplatný testovací KV placeholder z
+`nexus/wrangler.jsonc`: v Cloudflare pro něj není namespace a nasazený Worker
+má cenovou politiku v existujícím secretu `MEDUSA_PRICING_POLICY_JSON`.
+Před deploymentem se ověřil seznam KV namespace i názvy Worker secrets
+(hodnoty secretů nebyly čteny). Wrangler použil `--keep-vars`.
+
 ## Ověření
 
 - Cílený NEXUS běh: 3/3 soubory, 22/22 testů PASS.
@@ -61,12 +68,16 @@ Nové regresní případy pokrývají prázdnou politiku s `ZR0`, `ZR1`,
 - Typová kontrola celého NEXUS hlásí existující nesoulad `BufferSource`
   v nezměněném `workers/api/routes/mediaDelivery.ts:36`; do tohoto souboru
   nebylo zasahováno.
+- `wrangler deploy --dry-run --keep-vars --config nexus/wrangler.jsonc --env anastasia-test`:
+  PASS; ověřen testovací Worker, D1 a Durable Object, bez placeholder KV.
+- Nasazení stejného testovacího prostředí vytvořilo verzi
+  `758f5426-a6dd-4c9f-9c18-ed42c5246505` (4. 11. 2026).
+  `wrangler deployments list --name nexus-api-anastasia-test` potvrzuje 100 %
+  provozu na této verzi. Pricing route odpovídá HTTP 401 bez tajného klíče,
+  jak očekává autentizace.
 
 ## Zbývá
 
-Vyjasnit cílové nasazení: Lucky dříve požadoval použít včera nasazený admin
-Worker; tato oprava se týká cenové služby. Dotaz na rozšíření rozsahu nasazení
-zatím nebyl jednoznačně zodpovězen. Do té doby žádný Worker nebyl změněn.
-Po nasazení ověřit stejné syntetické požadavky a skutečný přihlášený košík.
-Medusa CLI i uložené přihlášení administrace při kontrole vracely 401;
-přístup k aktuálním zákaznickým událostem nebyl obnoven.
+Požádat Luckyho o opětovné načtení pokladny a ověření přihlášeného košíku.
+Aktuální zákaznická session nebyla k dispozici, takže skutečný checkout po
+nasazení nebyl v této relaci ověřen. Nevytvořila se objednávka ani platba.
