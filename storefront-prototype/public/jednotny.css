@@ -574,6 +574,55 @@
 #page-shell.kc-unified.kc-shop .legacy-main .shop-cart{padding-inline:0!important}
 #page-shell.kc-unified.kc-shop .legacy-main .shop-cart>:is(.page-intro,.cart-guest-note,.qr-status,#cart-view,.shop-shortcuts){width:100%!important}
 
+/* Pätička: Logá troch značiek – väčšie a viac pri sebe na desktope */
+html body .site-footer .sf-brands {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: clamp(32px, 4.5vw, 64px) !important;
+  max-width: 980px !important;
+  margin: 0 auto !important;
+  padding: clamp(24px, 3vw, 40px) 0 !important;
+}
+
+html body .site-footer .sf-brands > a,
+html body .site-footer .sf-brands .sf-brand-link {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex: 0 1 auto !important;
+}
+
+html body .site-footer .sf-brands img,
+html body .site-footer .sf-brands .sf-brand-img {
+  width: clamp(230px, 19vw, 290px) !important;
+  max-width: 290px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  filter: none !important;
+  transition: transform 0.25s ease, opacity 0.25s ease !important;
+}
+
+html body .site-footer .sf-brands a:hover img {
+  transform: translateY(-2px) scale(1.03) !important;
+  opacity: 0.95 !important;
+}
+
+@media (max-width: 767.98px) {
+  html body .site-footer .sf-brands {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    max-width: 100% !important;
+  }
+  html body .site-footer .sf-brands img,
+  html body .site-footer .sf-brands .sf-brand-img {
+    width: 100% !important;
+    max-width: 140px !important;
+  }
+}
+
 /* Košík a pokladňa: jasné kontaktné polia, viditeľný kupón a svetlý súhrn. */
 @layer shopv2{
 html body #page-shell#page-shell.kc-unified.kc-shop .legacy-main .shop-checkout .checkout-coupon-panel{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(300px,.9fr)!important;align-items:center!important;gap:24px!important;margin:0 auto clamp(24px,3vw,40px)!important;padding:clamp(18px,2.4vw,30px)!important;max-width:1320px!important;background:linear-gradient(120deg,#E4E6D6,#F4F0E8)!important;border:1px solid rgba(47,52,36,.2)!important;border-radius:22px!important;box-shadow:0 18px 42px -34px rgba(47,52,36,.4)!important}

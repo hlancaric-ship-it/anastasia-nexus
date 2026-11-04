@@ -1,95 +1,312 @@
-/* Knihovna zakoupených programů - RESET 40+ */
-.library-page { padding: clamp(40px, 6vw, 80px) 0; }
+/* ==========================================================================
+   Moja knižnica – Dominantní multimediální přehrávač & 12-sloupcový layout
+   ========================================================================== */
 
-.library-container {
+.library-grid-12 {
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(24px, 4vw, 48px);
+  gap: 28px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-/* Desktop: dvousloupcový layout */
-@media (min-width: 768px) {
-  .library-container {
-    grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+/* DESKTOP (>= 1024px): 12-sloupcový grid – Levý 7/12, Pravý 5/12 */
+@media (min-width: 1024px) {
+  .library-grid-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 32px;
     align-items: start;
   }
-  .library-player-section.desktop { display: block; }
-  .library-player-section.mobile { display: none; }
+
+  .library-left-col {
+    grid-column: span 7;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .library-right-col {
+    grid-column: span 5;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    position: sticky;
+    top: 96px;
+  }
 }
 
-/* Mobil: přehrávač nahoře */
-@media (max-width: 767px) {
-  .library-container {
+/* MOBIL (< 1024px): vertikální řazení pod sebe */
+@media (max-width: 1023.98px) {
+  .library-grid-12 {
+    display: flex;
+    flex-direction: column;
     gap: 24px;
   }
-  .library-player-section.mobile {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background: rgba(255, 255, 255, 0.96);
-    -webkit-backdrop-filter: blur(20px);backdrop-filter: blur(20px);
-    padding: clamp(16px, 3vw, 24px);
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    max-height: 40svh;
-    overflow-y: auto;
+
+  .library-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
   }
-  .library-player-section.desktop { display: none; }
+
+  .library-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
 }
 
+/* ==========================================================================
+   LEVÝ SLOUPEC: PŘEHRÁVAČ & DETAIL
+   ========================================================================== */
+
+/* Karta přehrávače */
+.library-player-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 28px;
+  padding: 16px;
+  border: 1px solid rgba(47, 52, 36, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06);
+}
+
+/* Container videa (aspect 16:9, rounded-2xl/3xl, tmavé pozadí) */
 .library-player-box {
   position: relative;
   width: 100%;
-  aspect-ratio: 16/9;
-  background: #000;
-  border-radius: 12px;
+  aspect-ratio: 16 / 9;
+  background: #0D110D;
+  border-radius: 22px;
   overflow: hidden;
-  margin-bottom: 16px;
-}
-.library-player-box video, .library-player-box audio {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.library-player-title {
-  font-size: clamp(18px, 2.5vw, 24px);
-  font-weight: 300;
-  margin: 0 0 16px 0;
-  color: var(--center-ink,#283020);
-}
-
-.library-player-controls {
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.28);
   display: flex;
-  gap: 12px;
+  align-items: center;
   justify-content: center;
 }
 
-/* Filtr */
-.library-filter-box {
+.library-player-box video,
+.library-player-box audio {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.library-player-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #EDE9F5;
+  text-align: center;
+  padding: 24px;
+}
+
+.library-player-empty__icon {
+  font-size: 38px;
+  line-height: 1;
+  color: var(--site-accent, #C9A55C);
+  background: rgba(255, 255, 255, 0.08);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.library-player-empty__text {
+  font-size: 15px;
+  font-family: Figtree, sans-serif;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 280px;
+  margin: 0;
+}
+
+.library-watermark {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  z-index: 5;
+  margin: 0;
+}
+
+/* Navigační lišta pod videem */
+.library-player-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  background: #F8F6F0;
+  border: 1px solid rgba(47, 52, 36, 0.06);
+  border-radius: 18px;
+}
+
+.library-nav-btn {
+  min-height: 40px !important;
+  padding: 0 16px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 99px !important;
+  background: #fff !important;
+  color: var(--center-ink, #283020) !important;
+  border: 1px solid rgba(47, 52, 36, 0.15) !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.library-nav-btn:hover:not(:disabled) {
+  background: var(--center-ink, #283020) !important;
+  color: #fff !important;
+  border-color: var(--center-ink, #283020) !important;
+}
+
+.library-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: transparent !important;
+}
+
+.library-track-indicator {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5E6375;
+  letter-spacing: 0.04em;
+}
+
+/* Karta detailu stopy (samostatná světlá karta pod přehrávačem) */
+.library-track-detail {
+  background: #fff;
+  border-radius: 28px;
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid rgba(47, 52, 36, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 16px;
 }
 
-@media (min-width: 768px) {
-  .library-filter-box {
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
-  }
+.library-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.library-detail-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #F0EDF7;
+  color: #62527F;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.library-detail-program {
+  font-size: 13px;
+  color: #767B6E;
+  font-weight: 500;
+}
+
+.library-detail-title {
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--center-ink, #283020);
+  margin: 0;
+}
+
+.library-detail-desc {
+  font-family: Figtree, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #5E6375;
+  margin: 0;
+}
+
+.library-detail-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(47, 52, 36, 0.07);
+}
+
+.library-pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px !important;
+  padding: 0 18px !important;
+  font-size: 13.5px !important;
+  border-radius: 99px !important;
+  background: #F6F4EB !important;
+  color: var(--center-ink, #283020) !important;
+  border: 1px solid rgba(47, 52, 36, 0.16) !important;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.library-pdf-btn:hover {
+  background: #EAE6D7 !important;
+  border-color: rgba(47, 52, 36, 0.3) !important;
+}
+
+/* ==========================================================================
+   PRAVÝ SLOUPEC: FILTRY & PLAYLIST
+   ========================================================================== */
+
+/* Hlavička: Filtry a hledání */
+.library-filter-block {
+  background: #fff;
+  border-radius: 24px;
+  padding: 18px 20px;
+  border: 1px solid rgba(47, 52, 36, 0.08);
+  box-shadow: 0 6px 24px -10px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.library-search-wrap {
+  width: 100%;
 }
 
 .library-search-input {
-  flex: 1;
-  min-width: 0;
-  max-width: 420px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb,var(--center-ink,#283020) 20%,transparent);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(47, 52, 36, 0.16);
   font-size: 14px;
   font-family: Figtree, sans-serif;
+  background: #FAF8F2;
+  color: var(--center-ink, #283020);
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.library-search-input:focus {
+  border-color: var(--site-accent-deep, #62527F);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(98, 82, 127, 0.12);
 }
 
 .library-filter-tabs {
@@ -99,160 +316,205 @@
 }
 
 .library-filter-btn {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid color-mix(in srgb,var(--center-ink,#283020) 20%,transparent);
-  background: #fff;
-  font-size: 13px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(47, 52, 36, 0.12);
+  background: transparent;
+  color: #5E6375;
   font-family: Figtree, sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: all 0.2s ease;
+}
+
+.library-filter-btn:hover {
+  background: #F4F1E8;
+  color: var(--center-ink, #283020);
 }
 
 .library-filter-btn.active {
-  background: var(--center-ink,#283020);
-  color: #EFE5C7;
-  border-color: var(--center-ink,#283020);
+  background: var(--center-ink, #283020);
+  color: #fff;
+  border-color: var(--center-ink, #283020);
 }
 
-/* Akordeon */
-.library-accordion {
+/* Karta kurzu & Playlist */
+.library-playlist-card {
+  background: #fff;
+  border-radius: 28px;
+  padding: 22px;
+  border: 1px solid rgba(47, 52, 36, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.library-week-panel {
-  background: #fff;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 200ms ease;
-}
-
-.library-week-panel:active {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.library-week-summary {
-  display: flex;
-  align-items: center;
-  padding: 14px 18px;
-  cursor: pointer;
-  list-style: none;
   gap: 16px;
 }
 
-.library-week-summary::-webkit-details-marker { display: none; }
-
-.library-week-header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex: 1;
-}
-
-.library-week-title {
-  font-size: clamp(16px, 2vw, 18px);
-  font-weight: 300;
-  margin: 0;
-  color: var(--center-ink,#283020);
-}
-
-.library-week-count {
-  font-size: 12px;
-  color: color-mix(in srgb,var(--center-ink,#283020) 60%,transparent);
-}
-
-.library-week-content {
-  padding: 0 18px 18px 18px;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 300ms ease, padding 300ms ease;
-}
-
-.library-week-panel[open] .library-week-content {
-  max-height: 2000px;
-  padding-top: 18px;
-}
-
-/* Položky v akordeonu */
-.library-section-title {
-  font-size: 13px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: color-mix(in srgb,var(--center-ink,#283020) 70%,transparent);
-  margin: 16px 0 8px 0;
-}
-
-.library-item-row {
+.library-playlist-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #F9FAF7;
-  margin-bottom: 6px;
-  transition: all 200ms ease;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(47, 52, 36, 0.08);
 }
 
-.library-item-row.active {
-  background: #EFE5C7;
+.library-course-title {
+  font-family: Fraunces, Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--center-ink, #283020);
+  margin: 0;
 }
 
-.library-item-row.completed .library-item-check {
-  display: inline-block;
+.library-progress-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 99px;
+  background: #EAE6D7;
+  color: #404533;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+/* Vertikální seznam lekcí s omezenou výškou a scrollem */
+.library-playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: min(60vh, 520px);
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(47, 52, 36, 0.2) transparent;
+}
+
+.library-playlist-list::-webkit-scrollbar {
+  width: 5px;
+}
+.library-playlist-list::-webkit-scrollbar-thumb {
+  background: rgba(47, 52, 36, 0.2);
+  border-radius: 99px;
+}
+
+/* Jednotlivá položka v playlistu */
+.library-playlist-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(47, 52, 36, 0.06);
+  background: #FAF9F4;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.library-playlist-item:hover {
+  background: #F3EFE3;
+  border-color: rgba(47, 52, 36, 0.14);
+}
+
+/* Aktivní položka – dominantní stav Prehráva sa */
+.library-playlist-item.is-active {
+  background: #F2EEF8 !important;
+  border-color: #C0B7DC !important;
+  box-shadow: 0 4px 16px rgba(98, 82, 127, 0.12);
+}
+
+.library-item-icon {
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+}
+
+.library-item-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .library-item-title {
-  flex: 1;
-  font-size: 14px;
-  color: var(--center-ink,#283020);
+  font-family: Figtree, sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--center-ink, #283020);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.library-item-btn {
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 13px;
-  min-width: auto;
+.library-playlist-item.is-active .library-item-title {
+  color: #4C3C68;
 }
 
-.library-item-check {
-  display: none;
-  font-size: 14px;
-  color: var(--center-ink,#283020);
+.library-item-sub {
+  font-size: 12px;
+  color: #797E70;
 }
 
-/* Vodoznak */
-.library-watermark {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(0, 0, 0, 0.4);
-  padding: 4px 8px;
-  border-radius: 6px;
-  pointer-events: none;
+.library-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Chybové hlášky */
-.library-error {
-  color: #C92A2A;
-  margin-top: 12px;
+.library-badge-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #62527F;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
-/* Tlačítka přehrávače */
-.library-prev-btn, .library-next-btn {
-  min-width: 120px;
+.library-badge-active::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #69DE9E;
 }
 
-/* Prázdná knižnica: jen jedna věta, bez přehrávače a filtrů */
-.library-empty { padding: 22px 26px; border-radius: 22px; background: var(--center-card, #fff); border: 1px solid var(--center-line, #e6e3ef); max-width: 640px; }
-.library-empty p { margin: 0; }
+.library-check-done {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #E0EBD9;
+  color: #466938;
+  font-size: 12px;
+  font-weight: 700;
+}
 
-/* Desktop: přehrávač zůstává vidět při procházení týdnů */
-@media (min-width: 768px) {
-  .library-player-section.desktop { position: sticky; top: 96px; }
+.library-play-btn {
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  border-radius: 99px !important;
+  background: #fff !important;
+  border: 1px solid rgba(47, 52, 36, 0.18) !important;
+  color: var(--center-ink, #283020) !important;
+  cursor: pointer;
+}
+
+.library-play-btn:hover {
+  background: var(--center-ink, #283020) !important;
+  color: #fff !important;
+}
+
+.library-playlist-item[hidden] {
+  display: none !important;
 }

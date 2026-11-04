@@ -222,7 +222,7 @@ function footerClasses(html) {
     if (!html.includes(from)) throw new Error(`dc: v pätičke chýba časť ${from.slice(0, 60)}`);
     html = html.replace(from, to);
   }
-  return html.replace(/<div class="sf-brands"[\s\S]*?(?=<div class="sf-bottom")/, '<div class="sf-brands" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;gap:24px"><a href="/" aria-label="ANASTASIA OZ" style="display:flex;justify-content:center"><img src="/assets/anastasia-oz-logo.png" alt="ANASTASIA OZ" style="width:100%!important;max-width:240px;height:auto!important;object-fit:contain;filter:none!important"></a><a href="https://www.anastasia.academy/" aria-label="ANASTASIA academy" style="display:flex;justify-content:center"><img src="/assets/anastasia-academy-logo.png" alt="ANASTASIA academy" style="width:100%!important;max-width:240px;height:auto!important;object-fit:contain;filter:none!important"></a><a href="https://www.aianastasia.com/" aria-label="ANASTASIA AI" style="display:flex;justify-content:center"><img src="/assets/anastasia-ai-logo.png" alt="ANASTASIA AI" style="width:100%!important;max-width:240px;height:auto!important;object-fit:contain;filter:none!important"></a></div>\n');
+  return html.replace(/<div class="sf-brands"[\s\S]*?(?=<div class="sf-bottom")/, '<div class="sf-brands"><a href="/" aria-label="ANASTASIA OZ" class="sf-brand-link"><img src="/assets/anastasia-oz-logo.png" alt="ANASTASIA OZ" class="sf-brand-img"></a><a href="https://www.anastasia.academy/" aria-label="ANASTASIA academy" class="sf-brand-link" target="_blank" rel="noopener noreferrer"><img src="/assets/anastasia-academy-logo.png" alt="ANASTASIA academy" class="sf-brand-img"></a><a href="https://www.aianastasia.com/" aria-label="ANASTASIA AI" class="sf-brand-link" target="_blank" rel="noopener noreferrer"><img src="/assets/anastasia-ai-logo.png" alt="ANASTASIA AI" class="sf-brand-img"></a></div>\n');
 }
 
 // Globální prvky stránky: lišta, menu, overlay, patička. `page` určuje, ze kterého návrhu a jak se mapují kotvy.
@@ -234,7 +234,7 @@ export function chrome(page) {
   const linkPage = page === 'home' || page === 'about' ? page : 'other';
   const side=src.side.replace(/<div style="display:flex;align-items:center;gap:14px"><img src="\.\/assets\/logo-mark\.png"[^>]*><div style="display:flex;flex-direction:column;gap:3px">[\s\S]*?<\/div><\/div>/,'');
   // Tri logá z pätičky v spodnom riadku horného menu vpravo, vedľa jazykov.
-  const MENU_LOGOS='<div class="menu-brand-logos" style="display:grid;grid-template-columns:repeat(3,minmax(0,116px));justify-content:end;align-items:end;column-gap:40px;min-width:0;padding-top:6px">'
+  const MENU_LOGOS='<div class="menu-brand-logos" style="display:grid!important;grid-template-columns:repeat(3,minmax(0,116px));justify-content:end;align-items:end;column-gap:40px;min-width:0;padding-top:6px">'
     +'<a data-menu-brand href="/" data-menu-close aria-label="ANASTASIA OZ" style="display:flex;align-items:center;justify-content:center;min-width:0;text-decoration:none"><img src="/assets/logo-oz-menu.webp" alt="ANASTASIA OZ" style="width:100%;height:auto;display:block"></a>'
     +'<a data-menu-brand href="https://www.anastasia.academy/" target="_blank" rel="noopener" aria-label="ANASTASIA academy" style="display:flex;align-items:center;justify-content:center;min-width:0;text-decoration:none"><img src="/assets/logo-academy-menu.webp" alt="ANASTASIA academy" style="width:100%;height:auto;display:block"></a>'
     +'<a data-menu-brand href="https://www.aianastasia.com/" target="_blank" rel="noopener" aria-label="ANASTASIA AI" style="display:flex;align-items:center;justify-content:center;min-width:0;text-decoration:none"><img src="/assets/logo-ai-menu.webp" alt="ANASTASIA AI" style="width:100%;height:auto;display:block"></a></div>';
@@ -272,7 +272,7 @@ export function chrome(page) {
   // stĺpec), dole jazyky vľavo a tri logá vpravo.
   const topLayout=html=>{
     const block=html.match(/<div style="display:flex;flex-direction:column">\s*(<a class="dch6"[^>]*font-size:30px[\s\S]*?)<\/div>/);
-    const bottom='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;padding-top:20px;';
+    const bottom='<div style="display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;padding-top:20px;';
     if(!block||!html.includes(bottom))return html;
     const links=block[1].replace(/style="font-weight:300;font-size:30px;line-height:1\.35;letter-spacing:-0\.6px"/g,'style="font-size:14px;color:var(--site-main);padding:4px 0;"').trim();
     const column='<div style="display:flex;flex-direction:column;gap:4px;padding-left:20px"><span style="font-size:25px;color:#313C2B;margin-bottom:6px">Kontakt</span>'+links+'</div>';

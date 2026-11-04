@@ -1,514 +1,453 @@
-// Knihovna zakoupených programů (Moja knižnica) – nový design
-// Přehrávač + navigace podle týdnů pro RESET 40+
-
-import { groupLibraryItems } from './library-groups.mjs'
+// Knihovna zakoupených programů (Moja knižnica) – dominantní přehrávač & 12-sloupcový grid
+import { groupLibraryItems } from './library-groups.mjs';
 
 const node = (tag, text, cls) => {
-  const el = document.createElement(tag)
-  if (text != null) el.textContent = text
-  if (cls) el.className = cls
-  return el
-}
+  const el = document.createElement(tag);
+  if (text != null) el.textContent = text;
+  if (cls) el.className = cls;
+  return el;
+};
 
 export async function mountLibrary(target, api) {
-  let activePlayer = null
-  let hls = null
-  let requestVersion = 0
-  let currentWeek = 1
-  let currentVideoIndex = 0
+  const report = detail => target.dispatchEvent(new CustomEvent('library:ready', { bubbles: true, detail }));
+  let activePlayer = null;
+  let hls = null;
+  let requestVersion = 0;
+  let currentTrackIndex = 0;
+  const standaloneLibrary = Boolean(target.closest('.library-page'));
 
   const stopPlayer = () => {
-    if (hls) { hls.destroy(); hls = null }
+    if (hls) { hls.destroy(); hls = null; }
     if (activePlayer) {
-      activePlayer.pause()
-      activePlayer.removeAttribute('src')
-      activePlayer.load()
-      activePlayer = null
+      activePlayer.pause();
+      activePlayer.removeAttribute('src');
+      activePlayer.load();
+      activePlayer = null;
     }
+  };
+
+  const failMessage = 'Obsah sa teraz nepodarilo otvoriť. Skúste to znova o chvíľu.';
+
+  let data;
+  try {
+    data = await api.getEntitlements();
+  } catch {
+    showError(target, failMessage);
+    report({ unavailable: true, authenticated: false, products: 0 });
+    return stopPlayer;
   }
 
-  const failMessage = 'Obsah sa teraz nepodarilo otvoriť. Skúste to znova o chvíľu.'
-
-  let data
-  try { data = await api.getEntitlements() } catch { showError(target, failMessage); return stopPlayer }
   if (data.ok === false) {
-    showError(target, 'Prístupy sa teraz nepodarilo načítať. Obnovte stránku.')
-    return stopPlayer
+    showError(target, 'Prístupy sa teraz nepodarilo načítať. Obnovte stránku.');
+    report({ unavailable: true, authenticated: false, products: 0 });
+    return stopPlayer;
   }
 
   if (!data.active && !data.authenticated) {
-    showLockedState(target)
-    return stopPlayer
+    showLockedState(target);
+    report({ authenticated: false, products: 0 });
+    return stopPlayer;
   }
 
-  const products = new Map()
-  for (const access of data.entitlements || [])
-    if (access.product?.id && !products.has(access.product.id))
-      products.set(access.product.id, access.product)
-
-  const grouped = groupLibraryItems(data.entitlements || [])
-
-  // Desktop: dvousloupcový layout
-  // Mobil: přehrávač nahoře (max 40 %), pod ním akordeon
-
-  const isDesktop = matchMedia('(min-width: 768px)').matches
-
-  const container = node('div', null, 'library-container')
-  const playerSection = node('div', null, isDesktop ? 'library-player-section desktop' : 'library-player-section mobile')
-  const navSection = node('div', null, 'library-nav-section')
-
-  // Přehrávač
-  const playerBox = node('div', null, 'library-player-box')
-  const playerTitle = node('h2', '', 'library-player-title')
-  const playerControls = node('div', null, 'library-player-controls')
-  const prevBtn = node('button', 'Predchádzajúca', 'button outline library-prev-btn')
-  const nextBtn = node('button', 'Ďalšia', 'button outline library-next-btn')
-  prevBtn.type = 'button'
-  nextBtn.type = 'button'
-  playerControls.append(prevBtn, nextBtn)
-
-  // Filtr
-  const filterBox = node('div', null, 'library-filter-box')
-  const searchInput = node('input', null, 'library-search-input')
-  searchInput.type = 'search'
-  searchInput.placeholder = 'Hľadať v knižnici...'
-  const filterTabs = node('div', null, 'library-filter-tabs')
-  const filterAll = node('button', 'Všetko', 'library-filter-btn active')
-  const filterVideo = node('button', 'Videá', 'library-filter-btn')
-  const filterAudio = node('button', 'Audio', 'library-filter-btn')
-  const filterPdf = node('button', 'PDF', 'library-filter-btn')
-  filterAll.dataset.filter = 'all'
-  filterVideo.dataset.filter = 'video'
-  filterAudio.dataset.filter = 'audio'
-  filterPdf.dataset.filter = 'pdf'
-  filterTabs.append(filterAll, filterVideo, filterAudio, filterPdf)
-  filterBox.append(searchInput, filterTabs)
-
-  // Akordeon
-  const accordion = node('div', null, 'library-accordion')
-
-  if (!grouped.length) {
-    const empty = node('div', null, 'library-empty')
-    empty.append(node('p', 'Zatiaľ nemáte zakúpený žiadny program ani nahrávku.', 'form-status'))
-    target.replaceChildren(empty)
-    return stopPlayer
+  const products = new Map();
+  for (const access of data.entitlements || []) {
+    if (access.product?.id && !products.has(access.product.id)) {
+      products.set(access.product.id, access.product);
+    }
   }
+  report({ authenticated: Boolean(data.authenticated), products: products.size });
 
-  navSection.append(filterBox, accordion)
-  playerSection.append(playerBox, playerTitle, playerControls)
-  container.append(playerSection, navSection)
-  target.replaceChildren(container)
+  const grouped = groupLibraryItems(data.entitlements || []);
 
-  // Vytvoření akordeonu
-  let activeWeekPanel = null
-
+  // Sesbíráme všechny položky do lineárního playlistu pro navigaci
+  const allTracks = [];
   for (const week of grouped) {
-    const panel = node('details', null, 'library-week-panel')
-    const summary = node('summary', null, 'library-week-summary')
-    const weekHeader = node('div', null, 'library-week-header')
-    const weekTitle = node('h3', week.title, 'library-week-title')
-    const weekCount = node('span', `${week.videos.length} videí · ${week.audios.length} audio · ${week.pdfs.length} PDF`, 'library-week-count')
-    weekHeader.append(weekTitle, weekCount)
-    summary.append(weekHeader)
-
-    const content = node('div', null, 'library-week-content')
-
-    // Video lekcie
-    if (week.videos.length) {
-      const videoList = node('div', null, 'library-video-list')
-      for (const item of week.videos) {
-        const row = createLibraryRow(item, 'video', api, products)
-        videoList.append(row)
-      }
-      content.append(node('h4', 'Videá', 'library-section-title'), videoList)
-    }
-
-    // PDF materiály
-    if (week.pdfs.length) {
-      const pdfList = node('div', null, 'library-pdf-list')
-      for (const item of week.pdfs) {
-        const row = createLibraryRow(item, 'pdf')
-        pdfList.append(row)
-      }
-      content.append(node('h4', 'PDF materiály', 'library-section-title'), pdfList)
-    }
-
-    if (week.audios.length) {
-      const audioList = node('div', null, 'library-audio-list')
-      for (const item of week.audios) audioList.append(createLibraryRow(item, 'audio'))
-      content.append(node('h4', 'Nahrávky', 'library-section-title'), audioList)
-    }
-
-    panel.append(summary, content)
-    accordion.append(panel)
-
-    // Otevřít první týden
-    if (week.week === 1) {
-      panel.open = true
-      activeWeekPanel = panel
+    // Každá položka nese odkaz na příslušný týden a související PDF
+    const weekPdf = week.pdfs[0] || null;
+    for (const item of [...week.videos, ...week.audios, ...week.pdfs]) {
+      item.weekTitle = week.title;
+      item.weekNum = week.week;
+      item.pdfAttachment = weekPdf;
+      allTracks.push(item);
     }
   }
 
-  // Uložení pozice do localStorage
-  const savePosition = () => {
+  if (!allTracks.length) {
+    const empty = node('div', null, 'library-empty empty-state');
+    empty.append(node('p', 'Zatiaľ nemáte zakúpený žiadny program ani nahrávku.', 'form-status'));
+    target.replaceChildren(empty);
+    return stopPlayer;
+  }
+
+  // Zjistíme název hlavního programu
+  const primaryProduct = products.values().next().value;
+  const programTitle = primaryProduct?.title || grouped[0]?.title || 'Moja knižnica';
+
+  // --- STAV DOKONČENÍ (localStorage) ---
+  const getCompleted = () => {
     try {
-      if (activePlayer && activePlayer.currentTime > 0) {
-        localStorage.setItem('library-last-week', String(currentWeek))
-        localStorage.setItem('library-last-video', String(currentVideoIndex))
-        localStorage.setItem('library-last-time', String(Math.floor(activePlayer.currentTime)))
-      }
-    } catch {}
-  }
-
-  // Načtení pozice
-  const loadPosition = () => {
+      return JSON.parse(localStorage.getItem('library-completed') || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const setCompleted = key => {
     try {
-      const lastWeek = parseInt(localStorage.getItem('library-last-week') || '1', 10)
-      const lastVideo = parseInt(localStorage.getItem('library-last-video') || '0', 10)
-      const lastTime = parseInt(localStorage.getItem('library-last-time') || '0', 10)
-
-      if (lastWeek >= 1 && lastWeek <= grouped.length) {
-        currentWeek = lastWeek
-        currentVideoIndex = lastVideo
-
-        // Otevřít odpovídající týden v akordeonu
-        const panels = accordion.querySelectorAll('details')
-        let targetPanel = null
-        for (const panel of panels) {
-          const weekNum = parseInt(panel.querySelector('.library-week-title')?.textContent?.replace(/\D/g, '') || '1', 10)
-          if (weekNum === lastWeek) { targetPanel = panel; break }
-        }
-        if (targetPanel) { targetPanel.open = true; activeWeekPanel = targetPanel }
-
-        // Přehrát video
-        const week = grouped[lastWeek - 1]
-        if (week && week.videos[lastVideo]) {
-          // Bez autoplay: len plagát s tlačidlom, prístup k médiu a zvuk až po kliknutí.
-          showPoster(week.videos[lastVideo], lastTime)
-        }
-      }
+      const c = getCompleted();
+      c[key] = true;
+      localStorage.setItem('library-completed', JSON.stringify(c));
     } catch {}
-  }
+  };
 
-  const showPoster = (item, resumeAt = 0) => {
-    if (item.kind !== 'video' && item.kind !== 'audio') return
-    playerTitle.textContent = item.title
-    const poster = node('button', null, 'library-poster')
-    poster.type = 'button'
-    poster.setAttribute('aria-label', `Prehrať: ${item.title}`)
-    const icon = node('span', null, 'library-poster__play')
-    icon.setAttribute('aria-hidden', 'true')
-    poster.append(icon, node('span', resumeAt > 0 ? 'Pokračovať v prehrávaní' : 'Prehrať lekciu', 'library-poster__label'), node('strong', item.title, 'library-poster__title'))
-    poster.addEventListener('click', async () => {
-      await playItem(item, api, products)
-      const player = activePlayer
-      if (player && resumeAt > 0) player.addEventListener('loadedmetadata', () => { if (resumeAt < player.duration) player.currentTime = resumeAt }, { once: true })
-    }, { once: true })
-    playerBox.replaceChildren(poster)
-  }
+  // --- HLAVNÍ STRUKTURA (12-sloupcový grid na desktopu) ---
+  const container = node('div', null, 'library-grid-12');
 
-  // Ovládání přehrávače
-  const playItem = async (item, api, products) => {
-    stopPlayer()
+  // === LEVÝ SLOUPEC (7 z 12): Multimediální video/audio přehrávač + detail ===
+  const leftCol = node('div', null, 'library-left-col');
 
-    // Dispatch event pro ztlumení ambientu
-    document.dispatchEvent(new CustomEvent('ana:media-play'))
+  // 1. Karta přehrávače
+  const playerCard = node('div', null, 'library-player-card');
 
-    activePlayer = null
+  // Container videa (fixní poměr 16:9, rounded-2xl/3xl, tmavé pozadí)
+  const playerBox = node('div', null, 'library-player-box');
+  const playerEmpty = node('div', null, 'library-player-empty');
+  playerEmpty.append(
+    node('span', '▶', 'library-player-empty__icon'),
+    node('p', 'Vyberte lekciu zo zoznamu pre spustenie', 'library-player-empty__text')
+  );
+  playerBox.append(playerEmpty);
 
-    // Zvýraznit aktivní položku
-    document.querySelectorAll('.library-item-row.active').forEach(el => el.classList.remove('active'))
-    const rows = accordion.querySelectorAll('.library-item-row')
-    for (const row of rows) {
-      if (row.dataset.key === item.key) { row.classList.add('active'); break }
+  // 2. Navigační lišta přímo pod videem
+  const playerNav = node('div', null, 'library-player-nav');
+  const prevBtn = node('button', '← Predchádzajúca', 'button outline library-nav-btn library-prev-btn');
+  prevBtn.type = 'button';
+  const trackIndicator = node('span', 'Stopa 1 z ' + allTracks.length, 'library-track-indicator');
+  const nextBtn = node('button', 'Ďalšia →', 'button outline library-nav-btn library-next-btn');
+  nextBtn.type = 'button';
+  playerNav.append(prevBtn, trackIndicator, nextBtn);
+
+  playerCard.append(playerBox, playerNav);
+
+  // 3. Karta detailu stopy (světlá karta pod přehrávačem)
+  const detailCard = node('article', null, 'library-track-detail');
+  const detailMeta = node('div', null, 'library-detail-meta');
+  const detailBadge = node('span', 'Lekcia', 'library-detail-badge');
+  const detailProgram = node('span', programTitle, 'library-detail-program');
+  detailMeta.append(detailBadge, detailProgram);
+
+  const detailTitle = node('h2', allTracks[0]?.title || '', 'library-detail-title');
+  const detailDesc = node('p', 'Lekcia z programu ' + programTitle + '. Prehrávanie spustíte v prehrávači.', 'library-detail-desc');
+  const detailActions = node('div', null, 'library-detail-actions');
+  const pdfDownloadBtn = node('a', '📄 Stiahnuť PDF k lekcii', 'button outline library-pdf-btn');
+  pdfDownloadBtn.target = '_blank';
+  pdfDownloadBtn.rel = 'noopener noreferrer';
+  pdfDownloadBtn.hidden = true;
+  detailActions.append(pdfDownloadBtn);
+
+  detailCard.append(detailMeta, detailTitle, detailDesc, detailActions);
+
+  leftCol.append(playerCard, detailCard);
+
+  // === PRAVÝ SLOUPEC (5 z 12): Filtry a Playlist ===
+  const rightCol = node('div', null, 'library-right-col');
+
+  // 1. Hlavička: Search input a filtrační tlačítka v jednom horním bloku
+  const filterBlock = node('div', null, 'library-filter-block');
+  const searchWrap = node('div', null, 'library-search-wrap');
+  const searchInput = node('input', null, 'library-search-input');
+  searchInput.type = 'search';
+  searchInput.placeholder = 'Hľadať v knižnici...';
+  searchInput.setAttribute('aria-label', 'Hľadať v knižnici');
+  searchWrap.append(searchInput);
+
+  const filterTabs = node('div', null, 'library-filter-tabs');
+  const filterAll = node('button', 'Všetko', 'library-filter-btn active');
+  const filterVideo = node('button', 'Videá', 'library-filter-btn');
+  const filterAudio = node('button', 'Audio', 'library-filter-btn');
+  const filterPdf = node('button', 'PDF', 'library-filter-btn');
+  filterAll.type = 'button'; filterAll.dataset.filter = 'all';
+  filterVideo.type = 'button'; filterVideo.dataset.filter = 'video';
+  filterAudio.type = 'button'; filterAudio.dataset.filter = 'audio';
+  filterPdf.type = 'button'; filterPdf.dataset.filter = 'pdf';
+  filterTabs.append(filterAll, filterVideo, filterAudio, filterPdf);
+
+  filterBlock.append(searchWrap, filterTabs);
+
+  // 2. Karta kurzu & Playlist
+  const playlistCard = node('section', null, 'library-playlist-card');
+  playlistCard.setAttribute('aria-label', 'Zoznam lekcií a materiálov');
+
+  const playlistHead = node('div', null, 'library-playlist-head');
+  const courseTitle = node('h3', programTitle, 'library-course-title');
+  const progressPill = node('span', '', 'library-progress-pill');
+  playlistHead.append(courseTitle, progressPill);
+
+  const playlistList = node('div', null, 'library-playlist-list');
+  playlistList.setAttribute('role', 'list');
+
+  playlistCard.append(playlistHead, playlistList);
+  rightCol.append(filterBlock, playlistCard);
+
+  container.append(leftCol, rightCol);
+  target.replaceChildren(container);
+
+  // --- AKTUALIZACE UKAZATELE DOKONČENÍ ---
+  const updateProgressPill = () => {
+    const completed = getCompleted();
+    const count = allTracks.filter(t => completed[t.key]).length;
+    progressPill.textContent = `${count} / ${allTracks.length} hotovo`;
+  };
+  updateProgressPill();
+
+  // --- ZOBRAZENÍ / AKTUALIZACE DETAILU STOPY ---
+  const updateDetailCard = item => {
+    if (!item) return;
+    detailTitle.textContent = item.title;
+    detailBadge.textContent = item.kind === 'video' ? 'Video lekcia' : item.kind === 'audio' ? 'Audio nahrávka' : 'PDF materiál';
+    detailProgram.textContent = item.weekTitle || programTitle;
+    detailDesc.textContent = item.description || `Materiál ${item.title} z programu ${programTitle}.`;
+
+    // PDF tlačítko: pokud má lekce přiřazené PDF nebo je sama PDF
+    const targetPdf = item.kind === 'pdf' ? item : item.pdfAttachment;
+    if (targetPdf) {
+      pdfDownloadBtn.hidden = false;
+      pdfDownloadBtn.textContent = '📄 Stiahnuť PDF k lekcii';
+      pdfDownloadBtn.onclick = async e => {
+        e.preventDefault();
+        await playItem(targetPdf);
+      };
+    } else {
+      pdfDownloadBtn.hidden = true;
     }
+  };
 
-    // Zaškrtnutí (uložit do localStorage)
-    try {
-      const completed = JSON.parse(localStorage.getItem('library-completed') || '{}')
-      completed[item.key] = true
-      localStorage.setItem('library-completed', JSON.stringify(completed))
-    } catch {}
+  // --- GENEROVÁNÍ POLOŽEK PLAYLISTU ---
+  const renderPlaylist = () => {
+    playlistList.replaceChildren();
+    const completed = getCompleted();
 
-    // Otevřít týden v akordeonu
-    const weekNum = item.key.includes('tyzden-') ? parseInt(item.key.match(/tyzden-(\d{2})/)?.[1] || '1', 10) :
-                     item.key.includes('lekcia-') ? (item.key.match(/lekcia-(\d{2})/)?.[1] === '00' ? 1 : parseInt(item.key.match(/lekcia-(\d{2})/)?.[1] || '1', 10)) : 1
-    const panels = accordion.querySelectorAll('details')
-    for (const panel of panels) {
-      const wNum = parseInt(panel.querySelector('.library-week-title')?.textContent?.replace(/\D/g, '') || '1', 10)
-      if (wNum === weekNum) { panel.open = true; activeWeekPanel = panel; break }
-    }
+    allTracks.forEach((track, index) => {
+      const itemRow = node('div', null, 'library-playlist-item');
+      itemRow.setAttribute('role', 'listitem');
+      itemRow.dataset.index = String(index);
+      itemRow.dataset.key = track.key;
+      itemRow.dataset.kind = track.kind;
 
-    currentWeek = weekNum
-    if (item.kind === 'video' || item.kind === 'audio') {
-      const product = products.get(item.productId)
-      if (!product) return
-
-      playerTitle.textContent = item.title
-
-      try {
-        const access = item.previewUrl ? null : await api.getMediaAccess({ product_id: product.id, media_key: item.key })
-        if (access && !access.ok) throw Error(access.message || failMessage)
-
-        const url = new URL(item.previewUrl || access.url, location.origin)
-        if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1', '::1'].includes(url.hostname))) throw Error(failMessage)
-
-        const player = document.createElement(item.kind === 'audio' ? 'audio' : 'video')
-        player.controls = true
-        player.preload = 'metadata'
-        player.crossOrigin = 'anonymous'
-        player.setAttribute('controlsList', 'nodownload')
-        player.dataset.libraryPlayer = ''
-        playerBox.replaceChildren(player)
-        activePlayer = player
-
-        if (access?.watermark) playerBox.append(node('p', access.watermark, 'library-watermark'))
-
-        if (item.key.toLowerCase().endsWith('.m3u8')) {
-          const { default: Hls } = await import('/vendor/hls.min.mjs')
-          if (!Hls.isSupported()) throw Error('Tento prehliadač nepodporuje prehrávanie videa. Skúste aktuálny Chrome, Firefox alebo Safari.')
-          hls = new Hls({ enableWorker: false })
-          hls.loadSource(url.href)
-          hls.attachMedia(player)
-          hls.on(Hls.Events.ERROR, (_event, data) => { if (data.fatal) { stopPlayer(); showError(playerBox, failMessage) } })
-        } else {
-          player.src = url.href
-        }
-
-        player.addEventListener('error', () => { showError(playerBox, failMessage) })
-        player.addEventListener('timeupdate', savePosition)
-        player.addEventListener('ended', savePosition)
-
-        await player.play().catch(() => {})
-
-        // Obnova odkazu před expirací
-        const scheduleRenewal = expiresAt => {
-          const at = Date.parse(expiresAt)
-          if (Number.isFinite(at)) {
-            const delay = Math.max(1000, at - Date.now() - 30000)
-            setTimeout(async () => {
-              if (activePlayer !== player) return
-              try {
-                const nextAccess = await api.getMediaAccess({ product_id: product.id, media_key: item.key })
-                if (!nextAccess.ok) throw Error()
-                const nextUrl = new URL(nextAccess.url, location.origin)
-                if (nextUrl.origin !== url.origin) throw Error()
-                const time = player.currentTime
-                const paused = player.paused
-                if (hls) hls.loadSource(nextUrl.href)
-                else player.src = nextUrl.href
-                await new Promise((ok, fail) => {
-                  player.addEventListener('loadedmetadata', () => { player.currentTime = time; if (!paused) player.play().catch(() => {}); ok() }, { once: true })
-                  setTimeout(fail, 5000)
-                })
-                scheduleRenewal(nextAccess.expires_at)
-              } catch {
-                stopPlayer()
-                showError(playerBox, 'Prístup sa nepodarilo obnoviť. Otvorte obsah znova.')
-              }
-            }, delay)
-          }
-        }
-        if (access?.expires_at) scheduleRenewal(access.expires_at)
-
-      } catch (error) {
-        showError(playerBox, error.message || failMessage)
+      if (index === currentTrackIndex) {
+        itemRow.classList.add('is-active');
       }
-    } else if (item.kind === 'pdf') {
-      const popup = window.open('about:blank', '_blank')
-      if (popup) popup.opener = null
-      try {
-        const product = products.get(item.productId)
-        if (!product) return
 
-        const access = await api.getMediaAccess({ product_id: product.id, media_key: item.key })
-        if (!access.ok) throw Error(access.message || failMessage)
+      // Ikonka typu média
+      const mediaIcon = node('span', '', 'library-item-icon');
+      mediaIcon.textContent = track.kind === 'video' ? '🎬' : track.kind === 'audio' ? '🎵' : '📄';
 
-        const url = new URL(access.url, location.origin)
-        if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1', '::1'].includes(url.hostname))) throw Error(failMessage)
+      // Textová část: Titulek + podtitul
+      const copyWrap = node('div', null, 'library-item-copy');
+      const itemTitle = node('strong', track.title, 'library-item-title');
+      const itemSub = node('small', track.weekTitle || (track.kind === 'video' ? 'Video' : track.kind === 'audio' ? 'Audio' : 'PDF'), 'library-item-sub');
+      copyWrap.append(itemTitle, itemSub);
 
-        if (popup) popup.location.replace(url.href)
-        else {
-          const link = node('a', 'Otvoriť PDF', 'text-link')
-          link.href = url.href
-          link.target = '_blank'
-          link.rel = 'noopener noreferrer'
-          playerBox.replaceChildren(link)
-        }
-      } catch (error) {
-        popup?.close()
-        showError(playerBox, error.message || failMessage)
-      }
-    }
-  }
-
-  // Tlačítka přehrávače
-  prevBtn.addEventListener('click', () => {
-    const week = grouped[currentWeek - 1]
-    if (!week || !week.videos.length) return
-
-    currentVideoIndex--
-    if (currentVideoIndex < 0) {
-      if (currentWeek > 1) {
-        currentWeek--
-        const prevWeek = grouped[currentWeek - 1]
-        currentVideoIndex = prevWeek.videos.length - 1
+      // Stavová část vpravo
+      const rightWrap = node('div', null, 'library-item-actions');
+      if (index === currentTrackIndex) {
+        const activeBadge = node('span', 'Prehráva sa', 'library-badge-active');
+        rightWrap.append(activeBadge);
       } else {
-        currentVideoIndex = 0
+        if (completed[track.key]) {
+          const checkIcon = node('span', '✓', 'library-check-done');
+          checkIcon.title = 'Dokončené';
+          rightWrap.append(checkIcon);
+        }
+        const playBtn = node('button', track.kind === 'pdf' ? 'Otvoriť' : 'Prehrať', 'button outline library-play-btn');
+        playBtn.type = 'button';
+        rightWrap.append(playBtn);
       }
+
+      itemRow.append(mediaIcon, copyWrap, rightWrap);
+      playlistList.append(itemRow);
+
+      // Kliknutím na položku spustíme přehrávání
+      itemRow.addEventListener('click', () => {
+        selectTrack(index);
+      });
+    });
+  };
+
+  // --- VÝBĚR A PŘEHRÁNÍ STOPY ---
+  const selectTrack = async (index, autoPlay = true) => {
+    if (index < 0 || index >= allTracks.length) return;
+    currentTrackIndex = index;
+    const track = allTracks[index];
+
+    // Aktualizace indikátoru a tlačítek v navigační liště pod videem
+    trackIndicator.textContent = `Stopa ${index + 1} z ${allTracks.length}`;
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === allTracks.length - 1;
+
+    updateDetailCard(track);
+    renderPlaylist();
+
+    // Označit jako dokončené
+    setCompleted(track.key);
+    updateProgressPill();
+
+    // Scroll playlistu k aktivní položce
+    const activeItem = playlistList.querySelector(`.library-playlist-item[data-index="${index}"]`);
+    if (activeItem) {
+      activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
 
-    const item = week.videos[currentVideoIndex]
-    if (item) playItem(item, api, products)
-  })
+    if (autoPlay) {
+      await playItem(track);
+    }
+  };
+
+  // --- PŘEHRÁNÍ POLOŽKY (API + HTML5 PŘEHRÁVAČ) ---
+  const playItem = async item => {
+    stopPlayer();
+    document.dispatchEvent(new CustomEvent('ana:media-play'));
+
+    const product = products.get(item.productId);
+    if (!product) return;
+
+    if (item.kind === 'pdf') {
+      const popup = window.open('about:blank', '_blank');
+      if (popup) popup.opener = null;
+      try {
+        const access = await api.getMediaAccess({ product_id: product.id, media_key: item.key });
+        if (!access.ok) throw Error(access.message || failMessage);
+        const url = new URL(access.url, location.origin);
+        if (popup) popup.location.replace(url.href);
+      } catch (error) {
+        popup?.close();
+        showError(playerBox, error.message || failMessage);
+      }
+      return;
+    }
+
+    // Video nebo audio
+    const version = ++requestVersion;
+    try {
+      const access = item.previewUrl ? null : await api.getMediaAccess({ product_id: product.id, media_key: item.key });
+      if (version !== requestVersion) return;
+      if (access && !access.ok) throw Error(access.message || failMessage);
+
+      const url = new URL(item.previewUrl || access.url, location.origin);
+      const player = document.createElement(item.kind === 'audio' ? 'audio' : 'video');
+      player.controls = true;
+      player.preload = 'metadata';
+      player.crossOrigin = 'anonymous';
+      player.setAttribute('controlsList', 'nodownload');
+      player.dataset.libraryPlayer = '';
+
+      playerBox.replaceChildren(player);
+      activePlayer = player;
+
+      if (access?.watermark) {
+        playerBox.append(node('p', access.watermark, 'library-watermark'));
+      }
+
+      if (item.key.toLowerCase().endsWith('.m3u8')) {
+        const { default: Hls } = await import('/vendor/hls.min.mjs');
+        if (version !== requestVersion) return;
+        if (!Hls.isSupported()) throw Error('Tento prehliadač nepodporuje HLS video.');
+        hls = new Hls({ enableWorker: false });
+        hls.loadSource(url.href);
+        hls.attachMedia(player);
+        hls.on(Hls.Events.ERROR, (_event, data) => {
+          if (data.fatal) {
+            stopPlayer();
+            showError(playerBox, failMessage);
+          }
+        });
+      } else {
+        player.src = url.href;
+      }
+
+      player.addEventListener('error', () => {
+        showError(playerBox, failMessage);
+      });
+
+      player.addEventListener('ended', () => {
+        // Po skončení automaticky nabídnout další stopu
+        if (currentTrackIndex < allTracks.length - 1) {
+          selectTrack(currentTrackIndex + 1);
+        }
+      });
+
+      await player.play().catch(() => {});
+    } catch (error) {
+      if (version === requestVersion) {
+        showError(playerBox, error.message || failMessage);
+      }
+    }
+  };
+
+  // --- OVLÁDÁNÍ NAVIGACE (Predchádzajúca / Ďalšia) ---
+  prevBtn.addEventListener('click', () => {
+    if (currentTrackIndex > 0) {
+      selectTrack(currentTrackIndex - 1);
+    }
+  });
 
   nextBtn.addEventListener('click', () => {
-    const week = grouped[currentWeek - 1]
-    if (!week || !week.videos.length) return
-
-    currentVideoIndex++
-    if (currentVideoIndex >= week.videos.length) {
-      if (currentWeek < grouped.length) {
-        currentWeek++
-        currentVideoIndex = 0
-      } else {
-        currentVideoIndex = week.videos.length - 1
-      }
+    if (currentTrackIndex < allTracks.length - 1) {
+      selectTrack(currentTrackIndex + 1);
     }
+  });
 
-    const item = week.videos[currentVideoIndex]
-    if (item) playItem(item, api, products)
-  })
+  // --- FILTROVÁNÍ A HLEDÁNÍ ---
+  let currentFilter = 'all';
+  let searchQuery = '';
 
-  // Filtrování a vyhledávání
-  let currentFilter = 'all'
-  let searchQuery = ''
+  const applyFilters = () => {
+    const items = playlistList.querySelectorAll('.library-playlist-item');
+    items.forEach(el => {
+      const kind = el.dataset.kind;
+      const title = el.querySelector('.library-item-title')?.textContent?.toLowerCase() || '';
+      const matchesFilter = currentFilter === 'all' || kind === currentFilter;
+      const matchesSearch = !searchQuery || title.includes(searchQuery);
+      el.hidden = !matchesFilter || !matchesSearch;
+    });
+  };
 
-  const filterItems = () => {
-    const rows = accordion.querySelectorAll('.library-item-row')
-    for (const row of rows) {
-      const kind = row.dataset.kind
-      const title = row.querySelector('.library-item-title')?.textContent?.toLowerCase() || ''
-      const matchesFilter = currentFilter === 'all' || kind === currentFilter
-      const matchesSearch = !searchQuery || title.includes(searchQuery)
-      row.hidden = !matchesFilter || !matchesSearch
-    }
-  }
-
-  filterAll.addEventListener('click', () => {
-    currentFilter = 'all'
-    document.querySelectorAll('.library-filter-btn').forEach(b => b.classList.toggle('active', b === filterAll))
-    filterItems()
-  })
-  filterVideo.addEventListener('click', () => {
-    currentFilter = 'video'
-    document.querySelectorAll('.library-filter-btn').forEach(b => b.classList.toggle('active', b === filterVideo))
-    filterItems()
-  })
-  filterAudio.addEventListener('click', () => {
-    currentFilter = 'audio'
-    document.querySelectorAll('.library-filter-btn').forEach(b => b.classList.toggle('active', b === filterAudio))
-    filterItems()
-  })
-  filterPdf.addEventListener('click', () => {
-    currentFilter = 'pdf'
-    document.querySelectorAll('.library-filter-btn').forEach(b => b.classList.toggle('active', b === filterPdf))
-    filterItems()
-  })
+  filterTabs.addEventListener('click', e => {
+    const btn = e.target.closest('.library-filter-btn');
+    if (!btn) return;
+    filterTabs.querySelectorAll('.library-filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+    currentFilter = btn.dataset.filter || 'all';
+    applyFilters();
+  });
 
   searchInput.addEventListener('input', () => {
-    searchQuery = searchInput.value.toLowerCase()
-    filterItems()
-  })
+    searchQuery = searchInput.value.trim().toLowerCase();
+    applyFilters();
+  });
 
-  // Klik na položku v akordeonu
-  accordion.addEventListener('click', async (event) => {
-    const row = event.target.closest('.library-item-row')
-    if (!row || row.hidden) return
+  // Inicializace první stopy
+  selectTrack(0, false);
 
-    const itemKey = row.dataset.key
-    const kind = row.dataset.kind
-
-    // Najít odpovídající položku v grouped
-    for (const week of grouped) {
-      for (const item of [...week.videos, ...week.pdfs, ...week.audios]) {
-        if (item.key === itemKey) {
-          if (kind === 'video') {
-            currentVideoIndex = week.videos.indexOf(item)
-            playItem(item, api, products)
-          } else if (kind === 'audio' || kind === 'pdf') {
-            playItem(item, api, products)
-          }
-          return
-        }
-      }
-    }
-  })
-
-  // Klik na summary (expand/collapse)
-  accordion.addEventListener('toggle', () => {
-    const openPanels = accordion.querySelectorAll('details[open]')
-    if (openPanels.length > 1) {
-      for (const panel of openPanels) {
-        if (panel !== activeWeekPanel) panel.open = false
-      }
-    }
-    if (activeWeekPanel) activeWeekPanel.open = true
-  })
-
-  // Načíst pozici při startu
-  loadPosition()
-
-  return stopPlayer
+  return stopPlayer;
 }
 
 function showError(container, message) {
-  const existing = container.querySelector('.library-error')
-  if (existing) { existing.textContent = message; return }
-  const error = node('p', message, 'library-error form-status')
-  error.setAttribute('role', 'status')
-  container.append(error)
+  const existing = container.querySelector('.library-error');
+  if (existing) {
+    existing.textContent = message;
+    return;
+  }
+  const error = node('p', message, 'library-error form-status');
+  error.setAttribute('role', 'status');
+  container.append(error);
 }
 
 function showLockedState(target) {
-  const box = node('div', null, 'empty-state locked-library')
+  const box = node('div', null, 'empty-state locked-library');
   box.append(
     node('p', 'ZAMKNUTÁ KNIŽNICA', 'eyebrow'),
     node('h2', 'Tento priestor čaká na vás.'),
     node('p', 'Zakúpené programy a súbory sa zobrazia po prihlásení.'),
     Object.assign(node('a', 'Prihlásiť sa', 'button'), { href: '/prihlasenie' })
-  )
-  target.replaceChildren(box)
-}
-
-function createLibraryRow(item, kind) {
-  const row = node('div', null, 'library-item-row')
-  row.dataset.key = item.key
-  row.dataset.kind = kind
-
-  const title = node('span', item.title, 'library-item-title')
-
-  let label
-  if (kind === 'video') label = 'Prehrať video'
-  else if (kind === 'audio') label = 'Prehrať zvuk'
-  else if (kind === 'pdf') label = 'Otvoriť PDF'
-
-  const btn = node('button', label, 'button outline library-item-btn')
-  btn.type = 'button'
-
-  // Zaškrtnutí pro dokončené položky
-  try {
-    const completed = JSON.parse(localStorage.getItem('library-completed') || '{}')
-    if (completed[item.key]) {
-      const check = node('span', '', 'library-item-check')
-      check.textContent = '✓'
-      row.classList.add('completed')
-      row.append(title, check, btn)
-      return row
-    }
-  } catch {}
-
-  row.append(title, btn)
-
-  return row
+  );
+  target.replaceChildren(box);
 }
