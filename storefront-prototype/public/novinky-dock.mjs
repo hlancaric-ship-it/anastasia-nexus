@@ -46,13 +46,49 @@ function mount(data){
   if(!posts.length){const it=el('div','nv-it nv-it--tip');it.append(el('h3',null,'Novinky pripravujeme'),el('p',null,'Čoskoro tu nájdete tipy, pozvánky a novinky zo sveta ANASTASIA.'));feed.append(it)}
   const all=el('a','nv-it nv-it--tip',null,{href:'/novinky'});all.append(el('h3',null,'Všetky novinky →'));feed.append(all);
   leafp.append(x,head,feed);dock.append(leafp);
-  const ad=pn.ad;
-  if(ad){
-    const box=el('div','nv-adbox');const i=el('div','nv-ai',null,{role:'img','aria-label':ad.image_alt||''});
-    const src=safeUrl(ad.image_url);if(src)i.style.backgroundImage=`url("${src.replace(/"/g,'%22')}")`;if(/packshots/.test(ad.image_url||''))i.classList.add('nv-ai--contain');
-    const t=el('div');t.append(el('h3',null,ad.title),el('p',null,ad.text));
-    const b=el('a','nv-btn',(ad.button||'Zistiť viac')+' →');const u=safeUrl(ad.url);if(u){b.href=u;b.rel='sponsored noopener';b.target='_blank';b.addEventListener('click',()=>beacon(ad.slot))}
-    t.append(b);box.append(el('span','nv-rk',ad.label||'Reklama'),i,t);dock.append(box);
+  const fallbackAds=[
+    {slot:1,label:'Reklama · Partner',title:'L-CODE DYNAMICS',text:'Vývoj webov a digitálnych riešení na mieru.',button:'Zistiť viac',url:'https://l-code-dynamics.com/',image_url:'/assets/packshots/mineral-protect.webp',image_alt:'L-Code Dynamics'},
+    {slot:2,label:'Reklama · Partner',title:'Minerály pre pokojný spánok',text:'Podpora regenerácie, prirodzeného spánku a vitality.',button:'Zistiť viac',url:'/eshop',image_url:'/assets/packshots/mineral-protect.webp',image_alt:'Minerály'},
+    {slot:3,label:'Reklama · Partner',title:'Diagnostika a prevencia',text:'Osobné protokoly a podpora na ceste k zdravšiemu životu.',button:'Zistiť viac',url:'/konzultacie',image_url:'/img/atmosphere/pharmacy-glass.webp',image_alt:'Prevencia'}
+  ];
+  const apiAds=[...(Array.isArray(data.ads)?data.ads:[]), ...(pn.ad?[pn.ad]:[])].filter(Boolean);
+  const adsList=apiAds.length?[...apiAds, ...fallbackAds.filter(f=>!apiAds.some(a=>a.title===f.title))]:fallbackAds;
+  if(adsList.length){
+    const box=el('div','nv-adbox');
+    box.style.transition='opacity .35s ease, transform .35s ease';
+    let cur=0,timer=null,paused=false;
+    const renderAd=()=>{
+      const ad=adsList[cur];
+      box.replaceChildren();
+      const rkWrap=el('div',null,null,{style:'grid-column:1/3;display:flex;justify-content:space-between;align-items:center;font-size:10.5px'});
+      rkWrap.append(el('span','nv-rk',ad.label||'Reklama'));
+      if(adsList.length>1){
+        const dots=el('span',null,null,{style:'font-size:11px;letter-spacing:3px;opacity:.65'});
+        dots.textContent=adsList.map((_,i)=>i===cur?'●':'○').join('');
+        rkWrap.append(dots);
+      }
+      const i=el('div','nv-ai',null,{role:'img','aria-label':ad.image_alt||''});
+      const src=safeUrl(ad.image_url);if(src)i.style.backgroundImage=`url("${src.replace(/"/g,'%22')}")`;if(/packshots/.test(ad.image_url||''))i.classList.add('nv-ai--contain');
+      const t=el('div');t.append(el('h3',null,ad.title),el('p',null,ad.text));
+      const b=el('a','nv-btn',(ad.button||'Zistiť viac')+' →');const u=safeUrl(ad.url);if(u){b.href=u;b.rel='sponsored noopener';b.target='_blank';b.addEventListener('click',()=>beacon(ad.slot))}
+      t.append(b);
+      box.append(rkWrap,i,t);
+    };
+    renderAd();
+    box.addEventListener('mouseenter',()=>{paused=true});
+    box.addEventListener('mouseleave',()=>{paused=false});
+    dock.append(box);
+    if(adsList.length>1){
+      timer=setInterval(()=>{
+        if(paused||dock.classList.contains('is-closed'))return;
+        box.style.opacity='0';box.style.transform='translateY(4px)';
+        setTimeout(()=>{
+          cur=(cur+1)%adsList.length;
+          renderAd();
+          box.style.opacity='1';box.style.transform='none';
+        },350);
+      },5000);
+    }
   }
   wrap.append(tab,dock);document.body.append(wrap);
   // Na účte je Menu nad ouškom Noviniek; inde zostáva pod ním.

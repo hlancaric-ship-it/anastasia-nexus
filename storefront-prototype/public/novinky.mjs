@@ -107,9 +107,47 @@ function renderPanel(){
   it.append(el('p','nv-n',catName(p.category)),el('h3',null,p.title));if(p.excerpt)it.append(el('p',null,p.excerpt.split('\n')[0]));
   if(p.kind==='video'||p.kind==='youtube'){it.style.cursor='pointer';it.tabIndex=0;it.setAttribute('role','button');it.addEventListener('click',()=>openVideo(p));it.addEventListener('keydown',e=>{if(e.key==='Enter')openVideo(p)})}
   feed.append(it)});
- const ad=pn.ad,box=$('nv-adbox');box.textContent='';box.hidden=!ad;
- if(ad){const i=el('div','nv-ai',null,{role:'img','aria-label':ad.image_alt||''});bg(i,ad.image_url);if(/packshots/.test(ad.image_url||''))i.classList.add('nv-ai--contain');const t=el('div');t.append(el('h3',null,ad.title),el('p',null,ad.text));const b=el('a','nv-btn',(ad.button||'Zistiť viac')+' →');const u=safeUrl(ad.url);if(u){b.href=u;b.rel='sponsored noopener';b.target='_blank';b.addEventListener('click',()=>beacon(ad.slot))}t.append(b);box.append(el('span','nv-rk',ad.label||'Reklama'),i,t)}
- setPanel(store('nv-panel')==='open',false);
+ const fallbackAds=[
+    {slot:1,label:"Reklama · Partner",title:"L-CODE DYNAMICS",text:"Vývoj webov a digitálnych riešení na mieru.",button:"Zistiť viac",url:"https://l-code-dynamics.com/",image_url:"/assets/packshots/mineral-protect.webp",image_alt:"L-Code Dynamics"},
+    {slot:2,label:"Reklama · Partner",title:"Minerály pre pokojný spánok",text:"Podpora regenerácie, prirodzeného spánku a vitality.",button:"Zistiť viac",url:"/eshop",image_url:"/assets/packshots/mineral-protect.webp",image_alt:"Minerály"},
+    {slot:3,label:"Reklama · Partner",title:"Diagnostika a prevencia",text:"Osobné protokoly a podpora na ceste k zdravšiemu životu.",button:"Zistiť viac",url:"/konzultacie",image_url:"/img/atmosphere/pharmacy-glass.webp",image_alt:"Prevencia"}
+  ];
+  const apiAds=[...(Array.isArray(data.ads)?data.ads:[]), ...(pn.ad?[pn.ad]:[])].filter(Boolean);
+  const adsList=apiAds.length?[...apiAds, ...fallbackAds.filter(f=>!apiAds.some(a=>a.title===f.title))]:fallbackAds;
+  const box=$("nv-adbox");box.textContent="";box.hidden=!adsList.length;
+  if(adsList.length){
+    box.style.transition="opacity .35s ease, transform .35s ease";
+    let cur=0,paused=false;
+    const renderAd=()=>{
+      const ad=adsList[cur];box.replaceChildren();
+      const rkWrap=el("div",null,null,{style:"grid-column:1/3;display:flex;justify-content:space-between;align-items:center;font-size:10.5px"});
+      rkWrap.append(el("span","nv-rk",ad.label||"Reklama"));
+      if(adsList.length>1){
+        const dots=el("span",null,null,{style:"font-size:11px;letter-spacing:3px;opacity:.65"});
+        dots.textContent=adsList.map((_,i)=>i===cur?"●":"○").join("");
+        rkWrap.append(dots);
+      }
+      const i=el("div","nv-ai",null,{role:"img","aria-label":ad.image_alt||""});bg(i,ad.image_url);if(/packshots/.test(ad.image_url||""))i.classList.add("nv-ai--contain");
+      const t=el("div");t.append(el("h3",null,ad.title),el("p",null,ad.text));
+      const b=el("a","nv-btn",(ad.button||"Zistiť viac")+" →");const u=safeUrl(ad.url);if(u){b.href=u;b.rel="sponsored noopener";b.target="_blank";b.addEventListener("click",()=>beacon(ad.slot))}
+      t.append(b);box.append(rkWrap,i,t);
+    };
+    renderAd();
+    box.addEventListener("mouseenter",()=>{paused=true});
+    box.addEventListener("mouseleave",()=>{paused=false});
+    if(adsList.length>1){
+      setInterval(()=>{
+        if(paused||dock.classList.contains("is-closed"))return;
+        box.style.opacity="0";box.style.transform="translateY(4px)";
+        setTimeout(()=>{
+          cur=(cur+1)%adsList.length;
+          renderAd();
+          box.style.opacity="1";box.style.transform="none";
+        },350);
+      },5000);
+    }
+  }
+  setPanel(store('nv-panel')==='open',false);
 }
 function setPanel(open,remember=true){
  dock.hidden=false;dock.classList.toggle('is-closed',!open);dock.inert=!open;
