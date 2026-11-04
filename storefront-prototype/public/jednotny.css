@@ -1459,3 +1459,152 @@ html body #page-shell#page-shell.kc-unified .shop-checkout :is(#payment-options,
     pointer-events: auto!important;
   }
 }
+
+/* Mobile menu: show every category on one screen, with aligned two-column rows. */
+@layer jednotny {
+  @media (max-width: 999.98px) {
+    html body #dc-top-menu {
+      top: 0!important;
+      bottom: 0!important;
+      height: 100dvh!important;
+      max-height: 100dvh!important;
+      display: flex!important;
+      flex-direction: column!important;
+      gap: 8px!important;
+      overflow: hidden!important;
+      padding: 8px 12px max(8px,env(safe-area-inset-bottom))!important;
+      border-radius: 24px 24px 0 0!important;
+    }
+    html body #dc-top-menu>div:nth-child(3) {
+      flex: 0 0 auto!important;
+      min-height: 44px!important;
+      margin: 0!important;
+    }
+    html body #dc-top-menu>div:has(>.menu-section) {
+      display: grid!important;
+      flex: 1 1 auto!important;
+      min-height: 0!important;
+      align-content: start!important;
+      grid-template-columns: repeat(4,minmax(0,1fr))!important;
+      gap: 8px 16px!important;
+      overflow: hidden!important;
+    }
+    html body #dc-top-menu>div:has(>.menu-section)>div {
+      display: flex!important;
+      flex-direction: column!important;
+      justify-content: flex-start!important;
+      align-self: start!important;
+      min-width: 0!important;
+      min-height: 0!important;
+      gap: 0!important;
+      padding: 0!important;
+      border: 0!important;
+      border-radius: 0!important;
+      background: transparent!important;
+      box-shadow: none!important;
+    }
+    html body #dc-top-menu>div:has(>.menu-section)>div>:first-child {
+      display: block!important;
+      flex: 0 0 26px!important;
+      height: 26px!important;
+      min-height: 26px!important;
+      margin: 0 0 2px!important;
+      padding: 0!important;
+      overflow: hidden!important;
+      font: 300 20px/27px Fraunces,Georgia,serif!important;
+      letter-spacing: -.045em!important;
+      white-space: nowrap!important;
+    }
+    html body #dc-top-menu>div:has(>.menu-section)>div>a:not(:first-child) {
+      display: block!important;
+      flex: 0 0 32px!important;
+      width: 100%!important;
+      height: 32px!important;
+      min-height: 32px!important;
+      margin: 0!important;
+      padding: 0!important;
+      overflow: hidden!important;
+      border: 0!important;
+      font: 400 16px/16px Figtree,sans-serif!important;
+      letter-spacing: 0!important;
+      white-space: normal!important;
+      overflow-wrap: anywhere!important;
+      hyphens: auto!important;
+    }
+    html body #dc-top-menu>div:has(>.menu-section)>div>a:not(:first-child) :is(span,.roll-a) {
+      white-space: normal!important;
+      line-height: 16px!important;
+    }
+    html body #dc-top-menu .menu-bottom-row {
+      flex: 0 0 auto!important;
+      min-height: 0!important;
+      margin: 0!important;
+      padding: 0!important;
+      border: 0!important;
+    }
+    html body #dc-top-menu .menu-bottom-row .menu-brand-logos {display:none!important}
+  }
+  @media (max-width: 760px) {
+    html body #dc-top-menu>div:has(>.menu-section) {
+      grid-template-columns: repeat(2,minmax(0,1fr))!important;
+      column-gap: 16px!important;
+      row-gap: 8px!important;
+    }
+    html body #dc-top-menu>div:has(>.menu-section)>div>:first-child {
+      flex-basis: 26px!important;
+      height: 26px!important;
+      min-height: 26px!important;
+      font-size: clamp(18px,5.7vw,23px)!important;
+    }
+    html body #dc-top-menu>div:has(>.menu-section)>div>a:not(:first-child) {
+      flex-basis: 32px!important;
+      height: 32px!important;
+      min-height: 32px!important;
+      padding: 0!important;
+      font-size: 15px!important;
+      line-height: 20px!important;
+    }
+    html body #dc-top-menu>div:nth-child(3) {gap: 8px!important}
+    html body #dc-top-menu .menu-quick {
+      display: flex!important;
+      flex: 1 1 auto!important;
+      flex-direction: column!important;
+      gap: 6px!important;
+      width: 100%!important;
+      margin: 0!important;
+      padding: 0 0 6px!important;
+      border: 0!important;
+    }
+    html body #dc-top-menu .menu-quick__links {gap: 6px!important}
+    html body #dc-top-menu .menu-quick__links a {
+      height: 36px!important;
+      padding: 0 10px!important;
+      font-size: 13px!important;
+    }
+    html body #dc-top-menu .menu-quick__row {gap: 6px!important}
+    html body #dc-top-menu .menu-quick__cart,
+    html body #dc-top-menu .menu-quick .menu-lang [data-i18n-switch] {
+      height: 36px!important;
+      min-height: 36px!important;
+    }
+    html body #dc-top-menu .menu-quick .menu-lang {gap: 2px!important}
+    html body #dc-top-menu .menu-quick .menu-lang [data-i18n-switch] {
+      width: 48px!important;
+      min-width: 48px!important;
+      padding: 0!important;
+      justify-content: center!important;
+      gap: 3px!important;
+      font-size: 12px!important;
+    }
+    html body #dc-top-menu .menu-quick .menu-lang [data-i18n-switch]::before {
+      flex-basis: 16px!important;
+      width: 16px!important;
+      height: 16px!important;
+    }
+    html body #dc-top-menu .menu-bottom-row {display:none!important}
+  }
+  @media (max-width: 360px) {
+    html body #dc-top-menu {padding-right: 8px!important;padding-left: 8px!important}
+    html body #dc-top-menu .menu-quick__links a {padding-right: 6px!important;padding-left: 6px!important;font-size: 12px!important}
+  }
+}

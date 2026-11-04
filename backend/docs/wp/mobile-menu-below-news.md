@@ -61,3 +61,23 @@ obsah odkazů nepřetéká. Kontrola nadpisů prošla i na 800 px, desktop 1440 
 zůstává nezměněn; navigace 2/2 PASS.
 
 Nasazen pouze `styles.css`, verze `d446c60c-7220-4680-8d93-6b3911a6b1ed`.
+
+## Celé menu na displeji
+
+Panel na telefonech a menších tabletech nyní zabírá výšku displeje a nic v něm
+nelze odscrollovat. Na šířce do 760 px zůstávají čtyři sekce ve dvou textových
+sloupcích; nadpisy a položky v protějších sloupcích začínají na stejných
+řádcích. Dlouhé názvy se zalomí, rámečky a karty zůstávají odstraněné.
+Nadpisy jsou větší a odkazy mají 15 px na telefonu.
+
+Ověření v Chrome na nasazeném testovacím webu: 320×568, 390×844, 844×390
+a 800×1000 – všech 14 odkazů je v panelu, bez svislého či vodorovného
+rolování; obě dvojice nadpisů jsou zarovnané. Na 1440×900 zůstává mobilní
+ouško skryté. Navigační testy 2/2 PASS, syntaxe `app.mjs`, Wrangler dry-run
+a `git diff --check` PASS.
+
+Nasazen jen `jednotny.css` na `anastasia-test-web`, verze
+`17fc7c1e-6049-4d88-9a06-6df9f688939f`. Medusa, admin a cenová služba se
+neměnily. Dodatečný celkový smoke check neprošel kvůli chybějícím třem
+originům v již nasazené CSP (`anastasia-test-nexus`, druhý R2 origin a vlastní
+testovací doména); CSS změna CSP nemění.
