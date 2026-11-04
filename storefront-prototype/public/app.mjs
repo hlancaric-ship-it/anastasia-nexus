@@ -682,7 +682,7 @@ $$('[data-clamp]').forEach(box=>{
   });
 });
 
-const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}<form class="coupon-form ck-code checkout-coupon"><label for="checkout-coupon">Zľavový kód</label><div class="ck-code-row"><input id="checkout-coupon" name="coupon" value="${e(cart.coupon||'')}" placeholder="Zadajte kód" maxlength="100" required autocomplete="off"><button class="ck-apply" type="submit">Použiť</button></div><p class="form-status" role="status" aria-live="polite"></p>${cart.coupon?'<button type="button" class="ck-text" data-remove-checkout-coupon>Odstrániť kód</button>':''}</form>${cart.coupon?`<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>`:''}${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
+const summary=cart=>`<h2>Váš výber</h2>${cart.lines.map(l=>`<div class="summary-row"><span>${e(l.name)} × ${l.quantity}</span><strong>${e(l.priceLabel)}<small> / kus</small></strong></div>`).join('')}${cart.coupon?`<div class="summary-row"><span>Kupón</span><strong>${e(cart.discountLabel)}</strong></div>`:''}${cart.gift_voucher?`<div class="summary-row"><span>Poukaz ${e(cart.gift_voucher.masked_code)}</span><strong>${e(cart.gift_voucher.amountLabel)}</strong></div><p class="fine-print">Zostatok poukazu pred čerpaním: ${e(cart.gift_voucher.balanceLabel)}</p>`:''}${cart.shippingLabel?`<div class="summary-row"><span>Doprava</span><strong>${e(cart.shippingLabel)}</strong></div>`:''}<div class="summary-row"><span>Celkom</span><strong>${e(cart.totalLabel)}</strong></div>${cart.taxLabel?`<p class="fine-print">Vrátane DPH ${e(cart.taxLabel)}</p>`:''}`;
 // Detail: výber hodnoty poukazu otvorí produkt s danou hodnotou, doprava a doprava zdarma podľa servera.
 // Hodnota poukazu sa prepína na mieste: cena, názov, náhľad aj produkt v košíku bez načítania stránky.
 $('[data-voucher-value]')?.addEventListener('change',ev=>{
@@ -766,8 +766,9 @@ if($('#cart-view')){
 const checkoutForm=$('#checkout-form');
 if(checkoutForm){const cb=checkoutForm.elements.asCompany,box=checkoutForm.querySelector('[data-company-fields]');cb?.addEventListener('change',()=>{if(box)box.hidden=!cb.checked;for(const k of ['companyName','companyStreet','companyCity','companyPostalCode']){const n=checkoutForm.elements[k];if(n)n.required=cb.checked;}});}
 if(checkoutForm){
+  const checkoutPage=checkoutForm.closest('.shop-checkout'),checkoutCouponPanel=$('.checkout-coupon-panel',checkoutPage);
   const cart=await api.getCart();$('#checkout-summary').innerHTML=summary(cart);
-  if(!cart.lines.length){checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
+  if(!cart.lines.length){if(checkoutCouponPanel)checkoutCouponPanel.hidden=true;checkoutForm.innerHTML=`<div class="empty-state"><h2>Najprv si niečo vyberte.</h2>${button('/eshop','Prejsť do obchodu')}</div>`;}
   else{
     const step=n=>{$$('fieldset[data-step]',checkoutForm).forEach(el=>{el.hidden=Number(el.dataset.step)!==n;el.disabled=el.hidden;});$$('[data-step-label]').forEach(el=>el.classList.toggle('current',Number(el.dataset.stepLabel)===n));const first=$(`fieldset[data-step="${n}"] input`,checkoutForm);first?.focus();};
     // Tlačidlá „Pokračovať“ naskočia až po načítaní košíka a možností platby.
@@ -864,26 +865,29 @@ if(checkoutForm){
       try{const Stripe=await loadStripe();stripe=Stripe(cfg.stripePublishableKey,{locale:'sk'});elements=stripe.elements({clientSecret:prep.clientSecret,locale:'sk',appearance:STRIPE_LOOK});host.textContent='';rememberOrder(lastCart,checkoutForm.elements.email?.value,{},options.requires_delivery===true);elements.create('payment',{layout:{type:'tabs',defaultCollapsed:false},paymentMethodOrder:['card','apple_pay','google_pay'],defaultValues:{billingDetails:{email:checkoutForm.elements.email?.value||undefined,address:{country:'SK'}}}}).mount(host);paymentReady=true;}
       catch{host.textContent='Platobnú bránu sa nepodarilo načítať.';}
     };
-    const checkoutSummary=$('#checkout-summary');
-    checkoutSummary?.addEventListener('submit',async event=>{
-      const form=event.target.closest('.checkout-coupon');if(!form)return;
-      event.preventDefault();if(form.dataset.busy)return;
-      const button=form.querySelector('[type="submit"]'),status=form.querySelector('.form-status');
-      form.dataset.busy='1';if(button){button.disabled=true;button.textContent='Uplatňujem…';}
+    const checkoutSummary=$('#checkout-summary'),checkoutCouponForm=$('.checkout-coupon',checkoutPage);
+    const checkoutCouponField=$('#checkout-coupon',checkoutPage),checkoutCouponStatus=$('.form-status',checkoutCouponForm),checkoutCouponRemove=$('[data-remove-checkout-coupon]',checkoutCouponForm);
+    if(checkoutCouponField)checkoutCouponField.value=cart.coupon||'';
+    if(checkoutCouponRemove)checkoutCouponRemove.hidden=!cart.coupon;
+    checkoutCouponForm?.addEventListener('submit',async event=>{
+      event.preventDefault();if(checkoutCouponForm.dataset.busy)return;
+      const button=checkoutCouponForm.querySelector('[type="submit"]');
+      checkoutCouponForm.dataset.busy='1';if(button){button.disabled=true;button.textContent='Uplatňujem…';}
       try{
-        const result=await api.applyCoupon(form.elements.coupon.value);
-        if(!result.ok){if(status)status.textContent=result.message;return;}
+        const result=await api.applyCoupon(checkoutCouponField.value);
+        if(!result.ok){if(checkoutCouponStatus)checkoutCouponStatus.textContent=result.message;return;}
         const current=await api.getCart();checkoutSummary.innerHTML=summary(current);
+        checkoutCouponField.value=current.coupon||'';if(checkoutCouponRemove)checkoutCouponRemove.hidden=!current.coupon;
         if(!$('fieldset[data-step="3"]',checkoutForm)?.hidden){await initPayment();}
-        const message=$('.checkout-coupon .form-status',checkoutSummary);if(message)message.textContent=result.message;
-      }catch{if(status)status.textContent='Kupón sa nepodarilo uplatniť. Skúste to znova.';}
-      finally{delete form.dataset.busy;if(button?.isConnected){button.disabled=false;button.textContent='Použiť';}}
+        if(checkoutCouponStatus)checkoutCouponStatus.textContent=result.message;
+      }catch{if(checkoutCouponStatus)checkoutCouponStatus.textContent='Kupón sa nepodarilo uplatniť. Skúste to znova.';}
+      finally{delete checkoutCouponForm.dataset.busy;if(button?.isConnected){button.disabled=false;button.textContent='Uplatniť kód';}}
     });
-    checkoutSummary?.addEventListener('click',async event=>{
+    checkoutCouponRemove?.addEventListener('click',async event=>{
       const button=event.target.closest('[data-remove-checkout-coupon]');if(!button)return;
       button.disabled=true;
-      try{await api.removeCoupon();const current=await api.getCart();checkoutSummary.innerHTML=summary(current);if(!$('fieldset[data-step="3"]',checkoutForm)?.hidden)await initPayment();}
-      catch{button.disabled=false;}
+      try{await api.removeCoupon();const current=await api.getCart();checkoutSummary.innerHTML=summary(current);checkoutCouponField.value='';button.hidden=true;checkoutCouponStatus.textContent='Kupón bol odstránený.';if(!$('fieldset[data-step="3"]',checkoutForm)?.hidden)await initPayment();}
+      catch{button.disabled=false;checkoutCouponStatus.textContent='Kupón sa nepodarilo odstrániť. Skúste to znova.';}
     });
     $$('[data-next]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>{if(checkoutForm.reportValidity()){const n=Number(btn.dataset.next);step(n);if(n===3)initPayment();}}));
     $$('[data-back]',checkoutForm).forEach(btn=>btn.addEventListener('click',()=>step(Number(btn.dataset.back))));
