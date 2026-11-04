@@ -97,4 +97,35 @@ describe('handleNexusPricing Route Handler', () => {
         const data = await res.json() as { calculated: { finalPrice: number } };
         expect(data.calculated.finalPrice).toBe(100);
     });
+
+    it.each(['ZR0', 'ZR1', 'toString', '__proto__'])(
+        'prázdna politika prijme staré alebo neznáme zaradenie %s bez pádu a bez zľavy',
+        async (customerTier) => {
+            const req = new Request('https://nexus-api.internal/api/nexus/pricing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', authorization: 'Bearer test-key' },
+                body: JSON.stringify({ tenantId: 'anastasia', sku: 'SYNTHETIC-RECOVERY', basePrice: 25, customerTier }),
+            });
+            const res = await handleNexusPricing(req, {
+                ...env,
+                MEDUSA_PRICING_POLICY_JSON: JSON.stringify({ loyaltyTiers: {}, brandLimits: {}, categoryLimits: {}, brandSaleDiscounts: {} }),
+            } as Env);
+            expect(res.status).toBe(200);
+            expect(await res.json()).toMatchObject({ ok: true, tenantId: 'anastasia', calculated: { finalPrice: 25, rejected: false } });
+        },
+    );
+
+    it('neznáma vernostná úroveň zachová platnú akčnú cenu a kupón', async () => {
+        const req = new Request('https://nexus-api.internal/api/nexus/pricing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', authorization: 'Bearer test-key' },
+            body: JSON.stringify({ tenantId: 'anastasia', sku: 'SYNTHETIC-RECOVERY', basePrice: 100, salePrice: 80, customerTier: 'ZR1', couponDiscountPercent: 0.1 }),
+        });
+        const res = await handleNexusPricing(req, env);
+        expect(res.status).toBe(200);
+        const data = await res.json() as { calculated: { finalPrice: number; appliedRules: string[] } };
+        expect(data.calculated.finalPrice).toBe(72);
+        expect(data.calculated.appliedRules).toContain('COUPON');
+        expect(data.calculated.appliedRules).not.toContain('LOYALTY');
+    });
 });
