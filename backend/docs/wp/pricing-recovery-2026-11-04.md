@@ -53,7 +53,11 @@ Nové regresní případy pokrývají prázdnou politiku s `ZR0`, `ZR1`,
 - Cílený backend (věrnost, transport, synchronizace politiky): 3/3 sady,
   21/21 testů PASS.
 - Backend `tsc --noEmit`: PASS.
-- Celý backend `npm run test:unit`: probíhá, výsledek doplnit po dokončení.
+- Celý backend `npm run test:unit`: 188 sad, 1817 testů; 1799 PASS,
+  18 testů ve dvou sadách blokovalo sandboxové `listen EPERM` na loopbacku.
+  Obě sady zopakovány mimo sandbox: 18/18 PASS. Souhrnně tedy ověřeno
+  1817/1817 testů, nikoli jediný kompletní zelený běh mimo sandbox.
+  V této výchozí větvi je 1817 testů; dříve zmiňovaných 1826 nebylo potvrzeno.
 - Typová kontrola celého NEXUS hlásí existující nesoulad `BufferSource`
   v nezměněném `workers/api/routes/mediaDelivery.ts:36`; do tohoto souboru
   nebylo zasahováno.
