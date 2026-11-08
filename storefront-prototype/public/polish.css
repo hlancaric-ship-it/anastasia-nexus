@@ -234,6 +234,11 @@ body>.ana-sound-pop:is(:hover,:focus-within,.is-open){transform:none}
 body>.ana-sound-pop .ana-sound-pop__btn{width:44px!important;height:44px!important;border-radius:0 999px 999px 0!important;border-left:0!important;padding-left:10px!important;box-shadow:0 10px 26px -12px rgba(47,52,36,.45)!important}
 body.ana-menu-open>.ana-sound-pop{visibility:hidden!important}
 }
+/* iPhone: oddělené řízení hlasitosti ambientní hudby v rozbaleném panelu. */
+.ana-sound-pop__panel:has(.ana-ios-volume){border-radius:18px!important;max-width:min(290px,calc(100vw - 24px));box-sizing:border-box}
+.ana-ios-volume{display:flex!important;align-items:center!important;gap:8px!important;margin-top:6px!important;padding:8px 6px 4px!important;border-top:1px solid #e6e5f0!important;color:#403f62!important;font:500 12px Figtree,system-ui,sans-serif!important;white-space:nowrap}
+.ana-ios-volume input{width:100px!important;min-width:65px!important;accent-color:#73729c!important;touch-action:pan-x!important}
+.ana-ios-volume output{min-width:34px!important;text-align:right!important;font-variant-numeric:tabular-nums}
 @media(min-width:1000px){.ana-sound-pop{display:none!important}}
 /* Mobil: košík s počtom a účet hneď vedľa Menu, rovnaký tvar ako tlačidlo zvuku. */
 .ana-mquick{display:inline-flex!important;align-items:center!important;gap:6px!important;margin-right:6px!important;flex:0 0 auto!important;pointer-events:auto!important}
