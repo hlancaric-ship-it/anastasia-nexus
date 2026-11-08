@@ -87,7 +87,14 @@ const start = () => {
   wireIntroCue();
   wireMotionTrigger();
   // Runtime aplikácie (košík, menu, i18n) sa načíta až po vykreslení – neblokuje DOMContentLoaded.
-  import('/app.mjs').catch((error) => { console.warn('Aplikácia sa nepodarilo načítať.', error); });
+  import('/app.mjs').catch((error) => {
+    console.warn('Aplikácia sa nepodarilo načítať.', error);
+    const form = document.getElementById('login-form');
+    if (form) {
+      const status = form.querySelector('.form-status');
+      if (status) status.textContent = 'Prihlásenie sa nepodarilo pripraviť. Obnovte stránku a skúste to znova.';
+    }
+  });
   import('/novinky-dock.mjs').catch(() => {});
 };
 
