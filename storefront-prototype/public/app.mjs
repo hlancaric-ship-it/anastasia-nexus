@@ -273,6 +273,7 @@ function setMenu(kind){
   $$('[data-menu-open]').forEach(t=>t.setAttribute('aria-expanded',String(t.dataset.menuOpen===kind)));
   shell.inert=!!kind;$('#ana-rail')&&($('#ana-rail').inert=!!kind);$$('.skip-link').forEach(el=>{el.inert=!!kind;});
   menuOpen=kind;root.classList.toggle('ana-menu-open',!!kind);
+  if(kind==='side')requestAnimationFrame(()=>document.dispatchEvent(new Event('ana:menu-tone')));
   if(kind)fitMenu($(`#dc-${kind}-menu`));
   if(kind){if(!prev)previousFocus=document.activeElement;lenis?.stop();root.style.overflow='hidden';const panel=$(`#dc-${kind}-menu`);requestAnimationFrame(()=>($('button[data-menu-close]',panel)||$('[data-menu-close],a[href]',panel))?.focus({preventScroll:true}));}
   else{lenis?.start();root.style.overflow='';(previousFocus?.getClientRects().length?previousFocus:$('[data-menu-open]'))?.focus({preventScroll:true});previousFocus=null;}
@@ -506,18 +507,51 @@ if(motion&&$('.dc-root')){
     rail.style.color=light?'var(--site-main)':'var(--site-cream)';rail.style.borderRightColor=light?'color-mix(in srgb,var(--site-main) 8%,transparent)':'rgba(255,255,255,0.24)';
     $$('div',rail).forEach(d=>{if(d.style.borderBottom||d.style.borderTop)d.style.borderColor=light?'color-mix(in srgb,var(--site-main) 10%,transparent)':'rgba(255,255,255,0.16)';});
   };
-  const toneAt=y=>{
-    // Všetky vrstvy pod bodom zhora nadol, aby sa započítala aj fotka hero pod textom (obchod).
-    for(const el of document.elementsFromPoint(rail?Math.max(1,rail.getBoundingClientRect().width/2):80,Math.max(0,Math.min(innerHeight-1,y)))){if(!el.closest('aside,#ana-rail')){const cs=getComputedStyle(el);if(el.tagName==='VIDEO'||(el.tagName==='IMG'&&!/\.svg(\?|$)/.test(el.currentSrc||el.src))||el.hasAttribute('data-par')||/url\((?![^)]*\.svg)/.test(cs.backgroundImage))return 'dark';const colors=(cs.backgroundImage.match(/rgba?\([^)]*\)/g)||[]).map(lum).filter(L=>L>=0);if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';const L=lum(cs.backgroundColor);if(L>=0)return L>0.62?'light':'dark';}}
+  // Shared background probe for the rail and the desktop flyout. Ignore the menu
+  // and its overlay so elementsFromPoint reaches the actual underlying page.
+  const toneAt=(y,x=rail?Math.max(1,rail.getBoundingClientRect().width/2):80)=>{
+    const py=Math.max(0,Math.min(innerHeight-1,y));
+    for(const el of document.elementsFromPoint(x,py)){
+      if(el.closest('#dc-side-menu,#dc-top-menu,#ana-rail,[data-menu-overlay]'))continue;
+      if(el.closest('aside'))continue;
+      const cs=getComputedStyle(el);
+      if(el.tagName==='VIDEO'||(el.tagName==='IMG'&&!/\\.svg(\\?|$)/.test(el.currentSrc||el.src))||el.hasAttribute('data-par')||/url\\((?![^)]*\\.svg)/.test(cs.backgroundImage))return 'dark';
+      const colors=(cs.backgroundImage.match(/rgba?\\([^)]*\\)/g)||[]).map(lum).filter(L=>L>=0);
+      if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';
+      const L=lum(cs.backgroundColor);
+      if(L>=0)return L>0.62?'light':'dark';
+    }
     return 'dark';
   };
   const probe=()=>{
-    if(!rail||!rail.getClientRects().length||menuOpen)return;
+    if(!rail||!rail.getClientRects().length)return;
     setTone(toneAt(innerHeight/2));
-    // Lišta může současně překrývat světlou i tmavou sekci.
-    // Každá ikona a popisek proto čte pozadí ve své vlastní výšce.
-    $$('a,button,span:not(a span,button span)',rail).forEach(control=>{const r=control.getBoundingClientRect(),t=toneAt(r.top+r.height/2);if(control.dataset.railTone===t)return;control.dataset.railTone=t;control.style.color=t==='light'?'#283020':'#EFE5C7';$$('img',control).forEach(img=>{img.style.filter=t==='light'?'brightness(0.22) sepia(0.4)':'none';});});
+    // Each rail control and each flyout row follows its OWN vertical background.
+    $$('a,button,span:not(a span,button span)',rail).forEach(control=>{
+      const r=control.getBoundingClientRect(),t=toneAt(r.top+r.height/2);
+      if(control.dataset.railTone===t)return;
+      control.dataset.railTone=t;
+      control.style.color=t==='light'?'#283020':'#EFE5C7';
+      $$('img',control).forEach(img=>{img.style.filter=t==='light'?'brightness(0.22) sepia(0.4)':'none';});
+    });
+    if(menuOpen==='side'){
+      const menu=$('#dc-side-menu');
+      if(menu?.getClientRects().length){
+        const r=menu.getBoundingClientRect(),x=Math.max(1,Math.min(innerWidth-1,r.left+r.width/2));
+        $$('a,button,span',menu).forEach(control=>{
+          if(!control.getClientRects().length)return;
+          const b=control.getBoundingClientRect(),t=toneAt(b.top+b.height/2,x);
+          if(control.dataset.menuTone===t)return;
+          control.dataset.menuTone=t;
+          // Inline !important defeats legacy inline foregrounds and hover colors.
+          // The contrast changes per row, even across a light/dark section edge.
+          control.style.setProperty('color',t==='light'?'#1E261D':'#FFF9EB','important');
+          control.style.setProperty('text-shadow',t==='light'?'0 1px 1px rgba(255,255,255,.34)':'0 1px 2px rgba(0,0,0,.55)','important');
+        });
+      }
+    }
   };
+  document.addEventListener('ana:menu-tone',probe);
   let frameTick=0;
   const fxFrame=()=>{
     if((frameTick++ % 3)===0)probe();
