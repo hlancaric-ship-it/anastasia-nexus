@@ -953,6 +953,8 @@ if($('#ty-view')){
       finally{busy=false;$$('button',form).forEach(b=>b.disabled=false);}};
     form.addEventListener('submit',event=>{event.preventDefault();run('password');});
     $('[data-login-link]',form)?.addEventListener('click',()=>run('link'));
+    status.textContent='';
+    $('button',form).forEach(b=>b.disabled=false);
   }
 }
 const authTabs=$$('.auth-tabs [role=tab]'),authPanels=$$('.auth-panel');
