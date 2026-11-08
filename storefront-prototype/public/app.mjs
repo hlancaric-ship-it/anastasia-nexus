@@ -414,7 +414,7 @@ if(isAppleMobile){
 }
 const bindIosVolume=el=>{try{
   const keep=el.volume;el.volume=0.5;const works=Math.abs(el.volume-0.5)<0.01;el.volume=keep;
-  if(works)return;
+  if(works&&!isAppleMobile)return;
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   const ctx=bindIosVolume.ctx||(bindIosVolume.ctx=new AC());
   const gain=ctx.createGain();gain.gain.value=0;
