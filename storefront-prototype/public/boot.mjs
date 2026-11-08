@@ -6,6 +6,24 @@
 // prvej interakcii (na mobile pri ťuknutí na „Vstúpte“).
 import { initCookieConsent } from '/consent.mjs';
 
+// Defense in depth for legacy/shared login links containing credentials in the URL.
+// This cannot undo the initial HTTP request or browser history, but prevents further
+// exposure through copied links, navigation and client-side referrer handling.
+if (/^\/(?:prihlasenie|nova-registracia)(?:\/|$)/.test(location.pathname)) {
+  try {
+    const url = new URL(location.href);
+    let removed = false;
+    for (const key of [...url.searchParams.keys()]) {
+      if (/^(?:password|passwd|pwd|pass|heslo|email)$/i.test(key)) {
+        url.searchParams.delete(key);
+        removed = true;
+      }
+    }
+    if (removed) history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+  } catch { /* keep login form available even if history access is blocked */ }
+}
+
+
 const enableLateCss = () => {
   document.querySelectorAll('link[data-late]').forEach((link) => { link.media = 'all'; });
 };
