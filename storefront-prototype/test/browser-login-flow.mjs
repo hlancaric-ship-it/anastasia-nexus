@@ -179,18 +179,17 @@ try {
     await page.goto(`${base}/prihlasenie`, { waitUntil: 'load' });
     await page.fill('#login-form input[name="email"]', 'spravny@example.sk');
     await page.fill('#login-form input[name="password"]', 'SpravneHeslo123');
-    await page.click('#login-form button[type="submit"]');
-
-    await page.waitForFunction(() => {
-      try { return localStorage.getItem('anastasia.jwt') !== null; } catch { return false; }
-    }, { timeout: 3000 });
+    await Promise.all([
+      page.waitForURL('**/ucet**'),
+      page.click('#login-form button[type="submit"]')
+    ]);
 
     const storedJwt = await page.evaluate(() => localStorage.getItem('anastasia.jwt'));
     assert.equal(storedJwt, ACTOR_JWT, 'uložený musí byť naviazaný JWT s actor_id');
     assert.equal(refreshCalled, true, '/auth/token/refresh musel byť zavolaný pre unbound token');
 
     await page.close();
-    console.log('✔ Test 5: Prihlásenie správnym heslom úspešne obnovilo identity token na bound token s actor_id');
+    console.log('✔ Test 5: Prihlásenie správnym heslom úspešne obnovilo identity token na bound token s actor_id a presmerovalo do /ucet');
   }
 
   console.log('--- VŠETKY BROWSER TESTY PREŠLI ÚSPEŠNE ---');
