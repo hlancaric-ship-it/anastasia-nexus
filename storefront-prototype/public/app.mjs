@@ -515,8 +515,8 @@ if(motion&&$('.dc-root')){
       if(el.closest('#dc-side-menu,#dc-top-menu,#ana-rail,[data-menu-overlay]'))continue;
       if(el.closest('aside'))continue;
       const cs=getComputedStyle(el);
-      if(el.tagName==='VIDEO'||(el.tagName==='IMG'&&!/\\.svg(\\?|$)/.test(el.currentSrc||el.src))||el.hasAttribute('data-par')||/url\\((?![^)]*\\.svg)/.test(cs.backgroundImage))return 'dark';
-      const colors=(cs.backgroundImage.match(/rgba?\\([^)]*\\)/g)||[]).map(lum).filter(L=>L>=0);
+      if(el.tagName==='VIDEO'||(el.tagName==='IMG'&&!/\.svg(\?|$)/.test(el.currentSrc||el.src))||el.hasAttribute('data-par')||/url\((?![^)]*\.svg)/.test(cs.backgroundImage))return 'dark';
+      const colors=(cs.backgroundImage.match(/rgba?\([^)]*\)/g)||[]).map(lum).filter(L=>L>=0);
       if(colors.length)return colors.reduce((a,b)=>a+b,0)/colors.length>0.62?'light':'dark';
       const L=lum(cs.backgroundColor);
       if(L>=0)return L>0.62?'light':'dark';
@@ -525,6 +525,11 @@ if(motion&&$('.dc-root')){
   };
   const probe=()=>{
     if(!rail||!rail.getClientRects().length)return;
+    // The page shell is inert while the dialog is open. Temporarily expose it
+    // to hit-testing for this synchronous probe; restore inert before painting.
+    const restoreInert=!!shell?.inert;
+    if(restoreInert)shell.inert=false;
+    try{
     setTone(toneAt(innerHeight/2));
     // Each rail control and each flyout row follows its OWN vertical background.
     $$('a,button,span:not(a span,button span)',rail).forEach(control=>{
@@ -550,6 +555,7 @@ if(motion&&$('.dc-root')){
         });
       }
     }
+    }finally{if(restoreInert)shell.inert=true;}
   };
   document.addEventListener('ana:menu-tone',probe);
   let frameTick=0;
