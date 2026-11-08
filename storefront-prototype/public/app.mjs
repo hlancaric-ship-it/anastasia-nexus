@@ -391,13 +391,35 @@ blurIdle(()=>{try{
 const AMB_OFF='ana-ambient-off';
 let ambOff=false;try{ambOff=localStorage.getItem(AMB_OFF)==='1';}catch{}
 // iPhone ignoruje hlasitost prvku <audio> (vždy 100 %, proto zvuk přehlušoval). Web Audio zesílení ji vrátí.
+// iOS: společná výstupní hlasitost všech ambientních stop; výchozích 70 % lze upravit v mobilním panelu.
+const isAppleMobile=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const IOS_MASTER_KEY='ana-ios-master-volume';
+let iosMasterVolume=0.7;
+if(isAppleMobile)try{const stored=localStorage.getItem(IOS_MASTER_KEY);if(stored!==null&&stored!==''){const n=Number(stored);if(Number.isFinite(n)&&n>=0&&n<=1)iosMasterVolume=n;}}catch{}
+let iosMasterGain=null;
+const setIosMasterVolume=value=>{
+  iosMasterVolume=Math.min(1,Math.max(0,Number(value)||0));
+  if(iosMasterGain)iosMasterGain.gain.value=iosMasterVolume;
+  try{localStorage.setItem(IOS_MASTER_KEY,String(iosMasterVolume));}catch{}
+};
+if(isAppleMobile){
+  const volumeLabel=document.createElement('label');
+  volumeLabel.className='ana-ios-volume';
+  volumeLabel.innerHTML='<span>Hlasitosť</span><input type="range" min="0" max="100" step="5" aria-label="Hlasitosť hudby na iPhone" value="70"><output>70 %</output>';
+  const slider=volumeLabel.querySelector('input'),output=volumeLabel.querySelector('output');
+  slider.value=String(Math.round(iosMasterVolume*100));
+  output.textContent=slider.value+' %';
+  slider.addEventListener('input',()=>{setIosMasterVolume(Number(slider.value)/100);output.textContent=slider.value+' %';});
+  soundPanel.append(volumeLabel);
+}
 const bindIosVolume=el=>{try{
   const keep=el.volume;el.volume=0.5;const works=Math.abs(el.volume-0.5)<0.01;el.volume=keep;
   if(works)return;
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   const ctx=bindIosVolume.ctx||(bindIosVolume.ctx=new AC());
   const gain=ctx.createGain();gain.gain.value=0;
-  ctx.createMediaElementSource(el).connect(gain).connect(ctx.destination);
+  if(isAppleMobile&&!iosMasterGain){iosMasterGain=ctx.createGain();iosMasterGain.gain.value=iosMasterVolume;iosMasterGain.connect(ctx.destination);}
+  ctx.createMediaElementSource(el).connect(gain).connect(isAppleMobile?iosMasterGain:ctx.destination);
   let v=0;
   Object.defineProperty(el,'volume',{configurable:true,get:()=>v,set:x=>{v=Math.min(1,Math.max(0,Number(x)||0));gain.gain.value=v;}});
   const play=el.play.bind(el);el.play=()=>{if(ctx.state==='suspended')ctx.resume().catch(()=>{});return play();};
