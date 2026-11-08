@@ -11,8 +11,21 @@ let preview;
 let browser;
 let context;
 let page;
+let playwright;
+let hasPlaywright = false;
+
+try {
+  const playwrightPath = PLAYWRIGHT_MODULE 
+    ? PLAYWRIGHT_MODULE 
+    : 'file:///Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
+  playwright = await import(playwrightPath);
+  hasPlaywright = Boolean(playwright?.chromium);
+} catch {
+  hasPlaywright = false;
+}
 
 test.before(async () => {
+  if (!hasPlaywright) return;
   if (!base) {
     preview = spawn(process.execPath, [new URL('../serve.mjs', import.meta.url).pathname, '0'], {stdio: ['ignore','pipe','pipe']});
     base = await new Promise((resolve, reject) => {
@@ -23,11 +36,6 @@ test.before(async () => {
       preview.stdout.on('data', chunk => {const url = String(chunk).match(/http:\/\/127\.0\.0\.1:\d+/)?.[0]; if (url) finish(null, url)});
     });
   }
-  const playwrightPath = PLAYWRIGHT_MODULE 
-    ? PLAYWRIGHT_MODULE 
-    : 'file:///Users/lucky/hra-studio54/node_modules/playwright/index.mjs';
-  
-  const playwright = await import(playwrightPath);
   
   browser = await playwright.chromium.launch({channel: 'chrome', headless: true});
   context = await browser.newContext({viewport: {width: 1440, height: 1000}});
@@ -39,7 +47,7 @@ test.after(async () => {
   finally { if (preview && preview.exitCode === null) {const stopped = once(preview, 'exit'); preview.kill(); await stopped;} }
 });
 
-test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', async () => {
+test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', { skip: !hasPlaywright }, async () => {
   // Otevřeme homepage
   await page.goto(base + '/povodny-uvod', {waitUntil: 'load'}); // pôvodný úvod s introm
   
@@ -103,7 +111,7 @@ test('intro-chrome: skrytá hlavička, nápis ANASTASIA, pozice kategorií', asy
   );
 });
 
-test('intro-chrome: kontrola CSS ve zdrojovém kódu', async () => {
+test('intro-chrome: kontrola CSS ve zdrojovém kódu', { skip: !hasPlaywright }, async () => {
   // Otevřeme homepage
   await page.goto(base + '/povodny-uvod', {waitUntil: 'load'}); // pôvodný úvod s introm
   
