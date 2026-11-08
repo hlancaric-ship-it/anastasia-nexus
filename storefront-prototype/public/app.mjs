@@ -356,7 +356,7 @@ const soundPanel=$('.ana-sound-pop__panel',soundPop),soundPopBtn=$('.ana-sound-p
 // Panel visí v body (fixed), aby ho hlavička s backdrop-filter neorezala.
 soundPanel.classList.add('ana-sound-panel');document.body.append(soundPanel);
 let soundAnchor=soundPopBtn;
-const setSoundPop=open=>{if(open){const r=soundAnchor.getBoundingClientRect();soundPanel.style.top='auto';soundPanel.style.bottom=`${Math.round(innerHeight-r.top+10)}px`;soundPanel.style.right='12px';}soundPanel.hidden=!open;$$('.ana-sound-pop__btn').forEach(b=>b.setAttribute('aria-expanded',String(open)));$$('.ana-sound-pop').forEach(p=>p.classList.toggle('is-open',open));};
+const setSoundPop=open=>{if(open){const r=soundAnchor.getBoundingClientRect();soundPanel.style.top='auto';soundPanel.style.bottom=`${Math.round(innerHeight-r.top+10)}px`;soundPanel.style.left='12px';soundPanel.style.right='auto';}soundPanel.hidden=!open;$$('.ana-sound-pop__btn').forEach(b=>b.setAttribute('aria-expanded',String(open)));$$('.ana-sound-pop').forEach(p=>p.classList.toggle('is-open',open));};
 // Hlavička môže byť naklonovaná (plávajúca lišta), preto klik cez delegáciu na dokumente.
 document.addEventListener('click',event=>{const btn=event.target.closest?.('.ana-sound-pop__btn');if(btn){soundAnchor=btn;setSoundPop(soundPanel.hidden);return;}if(!soundPanel.hidden&&!soundPanel.contains(event.target))setSoundPop(false);});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!soundPanel.hidden){setSoundPop(false);soundPopBtn.focus();}});
