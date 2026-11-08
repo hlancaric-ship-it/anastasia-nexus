@@ -808,8 +808,19 @@ export function createHttpApi(storage, config) {
         const r = await call('/auth/customer/emailpass', { method: 'POST', body: { email: mail, password: pass } });
         if (r.status === 429) return { ok: false, message: 'Príliš veľa pokusov. Skúste to neskôr alebo sa prihláste odkazom z e-mailu.' };
         const token = r.data?.token;
-        if (!r.ok || !token || !tokenHasActor(token)) return { ok: false, message: r.status >= 500 ? 'Prihlásenie je dočasne nedostupné. Skúste to o chvíľu.' : 'E-mail alebo heslo nesedí. Heslo zo starého webu tu neplatí, pošlite si prihlasovací odkaz.' };
-        set(JWT, token);
+        if (!r.ok || !token) return { ok: false, message: r.status >= 500 ? 'Prihlásenie je dočasne nedostupné. Skúste to o chvíľu.' : 'E-mail alebo heslo nesedí. Heslo zo starého webu tu neplatí, pošlite si prihlasovací odkaz.' };
+        // A valid email/password response can temporarily contain an identity-only
+        // token while Medusa finishes binding the identity to the customer.
+        // Refresh that token, never re-submit credentials or save an unbound JWT.
+        let customerToken = token;
+        if (!tokenHasActor(customerToken)) {
+          const bound = await boundToken(() => call('/auth/token/refresh', {
+            method: 'POST', body: {}, token,
+          }));
+          if (!bound.ok) return { ok: false, message: 'Heslo bolo prijaté, ale zákaznícky účet sa zatiaľ nepodarilo načítať. Skúste prihlasovací odkaz alebo to opakujte neskôr.' };
+          customerToken = bound.token;
+        }
+        set(JWT, customerToken);
         return { ok: true, message: 'Prihlásenie prebehlo. Vitajte späť.' };
       } catch { return { ok: false, message: 'Prihlásenie sa nepodarilo. Skúste to prosím znova o chvíľu.' }; }
     },
