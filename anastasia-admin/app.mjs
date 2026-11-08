@@ -1609,15 +1609,6 @@ async function vProductDetail(view, id, opts = {}) {
 
     const missing = completeness().filter(c => c.block && !c.ok).map(c => c.t);
     if (wantStatus === 'published' && missing.length) { msg.innerHTML = `<div class="err">Produkt sa nedá zverejniť, chýba: ${esc(missing.join(', '))}. Uložte ho ako koncept alebo údaje doplňte.</div>`; return; }
-    // Digitálny produkt bez súborov by zákazníka nedal nič – zverejnenie sa zablokuje.
-    const shipId = view.querySelector('#p-ship')?.value || curProfile;
-    // Darčekový poukaz zákazník dostane ako kód e-mailom, súbor nepotrebuje.
-    const isVoucher = p.metadata?.voucher_product === true || p.metadata?.voucher_product === 'true';
-    const isDigital = !isVoucher && profiles.find(sp => sp.id === shipId)?.type === 'digital';
-    const hasFiles = libraryEditor.hasFiles();
-    if (wantStatus === 'published' && isDigital && hasFiles === false) {
-      msg.innerHTML = '<div class="err">Digitálny produkt nemá žiadny súbor. Najprv v záložke Zakúpený obsah nahrajte video, nahrávku alebo dokument, ktorý zákazník dostane. Bez súboru produkt nezverejňujte.</div>'; return;
-    }
     const skuIn = (view.querySelector('#p-sku')?.value || '').trim().toUpperCase();
     const newSku = variant && skuIn && skuIn !== String(variant.sku || '').toUpperCase() ? skuIn : '';
     if (newSku && variant.sku && !confirm(`Zmeniť kód produktu z ${variant.sku} na ${newSku}?\n\nQR kódy a odkazy vytvorené pre starý kód prestanú fungovať.`)) return;
