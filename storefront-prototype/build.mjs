@@ -26,7 +26,12 @@ import {accountGuardBoot} from './src/account-guard.mjs';
 const siteTheme=process.env.SITE_THEME||siteThemes[0].id;
 if(!siteThemes.some(t=>t.id===siteTheme))throw new Error(`Unknown SITE_THEME ${siteTheme}`);
 const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'dist');
-await assertPublicMedia(join(root,'public/media'));
+if (process.env.ANASTASIA_OFFLINE_FIXTURES === '1') {
+  // Offline test fixtures mode for CI / presentation contract tests without production media files.
+  // Real builds (deploy.sh, production, preview) still enforce full assertPublicMedia.
+} else {
+  await assertPublicMedia(join(root,'public/media'));
+}
 let catalogProducts=api.getProducts();
 let homepageProducts=[];
 let homepageCategories=[];
