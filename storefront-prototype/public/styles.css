@@ -660,6 +660,26 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 #ana-rail#ana-rail#ana-rail [data-rail-tone="dark"],#ana-rail#ana-rail#ana-rail [data-rail-tone="dark"] :is(span,svg){color:#EFE5C7!important}
 #ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible),#ana-rail#ana-rail :is(a,button):is(:hover,:focus-visible) :is(span,svg){color:#B08D57!important}
 
+/* Desktop side menu: the SAME translucent glass treatment as the left rail.
+   The panel has no fixed olive fill; each row gets its contrasting text color
+   from the shared runtime background sampler (app.mjs). */
+@media(min-width:1000px){
+  html body #dc-side-menu{
+    background:rgba(255,255,255,.10)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(1.15)!important;
+    backdrop-filter:blur(18px) saturate(1.15)!important;
+    border-color:rgba(255,255,255,.22)!important;
+  }
+  html body #dc-side-menu :is(a,button,span):focus-visible{
+    outline:2px solid currentColor!important;
+    outline-offset:3px!important;
+  }
+  @media(prefers-reduced-transparency:reduce){
+    html body #dc-side-menu{background:rgba(247,244,236,.96)!important}
+    html body #dc-side-menu :is(a,button,span){color:#1E261D!important;text-shadow:none!important}
+  }
+}
+
 /* Mobile main menu: sections stay in a consistent two-column card grid. */
 @media(max-width:760px){
   #dc-top-menu div:has(> .menu-section){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch!important;gap:12px!important}
