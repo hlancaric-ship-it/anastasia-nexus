@@ -1,3 +1,20 @@
+# AKTUALNI PROVOZNI PRAVIDLA — 2026-11-08 (maji prednost pred historickymi handoffy)
+
+## Zdroj pravdy a ochrana hotove prace
+- Schvaleny testovaci storefront je Cloudflare Worker `anastasia-test-web`; schvalena administrace je `anastasia-test-admin`. Jejich nasazene verze jsou referencni stav, nikoli automaticky ekvivalent libovolne Git vetve. Snapshot 2026-11-08: storefront `ee0ec707-80d3-47fb-baef-d8b594d9854d`, admin `6d68f415-9236-4d65-9448-ab11245e7cad`. Pri kazdem dalsim zasahu nejdrive znovu over aktualni Cloudflare deployment.
+- Storefront pouziva Medusa API origin `https://anastasia-api.medusajs.app` (overena Cloudflare konfigurace 2026-11-08). Toto neni dukaz funkcni E2E registrace; oznacovat ji za hotovou lze az po overeni. Klientske API pozadavky a komunikace Medusa ↔ NEXUS musi dal fungovat.
+- `master` je soucasna vychozi vetev tohoto repozitare; Medusa Cloud je podle vlastnika napojena na `hlancaric-ship-it/anastasia-nexus`. Nedotykat se automatickych deploymentu Medusy ani je nemenit bez samostatneho auditu.
+- Dokumenty `backend/docs/wp/CODEX-HANDOFF.md` (9. 10.), `docs/REQUIREMENTS_MATRIX.md` (9. 10.) a `ROADMAP_ANASTASIA_NEXUS.md` (10. 10.) jsou historicke podklady. Jejich stare stavy NOT_IMPLEMENTED/PARTIAL a seznamy baliku NESMI byt bez noveho overeni zadanim k reimplementaci.
+- Pred jakoukoli implementaci: (1) over cilovy repozitar, branch a HEAD, (2) precti aktualni implementaci a relevantni testy, (3) porovnej ji s aktualne nasazenym chovanim, (4) zdokumentuj konkretni chybejici chovani a regresni test, (5) uprav pouze schvaleny rozsah. Pokud funkce uz existuje, NEPREPISUJ ji.
+- Zadny agent nesmi bez explicitniho schvaleni Luckyho nasadit, rollbackovat nebo zmenit konfiguraci `anastasia-test-web`, `anastasia-test-admin`, Medusa Cloud ani NEXUS Workers; zakaz se tyka take `wrangler deploy`, `wrangler versions deploy`, DNS a deployment secrets. Pravidlo NEZAKAZUJE bezny runtime provoz e-shopu, objednavky, registrace, legitimni API komunikaci ani schvalene zmeny obchodnich dat.
+- Pro storefront i admin bude urcena jedina schvalena release vetev AZ PO identifikaci zdrojoveho commitu obou soucasnych buildu. Do te doby neoznacuj `master`, stare `release/*` ani `codex/*` za automaticky deployment source. Zadne automaticke nasazovani z pracovnich vetvi.
+- Stare vetve a pull requesty NEMERGOVAT hromadne. Kazdou vetvi vyhodnotit proti aktualnimu HEAD; nejdrive zachovat unikátní zmeny. Nema-li vetve schvaleny aktualni ukol, agent na ni nesmi samovolne navazovat.
+- NEXUS know-how zustava oddelene a chranene: zadny presun proprietarniho kodu do klientskych buildu, zadne vypisovani secrets, zadne implicitni prava deploymentu NEXUS z prace na storefrontu/adminu.
+- Tato pravidla jsou instrukce pro agenty, nikoli technicka GitHub/Cloudflare ochrana. Skutecny deployment gate vyzaduje samostatne nastaveni oprávneni, vetvi, tokenu a schvalovani.
+
+---
+## HISTORICKA PRAVIDLA (uplatni se pouze pokud nejsou v rozporu s aktualnimi pravidly)
+
 # AGENTS.md: pravidla pro Codex v repu anastasia-nexus
 
 Jsi samostatný implementační agent týmu L-Code Dynamics (šéfové: Lucky, Jose). Komunikuj česky, věcně, bez úvodních frází. Kód, identifikátory a commity v původní podobě (angličtina).
