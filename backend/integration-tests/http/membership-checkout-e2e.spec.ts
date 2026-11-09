@@ -3,7 +3,7 @@ import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { asValue } from '@medusajs/framework/awilix'
 import { ContainerRegistrationKeys,Modules } from '@medusajs/framework/utils'
 import { createProductsWorkflow,updateRegionsWorkflow } from '@medusajs/medusa/core-flows'
-import bootstrap,{API_KEY_TITLE,SALES_CHANNEL_NAME,DIGITAL_PROFILE_NAME} from '../../src/scripts/anastasia-bootstrap'
+import bootstrap,{API_KEY_TITLE,SALES_CHANNEL_NAME,DIGITAL_PROFILE_NAME,REGION_NAME} from '../../src/scripts/anastasia-bootstrap'
 import { syntheticBuyer,associateCart } from './customer-fixtures'
 import { acceptCheckoutConsent } from './legal-fixtures'
 import { syntheticMembershipStripe } from './membership-stripe-fixture'
@@ -34,7 +34,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_membership_e2e_ci',hooks:{beforeS
   container.register({[ContainerRegistrationKeys.LOGGER]:asValue({info(){},warn(){},error(){},debug(){},log(){}})})
   try{await bootstrap({container})}finally{container.register({[ContainerRegistrationKeys.LOGGER]:asValue(logger)})}
   const one=async(entity:string,filters:any,fields:string[])=>{const {data}=await query.graph({entity,filters,fields});expect(data).toHaveLength(1);return data[0]}
-  const key=await one('api_key',{title:API_KEY_TITLE},['token']),channel=await one('sales_channel',{name:SALES_CHANNEL_NAME},['id']),profile=await one('shipping_profile',{name:DIGITAL_PROFILE_NAME},['id']),region=await one('region',{name:'Slovensko'},['id','payment_providers.id'])
+  const key=await one('api_key',{title:API_KEY_TITLE},['token']),channel=await one('sales_channel',{name:SALES_CHANNEL_NAME},['id']),profile=await one('shipping_profile',{name:DIGITAL_PROFILE_NAME},['id']),region=await one('region',{name:REGION_NAME},['id','payment_providers.id'])
   await updateRegionsWorkflow(container).run({input:{selector:{id:region.id},update:{payment_providers:[...new Set([...region.payment_providers.map((p:any)=>p.id),providerId])]}}})
   const {result:products}=await createProductsWorkflow(container).run({input:{products:[{title:'Synthetic membership E2E',handle:'synthetic-membership-e2e',status:'published',shipping_profile_id:profile.id,metadata:{membership:{version:'v1',period_days:30}},sales_channels:[{id:channel.id}],options:[{title:'Default',values:['Default']}],variants:[{title:'Default',sku:'SYNTHETIC-MEMBERSHIP-E2E',manage_inventory:false,options:{Default:'Default'},prices:[{amount:50,currency_code:'eur'}]}]}]}})
   const product=products[0],variant=product.variants[0]
