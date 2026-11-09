@@ -5,7 +5,7 @@ import { ContainerRegistrationKeys, Modules, generateJwtToken } from '@medusajs/
 import { createProductsWorkflow, createPromotionsWorkflow } from '@medusajs/medusa/core-flows'
 import { buildPromotionInput } from '../../src/scripts/import-anastasia-catalog'
 import { codeAvailable } from '../../src/api/admin/coupon-links/validation'
-import bootstrap, { API_KEY_TITLE, SALES_CHANNEL_NAME, DIGITAL_PROFILE_NAME } from '../../src/scripts/anastasia-bootstrap'
+import bootstrap, { API_KEY_TITLE, SALES_CHANNEL_NAME, DIGITAL_PROFILE_NAME, REGION_NAME } from '../../src/scripts/anastasia-bootstrap'
 import { verifyQrBrowser } from '../../scripts/qr-browser'
 import { syntheticBuyer, associateCart } from './customer-fixtures'
 
@@ -35,7 +35,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContain
   const key=await entity('api_key',{title:API_KEY_TITLE},['token'])
   const channel=await entity('sales_channel',{name:SALES_CHANNEL_NAME},['id'])
   const profile=await entity('shipping_profile',{name:DIGITAL_PROFILE_NAME},['id'])
-  const region=await entity('region',{name:'Slovensko'},['id'])
+  const region=await entity('region',{name:REGION_NAME},['id'])
   const store={validateStatus:()=>true,headers:{'x-publishable-api-key':key.token}}
   const buyer=await syntheticBuyer(container,store,'qr-buyer@example.test')
   const [user]=await container.resolve(Modules.USER).createUsers([{email:'qr-admin@example.test'}])
