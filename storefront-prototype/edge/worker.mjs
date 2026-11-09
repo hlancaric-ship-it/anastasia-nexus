@@ -54,11 +54,11 @@ async function backendMedia(request, env, url) {
   const parts = decoded.split('/');
   if (!env.API_ORIGIN || !name || parts.some(part => !part || part === '.' || part === '..' || !/^[\p{L}\p{N} _.-]+$/u.test(part)) || !/\.(?:jpe?g|png|webp|avif|gif)$/i.test(parts.at(-1))) return new Response('Not found', {status: 404});
   try {
-    const upstream = await fetch(new URL('/static/' + decoded, env.API_ORIGIN), {method: request.method, redirect: 'manual', cf: {cacheEverything: true, cacheTtlByStatus: {'200-299': 86400, '404': 60, '500-599': 0}}});
+    const upstream = await fetch(new URL('/static/' + decoded, env.API_ORIGIN), {method: request.method, redirect: 'manual', cf: {cacheEverything: true, cacheTtlByStatus: {'200-299': 300, '404': 60, '500-599': 0}}});
     // Chyba backendu sa na hrane nedrží (inak by výpadok alebo 404 platil celý deň).
     const headers = withSecurity(new Headers());
     for (const h of ['content-type', 'content-length', 'etag', 'last-modified']) { const v = upstream.headers.get(h); if (v) headers.set(h, v); }
-    headers.set('cache-control', upstream.ok ? 'public, max-age=86400' : 'no-store');
+    headers.set('cache-control', upstream.ok ? 'public, max-age=300' : 'no-store');
     return new Response(upstream.ok ? upstream.body : null, {status: upstream.ok ? 200 : upstream.status === 404 ? 404 : 502, headers});
   } catch {
     return new Response(null, {status: 502, headers: withSecurity(new Headers({'cache-control': 'no-store'}))});
