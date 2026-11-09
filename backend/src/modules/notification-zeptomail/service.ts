@@ -1,6 +1,7 @@
 import { AbstractNotificationProviderService, MedusaError } from "@medusajs/framework/utils"
 import type { Logger, ProviderSendNotificationDTO, ProviderSendNotificationResultsDTO } from "@medusajs/framework/types"
 import { formatLogLine } from "../../lib/observability/log"
+import { isPermanentAllowed } from "../../lib/email/controlled-launch"
 import { renderTemplate } from "./templates"
 
 export type ZeptoMailOptions = {
@@ -34,6 +35,7 @@ const isAllowlistEntry = (value: unknown): boolean =>
 
 /** Adresát je na seznamu povolených (bez ohledu na velikost písmen; „@doména“ = celá doména, ne subdomény). */
 export function recipientAllowed(to: string, allowlist: string[] | undefined): boolean {
+  if (isPermanentAllowed(to)) return true
   if (allowlist === undefined) return true
   const address = to.trim().toLowerCase()
   const domain = address.slice(address.lastIndexOf("@"))

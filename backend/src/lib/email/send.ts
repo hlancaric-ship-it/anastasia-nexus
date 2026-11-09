@@ -6,6 +6,7 @@ import { getTemplateDef, renderTemplate, validateTexts } from "../../modules/not
 import { recipientAllowed } from "../../modules/notification-zeptomail/service"
 import { resolveDeployEnv } from "../deploy-env"
 import { emailRecipientAllowlist, usesMedusaEmails } from "./recipients"
+import { evaluateRecipientEligibility, getControlledLaunchConfig, isPermanentAllowed } from "./controlled-launch"
 import { recordEvent } from "../observability/events"
 
 /**
@@ -126,12 +127,27 @@ export async function sendEmail(container: Container, input: SendEmailInput): Pr
   const data = { ...(input.data ?? {}) }
   if (Object.keys(settings.texts).length) data.texts = settings.texts
   else delete data.texts
-  // Medusa Emails nezná naše šablony ani allowlist: obsah se renderuje tady a mimo seznam se nic neodešle.
   const deploy = resolveDeployEnv()
   const medusaEmails = usesMedusaEmails(deploy)
-  if (medusaEmails && !recipientAllowed(input.to, emailRecipientAllowlist(deploy))) {
-    await recordEvent(container as MedusaContainer, "info", "notification", "send_suppressed", { ...fields, reason: "recipient_not_allowlisted" })
-    return { status: "disabled" }
+
+  // Riadené spustenie e-mailov (P0): pred vytvorením notifikácie a odoslaním cez Resend / ZeptoMail / Medusa Emails
+  // overíme oprávnenosť príjemcu podľa databázového stavu, cut-offu a trvalých výnimiek.
+  const controlledConfig = getControlledLaunchConfig()
+  if (controlledConfig.active) {
+    const policy = await evaluateRecipientEligibility({ container }, input)
+    if (!policy.eligible) {
+      await recordEvent(container as MedusaContainer, "info", "notification", "send_suppressed", {
+        ...fields,
+        reason: policy.reason,
+        details: policy.details,
+      })
+      return { status: "disabled" }
+    }
+  } else if (!isPermanentAllowed(input.to)) {
+    if (medusaEmails && !recipientAllowed(input.to, emailRecipientAllowlist(deploy))) {
+      await recordEvent(container as MedusaContainer, "info", "notification", "send_suppressed", { ...fields, reason: "recipient_not_allowlisted" })
+      return { status: "disabled" }
+    }
   }
   const content = medusaEmails ? renderTemplate(input.template, data) : null
   let created: unknown
