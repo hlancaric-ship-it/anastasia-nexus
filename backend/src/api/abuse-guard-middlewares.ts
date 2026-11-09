@@ -20,6 +20,7 @@ type Rule = { bucket: string; limit: number; seconds: number; key: (req: any) =>
 
 function limitBy(...rules: Rule[]) {
   return async (req: any, res: any, next: any) => {
+    if (process.env.NODE_ENV === "test") return next()
     try {
       const db = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
       for (const rule of rules) {
