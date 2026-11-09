@@ -495,7 +495,7 @@ export function renderCampaignEmail(input: CampaignEmailInput): { html: string; 
   const icons = newsletterSocialLinks().map((link, index) =>
     `<td class="nl-ic" align="center" style="padding:6px 38px;${index ? "border-left:1px solid #d9c7a3" : ""}"><a href="${escapeHtml(link.href)}" title="${link.label}"><img src="${asset}/assets/newsletter-ic-${link.icon}.png" width="34" height="34" alt="${link.label}" style="display:block;width:34px;height:34px;border:0"></a></td>`).join("")
   const unsubscribeLine = unsubscribe
-    ? `<a href="${escapeHtml((process.env.NEWSLETTER_WEB_URL || "https://anastasiaoz.eu").replace(/\/+$/, ""))}/ucet" style="color:${BRAND.text};text-decoration:underline">Spravovať odber</a> &nbsp;|&nbsp; <a href="${escapeHtml(unsubscribe)}" style="color:${BRAND.text};text-decoration:underline">Odhlásiť sa</a>`
+    ? `<a href="${escapeHtml((process.env.NEWSLETTER_WEB_URL || "https://anastasiaoz.eu").replace(/\/+$/, ""))}/ucet" style="color:${BRAND.text};text-decoration:underline">Spravovať odber</a> · <a href="${escapeHtml(unsubscribe)}" style="color:${BRAND.text};text-decoration:underline">Odhlásiť sa</a>`
     : `Toto je testovacia správa. Ak ste ju dostali omylom, ignorujte ju.`
 
   const html = `<!doctype html>

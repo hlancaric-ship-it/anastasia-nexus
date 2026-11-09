@@ -247,6 +247,60 @@ describe("ANASTASIA × NEXUS — P0: Riadené spustenie e-mailov", () => {
       expect(res.eligible).toBe(true)
       expect(res.reason).toBe("new_registration_pending")
     })
+
+    it("Pending registrácia s chýbajúcim created_at -> zablokované (invalid_pending_registration)", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        getCustomerByEmail: jest.fn(async () => []),
+        getPendingRegistration: jest.fn(async () => ({
+          payload: { email: "bez-datumu@priklad.sk" },
+          created_at: null,
+        })),
+      }
+
+      const res = await evaluateRecipientEligibility(
+        { db, config: baseConfig },
+        { to: "bez-datumu@priklad.sk", template: "magic-link-sk" }
+      )
+      expect(res.eligible).toBe(false)
+      expect(res.reason).toBe("invalid_pending_registration")
+    })
+
+    it("Pending registrácia s neplatným created_at -> zablokované (invalid_pending_registration)", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        getCustomerByEmail: jest.fn(async () => []),
+        getPendingRegistration: jest.fn(async () => ({
+          payload: { email: "neplatny-datum@priklad.sk" },
+          created_at: "not-a-valid-date",
+        })),
+      }
+
+      const res = await evaluateRecipientEligibility(
+        { db, config: baseConfig },
+        { to: "neplatny-datum@priklad.sk", template: "magic-link-sk" }
+      )
+      expect(res.eligible).toBe(false)
+      expect(res.reason).toBe("invalid_pending_registration")
+    })
+
+    it("Pending registrácia z obdobia pred cutoffom -> zablokované (historical_pending_registration)", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        getCustomerByEmail: jest.fn(async () => []),
+        getPendingRegistration: jest.fn(async () => ({
+          payload: { email: "stara-registracia@priklad.sk" },
+          created_at: BEFORE_CUTOFF,
+        })),
+      }
+
+      const res = await evaluateRecipientEligibility(
+        { db, config: baseConfig },
+        { to: "stara-registracia@priklad.sk", template: "magic-link-sk" }
+      )
+      expect(res.eligible).toBe(false)
+      expect(res.reason).toBe("historical_pending_registration")
+    })
   })
 
   // --- 4. Historická fronta a objednávky ---

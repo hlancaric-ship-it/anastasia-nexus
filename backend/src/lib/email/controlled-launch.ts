@@ -57,6 +57,8 @@ export type RecipientEligibilityResult = {
     | "controlled_launch_inactive"
     | "verified_new_customer"
     | "new_registration_pending"
+    | "invalid_pending_registration"
+    | "historical_pending_registration"
     | "historical_baseline_customer"
     | "historical_customer"
     | "legacy_imported_customer"
@@ -80,7 +82,7 @@ export type PolicyDatabaseAdapter = {
     metadata?: Record<string, unknown> | null
   }>>
   getHistoricalOrdersCount?: (customerId: string, email: string, cutoff: Date) => Promise<number>
-  getPendingRegistration?: (emailSha: string) => Promise<{ payload?: unknown; created_at?: Date | string; expires_at?: Date | string } | null>
+  getPendingRegistration?: (emailSha: string) => Promise<{ payload?: unknown; created_at?: Date | string | null; expires_at?: Date | string | null } | null>
   getOrderCreatedAt?: (orderId: string) => Promise<Date | null>
   isUnsubscribed?: (email: string) => Promise<boolean>
 }
@@ -111,9 +113,12 @@ export function createPgDatabaseAdapter(pg: any): PolicyDatabaseAdapter {
           .whereRaw("lower(email) = ?", [email.toLowerCase()])
           .limit(1)
         return rows.length > 0
-      } catch {
-        // Ak tabuľka neexistuje, fallback na dynamické overenie customer + order
-        return false
+      } catch (err: any) {
+        // Ak tabuľka neexistuje (42P01 undefined_table), fallback na dynamické overenie customer + order
+        if (err?.code === "42P01" || err?.message?.includes("does not exist")) {
+          return false
+        }
+        throw err
       }
     },
     async getCustomerByEmail(email: string) {
@@ -140,8 +145,11 @@ export function createPgDatabaseAdapter(pg: any): PolicyDatabaseAdapter {
           [emailSha]
         )
         return res.rows?.[0] ?? null
-      } catch {
-        return null
+      } catch (err: any) {
+        if (err?.code === "42P01" || err?.message?.includes("does not exist")) {
+          return null
+        }
+        throw err
       }
     },
     async getOrderCreatedAt(orderId: string): Promise<Date | null> {
@@ -156,8 +164,11 @@ export function createPgDatabaseAdapter(pg: any): PolicyDatabaseAdapter {
           .orderBy("created_at", "desc")
           .first("status")
         return row?.status === "unsubscribed"
-      } catch {
-        return false
+      } catch (err: any) {
+        if (err?.code === "42P01" || err?.message?.includes("does not exist")) {
+          return false
+        }
+        throw err
       }
     },
   }
@@ -295,11 +306,23 @@ export async function evaluateRecipientEligibility(
       const pending = await db.getPendingRegistration(emailSha)
       if (pending && pending.payload) {
         const regCreated = pending.created_at ? new Date(pending.created_at) : null
-        if (!regCreated || regCreated.getTime() >= cutoff.getTime()) {
+        if (!regCreated || Number.isNaN(regCreated.getTime())) {
           return {
-            eligible: true,
-            reason: "new_registration_pending",
+            eligible: false,
+            reason: "invalid_pending_registration",
+            details: { created_at: pending.created_at },
           }
+        }
+        if (regCreated.getTime() < cutoff.getTime()) {
+          return {
+            eligible: false,
+            reason: "historical_pending_registration",
+            details: { created_at: pending.created_at },
+          }
+        }
+        return {
+          eligible: true,
+          reason: "new_registration_pending",
         }
       }
     }
