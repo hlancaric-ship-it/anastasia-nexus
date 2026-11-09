@@ -3,10 +3,10 @@ import {escape as e, imageSrc} from './components.mjs';
 import {consultMeta, consultLead} from './consult-info.mjs';
 
 const CONSULTATION_HANDLES = {
-  'online-zdravotna-konzultacia': {name: 'Online zdravotná konzultácia', kind: 'online-zdravotna-konzultacia', page: '/konzultacie/online-zdravotna-konzultacia', img: '/img/lucia/lucia-portret-1600.webp'},
-  'supervizia': {name: 'Supervízia', kind: 'supervizia', page: '/konzultacie/supervizia', img: '/img/lucia/stacionar-kresla-1600.webp'},
-  'astrologia-zdravie-predispozicia': {name: 'Astrologický profil zdravia a vitality', kind: 'astrologia-zdravie-predispozicia', page: '/konzultacie/astrologicky-profil-zdravia-a-vitality'},
-  'personalizovany-zdravotny-protokol-pro': {name: 'Personifikovaný zdravotný protokol', kind: 'personalizovany-zdravotny-protokol-pro', img: '/img/lucia/lekaren-1600.webp'},
+  'online-zdravotna-konzultacia': {name: 'Online zdravotná konzultácia', kind: 'online-zdravotna-konzultacia', page: '/konzultacie/online-zdravotna-konzultacia', img: '/assets/consultations/01-online-zdravotna-konzultacia.png'},
+  'supervizia': {name: 'Supervízia', kind: 'supervizia', page: '/konzultacie/supervizia', img: '/assets/consultations/03-supervizia.png'},
+  'astrologia-zdravie-predispozicia': {name: 'Astrologický profil zdravia a vitality', kind: 'astrologia-zdravie-predispozicia', page: '/konzultacie/astrologicky-profil-zdravia-a-vitality', img: '/assets/consultations/04-astrologicky-profil.png'},
+  'personalizovany-zdravotny-protokol-pro': {name: 'Personifikovaný zdravotný protokol', kind: 'personalizovany-zdravotny-protokol-pro', page: '/konzultacie/rezervacia?typ=personalizovany-zdravotny-protokol-pro', img: '/assets/consultations/02-personifikovany-zdravotny-protokol.png'},
 };
 
 export const consultations = () => {
@@ -27,7 +27,7 @@ export const consultations = () => {
     const detail = info.page || `/konzultacie/rezervacia?typ=${encodeURIComponent(p.slug)}`;
     const own = /^Podrobnosti a podmienky nájdete/.test(p.description || '') ? '' : (p.description || '');
     const desc = own ? own.slice(0, 200) + (own.length > 200 ? '…' : '') : consultLead(p.slug);
-    const img = info.kind === 'astrologia-zdravie-predispozicia' ? '/media/night-sky.jpg' : (info.img || p.image);
+    const img = info.img || (info.kind === 'astrologia-zdravie-predispozicia' ? '/assets/consultations/04-astrologicky-profil.png' : p.image);
     const name = e(info.name || p.name);
     return `<article class="cs-panel cs-panel--${i % 4 + 1}" style="--i:${i}">
         <div class="cs-copy">
@@ -37,7 +37,7 @@ export const consultations = () => {
           ${desc ? `<p class="cs-d">${e(desc)}</p>` : ''}
           <a class="cs-go" href="${e(detail)}">Vybrať termín <i aria-hidden="true">→</i></a>
         </div>
-        <figure><img src="${imageSrc(img)}" alt="" width="900" height="1200" loading="eager" decoding="async"></figure>
+        <figure><img class="kc-consultation-arch" src="${imageSrc(img)}" alt="${name}" width="800" height="1050" loading="eager" decoding="async"></figure>
       </article>`;
   }).join('');
 

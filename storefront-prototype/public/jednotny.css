@@ -1165,10 +1165,11 @@ html body .customer-center .center-heading{margin-bottom:24px!important}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel--1 .cs-go:hover,#page-shell#page-shell.kc-unified .legacy-main .cs-panel--3 .cs-go:hover{gap:22px;background:#2F3424;color:#F7F4EC!important;border-color:#2F3424}
 #page-shell#page-shell.kc-unified .legacy-main .cs-panel--2 .cs-go:hover,#page-shell#page-shell.kc-unified .legacy-main .cs-panel--4 .cs-go:hover{gap:22px;background:#F7F4EC;color:#2F3424!important;border-color:#F7F4EC}
 #page-shell#page-shell.kc-unified .legacy-main .cs-go:focus-visible{outline:2px solid #C9A55C;outline-offset:3px}
-#page-shell#page-shell.kc-unified .legacy-main .cs-panel figure{margin:0;justify-self:end;width:min(100%,400px);aspect-ratio:3/4;border-radius:999px 999px 28px 0;overflow:hidden}
-#page-shell#page-shell.kc-unified .legacy-main .cs-panel--3 figure{border-radius:28px 999px 999px 999px}
-#page-shell#page-shell.kc-unified .legacy-main .cs-panel figure img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
-#page-shell#page-shell.kc-unified .legacy-main .cs-panel:hover figure img{transform:scale(1.05)}
+#page-shell#page-shell.kc-unified .legacy-main .cs-panel figure{margin:0;justify-self:end;width:min(100%,380px);border-radius:0;overflow:visible;background:transparent}
+#page-shell#page-shell.kc-unified .legacy-main .cs-panel--3 figure{border-radius:0}
+/* Images have transparent arched silhouettes: preserve their native aspect ratio. */
+.kc-consultation-arch { width:100%; max-width:380px; aspect-ratio: 800 / 1050; object-fit:contain; display:block; filter: drop-shadow(0 14px 28px rgba(47,52,36,.22)); transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+#page-shell#page-shell.kc-unified .legacy-main .cs-panel:hover .kc-consultation-arch{transform:scale(1.03) translateY(-4px)}
 @media(max-width:900px){#page-shell#page-shell.kc-unified .legacy-main .cs-panel{grid-template-columns:1fr;top:calc(70px + var(--i) * 16px);min-height:0;margin-bottom:8vh;padding:28px 24px 32px;border-radius:32px 32px 32px 0;gap:24px}#page-shell#page-shell.kc-unified .legacy-main .cs-panel figure{justify-self:start;width:min(100%,320px)}#page-shell#page-shell.kc-unified .legacy-main .cs-name{font-size:clamp(40px,11vw,56px)!important}}
 
 /* Impeccable 26. 10.: kontrast min. 4.5:1 a funkčný text min. 11 px. */

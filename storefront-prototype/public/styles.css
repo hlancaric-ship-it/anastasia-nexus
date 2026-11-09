@@ -693,3 +693,7 @@ body{padding-bottom:0;transition:padding-bottom .3s var(--ana-ease-soft)}
 /* Logá v hornom menu: celé obrázky bez orezu do kruhu, tri rovnako široké stĺpce s rovnakými medzerami. */
 #dc-top-menu .menu-brand-logos img{border-radius:0!important;box-shadow:none!important;background:none!important;object-fit:contain!important;width:100%!important;height:auto!important;max-width:116px}
 @media(max-width:999.98px){#dc-top-menu .menu-bottom-row .menu-brand-logos{column-gap:20px!important;width:100%;grid-template-columns:repeat(3,minmax(0,1fr))!important;justify-items:center}}
+
+/* Images have transparent arched silhouettes: preserve their native aspect ratio. */
+.kc-consultation-arch { width:100%; max-width:380px; aspect-ratio: 800 / 1050; object-fit:contain; display:block; filter: drop-shadow(0 14px 28px rgba(47,52,36,.22)); transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+.cs-panel figure:has(.kc-consultation-arch) { border-radius:0; overflow:visible; background:transparent; aspect-ratio:auto; }
