@@ -197,3 +197,111 @@ test('výpadok siete pri opakovaní nepretrží prihlásenie',async()=>{
   assert.equal(refresh,2);
   assert.equal(storage.getItem('anastasia.jwt'),ACTOR);
 });
+
+test('prihlásenie heslom: správne heslo s priamo viazaným tokenom uloží JWT',async()=>{
+  const storage=memoryStorage();
+  const log=router([
+    ['POST',/^\/auth\/customer\/emailpass$/,(_path,body)=>{
+      assert.equal(body.email,'zakaznik@example.test');
+      assert.equal(body.password,'TajneHeslo123');
+      return respond(200,{token:ACTOR});
+    }],
+  ]);
+  const api=createHttpApi(storage,config);
+  const r=await api.signInWithPassword('zakaznik@example.test','TajneHeslo123');
+  assert.equal(r.ok,true);
+  assert.equal(storage.getItem('anastasia.jwt'),ACTOR);
+  assert.equal(api.isLoggedIn(),true);
+  assert.deepEqual(log.map(l=>l.call),['POST /auth/customer/emailpass']);
+});
+
+test('prihlásenie heslom: token bez actor_id sa obnoví na viazaný token a nevyhodnotí ako chybné heslo',async()=>{
+  const storage=memoryStorage();
+  let refreshed=0;
+  const log=router([
+    ['POST',/^\/auth\/customer\/emailpass$/,()=>respond(200,{token:NO_ACTOR})],
+    ['POST',/^\/auth\/token\/refresh$/,(_path,_body,auth)=>{
+      refreshed++;
+      assert.equal(auth,NO_ACTOR);
+      return respond(200,{token:ACTOR});
+    }],
+  ]);
+  const api=createHttpApi(storage,config);
+  const r=await api.signInWithPassword('zakaznik@example.test','SpravneHeslo');
+  assert.equal(r.ok,true);
+  assert.equal(refreshed,1);
+  assert.equal(storage.getItem('anastasia.jwt'),ACTOR);
+  assert.deepEqual(log.map(l=>l.call),[
+    'POST /auth/customer/emailpass',
+    'POST /auth/token/refresh',
+  ]);
+});
+
+test('prihlásenie heslom: nesprávne heslo (401) vráti zrozumiteľnú chybu a neuloží token',async()=>{
+  const storage=memoryStorage();
+  router([
+    ['POST',/^\/auth\/customer\/emailpass$/,()=>respond(401,{message:'Invalid credentials'})],
+  ]);
+  const api=createHttpApi(storage,config);
+  const r=await api.signInWithPassword('zakaznik@example.test','ZleHeslo');
+  assert.equal(r.ok,false);
+  assert.match(r.message,/E-mail alebo heslo nesedí/);
+  assert.equal(storage.getItem('anastasia.jwt'),null);
+  assert.equal(api.isLoggedIn(),false);
+});
+
+test('prihlásenie heslom: rate limit (429) vráti upozornenie na príliš veľa pokusov',async()=>{
+  const storage=memoryStorage();
+  router([
+    ['POST',/^\/auth\/customer\/emailpass$/,()=>respond(429,{})],
+  ]);
+  const api=createHttpApi(storage,config);
+  const r=await api.signInWithPassword('zakaznik@example.test','Heslo');
+  assert.equal(r.ok,false);
+  assert.match(r.message,/Príliš veľa pokusov/);
+  assert.equal(storage.getItem('anastasia.jwt'),null);
+});
+
+test('magic link: neúplný odkaz bez tokenu alebo emailu vráti chybu',async()=>{
+  globalThis.location={search:'?email=zakaznik@example.test'};
+  const storage=memoryStorage();
+  const api=createHttpApi(storage,config);
+  const r1=await api.confirmMagicLink();
+  assert.equal(r1.ok,false);
+  assert.match(r1.message,/neúplný/);
+
+  globalThis.location={search:'?token=nejakytoken'};
+  const r2=await api.confirmMagicLink();
+  assert.equal(r2.ok,false);
+  assert.match(r2.message,/neúplný/);
+});
+
+test('magic link: expirovaný alebo neplatný odkaz vráti chybu',async()=>{
+  globalThis.location={search:'?email=zakaznik@example.test&token=neplatny'};
+  const storage=memoryStorage();
+  router([
+    ['POST',/^\/auth\/customer\/magic-link$/,()=>respond(401,{})],
+  ]);
+  const api=createHttpApi(storage,config);
+  const r=await api.confirmMagicLink();
+  assert.equal(r.ok,false);
+  assert.match(r.message,/neplatný alebo vypršal/);
+  assert.equal(storage.getItem('anastasia.jwt'),null);
+});
+
+test('URL scrubbing: heslo sa odstráni, ale email, token a redirect zostanú',async()=>{
+  // Simulácia logiky z boot.mjs
+  const testUrl=new URL('https://anastasia-test.l-code-dynamics.com/prihlasenie?email=zakaznik%40example.sk&password=tajneheslo123&token=abc123token&redirect=%2Fucet%23objednavky');
+  let removed=false;
+  for(const key of [...testUrl.searchParams.keys()]){
+    if(/^(?:password|passwd|pwd|pass|heslo)$/i.test(key)){
+      testUrl.searchParams.delete(key);
+      removed=true;
+    }
+  }
+  assert.equal(removed,true);
+  assert.equal(testUrl.searchParams.get('password'),null);
+  assert.equal(testUrl.searchParams.get('email'),'zakaznik@example.sk');
+  assert.equal(testUrl.searchParams.get('token'),'abc123token');
+  assert.equal(testUrl.searchParams.get('redirect'),'/ucet#objednavky');
+});

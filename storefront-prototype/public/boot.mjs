@@ -6,6 +6,28 @@
 // prvej interakcii (na mobile pri ťuknutí na „Vstúpte“).
 import { initCookieConsent } from '/consent.mjs';
 
+// Defense in depth for accidental GET submits containing password credentials in the URL.
+// This cannot undo the initial HTTP request or browser history, but prevents further
+// exposure through copied links, navigation and client-side referrer handling.
+// Legitimate authentication parameters (email, token, redirect, mode) are preserved.
+if (/^\/(?:prihlasenie|nova-registracia)(?:\/|$)/.test(location.pathname)) {
+  try {
+    const url = new URL(location.href);
+    let removed = false;
+    for (const key of [...url.searchParams.keys()]) {
+      if (/^(?:password|passwd|pwd|pass|heslo)$/i.test(key)) {
+        url.searchParams.delete(key);
+        removed = true;
+      }
+    }
+    if (removed) {
+      const q = url.searchParams.toString();
+      history.replaceState(history.state, '', url.pathname + (q ? '?' + q : '') + url.hash);
+    }
+  } catch { /* keep login form available even if history access is blocked */ }
+}
+
+
 const enableLateCss = () => {
   document.querySelectorAll('link[data-late]').forEach((link) => { link.media = 'all'; });
 };
@@ -69,7 +91,14 @@ const start = () => {
   wireIntroCue();
   wireMotionTrigger();
   // Runtime aplikácie (košík, menu, i18n) sa načíta až po vykreslení – neblokuje DOMContentLoaded.
-  import('/app.mjs').catch((error) => { console.warn('Aplikácia sa nepodarilo načítať.', error); });
+  import('/app.mjs').catch((error) => {
+    console.warn('Aplikácia sa nepodarilo načítať.', error);
+    const form = document.getElementById('login-form');
+    if (form) {
+      const status = form.querySelector('.form-status');
+      if (status) status.textContent = 'Prihlásenie sa nepodarilo pripraviť. Obnovte stránku a skúste to znova.';
+    }
+  });
   import('/novinky-dock.mjs').catch(() => {});
 };
 
