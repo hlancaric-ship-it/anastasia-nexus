@@ -1,7 +1,7 @@
 import { AbstractNotificationProviderService, MedusaError } from "@medusajs/framework/utils"
 import type { Logger, ProviderSendNotificationDTO, ProviderSendNotificationResultsDTO } from "@medusajs/framework/types"
 import { formatLogLine } from "../../lib/observability/log"
-import { isPermanentAllowed } from "../../lib/email/controlled-launch"
+import { isPermanentAllowed, getControlledLaunchConfig } from "../../lib/email/controlled-launch"
 import { renderTemplate } from "./templates"
 
 export type ZeptoMailOptions = {
@@ -206,8 +206,27 @@ export default class ZeptoMailNotificationService extends AbstractNotificationPr
       throw error
     }
 
-    // Testovací provoz: mimo seznam se nic neodesílá. Vrací úspěch bez ID, aby tok (např. objednávka) nespadl.
-    if (!recipientAllowed(payload.to[0].email_address.address, this.options_.recipientAllowlist)) {
+    const toAddress = payload.to[0].email_address.address
+    const launchConfig = getControlledLaunchConfig()
+
+    // 1. Marketingové kampane (newsletter) sú počas riadeného spustenia kompletne vypnuté
+    const isMarketing = template?.includes("newsletter") || template?.includes("campaign")
+    if (isMarketing && launchConfig.active) {
+      this.log("info", "send_suppressed", { template, reason: "controlled_launch_marketing_disabled" })
+      return {}
+    }
+
+    // 2. Počas riadeného spustenia nesmie priame volanie createNotifications obísť politiku
+    if (launchConfig.active && !isPermanentAllowed(toAddress)) {
+      const verified = Boolean((notification.data as any)?._controlled_launch_verified)
+      if (!verified) {
+        this.log("info", "send_suppressed", { template, reason: "bypassed_controlled_launch_policy" })
+        return {}
+      }
+    }
+
+    // 3. Testovací provoz: mimo seznam se nic neodesílá. Vrací úspěch bez ID, aby tok (např. objednávka) nespadl.
+    if (!recipientAllowed(toAddress, this.options_.recipientAllowlist)) {
       this.log("info", "send_suppressed", { template, reason: "recipient_not_allowlisted" })
       return {}
     }

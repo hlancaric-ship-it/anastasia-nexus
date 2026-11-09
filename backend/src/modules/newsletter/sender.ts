@@ -1,4 +1,5 @@
 import { recipientAllowed } from "../notification-zeptomail/service"
+import { getControlledLaunchConfig } from "../../lib/email/controlled-launch"
 import { listUnsubscribeHeaders, remainingDailyBudget, renderCampaignEmail, unsubscribeUrl } from "./policy"
 
 /**
@@ -167,6 +168,19 @@ export async function sendPendingNewsletterDeliveries(deps: NewsletterSendDeps):
 
   const rows = await deps.store.pending(budget)
   if (!rows.length) return summary
+
+  const controlledLaunch = getControlledLaunchConfig()
+  const marketingDisabled = controlledLaunch.active || process.env.NEWSLETTER_CAMPAIGNS_DISABLED === "1"
+  if (marketingDisabled) {
+    deps.logger?.info?.("[newsletter] Odosielanie marketingových kampaní je počas riadeného spustenia e-mailov vypnuté.")
+    for (const row of rows) {
+      summary.attempted += 1
+      await deps.store.markDelivery(row.id, { status: "skipped", error: "controlled_launch_marketing_disabled" }, now)
+      summary.suppressed += 1
+    }
+    return summary
+  }
+
   await deps.store.markCampaignsSending([...new Set(rows.map(row => row.campaign_id))], now)
 
   for (const row of rows) {

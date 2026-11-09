@@ -68,11 +68,15 @@ export type RecipientEligibilityResult = {
     | "unknown_recipient_not_registered"
     | "unsubscribed"
     | "invalid_email"
+    | "baseline_not_ready"
+    | "marketing_disabled_during_controlled_launch"
     | "verification_error"
   details?: Record<string, unknown>
 }
 
 export type PolicyDatabaseAdapter = {
+  isBaselineReady?: () => Promise<{ ready: boolean; count?: number; error?: string }>
+  getBaselineCutoff?: () => Promise<Date | null>
   isEmailInBaseline?: (email: string) => Promise<boolean>
   getCustomerByEmail?: (email: string) => Promise<Array<{
     id: string
@@ -107,17 +111,45 @@ export type RecipientEvaluationInput = {
  */
 export function createPgDatabaseAdapter(pg: any): PolicyDatabaseAdapter {
   return {
+    async isBaselineReady(): Promise<{ ready: boolean; count: number; error?: string }> {
+      try {
+        const result = await pg("email_historical_baseline")
+          .whereNot("email", "__activation_snapshot__")
+          .count("email as count")
+          .first()
+        const count = Number((result as any)?.count ?? 0)
+        if (count === 0) {
+          return { ready: false, count: 0, error: "BASELINE_EMPTY" }
+        }
+        return { ready: true, count }
+      } catch (err: any) {
+        return {
+          ready: false,
+          count: 0,
+          error: err?.code === "42P01" || err?.message?.includes("does not exist") ? "BASELINE_TABLE_MISSING" : (err?.message || "DB_ERROR"),
+        }
+      }
+    },
+    async getBaselineCutoff(): Promise<Date | null> {
+      try {
+        const marker = await pg("email_historical_baseline")
+          .where("email", "__activation_snapshot__")
+          .first("cutoff")
+        if (marker?.cutoff) return new Date(marker.cutoff)
+        const row = await pg("email_historical_baseline").max("cutoff as cutoff").first()
+        return row?.cutoff ? new Date(row.cutoff) : null
+      } catch {
+        return null
+      }
+    },
     async isEmailInBaseline(email: string): Promise<boolean> {
+      if (email === "__activation_snapshot__") return false
       try {
         const rows = await pg("email_historical_baseline")
           .whereRaw("lower(email) = ?", [email.toLowerCase()])
           .limit(1)
         return rows.length > 0
       } catch (err: any) {
-        // Ak tabuľka neexistuje (42P01 undefined_table), fallback na dynamické overenie customer + order
-        if (err?.code === "42P01" || err?.message?.includes("does not exist")) {
-          return false
-        }
         throw err
       }
     },
@@ -195,6 +227,7 @@ export async function evaluateRecipientEligibility(
   }
 
   // 1. Trvalé výnimky — povolené bez ohľadu na dátum registrácie
+  // 1. Trvalé výnimky — VŽDY POVOLENÉ bez ohľadu na baseline alebo cutoff
   if (isPermanentAllowed(email)) {
     return { eligible: true, reason: "permanent_exception" }
   }
@@ -204,7 +237,11 @@ export async function evaluateRecipientEligibility(
     return { eligible: true, reason: "controlled_launch_inactive" }
   }
 
-  const cutoff = config.cutoff
+  // 2. Marketing / newsletter kontrola — počas riadeného spustenia zostávajú marketingové kampane vypnuté!
+  const isMarketing = input.template?.includes("newsletter") || input.template?.includes("campaign")
+  if (isMarketing) {
+    return { eligible: false, reason: "marketing_disabled_during_controlled_launch" }
+  }
 
   // Získanie DB adaptéra
   let db = context.db
@@ -223,12 +260,45 @@ export async function evaluateRecipientEligibility(
   }
 
   try {
-    // 2. Kontrola historického baseline
+    // 3. Povinná kontrola pripravenosti baseline:
+    // Ak nie je baseline vytvorený a naplnený v cieľovej DB, povoľujú sa VÝHRADNE 3 trvalé výnimky vyššie!
+    if (db.isBaselineReady) {
+      const readiness = await db.isBaselineReady()
+      if (!readiness.ready) {
+        return {
+          eligible: false,
+          reason: "baseline_not_ready",
+          details: { error: readiness.error, count: readiness.count },
+        }
+      }
+    } else {
+      return {
+        eligible: false,
+        reason: "baseline_not_ready",
+        details: { error: "BASELINE_CHECK_UNAVAILABLE" },
+      }
+    }
+
+    // 4. Skutočný okamih aktivácie: dynamický cutoff z baseline eliminuje časovú medzeru medzi snapshotom a aktiváciou
+    let cutoff = config.cutoff
+    if (db.getBaselineCutoff) {
+      const dbCutoff = await db.getBaselineCutoff()
+      if (dbCutoff && !Number.isNaN(dbCutoff.getTime())) {
+        cutoff = dbCutoff
+      }
+    }
+
+    // 5. Kontrola historického baseline
     if (db.isEmailInBaseline && (await db.isEmailInBaseline(email))) {
       return { eligible: false, reason: "historical_baseline_customer" }
     }
 
-    // 3. Kontrola historickej objednávky (ak je notifikácia viazaná na order)
+    // 5b. Kontrola odhlásenia
+    if (db.isUnsubscribed && (await db.isUnsubscribed(email))) {
+      return { eligible: false, reason: "unsubscribed" }
+    }
+
+    // 6. Kontrola historickej objednávky (ak je notifikácia viazaná na order)
     if (input.resource_type === "order" && input.resource_id && db.getOrderCreatedAt) {
       const orderCreatedAt = await db.getOrderCreatedAt(input.resource_id)
       if (orderCreatedAt && orderCreatedAt.getTime() < cutoff.getTime()) {
@@ -236,13 +306,7 @@ export async function evaluateRecipientEligibility(
       }
     }
 
-    // 4. Marketing / newsletter kontrola odhlásenia
-    const isMarketing = input.template?.includes("newsletter") || input.template?.includes("campaign")
-    if (isMarketing && db.isUnsubscribed && (await db.isUnsubscribed(email))) {
-      return { eligible: false, reason: "unsubscribed" }
-    }
-
-    // 5. Vyhľadanie zákazníka v databáze
+    // 7. Vyhľadanie zákazníka v databáze
     const customers = db.getCustomerByEmail ? await db.getCustomerByEmail(email) : []
 
     if (customers.length > 0) {

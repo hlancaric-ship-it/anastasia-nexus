@@ -33,7 +33,10 @@ export type AuditSummary = {
  * Spustí audit zákazníkov a preverí pravidlá riadeného spustenia e-mailov.
  */
 export async function runEmailAudit(client: Client, options: AuditOptions = {}): Promise<AuditSummary> {
-  const cutoff = options.cutoff ?? new Date(process.env.EMAIL_CONTROLLED_LAUNCH_CUTOFF || DEFAULT_CONTROLLED_LAUNCH_CUTOFF)
+  const executionTime = new Date()
+  // Ak nie je cutoff explicitne zadaný cez CLI prepínač --cutoff ani ENV,
+  // použije sa presný okamih vykonania auditu a snapshotu (now), čím sa eliminuje akékoľvek časové okno.
+  const cutoff = options.cutoff ?? (process.env.EMAIL_CONTROLLED_LAUNCH_CUTOFF ? new Date(process.env.EMAIL_CONTROLLED_LAUNCH_CUTOFF) : executionTime)
 
   // 1. Zabezpečenie tabuľky baseline
   await client.query(`
@@ -118,6 +121,13 @@ export async function runEmailAudit(client: Client, options: AuditOptions = {}):
         ON CONFLICT (email) DO UPDATE SET customer_id = EXCLUDED.customer_id, cutoff = EXCLUDED.cutoff
       `, [b.email, b.customerId, cutoff])
     }
+
+    // Uloženie záznamu o aktivácii / snapshote (zabraňuje časovej medzere medzi snapshotom a aktiváciou)
+    await client.query(`
+      INSERT INTO email_historical_baseline (email, customer_id, cutoff, created_at)
+      VALUES ('__activation_snapshot__', 'system', $1, $2)
+      ON CONFLICT (email) DO UPDATE SET cutoff = EXCLUDED.cutoff, created_at = EXCLUDED.created_at
+    `, [cutoff, executionTime])
 
     try {
       const snapshotDir = path.resolve(__dirname, "../../data-private")

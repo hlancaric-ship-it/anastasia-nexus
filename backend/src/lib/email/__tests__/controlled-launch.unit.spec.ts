@@ -15,6 +15,8 @@ describe("ANASTASIA × NEXUS — P0: Riadené spustenie e-mailov", () => {
   const AFTER_CUTOFF = new Date("2026-11-09T08:00:00.000Z")
 
   const defaultMockDb: PolicyDatabaseAdapter = {
+    isBaselineReady: jest.fn(async () => ({ ready: true, count: 50 })),
+    getBaselineCutoff: jest.fn(async () => CUTOFF),
     isEmailInBaseline: jest.fn(async () => false),
     getCustomerByEmail: jest.fn(async () => []),
     getHistoricalOrdersCount: jest.fn(async () => 0),
@@ -390,7 +392,23 @@ describe("ANASTASIA × NEXUS — P0: Riadené spustenie e-mailov", () => {
       expect(res.reason).toBe("invalid_email")
     })
 
-    it("Odhlásený používateľ nedostane newsletter", async () => {
+    it("Marketingová kampaň je počas riadeného spustenia zablokovaná", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        getCustomerByEmail: jest.fn(async () => [
+          { id: "cus_new", email: "novy@priklad.sk", has_account: true, created_at: AFTER_CUTOFF },
+        ]),
+      }
+
+      const res = await evaluateRecipientEligibility(
+        { db, config: baseConfig },
+        { to: "novy@priklad.sk", template: "newsletter-sk" }
+      )
+      expect(res.eligible).toBe(false)
+      expect(res.reason).toBe("marketing_disabled_during_controlled_launch")
+    })
+
+    it("Odhlásený používateľ nedostane e-mail", async () => {
       const db: PolicyDatabaseAdapter = {
         ...defaultMockDb,
         getCustomerByEmail: jest.fn(async () => [
@@ -401,7 +419,7 @@ describe("ANASTASIA × NEXUS — P0: Riadené spustenie e-mailov", () => {
 
       const res = await evaluateRecipientEligibility(
         { db, config: baseConfig },
-        { to: "odhláseny@priklad.sk", template: "newsletter-sk" }
+        { to: "odhláseny@priklad.sk", template: "order-placed-sk" }
       )
       expect(res.eligible).toBe(false)
       expect(res.reason).toBe("unsubscribed")
@@ -556,6 +574,224 @@ describe("ANASTASIA × NEXUS — P0: Riadené spustenie e-mailov", () => {
         channel: "email",
         template: "order-placed-sk",
         content: { subject: "Test", text: "Text" },
+      })
+
+      expect(result).toEqual({})
+      expect(fetchImpl).not.toHaveBeenCalled()
+    })
+  })
+
+  // --- 8. Povinný historický baseline pred aktiváciou ---
+  describe("Povinný historický baseline", () => {
+    it("chýbajúca tabuľka baseline: trvalé výnimky povolené, noví aj starí zákazníci zablokovaní", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        isBaselineReady: jest.fn(async () => ({ ready: false, error: "BASELINE_TABLE_MISSING" })),
+        getCustomerByEmail: jest.fn(async () => [
+          { id: "cus_new", email: "novy@priklad.sk", has_account: true, created_at: AFTER_CUTOFF },
+        ]),
+      }
+
+      // Trvalé výnimky prejdú
+      for (const email of ["zdravysvet.anastasiaoz@gmail.com", "lucia.rogozanova@gmail.com", "ceo@l-code-dynamics.com"]) {
+        const res = await evaluateRecipientEligibility({ db, config: baseConfig }, { to: email, template: "order-placed-sk" })
+        expect(res.eligible).toBe(true)
+        expect(res.reason).toBe("permanent_exception")
+      }
+
+      // Nový zákazník je zablokovaný kvôli baseline_not_ready
+      const resNew = await evaluateRecipientEligibility({ db, config: baseConfig }, { to: "novy@priklad.sk", template: "order-placed-sk" })
+      expect(resNew.eligible).toBe(false)
+      expect(resNew.reason).toBe("baseline_not_ready")
+      expect(resNew.details?.error).toBe("BASELINE_TABLE_MISSING")
+
+      // Historický zákazník je tiež zablokovaný
+      const resHist = await evaluateRecipientEligibility({ db, config: baseConfig }, { to: "stary@priklad.sk", template: "order-placed-sk" })
+      expect(resHist.eligible).toBe(false)
+      expect(resHist.reason).toBe("baseline_not_ready")
+    })
+
+    it("prázdna tabuľka baseline (count = 0): povolené len 3 trvalé výnimky", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        isBaselineReady: jest.fn(async () => ({ ready: false, count: 0, error: "BASELINE_EMPTY" })),
+        getCustomerByEmail: jest.fn(async () => [
+          { id: "cus_new", email: "novy@priklad.sk", has_account: true, created_at: AFTER_CUTOFF },
+        ]),
+      }
+
+      const resPerm = await evaluateRecipientEligibility({ db, config: baseConfig }, { to: "ceo@l-code-dynamics.com", template: "order-placed-sk" })
+      expect(resPerm.eligible).toBe(true)
+
+      const resOther = await evaluateRecipientEligibility({ db, config: baseConfig }, { to: "novy@priklad.sk", template: "order-placed-sk" })
+      expect(resOther.eligible).toBe(false)
+      expect(resOther.reason).toBe("baseline_not_ready")
+      expect(resOther.details?.error).toBe("BASELINE_EMPTY")
+    })
+
+    it("chyba pri kontrole baseline: fail-closed na baseline_not_ready pre bežných zákazníkov", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        isBaselineReady: jest.fn(async () => ({ ready: false, error: "BASELINE_QUERY_TIMEOUT" })),
+      }
+
+      const res = await evaluateRecipientEligibility({ db, config: baseConfig }, { to: "novy@priklad.sk", template: "order-placed-sk" })
+      expect(res.eligible).toBe(false)
+      expect(res.reason).toBe("baseline_not_ready")
+      expect(res.details?.error).toBe("BASELINE_QUERY_TIMEOUT")
+    })
+
+    it("chýbajúca implementácia isBaselineReady na adaptéri vráti baseline_not_ready", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        isBaselineReady: undefined,
+      }
+
+      const res = await evaluateRecipientEligibility({ db, config: baseConfig }, { to: "novy@priklad.sk", template: "order-placed-sk" })
+      expect(res.eligible).toBe(false)
+      expect(res.reason).toBe("baseline_not_ready")
+      expect(res.details?.error).toBe("BASELINE_CHECK_UNAVAILABLE")
+    })
+  })
+
+  // --- 9. Dynamický aktivačný cut-off (odstránenie časovej medzery) ---
+  describe("Dynamický aktivačný cut-off", () => {
+    const ACTIVATION_TIME = new Date("2026-11-09T14:30:00.000Z")
+    const IN_BETWEEN_TIME = new Date("2026-11-09T10:00:00.000Z") // po 00:00 UTC, ale PRED snapshotom
+    const AFTER_ACTIVATION = new Date("2026-11-09T15:00:00.000Z") // po snapshote
+
+    it("zákazník vytvorený medzi statickým cutoffom a reálnym snapshotom je zablokovaný ako historický", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        getBaselineCutoff: jest.fn(async () => ACTIVATION_TIME),
+        getCustomerByEmail: jest.fn(async () => [
+          { id: "cus_gap", email: "gap@priklad.sk", has_account: true, created_at: IN_BETWEEN_TIME },
+        ]),
+      }
+
+      const res = await evaluateRecipientEligibility(
+        { db, config: baseConfig },
+        { to: "gap@priklad.sk", template: "order-placed-sk" }
+      )
+      expect(res.eligible).toBe(false)
+      expect(res.reason).toBe("historical_customer")
+    })
+
+    it("zákazník vytvorený po reálnom okamihu aktivácie je povolený ako nový", async () => {
+      const db: PolicyDatabaseAdapter = {
+        ...defaultMockDb,
+        getBaselineCutoff: jest.fn(async () => ACTIVATION_TIME),
+        getCustomerByEmail: jest.fn(async () => [
+          { id: "cus_after", email: "after@priklad.sk", has_account: true, created_at: AFTER_ACTIVATION },
+        ]),
+      }
+
+      const res = await evaluateRecipientEligibility(
+        { db, config: baseConfig },
+        { to: "after@priklad.sk", template: "order-placed-sk" }
+      )
+      expect(res.eligible).toBe(true)
+      expect(res.reason).toBe("verified_new_customer")
+    })
+  })
+
+  // --- 10. Provider kontrola priamych volaní (Bypass & Marketing prevencia) ---
+  describe("Notification Provider priame volania a bypass prevencia", () => {
+    const originalEnv = { ...process.env }
+    const logger = { info: jest.fn(), error: jest.fn(), warn: jest.fn() } as any
+
+    afterEach(() => {
+      process.env = { ...originalEnv }
+    })
+
+    it("priame volanie providera bez _controlled_launch_verified potlačí odoslanie neoprávnenému adresátovi", async () => {
+      process.env.EMAIL_CONTROLLED_LAUNCH = "1"
+      const fetchImpl = jest.fn()
+
+      const service = new ResendNotificationService(
+        { logger },
+        { apiKey: "re_test_key_12345", fromEmail: "noreply@anastasiaoz.eu" },
+        fetchImpl as any
+      )
+
+      const result = await service.send({
+        to: "priamy.bypass@priklad.sk",
+        channel: "email",
+        template: "order-placed-sk",
+        content: { subject: "Test", text: "Text" },
+        data: {}, // chýba _controlled_launch_verified: true
+      })
+
+      expect(result).toEqual({})
+      expect(fetchImpl).not.toHaveBeenCalled()
+    })
+
+    it("priame volanie providera s _controlled_launch_verified=true odošle správu cez provider", async () => {
+      process.env.EMAIL_CONTROLLED_LAUNCH = "1"
+      const fetchImpl = jest.fn(async () => ({
+        status: 200,
+        json: async () => ({ id: "resend_verified_456" }),
+      }))
+
+      const service = new ResendNotificationService(
+        { logger },
+        { apiKey: "re_test_key_12345", fromEmail: "noreply@anastasiaoz.eu" },
+        fetchImpl as any
+      )
+
+      const result = await service.send({
+        to: "novy.overeny@priklad.sk",
+        channel: "email",
+        template: "order-placed-sk",
+        content: { subject: "Test", text: "Text" },
+        data: { _controlled_launch_verified: true },
+      })
+
+      expect(result.id).toBe("resend_verified_456")
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+    })
+
+    it("trvalé výnimky sa odošlú priamo aj bez _controlled_launch_verified príznaku", async () => {
+      process.env.EMAIL_CONTROLLED_LAUNCH = "1"
+      const fetchImpl = jest.fn(async () => ({
+        status: 200,
+        json: async () => ({ id: "resend_perm_ok" }),
+      }))
+
+      const service = new ResendNotificationService(
+        { logger },
+        { apiKey: "re_test_key_12345", fromEmail: "noreply@anastasiaoz.eu" },
+        fetchImpl as any
+      )
+
+      for (const email of ["zdravysvet.anastasiaoz@gmail.com", "lucia.rogozanova@gmail.com", "ceo@l-code-dynamics.com"]) {
+        const result = await service.send({
+          to: email,
+          channel: "email",
+          template: "order-placed-sk",
+          content: { subject: "Test", text: "Text" },
+        })
+        expect(result.id).toBe("resend_perm_ok")
+      }
+      expect(fetchImpl).toHaveBeenCalledTimes(3)
+    })
+
+    it("priame odoslanie marketingového newslettera je v riadenom režime zablokované priamo v provideri", async () => {
+      process.env.EMAIL_CONTROLLED_LAUNCH = "1"
+      const fetchImpl = jest.fn()
+
+      const service = new ResendNotificationService(
+        { logger },
+        { apiKey: "re_test_key_12345", fromEmail: "noreply@anastasiaoz.eu" },
+        fetchImpl as any
+      )
+
+      const result = await service.send({
+        to: "ktokolvek@priklad.sk",
+        channel: "email",
+        template: "newsletter-campaign",
+        content: { subject: "Novinky", text: "Text" },
+        data: { _controlled_launch_verified: true },
       })
 
       expect(result).toEqual({})

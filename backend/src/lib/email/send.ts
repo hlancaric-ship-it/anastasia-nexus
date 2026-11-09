@@ -143,6 +143,8 @@ export async function sendEmail(container: Container, input: SendEmailInput): Pr
       })
       return { status: "disabled" }
     }
+    // Označenie, že notifikácia prešla cez kontrolu riadeného spustenia (ochrana pred bypassom)
+    ;(data as any)._controlled_launch_verified = true
   } else if (!isPermanentAllowed(input.to)) {
     if (medusaEmails && !recipientAllowed(input.to, emailRecipientAllowlist(deploy))) {
       await recordEvent(container as MedusaContainer, "info", "notification", "send_suppressed", { ...fields, reason: "recipient_not_allowlisted" })

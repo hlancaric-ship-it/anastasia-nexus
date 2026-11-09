@@ -123,4 +123,64 @@ describe("odosielanie kampane", () => {
     expect(safeDeliveryError(new Error("x".repeat(400))).length).toBe(200)
     expect(safeDeliveryError(null)).toBe("send_failed")
   })
+
+  describe("Controlled Email Launch ochrana pred newsletter bypassom", () => {
+    const originalEnv = { ...process.env }
+
+    afterEach(() => {
+      process.env = { ...originalEnv }
+    })
+
+    it("počas EMAIL_CONTROLLED_LAUNCH=1 neodošle žiadny newsletter a označí položky ako skipped", async () => {
+      process.env.EMAIL_CONTROLLED_LAUNCH = "1"
+
+      const s = store([row({ email: "jana@example.test" }), row({ id: "nld_2", email: "peter@example.test" })])
+      const mail = notification()
+
+      const summary = await sendPendingNewsletterDeliveries({
+        store: s.api,
+        notification: mail,
+        secret: SECRET,
+        baseUrl: BASE,
+        batch: 40,
+        dailyLimit: 90,
+      })
+
+      expect(summary.sent).toBe(0)
+      expect(summary.suppressed).toBe(2)
+      expect(mail.createNotifications).not.toHaveBeenCalled()
+      expect(s.marks[0]?.patch).toMatchObject({
+        status: "skipped",
+        error: "controlled_launch_marketing_disabled",
+      })
+      expect(s.marks[1]?.patch).toMatchObject({
+        status: "skipped",
+        error: "controlled_launch_marketing_disabled",
+      })
+    })
+
+    it("pri NEWSLETTER_CAMPAIGNS_DISABLED=1 neodošle žiadny newsletter", async () => {
+      process.env.NEWSLETTER_CAMPAIGNS_DISABLED = "1"
+
+      const s = store([row({ email: "jana@example.test" })])
+      const mail = notification()
+
+      const summary = await sendPendingNewsletterDeliveries({
+        store: s.api,
+        notification: mail,
+        secret: SECRET,
+        baseUrl: BASE,
+        batch: 40,
+        dailyLimit: 90,
+      })
+
+      expect(summary.sent).toBe(0)
+      expect(summary.suppressed).toBe(1)
+      expect(mail.createNotifications).not.toHaveBeenCalled()
+      expect(s.marks[0]?.patch).toMatchObject({
+        status: "skipped",
+        error: "controlled_launch_marketing_disabled",
+      })
+    })
+  })
 })
