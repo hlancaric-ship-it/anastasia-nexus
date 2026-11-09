@@ -27,7 +27,7 @@ const extensionOf = name => {
 export async function mountLibraryEditor(host, {api, productId}) {
   let saved = null, rows = [], page = 0, unavailable = true, purchases = null;
   let uploads = [], message = '';
-  const size = 50, path = `/admin/products/${encodeURIComponent(productId)}/protected-media`;
+  const size = 5, path = `/admin/products/${encodeURIComponent(productId)}/protected-media`;
   const dirty = () => saved && JSON.stringify(rows.map(({key,title}) => ({key,title}))) !== JSON.stringify(saved.media.map(({key,title}) => ({key,title})));
 
   function draw(note = '') {
