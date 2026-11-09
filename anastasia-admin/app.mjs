@@ -1486,7 +1486,7 @@ async function vProductDetail(view, id, opts = {}) {
       { ok: chosenCh || !channels.length && inCh.size > 0, block: true, t: 'Predajný kanál' },
       { ok: !!view.querySelector('#p-ship')?.value || !profiles.length && !!curProfile, block: true, t: 'Typ produktu (doprava)' },
       { ok: !!variant?.sku || SKU_RE.test((view.querySelector('#p-sku')?.value || '').trim().toUpperCase()), block: true, t: 'Kód produktu (SKU)' },
-      { ok: images.length > 0, block: false, t: 'Obrázok' },
+      { ok: images.length > 0 || !!thumb, block: false, t: 'Obrázok' },
       { ok: chosenCat, block: false, t: 'Kategória' },
     ];
   };
