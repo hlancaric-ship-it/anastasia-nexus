@@ -24,7 +24,7 @@ if evidence_out:
         raise SystemExit('Evidence output must stay inside the checkout ci-evidence directory')
 # No inherited DB, cloud, mail, Stripe or NEXUS credentials.
 env = {k: os.environ[k] for k in ('PATH', 'TMPDIR', 'LANG', 'HOME', 'USER', 'LOGNAME') if k in os.environ}
-env.update({'NODE_ENV': 'test', 'MEDUSA_TELEMETRY_DISABLED': 'true', 'NO_COLOR': '1'})
+env.update({'NODE_ENV': 'test', 'MEDUSA_TELEMETRY_DISABLED': 'true', 'NO_COLOR': '1', 'ANASTASIA_BYPASS_RATE_LIMITS': '1'})
 env['WAVE1_BOOKING_ONLY'] = '1' if args.booking_only else '0'
 env['WAVE1_GIFT_VOUCHER_ONLY'] = '1' if args.gift_voucher_only else '0'
 # X1: syntetické verze právních textů (skutečné schvaluje vlastník textů).
