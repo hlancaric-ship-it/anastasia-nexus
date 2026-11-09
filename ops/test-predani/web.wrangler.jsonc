@@ -12,7 +12,7 @@
   // Worker len pre obrázky z administrácie (/backend-media/static/… → API_ORIGIN/static/…) a videá/hudbu s Range (/media/…).
   // Ostatné ide priamo zo statických assetov, aby platili hlavičky z _headers (CSP, noindex).
   "main": "../../storefront-prototype/edge/worker.mjs",
-  "build": { "command": "node check-public-media.mjs", "cwd": "storefront-prototype" },
+  "build": { "command": "node check-public-media.mjs", "cwd": "../../storefront-prototype" },
   "vars": { "API_ORIGIN": "https://anastasia-api.medusajs.app" },
   "assets": {
     "directory": "../../storefront-prototype/dist",

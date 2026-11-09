@@ -9,7 +9,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-WRANGLER="$ROOT/nexus/node_modules/.bin/wrangler"
+WRANGLER="${WRANGLER:-$(command -v wrangler || echo "$ROOT/nexus/node_modules/.bin/wrangler")}"
 WEB_HOST="anastasia-test.l-code-dynamics.com"
 ADMIN_HOST="anastasia-test-admin.l-code-dynamics.com"
 MODE="${1:-}"
