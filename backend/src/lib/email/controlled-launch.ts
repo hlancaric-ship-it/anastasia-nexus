@@ -129,9 +129,9 @@ export function createPgDatabaseAdapter(pg: any): PolicyDatabaseAdapter {
         })
         .andWhere("created_at", "<", cutoff)
         .whereNull("deleted_at")
-        .count<{ count: string | number }>("id as count")
+        .count("id as count")
         .first()
-      return Number(result?.count ?? 0)
+      return Number((result as any)?.count ?? 0)
     },
     async getPendingRegistration(emailSha: string) {
       try {
