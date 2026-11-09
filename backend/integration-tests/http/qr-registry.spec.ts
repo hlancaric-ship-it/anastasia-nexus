@@ -39,7 +39,7 @@ medusaIntegrationTestRunner({dbName:'anastasia_qr_ci',testSuite:({api,getContain
   const store={validateStatus:()=>true,headers:{'x-publishable-api-key':key.token}}
   const buyer=await syntheticBuyer(container,store,'qr-buyer@example.test')
   const [user]=await container.resolve(Modules.USER).createUsers([{email:'qr-admin@example.test'}])
-  const admin={validateStatus:()=>true,headers:{Authorization:`Bearer ${generateJwtToken({actor_id:user.id,actor_type:'user',auth_identity_id:'qr-synthetic',app_metadata:{user_id:user.id}},{secret:process.env.JWT_SECRET!,expiresIn:'1h'})}`}}
+  const admin={validateStatus:()=>true,headers:{Authorization:`Bearer ${generateJwtToken({actor_id:user.id,actor_type:'user',auth_identity_id:'qr-synthetic',session_epoch:0,app_metadata:{user_id:user.id}},{secret:process.env.JWT_SECRET!,expiresIn:'1h'})}`}}
   const {result:[product]}=await createProductsWorkflow(container).run({input:{products:[{title:'Synthetic QR product',handle:'synthetic-qr',status:'published',shipping_profile_id:profile.id,sales_channels:[{id:channel.id}],options:[{title:'Default',values:['Default']}],variants:[{title:'Default',sku:'QR-SYNTHETIC',manage_inventory:false,options:{Default:'Default'},prices:[{amount:50,currency_code:'eur'}]}]}]}})
   const promotions=container.resolve(Modules.PROMOTION)
   const promo=await promotions.createPromotions({code:'QR-SYNTHETIC10',type:'standard',status:'active',limit:20,application_method:{type:'percentage',value:10,target_type:'items',allocation:'across'}})
